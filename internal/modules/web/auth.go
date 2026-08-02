@@ -7,7 +7,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
@@ -127,7 +126,7 @@ func isAuthenticated(ctx fiber.Ctx) bool {
 		return false
 	}
 	p, err := route.LookupAccessToken(context.Background(), token)
-	if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
+	if err != nil || p.ID <= 0 || route.AccessTokenIsExpired(p) {
 		return false
 	}
 	paramKV := types.KV(p.Params)

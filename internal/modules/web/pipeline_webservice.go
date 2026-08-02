@@ -104,7 +104,7 @@ func buildPipelineListEntries(ctx context.Context, s *store.PipelineStore, defs 
 	if err != nil {
 		return nil, err
 	}
-	entries := partials.BuildPipelineListEntries(defs, lastRuns)
+	entries := partials.BuildPipelineListEntries(mapPipelineDefinitions(defs), lastRuns)
 	since := time.Now().Add(-7 * 24 * time.Hour)
 	stats, err := s.RunLatencyStatsByParentNames(ctx, names, since)
 	if err != nil {
@@ -534,7 +534,7 @@ func pipelineRunsPage(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return pages.PipelineRunsPage(name, runs).Render(context.Background(), c.Response().BodyWriter())
+	return pages.PipelineRunsPage(name, mapPipelineRuns(runs)).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func pipelineRunsTable(c fiber.Ctx) error {
@@ -548,7 +548,7 @@ func pipelineRunsTable(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineRunsTable(name, runs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineRunsTable(name, mapPipelineRuns(runs)).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func pipelineRunSteps(c fiber.Ctx) error {
@@ -562,7 +562,7 @@ func pipelineRunSteps(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get step runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineStepRunsDetail(steps).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineStepRunsDetail(mapPipelineStepRuns(steps)).Render(context.Background(), c.Response().BodyWriter())
 }
 
 // getCapabilities returns all registered capabilities with their operations

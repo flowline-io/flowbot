@@ -7,19 +7,14 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
-	"sync"
-
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/flog"
-
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/slash"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -113,14 +108,18 @@ func RunCommand(commandRules []command.Rule, ctx types.Context, content any) (ty
 }
 
 func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.MsgPayload, error) {
-	exForm, err := store.ModuleDataStoreFromDB().FormGet(ctx.Context(), ctx.FormId)
+	ds := getModuleDataStore()
+	if ds == nil {
+		return nil, types.ErrUnavailable
+	}
+	exForm, err := ds.FormGet(ctx.Context(), ctx.FormId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return nil, err
 	}
 	if exForm.ID == 0 {
 		return nil, nil
 	}
-	if exForm.State > int(schema.FormStateCreated) {
+	if exForm.State > int(types.FormStateCreated) {
 		return nil, nil
 	}
 
@@ -137,7 +136,7 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 		}
 	}
 	if !isLongTerm {
-		err = store.ModuleDataStoreFromDB().FormSet(ctx.Context(), ctx.FormId, gen.Form{Values: values, State: int(schema.FormStateSubmitSuccess)})
+		err = ds.FormSet(ctx.Context(), ctx.FormId, FormRecord{Values: values, State: int(types.FormStateSubmitSuccess)})
 		if err != nil {
 			return nil, err
 		}
@@ -234,14 +233,18 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 	extra["signature"] = sig
 
-	err = store.ModuleDataStoreFromDB().FormSet(ctx.Context(), formId, gen.Form{
+	ds := getModuleDataStore()
+	if ds == nil {
+		return types.TextMsg{Text: "store form error"}
+	}
+	err = ds.FormSet(ctx.Context(), formId, FormRecord{
 		FormID: formId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Topic,
 		Schema: s,
 		Values: values,
 		Extra:  extra,
-		State:  int(schema.FormStateCreated),
+		State:  int(types.FormStateCreated),
 	})
 	if err != nil {
 		flog.Error(err)
@@ -255,12 +258,20 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 }
 
 func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
+	ds := getModuleDataStore()
+	if ds == nil {
+		return "", types.ErrUnavailable
+	}
 	flag := types.Id()
-	return flag, store.ModuleDataStoreFromDB().ParameterSet(context.Background(), flag, params, expiredAt)
+	return flag, ds.ParameterSet(context.Background(), flag, params, expiredAt)
 }
 
 func SettingGet(ctx types.Context, id, key string) (types.KV, error) {
-	return store.ModuleDataStoreFromDB().ConfigGet(ctx.Context(), ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key))
+	ds := getModuleDataStore()
+	if ds == nil {
+		return nil, types.ErrUnavailable
+	}
+	return ds.ConfigGet(ctx.Context(), ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key))
 }
 
 func SettingMsg(ctx types.Context, id string) types.MsgPayload {
@@ -272,17 +283,21 @@ func Behavior(uid types.Uid, flag string, number int) {
 	if !ok {
 		return
 	}
-	b, err := store.ModuleDataStoreFromDB().BehaviorGet(context.Background(), uid, flag)
+	ds := getModuleDataStore()
+	if ds == nil {
+		return
+	}
+	b, err := ds.BehaviorGet(context.Background(), uid, flag)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return
 	}
 	if b.ID > 0 {
-		if err := store.ModuleDataStoreFromDB().BehaviorIncrease(context.Background(), uid, flag, number); err != nil {
+		if err := ds.BehaviorIncrease(context.Background(), uid, flag, number); err != nil {
 			flog.Warn("module: behavior increase %s/%s: %v", uid, flag, err)
 		}
 		return
 	}
-	if err := store.ModuleDataStoreFromDB().BehaviorSet(context.Background(), gen.Behavior{
+	if err := ds.BehaviorSet(context.Background(), BehaviorRecord{
 		UID:   uid.String(),
 		Flag:  flag,
 		Count: count,

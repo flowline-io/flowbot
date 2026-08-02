@@ -11,6 +11,7 @@ import (
 // OAuthModules registers all OAuth provider factories via fx.
 var OAuthModules = fx.Options(
 	fx.Invoke(
+		WireOAuthTokenStore,
 		github.Register,
 		slack.Register,
 		dropbox.Register,

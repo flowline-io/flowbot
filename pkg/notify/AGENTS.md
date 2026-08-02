@@ -11,6 +11,7 @@ When `channels` includes successful `inapp` delivery, other channels are recorde
 - Core: `notify.go` (`Register`, `Send`, `GatewaySend`), `types.go` (`Notifyer`), `presence.go`, `escalate.go`, `defaults.go` (`SeedInappChannel`, `DefaultInboxChannels`)
 - Engines: `template/`, `rules/` (templates/rules load from PostgreSQL, not YAML)
 - Channels: `pkg/notify/<name>/provider.go`; wire via `fx.Invoke` in `internal/server/notify.go`
+- Persistence: inject `NotifyRecords` / `NotifyConfigStore` / `NotifyUserConfig` via `SetNotify*` (`WireNotifyStores` in `internal/server/notify_store.go`); never import `internal/store`
 - System channel: `inapp` (seeded, not deletable)
 
 ```go

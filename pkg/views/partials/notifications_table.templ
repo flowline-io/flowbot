@@ -3,7 +3,7 @@ package partials
 import (
 	"strconv"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func statusBadgeClass(status string) string {
@@ -133,7 +133,7 @@ templ NotificationsTable(p NotificationHistoryParams) {
 	</div>
 }
 
-templ notificationHistoryRow(r *gen.NotificationRecord, group string) {
+templ notificationHistoryRow(r model.NotificationRecord, group string) {
 	<tr id={ "notify-row-" + strconv.FormatInt(r.ID, 10) }
 		class={ NotifyRecordRowClass(string(r.Status)) }
 		data-testid={ "notify-row-" + strconv.FormatInt(r.ID, 10) }

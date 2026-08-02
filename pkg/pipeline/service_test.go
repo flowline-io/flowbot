@@ -8,20 +8,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 type mockCatalog struct {
-	defs map[string]*gen.PipelineDefinition
-	runs map[string][]*gen.PipelineRun
+	defs map[string]*model.PipelineDefinition
+	runs map[string][]*model.PipelineRun
 }
 
 func newMockCatalog() *mockCatalog {
 	return &mockCatalog{
-		defs: map[string]*gen.PipelineDefinition{},
-		runs: map[string][]*gen.PipelineRun{},
+		defs: map[string]*model.PipelineDefinition{},
+		runs: map[string][]*model.PipelineRun{},
 	}
 }
 
@@ -29,19 +28,19 @@ func (m *mockCatalog) CreateDefinition(_ context.Context, name, description, cre
 	if _, ok := m.defs[name]; ok {
 		return types.ErrAlreadyExists
 	}
-	m.defs[name] = &gen.PipelineDefinition{
+	m.defs[name] = &model.PipelineDefinition{
 		ID:          1,
 		Name:        name,
 		Description: description,
 		YamlDraft:   "",
 		Version:     1,
-		Status:      pipelinedefinition.StatusDraft,
+		Status:      "draft",
 		CreatedBy:   createdBy,
 	}
 	return nil
 }
 
-func (m *mockCatalog) GetDefinitionByName(_ context.Context, name string) (*gen.PipelineDefinition, error) {
+func (m *mockCatalog) GetDefinitionByName(_ context.Context, name string) (*model.PipelineDefinition, error) {
 	def, ok := m.defs[name]
 	if !ok {
 		return nil, types.ErrNotFound
@@ -50,7 +49,7 @@ func (m *mockCatalog) GetDefinitionByName(_ context.Context, name string) (*gen.
 	return &cp, nil
 }
 
-func (m *mockCatalog) UpdateDefinitionDraft(_ context.Context, name, yamlDraft string, version int) (*gen.PipelineDefinition, error) {
+func (m *mockCatalog) UpdateDefinitionDraft(_ context.Context, name, yamlDraft string, version int) (*model.PipelineDefinition, error) {
 	def, ok := m.defs[name]
 	if !ok {
 		return nil, types.ErrNotFound
@@ -64,7 +63,7 @@ func (m *mockCatalog) UpdateDefinitionDraft(_ context.Context, name, yamlDraft s
 	return &cp, nil
 }
 
-func (m *mockCatalog) PublishDefinition(_ context.Context, name string, version int) (*gen.PipelineDefinition, error) {
+func (m *mockCatalog) PublishDefinition(_ context.Context, name string, version int) (*model.PipelineDefinition, error) {
 	def, ok := m.defs[name]
 	if !ok {
 		return nil, types.ErrNotFound
@@ -77,7 +76,7 @@ func (m *mockCatalog) PublishDefinition(_ context.Context, name string, version 
 	}
 	published := def.YamlDraft
 	def.YamlPublished = &published
-	def.Status = pipelinedefinition.StatusPublished
+	def.Status = "published"
 	def.Version++
 	cp := *def
 	return &cp, nil
@@ -120,7 +119,7 @@ func (m *mockCatalog) ListPublishedDefinitions(_ context.Context) ([]DefinitionR
 	return out, nil
 }
 
-func (m *mockCatalog) GetRunsByParentName(_ context.Context, parentName string) ([]*gen.PipelineRun, error) {
+func (m *mockCatalog) GetRunsByParentName(_ context.Context, parentName string) ([]*model.PipelineRun, error) {
 	return m.runs[parentName], nil
 }
 
@@ -162,7 +161,7 @@ type conflictOnUpdateCatalog struct {
 	*mockCatalog
 }
 
-func (*conflictOnUpdateCatalog) UpdateDefinitionDraft(context.Context, string, string, int) (*gen.PipelineDefinition, error) {
+func (*conflictOnUpdateCatalog) UpdateDefinitionDraft(context.Context, string, string, int) (*model.PipelineDefinition, error) {
 	return nil, types.ErrConflict
 }
 
@@ -205,7 +204,7 @@ steps: []
 `
 	_, err := svc.ApplyYAML(context.Background(), []byte(yamlText), "")
 	require.NoError(t, err)
-	cat.runs["del_pipe"] = []*gen.PipelineRun{{ID: 9, PipelineName: "del_pipe__trigger_event_0"}}
+	cat.runs["del_pipe"] = []*model.PipelineRun{{ID: 9, PipelineName: "del_pipe__trigger_event_0"}}
 
 	runs, err := svc.ListRuns(context.Background(), "del_pipe")
 	require.NoError(t, err)

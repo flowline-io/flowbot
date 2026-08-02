@@ -5,13 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/tidwall/gjson"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -27,6 +26,30 @@ type OAuthToken struct {
 	TokenType    string     `json:"token_type,omitempty"`
 	Scope        string     `json:"scope,omitempty"`
 	Extra        any        `json:"extra,omitempty"`
+}
+
+// OAuthTokenStore persists OAuth tokens without exposing ORM types.
+type OAuthTokenStore interface {
+	Get(ctx context.Context, uid types.Uid, topic, provider string) (*OAuthToken, error)
+	Set(ctx context.Context, uid types.Uid, topic string, token *OAuthToken) error
+}
+
+var (
+	oauthTokenStoreMu sync.RWMutex
+	oauthTokenStore   OAuthTokenStore
+)
+
+// SetOAuthTokenStore wires the persistence backend used by GetOrRefreshToken.
+func SetOAuthTokenStore(s OAuthTokenStore) {
+	oauthTokenStoreMu.Lock()
+	defer oauthTokenStoreMu.Unlock()
+	oauthTokenStore = s
+}
+
+func getOAuthTokenStore() OAuthTokenStore {
+	oauthTokenStoreMu.RLock()
+	defer oauthTokenStoreMu.RUnlock()
+	return oauthTokenStore
 }
 
 // OAuthProvider defines the interface for OAuth authorization providers.
@@ -78,12 +101,17 @@ func GetOAuthProvider(name string) (OAuthProvider, error) {
 // OAuthRefresher, it automatically refreshes the token and persists the
 // updated values before returning the fresh token.
 func GetOrRefreshToken(ctx context.Context, uid types.Uid, topic, t string) (*OAuthToken, error) {
-	oauth, err := store.ModuleDataStoreFromDB().OAuthGet(ctx, uid, topic, t)
+	store := getOAuthTokenStore()
+	if store == nil {
+		return nil, fmt.Errorf("providers: oauth token store is not configured")
+	}
+
+	oauth, err := store.Get(ctx, uid, topic, t)
 	if err != nil {
 		return nil, err
 	}
 
-	if !oauth.ExpiresAt.IsZero() && time.Now().After(oauth.ExpiresAt) {
+	if oauth.ExpiresAt != nil && time.Now().After(*oauth.ExpiresAt) {
 		provider, err := GetOAuthProvider(t)
 		if err != nil {
 			return nil, err
@@ -96,59 +124,33 @@ func GetOrRefreshToken(ctx context.Context, uid types.Uid, topic, t string) (*OA
 		if err != nil {
 			return nil, err
 		}
-
-		// Update the gen.OAuth record with refreshed values.
-		oauth.Token = newToken.AccessToken
-		if newToken.RefreshToken != "" {
-			oauth.RefreshToken = newToken.RefreshToken
+		if newToken.Type == "" {
+			newToken.Type = t
 		}
-		if newToken.ExpiresAt != nil {
-			oauth.ExpiresAt = *newToken.ExpiresAt
+		if newToken.Name == "" {
+			newToken.Name = oauth.Name
 		}
-		if newToken.Extra != nil {
-			if m, ok := newToken.Extra.(map[string]any); ok {
-				oauth.Extra = m
-			} else {
-				oauth.Extra = map[string]any{"extra": newToken.Extra}
-			}
-		}
-
-		if err := store.ModuleDataStoreFromDB().OAuthSet(ctx, oauth); err != nil {
+		if err := store.Set(ctx, uid, topic, newToken); err != nil {
 			flog.Warn("providers: failed to persist refreshed oauth token for %s: %v", t, err)
 		}
 		return newToken, nil
 	}
 
-	return oauthToToken(oauth), nil
+	return oauth, nil
 }
 
-// oauthToToken converts a gen.OAuth database record to an OAuthToken.
-func oauthToToken(o gen.OAuth) *OAuthToken {
-	var expiresAt *time.Time
-	if !o.ExpiresAt.IsZero() {
-		t := o.ExpiresAt
-		expiresAt = &t
-	}
-	return &OAuthToken{
-		Name:         o.Name,
-		Type:         o.Type,
-		AccessToken:  o.Token,
-		RefreshToken: o.RefreshToken,
-		ExpiresAt:    expiresAt,
-		TokenType:    o.TokenType,
-		Scope:        o.Scope,
-		Extra:        o.Extra,
-	}
-}
-
+// RedirectURI builds the OAuth callback path for a provider and flag.
 func RedirectURI(name, flag string) string {
 	return fmt.Sprintf("%s/oauth/%s/%s", types.AppUrl(), name, flag)
 }
 
+// Configs holds raw provider configuration JSON.
 var Configs json.RawMessage
 
+// ErrMissingConfig is returned when provider configs have not been loaded.
 var ErrMissingConfig = fmt.Errorf("provider configs are empty")
 
+// GetConfig reads a nested config value for the named provider.
 func GetConfig(name, key string) (gjson.Result, error) {
 	if len(Configs) == 0 {
 		return gjson.Result{}, ErrMissingConfig

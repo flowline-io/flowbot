@@ -13,23 +13,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 type mockPipelineStore struct {
 	mu                   sync.Mutex
-	runs                 map[int64]*gen.PipelineRun
-	stepRuns             map[int64]*gen.PipelineStepRun
+	runs                 map[int64]*model.PipelineRun
+	stepRuns             map[int64]*model.PipelineStepRun
 	checkpoints          map[int64]*CheckpointData
 	consumed             map[string]map[string]bool
-	links                []*gen.ResourceLink
+	links                []model.ResourceLink
 	nextRunID            int64
 	nextStepID           int64
 	heartbeats           int
@@ -41,27 +39,27 @@ type mockPipelineStore struct {
 
 func newMockPipelineStore() *mockPipelineStore {
 	return &mockPipelineStore{
-		runs:        make(map[int64]*gen.PipelineRun),
-		stepRuns:    make(map[int64]*gen.PipelineStepRun),
+		runs:        make(map[int64]*model.PipelineRun),
+		stepRuns:    make(map[int64]*model.PipelineStepRun),
 		checkpoints: make(map[int64]*CheckpointData),
 		consumed:    make(map[string]map[string]bool),
 	}
 }
 
-func (m *mockPipelineStore) CreateRun(_ context.Context, pipelineName, eventID, eventType, triggerSource string) (*gen.PipelineRun, error) {
+func (m *mockPipelineStore) CreateRun(_ context.Context, pipelineName, eventID, eventType, triggerSource string) (*model.PipelineRun, error) {
 	if m.createRunErr != nil {
 		return nil, m.createRunErr
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextRunID++
-	run := &gen.PipelineRun{
+	run := &model.PipelineRun{
 		ID:            m.nextRunID,
 		PipelineName:  pipelineName,
 		EventID:       eventID,
 		EventType:     eventType,
-		TriggerSource: pipelinerun.TriggerSource(triggerSource),
-		Status:        int(schema.PipelineStart),
+		TriggerSource: triggerSource,
+		Status:        int(types.PipelineStart),
 	}
 	m.runs[run.ID] = run
 	return run, nil
@@ -77,19 +75,18 @@ func (m *mockPipelineStore) UpdateRunStatus(_ context.Context, runID int64, stat
 	return nil
 }
 
-func (m *mockPipelineStore) CreateStepRun(_ context.Context, runID int64, stepName, capName, operation string, params map[string]any, attempt int) (*gen.PipelineStepRun, error) {
+func (m *mockPipelineStore) CreateStepRun(_ context.Context, _ int64, stepName, capName, operation string, params map[string]any, attempt int) (*model.PipelineStepRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextStepID++
-	sr := &gen.PipelineStepRun{
-		ID:            m.nextStepID,
-		PipelineRunID: runID,
-		StepName:      stepName,
-		Capability:    capName,
-		Operation:     operation,
-		Params:        params,
-		Attempt:       attempt,
-		Status:        int(schema.PipelineStart),
+	sr := &model.PipelineStepRun{
+		ID:         m.nextStepID,
+		StepName:   stepName,
+		Capability: capName,
+		Operation:  operation,
+		Params:     params,
+		Attempt:    attempt,
+		Status:     int(types.PipelineStart),
 	}
 	m.stepRuns[sr.ID] = sr
 	return sr, nil
@@ -119,7 +116,7 @@ func (m *mockPipelineStore) SaveCheckpoint(_ context.Context, runID int64, data 
 	return nil
 }
 
-func (m *mockPipelineStore) GetIncompleteRuns(context.Context) ([]*gen.PipelineRun, error) {
+func (m *mockPipelineStore) GetIncompleteRuns(context.Context) ([]*model.PipelineRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return nil, nil
@@ -140,7 +137,7 @@ func (m *mockPipelineStore) GetCheckpoint(_ context.Context, runID int64, target
 	return nil
 }
 
-func (m *mockPipelineStore) GetRun(_ context.Context, runID int64) (*gen.PipelineRun, error) {
+func (m *mockPipelineStore) GetRun(_ context.Context, runID int64) (*model.PipelineRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	run, ok := m.runs[runID]
@@ -185,7 +182,7 @@ func (m *mockPipelineStore) RecordConsumption(_ context.Context, consumerName, e
 	return nil
 }
 
-func (m *mockPipelineStore) RecordResourceLink(_ context.Context, link *gen.ResourceLink) error {
+func (m *mockPipelineStore) RecordResourceLink(_ context.Context, link model.ResourceLink) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.links = append(m.links, link)
@@ -856,25 +853,25 @@ func TestEngine_FinishRunRecord(t *testing.T) {
 			name:       "success marks done",
 			failed:     false,
 			finalErr:   nil,
-			wantStatus: int(schema.PipelineDone),
+			wantStatus: int(types.PipelineDone),
 		},
 		{
 			name:       "business failure marks failed",
 			failed:     true,
 			finalErr:   errors.New("template test not found"),
-			wantStatus: int(schema.PipelineFailed),
+			wantStatus: int(types.PipelineFailed),
 		},
 		{
 			name:       "context canceled marks cancelled",
 			failed:     true,
 			finalErr:   context.Canceled,
-			wantStatus: int(schema.PipelineCancel),
+			wantStatus: int(types.PipelineCancel),
 		},
 		{
 			name:       "deadline exceeded marks cancelled",
 			failed:     true,
 			finalErr:   context.DeadlineExceeded,
-			wantStatus: int(schema.PipelineCancel),
+			wantStatus: int(types.PipelineCancel),
 		},
 	}
 	for _, tt := range tests {
@@ -896,31 +893,31 @@ func TestTerminalStatusFromError(t *testing.T) {
 	tests := []struct {
 		name            string
 		err             error
-		wantStatus      schema.PipelineState
+		wantStatus      types.PipelineState
 		wantMetricLabel string
 	}{
 		{
 			name:            "nil error is failed",
 			err:             nil,
-			wantStatus:      schema.PipelineFailed,
+			wantStatus:      types.PipelineFailed,
 			wantMetricLabel: "failed",
 		},
 		{
 			name:            "business error is failed",
 			err:             errors.New("template test not found"),
-			wantStatus:      schema.PipelineFailed,
+			wantStatus:      types.PipelineFailed,
 			wantMetricLabel: "failed",
 		},
 		{
 			name:            "context canceled is cancelled",
 			err:             context.Canceled,
-			wantStatus:      schema.PipelineCancel,
+			wantStatus:      types.PipelineCancel,
 			wantMetricLabel: "cancel",
 		},
 		{
 			name:            "wrapped deadline exceeded is cancelled",
 			err:             fmt.Errorf("step message cancelled: %w", context.DeadlineExceeded),
-			wantStatus:      schema.PipelineCancel,
+			wantStatus:      types.PipelineCancel,
 			wantMetricLabel: "cancel",
 		},
 	}
@@ -966,17 +963,17 @@ func TestEngine_ExecuteStepFailureRecordsMetrics(t *testing.T) {
 		{
 			name:       "business failure marks step failed",
 			invokeErr:  errors.New("invoke failed"),
-			wantStatus: int(schema.PipelineFailed),
+			wantStatus: int(types.PipelineFailed),
 		},
 		{
 			name:       "context canceled marks step cancelled",
 			invokeErr:  context.Canceled,
-			wantStatus: int(schema.PipelineCancel),
+			wantStatus: int(types.PipelineCancel),
 		},
 		{
 			name:       "deadline exceeded marks step cancelled",
 			invokeErr:  context.DeadlineExceeded,
-			wantStatus: int(schema.PipelineCancel),
+			wantStatus: int(types.PipelineCancel),
 		},
 	}
 	for _, tt := range tests {

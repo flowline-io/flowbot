@@ -251,7 +251,7 @@ func formAccessTokenAuthorized(raw string) bool {
 		return false
 	}
 	p, err := route.LookupAccessToken(context.Background(), raw)
-	if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
+	if err != nil || p.ID <= 0 || route.AccessTokenIsExpired(p) {
 		return false
 	}
 	paramKV := types.KV(p.Params)

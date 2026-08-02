@@ -9,14 +9,14 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"time"
 )
 
 type RelationDetailParams struct {
 	Type string // "node" or "edge"
-	Node schema.ResourceRef
-	Edge schema.ResourceEdge
+	Node types.ResourceRef
+	Edge types.ResourceEdge
 }
 
 func RelationDetail(p RelationDetailParams) templ.Component {

@@ -11,7 +11,6 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -89,7 +88,7 @@ func UploadSessionMedia(ctx context.Context, sessionID, ownerUID, filename, mime
 	if err != nil {
 		return MediaUploadResult{}, err
 	}
-	if store.FileSystem == nil {
+	if media.FileSystem == nil {
 		return MediaUploadResult{}, types.Errorf(types.ErrInvalidArgument, "media handler is not configured")
 	}
 	if size <= 0 {
@@ -102,7 +101,7 @@ func UploadSessionMedia(ctx context.Context, sessionID, ownerUID, filename, mime
 		Size:      size,
 		User:      ownerUID,
 	}
-	_, written, err := store.FileSystem.Upload(fdef, r)
+	_, written, err := media.FileSystem.Upload(fdef, r)
 	if err != nil {
 		return MediaUploadResult{}, fmt.Errorf("upload media: %w", err)
 	}
@@ -181,7 +180,7 @@ func OpenSessionMedia(ctx context.Context, sessionID, ownerUID, fileID string) (
 	if binding.Owner != "" && ownerUID != "" && binding.Owner != ownerUID {
 		return "", nil, types.Errorf(types.ErrForbidden, "media file does not belong to caller")
 	}
-	accessor, ok := media.AsAccessor(store.FileSystem)
+	accessor, ok := media.AsAccessor(media.FileSystem)
 	if !ok || accessor == nil {
 		return "", nil, types.Errorf(types.ErrUnavailable, "media handler is not configured")
 	}
@@ -214,7 +213,7 @@ func RejectUnsupportedModalities(modelName string, parts []msg.ContentPart) erro
 
 // PrepareMediaForProvider fills MediaPart URL or Data for ConvertToLLM based on provider capabilities.
 func PrepareMediaForProvider(ctx context.Context, provider string, messages []msg.AgentMessage) ([]msg.AgentMessage, error) {
-	accessor, ok := media.AsAccessor(store.FileSystem)
+	accessor, ok := media.AsAccessor(media.FileSystem)
 	if !ok || accessor == nil {
 		return messages, nil
 	}

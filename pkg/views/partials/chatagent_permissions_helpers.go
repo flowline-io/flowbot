@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // PermissionKeyMeta describes one editable permission key for the web form.
@@ -57,7 +57,7 @@ var permissionKeyCatalog = []PermissionKeyMeta{
 }
 
 // BuildPermissionFormFields builds form rows from a permissions API view.
-func BuildPermissionFormFields(view chatagent.PermissionsView) []PermissionFormField {
+func BuildPermissionFormFields(view model.PermissionsView) []PermissionFormField {
 	fields := make([]PermissionFormField, 0, len(permissionKeyCatalog))
 	for _, meta := range permissionKeyCatalog {
 		field := PermissionFormField{

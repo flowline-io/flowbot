@@ -29,6 +29,7 @@ var NotifyModules = fx.Options(
 		pushover.Register,
 		slack.Register,
 		inapp.Register,
+		WireNotifyStores,
 		initNotificationGateway,
 	),
 )

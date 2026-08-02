@@ -15,15 +15,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	pkgworkflow "github.com/flowline-io/flowbot/pkg/workflow"
 )
 
 type handlerCatalog struct {
 	meta map[string]*types.WorkflowMetadata
-	defs []*gen.Workflow
+	defs []*model.Workflow
 }
 
 func (c *handlerCatalog) GetMetadata(_ context.Context, name string) (*types.WorkflowMetadata, error) {
@@ -34,17 +34,17 @@ func (c *handlerCatalog) GetMetadata(_ context.Context, name string) (*types.Wor
 	return meta, nil
 }
 
-func (c *handlerCatalog) ApplyDefinition(_ context.Context, meta *types.WorkflowMetadata) (*gen.Workflow, error) {
+func (c *handlerCatalog) ApplyDefinition(_ context.Context, meta *types.WorkflowMetadata) (*model.Workflow, error) {
 	if meta == nil || meta.Name == "" {
 		return nil, errors.New("invalid meta")
 	}
-	row := &gen.Workflow{ID: 7, Name: meta.Name, Enabled: meta.Enabled, Describe: meta.Describe}
+	row := &model.Workflow{ID: 7, Name: meta.Name, Enabled: meta.Enabled, Describe: meta.Describe}
 	c.meta[meta.Name] = meta
 	c.defs = append(c.defs, row)
 	return row, nil
 }
 
-func (c *handlerCatalog) ListDefinitions(context.Context) ([]*gen.Workflow, error) {
+func (c *handlerCatalog) ListDefinitions(context.Context) ([]*model.Workflow, error) {
 	return c.defs, nil
 }
 
@@ -60,17 +60,17 @@ func (c *handlerCatalog) DeleteDefinitionByName(_ context.Context, name string) 
 	return nil
 }
 
-func (*handlerCatalog) ListRunsByName(context.Context, string) ([]*gen.WorkflowRun, error) {
+func (*handlerCatalog) ListRunsByName(context.Context, string) ([]*model.WorkflowRun, error) {
 	return nil, nil
 }
 
 type handlerRunStore struct {
 	mu     sync.Mutex
 	nextID int64
-	runs   []*gen.WorkflowRun
+	runs   []*model.WorkflowRun
 }
 
-func (s *handlerRunStore) CreateRun(_ context.Context, workflowID int64, workflowName, workflowFile, triggerType string, _, inputParams map[string]any) (*gen.WorkflowRun, error) {
+func (s *handlerRunStore) CreateRun(_ context.Context, workflowID int64, workflowName, _, triggerType string, _, inputParams map[string]any) (*model.WorkflowRun, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.nextID++
@@ -78,31 +78,29 @@ func (s *handlerRunStore) CreateRun(_ context.Context, workflowID int64, workflo
 	if workflowID != 0 {
 		wfID = &workflowID
 	}
-	run := &gen.WorkflowRun{
+	run := &model.WorkflowRun{
 		ID:           s.nextID,
 		WorkflowID:   wfID,
 		WorkflowName: workflowName,
-		WorkflowFile: workflowFile,
 		TriggerType:  triggerType,
-		InputParams:  inputParams,
 	}
 	s.runs = append(s.runs, run)
 	return run, nil
 }
 
 func (*handlerRunStore) UpdateRunStatus(context.Context, int64, int, string) error { return nil }
-func (*handlerRunStore) CreateStepRun(context.Context, int64, string, string, string, string, map[string]any, int) (*gen.WorkflowStepRun, error) {
+func (*handlerRunStore) CreateStepRun(context.Context, int64, string, string, string, string, map[string]any, int) (*model.WorkflowStepRun, error) {
 	return nil, nil
 }
 func (*handlerRunStore) UpdateStepRun(context.Context, int64, int, map[string]any, string, int) error {
 	return nil
 }
 func (*handlerRunStore) SaveCheckpoint(context.Context, int64, any) error { return nil }
-func (*handlerRunStore) GetIncompleteRuns(context.Context) ([]*gen.WorkflowRun, error) {
+func (*handlerRunStore) GetIncompleteRuns(context.Context) ([]*model.WorkflowRun, error) {
 	return nil, nil
 }
 func (*handlerRunStore) GetCheckpoint(context.Context, int64, any) error { return nil }
-func (*handlerRunStore) GetRun(context.Context, int64) (*gen.WorkflowRun, error) {
+func (*handlerRunStore) GetRun(context.Context, int64) (*model.WorkflowRun, error) {
 	return nil, types.Errorf(types.ErrNotFound, "run")
 }
 func (*handlerRunStore) UpdateRunHeartbeat(context.Context, int64) error { return nil }
@@ -144,7 +142,6 @@ func newWorkflowHandlerApp() *fiber.App {
 	app.Get("/service/workflow/runs/:name", listWorkflowRuns)
 	return app
 }
-
 func TestWorkflowHandlers(t *testing.T) {
 	echoYAML := `
 name: handler-echo

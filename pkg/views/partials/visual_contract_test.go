@@ -8,8 +8,6 @@ import (
 
 	"github.com/a-h/templ"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
@@ -114,10 +112,8 @@ func TestPipelineListUsesChipsNotBadges(t *testing.T) {
 			name: "published uses chip success",
 			entries: []partials.PipelineListEntry{
 				{
-					Definition: &gen.PipelineDefinition{
-						Name:   "demo",
-						Status: pipelinedefinition.StatusPublished,
-					},
+					Name:    "demo",
+					Status:  "published",
 					Enabled: true,
 				},
 			},
@@ -128,10 +124,8 @@ func TestPipelineListUsesChipsNotBadges(t *testing.T) {
 			name: "draft uses chip muted",
 			entries: []partials.PipelineListEntry{
 				{
-					Definition: &gen.PipelineDefinition{
-						Name:   "draft-one",
-						Status: pipelinedefinition.StatusDraft,
-					},
+					Name:    "draft-one",
+					Status:  "draft",
 					Enabled: false,
 				},
 			},
@@ -142,10 +136,8 @@ func TestPipelineListUsesChipsNotBadges(t *testing.T) {
 			name: "shows triggers and steps columns",
 			entries: []partials.PipelineListEntry{
 				{
-					Definition: &gen.PipelineDefinition{
-						Name:   "with-triggers",
-						Status: pipelinedefinition.StatusPublished,
-					},
+					Name:      "with-triggers",
+					Status:    "published",
 					Enabled:   true,
 					StepCount: 3,
 					Triggers: []partials.PipelineTriggerSummary{
@@ -161,10 +153,8 @@ func TestPipelineListUsesChipsNotBadges(t *testing.T) {
 			name: "run history action links to runs page",
 			entries: []partials.PipelineListEntry{
 				{
-					Definition: &gen.PipelineDefinition{
-						Name:   "demo-pipeline",
-						Status: pipelinedefinition.StatusDraft,
-					},
+					Name:   "demo-pipeline",
+					Status: "draft",
 				},
 			},
 			want:   `data-testid="pipeline-runs-link-demo-pipeline"`,

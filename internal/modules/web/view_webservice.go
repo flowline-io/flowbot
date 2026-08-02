@@ -85,7 +85,7 @@ func preFetchPipelineData(ctx context.Context, pipeStore *store.PipelineStore, d
 		flog.Error(fmt.Errorf("preFetchPipelineData: GetStepRunsByRunID: %w", err))
 		return data
 	}
-	data["steps"] = steps
+	data["steps"] = mapPipelineStepRuns(steps)
 	return data
 }
 

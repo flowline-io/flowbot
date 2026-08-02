@@ -53,7 +53,7 @@ func imageView(data types.KV) templ.Component {
 // pipelineRunView renders pipeline step run results.
 func pipelineRunView(data types.KV) templ.Component {
 	steps, _ := data.Any("steps")
-	return partials.ViewPipelineRunContent(steps)
+	return partials.ViewPipelineRunContent(mapPipelineStepRunsAny(steps))
 }
 
 // formView renders a read-only form with label-value pairs.

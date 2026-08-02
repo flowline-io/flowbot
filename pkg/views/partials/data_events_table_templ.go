@@ -9,19 +9,18 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // eventPipelineRuns returns pipeline runs linked to the event, if any.
-func eventPipelineRuns(eventID string, runMap map[string][]store.PipelineRunInfo) []store.PipelineRunInfo {
+func eventPipelineRuns(eventID string, runMap map[string][]model.PipelineRunInfo) []model.PipelineRunInfo {
 	if runs, ok := runMap[eventID]; ok {
 		return runs
 	}
 	return nil
 }
 
-func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, pageInfo PageInfo, runMap map[string][]store.PipelineRunInfo) templ.Component {
+func DataEventsTable(sources, eventTypes []string, events []model.DataEvent, pageInfo PageInfo, runMap map[string][]model.PipelineRunInfo) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -73,7 +72,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue("event-" + e.EventID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 46, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 45, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 			if templ_7745c5c3_Err != nil {
@@ -86,7 +85,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/events/payload/" + e.EventID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 48, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 47, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -99,7 +98,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue("#detail-" + e.EventID + " td")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 50, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 49, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 			if templ_7745c5c3_Err != nil {
@@ -112,7 +111,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue("event-row-" + e.EventID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 52, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 51, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
@@ -125,7 +124,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(e.CreatedAt.Format("2006-01-02 15:04:05"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 53, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 52, Col: 89}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -160,7 +159,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(e.EventType)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 54, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 53, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -195,7 +194,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(e.Source)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 56, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 55, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -213,7 +212,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(e.Capability)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 58, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 57, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -231,7 +230,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(e.EntityID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 61, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 60, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -254,7 +253,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 					var templ_7745c5c3_Var15 templ.SafeURL
 					templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(PipelineRunLiveURL(run.PipelineName, run.ID)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 68, Col: 74}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 67, Col: 74}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 					if templ_7745c5c3_Err != nil {
@@ -267,7 +266,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 					var templ_7745c5c3_Var16 string
 					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(run.PipelineName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 70, Col: 64}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 69, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 					if templ_7745c5c3_Err != nil {
@@ -302,7 +301,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 					var templ_7745c5c3_Var19 string
 					templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(EventRunStatusText(run.Status))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 71, Col: 95}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 70, Col: 95}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 					if templ_7745c5c3_Err != nil {
@@ -330,7 +329,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var20 templ.SafeURL
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(SimilarEventsURL(e.Source, e.EventType)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 81, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 80, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -343,7 +342,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue("detail-" + e.EventID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 86, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/data_events_table.templ`, Line: 85, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 			if templ_7745c5c3_Err != nil {

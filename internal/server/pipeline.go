@@ -152,7 +152,7 @@ func initPipeline(
 	pipeline.SetActiveEngine(engine)
 
 	if store.Database != nil && store.Database.GetClient() != nil {
-		svc := pipeline.NewService(store.PipelineStoreFromDB())
+		svc := pipeline.NewService(store.NewPipelineCatalogAdapter(store.PipelineStoreFromDB()))
 		pipeline.SetActiveService(svc)
 	}
 
@@ -196,7 +196,7 @@ func setupPipelineEngine(
 ) (*pipeline.Engine, error) {
 	var runStore pipeline.RunStore
 	if store.Database != nil && store.Database.GetClient() != nil {
-		runStore = store.PipelineStoreFromDB()
+		runStore = store.NewPipelineRunStoreAdapter(store.PipelineStoreFromDB())
 	}
 
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)

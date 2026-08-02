@@ -5,9 +5,10 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/bytedance/sonic"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // ---------------------------------------------------------------------------
@@ -72,18 +73,15 @@ func (j *IDList) Value() (driver.Value, error) {
 // State and enum types
 // ---------------------------------------------------------------------------
 
-type FormState int
+// FormState is owned by pkg/types; alias keeps existing schema.FormState call sites.
+type FormState = types.FormState
 
 const (
-	FormStateUnknown FormState = iota
-	FormStateCreated
-	FormStateSubmitSuccess
-	FormStateSubmitFailed
+	FormStateUnknown       = types.FormStateUnknown
+	FormStateCreated       = types.FormStateCreated
+	FormStateSubmitSuccess = types.FormStateSubmitSuccess
+	FormStateSubmitFailed  = types.FormStateSubmitFailed
 )
-
-func (j FormState) Value() (driver.Value, error) {
-	return int64(j), nil
-}
 
 type ActionState int
 
@@ -148,68 +146,50 @@ func (j UrlState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
 
-type InstructState int
+// Instruct* types are owned by pkg/types; aliases keep existing schema.Instruct* call sites.
+type InstructState = types.InstructState
 
 const (
-	InstructStateUnknown InstructState = iota
-	InstructCreate
-	InstructDone
-	InstructCancel
+	InstructStateUnknown = types.InstructStateUnknown
+	InstructCreate       = types.InstructCreate
+	InstructDone         = types.InstructDone
+	InstructCancel       = types.InstructCancel
 )
 
-func (j InstructState) Value() (driver.Value, error) {
-	return int64(j), nil
-}
-
-type InstructObject string
+type InstructObject = types.InstructObject
 
 const (
-	InstructObjectAgent InstructObject = "agent"
+	InstructObjectAgent = types.InstructObjectAgent
 )
 
-func (j InstructObject) Value() (driver.Value, error) {
-	return string(j), nil
-}
-
-type InstructPriority int
+type InstructPriority = types.InstructPriority
 
 const (
-	InstructPriorityHigh    InstructPriority = 3
-	InstructPriorityDefault InstructPriority = 2
-	InstructPriorityLow     InstructPriority = 1
+	InstructPriorityHigh    = types.InstructPriorityHigh
+	InstructPriorityDefault = types.InstructPriorityDefault
+	InstructPriorityLow     = types.InstructPriorityLow
 )
 
-func (j InstructPriority) Value() (driver.Value, error) {
-	return int64(j), nil
-}
-
-type PipelineState int
+// Pipeline* / WorkflowRun* states are owned by pkg/types; aliases keep schema.* call sites.
+type PipelineState = types.PipelineState
 
 const (
-	PipelineStateUnknown PipelineState = iota
-	PipelineStart
-	PipelineDone
-	PipelineCancel
-	PipelineFailed
+	PipelineStateUnknown = types.PipelineStateUnknown
+	PipelineStart        = types.PipelineStart
+	PipelineDone         = types.PipelineDone
+	PipelineCancel       = types.PipelineCancel
+	PipelineFailed       = types.PipelineFailed
 )
-
-func (j PipelineState) Value() (driver.Value, error) {
-	return int64(j), nil
-}
 
 // WorkflowRunState represents the execution state of a local workflow engine run.
-type WorkflowRunState int
+type WorkflowRunState = types.WorkflowRunState
 
 const (
-	WorkflowRunStateUnknown WorkflowRunState = iota
-	WorkflowRunRunning
-	WorkflowRunDone
-	WorkflowRunFailed
+	WorkflowRunStateUnknown = types.WorkflowRunStateUnknown
+	WorkflowRunRunning      = types.WorkflowRunRunning
+	WorkflowRunDone         = types.WorkflowRunDone
+	WorkflowRunFailed       = types.WorkflowRunFailed
 )
-
-func (j WorkflowRunState) Value() (driver.Value, error) {
-	return int64(j), nil
-}
 
 type ValueModeType string
 
@@ -626,22 +606,9 @@ type ResourceRelations struct {
 }
 
 // ResourceRef identifies a resource by app, entity_id, and optional metadata.
-type ResourceRef struct {
-	App          string `json:"app"`
-	EntityID     string `json:"entity_id"`
-	Capability   string `json:"capability,omitempty"`
-	PipelineName string `json:"pipeline_name,omitempty"`
-}
+type ResourceRef = types.ResourceRef
 
 // ResourceEdge represents a directed resource link with full source and target
 // details plus pipeline metadata and creation time.
-type ResourceEdge struct {
-	SourceApp        string    `json:"source_app"`
-	SourceCapability string    `json:"source_capability"`
-	SourceEntityID   string    `json:"source_entity_id"`
-	TargetApp        string    `json:"target_app"`
-	TargetCapability string    `json:"target_capability"`
-	TargetEntityID   string    `json:"target_entity_id"`
-	PipelineName     string    `json:"pipeline_name"`
-	CreatedAt        time.Time `json:"created_at"`
-}
+type ResourceEdge = types.ResourceEdge
+

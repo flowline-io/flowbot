@@ -15,10 +15,10 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
+func PipelineRunsTable(name string, runs []model.PipelineRun) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -265,7 +265,7 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 	})
 }
 
-func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
+func PipelineStepRunsDetail(steps []model.PipelineStepRun) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -849,7 +849,7 @@ func runsStatusText(status int) string {
 	}
 }
 
-func runsDuration(r *gen.PipelineRun) string {
+func runsDuration(r model.PipelineRun) string {
 	if r.CompletedAt == nil {
 		return "-"
 	}
@@ -860,7 +860,7 @@ func runsDuration(r *gen.PipelineRun) string {
 	return d.Round(time.Second).String()
 }
 
-func stepRunsDuration(sr *gen.PipelineStepRun) string {
+func stepRunsDuration(sr model.PipelineStepRun) string {
 	if sr.CompletedAt == nil {
 		return "-"
 	}

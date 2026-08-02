@@ -1,8 +1,8 @@
 package partials
 
-import "github.com/flowline-io/flowbot/internal/store/ent/schema"
+import "github.com/flowline-io/flowbot/pkg/types"
 
-templ RelationNodeCard(ref schema.ResourceRef, side string) {
+templ RelationNodeCard(ref types.ResourceRef, side string) {
 	<div class={ "flowbot-surface mb-2" }
 		hx-get={ templ.URL("/service/web/relations/tree?node=" + ref.App + "|" + ref.Capability + "|" + ref.EntityID) }
 		hx-trigger="click"

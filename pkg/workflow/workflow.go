@@ -9,8 +9,6 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
@@ -20,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/pipeline/template"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 var pooledSonic = sonic.Config{}.Froze()
@@ -154,7 +153,7 @@ type Runner struct {
 	workflowFile string
 	workflowID   int64
 	triggerType  string
-	existingRun  *gen.WorkflowRun
+	existingRun  *model.WorkflowRun
 }
 
 // NewRunner creates a Runner without persistence. Use NewRunnerWithStore to enable run records.
@@ -199,7 +198,7 @@ func (r *Runner) WithWorkflowID(id int64) *Runner {
 }
 
 // WithExistingRun skips CreateRun and continues execution against the given run record.
-func (r *Runner) WithExistingRun(run *gen.WorkflowRun) *Runner {
+func (r *Runner) WithExistingRun(run *model.WorkflowRun) *Runner {
 	if r == nil {
 		return nil
 	}
@@ -259,7 +258,7 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 // executeWithRunRecord creates the run record and delegates to sequential or parallel execution.
 func (r *Runner) executeWithRunRecord(ctx context.Context, wf types.WorkflowMetadata, input types.KV, file string, taskMap map[string]types.WorkflowTask, parallel bool) error {
 	// Persist run record if store is available.
-	var run *gen.WorkflowRun
+	var run *model.WorkflowRun
 	if r.existingRun != nil {
 		run = r.existingRun
 	} else if r.store != nil {
@@ -274,13 +273,8 @@ func (r *Runner) executeWithRunRecord(ctx context.Context, wf types.WorkflowMeta
 		if triggerType == "" {
 			triggerType = "manual"
 		}
-		inputJSON := schema.JSON{}
-		if len(input) > 0 {
-			raw, _ := pooledSonic.Marshal(input)
-			_ = inputJSON.Scan(raw)
-		}
 		var err error
-		run, err = r.store.CreateRun(ctx, r.workflowID, wf.Name, workflowFile, triggerType, nil, inputJSON)
+		run, err = r.store.CreateRun(ctx, r.workflowID, wf.Name, workflowFile, triggerType, nil, map[string]any(input))
 		if err != nil {
 			flog.Error(fmt.Errorf("[workflow] create run record: %w", err))
 		}
@@ -301,7 +295,7 @@ func (r *Runner) executeWithRunRecord(ctx context.Context, wf types.WorkflowMeta
 }
 
 // runSequential executes workflow tasks one at a time in pipeline order.
-func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *gen.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
+func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
 	start := time.Now()
 	r.auditWorkflowEvent(ctx, wf.Name, "workflow.start")
 	var runErr error
@@ -333,7 +327,7 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 		if cancelHeartbeat != nil {
 			cancelHeartbeat()
 		}
-		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), run.ID, int(schema.WorkflowRunDone), "")
+		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), run.ID, int(types.WorkflowRunDone), "")
 	}
 
 	r.auditWorkflowEvent(ctx, wf.Name, "workflow.complete")
@@ -348,7 +342,7 @@ func (r *Runner) executeSequentialStep(
 	wf types.WorkflowMetadata,
 	results map[string]string,
 	input types.KV,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 ) error {
 	wt, ok := taskMap[stepID]
 	if !ok {
@@ -362,9 +356,9 @@ func (r *Runner) executeSequentialStep(
 
 	info := ParseAction(wt.Action)
 
-	var stepRun *gen.WorkflowStepRun
+	var stepRun *model.WorkflowStepRun
 	if r.store != nil && run != nil {
-		stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), run.ID, stepID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
+		stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), run.ID, stepID, wt.Describe, wt.Action, info.Type, map[string]any(params), 1)
 		if err != nil {
 			flog.Error(fmt.Errorf("[workflow] create step run record %s: %w", stepID, err))
 		}
@@ -384,7 +378,7 @@ func (r *Runner) executeSequentialMapperStep(
 	info ActionInfo,
 	wfName string,
 	results map[string]string,
-	stepRun *gen.WorkflowStepRun,
+	stepRun *model.WorkflowStepRun,
 ) error {
 	stepStart := time.Now()
 	if r.metrics != nil {
@@ -402,9 +396,7 @@ func (r *Runner) executeSequentialMapperStep(
 	}
 	results[stepID] = string(mappedJSON)
 	if r.store != nil && stepRun != nil {
-		resultJSON := schema.JSON{}
-		_ = resultJSON.Scan(mappedJSON)
-		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunDone), map[string]any(params), "", 1)
 	}
 	if r.metrics != nil {
 		r.metrics.IncStepTotal(wfName, stepID, "done")
@@ -423,7 +415,7 @@ func (r *Runner) executeSequentialExecutorStep(
 	info ActionInfo,
 	wfName string,
 	results map[string]string,
-	stepRun *gen.WorkflowStepRun,
+	stepRun *model.WorkflowStepRun,
 ) error {
 	wtWithParams := wt
 	wtWithParams.Params = params
@@ -467,12 +459,11 @@ func (r *Runner) executeSequentialExecutorStep(
 	}
 
 	if r.store != nil && stepRun != nil {
-		resultJSON := schema.JSON{}
+		result := map[string]any{}
 		if task.Result != "" {
-			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
-			_ = resultJSON.Scan(resultRaw)
+			result["result"] = task.Result
 		}
-		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunDone), result, "", attempt)
 	}
 
 	flog.Info("[workflow] step %s completed", stepID)
@@ -480,7 +471,7 @@ func (r *Runner) executeSequentialExecutorStep(
 }
 
 // saveCheckpoint persists a checkpoint for a sequential workflow step.
-func saveCheckpoint(ctx context.Context, stepIndex int, r *Runner, wf types.WorkflowMetadata, results map[string]string, input types.KV, run *gen.WorkflowRun) {
+func saveCheckpoint(ctx context.Context, stepIndex int, r *Runner, wf types.WorkflowMetadata, results map[string]string, input types.KV, run *model.WorkflowRun) {
 	if wf.Resumable && r.store != nil && run != nil {
 		cp := CheckpointData{
 			StepIndex:   stepIndex,
@@ -511,7 +502,7 @@ func (r *Runner) ResumeWorkflow(ctx context.Context, runID int64) error {
 		return fmt.Errorf("get run %d: %w", runID, err)
 	}
 
-	if run.Status != int(schema.WorkflowRunRunning) && run.Status != int(schema.WorkflowRunFailed) {
+	if run.Status != int(types.WorkflowRunRunning) && run.Status != int(types.WorkflowRunFailed) {
 		return fmt.Errorf("workflow run %d status is %d, not resumable", runID, run.Status)
 	}
 
@@ -561,7 +552,7 @@ func (r *Runner) ResumeWorkflow(ctx context.Context, runID int64) error {
 	if cancelHeartbeat != nil {
 		cancelHeartbeat()
 	}
-	_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), runID, int(schema.WorkflowRunDone), "")
+	_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), runID, int(types.WorkflowRunDone), "")
 	return nil
 }
 
@@ -575,7 +566,7 @@ func (r *Runner) executeResumeStep(
 	results map[string]string,
 	input types.KV,
 	runID int64,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 	cancelHeartbeat context.CancelFunc,
 ) error {
 	wt, ok := taskMap[stepID]
@@ -606,8 +597,8 @@ func (r *Runner) executeResumeStep(
 
 	info := ParseAction(wt.Action)
 
-	var stepRun *gen.WorkflowStepRun
-	stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), runID, stepID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
+	var stepRun *model.WorkflowStepRun
+	stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), runID, stepID, wt.Describe, wt.Action, info.Type, map[string]any(params), 1)
 	if err != nil {
 		flog.Error(fmt.Errorf("[workflow] resume create step run %s: %w", stepID, err))
 	}
@@ -623,9 +614,9 @@ func (r *Runner) executeResumeMapperStep(
 	ctx context.Context,
 	stepID string,
 	params types.KV,
-	stepRun *gen.WorkflowStepRun,
+	stepRun *model.WorkflowStepRun,
 	results map[string]string,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 	cancelHeartbeat context.CancelFunc,
 ) error {
 	mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
@@ -637,9 +628,7 @@ func (r *Runner) executeResumeMapperStep(
 	}
 	results[stepID] = string(mappedJSON)
 	if stepRun != nil {
-		resultJSON := schema.JSON{}
-		_ = resultJSON.Scan(mappedJSON)
-		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunDone), map[string]any(params), "", 1)
 	}
 	return nil
 }
@@ -650,9 +639,9 @@ func (r *Runner) executeResumeExecutorStep(
 	stepID string,
 	wt types.WorkflowTask,
 	params types.KV,
-	stepRun *gen.WorkflowStepRun,
+	stepRun *model.WorkflowStepRun,
 	results map[string]string,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 	cancelHeartbeat context.CancelFunc,
 ) error {
 	wtWithParams := wt
@@ -678,30 +667,29 @@ func (r *Runner) executeResumeExecutorStep(
 	}
 
 	if stepRun != nil {
-		resultJSON := schema.JSON{}
+		result := map[string]any{}
 		if task.Result != "" {
-			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
-			_ = resultJSON.Scan(resultRaw)
+			result["result"] = task.Result
 		}
-		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunDone), result, "", attempt)
 	}
 	return nil
 }
 
 // failRun marks a workflow run as failed if run is non-nil and cancels the heartbeat.
-func (r *Runner) failRun(ctx context.Context, run *gen.WorkflowRun, cancelHeartbeat context.CancelFunc, err error) {
+func (r *Runner) failRun(ctx context.Context, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc, err error) {
 	if cancelHeartbeat != nil {
 		cancelHeartbeat()
 	}
 	if r.store != nil && run != nil {
-		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), run.ID, int(schema.WorkflowRunFailed), err.Error())
+		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), run.ID, int(types.WorkflowRunFailed), err.Error())
 	}
 }
 
 // failStep marks a step run as failed if stepRun is non-nil.
-func (r *Runner) failStep(ctx context.Context, stepRun *gen.WorkflowStepRun, err error, attempt int) {
+func (r *Runner) failStep(ctx context.Context, stepRun *model.WorkflowStepRun, err error, attempt int) {
 	if r.store != nil && stepRun != nil {
-		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunFailed), nil, err.Error(), attempt)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunFailed), nil, err.Error(), attempt)
 	}
 }
 
@@ -736,11 +724,11 @@ func resultCopy(src map[string]string) map[string]string {
 	return dst
 }
 
-func (r *Runner) runWithRetry(ctx context.Context, task *types.Task, retryCfg *types.RetryConfig, stepID string, stepRun *gen.WorkflowStepRun) (int, error) {
+func (r *Runner) runWithRetry(ctx context.Context, task *types.Task, retryCfg *types.RetryConfig, stepID string, stepRun *model.WorkflowStepRun) (int, error) {
 	backoffCfg := retryCfg.ToBackoffConfig()
 	backoffCfg.OnRetry = func(attempt int, delay time.Duration, err error) {
 		if r.store != nil && stepRun != nil {
-			_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunRunning), nil, err.Error(), attempt)
+			_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunRunning), nil, err.Error(), attempt)
 		}
 		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", stepID, attempt, delay, err)
 	}

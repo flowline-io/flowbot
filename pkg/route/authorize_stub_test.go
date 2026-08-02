@@ -11,15 +11,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-func TestThrottledUpdateLastUsed_NilDatabaseNoops(t *testing.T) {
-	orig := store.Database
-	store.Database = nil
-	t.Cleanup(func() { store.Database = orig })
+func TestThrottledUpdateLastUsed_NilStoreNoops(t *testing.T) {
+	prev := getAccessTokenStore()
+	SetAccessTokenStore(nil)
+	t.Cleanup(func() { SetAccessTokenStore(prev) })
 
 	assert.NotPanics(t, func() {
 		throttledUpdateLastUsed(types.KV{"uid": "user-1"}, "token-flag", time.Now().Add(time.Hour))
@@ -27,9 +26,9 @@ func TestThrottledUpdateLastUsed_NilDatabaseNoops(t *testing.T) {
 }
 
 func TestAuthorize_ParameterSetNoopSucceeds(t *testing.T) {
-	withTestStore(t)
+	mem := withTestAccessTokenStore(t)
 	token := "stub-token"
-	require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(context.Background(), auth.HashToken(token), types.KV{
+	require.NoError(t, mem.Set(context.Background(), auth.HashToken(token), types.KV{
 		"uid":    "user-1",
 		"scopes": []string{"admin:*"},
 	}, time.Now().Add(time.Hour)))

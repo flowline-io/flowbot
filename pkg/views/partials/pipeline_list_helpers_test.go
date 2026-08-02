@@ -7,20 +7,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestBuildPipelineListEntries(t *testing.T) {
 	publishedYAML := "name: pub\nenabled: false\ntriggers:\n  - type: cron\n    enabled: true\n    cron: '@daily'\nsteps:\n  - name: a\n"
 	draftYAML := "name: draft\nenabled: true\ntriggers:\n  - type: event\n    enabled: true\n    event: bookmark.created\nsteps:\n  - name: a\n  - name: b\n"
-	published := pipelinedefinition.Status("published")
-	draft := pipelinedefinition.Status("draft")
 	lastRun := time.Date(2026, 7, 18, 14, 22, 0, 0, time.UTC)
 
 	tests := []struct {
 		name          string
-		defs          []*gen.PipelineDefinition
+		defs          []model.PipelineDefinition
 		lastRunAt     map[string]time.Time
 		wantCount     int
 		wantFirst     bool
@@ -35,9 +32,9 @@ func TestBuildPipelineListEntries(t *testing.T) {
 		},
 		{
 			name: "draft uses draft yaml and has no last run",
-			defs: []*gen.PipelineDefinition{{
+			defs: []model.PipelineDefinition{{
 				Name:      "draft-only",
-				Status:    draft,
+				Status:    "draft",
 				YamlDraft: draftYAML,
 			}},
 			wantCount:     1,
@@ -48,9 +45,9 @@ func TestBuildPipelineListEntries(t *testing.T) {
 		},
 		{
 			name: "published uses published yaml and attaches last run",
-			defs: []*gen.PipelineDefinition{{
+			defs: []model.PipelineDefinition{{
 				Name:          "paused",
-				Status:        published,
+				Status:        "published",
 				YamlDraft:     draftYAML,
 				YamlPublished: &publishedYAML,
 			}},
@@ -63,9 +60,9 @@ func TestBuildPipelineListEntries(t *testing.T) {
 		},
 		{
 			name: "multiple entries preserve order",
-			defs: []*gen.PipelineDefinition{
-				{Name: "a", Status: draft, YamlDraft: draftYAML},
-				{Name: "b", Status: published, YamlDraft: draftYAML, YamlPublished: &publishedYAML},
+			defs: []model.PipelineDefinition{
+				{Name: "a", Status: "draft", YamlDraft: draftYAML},
+				{Name: "b", Status: "published", YamlDraft: draftYAML, YamlPublished: &publishedYAML},
 			},
 			wantCount:     2,
 			wantFirst:     true,
@@ -244,19 +241,19 @@ func TestPipelineIsPublished(t *testing.T) {
 	yaml := "name: test"
 	tests := []struct {
 		name string
-		def  *gen.PipelineDefinition
+		def  model.PipelineDefinition
 		want bool
 	}{
-		{name: "nil definition", def: nil, want: false},
-		{name: "draft only", def: &gen.PipelineDefinition{Status: pipelinedefinition.Status("draft")}, want: false},
+		{name: "zero definition", def: model.PipelineDefinition{}, want: false},
+		{name: "draft only", def: model.PipelineDefinition{Status: "draft"}, want: false},
 		{
 			name: "published without yaml",
-			def:  &gen.PipelineDefinition{Status: pipelinedefinition.Status("published")},
+			def:  model.PipelineDefinition{Status: "published"},
 			want: false,
 		},
 		{
 			name: "published with yaml",
-			def:  &gen.PipelineDefinition{Status: pipelinedefinition.Status("published"), YamlPublished: &yaml},
+			def:  model.PipelineDefinition{Status: "published", YamlPublished: &yaml},
 			want: true,
 		},
 	}

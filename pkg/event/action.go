@@ -12,8 +12,6 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
@@ -22,6 +20,11 @@ import (
 // SendMessage delivers a message payload to the user's channels, scoped to a specific topic
 // when ctx.Topic is set, or broadcast to all channels the user is a member of.
 func SendMessage(ctx types.Context, msg types.MsgPayload, pub message.Publisher) error {
+	dest, err := requireMessageDestinations()
+	if err != nil {
+		return err
+	}
+
 	// payload
 	src, err := sonic.Marshal(msg)
 	if err != nil {
@@ -33,11 +36,11 @@ func SendMessage(ctx types.Context, msg types.MsgPayload, pub message.Publisher)
 	}
 
 	// get user
-	user, err := store.UserStoreFromDB().GetUserByFlag(ctx.Context(), ctx.AsUser.String())
+	user, err := dest.GetUserByFlag(ctx.Context(), ctx.AsUser.String())
 	if err != nil {
 		return fmt.Errorf("failed to get user: %w", err)
 	}
-	platformUsers, err := store.UserStoreFromDB().GetPlatformUsersByUserId(ctx.Context(), user.ID)
+	platformUsers, err := dest.GetPlatformUsersByUserId(ctx.Context(), user.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get platform users: %w", err)
 	}
@@ -47,21 +50,21 @@ func SendMessage(ctx types.Context, msg types.MsgPayload, pub message.Publisher)
 	}
 
 	if ctx.Topic != "" {
-		return sendToTopic(ctx, payload, platformSet, pub)
+		return sendToTopic(ctx, payload, platformSet, dest, pub)
 	}
 
-	return sendToAll(ctx, payload, platformUsers, pub)
+	return sendToAll(ctx, payload, platformUsers, dest, pub)
 }
 
-func sendToTopic(ctx types.Context, payload types.EventPayload, platformSet sets.Int, pub message.Publisher) error {
-	platformChannel, err := store.PlatformStoreFromDB().GetPlatformChannelByFlag(ctx.Context(), ctx.Topic)
+func sendToTopic(ctx types.Context, payload types.EventPayload, platformSet sets.Int, dest MessageDestinations, pub message.Publisher) error {
+	platformChannel, err := dest.GetPlatformChannelByFlag(ctx.Context(), ctx.Topic)
 	if err != nil {
 		return fmt.Errorf("failed to get platform channel: %w", err)
 	}
 	if !platformSet.Has(int(platformChannel.PlatformID)) {
 		return fmt.Errorf("topic %s does not belong to any of the user's platforms (got platform %d)", ctx.Topic, platformChannel.PlatformID)
 	}
-	platform, err := store.PlatformStoreFromDB().GetPlatform(ctx.Context(), platformChannel.PlatformID)
+	platform, err := dest.GetPlatform(ctx.Context(), platformChannel.PlatformID)
 	if err != nil {
 		return fmt.Errorf("failed to get platform: %w", err)
 	}
@@ -77,8 +80,8 @@ func sendToTopic(ctx types.Context, payload types.EventPayload, platformSet sets
 	})
 }
 
-func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*gen.PlatformUser, pub message.Publisher) error {
-	platforms, err := store.PlatformStoreFromDB().GetPlatforms(ctx.Context())
+func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*DestinationPlatformUser, dest MessageDestinations, pub message.Publisher) error {
+	platforms, err := dest.GetPlatforms(ctx.Context())
 	if err != nil {
 		return fmt.Errorf("failed to get platforms: %w", err)
 	}
@@ -91,11 +94,11 @@ func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*g
 	for _, item := range platformUsers {
 		userFlags = append(userFlags, item.Flag)
 	}
-	channelUsersByFlag, err := store.PlatformStoreFromDB().GetPlatformChannelUsersByUserFlags(ctx.Context(), userFlags)
+	channelUsersByFlag, err := dest.GetPlatformChannelUsersByUserFlags(ctx.Context(), userFlags)
 	if err != nil {
 		return fmt.Errorf("failed to get platform channel users: %w", err)
 	}
-	channelUserMap := make(map[string][]*gen.PlatformChannelUser, len(userFlags))
+	channelUserMap := make(map[string][]*DestinationChannelUser, len(userFlags))
 	for _, cu := range channelUsersByFlag {
 		channelUserMap[cu.UserFlag] = append(channelUserMap[cu.UserFlag], cu)
 	}

@@ -7,9 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestBuildDAG(t *testing.T) {
@@ -248,13 +247,13 @@ func TestRunParallel_BranchFailureMarksRunFailed(t *testing.T) {
 			err := runner.Execute(context.Background(), tt.wf, nil, "")
 			require.Error(t, err)
 			require.Len(t, store.runs, 1)
-			var run *gen.WorkflowRun
+			var run *model.WorkflowRun
 			for _, r := range store.runs {
 				run = r
 			}
 			require.NotNil(t, run)
-			assert.Equal(t, int(schema.WorkflowRunFailed), run.Status)
-			assert.Contains(t, store.statusLog, int(schema.WorkflowRunFailed))
+			assert.Equal(t, int(types.WorkflowRunFailed), run.Status)
+			assert.Contains(t, store.statusLog, int(types.WorkflowRunFailed))
 		})
 	}
 }

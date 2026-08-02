@@ -9,11 +9,10 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-func webhookMethod(e *gen.DataEvent) string {
+func webhookMethod(e model.DataEvent) string {
 	if e.Data != nil {
 		if m, ok := e.Data["_webhook_method"]; ok {
 			if s, ok := m.(string); ok {
@@ -24,7 +23,7 @@ func webhookMethod(e *gen.DataEvent) string {
 	return ""
 }
 
-func webhookPath(e *gen.DataEvent) string {
+func webhookPath(e model.DataEvent) string {
 	if e.Data != nil {
 		if p, ok := e.Data["_webhook_path"]; ok {
 			if s, ok := p.(string); ok {
@@ -35,7 +34,7 @@ func webhookPath(e *gen.DataEvent) string {
 	return ""
 }
 
-func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pageInfo PageInfo, runMap map[string][]store.PipelineRunInfo) templ.Component {
+func WebhookLogsTable(sources, eventTypes []string, events []model.DataEvent, pageInfo PageInfo, runMap map[string][]model.PipelineRunInfo) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -87,7 +86,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue("wh-" + e.EventID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 62, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 61, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 			if templ_7745c5c3_Err != nil {
@@ -100,7 +99,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/events/payload/" + e.EventID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 64, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 63, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -113,7 +112,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue("#wh-detail-" + e.EventID + " td")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 66, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 65, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 			if templ_7745c5c3_Err != nil {
@@ -126,7 +125,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue("webhook-row-" + e.EventID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 68, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 67, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
@@ -139,7 +138,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(e.CreatedAt.Format("2006-01-02 15:04:05"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 69, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 68, Col: 88}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -174,7 +173,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(e.EventType)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 70, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 69, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -209,7 +208,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(e.Source)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 72, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 71, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -222,7 +221,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(webhookPath(e))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 74, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 73, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -257,7 +256,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(webhookMethod(e))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 75, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 74, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -280,7 +279,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 					var templ_7745c5c3_Var17 templ.SafeURL
 					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(PipelineRunLiveURL(run.PipelineName, run.ID)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 83, Col: 73}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 82, Col: 73}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 					if templ_7745c5c3_Err != nil {
@@ -293,7 +292,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 					var templ_7745c5c3_Var18 string
 					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(run.PipelineName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 85, Col: 63}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 84, Col: 63}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 					if templ_7745c5c3_Err != nil {
@@ -328,7 +327,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 					var templ_7745c5c3_Var21 string
 					templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(EventRunStatusText(run.Status))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 86, Col: 94}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 85, Col: 94}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 					if templ_7745c5c3_Err != nil {
@@ -356,7 +355,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var22 templ.SafeURL
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(SimilarEventsURL(e.Source, e.EventType)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 96, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 95, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -369,7 +368,7 @@ func WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.ResolveAttributeValue("wh-detail-" + e.EventID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 101, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_logs_table.templ`, Line: 100, Col: 39}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23)
 			if templ_7745c5c3_Err != nil {

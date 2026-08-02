@@ -9,6 +9,7 @@ import (
 
 var MediaModules = fx.Options(
 	fx.Invoke(
+		WireFileMetaStore,
 		fs.Register,
 		minio.Register,
 	),

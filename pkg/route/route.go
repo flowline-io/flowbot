@@ -14,8 +14,6 @@ import (
 	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -159,7 +157,7 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 		}
 
 		p, err := LookupAccessToken(context.Background(), accessToken)
-		if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
+		if err != nil || p.ID <= 0 || AccessTokenIsExpired(p) {
 			auditAuthReject(ctx, "auth.token.validate.fail", "invalid or expired")
 			return protocol.ErrNotAuthorized.New("parameter error")
 		}
@@ -207,33 +205,33 @@ func RequireServiceScope(group, method string, handler fiber.Handler) fiber.Hand
 
 // LookupAccessToken resolves an access token parameter by SHA-256 hash key.
 // Legacy plaintext rows are migrated to the hash key on first successful lookup.
-func LookupAccessToken(ctx context.Context, raw string) (gen.Parameter, error) {
+func LookupAccessToken(ctx context.Context, raw string) (AccessToken, error) {
 	if raw == "" {
-		return gen.Parameter{}, types.ErrNotFound
+		return AccessToken{}, types.ErrNotFound
 	}
-	if store.Database == nil {
-		return gen.Parameter{}, types.ErrNotFound
+	s := getAccessTokenStore()
+	if s == nil {
+		return AccessToken{}, types.ErrNotFound
 	}
-	mds := store.ModuleDataStoreFromDB()
 	hashed := auth.HashToken(raw)
-	p, err := mds.ParameterGet(ctx, hashed)
+	p, err := s.Get(ctx, hashed)
 	if err == nil {
 		return p, nil
 	}
 	if !errors.Is(err, types.ErrNotFound) {
-		return gen.Parameter{}, err
+		return AccessToken{}, err
 	}
 
-	p, err = mds.ParameterGet(ctx, raw)
+	p, err = s.Get(ctx, raw)
 	if err != nil {
-		return gen.Parameter{}, err
+		return AccessToken{}, err
 	}
 
 	params := types.KV(p.Params)
-	if setErr := mds.ParameterSet(ctx, hashed, params, p.ExpiredAt); setErr != nil {
-		return gen.Parameter{}, setErr
+	if setErr := s.Set(ctx, hashed, params, p.ExpiredAt); setErr != nil {
+		return AccessToken{}, setErr
 	}
-	if delErr := mds.ParameterDelete(ctx, raw); delErr != nil {
+	if delErr := s.Delete(ctx, raw); delErr != nil {
 		flog.Warn("route: delete legacy plaintext token param: %v", delErr)
 	}
 	p.Flag = hashed
@@ -245,15 +243,15 @@ func DeleteAccessToken(ctx context.Context, raw string) error {
 	if raw == "" {
 		return nil
 	}
-	if store.Database == nil {
+	s := getAccessTokenStore()
+	if s == nil {
 		return nil
 	}
-	mds := store.ModuleDataStoreFromDB()
 	hashed := auth.HashToken(raw)
-	if err := mds.ParameterDelete(ctx, hashed); err != nil {
+	if err := s.Delete(ctx, hashed); err != nil {
 		return err
 	}
-	return mds.ParameterDelete(ctx, raw)
+	return s.Delete(ctx, raw)
 }
 
 // resolveAccessToken extracts the access token from cookies or the HTTP request.
@@ -305,11 +303,12 @@ func throttledUpdateLastUsed(paramKV types.KV, tokenFlag string, expiredAt time.
 	if !shouldUpdateLastUsed(paramKV) {
 		return
 	}
-	if store.Database == nil {
+	s := getAccessTokenStore()
+	if s == nil {
 		return
 	}
 	paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
-	if err := store.ModuleDataStoreFromDB().ParameterSet(context.Background(), tokenFlag, paramKV, expiredAt); err != nil {
+	if err := s.Set(context.Background(), tokenFlag, paramKV, expiredAt); err != nil {
 		flog.Warn("route: update token last_used_at: %v", err)
 	}
 }
@@ -368,7 +367,7 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	if err != nil {
 		return
 	}
-	if p.ID <= 0 || store.ParameterIsExpired(p) {
+	if p.ID <= 0 || AccessTokenIsExpired(p) {
 		return
 	}
 	params := types.KV(p.Params)

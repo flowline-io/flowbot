@@ -7,8 +7,6 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -52,7 +50,7 @@ func TemplateReferencesSummary(defaultTemplate, overridesJSON string) bool {
 	if overridesJSON == "" || overridesJSON == "[]" {
 		return false
 	}
-	var overrides []schema.NotifyTemplateOverride
+	var overrides []model.NotifyTemplateOverride
 	if err := sonic.Unmarshal([]byte(overridesJSON), &overrides); err != nil {
 		return false
 	}
@@ -70,10 +68,11 @@ func fieldListContains(fields []string, want string) bool {
 
 // ResolveDefaultChannelName returns the name of the global default enabled channel.
 func ResolveDefaultChannelName(ctx context.Context) (string, error) {
-	if loadDatabase() == nil {
+	ncs := GetNotifyConfigStore()
+	if ncs == nil {
 		return "", types.ErrUnavailable
 	}
-	ch, err := store.NotifyConfigStoreFromDB().GetDefaultNotifyChannelRaw(ctx)
+	ch, err := ncs.GetDefaultNotifyChannelRaw(ctx)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return "", ErrNoDefaultChannel
@@ -88,10 +87,11 @@ func ResolveDefaultChannelName(ctx context.Context) (string, error) {
 
 // ResolveDefaultTemplateID returns the template_id of the global default template.
 func ResolveDefaultTemplateID(ctx context.Context) (string, error) {
-	if loadDatabase() == nil {
+	ncs := GetNotifyConfigStore()
+	if ncs == nil {
 		return "", types.ErrUnavailable
 	}
-	tmpl, err := store.NotifyConfigStoreFromDB().GetDefaultNotifyTemplate(ctx)
+	tmpl, err := ncs.GetDefaultNotifyTemplate(ctx)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return "", ErrNoDefaultTemplate
@@ -160,10 +160,10 @@ func SeedLifeQuestFailedTemplate(ctx context.Context) error {
 }
 
 func seedNotifyTemplate(ctx context.Context, templateID, name, description, body string) error {
-	if loadDatabase() == nil {
+	ncs := GetNotifyConfigStore()
+	if ncs == nil {
 		return nil
 	}
-	ncs := store.NotifyConfigStoreFromDB()
 	_, err := ncs.GetNotifyTemplateByTemplateID(ctx, templateID)
 	if err == nil {
 		return nil
@@ -188,10 +188,10 @@ func seedNotifyTemplate(ctx context.Context, templateID, name, description, body
 
 // SeedInappChannel ensures the system inapp channel exists (not marked default).
 func SeedInappChannel(ctx context.Context) error {
-	if loadDatabase() == nil {
+	ncs := GetNotifyConfigStore()
+	if ncs == nil {
 		return nil
 	}
-	ncs := store.NotifyConfigStoreFromDB()
 	_, err := ncs.GetNotifyChannelByNameRaw(ctx, ChannelInapp)
 	if err == nil {
 		return nil

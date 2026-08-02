@@ -5,31 +5,24 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // RunWaterfallBar is one bar in the simplified run step waterfall.
 type RunWaterfallBar struct {
-	// Name is the step display name.
-	Name string
-	// Status is the step run status code.
-	Status int
-	// OffsetPct is the left offset as a percent of the total timeline.
+	Name      string
+	Status    int
 	OffsetPct float64
-	// WidthPct is the bar width as a percent of the total timeline.
-	WidthPct float64
+	WidthPct  float64
 }
 
 // RunErrorSummaryItem is one failed step shown in the run error summary.
 type RunErrorSummaryItem struct {
-	// Name is the step display name.
-	Name string
-	// Error is the truncated error message.
+	Name  string
 	Error string
 }
 
-// runWaterfallInput is the minimal timing data needed to build waterfall bars.
 type runWaterfallInput struct {
 	Name        string
 	Status      int
@@ -37,8 +30,6 @@ type runWaterfallInput struct {
 	CompletedAt *time.Time
 }
 
-// buildRunWaterfall computes relative offset/width bars for step runs.
-// now is used as the end time for incomplete steps.
 func buildRunWaterfall(steps []runWaterfallInput, now time.Time) []RunWaterfallBar {
 	if len(steps) == 0 {
 		return nil
@@ -116,12 +107,9 @@ func waterfallBarForStep(s runWaterfallInput, minStart time.Time, totalSec float
 }
 
 // PipelineStepWaterfall builds waterfall bars from pipeline step runs.
-func PipelineStepWaterfall(steps []*gen.PipelineStepRun) []RunWaterfallBar {
+func PipelineStepWaterfall(steps []model.PipelineStepRun) []RunWaterfallBar {
 	inputs := make([]runWaterfallInput, 0, len(steps))
 	for _, s := range steps {
-		if s == nil {
-			continue
-		}
 		inputs = append(inputs, runWaterfallInput{
 			Name:        s.StepName,
 			Status:      s.Status,
@@ -133,12 +121,9 @@ func PipelineStepWaterfall(steps []*gen.PipelineStepRun) []RunWaterfallBar {
 }
 
 // WorkflowStepWaterfall builds waterfall bars from workflow step runs.
-func WorkflowStepWaterfall(steps []*gen.WorkflowStepRun) []RunWaterfallBar {
+func WorkflowStepWaterfall(steps []model.WorkflowStepRun) []RunWaterfallBar {
 	inputs := make([]runWaterfallInput, 0, len(steps))
 	for _, s := range steps {
-		if s == nil {
-			continue
-		}
 		inputs = append(inputs, runWaterfallInput{
 			Name:        stepDisplayName(s),
 			Status:      s.Status,
@@ -150,13 +135,10 @@ func WorkflowStepWaterfall(steps []*gen.WorkflowStepRun) []RunWaterfallBar {
 }
 
 // PipelineStepErrorSummary returns failed/errored pipeline steps for the top summary.
-func PipelineStepErrorSummary(steps []*gen.PipelineStepRun) []RunErrorSummaryItem {
+func PipelineStepErrorSummary(steps []model.PipelineStepRun) []RunErrorSummaryItem {
 	var out []RunErrorSummaryItem
 	for _, s := range steps {
-		if s == nil {
-			continue
-		}
-		if s.Error == "" && schema.PipelineState(s.Status) != schema.PipelineFailed {
+		if s.Error == "" && types.PipelineState(s.Status) != types.PipelineFailed {
 			continue
 		}
 		errText := s.Error
@@ -172,13 +154,10 @@ func PipelineStepErrorSummary(steps []*gen.PipelineStepRun) []RunErrorSummaryIte
 }
 
 // WorkflowStepErrorSummary returns failed/errored workflow steps for the top summary.
-func WorkflowStepErrorSummary(steps []*gen.WorkflowStepRun) []RunErrorSummaryItem {
+func WorkflowStepErrorSummary(steps []model.WorkflowStepRun) []RunErrorSummaryItem {
 	var out []RunErrorSummaryItem
 	for _, s := range steps {
-		if s == nil {
-			continue
-		}
-		if s.Error == "" && schema.WorkflowRunState(s.Status) != schema.WorkflowRunFailed {
+		if s.Error == "" && types.WorkflowRunState(s.Status) != types.WorkflowRunFailed {
 			continue
 		}
 		errText := s.Error
@@ -207,30 +186,22 @@ func TruncateErrorSummary(s string) string {
 	return string(runes[:errorSummaryMaxRunes]) + "…"
 }
 
-// pipelineStepHasDetail reports whether a pipeline step should render an expandable detail row.
-func pipelineStepHasDetail(s *gen.PipelineStepRun) bool {
-	if s == nil {
-		return false
-	}
-	return len(s.Params) > 0 || len(s.Result) > 0 || s.Error != "" || schema.PipelineState(s.Status) == schema.PipelineFailed
+func pipelineStepHasDetail(s model.PipelineStepRun) bool {
+	return len(s.Params) > 0 || len(s.Result) > 0 || s.Error != "" || types.PipelineState(s.Status) == types.PipelineFailed
 }
 
-// pipelineStepDetailOpen reports whether the detail row should start expanded (failed steps).
-func pipelineStepDetailOpen(s *gen.PipelineStepRun) bool {
-	if s == nil {
-		return false
-	}
-	return s.Error != "" || schema.PipelineState(s.Status) == schema.PipelineFailed
+func pipelineStepDetailOpen(s model.PipelineStepRun) bool {
+	return s.Error != "" || types.PipelineState(s.Status) == types.PipelineFailed
 }
 
 // PipelineWaterfallBarClass returns CSS classes for a pipeline step waterfall bar.
 func PipelineWaterfallBarClass(status int) string {
-	switch schema.PipelineState(status) {
-	case schema.PipelineDone:
+	switch types.PipelineState(status) {
+	case types.PipelineDone:
 		return "run-waterfall-bar run-waterfall-bar-success"
-	case schema.PipelineFailed:
+	case types.PipelineFailed:
 		return "run-waterfall-bar run-waterfall-bar-error"
-	case schema.PipelineStart:
+	case types.PipelineStart:
 		return "run-waterfall-bar run-waterfall-bar-running"
 	default:
 		return "run-waterfall-bar run-waterfall-bar-muted"
@@ -239,12 +210,12 @@ func PipelineWaterfallBarClass(status int) string {
 
 // WorkflowWaterfallBarClass returns CSS classes for a workflow step waterfall bar.
 func WorkflowWaterfallBarClass(status int) string {
-	switch schema.WorkflowRunState(status) {
-	case schema.WorkflowRunDone:
+	switch types.WorkflowRunState(status) {
+	case types.WorkflowRunDone:
 		return "run-waterfall-bar run-waterfall-bar-success"
-	case schema.WorkflowRunFailed:
+	case types.WorkflowRunFailed:
 		return "run-waterfall-bar run-waterfall-bar-error"
-	case schema.WorkflowRunRunning:
+	case types.WorkflowRunRunning:
 		return "run-waterfall-bar run-waterfall-bar-running"
 	default:
 		return "run-waterfall-bar run-waterfall-bar-muted"

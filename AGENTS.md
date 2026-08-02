@@ -27,6 +27,9 @@ Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQ
 
 ## Boundaries
 
+* Never import `internal/*` from `pkg/*` — inject interfaces from `internal/server` (or other product layers); migration allowlist lives in `internal/architecture` and must shrink each wave.
+* Never put `*gen.*` or `internal/store` facades in `pkg` public APIs or templates — use `pkg/types` / `pkg/types/model` and adapters.
+* Domain enums used outside the store layer live in `pkg/types` (e.g. Instruct*, FormState, PipelineState, WorkflowRunState, ResourceRef); `ent/schema` may type-alias them — do not redefine parallel constants.
 * Never import `pkg/providers/*` from `internal/modules/*` — use `capability.Invoke` (do not call provider clients from modules).
 * Never call hub / pipeline / emit DataEvent from a provider or capability adapter; never return provider-private types from an adapter.
 * Never write database query code outside `internal/store` (domain `*Store` facades in package `store`; `postgres` is connection-only).
@@ -75,3 +78,5 @@ go tool task skills           # Regenerate docs/skills from cmd/composer
 * Cursor Cloud / environments without systemd: read [docs/developer-guide/cursor-cloud.md](docs/developer-guide/cursor-cloud.md) first.
 * Default agent loop (optional `@` skill): [`.cursor/skills/flowbot-dev-loop/SKILL.md`](.cursor/skills/flowbot-dev-loop/SKILL.md)
 * Nested package guides: nearest `AGENTS.md` under `internal/` / `pkg/` / `cmd/`
+* pkg vs internal boundaries (waves L1–L4): [docs/architecture/pkg-boundaries.md](docs/architecture/pkg-boundaries.md)
+* Architecture gate (`pkg` must not import `internal`): `internal/architecture`

@@ -8,9 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestPremarkCompletedTasksForResume(t *testing.T) {
@@ -120,7 +119,7 @@ func TestFinalizeParallelStatus(t *testing.T) {
 	tests := []struct {
 		name    string
 		runID   int64
-		run     *gen.WorkflowRun
+		run     *model.WorkflowRun
 		err     error
 		store   bool
 		wantLog int
@@ -164,7 +163,7 @@ func TestFinalizeParallelStatus(t *testing.T) {
 				require.Error(t, ret)
 			} else if tt.store {
 				require.NoError(t, ret)
-				assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
+				assert.Contains(t, store.statusLog, int(types.WorkflowRunDone))
 			}
 		})
 	}
@@ -199,7 +198,7 @@ tasks:
 	store := newMockWorkflowStore()
 	run, err := store.CreateRun(context.Background(), 0, "parallel-resume", "db", "manual", nil, nil)
 	require.NoError(t, err)
-	run.Status = int(schema.WorkflowRunFailed)
+	run.Status = int(types.WorkflowRunFailed)
 	require.NoError(t, store.SaveCheckpoint(context.Background(), run.ID, &CheckpointData{
 		CompletedTasks: map[string]bool{"a": true},
 		StepResults:    map[string]string{"a": `{"out":"a"}`},
@@ -209,7 +208,7 @@ tasks:
 	runner := NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf))
 	err = runner.ResumeWorkflow(context.Background(), run.ID)
 	require.NoError(t, err)
-	assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
+	assert.Contains(t, store.statusLog, int(types.WorkflowRunDone))
 }
 
 func TestRunParallelResumeAllComplete(t *testing.T) {
@@ -233,7 +232,7 @@ func TestRunParallelResumeAllComplete(t *testing.T) {
 	runner := NewRunnerWithStore(store, nil, nil, "", "")
 	err = runner.runParallelResume(context.Background(), run.ID, wf, cp)
 	require.NoError(t, err)
-	assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
+	assert.Contains(t, store.statusLog, int(types.WorkflowRunDone))
 }
 
 func TestRunParallelResumeTaskHandler(t *testing.T) {
@@ -283,5 +282,5 @@ func TestExecuteMapperStepMarshalErrorParallel(t *testing.T) {
 	var mu sync.RWMutex
 	err = runner.executeMapperStep(context.Background(), "m1", types.KV{"bad": make(chan int)}, &results, &mu, stepRun)
 	require.Error(t, err)
-	assert.Equal(t, int(schema.WorkflowRunFailed), store.stepRuns[stepRun.ID].Status)
+	assert.Equal(t, int(types.WorkflowRunFailed), store.stepRuns[stepRun.ID].Status)
 }

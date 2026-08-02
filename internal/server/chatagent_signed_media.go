@@ -7,7 +7,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/media"
 )
@@ -29,7 +28,7 @@ func serveSignedChatAgentMedia(c fiber.Ctx) error {
 	if err := media.VerifySignedRequest(secret, fileID, c.Query("exp"), c.Query("sig"), time.Now().UTC()); err != nil {
 		return c.Status(fiber.StatusForbidden).SendString(err.Error())
 	}
-	accessor, ok := media.AsAccessor(store.FileSystem)
+	accessor, ok := media.AsAccessor(media.FileSystem)
 	if !ok || accessor == nil {
 		return c.SendStatus(fiber.StatusServiceUnavailable)
 	}

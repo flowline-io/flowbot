@@ -8,14 +8,12 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // NotifyTemplateOverride is a channel-specific template body stored as JSON.
-type NotifyTemplateOverride struct {
-	Channel  string `json:"channel"`
-	Format   string `json:"format"`
-	Template string `json:"template"`
-}
+type NotifyTemplateOverride = model.NotifyTemplateOverride
 
 // NotifyTemplate holds a notification message template persisted in the database.
 type NotifyTemplate struct {

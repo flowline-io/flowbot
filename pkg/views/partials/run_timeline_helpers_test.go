@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestBuildRunWaterfall(t *testing.T) {
@@ -31,32 +31,32 @@ func TestBuildRunWaterfall(t *testing.T) {
 		{
 			name: "single completed step fills full width",
 			steps: []runWaterfallInput{{
-				Name: "a", Status: int(schema.PipelineDone),
+				Name: "a", Status: int(types.PipelineDone),
 				StartedAt: base, CompletedAt: &end1,
 			}},
 			want: []RunWaterfallBar{{
-				Name: "a", Status: int(schema.PipelineDone),
+				Name: "a", Status: int(types.PipelineDone),
 				OffsetPct: 0, WidthPct: 100,
 			}},
 		},
 		{
 			name: "sequential steps share timeline",
 			steps: []runWaterfallInput{
-				{Name: "a", Status: int(schema.PipelineDone), StartedAt: base, CompletedAt: &end1},
-				{Name: "b", Status: int(schema.PipelineFailed), StartedAt: start2, CompletedAt: &end2},
+				{Name: "a", Status: int(types.PipelineDone), StartedAt: base, CompletedAt: &end1},
+				{Name: "b", Status: int(types.PipelineFailed), StartedAt: start2, CompletedAt: &end2},
 			},
 			want: []RunWaterfallBar{
-				{Name: "a", Status: int(schema.PipelineDone), OffsetPct: 0, WidthPct: 40},
-				{Name: "b", Status: int(schema.PipelineFailed), OffsetPct: 40, WidthPct: 60},
+				{Name: "a", Status: int(types.PipelineDone), OffsetPct: 0, WidthPct: 40},
+				{Name: "b", Status: int(types.PipelineFailed), OffsetPct: 40, WidthPct: 60},
 			},
 		},
 		{
 			name: "incomplete step uses now as end",
 			steps: []runWaterfallInput{
-				{Name: "running", Status: int(schema.PipelineStart), StartedAt: base, CompletedAt: nil},
+				{Name: "running", Status: int(types.PipelineStart), StartedAt: base, CompletedAt: nil},
 			},
 			want: []RunWaterfallBar{{
-				Name: "running", Status: int(schema.PipelineStart),
+				Name: "running", Status: int(types.PipelineStart),
 				OffsetPct: 0, WidthPct: 100,
 			}},
 		},
@@ -80,13 +80,13 @@ func TestPipelineStepErrorSummary(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name  string
-		steps []*gen.PipelineStepRun
+		steps []model.PipelineStepRun
 		want  []RunErrorSummaryItem
 	}{
-		{name: "no failures", steps: []*gen.PipelineStepRun{{StepName: "ok", Status: 2}}, want: nil},
+		{name: "no failures", steps: []model.PipelineStepRun{{StepName: "ok", Status: 2}}, want: nil},
 		{
 			name: "failed with error text",
-			steps: []*gen.PipelineStepRun{
+			steps: []model.PipelineStepRun{
 				{StepName: "ok", Status: 2},
 				{StepName: "boom", Status: 4, Error: "timeout"},
 			},
@@ -94,7 +94,7 @@ func TestPipelineStepErrorSummary(t *testing.T) {
 		},
 		{
 			name: "error field without failed status still summarized",
-			steps: []*gen.PipelineStepRun{
+			steps: []model.PipelineStepRun{
 				{StepName: "warn", Status: 2, Error: "partial"},
 			},
 			want: []RunErrorSummaryItem{{Name: "warn", Error: "partial"}},
@@ -112,15 +112,14 @@ func TestPipelineStepHasDetailAndOpen(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name      string
-		step      *gen.PipelineStepRun
+		step      model.PipelineStepRun
 		hasDetail bool
 		open      bool
 	}{
-		{name: "nil", step: nil, hasDetail: false, open: false},
-		{name: "empty success", step: &gen.PipelineStepRun{Status: 2}, hasDetail: false, open: false},
-		{name: "params only", step: &gen.PipelineStepRun{Params: map[string]any{"a": 1}, Status: 2}, hasDetail: true, open: false},
-		{name: "failed with error", step: &gen.PipelineStepRun{Status: 4, Error: "x"}, hasDetail: true, open: true},
-		{name: "failed status alone", step: &gen.PipelineStepRun{Status: 4}, hasDetail: true, open: true},
+		{name: "empty success", step: model.PipelineStepRun{Status: 2}, hasDetail: false, open: false},
+		{name: "params only", step: model.PipelineStepRun{Params: map[string]any{"a": 1}, Status: 2}, hasDetail: true, open: false},
+		{name: "failed with error", step: model.PipelineStepRun{Status: 4, Error: "x"}, hasDetail: true, open: true},
+		{name: "failed status alone", step: model.PipelineStepRun{Status: 4}, hasDetail: true, open: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

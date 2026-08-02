@@ -7,9 +7,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -149,7 +148,7 @@ func renderInboxList(ctx fiber.Ctx, uid string) error {
 	if filter == "" {
 		filter = "unread"
 	}
-	opts := store.ListNotifyRecordsOptions{
+	opts := notifypkg.ListNotifyRecordsOptions{
 		Limit:   20,
 		Cursor:  ctx.Query("cursor"),
 		Channel: notifypkg.ChannelInapp,
@@ -171,12 +170,9 @@ func renderInboxList(ctx fiber.Ctx, uid string) error {
 	}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
-func inboxItemsFromRecords(records []*gen.NotificationRecord) []partials.InboxItem {
+func inboxItemsFromRecords(records []model.NotificationRecord) []partials.InboxItem {
 	out := make([]partials.InboxItem, 0, len(records))
 	for _, rec := range records {
-		if rec == nil {
-			continue
-		}
 		item := partials.InboxItem{
 			ID:        rec.ID,
 			Summary:   rec.Summary,

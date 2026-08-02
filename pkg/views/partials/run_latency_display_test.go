@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -72,8 +71,8 @@ func TestAttachRunLatencyStats(t *testing.T) {
 		{
 			name: "attaches matching stats",
 			entries: []PipelineListEntry{
-				{Definition: &gen.PipelineDefinition{Name: "a"}},
-				{Definition: &gen.PipelineDefinition{Name: "b"}},
+				{Name: "a"},
+				{Name: "b"},
 			},
 			stats: map[string]types.RunLatencyStats{
 				"a": {SuccessRate: 1, P50Ms: 100, P95Ms: 200, Total: 3},
@@ -86,7 +85,7 @@ func TestAttachRunLatencyStats(t *testing.T) {
 		},
 		{
 			name:    "nil stats map leaves entries unchanged",
-			entries: []PipelineListEntry{{Definition: &gen.PipelineDefinition{Name: "x"}}},
+			entries: []PipelineListEntry{{Name: "x"}},
 			stats:   nil,
 			check: func(t *testing.T, got []PipelineListEntry) {
 				assert.Nil(t, got[0].Stats)

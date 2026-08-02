@@ -201,23 +201,6 @@ func (s *WorkflowStore) GetDefinitionByName(ctx context.Context, name string) (*
 	}, nil
 }
 
-// GetMetadata loads a workflow definition and converts it to WorkflowMetadata.
-// It satisfies pkg/workflow.DefinitionStore.
-func (s *WorkflowStore) GetMetadata(ctx context.Context, name string) (*types.WorkflowMetadata, error) {
-	dto, err := s.GetDefinitionByName(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	if dto == nil {
-		return nil, fmt.Errorf("%w: workflow %s", types.ErrNotFound, name)
-	}
-	return pkgworkflow.MetadataFromRows(pkgworkflow.WorkflowRows{
-		Workflow: dto.Workflow,
-		Tasks:    dto.Tasks,
-		Triggers: dto.Triggers,
-	})
-}
-
 // ListDefinitions returns all workflow definition rows (without tasks/triggers).
 func (s *WorkflowStore) ListDefinitions(ctx context.Context) ([]*gen.Workflow, error) {
 	if s == nil || s.client == nil {

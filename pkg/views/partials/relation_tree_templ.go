@@ -8,12 +8,12 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/flowline-io/flowbot/internal/store/ent/schema"
+import "github.com/flowline-io/flowbot/pkg/types"
 
 type RelationTreeParams struct {
-	Node       schema.ResourceRef
-	Upstream   []schema.ResourceEdge
-	Downstream []schema.ResourceEdge
+	Node       types.ResourceRef
+	Upstream   []types.ResourceEdge
+	Downstream []types.ResourceEdge
 }
 
 func RelationTree(p RelationTreeParams) templ.Component {
@@ -69,7 +69,7 @@ func RelationTree(p RelationTreeParams) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = RelationNodeCard(schema.ResourceRef{
+			templ_7745c5c3_Err = RelationNodeCard(types.ResourceRef{
 				App:        edge.SourceApp,
 				Capability: edge.SourceCapability,
 				EntityID:   edge.SourceEntityID,
@@ -140,7 +140,7 @@ func RelationTree(p RelationTreeParams) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = RelationNodeCard(schema.ResourceRef{
+			templ_7745c5c3_Err = RelationNodeCard(types.ResourceRef{
 				App:        edge.TargetApp,
 				Capability: edge.TargetCapability,
 				EntityID:   edge.TargetEntityID,

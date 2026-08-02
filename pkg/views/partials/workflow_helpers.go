@@ -8,9 +8,8 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // WorkflowWebPath returns the encoded web UI path for a workflow name.
@@ -39,19 +38,13 @@ type WorkflowListEntry struct {
 // BuildWorkflowListEntries maps store rows to list entries.
 // triggers may be nil; when provided they are grouped by workflow_id.
 // lastRunAt maps workflow name to the latest run started_at; missing keys mean never run.
-func BuildWorkflowListEntries(defs []*gen.Workflow, triggers []*gen.WorkflowTrigger, lastRunAt map[string]time.Time) []WorkflowListEntry {
-	byWF := make(map[int64][]*gen.WorkflowTrigger)
+func BuildWorkflowListEntries(defs []model.Workflow, triggers []model.WorkflowTrigger, lastRunAt map[string]time.Time) []WorkflowListEntry {
+	byWF := make(map[int64][]model.WorkflowTrigger)
 	for _, tr := range triggers {
-		if tr == nil {
-			continue
-		}
 		byWF[tr.WorkflowID] = append(byWF[tr.WorkflowID], tr)
 	}
 	entries := make([]WorkflowListEntry, 0, len(defs))
 	for _, def := range defs {
-		if def == nil {
-			continue
-		}
 		var last *time.Time
 		if t, ok := lastRunAt[def.Name]; ok {
 			lastCopy := t
@@ -70,15 +63,12 @@ func BuildWorkflowListEntries(defs []*gen.Workflow, triggers []*gen.WorkflowTrig
 }
 
 // WorkflowTriggerSummaries converts stored workflow triggers into list badge summaries.
-func WorkflowTriggerSummaries(rows []*gen.WorkflowTrigger) []PipelineTriggerSummary {
+func WorkflowTriggerSummaries(rows []model.WorkflowTrigger) []PipelineTriggerSummary {
 	if len(rows) == 0 {
 		return nil
 	}
 	out := make([]PipelineTriggerSummary, 0, len(rows))
 	for _, tr := range rows {
-		if tr == nil {
-			continue
-		}
 		out = append(out, PipelineTriggerSummary{
 			Type:    tr.Type,
 			Label:   workflowTriggerLabel(tr),
@@ -89,10 +79,7 @@ func WorkflowTriggerSummaries(rows []*gen.WorkflowTrigger) []PipelineTriggerSumm
 	return out
 }
 
-func workflowTriggerLabel(tr *gen.WorkflowTrigger) string {
-	if tr == nil {
-		return "Trigger"
-	}
+func workflowTriggerLabel(tr model.WorkflowTrigger) string {
 	switch tr.Type {
 	case "manual":
 		return "Manual"
@@ -137,8 +124,8 @@ func workflowRuleString(rule map[string]any, key string) string {
 // WorkflowWebhookURLPath returns the relative workflow webhook URL path
 // (/webhook/workflow/{path}), appending ?token= when auth.token is set.
 // Returns empty when the trigger is not a webhook or path is missing.
-func WorkflowWebhookURLPath(tr *gen.WorkflowTrigger) string {
-	if tr == nil || !strings.EqualFold(tr.Type, "webhook") {
+func WorkflowWebhookURLPath(tr model.WorkflowTrigger) string {
+	if !strings.EqualFold(tr.Type, "webhook") {
 		return ""
 	}
 	path := strings.TrimPrefix(workflowRuleString(tr.Rule, "path"), "/")
@@ -154,7 +141,7 @@ func WorkflowWebhookURLPath(tr *gen.WorkflowTrigger) string {
 
 // WorkflowWebhookURL returns the absolute webhook URL when publicOrigin is set,
 // otherwise the relative path from WorkflowWebhookURLPath.
-func WorkflowWebhookURL(tr *gen.WorkflowTrigger, publicOrigin string) string {
+func WorkflowWebhookURL(tr model.WorkflowTrigger, publicOrigin string) string {
 	path := WorkflowWebhookURLPath(tr)
 	if path == "" {
 		return ""
@@ -186,7 +173,7 @@ func workflowRuleAuthString(rule map[string]any, key string) string {
 
 // WorkflowRunStatusClass returns the flowbot-chip CSS class for a workflow run status.
 func WorkflowRunStatusClass(status int) string {
-	if c, ok := workflowRunStatusMeta[schema.WorkflowRunState(status)]; ok {
+	if c, ok := workflowRunStatusMeta[types.WorkflowRunState(status)]; ok {
 		return c.class
 	}
 	return "flowbot-chip flowbot-chip-muted"
@@ -194,7 +181,7 @@ func WorkflowRunStatusClass(status int) string {
 
 // WorkflowRunStatusText returns a short label for a workflow run status.
 func WorkflowRunStatusText(status int) string {
-	if c, ok := workflowRunStatusMeta[schema.WorkflowRunState(status)]; ok {
+	if c, ok := workflowRunStatusMeta[types.WorkflowRunState(status)]; ok {
 		return c.text
 	}
 	return "Unknown"
@@ -205,17 +192,14 @@ type workflowRunStatusInfo struct {
 	text  string
 }
 
-var workflowRunStatusMeta = map[schema.WorkflowRunState]workflowRunStatusInfo{
-	schema.WorkflowRunDone:    {class: "flowbot-chip flowbot-chip-success", text: "Done"},
-	schema.WorkflowRunFailed:  {class: "flowbot-chip flowbot-chip-error", text: "Failed"},
-	schema.WorkflowRunRunning: {class: "flowbot-chip flowbot-chip-warning", text: "Running"},
+var workflowRunStatusMeta = map[types.WorkflowRunState]workflowRunStatusInfo{
+	types.WorkflowRunDone:    {class: "flowbot-chip flowbot-chip-success", text: "Done"},
+	types.WorkflowRunFailed:  {class: "flowbot-chip flowbot-chip-error", text: "Failed"},
+	types.WorkflowRunRunning: {class: "flowbot-chip flowbot-chip-warning", text: "Running"},
 }
 
 // WorkflowRunDuration formats the elapsed time for a workflow run.
-func WorkflowRunDuration(r *gen.WorkflowRun) string {
-	if r == nil {
-		return "-"
-	}
+func WorkflowRunDuration(r model.WorkflowRun) string {
 	end := time.Now()
 	if r.CompletedAt != nil {
 		end = *r.CompletedAt
@@ -232,10 +216,7 @@ func WorkflowRunDuration(r *gen.WorkflowRun) string {
 }
 
 // WorkflowStepRunDuration formats the elapsed time for a workflow step run.
-func WorkflowStepRunDuration(sr *gen.WorkflowStepRun) string {
-	if sr == nil {
-		return "-"
-	}
+func WorkflowStepRunDuration(sr model.WorkflowStepRun) string {
 	if sr.CompletedAt == nil {
 		return "-"
 	}
@@ -247,10 +228,7 @@ func WorkflowStepRunDuration(sr *gen.WorkflowStepRun) string {
 }
 
 // stepDisplayName prefers StepName, falling back to StepID.
-func stepDisplayName(s *gen.WorkflowStepRun) string {
-	if s == nil {
-		return ""
-	}
+func stepDisplayName(s model.WorkflowStepRun) string {
 	if s.StepName != "" {
 		return s.StepName
 	}
@@ -258,10 +236,7 @@ func stepDisplayName(s *gen.WorkflowStepRun) string {
 }
 
 // WorkflowStepKey returns a stable identifier for step-run test ids and UI keys.
-func WorkflowStepKey(s *gen.WorkflowStepRun) string {
-	if s == nil {
-		return ""
-	}
+func WorkflowStepKey(s model.WorkflowStepRun) string {
 	if s.StepID != "" {
 		return s.StepID
 	}
@@ -269,19 +244,13 @@ func WorkflowStepKey(s *gen.WorkflowStepRun) string {
 }
 
 // workflowStepHasDetail reports whether a step run should render an expandable detail row.
-func workflowStepHasDetail(s *gen.WorkflowStepRun) bool {
-	if s == nil {
-		return false
-	}
-	return len(s.Params) > 0 || len(s.Result) > 0 || s.Error != "" || schema.WorkflowRunState(s.Status) == schema.WorkflowRunFailed
+func workflowStepHasDetail(s model.WorkflowStepRun) bool {
+	return len(s.Params) > 0 || len(s.Result) > 0 || s.Error != "" || types.WorkflowRunState(s.Status) == types.WorkflowRunFailed
 }
 
 // workflowStepDetailOpen reports whether the detail row should start expanded (failed steps).
-func workflowStepDetailOpen(s *gen.WorkflowStepRun) bool {
-	if s == nil {
-		return false
-	}
-	return s.Error != "" || schema.WorkflowRunState(s.Status) == schema.WorkflowRunFailed
+func workflowStepDetailOpen(s model.WorkflowStepRun) bool {
+	return s.Error != "" || types.WorkflowRunState(s.Status) == types.WorkflowRunFailed
 }
 
 // WorkflowDAGNode is one task box in the workflow DAG view.

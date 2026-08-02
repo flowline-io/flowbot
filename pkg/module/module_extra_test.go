@@ -9,21 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-func withSQLiteStore(t *testing.T) {
-	t.Helper()
-	prev := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = prev })
-}
-
 func TestSettingGetAndStoreParameter(t *testing.T) {
-	withSQLiteStore(t)
+	fake := withFakeModuleDataStore(t)
 	runCtx := types.Context{AsUser: types.Uid("user:setting"), Topic: "default"}
 	runCtx.SetContext(context.Background())
 
@@ -34,7 +25,7 @@ func TestSettingGetAndStoreParameter(t *testing.T) {
 		{
 			name: "setting get returns stored config",
 			run: func(t *testing.T) {
-				require.NoError(t, store.ModuleDataStoreFromDB().ConfigSet(runCtx.Context(), runCtx.AsUser, runCtx.Topic, "widget_theme", types.KV{"color": "blue"}))
+				fake.configSet(runCtx.AsUser, runCtx.Topic, "widget_theme", types.KV{"color": "blue"})
 				got, err := SettingGet(runCtx, "widget", "theme")
 				require.NoError(t, err)
 				assert.Equal(t, "blue", got["color"])
@@ -46,9 +37,10 @@ func TestSettingGetAndStoreParameter(t *testing.T) {
 				flag, err := StoreParameter(types.KV{"a": "1"}, time.Now().Add(time.Hour))
 				require.NoError(t, err)
 				assert.NotEmpty(t, flag)
-				row, getErr := store.ModuleDataStoreFromDB().ParameterGet(context.Background(), flag)
-				require.NoError(t, getErr)
-				assert.Equal(t, "1", types.KV(row.Params)["a"])
+				fake.mu.Lock()
+				params := fake.params[flag]
+				fake.mu.Unlock()
+				assert.Equal(t, "1", params["a"])
 			},
 		},
 		{
@@ -94,7 +86,7 @@ func TestInitInvalidConfig(t *testing.T) {
 }
 
 func TestBehaviorViaModuleHelper(t *testing.T) {
-	withSQLiteStore(t)
+	fake := withFakeModuleDataStore(t)
 	uid := types.Uid("user:mod-behavior")
 
 	tests := []struct {
@@ -113,7 +105,7 @@ func TestBehaviorViaModuleHelper(t *testing.T) {
 		})
 	}
 
-	got, err := store.ModuleDataStoreFromDB().BehaviorGet(context.Background(), uid, MessageBotIncomingBehavior)
+	got, err := fake.BehaviorGet(context.Background(), uid, MessageBotIncomingBehavior)
 	require.NoError(t, err)
 	assert.Equal(t, int32(3), got.Count)
 }

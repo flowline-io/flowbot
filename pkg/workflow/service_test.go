@@ -10,13 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 type mockCatalog struct {
 	meta    map[string]*types.WorkflowMetadata
-	defs    []*gen.Workflow
+	defs    []*model.Workflow
 	getErr  error
 	listErr error
 }
@@ -32,11 +32,11 @@ func (m *mockCatalog) GetMetadata(_ context.Context, name string) (*types.Workfl
 	return meta, nil
 }
 
-func (*mockCatalog) ApplyDefinition(_ context.Context, _ *types.WorkflowMetadata) (*gen.Workflow, error) {
+func (*mockCatalog) ApplyDefinition(_ context.Context, _ *types.WorkflowMetadata) (*model.Workflow, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockCatalog) ListDefinitions(_ context.Context) ([]*gen.Workflow, error) {
+func (m *mockCatalog) ListDefinitions(_ context.Context) ([]*model.Workflow, error) {
 	if m.listErr != nil {
 		return nil, m.listErr
 	}
@@ -47,17 +47,17 @@ func (*mockCatalog) DeleteDefinitionByName(_ context.Context, _ string) error {
 	return errors.New("not implemented")
 }
 
-func (*mockCatalog) ListRunsByName(_ context.Context, _ string) ([]*gen.WorkflowRun, error) {
+func (*mockCatalog) ListRunsByName(_ context.Context, _ string) ([]*model.WorkflowRun, error) {
 	return nil, nil
 }
 
 type mockRunStore struct {
 	mu      sync.Mutex
-	created []*gen.WorkflowRun
+	created []*model.WorkflowRun
 	nextID  int64
 }
 
-func (m *mockRunStore) CreateRun(_ context.Context, workflowID int64, workflowName, workflowFile, triggerType string, _, inputParams map[string]any) (*gen.WorkflowRun, error) {
+func (m *mockRunStore) CreateRun(_ context.Context, workflowID int64, workflowName, _ string, triggerType string, _, _ map[string]any) (*model.WorkflowRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextID++
@@ -66,31 +66,29 @@ func (m *mockRunStore) CreateRun(_ context.Context, workflowID int64, workflowNa
 	if workflowID != 0 {
 		wfID = &workflowID
 	}
-	run := &gen.WorkflowRun{
+	run := &model.WorkflowRun{
 		ID:           id,
 		WorkflowID:   wfID,
 		WorkflowName: workflowName,
-		WorkflowFile: workflowFile,
 		TriggerType:  triggerType,
-		InputParams:  inputParams,
 	}
 	m.created = append(m.created, run)
 	return run, nil
 }
 
 func (*mockRunStore) UpdateRunStatus(context.Context, int64, int, string) error { return nil }
-func (*mockRunStore) CreateStepRun(context.Context, int64, string, string, string, string, map[string]any, int) (*gen.WorkflowStepRun, error) {
-	return &gen.WorkflowStepRun{ID: 1}, nil
+func (*mockRunStore) CreateStepRun(context.Context, int64, string, string, string, string, map[string]any, int) (*model.WorkflowStepRun, error) {
+	return &model.WorkflowStepRun{ID: 1}, nil
 }
 func (*mockRunStore) UpdateStepRun(context.Context, int64, int, map[string]any, string, int) error {
 	return nil
 }
 func (*mockRunStore) SaveCheckpoint(context.Context, int64, any) error { return nil }
-func (*mockRunStore) GetIncompleteRuns(context.Context) ([]*gen.WorkflowRun, error) {
+func (*mockRunStore) GetIncompleteRuns(context.Context) ([]*model.WorkflowRun, error) {
 	return nil, nil
 }
 func (*mockRunStore) GetCheckpoint(context.Context, int64, any) error { return nil }
-func (*mockRunStore) GetRun(context.Context, int64) (*gen.WorkflowRun, error) {
+func (*mockRunStore) GetRun(context.Context, int64) (*model.WorkflowRun, error) {
 	return nil, errors.New("not found")
 }
 func (*mockRunStore) UpdateRunHeartbeat(context.Context, int64) error { return nil }
@@ -128,7 +126,7 @@ func TestService_StartRunAsync_Validation(t *testing.T) {
 			input:  types.KV{"url": "https://example.com"},
 			catalog: &mockCatalog{
 				meta: map[string]*types.WorkflowMetadata{"ok-wf": sampleMeta("ok-wf")},
-				defs: []*gen.Workflow{{ID: 42, Name: "ok-wf", Enabled: true}},
+				defs: []*model.Workflow{{ID: 42, Name: "ok-wf", Enabled: true}},
 			},
 			runs:        &mockRunStore{},
 			wantRunID:   true,
@@ -149,7 +147,7 @@ func TestService_StartRunAsync_Validation(t *testing.T) {
 			input:  types.KV{},
 			catalog: &mockCatalog{
 				meta: map[string]*types.WorkflowMetadata{"need-url": sampleMeta("need-url")},
-				defs: []*gen.Workflow{{ID: 1, Name: "need-url", Enabled: true}},
+				defs: []*model.Workflow{{ID: 1, Name: "need-url", Enabled: true}},
 			},
 			runs:       &mockRunStore{},
 			wantErr:    true,
@@ -161,7 +159,7 @@ func TestService_StartRunAsync_Validation(t *testing.T) {
 			input:  types.KV{"url": 123},
 			catalog: &mockCatalog{
 				meta: map[string]*types.WorkflowMetadata{"bad-type": sampleMeta("bad-type")},
-				defs: []*gen.Workflow{{ID: 2, Name: "bad-type", Enabled: true}},
+				defs: []*model.Workflow{{ID: 2, Name: "bad-type", Enabled: true}},
 			},
 			runs:       &mockRunStore{},
 			wantErr:    true,

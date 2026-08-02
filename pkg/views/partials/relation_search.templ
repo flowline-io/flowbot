@@ -1,8 +1,8 @@
 package partials
 
-import "github.com/flowline-io/flowbot/internal/store/ent/schema"
+import "github.com/flowline-io/flowbot/pkg/types"
 
-templ RelationSearchResults(results []schema.ResourceRef) {
+templ RelationSearchResults(results []types.ResourceRef) {
 	if len(results) == 0 {
 		@EmptyState("No resources found")
 		return

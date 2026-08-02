@@ -11,13 +11,13 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []*gen.WorkflowTrigger, recentRuns []*gen.WorkflowRun, yamlText string, publicOrigin string) templ.Component {
+func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.WorkflowTrigger, recentRuns []model.WorkflowRun, yamlText string, publicOrigin string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -195,7 +195,7 @@ func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []*gen.WorkflowTr
 	})
 }
 
-func WorkflowRunsPage(name string, runs []*gen.WorkflowRun) templ.Component {
+func WorkflowRunsPage(name string, runs []model.WorkflowRun) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

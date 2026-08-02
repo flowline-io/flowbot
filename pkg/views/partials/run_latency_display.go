@@ -67,10 +67,7 @@ func AttachRunLatencyStats(entries []PipelineListEntry, stats map[string]types.R
 		return entries
 	}
 	for i := range entries {
-		if entries[i].Definition == nil {
-			continue
-		}
-		st, ok := stats[entries[i].Definition.Name]
+		st, ok := stats[entries[i].Name]
 		if !ok || st.Total == 0 {
 			continue
 		}

@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestWorkflowStepRunsDetail(t *testing.T) {
@@ -19,7 +19,7 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 	done := now.Add(time.Second)
 	tests := []struct {
 		name     string
-		steps    []*gen.WorkflowStepRun
+		steps    []model.WorkflowStepRun
 		contains []string
 		excludes []string
 	}{
@@ -33,7 +33,7 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "step with params and result is expandable",
-			steps: []*gen.WorkflowStepRun{
+			steps: []model.WorkflowStepRun{
 				{
 					StepID:      "echo",
 					StepName:    "echo",
@@ -41,7 +41,7 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 					ActionType:  "mapper",
 					Params:      map[string]any{"msg": "hi"},
 					Result:      map[string]any{"out": "hi"},
-					Status:      int(schema.WorkflowRunDone),
+					Status:      int(types.WorkflowRunDone),
 					Attempt:     1,
 					StartedAt:   now,
 					CompletedAt: &done,
@@ -61,13 +61,13 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "step without params or result is not expandable",
-			steps: []*gen.WorkflowStepRun{
+			steps: []model.WorkflowStepRun{
 				{
 					StepID:     "noop",
 					StepName:   "noop",
 					Action:     "shell:true",
 					ActionType: "shell",
-					Status:     int(schema.WorkflowRunDone),
+					Status:     int(types.WorkflowRunDone),
 					Attempt:    1,
 					StartedAt:  now,
 				},
@@ -83,13 +83,13 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "failed step with error only is expandable and open",
-			steps: []*gen.WorkflowStepRun{
+			steps: []model.WorkflowStepRun{
 				{
 					StepID:     "fail",
 					StepName:   "fail",
 					Action:     "shell:false",
 					ActionType: "shell",
-					Status:     int(schema.WorkflowRunFailed),
+					Status:     int(types.WorkflowRunFailed),
 					Error:      "exit status 1",
 					Attempt:    1,
 					StartedAt:  now,
@@ -112,14 +112,14 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "failed step shows error text",
-			steps: []*gen.WorkflowStepRun{
+			steps: []model.WorkflowStepRun{
 				{
 					StepID:     "fail",
 					StepName:   "fail",
 					Action:     "shell:false",
 					ActionType: "shell",
 					Params:     map[string]any{"cmd": "false"},
-					Status:     int(schema.WorkflowRunFailed),
+					Status:     int(types.WorkflowRunFailed),
 					Error:      "exit 1",
 					Attempt:    2,
 					StartedAt:  now,
@@ -156,12 +156,12 @@ func TestWorkflowStepRunDuration(t *testing.T) {
 	done := now.Add(1500 * time.Millisecond)
 	tests := []struct {
 		name string
-		sr   *gen.WorkflowStepRun
+		sr   model.WorkflowStepRun
 		want string
 	}{
-		{name: "nil", sr: nil, want: "-"},
-		{name: "incomplete", sr: &gen.WorkflowStepRun{StartedAt: now}, want: "-"},
-		{name: "completed", sr: &gen.WorkflowStepRun{StartedAt: now, CompletedAt: &done}, want: "2s"},
+		{name: "zero incomplete", sr: model.WorkflowStepRun{}, want: "-"},
+		{name: "incomplete", sr: model.WorkflowStepRun{StartedAt: now}, want: "-"},
+		{name: "completed", sr: model.WorkflowStepRun{StartedAt: now, CompletedAt: &done}, want: "2s"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -9,8 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
@@ -426,9 +424,8 @@ func TestChannelsFromNotifyConfigKeys(t *testing.T) {
 	}
 }
 
-func TestUserNotifyChannels_NilDatabase(t *testing.T) {
-	// Mutates global store.Database; must not run in parallel with other tests.
-	replaceDatabaseForTest(t, nil)
+func TestUserNotifyChannels_NilStore(t *testing.T) {
+	clearNotifyTestStores(t)
 
 	tests := []struct {
 		name string
@@ -454,21 +451,6 @@ func testNotifyTemplate() Template {
 		DefaultFormat:   "markdown",
 		DefaultTemplate: "**{{ .title }}**\n{{ .body }}",
 	}
-}
-
-// replaceDatabaseForTest swaps store.Database under databaseMu and waits for recordAsync on cleanup.
-func replaceDatabaseForTest(t *testing.T, db store.Adapter) {
-	t.Helper()
-	databaseMu.Lock()
-	prev := store.Database
-	store.Database = db
-	databaseMu.Unlock()
-	t.Cleanup(func() {
-		WaitForRecordAsyncForTest()
-		databaseMu.Lock()
-		store.Database = prev
-		databaseMu.Unlock()
-	})
 }
 
 func setupNotifyTestEnv(t *testing.T, templates []Template, rules []Rule, redisStore *cache.RedisStore) {
@@ -686,7 +668,7 @@ func TestGatewaySend(t *testing.T) {
 				}
 				Register(m.protocol, m)
 				t.Cleanup(func() { Unregister(m.protocol) })
-				replaceDatabaseForTest(t, postgres.NewSQLiteTestAdapter(t))
+				setupNotifyTestDB(t)
 				seedNotifyTestChannel(t, "slack", "testgatewaysend", "testgatewaysend://chan/tok", true, false)
 			},
 			templateID: "test.event",
@@ -697,7 +679,7 @@ func TestGatewaySend(t *testing.T) {
 			name: "missing channel without uid returns error",
 			setup: func(t *testing.T) {
 				setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, nil, nil)
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 			},
 			templateID: "test.event",
 			channels:   []string{"slack"},
@@ -720,7 +702,7 @@ func TestGatewaySend(t *testing.T) {
 				}
 				Register(m.protocol, m)
 				t.Cleanup(func() { Unregister(m.protocol) })
-				replaceDatabaseForTest(t, postgres.NewSQLiteTestAdapter(t))
+				setupNotifyTestDB(t)
 				seedNotifyTestChannel(t, "slack", "testgatewaythrottle", "testgatewaythrottle://chan/tok", true, false)
 			},
 			templateID: "test.event",
@@ -766,7 +748,7 @@ func TestGatewaySendDeferredInappAndMuteExternal(t *testing.T) {
 		Unregister(m.protocol)
 		Unregister(ChannelInapp)
 	})
-	replaceDatabaseForTest(t, postgres.NewSQLiteTestAdapter(t))
+	setupNotifyTestDB(t)
 	seedNotifyTestChannel(t, ChannelInapp, ChannelInapp, InappChannelURI, true, false)
 	seedNotifyTestChannel(t, "slack", "testdefer", "testdefer://chan/tok", true, false)
 
@@ -780,16 +762,16 @@ func TestGatewaySendDeferredInappAndMuteExternal(t *testing.T) {
 
 	ns := GetNotifyStore()
 	require.NotNil(t, ns)
-	recs, _, err := ns.ListRecords(context.Background(), "u-defer", store.ListNotifyRecordsOptions{Limit: 20})
+	recs, _, err := ns.ListRecords(context.Background(), "u-defer", ListNotifyRecordsOptions{Limit: 20})
 	require.NoError(t, err)
 	var sawInapp, sawMutedSlack bool
 	for _, rec := range recs {
 		switch {
-		case rec.Channel == ChannelInapp && string(rec.Status) == "success":
+		case rec.Channel == ChannelInapp && rec.Status == "success":
 			sawInapp = true
-		case rec.Channel == "slack" && string(rec.Status) == "muted":
+		case rec.Channel == "slack" && rec.Status == "muted":
 			sawMutedSlack = true
-		case rec.Channel == "slack" && string(rec.Status) == "deferred":
+		case rec.Channel == "slack" && rec.Status == "deferred":
 			t.Fatalf("slack should be muted at enqueue, not deferred")
 		}
 	}
@@ -807,7 +789,7 @@ func (*pluginInappStub) Templates() []string {
 func (*pluginInappStub) Send(types.KV, Message) error { return nil }
 
 func TestSendToUserChannel(t *testing.T) {
-	setupNotifySQLiteDB(t)
+	setupNotifyTestDB(t)
 	uid := types.Uid("user-send-test")
 	seedUserNotifyConfig(t, uid, "slack", "testuserchannelsend://chan/tok")
 	ctx := context.Background()
@@ -865,7 +847,7 @@ func TestDispatchChannel(t *testing.T) {
 		{
 			name: "global channel sends without uid",
 			seed: func(t *testing.T) {
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 				seedNotifyTestChannel(t, "testing", "testdispatchglobal", "testdispatchglobal://chan/tok", true, false)
 			},
 			uid:       types.Uid(""),
@@ -876,7 +858,7 @@ func TestDispatchChannel(t *testing.T) {
 		{
 			name: "disabled global channel returns error",
 			seed: func(t *testing.T) {
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 				seedNotifyTestChannel(t, "testing", "testdispatchglobal", "testdispatchglobal://chan/tok", false, false)
 			},
 			uid:       types.Uid(""),
@@ -887,7 +869,7 @@ func TestDispatchChannel(t *testing.T) {
 		{
 			name: "falls back to user config when global missing",
 			seed: func(t *testing.T) {
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 				seedUserNotifyConfig(t, types.Uid("user-1"), "slack", "testdispatchglobal://chan/tok")
 			},
 			uid:       types.Uid("user-1"),
@@ -898,7 +880,7 @@ func TestDispatchChannel(t *testing.T) {
 		{
 			name: "missing global and user channel returns error",
 			seed: func(t *testing.T) {
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 			},
 			uid:       types.Uid(""),
 			channel:   "missing",
@@ -923,7 +905,7 @@ func TestDispatchChannel(t *testing.T) {
 }
 
 func TestUserNotifyChannels_WithStore(t *testing.T) {
-	setupNotifySQLiteDB(t)
+	setupNotifyTestDB(t)
 	uid := types.Uid("user-channels-test")
 	seedUserNotifyConfig(t, uid, "slack", "test://slack")
 	seedUserNotifyConfig(t, uid, "ntfy", "test://ntfy")
@@ -952,17 +934,17 @@ func TestGetNotifyStore(t *testing.T) {
 		setupNil bool
 		wantNil  bool
 	}{
-		{name: "nil database returns nil", setupNil: true, wantNil: true},
-		{name: "sqlite adapter returns store", setupNil: false, wantNil: false},
+		{name: "nil injection returns nil", setupNil: true, wantNil: true},
+		{name: "mem store returns store", setupNil: false, wantNil: false},
 		{name: "store is usable after init", setupNil: false, wantNil: false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setupNil {
-				replaceDatabaseForTest(t, nil)
+				clearNotifyTestStores(t)
 			} else {
-				replaceDatabaseForTest(t, postgres.NewSQLiteTestAdapter(t))
+				setupNotifyTestDB(t)
 			}
 			ns := GetNotifyStore()
 			if tt.wantNil {
@@ -975,7 +957,7 @@ func TestGetNotifyStore(t *testing.T) {
 }
 
 func TestRecordAsync_NilStore(t *testing.T) {
-	replaceDatabaseForTest(t, nil)
+	clearNotifyTestStores(t)
 
 	tests := []struct {
 		name string

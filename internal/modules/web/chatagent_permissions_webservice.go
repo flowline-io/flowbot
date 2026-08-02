@@ -153,7 +153,7 @@ func renderChatAgentPermissionsPage(
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "marshal permissions: %v", err)
 	}
-	fields := partials.BuildPermissionFormFields(view)
+	fields := partials.BuildPermissionFormFields(mapPermissionsView(view))
 	if len(submitted.Simple) > 0 || len(submitted.Patterns) > 0 {
 		fields = partials.ApplySubmittedPermissionForm(fields, submitted)
 	}

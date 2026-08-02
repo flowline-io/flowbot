@@ -2,13 +2,13 @@ package partials
 
 import (
 	"time"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type RelationDetailParams struct {
 	Type string // "node" or "edge"
-	Node    schema.ResourceRef
-	Edge    schema.ResourceEdge
+	Node    types.ResourceRef
+	Edge    types.ResourceEdge
 }
 
 templ RelationDetail(p RelationDetailParams) {

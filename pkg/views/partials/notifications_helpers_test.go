@@ -7,8 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestNormalizeNotifyHistoryGroup(t *testing.T) {
@@ -122,10 +121,10 @@ func TestNotifyRecordRowClass(t *testing.T) {
 }
 
 func TestGroupNotificationRecords(t *testing.T) {
-	recs := []*gen.NotificationRecord{
-		{ID: 3, Channel: "slack", RuleID: "r1", Status: notificationrecord.StatusFailed, CreatedAt: time.Now()},
-		{ID: 2, Channel: "ntfy", RuleID: "", Status: notificationrecord.StatusSuccess, CreatedAt: time.Now()},
-		{ID: 1, Channel: "slack", RuleID: "r1", Status: notificationrecord.StatusSuccess, CreatedAt: time.Now()},
+	recs := []model.NotificationRecord{
+		{ID: 3, Channel: "slack", RuleID: "r1", Status: "failed", CreatedAt: time.Now()},
+		{ID: 2, Channel: "ntfy", RuleID: "", Status: "success", CreatedAt: time.Now()},
+		{ID: 1, Channel: "slack", RuleID: "r1", Status: "success", CreatedAt: time.Now()},
 	}
 	tests := []struct {
 		name      string

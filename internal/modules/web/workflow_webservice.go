@@ -44,6 +44,14 @@ func getWorkflowStore() *store.WorkflowStore {
 	return store.WorkflowStoreFromDB()
 }
 
+func getWorkflowCatalog() pkgworkflow.Catalog {
+	ws := getWorkflowStore()
+	if ws == nil {
+		return nil
+	}
+	return store.NewWorkflowCatalogAdapter(ws)
+}
+
 func getWorkflowRunStore() *store.WorkflowRunStore {
 	if store.Database == nil || store.Database.GetClient() == nil {
 		return nil
@@ -63,7 +71,12 @@ func getWorkflowService() *pkgworkflow.Service {
 	// Local fallback for tests / when server lifecycle has not wired ActiveService.
 	// Must be registered: callers may ReloadTriggers, which starts a cron goroutine
 	// that would otherwise leak on every fresh NewService.
-	svc := pkgworkflow.NewService(ws, rs, nil, nil)
+	svc := pkgworkflow.NewService(
+		store.NewWorkflowCatalogAdapter(ws),
+		store.NewWorkflowRunStoreAdapter(rs),
+		nil,
+		nil,
+	)
 	pkgworkflow.SetReloadService(svc)
 	return svc
 }
@@ -134,7 +147,7 @@ func loadWorkflowListEntries(ctx context.Context) ([]partials.WorkflowListEntry,
 	if err != nil {
 		return nil, err
 	}
-	entries := partials.BuildWorkflowListEntries(defs, triggers, lastRuns)
+	entries := partials.BuildWorkflowListEntries(mapWorkflows(defs), mapWorkflowTriggers(triggers), lastRuns)
 	since := time.Now().Add(-7 * 24 * time.Hour)
 	stats, err := s.RunLatencyStatsByNames(ctx, names, since)
 	if err != nil {
@@ -192,7 +205,8 @@ func workflowDetailPage(c fiber.Ctx) error {
 		return err
 	}
 	s := getWorkflowStore()
-	if s == nil {
+	catalog := getWorkflowCatalog()
+	if s == nil || catalog == nil {
 		return types.Errorf(types.ErrInternal, "workflow store not available")
 	}
 	dto, err := s.GetDefinitionByName(c.Context(), name)
@@ -202,11 +216,7 @@ func workflowDetailPage(c fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
 	}
-	meta, err := pkgworkflow.MetadataFromRows(pkgworkflow.WorkflowRows{
-		Workflow: dto.Workflow,
-		Tasks:    dto.Tasks,
-		Triggers: dto.Triggers,
-	})
+	meta, err := catalog.GetMetadata(c.Context(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "workflow metadata: %v", err)
 	}
@@ -222,7 +232,7 @@ func workflowDetailPage(c fiber.Ctx) error {
 		runs = runs[:10]
 	}
 	c.Type("html")
-	return pages.WorkflowDetailPage(meta, dto.Triggers, runs, string(yamlBytes), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
+	return pages.WorkflowDetailPage(meta, mapWorkflowTriggers(dto.Triggers), mapWorkflowRuns(runs), string(yamlBytes), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func setWorkflowEnabled(c fiber.Ctx) error {
@@ -304,7 +314,7 @@ func setWorkflowTriggerEnabled(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
 	}
 	c.Type("html")
-	return partials.WorkflowTriggersTable(name, dto.Triggers, requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowTriggersTable(name, mapWorkflowTriggers(dto.Triggers), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunsPage(c fiber.Ctx) error {
@@ -330,7 +340,7 @@ func workflowRunsPage(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list workflow runs: %v", err)
 	}
 	c.Type("html")
-	return pages.WorkflowRunsPage(name, runs).Render(c.Context(), c.Response().BodyWriter())
+	return pages.WorkflowRunsPage(name, mapWorkflowRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunsTable(c fiber.Ctx) error {
@@ -352,7 +362,7 @@ func workflowRunsTable(c fiber.Ctx) error {
 		return renderError(c, "Failed to load workflow runs")
 	}
 	c.Type("html")
-	return partials.WorkflowRunsTable(name, runs).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowRunsTable(name, mapWorkflowRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunSteps(c fiber.Ctx) error {
@@ -386,7 +396,7 @@ func workflowRunSteps(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get workflow step runs: %v", err)
 	}
 	c.Type("html")
-	return partials.WorkflowStepRunsDetail(steps).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowStepRunsDetail(mapWorkflowStepRuns(steps)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunNow(c fiber.Ctx) error {
@@ -397,13 +407,13 @@ func workflowRunNow(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getWorkflowStore()
+	catalog := getWorkflowCatalog()
 	svc := getWorkflowService()
-	if s == nil || svc == nil {
+	if catalog == nil || svc == nil {
 		c.Status(http.StatusServiceUnavailable)
 		return renderFormError(c, "#form-error", "Workflow run service is not available")
 	}
-	meta, err := s.GetMetadata(c.Context(), name)
+	meta, err := catalog.GetMetadata(c.Context(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			c.Status(http.StatusNotFound)

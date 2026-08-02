@@ -75,7 +75,7 @@ func retryNotification(ctx fiber.Ctx) error {
 		ctx.Status(fiber.StatusForbidden)
 		return ctx.SendString("Not your notification")
 	}
-	if string(rec.Status) != "failed" {
+	if rec.Status != "failed" {
 		setShowToast(ctx, "error", "Only failed notifications can be retried")
 		return renderNotificationsTable(ctx, ns, uid)
 	}
@@ -145,7 +145,7 @@ func markNotificationRead(ctx fiber.Ctx) error {
 }
 
 // renderNotificationsTable reloads and renders the notifications table fragment.
-func renderNotificationsTable(ctx fiber.Ctx, ns *store.NotifyStore, uid string) error {
+func renderNotificationsTable(ctx fiber.Ctx, ns notifypkg.NotifyRecords, uid string) error {
 	opts := notifyHistoryListOptions(ctx)
 	records, nextCursor, listErr := ns.ListRecords(ctx.Context(), uid, opts)
 	if listErr != nil {
@@ -171,10 +171,10 @@ func renderNotificationsTable(ctx fiber.Ctx, ns *store.NotifyStore, uid string) 
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
-// notifyHistoryListOptions maps History query params onto store list filters.
-func notifyHistoryListOptions(ctx fiber.Ctx) store.ListNotifyRecordsOptions {
+// notifyHistoryListOptions maps History query params onto notify list filters.
+func notifyHistoryListOptions(ctx fiber.Ctx) notifypkg.ListNotifyRecordsOptions {
 	group := partials.NormalizeNotifyHistoryGroup(ctx.Query("group"))
-	opts := store.ListNotifyRecordsOptions{
+	opts := notifypkg.ListNotifyRecordsOptions{
 		Limit:   20,
 		Cursor:  ctx.Query("cursor"),
 		Channel: ctx.Query("channel"),
@@ -219,7 +219,7 @@ func notifyHistoryRuleFacets(ctx context.Context) []string {
 }
 
 // retryConnectivityTest re-runs a channel connectivity probe for the named channel.
-func retryConnectivityTest(ctx context.Context, ns *store.NotifyStore, uid, channelName string) error {
+func retryConnectivityTest(ctx context.Context, ns notifypkg.NotifyRecords, uid, channelName string) error {
 	ch, err := lookupNotifyChannelRawByName(ctx, channelName)
 	if err != nil {
 		return err

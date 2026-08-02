@@ -7,9 +7,9 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/media"
 	"github.com/flowline-io/flowbot/pkg/stats"
 )
 
@@ -71,7 +71,7 @@ func initializeMedia() error {
 					}
 					conf = string(data)
 				}
-				if err := store.UseMediaHandler(config.App.Media.UseHandler, conf); err != nil {
+				if err := media.UseHandler(config.App.Media.UseHandler, conf); err != nil {
 					return fmt.Errorf("failed to init media handler, %w", err)
 				}
 			}

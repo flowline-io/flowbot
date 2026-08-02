@@ -107,7 +107,7 @@ func lookupPending(ctx fiber.Ctx) (*pendingSession, error) {
 		return nil, types.ErrNotFound
 	}
 	p, err := route.LookupAccessToken(context.Background(), token)
-	if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
+	if err != nil || p.ID <= 0 || route.AccessTokenIsExpired(p) {
 		return nil, types.ErrNotFound
 	}
 	paramKV := types.KV(p.Params)

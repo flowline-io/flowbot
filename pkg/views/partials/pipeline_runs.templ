@@ -7,10 +7,10 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
+templ PipelineRunsTable(name string, runs []model.PipelineRun) {
 	if len(runs) == 0 {
 		<div class="py-12" data-testid="runs-empty">
 			@EmptyStateCTA(
@@ -72,7 +72,7 @@ templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 	}
 }
 
-templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
+templ PipelineStepRunsDetail(steps []model.PipelineStepRun) {
 	if len(steps) == 0 {
 		<div class="text-sm text-base-content/30 py-3 text-center">No step runs recorded for this run.</div>
 	} else {
@@ -220,7 +220,7 @@ func runsStatusText(status int) string {
 	}
 }
 
-func runsDuration(r *gen.PipelineRun) string {
+func runsDuration(r model.PipelineRun) string {
 	if r.CompletedAt == nil {
 		return "-"
 	}
@@ -231,7 +231,7 @@ func runsDuration(r *gen.PipelineRun) string {
 	return d.Round(time.Second).String()
 }
 
-func stepRunsDuration(sr *gen.PipelineStepRun) string {
+func stepRunsDuration(sr model.PipelineStepRun) string {
 	if sr.CompletedAt == nil {
 		return "-"
 	}

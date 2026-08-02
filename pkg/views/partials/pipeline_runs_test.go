@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestPipelineStepRunsDetail(t *testing.T) {
 	now := time.Now()
 	tests := []struct {
 		name     string
-		steps    []*gen.PipelineStepRun
+		steps    []model.PipelineStepRun
 		contains []string
 		excludes []string
 	}{
@@ -27,7 +27,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "step with both Params and Result renders clickable row with chevron and detail row with Input and Output",
-			steps: []*gen.PipelineStepRun{
+			steps: []model.PipelineStepRun{
 				{
 					StepName:  "build",
 					Params:    map[string]any{"source": "main.go"},
@@ -50,7 +50,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "step with no Params and no Result renders non-clickable row",
-			steps: []*gen.PipelineStepRun{
+			steps: []model.PipelineStepRun{
 				{
 					StepName:  "noop",
 					Status:    2,
@@ -69,7 +69,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "step with Params only renders clickable row with Input details and empty Output",
-			steps: []*gen.PipelineStepRun{
+			steps: []model.PipelineStepRun{
 				{
 					StepName:  "fetch",
 					Params:    map[string]any{"url": "https://example.com"},
@@ -90,7 +90,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "step with Result only renders clickable row with Output details and empty Input",
-			steps: []*gen.PipelineStepRun{
+			steps: []model.PipelineStepRun{
 				{
 					StepName:  "deploy",
 					Result:    map[string]any{"url": "https://app.example.com"},
@@ -111,7 +111,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "failed step defaults open with error summary and error block",
-			steps: []*gen.PipelineStepRun{
+			steps: []model.PipelineStepRun{
 				{
 					StepName:  "ok",
 					Status:    2,
@@ -138,7 +138,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 		},
 		{
 			name: "successful expandable step stays collapsed",
-			steps: []*gen.PipelineStepRun{
+			steps: []model.PipelineStepRun{
 				{
 					StepName:  "build",
 					Params:    map[string]any{"source": "main.go"},

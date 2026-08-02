@@ -7,12 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // dagNode represents a node in the execution DAG.
@@ -63,7 +62,7 @@ type parallelTaskFn func(
 	input types.KV,
 	results *map[string]string,
 	mu *sync.RWMutex,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
 	firstErr *error,
@@ -72,7 +71,7 @@ type parallelTaskFn func(
 )
 
 // runParallel executes workflow tasks in parallel based on the DAG defined by Conn dependencies.
-func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *gen.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
+func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
 	nodes, ready, err := buildDAG(wf.Tasks)
 	if err != nil {
 		return fmt.Errorf("build dag: %w", err)
@@ -146,7 +145,7 @@ func (r *Runner) dispatchReadyTasks(
 	input types.KV,
 	results *map[string]string,
 	mu *sync.RWMutex,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 	sem chan struct{},
 	wg *sync.WaitGroup,
 	done chan struct{},
@@ -198,7 +197,7 @@ func (r *Runner) runParallelTaskHandler(
 	input types.KV,
 	results *map[string]string,
 	mu *sync.RWMutex,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
 	firstErr *error,
@@ -239,7 +238,7 @@ func (r *Runner) runParallelResumeTaskHandler(
 	input types.KV,
 	results *map[string]string,
 	mu *sync.RWMutex,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
 	firstErr *error,
@@ -258,7 +257,7 @@ func (r *Runner) runParallelResumeTaskHandler(
 // finalizeParallelStatus updates the run status in the store and returns the error.
 // If run is non-nil its ID takes precedence; otherwise runID is used.
 // A zero or negative effective ID skips store updates.
-func (r *Runner) finalizeParallelStatus(ctx context.Context, run *gen.WorkflowRun, runID int64, err error) error {
+func (r *Runner) finalizeParallelStatus(ctx context.Context, run *model.WorkflowRun, runID int64, err error) error {
 	id := runID
 	if run != nil {
 		id = run.ID
@@ -268,10 +267,10 @@ func (r *Runner) finalizeParallelStatus(ctx context.Context, run *gen.WorkflowRu
 	}
 	storeCtx := workflowStoreCtx(ctx)
 	if err != nil {
-		_ = r.store.UpdateRunStatus(storeCtx, id, int(schema.WorkflowRunFailed), err.Error())
+		_ = r.store.UpdateRunStatus(storeCtx, id, int(types.WorkflowRunFailed), err.Error())
 		return err
 	}
-	_ = r.store.UpdateRunStatus(storeCtx, id, int(schema.WorkflowRunDone), "")
+	_ = r.store.UpdateRunStatus(storeCtx, id, int(types.WorkflowRunDone), "")
 	return nil
 }
 
@@ -284,7 +283,7 @@ func (r *Runner) executeParallelTask(
 	input types.KV,
 	results *map[string]string,
 	mu *sync.RWMutex,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
 ) error {
@@ -304,9 +303,9 @@ func (r *Runner) executeParallelTask(
 
 	info := ParseAction(wt.Action)
 
-	var stepRun *gen.WorkflowStepRun
+	var stepRun *model.WorkflowStepRun
 	if r.store != nil && run != nil {
-		stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), run.ID, taskID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
+		stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), run.ID, taskID, wt.Describe, wt.Action, info.Type, map[string]any(params), 1)
 		if err != nil {
 			flog.Error(fmt.Errorf("[workflow] create step run record %s: %w", taskID, err))
 		}
@@ -329,7 +328,7 @@ func (r *Runner) executeStepResult(
 	info ActionInfo,
 	results *map[string]string,
 	mu *sync.RWMutex,
-	stepRun *gen.WorkflowStepRun,
+	stepRun *model.WorkflowStepRun,
 	wfName string,
 ) error {
 	if info.Type == "mapper" {
@@ -345,7 +344,7 @@ func (r *Runner) executeMapperStep(
 	params types.KV,
 	results *map[string]string,
 	mu *sync.RWMutex,
-	stepRun *gen.WorkflowStepRun,
+	stepRun *model.WorkflowStepRun,
 ) error {
 	mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
 	if merr != nil {
@@ -357,9 +356,7 @@ func (r *Runner) executeMapperStep(
 	(*results)[taskID] = string(mappedJSON)
 	mu.Unlock()
 	if r.store != nil && stepRun != nil {
-		resultJSON := schema.JSON{}
-		_ = resultJSON.Scan(mappedJSON)
-		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunDone), map[string]any(params), "", 1)
 	}
 	flog.Info("[workflow] mapper step %s completed (parallel)", taskID)
 	return nil
@@ -373,7 +370,7 @@ func (r *Runner) executeExecutorStep(
 	params types.KV,
 	results *map[string]string,
 	mu *sync.RWMutex,
-	stepRun *gen.WorkflowStepRun,
+	stepRun *model.WorkflowStepRun,
 	wfName string,
 ) error {
 	wtWithParams := wt
@@ -394,7 +391,7 @@ func (r *Runner) executeExecutorStep(
 	backoffCfg := wt.Retry.ToBackoffConfig()
 	backoffCfg.OnRetry = func(a int, d time.Duration, err error) {
 		if r.store != nil && stepRun != nil {
-			_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunRunning), nil, err.Error(), a)
+			_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunRunning), nil, err.Error(), a)
 		}
 		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", taskID, a, d, err)
 	}
@@ -416,12 +413,11 @@ func (r *Runner) executeExecutorStep(
 	}
 
 	if r.store != nil && stepRun != nil {
-		resultJSON := schema.JSON{}
+		result := map[string]any{}
 		if task.Result != "" {
-			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
-			_ = resultJSON.Scan(resultRaw)
+			result["result"] = task.Result
 		}
-		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunDone), result, "", attempt)
 	}
 
 	flog.Info("[workflow] step %s completed (parallel)", taskID)
@@ -439,7 +435,7 @@ func (r *Runner) enqueueDependentsAndSaveCheckpoint(
 	ready *[]string,
 	wf *types.WorkflowMetadata,
 	input types.KV,
-	run *gen.WorkflowRun,
+	run *model.WorkflowRun,
 ) {
 	mu.Lock()
 	defer mu.Unlock()
@@ -553,7 +549,7 @@ func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.Wo
 	totalRemaining := r.countRemainingTasksOnResume(wf, cp)
 
 	if totalRemaining == 0 {
-		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), runID, int(schema.WorkflowRunDone), "")
+		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), runID, int(types.WorkflowRunDone), "")
 		return nil
 	}
 

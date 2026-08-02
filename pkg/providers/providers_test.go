@@ -1,12 +1,16 @@
 package providers
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestRedirectURI(t *testing.T) {
@@ -147,3 +151,117 @@ func (*mockOAuthProvider) GetAuthorizeURL(state string) string {
 func (*mockOAuthProvider) GetAccessToken(_ fiber.Ctx) (*OAuthToken, error) {
 	return &OAuthToken{AccessToken: "test", Type: "mock"}, nil
 }
+
+type fakeOAuthTokenStore struct {
+	token *OAuthToken
+	err   error
+	sets  int
+}
+
+func (f *fakeOAuthTokenStore) Get(_ context.Context, _ types.Uid, _, _ string) (*OAuthToken, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	if f.token == nil {
+		return nil, types.ErrNotFound
+	}
+	cp := *f.token
+	if f.token.ExpiresAt != nil {
+		t := *f.token.ExpiresAt
+		cp.ExpiresAt = &t
+	}
+	return &cp, nil
+}
+
+func (f *fakeOAuthTokenStore) Set(_ context.Context, _ types.Uid, _ string, token *OAuthToken) error {
+	f.sets++
+	cp := *token
+	if token.ExpiresAt != nil {
+		t := *token.ExpiresAt
+		cp.ExpiresAt = &t
+	}
+	f.token = &cp
+	return nil
+}
+
+type refreshOAuthProvider struct {
+	mockOAuthProvider
+	refreshToken string
+	err          error
+}
+
+func (r *refreshOAuthProvider) RefreshAccessToken(_ context.Context, refreshToken string) (*OAuthToken, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	exp := time.Now().Add(time.Hour)
+	return &OAuthToken{
+		AccessToken:  "refreshed",
+		RefreshToken: refreshToken,
+		ExpiresAt:    &exp,
+		Type:         "refreshable",
+		Name:         "refreshed-name",
+	}, nil
+}
+
+func TestGetOrRefreshToken(t *testing.T) {
+	uid := types.Uid("user1")
+	const topic = "topic"
+	const providerName = "refreshable"
+
+	t.Cleanup(func() {
+		SetOAuthTokenStore(nil)
+		UnregisterOAuthProvider(providerName)
+	})
+
+	t.Run("store not configured", func(t *testing.T) {
+		SetOAuthTokenStore(nil)
+		_, err := GetOrRefreshToken(context.Background(), uid, topic, providerName)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not configured")
+	})
+
+	t.Run("returns unexpired token", func(t *testing.T) {
+		exp := time.Now().Add(time.Hour)
+		fake := &fakeOAuthTokenStore{token: &OAuthToken{
+			Name: "n", Type: providerName, AccessToken: "tok", ExpiresAt: &exp,
+		}}
+		SetOAuthTokenStore(fake)
+		got, err := GetOrRefreshToken(context.Background(), uid, topic, providerName)
+		require.NoError(t, err)
+		assert.Equal(t, "tok", got.AccessToken)
+		assert.Equal(t, 0, fake.sets)
+	})
+
+	t.Run("refreshes expired token", func(t *testing.T) {
+		exp := time.Now().Add(-time.Minute)
+		fake := &fakeOAuthTokenStore{token: &OAuthToken{
+			Name: "n", Type: providerName, AccessToken: "old", RefreshToken: "rt", ExpiresAt: &exp,
+		}}
+		SetOAuthTokenStore(fake)
+		RegisterOAuthProvider(providerName, func() OAuthProvider {
+			return &refreshOAuthProvider{}
+		})
+		got, err := GetOrRefreshToken(context.Background(), uid, topic, providerName)
+		require.NoError(t, err)
+		assert.Equal(t, "refreshed", got.AccessToken)
+		assert.Equal(t, 1, fake.sets)
+		assert.Equal(t, "refreshed", fake.token.AccessToken)
+	})
+
+	t.Run("expired without refresher", func(t *testing.T) {
+		exp := time.Now().Add(-time.Minute)
+		fake := &fakeOAuthTokenStore{token: &OAuthToken{
+			Name: "n", Type: "norefresh", AccessToken: "old", RefreshToken: "rt", ExpiresAt: &exp,
+		}}
+		SetOAuthTokenStore(fake)
+		RegisterOAuthProvider("norefresh", func() OAuthProvider {
+			return &mockOAuthProvider{}
+		})
+		t.Cleanup(func() { UnregisterOAuthProvider("norefresh") })
+		_, err := GetOrRefreshToken(context.Background(), uid, topic, "norefresh")
+		require.Error(t, err)
+		assert.ErrorIs(t, err, types.ErrForbidden)
+	})
+}
+

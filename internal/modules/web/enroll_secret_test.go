@@ -41,6 +41,7 @@ func TestEnrollSecretRoundTrip(t *testing.T) {
 
 	oldDB := store.Database
 	store.Database = ts
+	wireNotifyStoresForTest(t)
 	defer func() { store.Database = oldDB; setWebEncryptor(nil) }()
 
 	require.NoError(t, stashEnrollSecret(nil, pending, "MYTOTSECRETKEY123456"))

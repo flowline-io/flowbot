@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"strconv"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func statusBadgeClass(status string) string {
@@ -460,7 +460,7 @@ func NotificationsTable(p NotificationHistoryParams) templ.Component {
 	})
 }
 
-func notificationHistoryRow(r *gen.NotificationRecord, group string) templ.Component {
+func notificationHistoryRow(r model.NotificationRecord, group string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

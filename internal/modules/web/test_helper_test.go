@@ -477,6 +477,7 @@ func setupTestApp(t *testing.T) (*fiber.App, *testStore) {
 	testDB := &testStore{dbClient: dbClient}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = testDB
+	wireNotifyStoresForTest(t)
 	secure := false
 	handler = moduleHandler{
 		initialized: true,
@@ -507,6 +508,7 @@ func setupTestAppWithRateLimiter(t *testing.T) (*fiber.App, *testStore, *mockRat
 	testDB := &testStore{dbClient: dbClient}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = testDB
+	wireNotifyStoresForTest(t)
 	secure := false
 	handler = moduleHandler{
 		initialized: true,
@@ -543,6 +545,7 @@ func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	seedTestAccessToken(t, dbClient, "valid-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
+	wireNotifyStoresForTest(t)
 	secure := false
 	handler = moduleHandler{
 		initialized: true,
@@ -642,13 +645,16 @@ func seedLegacyPlaintextAccessToken(t *testing.T, client *store.Client, rawToken
 // without dbClient but handlers call XxxStoreFromDB().
 func ensureTestStoreDB(t *testing.T, ts *testStore) {
 	t.Helper()
-	if ts == nil || ts.dbClient != nil {
+	if ts == nil {
 		return
 	}
-	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
-	ts.dbClient = sqlitetest.OpenClient(t, dbName)
-	seedWebAuthToken(t, ts.dbClient)
-	seedTestAccessToken(t, ts.dbClient, "test-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
+	if ts.dbClient == nil {
+		dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
+		ts.dbClient = sqlitetest.OpenClient(t, dbName)
+		seedWebAuthToken(t, ts.dbClient)
+		seedTestAccessToken(t, ts.dbClient, "test-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
+	}
+	wireNotifyStoresForTest(t)
 }
 
 func collectTestChatSessions(ts *testStore) []*gen.ChatSession {

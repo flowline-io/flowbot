@@ -2,6 +2,13 @@ package model
 
 import "time"
 
+// NotifyTemplateOverride is a channel-specific template body stored as JSON.
+type NotifyTemplateOverride struct {
+	Channel  string `json:"channel"`
+	Format   string `json:"format"`
+	Template string `json:"template"`
+}
+
 // NotifyTemplate represents a notification message template for UI display and forms.
 type NotifyTemplate struct {
 	ID              int64     `json:"id"`

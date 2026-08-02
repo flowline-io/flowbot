@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestEventPayloadDetail_highlightAndCopy(t *testing.T) {
@@ -68,7 +68,7 @@ func TestDataEventsTable_expandTarget(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
-		events []*gen.DataEvent
+		events []model.DataEvent
 		want   []string
 		absent []string
 	}{
@@ -79,7 +79,7 @@ func TestDataEventsTable_expandTarget(t *testing.T) {
 		},
 		{
 			name: "row targets detail td and is not hidden",
-			events: []*gen.DataEvent{{
+			events: []model.DataEvent{{
 				EventID:   "evt-1",
 				EventType: "bookmark.created",
 				Source:    "karakeep",

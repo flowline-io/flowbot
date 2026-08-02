@@ -1,11 +1,11 @@
 package partials
 
-import "github.com/flowline-io/flowbot/internal/store/ent/schema"
+import "github.com/flowline-io/flowbot/pkg/types"
 
 type RelationTreeParams struct {
-	Node       schema.ResourceRef
-	Upstream   []schema.ResourceEdge
-	Downstream []schema.ResourceEdge
+	Node       types.ResourceRef
+	Upstream   []types.ResourceEdge
+	Downstream []types.ResourceEdge
 }
 
 templ RelationTree(p RelationTreeParams) {
@@ -18,7 +18,7 @@ templ RelationTree(p RelationTreeParams) {
 		for _, edge := range p.Upstream {
 			<div class="pl-2">
 				@RelationEdgeBadge(edge, "upstream")
-				@RelationNodeCard(schema.ResourceRef{
+				@RelationNodeCard(types.ResourceRef{
 					App:        edge.SourceApp,
 					Capability: edge.SourceCapability,
 					EntityID:   edge.SourceEntityID,
@@ -40,7 +40,7 @@ templ RelationTree(p RelationTreeParams) {
 		for _, edge := range p.Downstream {
 			<div class="pl-2">
 				@RelationEdgeBadge(edge, "downstream")
-				@RelationNodeCard(schema.ResourceRef{
+				@RelationNodeCard(types.ResourceRef{
 					App:        edge.TargetApp,
 					Capability: edge.TargetCapability,
 					EntityID:   edge.TargetEntityID,

@@ -1,19 +1,18 @@
 package partials
 
 import (
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // eventPipelineRuns returns pipeline runs linked to the event, if any.
-func eventPipelineRuns(eventID string, runMap map[string][]store.PipelineRunInfo) []store.PipelineRunInfo {
+func eventPipelineRuns(eventID string, runMap map[string][]model.PipelineRunInfo) []model.PipelineRunInfo {
 	if runs, ok := runMap[eventID]; ok {
 		return runs
 	}
 	return nil
 }
 
-templ DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, pageInfo PageInfo, runMap map[string][]store.PipelineRunInfo) {
+templ DataEventsTable(sources, eventTypes []string, events []model.DataEvent, pageInfo PageInfo, runMap map[string][]model.PipelineRunInfo) {
 	<div id="events-table-container">
 		<div class="flowbot-surface" id="data-events-table" data-testid="data-events-table">
 			<div class="overflow-x-auto">

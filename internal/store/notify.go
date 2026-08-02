@@ -9,8 +9,15 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
+
+// ListNotifyRecordsOptions is an alias of notify.ListNotifyRecordsOptions.
+type ListNotifyRecordsOptions = notify.ListNotifyRecordsOptions
+
+// RecordParams is an alias of notify.RecordParams.
+type RecordParams = notify.RecordParams
 
 // ---------------------------------------------------------------------------
 // NotifyStore
@@ -29,30 +36,6 @@ func NewNotifyStore(client *gen.Client) *NotifyStore {
 // NotifyStoreFromDB returns a NotifyStore using the global database client.
 func NotifyStoreFromDB() *NotifyStore {
 	return NewNotifyStore(ClientFromDB())
-}
-
-// ListNotifyRecordsOptions holds filters and pagination for listing notification records.
-type ListNotifyRecordsOptions struct {
-	Limit      int    // max 100, default 20
-	Cursor     string // opaque cursor: ID value as string
-	Channel    string // exact channel name filter; empty means any
-	RuleID     string // exact rule_id filter; empty means any
-	Status     string // exact status filter; empty means any
-	UnreadOnly bool   // when true, only rows with nil read_at
-}
-
-// RecordParams holds fields for inserting a notification delivery record.
-type RecordParams struct {
-	UID           string
-	Channel       string
-	TemplateID    string
-	Summary       string
-	Status        string
-	ErrorMsg      string
-	RuleID        string
-	CorrelationID string
-	Payload       map[string]any
-	EscalateAt    *time.Time
 }
 
 // Record inserts a notification delivery record and returns the new row ID.

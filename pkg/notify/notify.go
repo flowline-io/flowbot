@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
@@ -24,8 +23,6 @@ var (
 	handlers   map[string]Notifyer
 	handlersMu sync.RWMutex
 
-	// databaseMu serializes notify package reads of store.Database against test writers.
-	databaseMu sync.RWMutex
 	// recordAsyncWG tracks in-flight recordAsync goroutines for test teardown.
 	recordAsyncWG sync.WaitGroup
 )
@@ -513,27 +510,18 @@ func buildNotifyMessage(result *notifytmpl.RenderResult, payload map[string]any)
 	return msg
 }
 
-// loadDatabase returns the current store.Database under a read lock.
-func loadDatabase() store.Adapter {
-	databaseMu.RLock()
-	defer databaseMu.RUnlock()
-	return store.Database
-}
-
 // UserNotifyChannels returns channel names configured for the user under notify:<channel> keys.
 func UserNotifyChannels(ctx context.Context, uid types.Uid) ([]string, error) {
-	if loadDatabase() == nil {
+	uc := GetNotifyUserConfig()
+	if uc == nil {
 		return nil, nil
 	}
-	items, err := store.ModuleDataStoreFromDB().ListConfigByPrefix(ctx, uid, "", notifyConfigKeyPrefix)
+	items, err := uc.ListConfigByPrefix(ctx, uid, "", notifyConfigKeyPrefix)
 	if err != nil {
 		return nil, err
 	}
 	keys := make([]string, 0, len(items))
 	for _, item := range items {
-		if item == nil {
-			continue
-		}
 		keys = append(keys, item.Key)
 	}
 	return channelsFromNotifyConfigKeys(keys), nil
@@ -573,10 +561,11 @@ func dispatchChannel(ctx context.Context, uid types.Uid, channel string, msg Mes
 
 // sendGlobalChannel looks up a channel by name in the global notify_channels table and sends.
 func sendGlobalChannel(ctx context.Context, channel string, msg Message) error {
-	if loadDatabase() == nil {
+	ncs := GetNotifyConfigStore()
+	if ncs == nil {
 		return types.ErrNotFound
 	}
-	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannelByNameRaw(ctx, channel)
+	ch, err := ncs.GetNotifyChannelByNameRaw(ctx, channel)
 	if err != nil {
 		return err
 	}
@@ -596,10 +585,11 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, channel string, msg M
 		return types.Errorf(types.ErrNotFound, "channel %s not found", channel)
 	}
 
-	if loadDatabase() == nil {
+	uc := GetNotifyUserConfig()
+	if uc == nil {
 		return types.Errorf(types.ErrNotFound, "channel %s not found", channel)
 	}
-	kv, err := store.ModuleDataStoreFromDB().ConfigGet(ctx, uid, "", notifyConfigKeyPrefix+channel)
+	kv, err := uc.ConfigGet(ctx, uid, "", notifyConfigKeyPrefix+channel)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return types.Errorf(types.ErrNotFound, "channel %s not configured for user", channel)
@@ -616,16 +606,6 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, channel string, msg M
 		return err
 	}
 	return nil
-}
-
-// GetNotifyStore returns the NotifyStore from the global database adapter,
-// or nil if the store is not available.
-func GetNotifyStore() *store.NotifyStore {
-	db := loadDatabase()
-	if db == nil || db.GetClient() == nil {
-		return nil
-	}
-	return store.NotifyStoreFromDB()
 }
 
 // WaitForRecordAsyncForTest blocks until all in-flight recordAsync goroutines finish.
@@ -660,7 +640,7 @@ func recordAsyncParams(uid types.Uid, channel, templateID, summary, status, errM
 		if uid.IsZero() {
 			recordUID = systemNotifyUID
 		}
-		if _, err := ns.RecordParams(ctx, store.RecordParams{
+		if _, err := ns.RecordParams(ctx, RecordParams{
 			UID:           recordUID,
 			Channel:       channel,
 			TemplateID:    templateID,

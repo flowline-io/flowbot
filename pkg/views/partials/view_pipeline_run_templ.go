@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	gen "github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func ViewPipelineRunContent(steps any) templ.Component {
@@ -42,7 +42,7 @@ func ViewPipelineRunContent(steps any) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		} else if stepList, ok := steps.([]*gen.PipelineStepRun); ok {
+		} else if stepList, ok := steps.([]model.PipelineStepRun); ok {
 			templ_7745c5c3_Err = PipelineStepRunsDetail(stepList).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

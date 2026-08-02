@@ -10,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/media"
 )
 
 // Client is a type alias for the Ent client.
@@ -65,38 +64,6 @@ func Migrate() error {
 		return fmt.Errorf("store: schema migration: %w", err)
 	}
 	return nil
-}
-
-// FileSystem Media handler
-var FileSystem media.Handler
-
-// Registered media/file handlers.
-var fileHandlers map[string]media.Handler
-
-// RegisterMediaHandler saves reference to a media handler (file upload-download handler).
-func RegisterMediaHandler(name string, mh media.Handler) {
-	if fileHandlers == nil {
-		fileHandlers = make(map[string]media.Handler)
-	}
-
-	if mh == nil {
-		flog.Fatal("RegisterMediaHandler: handler is nil")
-	}
-	if _, dup := fileHandlers[name]; dup {
-		flog.Fatal("RegisterMediaHandler: called twice for handler %s", name)
-	}
-	fileHandlers[name] = mh
-	flog.Info("media: handler '%s' registered", name)
-}
-
-// UseMediaHandler sets specified media handler as default.
-func UseMediaHandler(name, mediaConfig string) error {
-	mediaHandler := fileHandlers[name]
-	if mediaHandler == nil {
-		return fmt.Errorf("unknown handler %s", name)
-	}
-	FileSystem = mediaHandler
-	return mediaHandler.Init(mediaConfig)
 }
 
 // PersistentStorageInterface defines methods used for interaction with persistent storage.

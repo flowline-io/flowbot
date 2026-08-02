@@ -12,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/types"
-	pkgworkflow "github.com/flowline-io/flowbot/pkg/workflow"
 )
 
 func TestWorkflowStore_ApplyGetDelete(t *testing.T) {
@@ -40,7 +39,7 @@ func TestWorkflowStore_ApplyGetDelete(t *testing.T) {
 				require.Len(t, dto.Triggers, 1)
 				assert.Equal(t, "manual", dto.Triggers[0].Type)
 
-				loaded, err := ws.GetMetadata(ctx, meta.Name)
+				loaded, err := store.NewWorkflowCatalogAdapter(ws).GetMetadata(ctx, meta.Name)
 				require.NoError(t, err)
 				assert.Equal(t, meta.Name, loaded.Name)
 				assert.Equal(t, meta.Pipeline, loaded.Pipeline)
@@ -221,13 +220,7 @@ func TestWorkflowStore_MetadataRoundtrip(t *testing.T) {
 	_, err := ws.ApplyDefinition(ctx, meta)
 	require.NoError(t, err)
 
-	dto, err := ws.GetDefinitionByName(ctx, meta.Name)
-	require.NoError(t, err)
-	got, err := pkgworkflow.MetadataFromRows(pkgworkflow.WorkflowRows{
-		Workflow: dto.Workflow,
-		Tasks:    dto.Tasks,
-		Triggers: dto.Triggers,
-	})
+	got, err := store.NewWorkflowCatalogAdapter(ws).GetMetadata(ctx, meta.Name)
 	require.NoError(t, err)
 	assert.Equal(t, meta.Name, got.Name)
 	assert.Equal(t, meta.Enabled, got.Enabled)

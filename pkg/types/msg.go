@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 )
 
 type MsgPayload interface {
@@ -134,12 +132,12 @@ func (m MarkdownMsg) Convert() any {
 
 type InstructMsg struct {
 	No       string
-	Object   schema.InstructObject
+	Object   InstructObject
 	Bot      string
 	Flag     string
 	Content  KV
-	Priority schema.InstructPriority
-	State    schema.InstructState
+	Priority InstructPriority
+	State    InstructState
 	ExpireAt time.Time
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -82,7 +82,7 @@ func relationsTree(ctx fiber.Ctx) error {
 
 	ctx.Type("html")
 	return partials.RelationTree(partials.RelationTreeParams{
-		Node: schema.ResourceRef{
+		Node: types.ResourceRef{
 			App:        app,
 			Capability: capability,
 			EntityID:   entityID,
@@ -137,7 +137,7 @@ func relationsDetail(ctx fiber.Ctx) error {
 		entityID := ctx.Query("entity_id")
 		return partials.RelationDetail(partials.RelationDetailParams{
 			Type: "node",
-			Node: schema.ResourceRef{
+			Node: types.ResourceRef{
 				App:        app,
 				Capability: capability,
 				EntityID:   entityID,
@@ -158,7 +158,7 @@ func relationsDetail(ctx fiber.Ctx) error {
 		}
 		return partials.RelationDetail(partials.RelationDetailParams{
 			Type: "edge",
-			Edge: schema.ResourceEdge{
+			Edge: types.ResourceEdge{
 				SourceApp:        sourceApp,
 				SourceCapability: sourceCap,
 				SourceEntityID:   sourceEntity,

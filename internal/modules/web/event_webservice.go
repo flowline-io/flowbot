@@ -210,11 +210,13 @@ func filteredEventsTable(c fiber.Ctx) error {
 	}
 
 	c.Type("html")
+	viewEvents := mapDataEvents(events)
+	viewRuns := mapPipelineRunInfoMap(runMap)
 	if opts.Webhook {
-		return partials.WebhookLogsTable(sources, eventTypes, events, pageInfo, runMap).
+		return partials.WebhookLogsTable(sources, eventTypes, viewEvents, pageInfo, viewRuns).
 			Render(c.Context(), c.Response().BodyWriter())
 	}
-	return partials.DataEventsTable(sources, eventTypes, events, pageInfo, runMap).
+	return partials.DataEventsTable(sources, eventTypes, viewEvents, pageInfo, viewRuns).
 		Render(c.Context(), c.Response().BodyWriter())
 }
 

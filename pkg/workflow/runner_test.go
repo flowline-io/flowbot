@@ -11,18 +11,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 type mockWorkflowStore struct {
 	mu          sync.Mutex
-	runs        map[int64]*gen.WorkflowRun
-	stepRuns    map[int64]*gen.WorkflowStepRun
+	runs        map[int64]*model.WorkflowRun
+	stepRuns    map[int64]*model.WorkflowStepRun
 	checkpoints map[int64]*CheckpointData
 	nextRunID   int64
 	nextStepID  int64
@@ -33,24 +32,21 @@ type mockWorkflowStore struct {
 
 func newMockWorkflowStore() *mockWorkflowStore {
 	return &mockWorkflowStore{
-		runs:        make(map[int64]*gen.WorkflowRun),
-		stepRuns:    make(map[int64]*gen.WorkflowStepRun),
+		runs:        make(map[int64]*model.WorkflowRun),
+		stepRuns:    make(map[int64]*model.WorkflowStepRun),
 		checkpoints: make(map[int64]*CheckpointData),
 	}
 }
 
-func (m *mockWorkflowStore) CreateRun(_ context.Context, workflowID int64, workflowName, workflowFile, triggerType string, triggerInfo, inputParams map[string]any) (*gen.WorkflowRun, error) {
+func (m *mockWorkflowStore) CreateRun(_ context.Context, workflowID int64, workflowName, _ string, triggerType string, _, _ map[string]any) (*model.WorkflowRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextRunID++
-	run := &gen.WorkflowRun{
+	run := &model.WorkflowRun{
 		ID:           m.nextRunID,
 		WorkflowName: workflowName,
-		WorkflowFile: workflowFile,
 		TriggerType:  triggerType,
-		TriggerInfo:  triggerInfo,
-		InputParams:  inputParams,
-		Status:       int(schema.WorkflowRunRunning),
+		Status:       int(types.WorkflowRunRunning),
 	}
 	if workflowID != 0 {
 		run.WorkflowID = &workflowID
@@ -101,20 +97,19 @@ func (m *mockWorkflowStore) UpdateRunStatus(ctx context.Context, runID int64, st
 	return nil
 }
 
-func (m *mockWorkflowStore) CreateStepRun(_ context.Context, runID int64, stepID, stepName, action, actionType string, params map[string]any, attempt int) (*gen.WorkflowStepRun, error) {
+func (m *mockWorkflowStore) CreateStepRun(_ context.Context, _ int64, stepID, stepName, action, actionType string, params map[string]any, attempt int) (*model.WorkflowStepRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextStepID++
-	sr := &gen.WorkflowStepRun{
-		ID:            m.nextStepID,
-		WorkflowRunID: runID,
-		StepID:        stepID,
-		StepName:      stepName,
-		Action:        action,
-		ActionType:    actionType,
-		Params:        params,
-		Attempt:       attempt,
-		Status:        int(schema.WorkflowRunRunning),
+	sr := &model.WorkflowStepRun{
+		ID:         m.nextStepID,
+		StepID:     stepID,
+		StepName:   stepName,
+		Action:     action,
+		ActionType: actionType,
+		Params:     params,
+		Attempt:    attempt,
+		Status:     int(types.WorkflowRunRunning),
 	}
 	m.stepRuns[sr.ID] = sr
 	return sr, nil
@@ -146,7 +141,7 @@ func (m *mockWorkflowStore) SaveCheckpoint(_ context.Context, runID int64, data 
 	return nil
 }
 
-func (m *mockWorkflowStore) GetIncompleteRuns(context.Context) ([]*gen.WorkflowRun, error) {
+func (m *mockWorkflowStore) GetIncompleteRuns(context.Context) ([]*model.WorkflowRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return nil, nil
@@ -167,7 +162,7 @@ func (m *mockWorkflowStore) GetCheckpoint(_ context.Context, runID int64, target
 	return nil
 }
 
-func (m *mockWorkflowStore) GetRun(_ context.Context, runID int64) (*gen.WorkflowRun, error) {
+func (m *mockWorkflowStore) GetRun(_ context.Context, runID int64) (*model.WorkflowRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	run, ok := m.runs[runID]
@@ -356,7 +351,7 @@ func TestRunner_ExecuteWithStore(t *testing.T) {
 			input: types.KV{"seed": "input"},
 			check: func(t *testing.T, store *mockWorkflowStore) {
 				assert.NotEmpty(t, store.checkpoints)
-				assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
+				assert.Contains(t, store.statusLog, int(types.WorkflowRunDone))
 				assert.NotEmpty(t, store.stepRuns)
 			},
 		},
@@ -373,7 +368,7 @@ func TestRunner_ExecuteWithStore(t *testing.T) {
 			check: func(t *testing.T, store *mockWorkflowStore) {
 				require.Len(t, store.stepRuns, 2)
 				for _, sr := range store.stepRuns {
-					assert.Equal(t, int(schema.WorkflowRunDone), sr.Status)
+					assert.Equal(t, int(types.WorkflowRunDone), sr.Status)
 				}
 			},
 		},
@@ -386,7 +381,7 @@ func TestRunner_ExecuteWithStore(t *testing.T) {
 			},
 			wantErr: true,
 			check: func(t *testing.T, store *mockWorkflowStore) {
-				assert.Contains(t, store.statusLog, int(schema.WorkflowRunFailed))
+				assert.Contains(t, store.statusLog, int(types.WorkflowRunFailed))
 			},
 		},
 	}
@@ -463,7 +458,7 @@ tasks:
 	runner := NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf))
 	err = runner.ResumeWorkflow(context.Background(), run.ID)
 	require.NoError(t, err)
-	assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
+	assert.Contains(t, store.statusLog, int(types.WorkflowRunDone))
 }
 
 func TestRunner_ResumeWorkflow_Errors(t *testing.T) {
@@ -496,7 +491,7 @@ func TestRunner_ResumeWorkflow_Errors(t *testing.T) {
 				store := newMockWorkflowStore()
 				run, err := store.CreateRun(context.Background(), 0, "wf", "db", "manual", nil, nil)
 				require.NoError(t, err)
-				run.Status = int(schema.WorkflowRunDone)
+				run.Status = int(types.WorkflowRunDone)
 				wf := &types.WorkflowMetadata{Name: "wf", Pipeline: []string{"m1"}, Tasks: []types.WorkflowTask{{ID: "m1", Action: "mapper:"}}}
 				return NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf)), run.ID
 			},
@@ -516,7 +511,7 @@ tasks:
 				require.NoError(t, err)
 				run, err := store.CreateRun(context.Background(), 0, "wf", "db", "manual", nil, nil)
 				require.NoError(t, err)
-				run.Status = int(schema.WorkflowRunFailed)
+				run.Status = int(types.WorkflowRunFailed)
 				return NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf)), run.ID
 			},
 			errContains: "get checkpoint",
@@ -621,7 +616,7 @@ func TestRunner_ExecuteCapabilityStep(t *testing.T) {
 			},
 			check: func(t *testing.T, store *mockWorkflowStore) {
 				require.Len(t, store.stepRuns, 1)
-				assert.Equal(t, int(schema.WorkflowRunDone), store.stepRuns[1].Status)
+				assert.Equal(t, int(types.WorkflowRunDone), store.stepRuns[1].Status)
 			},
 		},
 		{
@@ -655,7 +650,7 @@ func TestRunner_ExecuteCapabilityStep(t *testing.T) {
 			check: func(t *testing.T, store *mockWorkflowStore) {
 				require.NotEmpty(t, store.stepRuns)
 				for _, sr := range store.stepRuns {
-					assert.Equal(t, int(schema.WorkflowRunFailed), sr.Status)
+					assert.Equal(t, int(types.WorkflowRunFailed), sr.Status)
 				}
 			},
 		},
@@ -701,7 +696,7 @@ tasks:
 	store := newMockWorkflowStore()
 	run, err := store.CreateRun(context.Background(), 0, "resume-cap", "db", "manual", nil, nil)
 	require.NoError(t, err)
-	run.Status = int(schema.WorkflowRunFailed)
+	run.Status = int(types.WorkflowRunFailed)
 	require.NoError(t, store.SaveCheckpoint(context.Background(), run.ID, &CheckpointData{
 		StepIndex:   0,
 		StepResults: map[string]string{"m1": `{"seed":"v"}`},
@@ -710,7 +705,7 @@ tasks:
 	runner := NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf))
 	err = runner.ResumeWorkflow(context.Background(), run.ID)
 	require.NoError(t, err)
-	assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
+	assert.Contains(t, store.statusLog, int(types.WorkflowRunDone))
 }
 
 func TestFailStepAndFailRun(t *testing.T) {
@@ -723,11 +718,11 @@ func TestFailStepAndFailRun(t *testing.T) {
 	require.NoError(t, err)
 
 	runner.failStep(context.Background(), stepRun, assert.AnError, 2)
-	assert.Equal(t, int(schema.WorkflowRunFailed), store.stepRuns[stepRun.ID].Status)
+	assert.Equal(t, int(types.WorkflowRunFailed), store.stepRuns[stepRun.ID].Status)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	runner.failRun(ctx, run, cancel, assert.AnError)
-	assert.Contains(t, store.statusLog, int(schema.WorkflowRunFailed))
+	assert.Contains(t, store.statusLog, int(types.WorkflowRunFailed))
 }
 
 func TestExecuteSequentialMapperStepMarshalError(t *testing.T) {
@@ -750,5 +745,5 @@ func TestExecuteSequentialMapperStepMarshalError(t *testing.T) {
 		stepRun,
 	)
 	require.Error(t, err)
-	assert.Equal(t, int(schema.WorkflowRunFailed), store.stepRuns[stepRun.ID].Status)
+	assert.Equal(t, int(types.WorkflowRunFailed), store.stepRuns[stepRun.ID].Status)
 }

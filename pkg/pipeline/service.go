@@ -7,21 +7,21 @@ import (
 	"maps"
 	"strings"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // DefinitionCatalog loads and mutates pipeline definitions stored in the database.
 type DefinitionCatalog interface {
 	CreateDefinition(ctx context.Context, name, description, createdBy string) error
-	GetDefinitionByName(ctx context.Context, name string) (*gen.PipelineDefinition, error)
-	UpdateDefinitionDraft(ctx context.Context, name, yamlDraft string, version int) (*gen.PipelineDefinition, error)
-	PublishDefinition(ctx context.Context, name string, version int) (*gen.PipelineDefinition, error)
+	GetDefinitionByName(ctx context.Context, name string) (*model.PipelineDefinition, error)
+	UpdateDefinitionDraft(ctx context.Context, name, yamlDraft string, version int) (*model.PipelineDefinition, error)
+	PublishDefinition(ctx context.Context, name string, version int) (*model.PipelineDefinition, error)
 	EnsureDefinitionCreatedBy(ctx context.Context, name, createdBy string) error
 	DeleteDefinitionByName(ctx context.Context, name string) (int64, error)
 	ListPublishedDefinitions(ctx context.Context) ([]DefinitionRecord, error)
-	GetRunsByParentName(ctx context.Context, parentName string) ([]*gen.PipelineRun, error)
+	GetRunsByParentName(ctx context.Context, parentName string) ([]*model.PipelineRun, error)
 }
 
 // ListInfo is a published pipeline summary for list APIs.
@@ -224,7 +224,7 @@ func (s *Service) StartRunAsync(ctx context.Context, name string, eventData map[
 }
 
 // ListRuns returns recent runs for a parent pipeline name.
-func (s *Service) ListRuns(ctx context.Context, name string) ([]*gen.PipelineRun, error) {
+func (s *Service) ListRuns(ctx context.Context, name string) ([]*model.PipelineRun, error) {
 	if s == nil || s.catalog == nil {
 		return nil, types.Errorf(types.ErrUnavailable, "pipeline service not ready")
 	}
@@ -235,7 +235,7 @@ func (s *Service) ListRuns(ctx context.Context, name string) ([]*gen.PipelineRun
 	return s.catalog.GetRunsByParentName(ctx, name)
 }
 
-func (s *Service) publishedYAML(ctx context.Context, name string) (string, *gen.PipelineDefinition, error) {
+func (s *Service) publishedYAML(ctx context.Context, name string) (string, *model.PipelineDefinition, error) {
 	if s == nil || s.catalog == nil {
 		return "", nil, types.Errorf(types.ErrUnavailable, "pipeline service not ready")
 	}

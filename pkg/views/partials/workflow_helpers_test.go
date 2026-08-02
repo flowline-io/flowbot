@@ -10,9 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestWorkflowWebPath(t *testing.T) {
@@ -39,19 +38,19 @@ func TestBuildWorkflowListEntries(t *testing.T) {
 	lastRun := time.Date(2026, 7, 21, 18, 0, 0, 0, time.UTC)
 	tests := []struct {
 		name         string
-		defs         []*gen.Workflow
-		triggers     []*gen.WorkflowTrigger
+		defs         []model.Workflow
+		triggers     []model.WorkflowTrigger
 		lastRunAt    map[string]time.Time
 		want         int
 		wantTriggers []string
 		wantLastRun  *time.Time
 	}{
 		{name: "empty", defs: nil, want: 0},
-		{name: "skips nil", defs: []*gen.Workflow{nil, {ID: 1, Name: "a", Pipeline: []string{"t1"}, Enabled: true}}, want: 1},
+		{name: "single workflow", defs: []model.Workflow{{ID: 1, Name: "a", Pipeline: []string{"t1"}, Enabled: true}}, want: 1},
 		{
 			name: "attaches triggers by workflow id",
-			defs: []*gen.Workflow{{ID: 7, Name: "echo", Pipeline: []string{"x"}, Enabled: true}},
-			triggers: []*gen.WorkflowTrigger{
+			defs: []model.Workflow{{ID: 7, Name: "echo", Pipeline: []string{"x"}, Enabled: true}},
+			triggers: []model.WorkflowTrigger{
 				{WorkflowID: 7, Type: "manual", Enabled: true},
 				{WorkflowID: 7, Type: "cron", Enabled: true, Rule: map[string]any{"cron": "@hourly"}},
 				{WorkflowID: 99, Type: "webhook", Enabled: true},
@@ -61,12 +60,12 @@ func TestBuildWorkflowListEntries(t *testing.T) {
 		},
 		{
 			name:        "attaches last run",
-			defs:        []*gen.Workflow{{ID: 2, Name: "echo", Pipeline: []string{"x"}}},
+			defs:        []model.Workflow{{ID: 2, Name: "echo", Pipeline: []string{"x"}}},
 			lastRunAt:   map[string]time.Time{"echo": lastRun},
 			want:        1,
 			wantLastRun: &lastRun,
 		},
-		{name: "two defs", defs: []*gen.Workflow{{Name: "a"}, {Name: "b", Pipeline: []string{"x", "y"}}}, want: 2},
+		{name: "two defs", defs: []model.Workflow{{Name: "a"}, {Name: "b", Pipeline: []string{"x", "y"}}}, want: 2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -102,14 +101,14 @@ func TestWorkflowTriggerSummaries(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
-		rows       []*gen.WorkflowTrigger
+		rows       []model.WorkflowTrigger
 		wantLen    int
 		wantLabel  string
 		wantLetter string
 	}{
 		{name: "nil", rows: nil, wantLen: 0},
-		{name: "webhook path", rows: []*gen.WorkflowTrigger{{Type: "webhook", Enabled: true, Rule: map[string]any{"path": "hooks/a"}}}, wantLen: 1, wantLabel: "Webhook: hooks/a", wantLetter: "W"},
-		{name: "manual", rows: []*gen.WorkflowTrigger{{Type: "manual", Enabled: false}}, wantLen: 1, wantLabel: "Manual", wantLetter: "M"},
+		{name: "webhook path", rows: []model.WorkflowTrigger{{Type: "webhook", Enabled: true, Rule: map[string]any{"path": "hooks/a"}}}, wantLen: 1, wantLabel: "Webhook: hooks/a", wantLetter: "W"},
+		{name: "manual", rows: []model.WorkflowTrigger{{Type: "manual", Enabled: false}}, wantLen: 1, wantLabel: "Manual", wantLetter: "M"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -129,20 +128,20 @@ func TestWorkflowWebhookURLPath(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
-		tr   *gen.WorkflowTrigger
+		tr   model.WorkflowTrigger
 		want string
 	}{
-		{name: "nil", tr: nil, want: ""},
-		{name: "manual", tr: &gen.WorkflowTrigger{Type: "manual"}, want: ""},
-		{name: "webhook missing path", tr: &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"payload": "raw"}}, want: ""},
+		{name: "zero", tr: model.WorkflowTrigger{}, want: ""},
+		{name: "manual", tr: model.WorkflowTrigger{Type: "manual"}, want: ""},
+		{name: "webhook missing path", tr: model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"payload": "raw"}}, want: ""},
 		{
 			name: "path without leading slash",
-			tr:   &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"path": "hooks/a"}},
+			tr:   model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"path": "hooks/a"}},
 			want: "/webhook/workflow/hooks/a",
 		},
 		{
 			name: "path with leading slash and token",
-			tr: &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
+			tr: model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
 				"path": "/hooks/my-workflow",
 				"auth": map[string]any{"token": "secret+value"},
 			}},
@@ -150,7 +149,7 @@ func TestWorkflowWebhookURLPath(t *testing.T) {
 		},
 		{
 			name: "hmac only skips token query",
-			tr: &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
+			tr: model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
 				"path": "hooks/b",
 				"auth": map[string]any{"hmac_secret": "hmac"},
 			}},
@@ -167,14 +166,14 @@ func TestWorkflowWebhookURLPath(t *testing.T) {
 
 func TestWorkflowWebhookURL(t *testing.T) {
 	t.Parallel()
-	tr := &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"path": "hooks/a", "auth": map[string]any{"token": "t"}}}
+	tr := model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"path": "hooks/a", "auth": map[string]any{"token": "t"}}}
 	tests := []struct {
 		name   string
-		tr     *gen.WorkflowTrigger
+		tr     model.WorkflowTrigger
 		origin string
 		want   string
 	}{
-		{name: "nil", tr: nil, origin: "https://bot.example", want: ""},
+		{name: "zero", tr: model.WorkflowTrigger{}, origin: "https://bot.example", want: ""},
 		{name: "relative when origin empty", tr: tr, origin: "", want: "/webhook/workflow/hooks/a?token=t"},
 		{name: "absolute", tr: tr, origin: "https://bot.example/", want: "https://bot.example/webhook/workflow/hooks/a?token=t"},
 	}
@@ -190,14 +189,14 @@ func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
-		tr     *gen.WorkflowTrigger
+		tr     model.WorkflowTrigger
 		origin string
 		want   []string
 		absent []string
 	}{
 		{
 			name: "webhook shows absolute url and copy",
-			tr: &gen.WorkflowTrigger{
+			tr: model.WorkflowTrigger{
 				ID:   7,
 				Type: "webhook",
 				Rule: map[string]any{
@@ -217,7 +216,7 @@ func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
 		},
 		{
 			name: "manual keeps rule preview",
-			tr: &gen.WorkflowTrigger{
+			tr: model.WorkflowTrigger{
 				ID:   1,
 				Type: "manual",
 				Rule: nil,
@@ -231,7 +230,7 @@ func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			if err := WorkflowTriggersTable("demo", []*gen.WorkflowTrigger{tt.tr}, tt.origin).Render(context.Background(), &buf); err != nil {
+			if err := WorkflowTriggersTable("demo", []model.WorkflowTrigger{tt.tr}, tt.origin).Render(context.Background(), &buf); err != nil {
 				t.Fatalf("render: %v", err)
 			}
 			html := buf.String()
@@ -257,10 +256,10 @@ func TestWorkflowRunStatusHelpers(t *testing.T) {
 		wantClass string
 		wantText  string
 	}{
-		{name: "done", status: int(schema.WorkflowRunDone), wantClass: "flowbot-chip flowbot-chip-success", wantText: "Done"},
-		{name: "failed", status: int(schema.WorkflowRunFailed), wantClass: "flowbot-chip flowbot-chip-error", wantText: "Failed"},
-		{name: "running", status: int(schema.WorkflowRunRunning), wantClass: "flowbot-chip flowbot-chip-warning", wantText: "Running"},
-		{name: "unknown", status: int(schema.WorkflowRunStateUnknown), wantClass: "flowbot-chip flowbot-chip-muted", wantText: "Unknown"},
+		{name: "done", status: int(types.WorkflowRunDone), wantClass: "flowbot-chip flowbot-chip-success", wantText: "Done"},
+		{name: "failed", status: int(types.WorkflowRunFailed), wantClass: "flowbot-chip flowbot-chip-error", wantText: "Failed"},
+		{name: "running", status: int(types.WorkflowRunRunning), wantClass: "flowbot-chip flowbot-chip-warning", wantText: "Running"},
+		{name: "unknown", status: int(types.WorkflowRunStateUnknown), wantClass: "flowbot-chip flowbot-chip-muted", wantText: "Unknown"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

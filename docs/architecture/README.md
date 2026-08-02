@@ -15,6 +15,8 @@ Agent engine (`pkg/agent/`) has dedicated docs and diagrams under [docs/agent/](
 
 Life (solo gamified productivity) has dedicated docs under [docs/life/](../life/) (`architecture.md`).
 
+pkg vs internal dependency boundaries (migration waves): [pkg-boundaries.md](pkg-boundaries.md).
+
 ## Rendering
 
 ```bash

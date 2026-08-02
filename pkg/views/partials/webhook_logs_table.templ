@@ -1,11 +1,10 @@
 package partials
 
 import (
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-func webhookMethod(e *gen.DataEvent) string {
+func webhookMethod(e model.DataEvent) string {
 	if e.Data != nil {
 		if m, ok := e.Data["_webhook_method"]; ok {
 			if s, ok := m.(string); ok {
@@ -16,7 +15,7 @@ func webhookMethod(e *gen.DataEvent) string {
 	return ""
 }
 
-func webhookPath(e *gen.DataEvent) string {
+func webhookPath(e model.DataEvent) string {
 	if e.Data != nil {
 		if p, ok := e.Data["_webhook_path"]; ok {
 			if s, ok := p.(string); ok {
@@ -27,7 +26,7 @@ func webhookPath(e *gen.DataEvent) string {
 	return ""
 }
 
-templ WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pageInfo PageInfo, runMap map[string][]store.PipelineRunInfo) {
+templ WebhookLogsTable(sources, eventTypes []string, events []model.DataEvent, pageInfo PageInfo, runMap map[string][]model.PipelineRunInfo) {
 	<div id="events-table-container">
 		<div class="flowbot-surface" id="webhook-logs-table" data-testid="webhook-logs-table">
 			<div class="overflow-x-auto">

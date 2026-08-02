@@ -2,17 +2,12 @@ package event
 
 import (
 	"context"
-	"database/sql"
 	"errors"
-	"reflect"
 	"sync"
 	"testing"
-	"time"
-	"unsafe"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
-	entsql "entgo.io/ent/dialect/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel"
@@ -20,9 +15,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -48,73 +40,58 @@ func (m *mockPublisher) Close() error {
 }
 
 // ---------------------------------------------------------------------------
-// Test helpers
+// Fake MessageDestinations
 // ---------------------------------------------------------------------------
 
-func setupEventTestDB(t *testing.T) {
-	t.Helper()
-	orig := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = orig })
+type fakeMessageDestinations struct {
+	platforms    []*DestinationPlatform
+	channelUsers []*DestinationChannelUser
+
+	platformsErr    error
+	channelUsersErr error
 }
 
-func seedTestPlatform(t *testing.T, name string) int64 {
-	t.Helper()
-	ctx := context.Background()
-	now := time.Now()
-	id, err := store.PlatformStoreFromDB().CreatePlatform(ctx, &gen.Platform{
-		Name:      name,
-		CreatedAt: now,
-		UpdatedAt: now,
-	})
-	require.NoError(t, err)
-	return id
+func (*fakeMessageDestinations) GetUserByFlag(context.Context, string) (*DestinationUser, error) {
+	return nil, errors.New("not implemented")
 }
 
-func seedTestPlatformChannelUser(t *testing.T, platformID int64, userFlag, channelFlag string) {
-	t.Helper()
-	ctx := context.Background()
-	now := time.Now()
-	_, err := store.PlatformStoreFromDB().CreatePlatformChannelUser(ctx, &gen.PlatformChannelUser{
-		PlatformID:  platformID,
-		UserFlag:    userFlag,
-		ChannelFlag: channelFlag,
-		CreatedAt:   now,
-		UpdatedAt:   now,
-	})
-	require.NoError(t, err)
+func (*fakeMessageDestinations) GetPlatformUsersByUserId(context.Context, int64) ([]*DestinationPlatformUser, error) {
+	return nil, errors.New("not implemented")
 }
 
-func seedTestPlatforms(t *testing.T) (slackID, discordID int64) {
-	t.Helper()
-	slackID = seedTestPlatform(t, "slack")
-	discordID = seedTestPlatform(t, "discord")
-	return slackID, discordID
+func (*fakeMessageDestinations) GetPlatformChannelByFlag(context.Context, string) (*DestinationPlatformChannel, error) {
+	return nil, errors.New("not implemented")
 }
 
-func execSQLiteDDL(t *testing.T, client *gen.Client, stmt string) {
-	t.Helper()
-	db := entClientDB(t, client)
-	if _, err := db.Exec(stmt); err != nil {
-		t.Fatalf("exec sqlite ddl %q: %v", stmt, err)
+func (*fakeMessageDestinations) GetPlatform(context.Context, int64) (*DestinationPlatform, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (f *fakeMessageDestinations) GetPlatforms(context.Context) ([]*DestinationPlatform, error) {
+	if f.platformsErr != nil {
+		return nil, f.platformsErr
 	}
+	return f.platforms, nil
 }
 
-func entClientDB(t *testing.T, client *gen.Client) *sql.DB {
+func (f *fakeMessageDestinations) GetPlatformChannelUsersByUserFlags(context.Context, []string) ([]*DestinationChannelUser, error) {
+	if f.channelUsersErr != nil {
+		return nil, f.channelUsersErr
+	}
+	return f.channelUsers, nil
+}
+
+func useFakeDestinations(t *testing.T, fake *fakeMessageDestinations) {
 	t.Helper()
-	rv := reflect.ValueOf(client).Elem()
-	configField := rv.FieldByName("config")
-	config := reflect.NewAt(configField.Type(), unsafe.Pointer(configField.UnsafeAddr())).Elem()
-	driverField := config.FieldByName("driver")
-	driver := reflect.NewAt(driverField.Type(), unsafe.Pointer(driverField.UnsafeAddr())).Elem()
-	switch d := driver.Interface().(type) {
-	case *entsql.Driver:
-		return d.DB()
-	case entsql.Driver:
-		return d.DB()
-	default:
-		t.Fatalf("unexpected ent driver type %T", driver.Interface())
-		return nil
+	orig := GetMessageDestinations()
+	SetMessageDestinations(fake)
+	t.Cleanup(func() { SetMessageDestinations(orig) })
+}
+
+func defaultPlatforms() []*DestinationPlatform {
+	return []*DestinationPlatform{
+		{ID: 1, Name: "slack"},
+		{ID: 2, Name: "discord"},
 	}
 }
 
@@ -132,45 +109,39 @@ func testPayload() types.EventPayload {
 // ---------------------------------------------------------------------------
 
 func TestSendToAll_EmptyPlatformUsers(t *testing.T) {
-	setupEventTestDB(t)
-	seedTestPlatforms(t)
+	useFakeDestinations(t, &fakeMessageDestinations{platforms: defaultPlatforms()})
 
 	pub := &mockPublisher{}
-
-	ctx := types.Context{}
-	err := sendToAll(ctx, testPayload(), nil, pub)
+	err := sendToAll(types.Context{}, testPayload(), nil, GetMessageDestinations(), pub)
 	require.NoError(t, err)
 	assert.Empty(t, pub.messages)
 }
 
 func TestSendToAll_EmptyPlatformUserSlice(t *testing.T) {
-	setupEventTestDB(t)
-	seedTestPlatforms(t)
+	useFakeDestinations(t, &fakeMessageDestinations{platforms: defaultPlatforms()})
 
 	pub := &mockPublisher{}
-
-	ctx := types.Context{}
-	err := sendToAll(ctx, testPayload(), []*gen.PlatformUser{}, pub)
+	err := sendToAll(types.Context{}, testPayload(), []*DestinationPlatformUser{}, GetMessageDestinations(), pub)
 	require.NoError(t, err)
 	assert.Empty(t, pub.messages)
 }
 
 func TestSendToAll_SinglePlatformUserWithChannels(t *testing.T) {
-	setupEventTestDB(t)
-	slackID, _ := seedTestPlatforms(t)
-	seedTestPlatformChannelUser(t, slackID, "user:slack:U1", "ch:general")
-	seedTestPlatformChannelUser(t, slackID, "user:slack:U1", "ch:random")
+	useFakeDestinations(t, &fakeMessageDestinations{
+		platforms: defaultPlatforms(),
+		channelUsers: []*DestinationChannelUser{
+			{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
+			{UserFlag: "user:slack:U1", ChannelFlag: "ch:random"},
+		},
+	})
 
 	pub := &mockPublisher{}
-
-	ctx := types.Context{}
-	platformUsers := []*gen.PlatformUser{
-		{PlatformID: slackID, Flag: "user:slack:U1"},
+	platformUsers := []*DestinationPlatformUser{
+		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers, pub)
+	err := sendToAll(types.Context{}, testPayload(), platformUsers, GetMessageDestinations(), pub)
 	require.NoError(t, err)
-
 	assert.Len(t, pub.messages, 2)
 
 	var topics []string
@@ -184,21 +155,22 @@ func TestSendToAll_SinglePlatformUserWithChannels(t *testing.T) {
 }
 
 func TestSendToAll_MultiplePlatformUsers(t *testing.T) {
-	setupEventTestDB(t)
-	slackID, discordID := seedTestPlatforms(t)
-	seedTestPlatformChannelUser(t, slackID, "user:slack:U1", "ch:general")
-	seedTestPlatformChannelUser(t, discordID, "user:discord:D1", "ch:main")
-	seedTestPlatformChannelUser(t, discordID, "user:discord:D1", "ch:dev")
+	useFakeDestinations(t, &fakeMessageDestinations{
+		platforms: defaultPlatforms(),
+		channelUsers: []*DestinationChannelUser{
+			{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
+			{UserFlag: "user:discord:D1", ChannelFlag: "ch:main"},
+			{UserFlag: "user:discord:D1", ChannelFlag: "ch:dev"},
+		},
+	})
 
 	pub := &mockPublisher{}
-
-	ctx := types.Context{}
-	platformUsers := []*gen.PlatformUser{
-		{PlatformID: slackID, Flag: "user:slack:U1"},
-		{PlatformID: discordID, Flag: "user:discord:D1"},
+	platformUsers := []*DestinationPlatformUser{
+		{PlatformID: 1, Flag: "user:slack:U1"},
+		{PlatformID: 2, Flag: "user:discord:D1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers, pub)
+	err := sendToAll(types.Context{}, testPayload(), platformUsers, GetMessageDestinations(), pub)
 	require.NoError(t, err)
 
 	var platforms []string
@@ -213,20 +185,22 @@ func TestSendToAll_MultiplePlatformUsers(t *testing.T) {
 }
 
 func TestSendToAll_PlatformUserWithNoChannels(t *testing.T) {
-	setupEventTestDB(t)
-	slackID, discordID := seedTestPlatforms(t)
-	seedTestPlatformChannelUser(t, slackID, "user:slack:U1", "ch:general")
+	useFakeDestinations(t, &fakeMessageDestinations{
+		platforms: defaultPlatforms(),
+		channelUsers: []*DestinationChannelUser{
+			{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
+		},
+	})
 
 	pub := &mockPublisher{}
-
-	ctx := types.Context{}
-	platformUsers := []*gen.PlatformUser{
-		{PlatformID: slackID, Flag: "user:slack:U1"},
-		{PlatformID: discordID, Flag: "user:discord:D1"},
+	platformUsers := []*DestinationPlatformUser{
+		{PlatformID: 1, Flag: "user:slack:U1"},
+		{PlatformID: 2, Flag: "user:discord:D1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers, pub)
+	err := sendToAll(types.Context{}, testPayload(), platformUsers, GetMessageDestinations(), pub)
 	require.NoError(t, err)
+
 	var platforms []string
 	for _, msg := range pub.messages {
 		var m types.Message
@@ -238,68 +212,68 @@ func TestSendToAll_PlatformUserWithNoChannels(t *testing.T) {
 }
 
 func TestSendToAll_MissingPlatformName(t *testing.T) {
-	setupEventTestDB(t)
-	slackID := seedTestPlatform(t, "slack")
-	seedTestPlatformChannelUser(t, slackID, "user:slack:U1", "ch:general")
-	seedTestPlatformChannelUser(t, slackID, "user:unknown:X1", "ch:random")
+	useFakeDestinations(t, &fakeMessageDestinations{
+		platforms: []*DestinationPlatform{{ID: 1, Name: "slack"}},
+		channelUsers: []*DestinationChannelUser{
+			{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
+			{UserFlag: "user:unknown:X1", ChannelFlag: "ch:random"},
+		},
+	})
 
 	pub := &mockPublisher{}
-
-	ctx := types.Context{}
-	platformUsers := []*gen.PlatformUser{
-		{PlatformID: slackID, Flag: "user:slack:U1"},
+	platformUsers := []*DestinationPlatformUser{
+		{PlatformID: 1, Flag: "user:slack:U1"},
 		{PlatformID: 999, Flag: "user:unknown:X1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers, pub)
+	err := sendToAll(types.Context{}, testPayload(), platformUsers, GetMessageDestinations(), pub)
 	require.NoError(t, err)
 	assert.Len(t, pub.messages, 1)
 }
 
 func TestSendToAll_BatchQueryError(t *testing.T) {
-	setupEventTestDB(t)
-	slackID, _ := seedTestPlatforms(t)
-	execSQLiteDDL(t, store.Database.GetClient(), "DROP TABLE platform_channel_users")
+	useFakeDestinations(t, &fakeMessageDestinations{
+		platforms:       defaultPlatforms(),
+		channelUsersErr: errors.New("channel users unavailable"),
+	})
 
-	ctx := types.Context{}
-	platformUsers := []*gen.PlatformUser{
-		{PlatformID: slackID, Flag: "user:slack:U1"},
+	platformUsers := []*DestinationPlatformUser{
+		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers, &mockPublisher{})
+	err := sendToAll(types.Context{}, testPayload(), platformUsers, GetMessageDestinations(), &mockPublisher{})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get platform channel users")
 }
 
 func TestSendToAll_PlatformsQueryError(t *testing.T) {
-	setupEventTestDB(t)
-	require.NoError(t, store.Database.GetClient().Close())
+	useFakeDestinations(t, &fakeMessageDestinations{
+		platformsErr: errors.New("platforms unavailable"),
+	})
 
-	ctx := types.Context{}
-	platformUsers := []*gen.PlatformUser{
+	platformUsers := []*DestinationPlatformUser{
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers, &mockPublisher{})
+	err := sendToAll(types.Context{}, testPayload(), platformUsers, GetMessageDestinations(), &mockPublisher{})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get platforms")
 }
 
 func TestSendToAll_PublisherError(t *testing.T) {
-	setupEventTestDB(t)
-	slackID, _ := seedTestPlatforms(t)
-	seedTestPlatformChannelUser(t, slackID, "user:slack:U1", "ch:general")
+	useFakeDestinations(t, &fakeMessageDestinations{
+		platforms: defaultPlatforms(),
+		channelUsers: []*DestinationChannelUser{
+			{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
+		},
+	})
 
-	pub := &mockPublisher{
-		err: errors.New("publisher offline"),
+	pub := &mockPublisher{err: errors.New("publisher offline")}
+	platformUsers := []*DestinationPlatformUser{
+		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
-	ctx := types.Context{}
-	platformUsers := []*gen.PlatformUser{
-		{PlatformID: slackID, Flag: "user:slack:U1"},
-	}
-
-	err := sendToAll(ctx, testPayload(), platformUsers, pub)
+	err := sendToAll(types.Context{}, testPayload(), platformUsers, GetMessageDestinations(), pub)
 	require.Error(t, err)
 }
 

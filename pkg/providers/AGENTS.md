@@ -14,6 +14,8 @@ Third-party API/OAuth clients. Configure under `flowbot.yaml` → `providers.<na
 - Token/API-key providers skip OAuth `Register` / fx wiring
 - Never hardcode credentials; respect rate limits; use context timeouts
 - Never call hub / pipeline / emit DataEvent from inside a provider — orchestration stays outside this package
+- Never import `internal/store` or `ent/gen` — persist OAuth tokens via injected `OAuthTokenStore` (`SetOAuthTokenStore` from `internal/server`)
+- `GetOrRefreshToken` must not touch `gen.OAuth`; mapping belongs in the server adapter
 
 ## Testing
 

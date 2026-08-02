@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -15,26 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
-
-var testStoreMu sync.Mutex
-
-func withTestStore(t *testing.T) {
-	t.Helper()
-	testStoreMu.Lock()
-	orig := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() {
-		store.Database = orig
-		testStoreMu.Unlock()
-	})
-}
 
 type mockAuditor struct {
 	entries []audit.Entry
@@ -224,16 +208,16 @@ func TestLookupAccessToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			withTestStore(t)
+			mem := withTestAccessTokenStore(t)
 
 			params := types.KV{"uid": "user-1", "scopes": []string{"admin:*"}}
 			exp := time.Now().Add(time.Hour)
 			ctx := context.Background()
 			if tt.seedHash {
-				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, auth.HashToken(tt.raw), params, exp))
+				require.NoError(t, mem.Set(ctx, auth.HashToken(tt.raw), params, exp))
 			}
 			if tt.seedPlain {
-				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, tt.raw, params, exp))
+				require.NoError(t, mem.Set(ctx, tt.raw, params, exp))
 			}
 
 			p, err := LookupAccessToken(ctx, tt.raw)
@@ -249,9 +233,9 @@ func TestLookupAccessToken(t *testing.T) {
 			assert.Equal(t, "user-1", uid)
 
 			if tt.wantMigr {
-				_, plainErr := store.ModuleDataStoreFromDB().ParameterGet(ctx, tt.raw)
+				_, plainErr := mem.Get(ctx, tt.raw)
 				require.ErrorIs(t, plainErr, types.ErrNotFound)
-				_, hashErr := store.ModuleDataStoreFromDB().ParameterGet(ctx, auth.HashToken(tt.raw))
+				_, hashErr := mem.Get(ctx, auth.HashToken(tt.raw))
 				require.NoError(t, hashErr)
 			}
 		})
@@ -284,22 +268,22 @@ func TestDeleteAccessToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			withTestStore(t)
+			mem := withTestAccessTokenStore(t)
 
 			params := types.KV{"uid": "user-1", "scopes": []string{"admin:*"}}
 			exp := time.Now().Add(time.Hour)
 			ctx := context.Background()
 			if tt.seedHash {
-				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, auth.HashToken(tt.raw), params, exp))
+				require.NoError(t, mem.Set(ctx, auth.HashToken(tt.raw), params, exp))
 			}
 			if tt.seedPlain {
-				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, tt.raw, params, exp))
+				require.NoError(t, mem.Set(ctx, tt.raw, params, exp))
 			}
 
 			require.NoError(t, DeleteAccessToken(ctx, tt.raw))
-			_, err := store.ModuleDataStoreFromDB().ParameterGet(ctx, auth.HashToken(tt.raw))
+			_, err := mem.Get(ctx, auth.HashToken(tt.raw))
 			require.ErrorIs(t, err, types.ErrNotFound)
-			_, err = store.ModuleDataStoreFromDB().ParameterGet(ctx, tt.raw)
+			_, err = mem.Get(ctx, tt.raw)
 			require.ErrorIs(t, err, types.ErrNotFound)
 		})
 	}
@@ -308,45 +292,46 @@ func TestDeleteAccessToken(t *testing.T) {
 func TestCheckAccessToken_Hashed(t *testing.T) {
 	tests := []struct {
 		name    string
-		seed    func(context.Context, string)
+		seed    string // "hash", "plain", or ""
 		raw     string
 		wantUID types.Uid
 		wantOK  bool
 	}{
 		{
-			name: "valid hashed token",
-			seed: func(ctx context.Context, raw string) {
-				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, auth.HashToken(raw), types.KV{
-					"uid": "user-hashed", "scopes": []string{"admin:*"},
-				}, time.Now().Add(time.Hour)))
-			},
+			name:    "valid hashed token",
+			seed:    "hash",
 			raw:     "fb_check_hashed_ok",
 			wantUID: "user-hashed",
 			wantOK:  true,
 		},
 		{
-			name: "legacy plaintext migrates and validates",
-			seed: func(ctx context.Context, raw string) {
-				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, raw, types.KV{
-					"uid": "user-plain", "scopes": []string{"admin:*"},
-				}, time.Now().Add(time.Hour)))
-			},
+			name:    "legacy plaintext migrates and validates",
+			seed:    "plain",
 			raw:     "fb_check_plain_ok",
 			wantUID: "user-plain",
 			wantOK:  true,
 		},
 		{
 			name:   "missing token invalid",
-			seed:   func(context.Context, string) {},
+			seed:   "",
 			raw:    "fb_check_missing",
 			wantOK: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			withTestStore(t)
-
-			tt.seed(context.Background(), tt.raw)
+			mem := withTestAccessTokenStore(t)
+			ctx := context.Background()
+			switch tt.seed {
+			case "hash":
+				require.NoError(t, mem.Set(ctx, auth.HashToken(tt.raw), types.KV{
+					"uid": "user-hashed", "scopes": []string{"admin:*"},
+				}, time.Now().Add(time.Hour)))
+			case "plain":
+				require.NoError(t, mem.Set(ctx, tt.raw, types.KV{
+					"uid": "user-plain", "scopes": []string{"admin:*"},
+				}, time.Now().Add(time.Hour)))
+			}
 			uid, ok := CheckAccessToken(tt.raw)
 			assert.Equal(t, tt.wantOK, ok)
 			if tt.wantOK {
@@ -511,14 +496,14 @@ func TestAuthorize_RejectsEmptyScopes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			withTestStore(t)
+			mem := withTestAccessTokenStore(t)
 
 			raw := "fb_empty_scope_" + strings.ReplaceAll(tt.name, " ", "_")
 			params := types.KV{"uid": "user-1"}
 			if tt.scopes != nil {
 				params["scopes"] = tt.scopes
 			}
-			require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(context.Background(), auth.HashToken(raw), params, time.Now().Add(time.Hour)))
+			require.NoError(t, mem.Set(context.Background(), auth.HashToken(raw), params, time.Now().Add(time.Hour)))
 
 			app := newTestApp()
 			app.Get("/test", Authorize(func(c fiber.Ctx) error {
@@ -548,10 +533,10 @@ func TestRequireServiceScope(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			withTestStore(t)
+			mem := withTestAccessTokenStore(t)
 
 			raw := "fb_svc_scope_" + strings.ReplaceAll(tt.name, " ", "_")
-			require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(context.Background(), auth.HashToken(raw), types.KV{
+			require.NoError(t, mem.Set(context.Background(), auth.HashToken(raw), types.KV{
 				"uid": "user-1", "scopes": tt.scopes,
 			}, time.Now().Add(time.Hour)))
 

@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -73,16 +72,16 @@ func TestResolveDefaultChannelName(t *testing.T) {
 			name: "disabled default treated as missing",
 			seed: func(t *testing.T) {
 				id := seedNotifyTestChannel(t, "phone", "test", "test://phone", true, true)
-				require.NoError(t, store.NotifyConfigStoreFromDB().UpdateNotifyChannel(
-					context.Background(), id, "phone", "test", "test://phone", false,
-				))
+				cfg, ok := GetNotifyConfigStore().(*memNotifyConfigStore)
+				require.True(t, ok)
+				cfg.updateChannel(id, "phone", "test", "test://phone", false)
 			},
 			wantErr: ErrNoDefaultChannel,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setupNotifySQLiteDB(t)
+			setupNotifyTestDB(t)
 			tt.seed(t)
 			got, err := ResolveDefaultChannelName(context.Background())
 			if tt.wantErr != nil {
@@ -117,7 +116,7 @@ func TestResolveDefaultTemplateID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setupNotifySQLiteDB(t)
+			setupNotifyTestDB(t)
 			tt.seed(t)
 			got, err := ResolveDefaultTemplateID(context.Background())
 			if tt.wantErr != nil {
@@ -162,7 +161,7 @@ func TestGatewaySendDefaults(t *testing.T) {
 					ID: AgentNotifyTemplateID, Name: "Agent", DefaultFormat: "markdown",
 					DefaultTemplate: AgentNotifyTemplateBody,
 				}}, nil, nil)
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 				seedNotifyTestTemplate(t, model.NotifyTemplate{TemplateID: AgentNotifyTemplateID}, true)
 			},
 			wantErr: ErrNoDefaultChannel,
@@ -174,7 +173,7 @@ func TestGatewaySendDefaults(t *testing.T) {
 					ID: AgentNotifyTemplateID, Name: "Agent", DefaultFormat: "markdown",
 					DefaultTemplate: AgentNotifyTemplateBody,
 				}}, nil, nil)
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 				seedNotifyTestChannel(t, "phone", "testdefaults", "testdefaults://chan/tok", true, true)
 			},
 			wantErr: ErrNoDefaultTemplate,
@@ -192,7 +191,7 @@ func TestGatewaySendDefaults(t *testing.T) {
 				}
 				Register(m.protocol, m)
 				t.Cleanup(func() { Unregister(m.protocol) })
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 				seedNotifyTestChannel(t, "phone", "testdefaults", "testdefaults://chan/tok", true, true)
 				seedNotifyTestTemplate(t, model.NotifyTemplate{TemplateID: AgentNotifyTemplateID}, true)
 			},
@@ -219,20 +218,20 @@ func TestSeedAgentNotifyTemplate(t *testing.T) {
 	}{
 		{
 			name:       "creates when missing",
-			seed:       func(t *testing.T) { setupNotifySQLiteDB(t) },
+			seed:       func(t *testing.T) { setupNotifyTestDB(t) },
 			wantCreate: true,
 		},
 		{
 			name: "skips when present",
 			seed: func(t *testing.T) {
-				setupNotifySQLiteDB(t)
+				setupNotifyTestDB(t)
 				seedNotifyTestTemplate(t, model.NotifyTemplate{TemplateID: AgentNotifyTemplateID}, false)
 			},
 			wantCreate: false,
 		},
 		{
-			name:       "nil database is no-op",
-			seed:       func(t *testing.T) { replaceDatabaseForTest(t, nil) },
+			name:       "nil config store is no-op",
+			seed:       func(t *testing.T) { clearNotifyTestStores(t) },
 			wantCreate: false,
 		},
 	}
@@ -243,7 +242,7 @@ func TestSeedAgentNotifyTemplate(t *testing.T) {
 			if !tt.wantCreate {
 				return
 			}
-			_, err := store.NotifyConfigStoreFromDB().GetNotifyTemplateByTemplateID(context.Background(), AgentNotifyTemplateID)
+			_, err := GetNotifyConfigStore().GetNotifyTemplateByTemplateID(context.Background(), AgentNotifyTemplateID)
 			require.NoError(t, err)
 		})
 	}
@@ -268,9 +267,9 @@ func TestSeedLifeQuestTemplates(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setupNotifySQLiteDB(t)
+			setupNotifyTestDB(t)
 			require.NoError(t, tt.seedFn(context.Background()))
-			_, err := store.NotifyConfigStoreFromDB().GetNotifyTemplateByTemplateID(context.Background(), tt.templateID)
+			_, err := GetNotifyConfigStore().GetNotifyTemplateByTemplateID(context.Background(), tt.templateID)
 			require.NoError(t, err)
 			require.NoError(t, tt.seedFn(context.Background()))
 		})

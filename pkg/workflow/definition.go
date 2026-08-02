@@ -6,15 +6,15 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // WorkflowRows is the store-level projection used to rebuild WorkflowMetadata.
 type WorkflowRows struct {
-	Workflow *gen.Workflow
-	Tasks    []*gen.WorkflowTask
-	Triggers []*gen.WorkflowTrigger
+	Workflow *model.Workflow
+	Tasks    []*model.WorkflowTaskRow
+	Triggers []*model.WorkflowTrigger
 }
 
 // MetadataFromRows converts normalized store rows into WorkflowMetadata.

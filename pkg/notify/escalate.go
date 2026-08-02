@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -24,9 +23,9 @@ const (
 )
 
 var (
-	escalationMu     sync.Mutex
-	escalationStop   chan struct{}
-	escalationTicker *time.Ticker
+	escalationMu      sync.Mutex
+	escalationStop    chan struct{}
+	escalationTicker  *time.Ticker
 	escalationRunning bool
 )
 
@@ -87,14 +86,11 @@ func FlushDueDeferred(ctx context.Context) {
 		return
 	}
 	for _, rec := range records {
-		if rec == nil {
-			continue
-		}
 		flushDeferredRecord(ctx, ns, rec.UID, rec.ID, rec.Channel, rec.TemplateID, rec.CorrelationID, rec.PayloadSnapshot)
 	}
 }
 
-func flushDeferredRecord(ctx context.Context, ns *store.NotifyStore, uid string, id int64, channel, templateID, correlationID string, payload map[string]any) {
+func flushDeferredRecord(ctx context.Context, ns NotifyRecords, uid string, id int64, channel, templateID, correlationID string, payload map[string]any) {
 	if ns == nil {
 		return
 	}
@@ -133,7 +129,7 @@ func flushDeferredRecord(ctx context.Context, ns *store.NotifyStore, uid string,
 	updateDeferredStatus(ctx, ns, id, "success", "")
 }
 
-func updateDeferredStatus(ctx context.Context, ns *store.NotifyStore, id int64, status, errMsg string) {
+func updateDeferredStatus(ctx context.Context, ns NotifyRecords, id int64, status, errMsg string) {
 	if err := ns.UpdateRecordStatus(ctx, id, status, errMsg); err != nil {
 		flog.Warn("[notify] update deferred %d to %s: %v", id, status, err)
 	}

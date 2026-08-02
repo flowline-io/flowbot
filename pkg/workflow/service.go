@@ -10,7 +10,6 @@ import (
 
 	"github.com/flc1125/go-cron/v4"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
@@ -18,15 +17,16 @@ import (
 	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // Catalog loads and mutates workflow definitions stored in the database.
 type Catalog interface {
 	DefinitionStore
-	ApplyDefinition(ctx context.Context, meta *types.WorkflowMetadata) (*gen.Workflow, error)
-	ListDefinitions(ctx context.Context) ([]*gen.Workflow, error)
+	ApplyDefinition(ctx context.Context, meta *types.WorkflowMetadata) (*model.Workflow, error)
+	ListDefinitions(ctx context.Context) ([]*model.Workflow, error)
 	DeleteDefinitionByName(ctx context.Context, name string) error
-	ListRunsByName(ctx context.Context, name string) ([]*gen.WorkflowRun, error)
+	ListRunsByName(ctx context.Context, name string) ([]*model.WorkflowRun, error)
 }
 
 // WebhookEndpoint describes a registered workflow webhook trigger.
@@ -107,7 +107,7 @@ func (s *Service) StartRunAsync(ctx context.Context, name, triggerType string, i
 	return run.ID, nil
 }
 
-func (s *Service) executeRun(meta *types.WorkflowMetadata, run *gen.WorkflowRun, triggerType string, input types.KV) {
+func (s *Service) executeRun(meta *types.WorkflowMetadata, run *model.WorkflowRun, triggerType string, input types.KV) {
 	asyncCtx, asyncSpan := fbtrace.StartSpan(context.Background(), "workflow.run.async")
 	defer asyncSpan.End()
 	ctx, cancel := fbtrace.DetachWithTimeout(asyncCtx, 10*time.Minute)
@@ -128,7 +128,7 @@ func (s *Service) executeRun(meta *types.WorkflowMetadata, run *gen.WorkflowRun,
 	}
 }
 
-func runWorkflowID(run *gen.WorkflowRun) int64 {
+func runWorkflowID(run *model.WorkflowRun) int64 {
 	if run == nil || run.WorkflowID == nil {
 		return 0
 	}
@@ -149,7 +149,7 @@ func (s *Service) lookupWorkflowID(ctx context.Context, name string) (int64, err
 }
 
 // ApplyYAML parses YAML, upserts the definition, and reloads triggers.
-func (s *Service) ApplyYAML(ctx context.Context, data []byte) (*gen.Workflow, error) {
+func (s *Service) ApplyYAML(ctx context.Context, data []byte) (*model.Workflow, error) {
 	meta, err := ParseYAML(data)
 	if err != nil {
 		return nil, types.WrapError(types.ErrInvalidArgument, "invalid workflow YAML", err)
@@ -165,7 +165,7 @@ func (s *Service) ApplyYAML(ctx context.Context, data []byte) (*gen.Workflow, er
 }
 
 // List returns workflow definition rows.
-func (s *Service) List(ctx context.Context) ([]*gen.Workflow, error) {
+func (s *Service) List(ctx context.Context) ([]*model.Workflow, error) {
 	return s.catalog.ListDefinitions(ctx)
 }
 
@@ -195,7 +195,7 @@ func (s *Service) Delete(ctx context.Context, name string) error {
 }
 
 // ListRuns returns recent runs for a workflow name.
-func (s *Service) ListRuns(ctx context.Context, name string) ([]*gen.WorkflowRun, error) {
+func (s *Service) ListRuns(ctx context.Context, name string) ([]*model.WorkflowRun, error) {
 	return s.catalog.ListRunsByName(ctx, name)
 }
 
@@ -268,7 +268,7 @@ type cronJobSpec struct {
 	spec string
 }
 
-func (s *Service) collectTriggers(ctx context.Context, defs []*gen.Workflow) (map[string]*WebhookEndpoint, []cronJobSpec) {
+func (s *Service) collectTriggers(ctx context.Context, defs []*model.Workflow) (map[string]*WebhookEndpoint, []cronJobSpec) {
 	webhooks := make(map[string]*WebhookEndpoint)
 	var jobs []cronJobSpec
 	for _, row := range defs {

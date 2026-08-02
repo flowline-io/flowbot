@@ -44,6 +44,9 @@ var Modules = fx.Options(
 	fx.Invoke(
 		setServerCacheStore,
 		setRouteAuditor,
+		WireAccessTokenStore,
+		WireModuleDataStore,
+		WireMessageDestinations,
 		setAgentMetricsCollector,
 		handleRoutes,
 		handleEvents,

@@ -5,7 +5,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 ## Boundaries
 
 - **Allowed**: `store.Database`, `capability.Invoke`, shared `*chatagent.Service` via `SetChatAgentService` (`chatagent_service.go`).
-- **Forbidden**: `pkg/providers/*`; DB queries in handlers; ent types in templates; view templates under `internal/modules/`.
+- **Forbidden**: `pkg/providers/*`; DB queries in handlers; ent types in templates (map to `pkg/types/model` in this package first); view templates under `internal/modules/`.
 
 ## Entry points
 

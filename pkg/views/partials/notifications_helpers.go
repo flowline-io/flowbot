@@ -5,14 +5,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // NotificationHistoryParams holds History tab list state for the notifications table.
 type NotificationHistoryParams struct {
-	Records    []*gen.NotificationRecord
+	Records    []model.NotificationRecord
 	NextCursor string
-	Group      string // "", "channel", "rule", or "unread"
+	Group      string
 	Channel    string
 	RuleID     string
 	Channels   []string
@@ -23,7 +23,7 @@ type NotificationHistoryParams struct {
 type NotificationGroup struct {
 	Key     string
 	Label   string
-	Records []*gen.NotificationRecord
+	Records []model.NotificationRecord
 }
 
 // NormalizeNotifyHistoryGroup returns a known History group mode or empty (flat list).
@@ -88,8 +88,7 @@ func NotifyRecordRowClass(status string) string {
 }
 
 // GroupNotificationRecords builds section headers for channel/rule History grouping.
-// Unread and flat modes return a single unlabeled group.
-func GroupNotificationRecords(group string, records []*gen.NotificationRecord) []NotificationGroup {
+func GroupNotificationRecords(group string, records []model.NotificationRecord) []NotificationGroup {
 	group = NormalizeNotifyHistoryGroup(group)
 	if group != "channel" && group != "rule" {
 		return []NotificationGroup{{Key: "", Label: "", Records: records}}
@@ -97,7 +96,7 @@ func GroupNotificationRecords(group string, records []*gen.NotificationRecord) [
 
 	order := make([]string, 0)
 	labels := make(map[string]string)
-	buckets := make(map[string][]*gen.NotificationRecord)
+	buckets := make(map[string][]model.NotificationRecord)
 	for _, r := range records {
 		key := r.Channel
 		label := r.Channel

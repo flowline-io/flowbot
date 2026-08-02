@@ -38,6 +38,11 @@ func installTestDatabase(t *testing.T, db store.Adapter) {
 	WaitApprovalNotifyForTest()
 	orig := store.Database
 	store.Database = db
+	if db != nil {
+		wireNotifyStoresForTest(t)
+	} else {
+		clearNotifyStoresForTest(t)
+	}
 	t.Cleanup(func() {
 		WaitApprovalNotifyForTest()
 		store.Database = orig

@@ -3,8 +3,8 @@ package partials_test
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -53,10 +53,9 @@ func TestBuildPermissionFormFields(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			view := chatagent.PermissionsView{
-				Defaults:  defaults,
-				User:      tt.user,
-				Effective: permission.EffectiveConfig(tt.user),
+			view := model.PermissionsView{
+				Defaults: defaults,
+				User:     tt.user,
 			}
 			fields := partials.BuildPermissionFormFields(view)
 			require.NotEmpty(t, fields)

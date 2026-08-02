@@ -3,21 +3,20 @@ package module
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 func TestHelp(t *testing.T) {
@@ -417,10 +416,144 @@ func TestWebservice(t *testing.T) {
 	}
 }
 
+type fakeModuleDataStore struct {
+	mu         sync.Mutex
+	forms      map[string]FormRecord
+	nextFormID int64
+	params     map[string]types.KV
+	configs    map[string]types.KV
+	behaviors  map[string]BehaviorRecord
+	nextBehID  int64
+}
+
+func newFakeModuleDataStore() *fakeModuleDataStore {
+	return &fakeModuleDataStore{
+		forms:     make(map[string]FormRecord),
+		params:    make(map[string]types.KV),
+		configs:   make(map[string]types.KV),
+		behaviors: make(map[string]BehaviorRecord),
+	}
+}
+
+func withFakeModuleDataStore(t *testing.T) *fakeModuleDataStore {
+	t.Helper()
+	fake := newFakeModuleDataStore()
+	prev := getModuleDataStore()
+	SetModuleDataStore(fake)
+	t.Cleanup(func() { SetModuleDataStore(prev) })
+	return fake
+}
+
+func (f *fakeModuleDataStore) FormGet(_ context.Context, formID string) (FormRecord, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	row, ok := f.forms[formID]
+	if !ok {
+		return FormRecord{}, types.ErrNotFound
+	}
+	return row, nil
+}
+
+func (f *fakeModuleDataStore) FormSet(_ context.Context, formID string, rec FormRecord) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	existing, ok := f.forms[formID]
+	if ok {
+		if rec.Values != nil {
+			existing.Values = rec.Values
+		}
+		existing.State = rec.State
+		if rec.Schema != nil {
+			existing.Schema = rec.Schema
+		}
+		if rec.Extra != nil {
+			existing.Extra = rec.Extra
+		}
+		if rec.UID != "" {
+			existing.UID = rec.UID
+		}
+		if rec.Topic != "" {
+			existing.Topic = rec.Topic
+		}
+		f.forms[formID] = existing
+		return nil
+	}
+	f.nextFormID++
+	rec.ID = f.nextFormID
+	if rec.FormID == "" {
+		rec.FormID = formID
+	}
+	f.forms[formID] = rec
+	return nil
+}
+
+func (f *fakeModuleDataStore) ParameterSet(_ context.Context, flag string, params types.KV, _ time.Time) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.params[flag] = params
+	return nil
+}
+
+func (f *fakeModuleDataStore) ConfigGet(_ context.Context, uid types.Uid, topic, key string) (types.KV, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	row, ok := f.configs[uid.String()+"|"+topic+"|"+key]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	return row, nil
+}
+
+func (f *fakeModuleDataStore) configSet(uid types.Uid, topic, key string, value types.KV) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.configs[uid.String()+"|"+topic+"|"+key] = value
+}
+
+func (f *fakeModuleDataStore) BehaviorGet(_ context.Context, uid types.Uid, flag string) (BehaviorRecord, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	row, ok := f.behaviors[uid.String()+"|"+flag]
+	if !ok {
+		return BehaviorRecord{}, types.ErrNotFound
+	}
+	return row, nil
+}
+
+func (f *fakeModuleDataStore) BehaviorIncrease(_ context.Context, uid types.Uid, flag string, number int) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	key := uid.String() + "|" + flag
+	row, ok := f.behaviors[key]
+	if !ok {
+		return types.ErrNotFound
+	}
+	delta, ok := utils.IntToInt32(number)
+	if !ok {
+		return types.ErrUnavailable
+	}
+	row.Count += delta
+	f.behaviors[key] = row
+	return nil
+}
+
+func (f *fakeModuleDataStore) BehaviorSet(_ context.Context, behavior BehaviorRecord) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	key := behavior.UID + "|" + behavior.Flag
+	if existing, ok := f.behaviors[key]; ok {
+		existing.Count = behavior.Count
+		f.behaviors[key] = existing
+		return nil
+	}
+	f.nextBehID++
+	behavior.ID = f.nextBehID
+	f.behaviors[key] = behavior
+	return nil
+}
+
 func TestRunForm(t *testing.T) {
-	prev := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = prev })
+	fake := withFakeModuleDataStore(t)
 
 	rules := []form.Rule{
 		{
@@ -445,19 +578,19 @@ func TestRunForm(t *testing.T) {
 		want    string
 		wantNil bool
 	}{
-		{name: "processes matching form rule", formID: "form-test-1", state: int(schema.FormStateCreated), values: types.KV{"name": "alice"}, want: "alice"},
-		{name: "missing form returns nil", formID: "missing", state: int(schema.FormStateCreated), values: types.KV{"name": "bob"}, wantNil: true},
-		{name: "submitted form returns nil", formID: "form-test-1", state: int(schema.FormStateSubmitSuccess), values: types.KV{"name": "carol"}, wantNil: true},
+		{name: "processes matching form rule", formID: "form-test-1", state: int(types.FormStateCreated), values: types.KV{"name": "alice"}, want: "alice"},
+		{name: "missing form returns nil", formID: "missing", state: int(types.FormStateCreated), values: types.KV{"name": "bob"}, wantNil: true},
+		{name: "submitted form returns nil", formID: "form-test-1", state: int(types.FormStateSubmitSuccess), values: types.KV{"name": "carol"}, wantNil: true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.formID == "form-test-1" {
-				require.NoError(t, store.ModuleDataStoreFromDB().FormSet(context.Background(), "form-test-1", gen.Form{
+				require.NoError(t, fake.FormSet(context.Background(), "form-test-1", FormRecord{
 					FormID: "form-test-1",
 					UID:    uid,
 					Topic:  topic,
-					Schema: map[string]any{"title": "Settings"},
+					Schema: types.KV{"title": "Settings"},
 					State:  tt.state,
 				}))
 			}
@@ -478,9 +611,7 @@ func TestRunForm(t *testing.T) {
 }
 
 func TestBehavior(t *testing.T) {
-	prev := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = prev })
+	_ = withFakeModuleDataStore(t)
 
 	uid := types.Uid("behavior-user")
 
