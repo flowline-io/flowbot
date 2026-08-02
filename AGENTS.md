@@ -16,7 +16,7 @@ Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQ
 ## Verification
 
 * Before editing a package, read the nearest nested `AGENTS.md` and the matching `example/` when touching providers, capabilities, or modules.
-* After modifying code, run `go tool task fix`, then `go tool task lint`, then the relevant tests (`go tool task test` or package-scoped `go test`).
+* After modifying code, run `go tool task lint`, then the relevant tests (`go tool task test` or package-scoped `go test`).
 
 ## Testing policy
 
@@ -57,7 +57,6 @@ Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQ
 
 ```bash
 go tool task build            # Main server
-go tool task fix              # go fix ./... (run before lint)
 go tool task lint             # Code lint
 go tool task test             # Unit tests
 go tool task test:specs       # BDD acceptance tests (requires Docker)

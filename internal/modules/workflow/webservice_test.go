@@ -70,7 +70,7 @@ type handlerRunStore struct {
 	runs   []*model.WorkflowRun
 }
 
-func (s *handlerRunStore) CreateRun(_ context.Context, workflowID int64, workflowName, _, triggerType string, _, inputParams map[string]any) (*model.WorkflowRun, error) {
+func (s *handlerRunStore) CreateRun(_ context.Context, workflowID int64, workflowName, _, triggerType string, _, _ map[string]any) (*model.WorkflowRun, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.nextID++
