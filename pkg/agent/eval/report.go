@@ -34,6 +34,10 @@ type EvalReport struct {
 	TotalTokens int `json:"total_tokens,omitempty"`
 	// JudgeGoldAgreement is the fraction of gold dimensions within tolerance.
 	JudgeGoldAgreement *float64 `json:"judge_gold_agreement,omitempty"`
+	// JudgeMode is "fake", "none", or "model:<name>" for interpreting quality scores.
+	JudgeMode string `json:"judge_mode,omitempty"`
+	// Scorecard aggregates reliability and quality for optimization A/B.
+	Scorecard *CapabilityScorecard `json:"scorecard,omitempty"`
 }
 
 // ReportSummary counts hard passes.
@@ -93,7 +97,7 @@ func WriteReportJSON(path string, report EvalReport) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
-// WriteReportMarkdown writes a short Markdown summary next to JSON reports.
+// WriteReportMarkdown writes a capability-oriented Markdown summary next to JSON reports.
 func WriteReportMarkdown(path string, report EvalReport) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
@@ -102,42 +106,133 @@ func WriteReportMarkdown(path string, report EvalReport) error {
 }
 
 func formatReportMarkdown(report EvalReport) string {
+	sc := report.Scorecard
+	if sc == nil {
+		tmp := ScorecardFromReport(report)
+		sc = &tmp
+	}
 	var b strings.Builder
-	_, _ = b.WriteString("# Agent eval report\n\n")
-	_, _ = fmt.Fprintf(&b, "- suite: %s\n", report.Suite)
-	_, _ = fmt.Fprintf(&b, "- generated_at: %s\n", report.GeneratedAt)
-	_, _ = fmt.Fprintf(&b, "- passed: %d/%d\n", report.Summary.Passed, report.Summary.Total)
+	writeReportHeader(&b, report, *sc)
+	writeScorecardTable(&b, report, *sc)
+	writeCasesTable(&b, report.Cases)
+	writeFailedCaseDetails(&b, report.Cases)
+	return b.String()
+}
+
+func writeReportHeader(b *strings.Builder, report EvalReport, sc CapabilityScorecard) {
+	_, _ = b.WriteString("# Agent capability report\n\n")
+	_, _ = fmt.Fprintf(b, "- suite: %s\n", report.Suite)
+	_, _ = fmt.Fprintf(b, "- generated_at: %s\n", report.GeneratedAt)
+	if report.JudgeMode != "" {
+		_, _ = fmt.Fprintf(b, "- judge_mode: %s\n", report.JudgeMode)
+	}
+	if report.Trials > 0 {
+		_, _ = fmt.Fprintf(b, "- trials (k): %d\n", report.Trials)
+	}
+	_, _ = fmt.Fprintf(b, "- hard_pass: %d/%d (%.1f%%)\n",
+		report.Summary.Passed, report.Summary.Total, 100*sc.HardPassRate)
+}
+
+func writeScorecardTable(b *strings.Builder, report EvalReport, sc CapabilityScorecard) {
+	_, _ = b.WriteString("\n## Scorecard\n\n")
+	_, _ = b.WriteString("| Metric | Value |\n| --- | --- |\n")
+	_, _ = fmt.Fprintf(b, "| **capability_index** (0–100) | **%.2f** |\n", sc.CapabilityIndex)
+	_, _ = fmt.Fprintf(b, "| reliability | %.4f |\n", sc.Reliability)
+	if sc.PassAtK != nil {
+		_, _ = fmt.Fprintf(b, "| pass@k | %.4f |\n", *sc.PassAtK)
+	}
+	if sc.PassHatK != nil {
+		_, _ = fmt.Fprintf(b, "| pass^k | %.4f |\n", *sc.PassHatK)
+	}
+	writeQualityRows(b, sc)
+	if sc.JudgeGoldAgreement != nil {
+		_, _ = fmt.Fprintf(b, "| judge_gold_agreement | %.4f |\n", *sc.JudgeGoldAgreement)
+	}
 	if report.TotalDurationMs > 0 {
-		_, _ = fmt.Fprintf(&b, "- total_duration_ms: %d\n", report.TotalDurationMs)
+		_, _ = fmt.Fprintf(b, "| total_duration_ms | %d |\n", report.TotalDurationMs)
 	}
 	if report.TotalTokens > 0 {
-		_, _ = fmt.Fprintf(&b, "- total_tokens: %d\n", report.TotalTokens)
+		_, _ = fmt.Fprintf(b, "| total_tokens | %d |\n", report.TotalTokens)
 	}
-	if report.PassAtK != nil {
-		_, _ = fmt.Fprintf(&b, "- pass@k: %.4f\n", *report.PassAtK)
+	if sc.Notes != "" {
+		_, _ = fmt.Fprintf(b, "\n_%s_\n", sc.Notes)
 	}
-	if report.PassHatK != nil {
-		_, _ = fmt.Fprintf(&b, "- pass^k: %.4f\n", *report.PassHatK)
+}
+
+func writeQualityRows(b *strings.Builder, sc CapabilityScorecard) {
+	if sc.QualityEnabled && sc.QualityAvg != nil {
+		_, _ = fmt.Fprintf(b, "| quality_avg (1–5) | %.2f |\n", *sc.QualityAvg)
+		_, _ = fmt.Fprintf(b, "| correctness_avg | %.2f |\n", *sc.CorrectnessAvg)
+		_, _ = fmt.Fprintf(b, "| faithfulness_avg | %.2f |\n", *sc.FaithfulnessAvg)
+		_, _ = fmt.Fprintf(b, "| helpfulness_avg | %.2f |\n", *sc.HelpfulnessAvg)
+		_, _ = fmt.Fprintf(b, "| safety_avg | %.2f |\n", *sc.SafetyAvg)
+		return
 	}
-	if report.JudgeGoldAgreement != nil {
-		_, _ = fmt.Fprintf(&b, "- judge_gold_agreement: %.4f\n", *report.JudgeGoldAgreement)
-	}
+	_, _ = b.WriteString("| quality_avg | n/a (enable with `--judge-model` + `--judge-fake=false`) |\n")
+}
+
+func writeCasesTable(b *strings.Builder, cases []CaseResult) {
 	_, _ = b.WriteString("\n## Cases\n\n")
-	for _, c := range report.Cases {
+	_, _ = b.WriteString("| case | hard | trials | corr | faith | help | safety | ms | tokens |\n")
+	_, _ = b.WriteString("| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n")
+	for _, c := range cases {
 		status := "PASS"
 		if !c.Passed {
 			status = "FAIL"
 		}
-		_, _ = fmt.Fprintf(&b, "### %s (%s)\n\n", c.Name, status)
+		corr, faith, help, safety := judgeCell(c.Judge)
+		_, _ = fmt.Fprintf(b, "| %s | %s | %s | %s | %s | %s | %s | %d | %d |\n",
+			c.Name, status, trialPassLabel(c.TrialPasses), corr, faith, help, safety,
+			c.Metrics.DurationMs, c.Metrics.TotalTokens)
+	}
+}
+
+func judgeCell(j *JudgeScores) (corr, faith, help, safety string) {
+	corr, faith, help, safety = "—", "—", "—", "—"
+	if j == nil || j.Unknown {
+		return corr, faith, help, safety
+	}
+	return fmt.Sprintf("%d", j.Correctness), fmt.Sprintf("%d", j.Faithfulness),
+		fmt.Sprintf("%d", j.Helpfulness), fmt.Sprintf("%d", j.Safety)
+}
+
+func writeFailedCaseDetails(b *strings.Builder, cases []CaseResult) {
+	for _, c := range cases {
+		if c.Passed && c.Error == "" && c.TranscriptSummary == "" {
+			continue
+		}
+		status := "PASS"
+		if !c.Passed {
+			status = "FAIL"
+		}
+		_, _ = fmt.Fprintf(b, "\n### %s (%s)\n\n", c.Name, status)
 		if c.Error != "" {
-			_, _ = fmt.Fprintf(&b, "- error: %s\n", c.Error)
+			_, _ = fmt.Fprintf(b, "- error: %s\n", c.Error)
+		}
+		if c.Judge != nil && c.Judge.Reasoning != "" {
+			_, _ = fmt.Fprintf(b, "- judge: %s\n", c.Judge.Reasoning)
+		}
+		if c.Gold != nil && c.Gold.Rationale != "" {
+			_, _ = fmt.Fprintf(b, "- gold: %s\n", c.Gold.Rationale)
 		}
 		if c.TranscriptSummary != "" {
-			_, _ = fmt.Fprintf(&b, "```\n%s\n```\n", c.TranscriptSummary)
+			_, _ = fmt.Fprintf(b, "```\n%s\n```\n", c.TranscriptSummary)
 		}
-		_, _ = b.WriteString("\n")
 	}
-	return b.String()
+	_, _ = b.WriteString("\n")
+}
+
+func trialPassLabel(trials []bool) string {
+	if len(trials) == 0 {
+		return "—"
+	}
+	ok := 0
+	for _, p := range trials {
+		if p {
+			ok++
+		}
+	}
+	return fmt.Sprintf("%d/%d", ok, len(trials))
 }
 
 // LoadReportJSON reads an EvalReport from path.
@@ -155,21 +250,39 @@ func LoadReportJSON(path string) (EvalReport, error) {
 
 // CompareDiff summarizes differences between a baseline and candidate report.
 type CompareDiff struct {
-	BaselineSuite  string   `json:"baseline_suite"`
-	CandidateSuite string   `json:"candidate_suite"`
-	Improved       []string `json:"improved"`
-	Regressed      []string `json:"regressed"`
-	UnchangedPass  []string `json:"unchanged_pass"`
-	UnchangedFail  []string `json:"unchanged_fail"`
-	OnlyBaseline   []string `json:"only_baseline"`
-	OnlyCandidate  []string `json:"only_candidate"`
+	BaselineSuite      string               `json:"baseline_suite"`
+	CandidateSuite     string               `json:"candidate_suite"`
+	Improved           []string             `json:"improved"`
+	Regressed          []string             `json:"regressed"`
+	UnchangedPass      []string             `json:"unchanged_pass"`
+	UnchangedFail      []string             `json:"unchanged_fail"`
+	OnlyBaseline       []string             `json:"only_baseline"`
+	OnlyCandidate      []string             `json:"only_candidate"`
+	BaselineScorecard  CapabilityScorecard  `json:"baseline_scorecard"`
+	CandidateScorecard CapabilityScorecard  `json:"candidate_scorecard"`
+	IndexDelta         float64              `json:"index_delta"`
+	ReliabilityDelta   float64              `json:"reliability_delta"`
+	QualityDelta       *float64             `json:"quality_delta,omitempty"`
 }
 
-// CompareReports contrastively compares two eval reports by case name.
+// CompareReports contrastively compares two eval reports by case name and scorecard.
 func CompareReports(baseline, candidate EvalReport) CompareDiff {
 	baseMap := casePassMap(baseline.Cases)
 	candMap := casePassMap(candidate.Cases)
-	diff := CompareDiff{BaselineSuite: baseline.Suite, CandidateSuite: candidate.Suite}
+	baseSC := ScorecardFromReport(baseline)
+	candSC := ScorecardFromReport(candidate)
+	diff := CompareDiff{
+		BaselineSuite:      baseline.Suite,
+		CandidateSuite:     candidate.Suite,
+		BaselineScorecard:  baseSC,
+		CandidateScorecard: candSC,
+		IndexDelta:         round2(candSC.CapabilityIndex - baseSC.CapabilityIndex),
+		ReliabilityDelta:   round2(candSC.Reliability - baseSC.Reliability),
+	}
+	if baseSC.QualityAvg != nil && candSC.QualityAvg != nil {
+		d := round2(*candSC.QualityAvg - *baseSC.QualityAvg)
+		diff.QualityDelta = &d
+	}
 	for _, name := range unionSortedKeys(baseMap, candMap) {
 		classifyCase(&diff, name, baseMap, candMap)
 	}
@@ -225,25 +338,30 @@ func classifyCase(diff *CompareDiff, name string, baseMap, candMap map[string]bo
 
 // FormatCompareMarkdown renders a compare diff as Markdown.
 func FormatCompareMarkdown(diff CompareDiff) string {
-	return fmt.Sprintf(`# Eval compare
-
-- baseline: %s
-- candidate: %s
-- improved (%d): %v
-- regressed (%d): %v
-- unchanged pass (%d)
-- unchanged fail (%d)
-- only baseline (%d): %v
-- only candidate (%d): %v
-`,
-		diff.BaselineSuite, diff.CandidateSuite,
-		len(diff.Improved), diff.Improved,
-		len(diff.Regressed), diff.Regressed,
-		len(diff.UnchangedPass),
-		len(diff.UnchangedFail),
-		len(diff.OnlyBaseline), diff.OnlyBaseline,
-		len(diff.OnlyCandidate), diff.OnlyCandidate,
-	)
+	var b strings.Builder
+	_, _ = b.WriteString("# Eval compare\n\n")
+	_, _ = fmt.Fprintf(&b, "- baseline: %s\n", diff.BaselineSuite)
+	_, _ = fmt.Fprintf(&b, "- candidate: %s\n", diff.CandidateSuite)
+	_, _ = b.WriteString("\n## Scorecard delta\n\n")
+	_, _ = fmt.Fprintf(&b, "| Metric | Baseline | Candidate | Delta |\n| --- | --- | --- | --- |\n")
+	_, _ = fmt.Fprintf(&b, "| capability_index | %.2f | %.2f | %+.2f |\n",
+		diff.BaselineScorecard.CapabilityIndex, diff.CandidateScorecard.CapabilityIndex, diff.IndexDelta)
+	_, _ = fmt.Fprintf(&b, "| reliability | %.4f | %.4f | %+.4f |\n",
+		diff.BaselineScorecard.Reliability, diff.CandidateScorecard.Reliability, diff.ReliabilityDelta)
+	if diff.QualityDelta != nil && diff.BaselineScorecard.QualityAvg != nil && diff.CandidateScorecard.QualityAvg != nil {
+		_, _ = fmt.Fprintf(&b, "| quality_avg | %.2f | %.2f | %+.2f |\n",
+			*diff.BaselineScorecard.QualityAvg, *diff.CandidateScorecard.QualityAvg, *diff.QualityDelta)
+	} else {
+		_, _ = b.WriteString("| quality_avg | n/a | n/a | n/a |\n")
+	}
+	_, _ = fmt.Fprintf(&b, "\n## Case gate delta\n\n")
+	_, _ = fmt.Fprintf(&b, "- improved (%d): %v\n", len(diff.Improved), diff.Improved)
+	_, _ = fmt.Fprintf(&b, "- regressed (%d): %v\n", len(diff.Regressed), diff.Regressed)
+	_, _ = fmt.Fprintf(&b, "- unchanged pass (%d)\n", len(diff.UnchangedPass))
+	_, _ = fmt.Fprintf(&b, "- unchanged fail (%d)\n", len(diff.UnchangedFail))
+	_, _ = fmt.Fprintf(&b, "- only baseline (%d): %v\n", len(diff.OnlyBaseline), diff.OnlyBaseline)
+	_, _ = fmt.Fprintf(&b, "- only candidate (%d): %v\n", len(diff.OnlyCandidate), diff.OnlyCandidate)
+	return b.String()
 }
 
 // TaskDraft is a YAML-serializable draft task exported from a failed run.

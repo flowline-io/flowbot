@@ -213,15 +213,64 @@ func TestBuiltinRegressionScenarios(t *testing.T) {
 	require.NoError(t, eval.WriteReportMarkdown(filepath.Join(outDir, "report.md"), report))
 }
 
-func TestPassK(t *testing.T) {
+func TestScorecardFromReport(t *testing.T) {
 	t.Parallel()
-	trials := [][]bool{
-		{true, false, false},
-		{true, true, true},
-		{false, false, false},
+	passAt, passHat := 1.0, 0.8
+	report := eval.EvalReport{
+		JudgeMode: "model:judge",
+		Summary:   eval.ReportSummary{Total: 2, Passed: 2},
+		PassAtK:   &passAt,
+		PassHatK:  &passHat,
+		Cases: []eval.CaseResult{
+			{Name: "a", Passed: true, Judge: &eval.JudgeScores{Correctness: 4, Faithfulness: 4, Helpfulness: 4, Safety: 4}},
+			{Name: "b", Passed: true, Judge: &eval.JudgeScores{Correctness: 5, Faithfulness: 5, Helpfulness: 5, Safety: 5}},
+		},
 	}
-	assert.InDelta(t, 2.0/3.0, eval.PassAtK(trials), 1e-9)
-	assert.InDelta(t, 1.0/3.0, eval.PassHatK(trials), 1e-9)
+	sc := eval.ScorecardFromReport(report)
+	assert.True(t, sc.QualityEnabled)
+	require.NotNil(t, sc.QualityAvg)
+	assert.InDelta(t, 4.5, *sc.QualityAvg, 1e-9)
+	assert.InDelta(t, 0.88, sc.Reliability, 1e-9) // 0.6*0.8 + 0.4*1.0
+	assert.Greater(t, sc.CapabilityIndex, 80.0)
+
+	fake := report
+	fake.JudgeMode = "fake"
+	scFake := eval.ScorecardFromReport(fake)
+	assert.False(t, scFake.QualityEnabled)
+	assert.Nil(t, scFake.QualityAvg)
+	assert.Contains(t, scFake.Notes, "judge-fake")
+}
+
+func TestFormatReportMarkdown_scorecard(t *testing.T) {
+	t.Parallel()
+	passAt, passHat := 1.0, 1.0
+	report := eval.EvalReport{
+		Suite:     "capability",
+		JudgeMode: "model:judge",
+		Summary:   eval.ReportSummary{Total: 1, Passed: 1},
+		PassAtK:   &passAt,
+		PassHatK:  &passHat,
+		Cases: []eval.CaseResult{
+			{
+				Name:   "openqa_greet",
+				Passed: true,
+				Judge:  &eval.JudgeScores{Correctness: 5, Faithfulness: 4, Helpfulness: 4, Safety: 5},
+				Metrics: eval.Metrics{DurationMs: 100, TotalTokens: 50},
+			},
+		},
+	}
+	sc := eval.ScorecardFromReport(report)
+	report.Scorecard = &sc
+	dir := t.TempDir()
+	path := filepath.Join(dir, "report.md")
+	require.NoError(t, eval.WriteReportMarkdown(path, report))
+	raw, err := os.ReadFile(path)
+	require.NoError(t, err)
+	body := string(raw)
+	assert.Contains(t, body, "capability_index")
+	assert.Contains(t, body, "quality_avg")
+	assert.Contains(t, body, "openqa_greet")
+	assert.Contains(t, body, "| corr |")
 }
 
 func TestScore_finalTextContainsAny(t *testing.T) {

@@ -173,6 +173,41 @@ func runRegression(ctx context.Context, outDir, casesDir, runPattern string) err
 
 func runCapability(ctx context.Context, f liveFlags) error {
 	workspace := filepath.Join(f.outDir, "workspaces", fmt.Sprintf("%d", time.Now().UnixNano()))
+	scenarios, goldDirs, err := loadCapabilityScenarios(f, workspace)
+	if err != nil {
+		return err
+	}
+	names := make([]string, 0, len(scenarios))
+	for _, sc := range scenarios {
+		names = append(names, sc.Name)
+	}
+	goldByCase, err := eval.DefaultGoldByCaseFromDirs(goldDirs, names)
+	if err != nil {
+		return err
+	}
+	subject, err := resolveSubjectModel(ctx, f, scenarios)
+	if err != nil {
+		return err
+	}
+	judgeModel, err := resolveJudgeModel(ctx, f, len(scenarios))
+	if err != nil {
+		return err
+	}
+	report, err := eval.RunLiveScenarios(ctx, scenarios, subject, eval.LiveOptions{
+		Trials:     f.trials,
+		ModelName:  f.modelName,
+		JudgeModel: judgeModel,
+		GoldByCase: goldByCase,
+		OnProgress: printProgress,
+		JudgeMode:  judgeModeFromFlags(f, judgeModel != nil),
+	})
+	if err != nil {
+		return err
+	}
+	return writeReports(f.outDir, "capability", report)
+}
+
+func loadCapabilityScenarios(f liveFlags, workspace string) ([]eval.Scenario, []string, error) {
 	var scenarios []eval.Scenario
 	var goldDirs []string
 	var err error
@@ -186,7 +221,7 @@ func runCapability(ctx context.Context, f liveFlags) error {
 		}
 	}
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	if f.runPattern != "" {
 		scenarios, err = eval.FilterByRun(scenarios, f.runPattern)
@@ -194,41 +229,25 @@ func runCapability(ctx context.Context, f liveFlags) error {
 		scenarios = eval.FilterSmoke(scenarios, f.smoke, eval.DefaultSmokeCaseNames)
 	}
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	if len(scenarios) == 0 {
-		return fmt.Errorf("agenteval: no capability cases selected")
+		return nil, nil, fmt.Errorf("agenteval: no capability cases selected")
 	}
+	return scenarios, goldDirs, nil
+}
 
-	names := make([]string, 0, len(scenarios))
-	for _, sc := range scenarios {
-		names = append(names, sc.Name)
+func judgeModeFromFlags(f liveFlags, hasJudge bool) string {
+	if !hasJudge {
+		return "none"
 	}
-	goldByCase, err := eval.DefaultGoldByCaseFromDirs(goldDirs, names)
-	if err != nil {
-		return err
+	if f.judgeFake && f.judgeName == "" {
+		return "fake"
 	}
-
-	subject, err := resolveSubjectModel(ctx, f, scenarios)
-	if err != nil {
-		return err
+	if f.judgeName != "" {
+		return "model:" + f.judgeName
 	}
-	judgeModel, err := resolveJudgeModel(ctx, f, len(scenarios))
-	if err != nil {
-		return err
-	}
-
-	report, err := eval.RunLiveScenarios(ctx, scenarios, subject, eval.LiveOptions{
-		Trials:     f.trials,
-		ModelName:  f.modelName,
-		JudgeModel: judgeModel,
-		GoldByCase: goldByCase,
-		OnProgress: printProgress,
-	})
-	if err != nil {
-		return err
-	}
-	return writeReports(f.outDir, "capability", report)
+	return "model"
 }
 
 func printProgress(ev eval.ProgressEvent) {
@@ -358,6 +377,10 @@ func runExport(reportPath, outDir string, onlyFailed bool) error {
 }
 
 func writeReports(outDir, prefix string, report eval.EvalReport) error {
+	if report.Scorecard == nil {
+		sc := eval.ScorecardFromReport(report)
+		report.Scorecard = &sc
+	}
 	stamp := time.Now().UTC().Format("20060102T150405Z")
 	jsonPath := filepath.Join(outDir, prefix+"_"+stamp+".json")
 	mdPath := filepath.Join(outDir, prefix+"_"+stamp+".md")
@@ -377,7 +400,7 @@ func writeReports(outDir, prefix string, report eval.EvalReport) error {
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", jsonPath)
 	_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", mdPath)
-	_, _ = fmt.Fprintf(os.Stdout, "summary: %d/%d passed\n", report.Summary.Passed, report.Summary.Total)
+	printScorecard(report)
 	if report.Summary.Failed > 0 {
 		for _, c := range report.Cases {
 			if !c.Passed {
@@ -387,4 +410,23 @@ func writeReports(outDir, prefix string, report eval.EvalReport) error {
 		return fmt.Errorf("agenteval: %d case(s) failed", report.Summary.Failed)
 	}
 	return nil
+}
+
+func printScorecard(report eval.EvalReport) {
+	sc := report.Scorecard
+	if sc == nil {
+		return
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "capability_index: %.2f\n", sc.CapabilityIndex)
+	_, _ = fmt.Fprintf(os.Stdout, "reliability: %.4f  hard_pass: %d/%d\n",
+		sc.Reliability, report.Summary.Passed, report.Summary.Total)
+	if sc.PassAtK != nil && sc.PassHatK != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "pass@k: %.4f  pass^k: %.4f\n", *sc.PassAtK, *sc.PassHatK)
+	}
+	if sc.QualityEnabled && sc.QualityAvg != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "quality_avg: %.2f (C=%.2f F=%.2f H=%.2f S=%.2f)\n",
+			*sc.QualityAvg, *sc.CorrectnessAvg, *sc.FaithfulnessAvg, *sc.HelpfulnessAvg, *sc.SafetyAvg)
+	} else if report.JudgeMode == "fake" || !sc.QualityEnabled {
+		_, _ = fmt.Fprintln(os.Stdout, "quality: n/a — use --judge-model NAME --judge-fake=false for dimension scores")
+	}
 }

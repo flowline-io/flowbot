@@ -116,6 +116,18 @@ go run ./cmd/composer agenteval export --report ... --out tmp/agent_eval/drafts
 
 Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`, `--run` (regexp like `go test -run`).
 
+Reports include a **capability scorecard** (`capability_index` 0–100 = reliability + quality). Quality dimensions require a real judge:
+
+```bash
+go run ./cmd/composer agenteval live --model SUBJECT --judge-model JUDGE --judge-fake=false
+```
+
+Compare optimization A/B with scorecard deltas:
+
+```bash
+go run ./cmd/composer agenteval compare --baseline before.json --candidate after.json
+```
+
 Examples:
 
 ```bash

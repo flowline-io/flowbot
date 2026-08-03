@@ -46,6 +46,8 @@ type LiveOptions struct {
 	GoldByCase map[string]GoldScores
 	// OnProgress reports case/trial progress when set.
 	OnProgress ProgressFunc
+	// JudgeMode labels quality scoring: "fake", "none", or "model:<name>".
+	JudgeMode string
 }
 
 // RunLiveScenarios runs each scenario k times with a real (or fake) model and aggregates pass@k / pass^k.
@@ -88,6 +90,14 @@ func RunLiveScenarios(ctx context.Context, scenarios []Scenario, model llms.Mode
 	report.Trials = k
 	report.TotalDurationMs = totalDuration
 	report.TotalTokens = totalTokens
+	report.JudgeMode = opts.JudgeMode
+	if report.JudgeMode == "" {
+		if opts.JudgeModel == nil {
+			report.JudgeMode = "none"
+		} else {
+			report.JudgeMode = "fake"
+		}
+	}
 	passAt := PassAtK(allTrials)
 	passHat := PassHatK(allTrials)
 	report.PassAtK = &passAt
@@ -96,6 +106,8 @@ func RunLiveScenarios(ctx context.Context, scenarios []Scenario, model llms.Mode
 		avg := agreeSum / float64(agreeN)
 		report.JudgeGoldAgreement = &avg
 	}
+	sc := ScorecardFromReport(report)
+	report.Scorecard = &sc
 	return report, nil
 }
 
