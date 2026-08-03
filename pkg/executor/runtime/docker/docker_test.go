@@ -462,18 +462,24 @@ func Test_imagePull(t *testing.T) {
 		skipIfNoDocker(t)
 		ctx := context.Background()
 
+		// Distinct from testImage so ImageRemove cannot race with other parallel
+		// integration tests that create containers from busybox:1.36.
+		const pullImage = "busybox:1.35"
+
 		rt, err := NewRuntime()
 		require.NoError(t, err)
 		assert.NotNil(t, rt)
 
 		images, err := rt.client.ImageList(ctx, client.ImageListOptions{
-			Filters: make(client.Filters).Add("reference", "busybox:*"),
+			Filters: make(client.Filters).Add("reference", pullImage),
 		})
 		require.NoError(t, err)
 
 		for _, img := range images.Items {
 			_, err = rt.client.ImageRemove(ctx, img.ID, client.ImageRemoveOptions{Force: true})
-			require.NoError(t, err)
+			if err != nil {
+				t.Skipf("could not remove %s before pull test: %v", pullImage, err)
+			}
 		}
 
 		err = rt.imagePull(ctx, &types.Task{Image: "localhost:5001/no/suchthing"})
@@ -485,7 +491,7 @@ func Test_imagePull(t *testing.T) {
 		for range 3 {
 			go func() {
 				defer wg.Done()
-				err := rt.imagePull(ctx, &types.Task{Image: "busybox:1.36"})
+				err := rt.imagePull(ctx, &types.Task{Image: pullImage})
 				assert.NoError(t, err)
 			}()
 		}
