@@ -46,9 +46,16 @@ func WaitForSessionTitleGenerationForTest() {
 }
 
 // ResetSessionTitleGenerationForTest clears per-session title generation tracking.
+// Entries are deleted in place so concurrent LoadOrStore/Delete on the same maps stay race-free.
 func ResetSessionTitleGenerationForTest() {
-	sessionTitleInflight = sync.Map{}
-	sessionTitleWriteMu = sync.Map{}
+	sessionTitleInflight.Range(func(key, _ any) bool {
+		sessionTitleInflight.Delete(key)
+		return true
+	})
+	sessionTitleWriteMu.Range(func(key, _ any) bool {
+		sessionTitleWriteMu.Delete(key)
+		return true
+	})
 }
 
 func lockSessionTitleWrite(sessionID string) func() {

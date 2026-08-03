@@ -141,9 +141,17 @@ func TestSessionTitleInflightDedupes(t *testing.T) {
 				config.App.Models = origModels
 			})
 
+			var launchWG sync.WaitGroup
 			for _, sessionID := range tt.sessions {
-				go maybeGenerateSessionTitle(sessionID, "hello", "world")
+				launchWG.Add(1)
+				go func(sessionID string) {
+					defer launchWG.Done()
+					maybeGenerateSessionTitle(sessionID, "hello", "world")
+				}(sessionID)
 			}
+			// Wait until every launch has entered maybeGenerateSessionTitle (LoadOrStore /
+			// WaitGroup.Go) so a late-scheduled goroutine cannot race the next Reset.
+			launchWG.Wait()
 			require.Eventually(t, func() bool {
 				return calls.Load() >= tt.wantCalls
 			}, time.Second, 10*time.Millisecond)

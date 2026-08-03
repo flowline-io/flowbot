@@ -20,6 +20,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
+// testImage is a small public image used by integration tests. Prefer busybox over
+// ubuntu tags: some registries/mirrors return stale digests for ubuntu:* that fail to pull.
+const testImage = "busybox:1.36"
+
 // skipIfNoDocker skips the test if the Docker daemon is not reachable.
 func skipIfNoDocker(t *testing.T) {
 	t.Helper()
@@ -143,7 +147,7 @@ func TestRunTaskCMD(t *testing.T) {
 
 		err = rt.Run(context.Background(), &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			CMD:   []string{"ls"},
 		})
 		require.NoError(t, err)
@@ -167,7 +171,7 @@ func TestRunTaskConcurrently(t *testing.T) {
 				defer wg.Done()
 				tk := &types.Task{
 					ID:    utils.NewUUID(),
-					Image: "ubuntu:mantic",
+					Image: testImage,
 					Run:   "echo -n hello > $OUTPUT",
 				}
 				err := rt.Run(context.Background(), tk)
@@ -192,7 +196,7 @@ func TestRunTaskWithTimeout(t *testing.T) {
 		defer cancel()
 		err = rt.Run(ctx, &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			CMD:   []string{"sleep", "10"},
 		})
 		require.Error(t, err)
@@ -212,7 +216,7 @@ func TestRunTaskWithError(t *testing.T) {
 		defer cancel()
 		err = rt.Run(ctx, &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			Run:   "not_a_thing",
 		})
 		require.Error(t, err)
@@ -230,7 +234,7 @@ func TestRunAndStopTask(t *testing.T) {
 		assert.NotNil(t, rt)
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			CMD:   []string{"sleep", "10"},
 		}
 		done := make(chan struct{})
@@ -298,7 +302,7 @@ func TestRunTaskWithNetwork(t *testing.T) {
 			assert.NotNil(t, rt)
 			err = rt.Run(context.Background(), &types.Task{
 				ID:       utils.NewUUID(),
-				Image:    "ubuntu:mantic",
+				Image:    testImage,
 				CMD:      []string{"ls"},
 				Networks: tt.networks,
 			})
@@ -324,7 +328,7 @@ func TestRunTaskWithVolume(t *testing.T) {
 
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			Run:   "echo hello world > /xyz/thing",
 			Mounts: []types.Mount{
 				{
@@ -355,7 +359,7 @@ func TestRunTaskWithBind(t *testing.T) {
 		dir := path.Join(os.TempDir(), utils.NewUUID())
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			Run:   "echo hello world > /xyz/thing",
 			Mounts: []types.Mount{{
 				Type:   types.MountTypeBind,
@@ -383,7 +387,7 @@ func TestRunTaskWithTempfs(t *testing.T) {
 
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			Run:   "echo hello world > /xyz/thing",
 			Mounts: []types.Mount{
 				{
@@ -411,7 +415,7 @@ func TestRunTaskWithCustomMounter(t *testing.T) {
 		require.NoError(t, err)
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			Run:   "echo hello world > /xyz/thing",
 			Mounts: []types.Mount{
 				{
@@ -436,7 +440,7 @@ func TestRunTaskInitWorkdir(t *testing.T) {
 		require.NoError(t, err)
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
-			Image: "ubuntu:mantic",
+			Image: testImage,
 			Run:   "cat hello.txt > $OUTPUT",
 			Files: map[string]string{
 				"hello.txt": "hello world",

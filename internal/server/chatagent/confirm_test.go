@@ -168,6 +168,7 @@ func TestResolveConfirmAPI(t *testing.T) {
 }
 
 func TestPrematureClearAPIRunStateBreaksConfirm(t *testing.T) {
+	lockStoreDatabaseForTest(t)
 	svc := NewService()
 	pub := NewChannelPublisher(8)
 	gate := NewConfirmGate("sess-premature", pub, nil)
@@ -176,11 +177,13 @@ func TestPrematureClearAPIRunStateBreaksConfirm(t *testing.T) {
 	require.NoError(t, svc.TrySetAPIRunState("sess-premature", state))
 	t.Cleanup(func() { svc.ClearAPIRunState("sess-premature", nil) })
 
+	done := make(chan struct{})
 	go func() {
 		_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
 			ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
 			Args:     map[string]any{"command": "ls"},
 		}, testEvalResult())
+		close(done)
 	}()
 
 	waitConfirmEvent(t, pub)
@@ -190,6 +193,13 @@ func TestPrematureClearAPIRunStateBreaksConfirm(t *testing.T) {
 
 	_, err := svc.ResolveConfirm("sess-premature", confirmID, true, ConfirmModeOnce, "", ConfirmReasonApproved)
 	assert.ErrorIs(t, err, ErrConfirmNotFound)
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("ConfirmGate.Wait did not return after ClearAPIRunState")
+	}
+	WaitApprovalNotifyForTest()
 }
 
 func TestAlwaysGrantPattern(t *testing.T) {

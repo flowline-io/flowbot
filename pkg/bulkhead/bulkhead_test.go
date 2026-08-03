@@ -332,9 +332,11 @@ func TestBulkheadNewDefaults(t *testing.T) {
 }
 
 func TestBulkheadDoRace(t *testing.T) {
-	b := New("test", WithMaxConcurrent(4), WithMaxQueue(4), WithTimeout(5*time.Second))
+	const n = 50
+	// Queue must admit all concurrent callers; MaxQueue is an admission cap, not a wait buffer.
+	b := New("test", WithMaxConcurrent(4), WithMaxQueue(n), WithTimeout(5*time.Second))
 	var wg sync.WaitGroup
-	for range 50 {
+	for range n {
 		wg.Go(func() {
 			if err := b.Do(context.Background(), func() error { return nil }); err != nil {
 				t.Errorf("unexpected error in race test: %v", err)
