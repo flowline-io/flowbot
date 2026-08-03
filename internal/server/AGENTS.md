@@ -35,3 +35,6 @@ Look at the package directory for the full file set; prefer hot-path names above
 ```bash
 go test ./internal/server/...
 ```
+
+Architecture gate (`pkg` must not import `internal`): `pkg_deps_test.go`.
+

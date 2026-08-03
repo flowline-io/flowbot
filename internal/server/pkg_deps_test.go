@@ -1,5 +1,4 @@
-// Package architecture holds repository-wide architecture gate tests.
-package architecture_test
+package server_test
 
 import (
 	"fmt"
