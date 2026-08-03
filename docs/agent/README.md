@@ -114,12 +114,12 @@ go run ./cmd/composer agenteval compare --baseline ... --candidate ...
 go run ./cmd/composer agenteval export --report ... --out tmp/agent_eval/drafts
 ```
 
-Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`, `--run` (regexp like `go test -run`).
+Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`, `--run`, `--difficulty` (`easy|medium|hard|medium+`).
 
 Reports include a **capability scorecard** (`capability_index` 0–100 = reliability + quality). Quality dimensions require a real judge:
 
 ```bash
-go run ./cmd/composer agenteval live --model SUBJECT --judge-model JUDGE --judge-fake=false
+go run ./cmd/composer agenteval live --model SUBJECT --judge-model JUDGE --judge-fake=false --difficulty medium+
 ```
 
 Compare optimization A/B with scorecard deltas:

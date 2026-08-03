@@ -1,15 +1,17 @@
-name: tools_ground_answer_from_file
+name: tools_distractor_readme_host
 suite: capability
 difficulty: medium
 prompt: |
-  What is the database host? Use only information from app/settings.yaml.
-  If the file is missing a value, say you cannot find it.
+  What is the database host? README may be outdated — use app/settings.yaml as source of truth.
 toolset: fs
 fixtures:
+  - path: README.md
+    content: |
+      Database host: db.legacy.example (do not change)
   - path: app/settings.yaml
     content: |
       database:
-        host: db.internal.example
+        host: db.primary.internal
         port: 5432
 scripts:
   - type: tool_call
@@ -17,15 +19,15 @@ scripts:
     name: read_file
     args: '{"path":"app/settings.yaml"}'
   - type: text
-    content: According to app/settings.yaml, the database host is db.internal.example.
+    content: The database host is db.primary.internal.
 expect:
   required_tools: [read_file]
   forbidden_tools: [run_terminal]
   required_args:
     read_file: [path]
-  max_steps: 4
+  max_steps: 5
   soft_max_steps: true
   require_completion: true
   outcome:
     final_text_contains:
-      - db.internal.example
+      - db.primary.internal

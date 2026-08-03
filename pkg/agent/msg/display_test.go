@@ -73,6 +73,11 @@ func TestTrimToolCallStreamContent(t *testing.T) {
 			text: "hello",
 			want: "hello",
 		},
+		{
+			name: "json array with id fields is not tool json",
+			text: `{"ok":true,"items":[{"id":"a","score":1},{"id":"b","score":3}]}`,
+			want: `{"ok":true,"items":[{"id":"a","score":1},{"id":"b","score":3}]}`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,0 +1,38 @@
+name: tools_resolve_conflicting_ports
+suite: capability
+difficulty: hard
+prompt: |
+  What listen port should production use? Multiple files disagree.
+  Prefer app/prod.yaml over README.md and app/dev.yaml. Answer with the port number.
+toolset: fs
+fixtures:
+  - path: README.md
+    content: |
+      Production listens on port 8080.
+  - path: app/dev.yaml
+    content: |
+      service:
+        port: 3000
+  - path: app/prod.yaml
+    content: |
+      service:
+        env: production
+        port: 9443
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"app/prod.yaml"}'
+  - type: text
+    content: Production should use port 9443.
+expect:
+  required_tools: [read_file]
+  forbidden_tools: [run_terminal]
+  required_args:
+    read_file: [path]
+  max_steps: 6
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    final_text_contains:
+      - "9443"

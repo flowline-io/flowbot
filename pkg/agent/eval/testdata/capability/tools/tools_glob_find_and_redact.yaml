@@ -1,0 +1,48 @@
+name: tools_glob_find_and_redact
+suite: capability
+difficulty: hard
+prompt: |
+  Find the secrets YAML under configs/ (do not assume the filename), then redact the password
+  value to REDACTED while keeping the username. Write the updated file back.
+toolset: coding
+fixtures:
+  - path: configs/app_secrets.yaml
+    content: |
+      auth:
+        username: deploy
+        password: s3cr3t-value
+  - path: configs/readme.txt
+    content: |
+      secrets live nearby
+scripts:
+  - type: tool_call
+    id: c1
+    name: glob_files
+    args: '{"pattern":"configs/**/*.yaml"}'
+  - type: tool_call
+    id: c2
+    name: read_file
+    args: '{"path":"configs/app_secrets.yaml"}'
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: "{\"path\":\"configs/app_secrets.yaml\",\"content\":\"auth:\\n  username: deploy\\n  password: REDACTED\\n\"}"
+  - type: text
+    content: Redacted password in configs/app_secrets.yaml.
+expect:
+  required_tools: [glob_files, read_file, write_file]
+  forbidden_tools: [run_terminal]
+  expected_tools: [glob_files, read_file, write_file]
+  required_args:
+    glob_files: [pattern]
+    read_file: [path]
+    write_file: [path, content]
+  max_steps: 8
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: configs/app_secrets.yaml
+        contains: "password: REDACTED"
+      - path: configs/app_secrets.yaml
+        contains: "username: deploy"

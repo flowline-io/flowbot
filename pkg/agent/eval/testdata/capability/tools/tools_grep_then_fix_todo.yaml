@@ -1,0 +1,61 @@
+name: tools_grep_then_fix_todo
+suite: capability
+difficulty: hard
+prompt: |
+  Find the Go file that still contains TODO(panic) and fix that line so Sum returns the sum of xs
+  without panicking on empty input. Keep package and function name.
+toolset: coding
+fixtures:
+  - path: pkg/mathutil/sum.go
+    content: |
+      package mathutil
+
+      // Sum returns the sum of xs.
+      func Sum(xs []int) int {
+      	// TODO(panic): broken on purpose
+      	return xs[0]
+      }
+  - path: pkg/mathutil/other.go
+    content: |
+      package mathutil
+
+      func Max(a, b int) int {
+      	if a > b {
+      		return a
+      	}
+      	return b
+      }
+scripts:
+  - type: tool_call
+    id: c1
+    name: grep_files
+    args: '{"pattern":"TODO\\(panic\\)","glob":"**/*.go"}'
+  - type: tool_call
+    id: c2
+    name: read_file
+    args: '{"path":"pkg/mathutil/sum.go"}'
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: "{\"path\":\"pkg/mathutil/sum.go\",\"content\":\"package mathutil\\n\\n// Sum returns the sum of xs.\\nfunc Sum(xs []int) int {\\n\\ttotal := 0\\n\\tfor _, v := range xs {\\n\\t\\ttotal += v\\n\\t}\\n\\treturn total\\n}\\n\"}"
+  - type: text
+    content: Fixed Sum in pkg/mathutil/sum.go to range safely.
+expect:
+  required_tools: [grep_files, write_file]
+  forbidden_tools: [run_terminal]
+  required_args:
+    grep_files: [pattern]
+    write_file: [path, content]
+  max_steps: 8
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: pkg/mathutil/sum.go
+        contains: "range xs"
+      - path: pkg/mathutil/sum.go
+        contains: "func Sum"
+      - path: pkg/mathutil/sum.go
+        contains: "return total"
+      - path: pkg/mathutil/other.go
+        contains: "func Max"

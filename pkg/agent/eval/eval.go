@@ -95,6 +95,8 @@ type Scenario struct {
 	Name string
 	// Suite is "regression" or "capability" (for reports).
 	Suite string
+	// Difficulty is easy, medium, or hard (capability ladder).
+	Difficulty string
 	// Prompt is the user message.
 	Prompt string
 	// Scripts are FakeModel responses in order.
@@ -103,8 +105,18 @@ type Scenario struct {
 	Tools []tool.Tool
 	// WorkspaceRoot is the isolated workspace for file outcome checks and coding tools.
 	WorkspaceRoot string
+	// Fixtures seed WorkspaceRoot before each trial (live multi-trial isolation).
+	Fixtures []WorkspaceFixture
 	// Expect defines scoring criteria.
 	Expect Expectation
+}
+
+// WorkspaceFixture seeds one file into an isolated workspace.
+type WorkspaceFixture struct {
+	// Path is relative to WorkspaceRoot.
+	Path string
+	// Content is the file body.
+	Content string
 }
 
 // Score derives metrics from a completed agent run.
@@ -166,8 +178,9 @@ func hardPass(m Metrics, expect Expectation) bool {
 func scoreOutcome(m *Metrics, outcome OutcomeAsserts, workspaceRoot string) bool {
 	text := outcomeSearchText(*m)
 	ok := true
+	norm := normalizeOutcomeText(text)
 	for _, want := range outcome.FinalTextContains {
-		if !strings.Contains(normalizeQuotes(text), normalizeQuotes(want)) {
+		if !strings.Contains(norm, normalizeOutcomeText(want)) {
 			ok = false
 		}
 	}
@@ -190,13 +203,19 @@ func outcomeSearchText(m Metrics) string {
 }
 
 func textContainsAnyFold(text string, wants []string) bool {
-	lower := strings.ToLower(normalizeQuotes(text))
+	lower := strings.ToLower(normalizeOutcomeText(text))
 	for _, want := range wants {
-		if want != "" && strings.Contains(lower, strings.ToLower(normalizeQuotes(want))) {
+		if want != "" && strings.Contains(lower, strings.ToLower(normalizeOutcomeText(want))) {
 			return true
 		}
 	}
 	return false
+}
+
+// normalizeOutcomeText maps typographic quotes and collapses JSON-insignificant whitespace
+// outside of strings so `"id": "a"` matches a grader needle `"id":"a"`.
+func normalizeOutcomeText(s string) string {
+	return compactJSONOutsideStrings(normalizeQuotes(s))
 }
 
 // normalizeQuotes maps common typographic apostrophes/quotes to ASCII so live models match.
@@ -210,6 +229,39 @@ func normalizeQuotes(s string) string {
 		"\u201C", `"`, // “
 		"\u201D", `"`, // ”
 	).Replace(s)
+}
+
+func compactJSONOutsideStrings(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	inString := false
+	escape := false
+	for _, r := range s {
+		if escape {
+			_, _ = b.WriteRune(r)
+			escape = false
+			continue
+		}
+		if inString {
+			if r == '\\' {
+				escape = true
+			} else if r == '"' {
+				inString = false
+			}
+			_, _ = b.WriteRune(r)
+			continue
+		}
+		if r == '"' {
+			inString = true
+			_, _ = b.WriteRune(r)
+			continue
+		}
+		if r == ' ' || r == '\t' || r == '\n' || r == '\r' {
+			continue
+		}
+		_, _ = b.WriteRune(r)
+	}
+	return b.String()
 }
 
 // FailReason returns a short explanation when metrics did not hard-pass.
@@ -247,9 +299,9 @@ func FailReason(m Metrics, expect Expectation) string {
 
 func outcomeFailDetail(finalText string, outcome OutcomeAsserts) string {
 	var missing []string
-	norm := normalizeQuotes(finalText)
+	norm := normalizeOutcomeText(finalText)
 	for _, want := range outcome.FinalTextContains {
-		if !strings.Contains(norm, normalizeQuotes(want)) {
+		if !strings.Contains(norm, normalizeOutcomeText(want)) {
 			missing = append(missing, fmt.Sprintf("%q", want))
 		}
 	}
@@ -280,7 +332,7 @@ func fileAssertOK(workspaceRoot string, fa FileAssert) bool {
 		return false
 	}
 	content := string(data)
-	if fa.Equals != "" && content != fa.Equals {
+	if fa.Equals != "" && strings.TrimRight(content, "\r\n") != strings.TrimRight(fa.Equals, "\r\n") {
 		return false
 	}
 	if fa.Contains != "" && !strings.Contains(content, fa.Contains) {

@@ -273,6 +273,63 @@ func TestFormatReportMarkdown_scorecard(t *testing.T) {
 	assert.Contains(t, body, "| corr |")
 }
 
+func TestFileAssert_equalsTrimsTrailingNewlines(t *testing.T) {
+	t.Parallel()
+	root := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(root, "VERSION"), []byte("3.1.0\n"), 0o644))
+	messages := []msg.AgentMessage{
+		msg.NewUserMessage("set version"),
+		msg.AssistantMessage{Parts: []msg.ContentPart{msg.TextPart{Text: "done"}}},
+	}
+	metrics := eval.ScoreWithWorkspace(messages, eval.Expectation{
+		RequireCompletion: true,
+		Outcome: eval.OutcomeAsserts{
+			Files: []eval.FileAssert{{Path: "VERSION", Equals: "3.1.0"}},
+		},
+	}, nil, root)
+	assert.True(t, metrics.OutcomeOK)
+	assert.True(t, metrics.Passed)
+}
+
+func TestScore_finalTextContains_jsonSpacing(t *testing.T) {
+	t.Parallel()
+	messages := []msg.AgentMessage{
+		msg.NewUserMessage("json"),
+		msg.AssistantMessage{Parts: []msg.ContentPart{msg.TextPart{
+			Text: `{"ok": true, "items": [{"id": "a", "score": 2}, {"id": "b", "score": 2}], "note": "balanced"}`,
+		}}},
+	}
+	metrics := eval.Score(messages, eval.Expectation{
+		RequireCompletion: true,
+		Outcome: eval.OutcomeAsserts{
+			FinalTextContains: []string{`"id":"a"`, `"id":"b"`, `"ok":true`},
+		},
+	}, nil)
+	assert.True(t, metrics.OutcomeOK)
+	assert.True(t, metrics.Passed)
+}
+
+func TestResetScenarioWorkspace_rewritesFixtures(t *testing.T) {
+	t.Parallel()
+	root := t.TempDir()
+	sc := eval.Scenario{
+		WorkspaceRoot: root,
+		Fixtures: []eval.WorkspaceFixture{
+			{Path: "app/config.yaml", Content: "port: 7480\n"},
+		},
+	}
+	require.NoError(t, eval.ResetScenarioWorkspace(sc))
+	got, err := os.ReadFile(filepath.Join(root, "app", "config.yaml"))
+	require.NoError(t, err)
+	assert.Equal(t, "port: 7480\n", string(got))
+
+	require.NoError(t, os.WriteFile(filepath.Join(root, "app", "config.yaml"), []byte("port: 9090\n"), 0o644))
+	require.NoError(t, eval.ResetScenarioWorkspace(sc))
+	got, err = os.ReadFile(filepath.Join(root, "app", "config.yaml"))
+	require.NoError(t, err)
+	assert.Equal(t, "port: 7480\n", string(got))
+}
+
 func TestScore_finalTextContainsAny(t *testing.T) {
 	t.Parallel()
 	messages := []msg.AgentMessage{
@@ -482,6 +539,28 @@ func TestFilterByRun(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestFilterByDifficulty(t *testing.T) {
+	t.Parallel()
+	in := []eval.Scenario{
+		{Name: "a", Difficulty: eval.DifficultyEasy},
+		{Name: "b", Difficulty: eval.DifficultyMedium},
+		{Name: "c", Difficulty: eval.DifficultyHard},
+		{Name: "d"}, // defaults to easy when filtering via NormalizeDifficulty
+	}
+	got, err := eval.FilterByDifficulty(in, "medium+")
+	require.NoError(t, err)
+	require.Len(t, got, 2)
+	assert.Equal(t, "b", got[0].Name)
+	assert.Equal(t, "c", got[1].Name)
+
+	got, err = eval.FilterByDifficulty(in, "hard")
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+
+	_, err = eval.FilterByDifficulty(in, "nightmare")
+	require.Error(t, err)
+}
+
 func TestLoadAdmitUnknownUsesNoTools(t *testing.T) {
 	t.Parallel()
 	dir, err := eval.OpenQAGoldDir()
@@ -532,9 +611,9 @@ func TestBuiltinCapabilityScenarios(t *testing.T) {
 	ws := t.TempDir()
 	scenarios, err := eval.BuiltinCapabilityScenarios(ws)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(scenarios), 12)
+	require.GreaterOrEqual(t, len(scenarios), 20)
 
-	var sawOpenQA, sawTools bool
+	var sawOpenQA, sawTools, sawHard bool
 	for _, sc := range scenarios {
 		if strings.HasPrefix(sc.Name, "openqa_") {
 			sawOpenQA = true
@@ -543,9 +622,13 @@ func TestBuiltinCapabilityScenarios(t *testing.T) {
 			sawTools = true
 			require.NotEmpty(t, sc.WorkspaceRoot, sc.Name)
 		}
+		if sc.Difficulty == eval.DifficultyHard {
+			sawHard = true
+		}
 	}
 	assert.True(t, sawOpenQA)
 	assert.True(t, sawTools)
+	assert.True(t, sawHard)
 
 	smoke := eval.FilterSmoke(scenarios, true, eval.DefaultSmokeCaseNames)
 	require.Len(t, smoke, len(eval.DefaultSmokeCaseNames))
@@ -553,6 +636,16 @@ func TestBuiltinCapabilityScenarios(t *testing.T) {
 		run, err := eval.RunFakeScenario(context.Background(), sc)
 		require.NoError(t, err, sc.Name)
 		assert.True(t, run.Metrics.Passed, "smoke case %s: %+v err=%v", sc.Name, run.Metrics, run.Err)
+	}
+
+	hard, err := eval.FilterByDifficulty(scenarios, "hard")
+	require.NoError(t, err)
+	require.NotEmpty(t, hard)
+	for _, sc := range hard {
+		run, err := eval.RunFakeScenario(context.Background(), sc)
+		require.NoError(t, err, sc.Name)
+		assert.True(t, run.Metrics.Passed, "hard case %s: %+v err=%v detail=%s",
+			sc.Name, run.Metrics, run.Err, eval.FailReason(run.Metrics, sc.Expect))
 	}
 
 	dirs, err := eval.CapabilityCaseDirs()
@@ -565,6 +658,7 @@ func TestBuiltinCapabilityScenarios(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, gold, "tools_write_status_file")
 	assert.Contains(t, gold, "openqa_refuse_malware")
+	assert.Contains(t, gold, "tools_glob_find_and_redact")
 }
 
 type captureModelName struct {

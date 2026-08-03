@@ -129,6 +129,9 @@ func runLiveCase(
 	var totalDuration int64
 	var totalTokens int
 	for i := 0; i < k; i++ {
+		if err := ResetScenarioWorkspace(scenario); err != nil {
+			return CaseResult{}, nil, 0, 0, err
+		}
 		run, err := RunWithModel(ctx, scenario, model, opts.ModelName)
 		if err != nil {
 			return CaseResult{}, nil, 0, 0, err
@@ -146,9 +149,10 @@ func runLiveCase(
 		})
 	}
 
-	cr := CaseResultFromRun(scenario.Name, last)
-	cr.TrialPasses = trialPasses
-	cr.Passed = allTrialsPassed(trialPasses)
+		cr := CaseResultFromRun(scenario.Name, last)
+		cr.Difficulty = NormalizeDifficulty(scenario.Difficulty)
+		cr.TrialPasses = trialPasses
+		cr.Passed = allTrialsPassed(trialPasses)
 	if !cr.Passed && cr.TranscriptSummary == "" {
 		cr.TranscriptSummary = TranscriptSummary(last.Messages, 40)
 	}

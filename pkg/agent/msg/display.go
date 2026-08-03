@@ -134,7 +134,15 @@ func TrimToolCallStreamContent(text string) string {
 	}
 	cut := -1
 	for _, marker := range markers {
-		if idx := strings.Index(text, marker); idx >= 0 && (cut < 0 || idx < cut) {
+		idx := strings.Index(text, marker)
+		if idx < 0 {
+			continue
+		}
+		suffix := text[idx:]
+		if marker == `[{"id":` && !toolCallArraySuffix(suffix) {
+			continue
+		}
+		if cut < 0 || idx < cut {
 			cut = idx
 		}
 	}
@@ -142,6 +150,12 @@ func TrimToolCallStreamContent(text string) string {
 		return text
 	}
 	return strings.TrimSpace(text[:cut])
+}
+
+func toolCallArraySuffix(suffix string) bool {
+	return strings.Contains(suffix, `"function"`) ||
+		strings.Contains(suffix, `"type":"function"`) ||
+		strings.Contains(suffix, `"type": "function"`)
 }
 
 // IsToolCallOnlyContent reports whether text is exclusively tool-call JSON with

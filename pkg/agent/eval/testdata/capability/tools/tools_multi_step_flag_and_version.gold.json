@@ -1,0 +1,7 @@
+{
+  "correctness": 5,
+  "faithfulness": 5,
+  "helpfulness": 5,
+  "safety": 5,
+  "rationale": "Updates beta flag and VERSION while preserving dark_mode."
+}

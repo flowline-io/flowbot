@@ -17,14 +17,15 @@ import (
 
 // caseFile is the on-disk YAML shape for regression/capability scenarios.
 type caseFile struct {
-	Name      string        `yaml:"name"`
-	Suite     string        `yaml:"suite"`
-	Prompt    string        `yaml:"prompt"`
-	Toolset   string        `yaml:"toolset"`
-	Workspace bool          `yaml:"workspace"`
-	Fixtures  []caseFixture `yaml:"fixtures"`
-	Scripts   []caseScript  `yaml:"scripts"`
-	Expect    caseExpect    `yaml:"expect"`
+	Name       string        `yaml:"name"`
+	Suite      string        `yaml:"suite"`
+	Difficulty string        `yaml:"difficulty"` // easy | medium | hard (empty = easy)
+	Prompt     string        `yaml:"prompt"`
+	Toolset    string        `yaml:"toolset"`
+	Workspace  bool          `yaml:"workspace"`
+	Fixtures   []caseFixture `yaml:"fixtures"`
+	Scripts    []caseScript  `yaml:"scripts"`
+	Expect     caseExpect    `yaml:"expect"`
 }
 
 // caseFixture seeds a file into the isolated workspace before the run.
@@ -136,10 +137,11 @@ func scriptsFromCase(in []caseScript) ([]agentllm.ResponseScript, error) {
 
 func scenarioFromCase(cf caseFile, scripts []agentllm.ResponseScript) Scenario {
 	sc := Scenario{
-		Name:    cf.Name,
-		Suite:   cf.Suite,
-		Prompt:  cf.Prompt,
-		Scripts: scripts,
+		Name:       cf.Name,
+		Suite:      cf.Suite,
+		Difficulty: NormalizeDifficulty(cf.Difficulty),
+		Prompt:     cf.Prompt,
+		Scripts:    scripts,
 		Expect: Expectation{
 			RequiredTools:     cf.Expect.RequiredTools,
 			ForbiddenTools:    cf.Expect.ForbiddenTools,
@@ -154,6 +156,9 @@ func scenarioFromCase(cf caseFile, scripts []agentllm.ResponseScript) Scenario {
 				FinalTextContainsAny: cf.Expect.Outcome.FinalTextContainsAny,
 			},
 		},
+	}
+	for _, f := range cf.Fixtures {
+		sc.Fixtures = append(sc.Fixtures, WorkspaceFixture{Path: f.Path, Content: f.Content})
 	}
 	for _, f := range cf.Expect.Outcome.Files {
 		sc.Expect.Outcome.Files = append(sc.Expect.Outcome.Files, FileAssert{
@@ -173,12 +178,30 @@ func prepareScenarioWorkspace(sc *Scenario, cf caseFile, workspaceParent string)
 		return err
 	}
 	sc.WorkspaceRoot = root
-	return writeFixtures(root, cf.Fixtures)
+	return ResetScenarioWorkspace(*sc)
+}
+
+// ResetScenarioWorkspace clears WorkspaceRoot and rewrites Fixtures for an isolated trial.
+func ResetScenarioWorkspace(sc Scenario) error {
+	if strings.TrimSpace(sc.WorkspaceRoot) == "" {
+		return nil
+	}
+	if err := os.RemoveAll(sc.WorkspaceRoot); err != nil {
+		return fmt.Errorf("eval: reset workspace: %w", err)
+	}
+	if err := os.MkdirAll(sc.WorkspaceRoot, 0o755); err != nil {
+		return err
+	}
+	fixtures := make([]caseFixture, 0, len(sc.Fixtures))
+	for _, f := range sc.Fixtures {
+		fixtures = append(fixtures, caseFixture{Path: f.Path, Content: f.Content})
+	}
+	return writeFixtures(sc.WorkspaceRoot, fixtures)
 }
 
 func toolsetNeedsWorkspace(toolset string) bool {
 	switch strings.TrimSpace(toolset) {
-	case "write_file", "read_file", "fs":
+	case "write_file", "read_file", "fs", "coding":
 		return true
 	default:
 		return false
@@ -226,6 +249,17 @@ func toolsForToolset(toolset, workspaceRoot string) ([]tool.Tool, error) {
 		return []tool.Tool{
 			coding.ReadFileTool{Workspace: ws},
 			coding.WriteFileTool{Workspace: ws},
+			echo.Tool{},
+		}, nil
+	case "coding":
+		if workspaceRoot == "" {
+			return nil, fmt.Errorf("coding toolset requires workspace")
+		}
+		return []tool.Tool{
+			coding.ReadFileTool{Workspace: ws},
+			coding.WriteFileTool{Workspace: ws},
+			coding.GlobFilesTool{Workspace: ws},
+			coding.GrepFilesTool{Workspace: ws},
 			echo.Tool{},
 		}, nil
 	default:

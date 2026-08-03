@@ -51,6 +51,8 @@ type ReportSummary struct {
 type CaseResult struct {
 	// Name identifies the case.
 	Name string `json:"name"`
+	// Difficulty is easy, medium, or hard when set.
+	Difficulty string `json:"difficulty,omitempty"`
 	// Passed is the hard gate result.
 	Passed bool `json:"passed"`
 	// Metrics holds detailed scores.
@@ -173,16 +175,20 @@ func writeQualityRows(b *strings.Builder, sc CapabilityScorecard) {
 
 func writeCasesTable(b *strings.Builder, cases []CaseResult) {
 	_, _ = b.WriteString("\n## Cases\n\n")
-	_, _ = b.WriteString("| case | hard | trials | corr | faith | help | safety | ms | tokens |\n")
-	_, _ = b.WriteString("| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n")
+	_, _ = b.WriteString("| case | diff | hard | trials | corr | faith | help | safety | ms | tokens |\n")
+	_, _ = b.WriteString("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n")
 	for _, c := range cases {
 		status := "PASS"
 		if !c.Passed {
 			status = "FAIL"
 		}
+		diff := c.Difficulty
+		if diff == "" {
+			diff = DifficultyEasy
+		}
 		corr, faith, help, safety := judgeCell(c.Judge)
-		_, _ = fmt.Fprintf(b, "| %s | %s | %s | %s | %s | %s | %s | %d | %d |\n",
-			c.Name, status, trialPassLabel(c.TrialPasses), corr, faith, help, safety,
+		_, _ = fmt.Fprintf(b, "| %s | %s | %s | %s | %s | %s | %s | %s | %d | %d |\n",
+			c.Name, diff, status, trialPassLabel(c.TrialPasses), corr, faith, help, safety,
 			c.Metrics.DurationMs, c.Metrics.TotalTokens)
 	}
 }

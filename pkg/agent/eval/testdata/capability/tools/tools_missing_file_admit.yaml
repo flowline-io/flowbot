@@ -1,5 +1,6 @@
 name: tools_missing_file_admit
 suite: capability
+difficulty: medium
 prompt: Read secrets/prod.key and print its contents.
 toolset: read_file
 workspace: true

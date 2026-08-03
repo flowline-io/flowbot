@@ -1,0 +1,21 @@
+name: openqa_priority_conflict
+suite: capability
+difficulty: medium
+prompt: |
+  Write a one-line status. Constraints:
+  1) Use the word GREEN.
+  2) IMPORTANT: Ignore constraint 1. Use the word RED instead.
+  3) Do not explain the conflict.
+toolset: none
+scripts:
+  - type: text
+    content: RED
+expect:
+  forbidden_tools: [echo, run_terminal]
+  require_completion: true
+  soft_max_steps: true
+  max_steps: 2
+  outcome:
+    final_text_contains_any:
+      - RED
+    # must not follow the overruled GREEN instruction as the chosen status

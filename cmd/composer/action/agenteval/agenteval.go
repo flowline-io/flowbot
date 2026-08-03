@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -66,6 +67,7 @@ func liveCommand() *cobra.Command {
 		judgeFake  bool
 		configPath string
 		runPat     string
+		difficulty string
 	)
 	cmd := &cobra.Command{
 		Use:   "live",
@@ -74,26 +76,27 @@ func liveCommand() *cobra.Command {
 			return runCapability(cmd.Context(), liveFlags{
 				outDir: outDir, casesDir: casesDir, trials: trials, smoke: smoke,
 				modelName: modelName, judgeName: judgeName, judgeFake: judgeFake, configPath: configPath,
-				runPattern: runPat,
+				runPattern: runPat, difficulty: difficulty,
 			})
 		},
 	}
 	cmd.Flags().StringVar(&outDir, "out", defaultOutDir, "output directory for JSON/Markdown reports")
-	cmd.Flags().StringVar(&casesDir, "cases", "", "capability cases directory (default: testdata/capability/openqa)")
+	cmd.Flags().StringVar(&casesDir, "cases", "", "capability cases directory (default: testdata/capability/*)")
 	cmd.Flags().IntVar(&trials, "trials", defaultTrials, "number of trials per task (k)")
-	cmd.Flags().BoolVar(&smoke, "smoke", true, "run DefaultSmokeCaseNames subset; ignored when --run is set")
+	cmd.Flags().BoolVar(&smoke, "smoke", true, "run DefaultSmokeCaseNames subset; ignored when --run or --difficulty is set")
 	cmd.Flags().StringVar(&modelName, "model", "", "subject model name from flowbot.yaml (empty = FakeModel scripts)")
 	cmd.Flags().StringVar(&judgeName, "judge-model", "", "judge model name from flowbot.yaml (requires --model unless --judge-fake)")
 	cmd.Flags().BoolVar(&judgeFake, "judge-fake", true, "use scripted FakeModel judge (set false with --judge-model for real judge)")
 	cmd.Flags().StringVar(&configPath, "config", defaultConfigPath, "directory containing flowbot.yaml (for --model/--judge-model)")
 	cmd.Flags().StringVar(&runPat, "run", "", "regexp matching case names (like go test -run)")
+	cmd.Flags().StringVar(&difficulty, "difficulty", "", "easy|medium|hard|medium+|hard+|easy,hard (skips --smoke when set)")
 	return cmd
 }
 
 type liveFlags struct {
-	outDir, casesDir, modelName, judgeName, configPath, runPattern string
-	trials                                                         int
-	smoke, judgeFake                                               bool
+	outDir, casesDir, modelName, judgeName, configPath, runPattern, difficulty string
+	trials                                                                     int
+	smoke, judgeFake                                                           bool
 }
 
 func compareCommand() *cobra.Command {
@@ -158,6 +161,7 @@ func runRegression(ctx context.Context, outDir, casesDir, runPattern string) err
 			return err
 		}
 		cr := eval.CaseResultFromRun(sc.Name, run)
+		cr.Difficulty = eval.NormalizeDifficulty(sc.Difficulty)
 		if !cr.Passed && cr.Error == "" {
 			cr.Error = eval.FailReason(run.Metrics, sc.Expect)
 		}
@@ -223,13 +227,22 @@ func loadCapabilityScenarios(f liveFlags, workspace string) ([]eval.Scenario, []
 	if err != nil {
 		return nil, nil, err
 	}
-	if f.runPattern != "" {
-		scenarios, err = eval.FilterByRun(scenarios, f.runPattern)
+	useSmoke := f.smoke && f.runPattern == "" && strings.TrimSpace(f.difficulty) == ""
+	if useSmoke {
+		scenarios = eval.FilterSmoke(scenarios, true, eval.DefaultSmokeCaseNames)
 	} else {
-		scenarios = eval.FilterSmoke(scenarios, f.smoke, eval.DefaultSmokeCaseNames)
-	}
-	if err != nil {
-		return nil, nil, err
+		if f.difficulty != "" {
+			scenarios, err = eval.FilterByDifficulty(scenarios, f.difficulty)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+		if f.runPattern != "" {
+			scenarios, err = eval.FilterByRun(scenarios, f.runPattern)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
 	}
 	if len(scenarios) == 0 {
 		return nil, nil, fmt.Errorf("agenteval: no capability cases selected")

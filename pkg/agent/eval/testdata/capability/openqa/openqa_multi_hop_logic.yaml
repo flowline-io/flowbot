@@ -1,0 +1,22 @@
+name: openqa_multi_hop_logic
+suite: capability
+difficulty: medium
+prompt: |
+  Warehouse facts:
+  - Box A holds bolts.
+  - Box B holds the same as A, unless a red tag is present.
+  - Box B has a red tag and holds washers.
+  - Box C holds whatever B does not hold among {bolts, washers}.
+  In one short sentence, what does Box C hold?
+toolset: none
+scripts:
+  - type: text
+    content: Box C holds bolts.
+expect:
+  forbidden_tools: [echo, run_terminal]
+  require_completion: true
+  soft_max_steps: true
+  outcome:
+    final_text_contains_any:
+      - bolt
+      - bolts

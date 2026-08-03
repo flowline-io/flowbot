@@ -1,0 +1,50 @@
+name: tools_multi_step_flag_and_version
+suite: capability
+difficulty: medium
+prompt: |
+  Enable feature flags.beta in app/config.yaml (set to true). Keep dark_mode unchanged.
+  Also update the workspace-root file named VERSION so its contents are exactly 3.1.0.
+  Do not use the shell.
+toolset: fs
+fixtures:
+  - path: app/config.yaml
+    content: |
+      service:
+        name: flowbot
+      flags:
+        beta: false
+        dark_mode: true
+  - path: VERSION
+    content: |
+      3.0.2
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"app/config.yaml"}'
+  - type: tool_call
+    id: c2
+    name: write_file
+    args: "{\"path\":\"app/config.yaml\",\"content\":\"service:\\n  name: flowbot\\nflags:\\n  beta: true\\n  dark_mode: true\\n\"}"
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: '{"path":"VERSION","content":"3.1.0"}'
+  - type: text
+    content: Enabled flags.beta and updated VERSION to 3.1.0.
+expect:
+  required_tools: [write_file]
+  forbidden_tools: [run_terminal]
+  required_args:
+    write_file: [path, content]
+  max_steps: 8
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: app/config.yaml
+        contains: "beta: true"
+      - path: app/config.yaml
+        contains: "dark_mode: true"
+      - path: VERSION
+        equals: "3.1.0"
