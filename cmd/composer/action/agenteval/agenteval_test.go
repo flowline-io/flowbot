@@ -33,6 +33,7 @@ func TestEvalCommandShape(t *testing.T) {
 	require.True(t, names["live"])
 	require.True(t, names["compare"])
 	require.True(t, names["export"])
+	require.True(t, names["report"])
 }
 
 func TestRunRegressionWritesReport(t *testing.T) {
@@ -40,9 +41,21 @@ func TestRunRegressionWritesReport(t *testing.T) {
 	out := t.TempDir()
 	require.NoError(t, runRegression(t.Context(), out, "", ""))
 	require.FileExists(t, filepath.Join(out, "regression_latest.json"))
+	require.FileExists(t, filepath.Join(out, "index.html"))
 	report, err := eval.LoadReportJSON(filepath.Join(out, "regression_latest.json"))
 	require.NoError(t, err)
 	require.Equal(t, report.Summary.Total, report.Summary.Passed)
+}
+
+func TestRunReportSingleDetail(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	jsonPath := filepath.Join(dir, "capability_20260101T000000Z.json")
+	report := eval.NewReport("capability", []eval.CaseResult{{Name: "x", Passed: true}})
+	require.NoError(t, eval.WriteReportJSON(jsonPath, report))
+	htmlOut := filepath.Join(dir, "custom_html")
+	require.NoError(t, runReport(dir, jsonPath, htmlOut))
+	require.FileExists(t, filepath.Join(htmlOut, "capability_20260101T000000Z.html"))
 }
 
 func TestRunRegressionFilterByRun(t *testing.T) {

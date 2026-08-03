@@ -61,6 +61,7 @@ func TestAgentevalCommand(t *testing.T) {
 	require.Contains(t, subNames, "live")
 	require.Contains(t, subNames, "compare")
 	require.Contains(t, subNames, "export")
+	require.Contains(t, subNames, "report")
 }
 
 func TestWebdocCommand(t *testing.T) {

@@ -112,6 +112,7 @@ go tool task agent:eval:live       # FakeModel offline live path
 go run ./cmd/composer agenteval live --model SUBJECT --judge-model JUDGE --judge-fake=false
 go run ./cmd/composer agenteval compare --baseline ... --candidate ...
 go run ./cmd/composer agenteval export --report ... --out tmp/agent_eval/drafts
+go run ./cmd/composer agenteval report --dir tmp/agent_eval   # HTML overview + detail pages
 ```
 
 Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`, `--run`, `--difficulty` (`easy|medium|hard|medium+`).

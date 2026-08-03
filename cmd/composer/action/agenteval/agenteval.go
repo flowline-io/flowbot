@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -34,6 +35,7 @@ func EvalCommand() *cobra.Command {
 	cmd.AddCommand(liveCommand())
 	cmd.AddCommand(compareCommand())
 	cmd.AddCommand(exportCommand())
+	cmd.AddCommand(reportCommand())
 	return cmd
 }
 
@@ -130,6 +132,21 @@ func exportCommand() *cobra.Command {
 	cmd.Flags().StringVar(&outDir, "out", filepath.Join(defaultOutDir, "drafts"), "directory for draft YAML files")
 	cmd.Flags().BoolVar(&onlyFailed, "failed-only", true, "export only failed cases")
 	_ = cmd.MarkFlagRequired("report")
+	return cmd
+}
+
+func reportCommand() *cobra.Command {
+	var dir, reportPath, outDir string
+	cmd := &cobra.Command{
+		Use:   "report",
+		Short: "generate HTML overview charts and per-run detail pages",
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return runReport(dir, reportPath, outDir)
+		},
+	}
+	cmd.Flags().StringVar(&dir, "dir", defaultOutDir, "directory of stamped eval JSON reports")
+	cmd.Flags().StringVar(&reportPath, "report", "", "optional single report.json for detail HTML only")
+	cmd.Flags().StringVar(&outDir, "out", "", "detail HTML output dir when --report is set (default: <dir>/html)")
 	return cmd
 }
 
@@ -389,6 +406,52 @@ func runExport(reportPath, outDir string, onlyFailed bool) error {
 	return nil
 }
 
+func runReport(dir, reportPath, outDir string) error {
+	if reportPath != "" {
+		report, err := eval.LoadReportJSON(reportPath)
+		if err != nil {
+			return err
+		}
+		if report.Scorecard == nil {
+			sc := eval.ScorecardFromReport(report)
+			report.Scorecard = &sc
+		}
+		suite := report.Suite
+		if suite == "" {
+			suite = "report"
+		}
+		stamp := stampFromReportPath(reportPath, report.GeneratedAt)
+		if outDir == "" {
+			outDir = filepath.Join(dir, "html")
+		}
+		detailPath := filepath.Join(outDir, eval.DetailHTMLName(suite, stamp))
+		if err := eval.WriteDetailHTML(detailPath, report); err != nil {
+			return err
+		}
+		_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", detailPath)
+		return nil
+	}
+	if err := eval.WriteHTMLReports(dir); err != nil {
+		return err
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", filepath.Join(dir, "index.html"))
+	_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", filepath.Join(dir, "html"))
+	return nil
+}
+
+func stampFromReportPath(path, generatedAt string) string {
+	base := filepath.Base(path)
+	if m := stampedReportRe.FindStringSubmatch(base); m != nil {
+		return m[2]
+	}
+	if t, err := time.Parse(time.RFC3339, generatedAt); err == nil {
+		return t.UTC().Format("20060102T150405Z")
+	}
+	return time.Now().UTC().Format("20060102T150405Z")
+}
+
+var stampedReportRe = regexp.MustCompile(`^(capability|regression)_(\d{8}T\d{6}Z)\.json$`)
+
 func writeReports(outDir, prefix string, report eval.EvalReport) error {
 	if report.Scorecard == nil {
 		sc := eval.ScorecardFromReport(report)
@@ -413,6 +476,10 @@ func writeReports(outDir, prefix string, report eval.EvalReport) error {
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", jsonPath)
 	_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", mdPath)
+	if err := eval.WriteHTMLReports(outDir); err != nil {
+		return err
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", filepath.Join(outDir, "index.html"))
 	printScorecard(report)
 	if report.Summary.Failed > 0 {
 		for _, c := range report.Cases {
