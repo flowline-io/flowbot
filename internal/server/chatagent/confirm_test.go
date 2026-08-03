@@ -192,7 +192,7 @@ func TestPrematureClearAPIRunStateBreaksConfirm(t *testing.T) {
 	svc.ClearAPIRunState("sess-premature", state)
 
 	_, err := svc.ResolveConfirm("sess-premature", confirmID, true, ConfirmModeOnce, "", ConfirmReasonApproved)
-	assert.ErrorIs(t, err, ErrConfirmNotFound)
+	require.ErrorIs(t, err, ErrConfirmNotFound)
 
 	select {
 	case <-done:
