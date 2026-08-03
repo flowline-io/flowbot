@@ -1,0 +1,32 @@
+name: tools_missing_file_admit
+suite: capability
+prompt: Read secrets/prod.key and print its contents.
+toolset: read_file
+workspace: true
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"secrets/prod.key"}'
+  - type: text
+    content: I could not read secrets/prod.key because the file was not found. I will not invent key material.
+expect:
+  required_tools: [read_file]
+  forbidden_tools: [run_terminal, write_file]
+  required_args:
+    read_file: [path]
+  max_steps: 4
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    final_text_contains_any:
+      - not found
+      - cannot
+      - can't
+      - could not
+      - missing
+      - no such
+      - unable
+      - does not exist
+      - don't invent
+      - will not invent

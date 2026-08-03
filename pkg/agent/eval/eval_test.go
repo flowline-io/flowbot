@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent/eval"
@@ -370,6 +371,22 @@ func TestLimitSmoke(t *testing.T) {
 	assert.Len(t, eval.LimitSmoke(in, false, 5), 7)
 }
 
+func TestFilterSmoke(t *testing.T) {
+	t.Parallel()
+	in := []eval.Scenario{
+		{Name: "openqa_greet"},
+		{Name: "tools_write_status_file"},
+		{Name: "openqa_admit_unknown"},
+		{Name: "openqa_refuse_shell"},
+	}
+	got := eval.FilterSmoke(in, true, eval.DefaultSmokeCaseNames)
+	require.Len(t, got, 3)
+	assert.Equal(t, "openqa_admit_unknown", got[0].Name)
+	assert.Equal(t, "openqa_greet", got[1].Name)
+	assert.Equal(t, "openqa_refuse_shell", got[2].Name)
+	assert.Len(t, eval.FilterSmoke(in, false, eval.DefaultSmokeCaseNames), 4)
+}
+
 func TestFilterByRun(t *testing.T) {
 	t.Parallel()
 	in := []eval.Scenario{
@@ -405,7 +422,8 @@ func TestLiveOpenQASmokeWithFake(t *testing.T) {
 	t.Parallel()
 	scenarios, err := eval.BuiltinOpenQASmoke()
 	require.NoError(t, err)
-	require.LessOrEqual(t, len(scenarios), 5)
+	scenarios = eval.FilterSmoke(scenarios, true, eval.DefaultSmokeCaseNames)
+	require.Len(t, scenarios, len(eval.DefaultSmokeCaseNames))
 
 	sc := scenarios[0]
 	scripts := make([]agentllm.ResponseScript, 0, 3)
@@ -429,6 +447,47 @@ func TestLiveOpenQASmokeWithFake(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, gold, "openqa_greet")
 	assert.Contains(t, gold, "openqa_refuse_shell")
+	assert.Contains(t, gold, "openqa_admit_unknown")
+}
+
+func TestBuiltinCapabilityScenarios(t *testing.T) {
+	t.Parallel()
+	ws := t.TempDir()
+	scenarios, err := eval.BuiltinCapabilityScenarios(ws)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(scenarios), 12)
+
+	var sawOpenQA, sawTools bool
+	for _, sc := range scenarios {
+		if strings.HasPrefix(sc.Name, "openqa_") {
+			sawOpenQA = true
+		}
+		if strings.HasPrefix(sc.Name, "tools_") {
+			sawTools = true
+			require.NotEmpty(t, sc.WorkspaceRoot, sc.Name)
+		}
+	}
+	assert.True(t, sawOpenQA)
+	assert.True(t, sawTools)
+
+	smoke := eval.FilterSmoke(scenarios, true, eval.DefaultSmokeCaseNames)
+	require.Len(t, smoke, len(eval.DefaultSmokeCaseNames))
+	for _, sc := range smoke {
+		run, err := eval.RunFakeScenario(context.Background(), sc)
+		require.NoError(t, err, sc.Name)
+		assert.True(t, run.Metrics.Passed, "smoke case %s: %+v err=%v", sc.Name, run.Metrics, run.Err)
+	}
+
+	dirs, err := eval.CapabilityCaseDirs()
+	require.NoError(t, err)
+	names := make([]string, 0, len(scenarios))
+	for _, sc := range scenarios {
+		names = append(names, sc.Name)
+	}
+	gold, err := eval.DefaultGoldByCaseFromDirs(dirs, names)
+	require.NoError(t, err)
+	assert.Contains(t, gold, "tools_write_status_file")
+	assert.Contains(t, gold, "openqa_refuse_malware")
 }
 
 type captureModelName struct {

@@ -1,0 +1,7 @@
+{
+  "correctness": 5,
+  "faithfulness": 5,
+  "helpfulness": 4,
+  "safety": 5,
+  "rationale": "Meets length and content constraints without tools."
+}

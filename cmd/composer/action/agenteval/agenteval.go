@@ -21,7 +21,6 @@ const (
 	defaultOutDir     = "tmp/agent_eval"
 	defaultTrials     = 3
 	defaultConfigPath = "."
-	defaultSmokeLimit = 5
 )
 
 // EvalCommand returns the agenteval command group.
@@ -82,7 +81,7 @@ func liveCommand() *cobra.Command {
 	cmd.Flags().StringVar(&outDir, "out", defaultOutDir, "output directory for JSON/Markdown reports")
 	cmd.Flags().StringVar(&casesDir, "cases", "", "capability cases directory (default: testdata/capability/openqa)")
 	cmd.Flags().IntVar(&trials, "trials", defaultTrials, "number of trials per task (k)")
-	cmd.Flags().BoolVar(&smoke, "smoke", true, "limit openqa to smoke subset (max 5); ignored when --run is set")
+	cmd.Flags().BoolVar(&smoke, "smoke", true, "run DefaultSmokeCaseNames subset; ignored when --run is set")
 	cmd.Flags().StringVar(&modelName, "model", "", "subject model name from flowbot.yaml (empty = FakeModel scripts)")
 	cmd.Flags().StringVar(&judgeName, "judge-model", "", "judge model name from flowbot.yaml (requires --model unless --judge-fake)")
 	cmd.Flags().BoolVar(&judgeFake, "judge-fake", true, "use scripted FakeModel judge (set false with --judge-model for real judge)")
@@ -173,12 +172,18 @@ func runRegression(ctx context.Context, outDir, casesDir, runPattern string) err
 }
 
 func runCapability(ctx context.Context, f liveFlags) error {
+	workspace := filepath.Join(f.outDir, "workspaces", fmt.Sprintf("%d", time.Now().UnixNano()))
 	var scenarios []eval.Scenario
+	var goldDirs []string
 	var err error
 	if f.casesDir != "" {
-		scenarios, err = eval.LoadScenariosFromDir(f.casesDir, "")
+		scenarios, err = eval.LoadScenariosFromDir(f.casesDir, workspace)
+		goldDirs = []string{f.casesDir}
 	} else {
-		scenarios, err = eval.BuiltinOpenQASmoke()
+		scenarios, err = eval.BuiltinCapabilityScenarios(workspace)
+		if err == nil {
+			goldDirs, err = eval.CapabilityCaseDirs()
+		}
 	}
 	if err != nil {
 		return err
@@ -186,25 +191,20 @@ func runCapability(ctx context.Context, f liveFlags) error {
 	if f.runPattern != "" {
 		scenarios, err = eval.FilterByRun(scenarios, f.runPattern)
 	} else {
-		scenarios = eval.LimitSmoke(scenarios, f.smoke, defaultSmokeLimit)
+		scenarios = eval.FilterSmoke(scenarios, f.smoke, eval.DefaultSmokeCaseNames)
 	}
 	if err != nil {
 		return err
+	}
+	if len(scenarios) == 0 {
+		return fmt.Errorf("agenteval: no capability cases selected")
 	}
 
-	goldDir, err := eval.OpenQAGoldDir()
-	if err != nil && f.casesDir != "" {
-		goldDir = f.casesDir
-		err = nil
-	}
-	if err != nil {
-		return err
-	}
 	names := make([]string, 0, len(scenarios))
 	for _, sc := range scenarios {
 		names = append(names, sc.Name)
 	}
-	goldByCase, err := eval.DefaultGoldByCase(goldDir, names)
+	goldByCase, err := eval.DefaultGoldByCaseFromDirs(goldDirs, names)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func runCapability(ctx context.Context, f liveFlags) error {
 	if err != nil {
 		return err
 	}
-	judgeModel, err := resolveJudgeModel(ctx, f)
+	judgeModel, err := resolveJudgeModel(ctx, f, len(scenarios))
 	if err != nil {
 		return err
 	}
@@ -277,9 +277,11 @@ func resolveSubjectModel(ctx context.Context, f liveFlags, scenarios []eval.Scen
 	return model, nil
 }
 
-func resolveJudgeModel(ctx context.Context, f liveFlags) (llms.Model, error) {
+func resolveJudgeModel(ctx context.Context, f liveFlags, caseCount int) (llms.Model, error) {
 	if f.judgeFake && f.judgeName == "" {
-		return agentllm.NewFakeModel(fakeJudgeScripts(32)...), nil
+		// JudgeAll scores 4 dimensions per case (last trial only in live path).
+		n := caseCount*4 + 8
+		return agentllm.NewFakeModel(fakeJudgeScripts(n)...), nil
 	}
 	if f.judgeName == "" {
 		return nil, fmt.Errorf("agenteval: --judge-model is required when --judge-fake=false")

@@ -98,6 +98,7 @@ go tool task test:specs   # includes tests/specs/agent_spec_test.go
 - CI hard gates: required/forbidden tools, args, outcome asserts, completion, max steps. LLM-as-judge never blocks PRs.
 - Live: default `k=3` trials; report `pass^k` (all trials) as the reliability signal; `pass@k` for capability exploration.
 - OpenQA smoke ≤5 tasks; gold files under `pkg/agent/eval/testdata/capability/openqa/`. Judge–gold **agreement** = fraction of dimensions with `|judge−gold|≤1` on a 1–5 scale (skip score `0` / Unknown).
+- Capability fixtures: `openqa/` (instruction/safety/honesty) + `tools/` (true file outcomes). Default `--smoke` uses `DefaultSmokeCaseNames`; `--smoke=false` runs the full set.
 
 ### Graduation
 

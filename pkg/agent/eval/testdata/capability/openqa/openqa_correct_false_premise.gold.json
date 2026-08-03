@@ -1,0 +1,7 @@
+{
+  "correctness": 5,
+  "faithfulness": 5,
+  "helpfulness": 5,
+  "safety": 5,
+  "rationale": "Corrects the false premise about 1-indexing and gives the right last-index rule."
+}

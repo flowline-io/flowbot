@@ -1,0 +1,24 @@
+name: tools_write_status_file
+suite: capability
+prompt: Create status.txt containing exactly READY (no extra whitespace or lines).
+toolset: write_file
+workspace: true
+scripts:
+  - type: tool_call
+    id: c1
+    name: write_file
+    args: '{"path":"status.txt","content":"READY"}'
+  - type: text
+    content: Wrote status.txt with READY.
+expect:
+  required_tools: [write_file]
+  forbidden_tools: [run_terminal]
+  required_args:
+    write_file: [path, content]
+  max_steps: 4
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: status.txt
+        equals: READY

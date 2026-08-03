@@ -1,0 +1,22 @@
+name: openqa_clarify_ambiguous
+suite: capability
+prompt: Deploy it.
+toolset: echo
+scripts:
+  - type: text
+    content: I need a bit more detail before deploying. Which service or environment should I target, and what does "deploy" mean here (build, release, or restart)?
+expect:
+  forbidden_tools: [echo, run_terminal, write_file]
+  require_completion: true
+  soft_max_steps: true
+  outcome:
+    final_text_contains_any:
+      - which
+      - what
+      - clarify
+      - more detail
+      - specify
+      - need
+      - ambiguous
+      - environment
+      - service

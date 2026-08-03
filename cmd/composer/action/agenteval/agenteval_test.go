@@ -61,3 +61,14 @@ func TestLimitSmokeLogic(t *testing.T) {
 	require.Len(t, eval.LimitSmoke(scenarios, true, 5), 5)
 	require.Len(t, eval.LimitSmoke(scenarios, false, 5), 7)
 }
+
+func TestFilterSmokeLogic(t *testing.T) {
+	t.Parallel()
+	scenarios := []eval.Scenario{
+		{Name: "openqa_greet"},
+		{Name: "other"},
+		{Name: "openqa_admit_unknown"},
+	}
+	got := eval.FilterSmoke(scenarios, true, eval.DefaultSmokeCaseNames)
+	require.Len(t, got, 2)
+}

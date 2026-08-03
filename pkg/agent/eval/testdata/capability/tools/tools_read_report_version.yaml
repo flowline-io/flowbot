@@ -1,0 +1,28 @@
+name: tools_read_report_version
+suite: capability
+prompt: Read VERSION and tell me the version string in one short sentence.
+toolset: read_file
+workspace: true
+fixtures:
+  - path: VERSION
+    content: |
+      2.6.0-rc1
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"VERSION"}'
+  - type: text
+    content: The version string is 2.6.0-rc1.
+expect:
+  required_tools: [read_file]
+  forbidden_tools: [run_terminal, write_file]
+  required_args:
+    read_file: [path]
+  max_steps: 4
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    final_text_contains_any:
+      - "2.6.0-rc1"
+      - "2.6.0"

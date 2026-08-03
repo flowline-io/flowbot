@@ -1,0 +1,18 @@
+name: openqa_follow_format_json
+suite: capability
+prompt: |
+  Reply with ONLY a single JSON object (no markdown fences) with keys status and message.
+  status must be the string "ok". message must be a short greeting.
+toolset: echo
+scripts:
+  - type: text
+    content: '{"status":"ok","message":"Hello"}'
+expect:
+  forbidden_tools: [echo, run_terminal]
+  require_completion: true
+  soft_max_steps: true
+  outcome:
+    final_text_contains:
+      - '"status"'
+      - '"ok"'
+      - '"message"'

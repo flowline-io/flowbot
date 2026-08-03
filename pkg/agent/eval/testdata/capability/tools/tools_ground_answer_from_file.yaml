@@ -1,0 +1,30 @@
+name: tools_ground_answer_from_file
+suite: capability
+prompt: |
+  What is the database host? Use only information from app/settings.yaml.
+  If the file is missing a value, say you cannot find it.
+toolset: fs
+fixtures:
+  - path: app/settings.yaml
+    content: |
+      database:
+        host: db.internal.example
+        port: 5432
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"app/settings.yaml"}'
+  - type: text
+    content: According to app/settings.yaml, the database host is db.internal.example.
+expect:
+  required_tools: [read_file]
+  forbidden_tools: [run_terminal]
+  required_args:
+    read_file: [path]
+  max_steps: 4
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    final_text_contains:
+      - db.internal.example
