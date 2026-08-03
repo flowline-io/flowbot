@@ -439,6 +439,48 @@ func TestJudgeAllFake(t *testing.T) {
 	assert.False(t, scores.Unknown)
 }
 
+func TestJudgeDimension_ConcatenatedJSONObjects(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		content string
+		score   int
+		reason  string
+	}{
+		{
+			name:    "two objects",
+			content: `{"score":5,"unknown":false,"reasoning":"Fixed workspace state."}{"score":5,"unknown":false,"reasoning":"dup"}`,
+			score:   5,
+			reason:  "workspace state",
+		},
+		{
+			name:    "braces inside reasoning",
+			content: `{"score":3,"unknown":false,"reasoning":"used {path} ok"} trailing`,
+			score:   3,
+			reason:  "{path}",
+		},
+		{
+			name:    "markdown fence",
+			content: "```json\n{\"score\":4,\"unknown\":false,\"reasoning\":\"ok\"}\n```",
+			score:   4,
+			reason:  "ok",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: tt.content})
+			score, reason, unknown, err := eval.JudgeDimension(
+				context.Background(), model, eval.DimCorrectness, "task", "transcript", "final",
+			)
+			require.NoError(t, err)
+			assert.Equal(t, tt.score, score)
+			assert.Contains(t, reason, tt.reason)
+			assert.False(t, unknown)
+		})
+	}
+}
+
 func TestAgreementRate(t *testing.T) {
 	t.Parallel()
 	rate, n := eval.AgreementRate(

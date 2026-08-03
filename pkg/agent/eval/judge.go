@@ -158,8 +158,41 @@ func AgreementRate(judge JudgeScores, gold GoldScores) (rate float64, compared i
 
 func extractJSONObject(s string) string {
 	start := strings.Index(s, "{")
+	if start < 0 {
+		return s
+	}
+	depth := 0
+	inString := false
+	escape := false
+	for i := start; i < len(s); i++ {
+		c := s[i]
+		if inString {
+			if escape {
+				escape = false
+				continue
+			}
+			switch c {
+			case '\\':
+				escape = true
+			case '"':
+				inString = false
+			}
+			continue
+		}
+		switch c {
+		case '"':
+			inString = true
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return s[start : i+1]
+			}
+		}
+	}
 	end := strings.LastIndex(s, "}")
-	if start >= 0 && end > start {
+	if end > start {
 		return s[start : end+1]
 	}
 	return s
