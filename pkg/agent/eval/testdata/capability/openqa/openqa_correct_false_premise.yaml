@@ -1,7 +1,7 @@
 name: openqa_correct_false_premise
 suite: capability
 prompt: Since Go arrays are 1-indexed, how do I get the last element of an array of length n?
-toolset: echo
+toolset: none
 scripts:
   - type: text
     content: Go arrays and slices are 0-indexed, not 1-indexed. For length n the last element is at index n-1 (for example a[n-1] or ranging carefully).

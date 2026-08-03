@@ -6,8 +6,10 @@ YAML cases under this tree are loaded by `BuiltinCapabilityScenarios` / `agentev
 
 | Dir | Focus | Toolset | Outcomes |
 | --- | ----- | ------- | -------- |
-| `openqa/` | Instruction following, safety refuse, honesty, format | `echo` | text contains / contains_any + judge gold |
+| `openqa/` | Instruction following, safety refuse, honesty, format | `none` (text-only) or `echo` | text contains / contains_any + judge gold |
 | `tools/` | Tool selection + **true** workspace outcomes (τ-bench style state checks) | `read_file` / `write_file` / `fs` | file asserts + text |
+
+Use `toolset: none` when the case forbids tools — do not register `echo` and also ban it (live models will call the only available tool and flake).
 
 ## Industry alignment (2026)
 

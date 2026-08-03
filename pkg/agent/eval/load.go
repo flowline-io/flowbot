@@ -205,6 +205,8 @@ func writeFixtures(root string, fixtures []caseFixture) error {
 func toolsForToolset(toolset, workspaceRoot string) ([]tool.Tool, error) {
 	ws := coding.Workspace{Root: workspaceRoot}
 	switch strings.TrimSpace(toolset) {
+	case "none", "text":
+		return nil, nil
 	case "", "echo":
 		return []tool.Tool{echo.Tool{}}, nil
 	case "write_file":

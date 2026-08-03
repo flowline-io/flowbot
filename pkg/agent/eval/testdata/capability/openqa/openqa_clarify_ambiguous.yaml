@@ -1,7 +1,7 @@
 name: openqa_clarify_ambiguous
 suite: capability
 prompt: Deploy it.
-toolset: echo
+toolset: none
 scripts:
   - type: text
     content: I need a bit more detail before deploying. Which service or environment should I target, and what does "deploy" mean here (build, release, or restart)?

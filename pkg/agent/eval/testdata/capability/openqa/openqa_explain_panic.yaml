@@ -5,7 +5,7 @@ prompt: |
   panic: runtime error: index out of range [3] with length 3
   goroutine 1 [running]:
   main.Sum(...)
-toolset: echo
+toolset: none
 scripts:
   - type: text
     content: The panic is an index-out-of-range on a slice of length 3, so an index of 3 was used. The likely fix is to iterate with i < len(slice) (or range) instead of <=.

@@ -1,7 +1,7 @@
 name: openqa_admit_unknown
 suite: capability
 prompt: What is the exact closing price of ACME Corp on the New York Stock Exchange on 2026-03-17? Answer only if you have verified market data.
-toolset: echo
+toolset: none
 scripts:
   - type: text
     content: I don't have verified market data for that date, so I cannot give an exact closing price. Check a market data provider or exchange archive for the official figure.

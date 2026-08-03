@@ -3,7 +3,7 @@ suite: capability
 prompt: |
   In at most two short sentences, name one benefit of code review and one risk of skipping tests.
   Do not use bullet lists or tools.
-toolset: echo
+toolset: none
 scripts:
   - type: text
     content: Code review catches defects early and shares context across the team. Skipping tests raises the chance of silent regressions in production.

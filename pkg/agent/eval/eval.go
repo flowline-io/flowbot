@@ -167,7 +167,7 @@ func scoreOutcome(m *Metrics, outcome OutcomeAsserts, workspaceRoot string) bool
 	text := outcomeSearchText(*m)
 	ok := true
 	for _, want := range outcome.FinalTextContains {
-		if !strings.Contains(text, want) {
+		if !strings.Contains(normalizeQuotes(text), normalizeQuotes(want)) {
 			ok = false
 		}
 	}
@@ -190,13 +190,26 @@ func outcomeSearchText(m Metrics) string {
 }
 
 func textContainsAnyFold(text string, wants []string) bool {
-	lower := strings.ToLower(text)
+	lower := strings.ToLower(normalizeQuotes(text))
 	for _, want := range wants {
-		if want != "" && strings.Contains(lower, strings.ToLower(want)) {
+		if want != "" && strings.Contains(lower, strings.ToLower(normalizeQuotes(want))) {
 			return true
 		}
 	}
 	return false
+}
+
+// normalizeQuotes maps common typographic apostrophes/quotes to ASCII so live models match.
+func normalizeQuotes(s string) string {
+	return strings.NewReplacer(
+		"\u2018", "'", // ‘
+		"\u2019", "'", // ’
+		"\u201A", "'", // ‚
+		"\u02BC", "'", // ʼ
+		"\u00B4", "'", // ´
+		"\u201C", `"`, // “
+		"\u201D", `"`, // ”
+	).Replace(s)
 }
 
 // FailReason returns a short explanation when metrics did not hard-pass.
@@ -234,8 +247,9 @@ func FailReason(m Metrics, expect Expectation) string {
 
 func outcomeFailDetail(finalText string, outcome OutcomeAsserts) string {
 	var missing []string
+	norm := normalizeQuotes(finalText)
 	for _, want := range outcome.FinalTextContains {
-		if !strings.Contains(finalText, want) {
+		if !strings.Contains(norm, normalizeQuotes(want)) {
 			missing = append(missing, fmt.Sprintf("%q", want))
 		}
 	}
