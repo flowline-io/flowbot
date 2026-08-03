@@ -49,7 +49,7 @@ require (
 	github.com/samber/oops v1.23.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/schollz/progressbar/v3 v3.19.1
-	github.com/shirou/gopsutil/v4 v4.26.6
+	github.com/shirou/gopsutil/v4 v4.26.7
 	github.com/slack-go/slack v0.27.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
@@ -244,7 +244,7 @@ require (
 	github.com/docker/go-connections v0.7.0 // indirect
 	github.com/dominikbraun/graph v0.23.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.10.0 // indirect
+	github.com/ebitengine/purego v0.10.2 // indirect
 	github.com/elliotchance/orderedmap/v3 v3.1.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0 // indirect
