@@ -102,17 +102,38 @@ func LoadScenarioFile(path, workspaceParent string) (Scenario, error) {
 	if strings.TrimSpace(cf.Name) == "" || strings.TrimSpace(cf.Prompt) == "" {
 		return Scenario{}, fmt.Errorf("name and prompt are required")
 	}
-	scripts := make([]agentllm.ResponseScript, 0, len(cf.Scripts))
-	for _, s := range cf.Scripts {
+	scripts, err := scriptsFromCase(cf.Scripts)
+	if err != nil {
+		return Scenario{}, err
+	}
+	sc := scenarioFromCase(cf, scripts)
+	if err := prepareScenarioWorkspace(&sc, cf, workspaceParent); err != nil {
+		return Scenario{}, err
+	}
+	tools, err := toolsForToolset(cf.Toolset, sc.WorkspaceRoot)
+	if err != nil {
+		return Scenario{}, err
+	}
+	sc.Tools = tools
+	return sc, nil
+}
+
+func scriptsFromCase(in []caseScript) ([]agentllm.ResponseScript, error) {
+	scripts := make([]agentllm.ResponseScript, 0, len(in))
+	for _, s := range in {
 		switch s.Type {
 		case "tool_call":
 			scripts = append(scripts, ToolCallScript(s.ID, s.Name, s.Args))
 		case "text":
 			scripts = append(scripts, TextScript(s.Content))
 		default:
-			return Scenario{}, fmt.Errorf("unknown script type %q", s.Type)
+			return nil, fmt.Errorf("unknown script type %q", s.Type)
 		}
 	}
+	return scripts, nil
+}
+
+func scenarioFromCase(cf caseFile, scripts []agentllm.ResponseScript) Scenario {
 	sc := Scenario{
 		Name:    cf.Name,
 		Suite:   cf.Suite,
@@ -137,23 +158,20 @@ func LoadScenarioFile(path, workspaceParent string) (Scenario, error) {
 			Path: f.Path, Contains: f.Contains, Equals: f.Equals,
 		})
 	}
+	return sc
+}
+
+func prepareScenarioWorkspace(sc *Scenario, cf caseFile, workspaceParent string) error {
 	needsWorkspace := cf.Workspace || len(cf.Fixtures) > 0 || toolsetNeedsWorkspace(cf.Toolset)
-	if needsWorkspace {
-		root := filepath.Join(workspaceParent, cf.Name)
-		if err := os.MkdirAll(root, 0o755); err != nil {
-			return Scenario{}, err
-		}
-		sc.WorkspaceRoot = root
-		if err := writeFixtures(root, cf.Fixtures); err != nil {
-			return Scenario{}, err
-		}
+	if !needsWorkspace {
+		return nil
 	}
-	tools, err := toolsForToolset(cf.Toolset, sc.WorkspaceRoot)
-	if err != nil {
-		return Scenario{}, err
+	root := filepath.Join(workspaceParent, cf.Name)
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		return err
 	}
-	sc.Tools = tools
-	return sc, nil
+	sc.WorkspaceRoot = root
+	return writeFixtures(root, cf.Fixtures)
 }
 
 func toolsetNeedsWorkspace(toolset string) bool {
