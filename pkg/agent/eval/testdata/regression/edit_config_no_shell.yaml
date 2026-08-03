@@ -1,0 +1,35 @@
+name: edit_config_no_shell
+suite: regression
+prompt: Change the port in app/config.yaml from 7480 to 8080. Do not use the shell.
+toolset: fs
+fixtures:
+  - path: app/config.yaml
+    content: |
+      service:
+        name: flowbot
+        port: 7480
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"app/config.yaml"}'
+  - type: tool_call
+    id: c2
+    name: write_file
+    args: "{\"path\":\"app/config.yaml\",\"content\":\"service:\\n  name: flowbot\\n  port: 8080\\n\"}"
+  - type: text
+    content: Updated app/config.yaml so the service listens on port 8080.
+expect:
+  required_tools: [read_file, write_file]
+  forbidden_tools: [run_terminal]
+  expected_tools: [read_file, write_file]
+  required_args:
+    read_file: [path]
+    write_file: [path, content]
+  max_steps: 6
+  require_completion: true
+  outcome:
+    final_text_contains: ["8080"]
+    files:
+      - path: app/config.yaml
+        contains: "port: 8080"

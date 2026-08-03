@@ -1,0 +1,18 @@
+name: openqa_explain_panic
+suite: capability
+prompt: |
+  Explain this Go panic in one short paragraph and name the likely fix:
+  panic: runtime error: index out of range [3] with length 3
+  goroutine 1 [running]:
+  main.Sum(...)
+toolset: echo
+scripts:
+  - type: text
+    content: The panic is an index-out-of-range on a slice of length 3, so an index of 3 was used. The likely fix is to iterate with i < len(slice) (or range) instead of <=.
+expect:
+  forbidden_tools: [run_terminal]
+  require_completion: true
+  max_steps: 3
+  soft_max_steps: true
+  outcome:
+    final_text_contains: ["index"]

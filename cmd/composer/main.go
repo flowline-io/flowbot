@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/composer/action/admin"
+	"github.com/flowline-io/flowbot/cmd/composer/action/agenteval"
 	"github.com/flowline-io/flowbot/cmd/composer/action/skills"
 	"github.com/flowline-io/flowbot/cmd/composer/action/webdoc"
 	"github.com/flowline-io/flowbot/version"
@@ -45,6 +46,8 @@ func NewCommand() *cobra.Command {
 	}
 	skillsCmd.Flags().String("output", "./docs/skills", "output directory for SKILL.md files")
 	rootCmd.AddCommand(skillsCmd)
+
+	rootCmd.AddCommand(agenteval.EvalCommand())
 
 	return rootCmd
 }

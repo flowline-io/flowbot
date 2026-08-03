@@ -1,0 +1,7 @@
+name: should_deny_bash_override
+kind: permission
+tool: run_terminal
+command: echo blocked-by-policy
+permission_json: |
+  {"bash":"deny"}
+want_action: deny

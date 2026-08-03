@@ -57,6 +57,10 @@ External callers may keep importing `pkg/agent` for types (`AgentMessage`, `NewA
 ```bash
 go test ./pkg/agent/...
 go test ./pkg/agent/eval/...
+go tool task agent:eval       # FakeModel regression via composer
+go tool task agent:eval:live  # capability path (pass^k + fake judge)
 ```
+
+Eval notes: extend `Expectation`/`Score` (required/forbidden tools, outcome asserts); keep `ExpectedTools` order soft unless `StrictToolOrder`. Do not import `internal/server/chatagent` from this package. Product policy evals live in `internal/server/chatagent/eval`. See [docs/agent/README.md](../../docs/agent/README.md#agent-evaluation).
 
 Path-only moves of product tools (`clip`/`notify` → `internal/server/chatagent/tools/`) keep existing package unit tests; no BDD update is required when behavior is unchanged.

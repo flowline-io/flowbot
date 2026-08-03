@@ -196,6 +196,16 @@ tasks:
     cmds:
       - go run ./cmd/composer webdoc
 
+  agent:eval:
+    desc: Run FakeModel agent regression eval suite (composer agenteval run)
+    cmds:
+      - go run ./cmd/composer agenteval run --out tmp/agent_eval
+
+  agent:eval:live:
+    desc: Run capability eval with FakeModel live path (pass^k + optional fake judge)
+    cmds:
+      - go run ./cmd/composer agenteval live --out tmp/agent_eval --trials 3 --smoke
+
   # Development tools
   tools:
     desc: Install all development tools

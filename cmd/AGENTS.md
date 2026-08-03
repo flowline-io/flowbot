@@ -5,7 +5,7 @@ Three binaries:
 | Binary   | Main file          | Purpose                                      | DI  |
 | -------- | ------------------ | -------------------------------------------- | --- |
 | server   | `main.go`          | HTTP API server (Fiber v3)                   | fx  |
-| composer | `composer/main.go` | Dev tooling (`admin`, `webdoc`, `skills`)    | —   |
+| composer | `composer/main.go` | Dev tooling (`admin`, `webdoc`, `skills`, `agenteval`) | —   |
 | cli      | `cli/main.go`      | User CLI (login, hub, pipeline, workflows, …) | —   |
 
 ## Testing / build

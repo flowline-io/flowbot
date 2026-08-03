@@ -6,9 +6,10 @@ import (
 	"context"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
-	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	"github.com/tmc/langchaingo/llms"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -44,5 +45,25 @@ var _ = Describe("Agent Core", Label("module", "agent"), func() {
 		Expect(result.Err).NotTo(HaveOccurred())
 		Expect(ag.State().Messages).NotTo(BeEmpty())
 		Expect(model.Calls()).To(BeNumerically(">=", 2))
+	})
+})
+
+var _ = Describe("Agent Eval Policy", Label("module", "agent"), func() {
+	It("denies reading secrets.env with DefaultConfig", func() {
+		ev := permission.NewEvaluator(permission.DefaultConfig())
+		got := ev.Evaluate(permission.Request{
+			Tool: permission.ToolReadFile,
+			Args: map[string]any{"path": "secrets.env"},
+		}, permission.NewSessionState())
+		Expect(got.Action).To(Equal(permission.ActionDeny))
+	})
+
+	It("allows reading README.md with DefaultConfig", func() {
+		ev := permission.NewEvaluator(permission.DefaultConfig())
+		got := ev.Evaluate(permission.Request{
+			Tool: permission.ToolReadFile,
+			Args: map[string]any{"path": "README.md"},
+		}, permission.NewSessionState())
+		Expect(got.Action).To(Equal(permission.ActionAllow))
 	})
 })

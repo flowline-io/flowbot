@@ -78,4 +78,43 @@ go test ./pkg/agent/...
 go tool task test:specs   # includes tests/specs/agent_spec_test.go
 ```
 
+## Agent evaluation
+
+`pkg/agent/eval` scores agent runs with code graders (CI) and optional model graders (capability).
+
+| Suite | Purpose | How to run |
+| ----- | ------- | ---------- |
+| **regression** | Near-100% FakeModel / deterministic gates | `go test ./pkg/agent/eval/...` or `go tool task agent:eval` (CI: [Agent Eval](../../.github/workflows/agent-eval.yml)) |
+| **capability** | Quality climb; multi-trial `pass@k` / `pass^k` | `go tool task agent:eval:live` (local/nightly; not a PR hard gate) |
+
+### Fake vs true outcome
+
+- **FakeModel regression** exercises grader wiring and **proxy outcomes** (completion, forbidden tools, max steps). Scripts already choose the tool path, so tool *order* is soft by default (`ExpectedTools`); hard tool gates are `RequiredTools` coverage and `ForbiddenTools`.
+- **True outcomes** use isolated workspaces (e.g. `write_file` + file asserts) or live models.
+- **Product policy** outcomes live in `internal/server/chatagent/eval` (permission.Evaluator / DCG with fixtures)—not inside `pkg/agent/eval`.
+
+### Graders and gates
+
+- CI hard gates: required/forbidden tools, args, outcome asserts, completion, max steps. LLM-as-judge never blocks PRs.
+- Live: default `k=3` trials; report `pass^k` (all trials) as the reliability signal; `pass@k` for capability exploration.
+- OpenQA smoke ≤5 tasks; gold files under `pkg/agent/eval/testdata/capability/openqa/`. Judge–gold **agreement** = fraction of dimensions with `|judge−gold|≤1` on a 1–5 scale (skip score `0` / Unknown).
+
+### Graduation
+
+When a capability task is stably near 100% `pass^k` and criteria are unambiguous, promote it into the regression suite (code graders only). Keep capability hard enough to avoid early saturation.
+
+### CLI artifacts
+
+```bash
+go tool task agent:eval            # → tmp/agent_eval/regression_*.json
+go tool task agent:eval:live       # FakeModel offline live path
+go run ./cmd/composer agenteval live --model SUBJECT --judge-model JUDGE --judge-fake=false
+go run ./cmd/composer agenteval compare --baseline ... --candidate ...
+go run ./cmd/composer agenteval export --report ... --out tmp/agent_eval/drafts
+```
+
+Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`.
+
+Reports are local/CI files only (no DB). Failed cases include a transcript summary—read that before changing agent or grader.
+
 Maintainer reference: [pkg/agent/AGENTS.md](../../pkg/agent/AGENTS.md).

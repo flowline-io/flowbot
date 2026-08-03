@@ -1,0 +1,23 @@
+name: write_file_hello
+suite: regression
+prompt: write hello to out.txt
+toolset: write_file
+workspace: true
+scripts:
+  - type: tool_call
+    id: c1
+    name: write_file
+    args: '{"path":"out.txt","content":"hello"}'
+  - type: text
+    content: wrote file
+expect:
+  required_tools: [write_file]
+  forbidden_tools: [run_terminal]
+  required_args:
+    write_file: [path, content]
+  max_steps: 5
+  require_completion: true
+  outcome:
+    files:
+      - path: out.txt
+        equals: hello

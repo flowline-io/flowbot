@@ -27,4 +27,7 @@ Protocol changes: update `docs/agent/chatagent-feature-checklist.md` + tests fir
 
 ```bash
 go test ./internal/server/chatagent -count=1
+go test ./internal/server/chatagent/eval -count=1
 ```
+
+Policy outcome fixtures (permission / DCG) live under `eval/testdata/safety/`. BDD coverage for deny/allow env reads is in `tests/specs/agent_spec_test.go` (`Agent Eval Policy`).

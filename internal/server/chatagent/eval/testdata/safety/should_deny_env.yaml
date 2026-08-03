@@ -1,0 +1,5 @@
+name: should_deny_env
+kind: permission
+tool: read_file
+path: secrets.env
+want_action: deny

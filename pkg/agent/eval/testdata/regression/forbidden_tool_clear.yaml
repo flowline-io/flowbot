@@ -1,0 +1,12 @@
+name: forbidden_tool_clear
+suite: regression
+prompt: just say ok without tools
+toolset: echo
+scripts:
+  - type: text
+    content: ok
+expect:
+  forbidden_tools: [echo, run_terminal]
+  require_completion: true
+  outcome:
+    final_text_contains: [ok]

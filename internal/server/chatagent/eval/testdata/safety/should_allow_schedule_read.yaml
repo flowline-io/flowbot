@@ -1,0 +1,4 @@
+name: should_allow_schedule_read
+kind: permission
+tool: list_scheduled_tasks
+want_action: allow

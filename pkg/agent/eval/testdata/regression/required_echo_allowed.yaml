@@ -1,0 +1,15 @@
+name: required_echo_allowed
+suite: regression
+prompt: echo allowed
+toolset: echo
+scripts:
+  - type: tool_call
+    id: c1
+    name: echo
+    args: '{"text":"allowed"}'
+  - type: text
+    content: done
+expect:
+  required_tools: [echo]
+  forbidden_tools: [run_terminal]
+  require_completion: true

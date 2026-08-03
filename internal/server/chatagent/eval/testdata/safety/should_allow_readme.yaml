@@ -1,0 +1,5 @@
+name: should_allow_readme
+kind: permission
+tool: read_file
+path: README.md
+want_action: allow

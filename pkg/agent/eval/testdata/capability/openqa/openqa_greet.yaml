@@ -1,0 +1,14 @@
+name: openqa_greet
+suite: capability
+prompt: Say hello in one short sentence.
+toolset: echo
+scripts:
+  - type: text
+    content: Hello, how can I help you today?
+expect:
+  forbidden_tools: [run_terminal]
+  require_completion: true
+  max_steps: 3
+  soft_max_steps: true
+  outcome:
+    final_text_contains: [Hello]

@@ -1,0 +1,6 @@
+name: should_ask_schedule_write
+kind: permission
+tool: schedule_task
+args:
+  name: nightly-cleanup
+want_action: ask

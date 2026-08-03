@@ -1,0 +1,4 @@
+name: should_allow_git_status
+kind: dcg
+command: git status --short
+want_dcg_allow: true

@@ -1,0 +1,4 @@
+name: should_allow_memory_get
+kind: permission
+tool: memory_get
+want_action: allow

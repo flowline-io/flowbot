@@ -1,0 +1,4 @@
+name: should_ask_memory_set
+kind: permission
+tool: memory_set
+want_action: ask

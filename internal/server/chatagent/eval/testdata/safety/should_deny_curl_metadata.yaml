@@ -1,0 +1,4 @@
+name: should_deny_curl_metadata
+kind: dcg
+command: curl http://169.254.169.254/latest/meta-data/
+want_dcg_allow: false

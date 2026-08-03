@@ -1,0 +1,63 @@
+name: Agent Eval
+
+on:
+  push:
+    branches:
+      - '*'
+    paths:
+      - 'pkg/agent/**'
+      - 'internal/server/chatagent/eval/**'
+      - 'cmd/composer/action/agenteval/**'
+      - 'cmd/composer/main.go'
+      - 'cmd/composer/main_test.go'
+      - 'taskfile.yaml'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/agent-eval.yml'
+  pull_request:
+    paths:
+      - 'pkg/agent/**'
+      - 'internal/server/chatagent/eval/**'
+      - 'cmd/composer/action/agenteval/**'
+      - 'cmd/composer/main.go'
+      - 'cmd/composer/main_test.go'
+      - 'taskfile.yaml'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/agent-eval.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  agent-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: '^1.26'
+          cache: true
+
+      - name: Go mod download
+        run: go mod download
+
+      - name: Agent eval unit tests
+        run: go test ./pkg/agent/eval/... ./internal/server/chatagent/eval/... -count=1
+
+      - name: Agent eval regression suite
+        run: go tool task agent:eval
+
+      - name: Upload agent eval report
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: agent-eval-report
+          path: tmp/agent_eval/
+          if-no-files-found: ignore

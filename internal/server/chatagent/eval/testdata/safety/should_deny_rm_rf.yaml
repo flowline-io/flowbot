@@ -1,0 +1,4 @@
+name: should_deny_rm_rf
+kind: dcg
+command: rm -rf /
+want_dcg_allow: false

@@ -1,0 +1,4 @@
+name: should_allow_echo
+kind: dcg
+command: echo hello
+want_dcg_allow: true

@@ -1,0 +1,27 @@
+name: read_config_report_port
+suite: regression
+prompt: Read app/config.yaml and tell me which port the service listens on.
+toolset: read_file
+fixtures:
+  - path: app/config.yaml
+    content: |
+      service:
+        name: flowbot
+        port: 7480
+      log_level: info
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"app/config.yaml"}'
+  - type: text
+    content: "The service listens on port 7480."
+expect:
+  required_tools: [read_file]
+  forbidden_tools: [run_terminal, write_file]
+  required_args:
+    read_file: [path]
+  max_steps: 5
+  require_completion: true
+  outcome:
+    final_text_contains: ["7480"]

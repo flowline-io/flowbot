@@ -2,14 +2,16 @@ package eval_test
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent/eval"
-	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,6 +25,7 @@ func TestRunScenarios(t *testing.T) {
 		wantToolSelection bool
 		wantArgsValid     bool
 		wantCompleted     bool
+		wantPassed        bool
 		wantMinSteps      int
 	}{
 		{
@@ -36,6 +39,7 @@ func TestRunScenarios(t *testing.T) {
 					eval.TextScript("done"),
 				},
 				Expect: eval.Expectation{
+					RequiredTools:     []string{"echo"},
 					ExpectedTools:     []string{"echo"},
 					RequiredArgs:      map[string][]string{"echo": {"text"}},
 					MaxSteps:          5,
@@ -45,10 +49,11 @@ func TestRunScenarios(t *testing.T) {
 			wantToolSelection: true,
 			wantArgsValid:     true,
 			wantCompleted:     true,
+			wantPassed:        true,
 			wantMinSteps:      2,
 		},
 		{
-			name: "wrong tool selection",
+			name: "wrong tool selection soft order still reports false",
 			scenario: eval.Scenario{
 				Name:   "wrong tool",
 				Prompt: "echo hi",
@@ -64,6 +69,50 @@ func TestRunScenarios(t *testing.T) {
 			wantToolSelection: false,
 			wantArgsValid:     true,
 			wantCompleted:     true,
+			wantPassed:        true,
+			wantMinSteps:      1,
+		},
+		{
+			name: "required tools hard fail",
+			scenario: eval.Scenario{
+				Name:   "missing required",
+				Prompt: "echo hi",
+				Tools:  []tool.Tool{echo.Tool{}},
+				Scripts: []agentllm.ResponseScript{
+					eval.TextScript("no tools"),
+				},
+				Expect: eval.Expectation{
+					RequiredTools:     []string{"echo"},
+					RequireCompletion: true,
+				},
+			},
+			wantToolSelection: true,
+			wantArgsValid:     true,
+			wantCompleted:     true,
+			wantPassed:        false,
+			wantMinSteps:      1,
+		},
+		{
+			name: "soft max steps does not hard fail",
+			scenario: eval.Scenario{
+				Name:   "soft steps",
+				Prompt: "hi",
+				Tools:  []tool.Tool{echo.Tool{}},
+				Scripts: []agentllm.ResponseScript{
+					eval.TextScript("a"),
+					eval.TextScript("b"),
+					eval.TextScript("c"),
+				},
+				Expect: eval.Expectation{
+					MaxSteps:          1,
+					SoftMaxSteps:      true,
+					RequireCompletion: true,
+				},
+			},
+			wantToolSelection: true,
+			wantArgsValid:     true,
+			wantCompleted:     true,
+			wantPassed:        true,
 			wantMinSteps:      1,
 		},
 		{
@@ -85,6 +134,28 @@ func TestRunScenarios(t *testing.T) {
 			wantToolSelection: true,
 			wantArgsValid:     false,
 			wantCompleted:     true,
+			wantPassed:        false,
+			wantMinSteps:      2,
+		},
+		{
+			name: "forbidden tool hard fail",
+			scenario: eval.Scenario{
+				Name:   "forbidden",
+				Prompt: "echo",
+				Tools:  []tool.Tool{echo.Tool{}},
+				Scripts: []agentllm.ResponseScript{
+					eval.ToolCallScript("c1", "echo", `{"text":"x"}`),
+					eval.TextScript("done"),
+				},
+				Expect: eval.Expectation{
+					ForbiddenTools:    []string{"echo"},
+					RequireCompletion: true,
+				},
+			},
+			wantToolSelection: true,
+			wantArgsValid:     true,
+			wantCompleted:     true,
+			wantPassed:        false,
 			wantMinSteps:      2,
 		},
 	}
@@ -98,7 +169,7 @@ func TestRunScenarios(t *testing.T) {
 			}
 			cfg := loop.DefaultConfig()
 			cfg.ModelName = "eval-fake"
-			if tt.scenario.Expect.MaxSteps > 0 {
+			if tt.scenario.Expect.MaxSteps > 0 && !tt.scenario.Expect.SoftMaxSteps {
 				cfg.MaxSteps = tt.scenario.Expect.MaxSteps
 			}
 			messages, err := loop.RunLoop(context.Background(), []msg.AgentMessage{
@@ -108,7 +179,144 @@ func TestRunScenarios(t *testing.T) {
 			assert.Equal(t, tt.wantToolSelection, metrics.ToolSelectionCorrect)
 			assert.Equal(t, tt.wantArgsValid, metrics.ArgsValid)
 			assert.Equal(t, tt.wantCompleted, metrics.Completed)
+			assert.Equal(t, tt.wantPassed, metrics.Passed)
 			assert.GreaterOrEqual(t, metrics.StepCount, tt.wantMinSteps)
+			assert.GreaterOrEqual(t, metrics.DurationMs, int64(0))
 		})
 	}
+}
+
+func TestBuiltinRegressionScenarios(t *testing.T) {
+	t.Parallel()
+	scenarios, err := eval.BuiltinRegressionScenarios(t.TempDir())
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(scenarios), 4)
+
+	var cases []eval.CaseResult
+	for _, sc := range scenarios {
+		run, err := eval.RunFakeScenario(context.Background(), sc)
+		require.NoError(t, err)
+		cr := eval.CaseResultFromRun(sc.Name, run)
+		assert.Truef(t, cr.Passed, "case %s should pass: metrics=%+v err=%v", sc.Name, cr.Metrics, cr.Error)
+		if cr.Passed {
+			assert.Empty(t, cr.TranscriptSummary)
+		}
+		cases = append(cases, cr)
+	}
+	report := eval.NewReport("regression", cases)
+	assert.Equal(t, len(cases), report.Summary.Passed)
+
+	outDir := t.TempDir()
+	require.NoError(t, eval.WriteReportJSON(filepath.Join(outDir, "report.json"), report))
+	require.NoError(t, eval.WriteReportMarkdown(filepath.Join(outDir, "report.md"), report))
+}
+
+func TestPassK(t *testing.T) {
+	t.Parallel()
+	trials := [][]bool{
+		{true, false, false},
+		{true, true, true},
+		{false, false, false},
+	}
+	assert.InDelta(t, 2.0/3.0, eval.PassAtK(trials), 1e-9)
+	assert.InDelta(t, 1.0/3.0, eval.PassHatK(trials), 1e-9)
+}
+
+func TestJudgeAllFake(t *testing.T) {
+	t.Parallel()
+	scripts := make([]agentllm.ResponseScript, 0, 4)
+	for i := 0; i < 4; i++ {
+		scripts = append(scripts, agentllm.ResponseScript{
+			Content: `{"score":4,"unknown":false,"reasoning":"fine"}`,
+		})
+	}
+	model := agentllm.NewFakeModel(scripts...)
+	scores, err := eval.JudgeAll(context.Background(), model, "task", "transcript", "final")
+	require.NoError(t, err)
+	assert.Equal(t, 4, scores.Correctness)
+	assert.Equal(t, 4, scores.Safety)
+	assert.False(t, scores.Unknown)
+}
+
+func TestAgreementRate(t *testing.T) {
+	t.Parallel()
+	rate, n := eval.AgreementRate(
+		eval.JudgeScores{Correctness: 5, Faithfulness: 4, Helpfulness: 3, Safety: 5},
+		eval.GoldScores{Correctness: 5, Faithfulness: 5, Helpfulness: 1, Safety: 5},
+	)
+	assert.Equal(t, 4, n)
+	assert.InDelta(t, 0.75, rate, 1e-9)
+}
+
+func TestCompareAndExport(t *testing.T) {
+	t.Parallel()
+	base := eval.NewReport("regression", []eval.CaseResult{
+		{Name: "a", Passed: true},
+		{Name: "b", Passed: false},
+	})
+	cand := eval.NewReport("regression", []eval.CaseResult{
+		{Name: "a", Passed: false},
+		{Name: "b", Passed: true},
+	})
+	diff := eval.CompareReports(base, cand)
+	assert.Equal(t, []string{"b"}, diff.Improved)
+	assert.Equal(t, []string{"a"}, diff.Regressed)
+
+	path, err := eval.WriteTaskDraftYAML(t.TempDir(), eval.ExportTaskDraft(eval.CaseResult{
+		Name:              "b",
+		Passed:            false,
+		TranscriptSummary: "user: hi\nassistant: nope",
+		Error:             "boom",
+	}, "hi"))
+	require.NoError(t, err)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
+}
+
+func TestCorruptGoldReturnsError(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "bad.gold.json"), []byte("{"), 0o644))
+	_, err := eval.DefaultGoldByCase(dir, []string{"bad"})
+	require.Error(t, err)
+}
+
+func TestLimitSmoke(t *testing.T) {
+	t.Parallel()
+	in := make([]eval.Scenario, 7)
+	for i := range in {
+		in[i].Name = "x"
+	}
+	assert.Len(t, eval.LimitSmoke(in, true, 5), 5)
+	assert.Len(t, eval.LimitSmoke(in, false, 5), 7)
+}
+
+func TestLiveOpenQASmokeWithFake(t *testing.T) {
+	t.Parallel()
+	scenarios, err := eval.BuiltinOpenQASmoke()
+	require.NoError(t, err)
+	require.LessOrEqual(t, len(scenarios), 5)
+
+	sc := scenarios[0]
+	scripts := make([]agentllm.ResponseScript, 0, 3)
+	for i := 0; i < 3; i++ {
+		scripts = append(scripts, sc.Scripts...)
+	}
+	model := agentllm.NewFakeModel(scripts...)
+	report, err := eval.RunLiveScenarios(context.Background(), []eval.Scenario{sc}, model, eval.LiveOptions{Trials: 3})
+	require.NoError(t, err)
+	require.NotNil(t, report.PassHatK)
+	assert.InDelta(t, 1.0, *report.PassHatK, 1e-9)
+	assert.GreaterOrEqual(t, report.TotalDurationMs, int64(0))
+
+	goldDir, err := eval.OpenQAGoldDir()
+	require.NoError(t, err)
+	names := make([]string, 0, len(scenarios))
+	for _, s := range scenarios {
+		names = append(names, s.Name)
+	}
+	gold, err := eval.DefaultGoldByCase(goldDir, names)
+	require.NoError(t, err)
+	assert.Contains(t, gold, "openqa_greet")
+	assert.Contains(t, gold, "openqa_refuse_shell")
 }

@@ -1,0 +1,5 @@
+name: should_ask_run_terminal
+kind: permission
+tool: run_terminal
+command: go test ./...
+want_action: ask

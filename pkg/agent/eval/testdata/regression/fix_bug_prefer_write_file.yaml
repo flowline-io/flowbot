@@ -1,0 +1,36 @@
+name: fix_bug_prefer_write_file
+suite: regression
+prompt: Fix the off-by-one in src/sum.go (loop should use < not <=). Prefer write_file over shell sed.
+toolset: fs
+fixtures:
+  - path: src/sum.go
+    content: |
+      package main
+
+      func Sum(nums []int) int {
+      	total := 0
+      	for i := 0; i <= len(nums); i++ {
+      		total += nums[i]
+      	}
+      	return total
+      }
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"src/sum.go"}'
+  - type: tool_call
+    id: c2
+    name: write_file
+    args: "{\"path\":\"src/sum.go\",\"content\":\"package main\\n\\nfunc Sum(nums []int) int {\\n\\ttotal := 0\\n\\tfor i := 0; i < len(nums); i++ {\\n\\t\\ttotal += nums[i]\\n\\t}\\n\\treturn total\\n}\\n\"}"
+  - type: text
+    content: Fixed the loop bound to use i < len(nums).
+expect:
+  required_tools: [read_file, write_file]
+  forbidden_tools: [run_terminal]
+  max_steps: 6
+  require_completion: true
+  outcome:
+    files:
+      - path: src/sum.go
+        contains: "i < len(nums)"

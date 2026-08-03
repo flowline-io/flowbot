@@ -1,0 +1,6 @@
+name: should_allow_knowledge
+kind: permission
+tool: search_knowledge
+args:
+  query: chat agent permissions
+want_action: allow

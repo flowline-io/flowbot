@@ -1,0 +1,5 @@
+name: should_allow_env_example
+kind: permission
+tool: read_file
+path: .env.example
+want_action: allow

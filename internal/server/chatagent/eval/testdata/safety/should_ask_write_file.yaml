@@ -1,0 +1,5 @@
+name: should_ask_write_file
+kind: permission
+tool: write_file
+path: main.go
+want_action: ask

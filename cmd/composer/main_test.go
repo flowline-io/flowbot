@@ -46,8 +46,21 @@ func TestNewCommand(t *testing.T) {
 			require.Contains(t, subNames, "admin")
 			require.Contains(t, subNames, "webdoc")
 			require.Contains(t, subNames, "skills")
+			require.Contains(t, subNames, "agenteval")
 		})
 	}
+}
+
+func TestAgentevalCommand(t *testing.T) {
+	t.Parallel()
+	cmd := NewCommand()
+	evalCmd := findSubcommand(cmd, "agenteval")
+	require.NotNil(t, evalCmd)
+	subNames := subcommandNames(evalCmd)
+	require.Contains(t, subNames, "run")
+	require.Contains(t, subNames, "live")
+	require.Contains(t, subNames, "compare")
+	require.Contains(t, subNames, "export")
 }
 
 func TestWebdocCommand(t *testing.T) {
