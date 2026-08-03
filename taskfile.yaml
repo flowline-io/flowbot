@@ -177,7 +177,8 @@ tasks:
       - task: test:race:ci
         vars:
           COUNT: "10"
-          TIMEOUT: "45m"
+          # web (+ other heavy SQLite packages) need headroom under -race -count=10
+          TIMEOUT: "60m"
           PACKAGES: '{{.PACKAGES}}'
 
   # Documentation tasks
