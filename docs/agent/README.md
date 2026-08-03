@@ -113,7 +113,15 @@ go run ./cmd/composer agenteval compare --baseline ... --candidate ...
 go run ./cmd/composer agenteval export --report ... --out tmp/agent_eval/drafts
 ```
 
-Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`.
+Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`, `--run` (regexp like `go test -run`).
+
+Examples:
+
+```bash
+go run ./cmd/composer agenteval live --model SUBJECT --run openqa_greet
+go run ./cmd/composer agenteval live --model SUBJECT --run 'refuse|explain'
+go run ./cmd/composer agenteval run --run echo_happy
+```
 
 Reports are local/CI files only (no DB). Failed cases include a transcript summary—read that before changing agent or grader.
 

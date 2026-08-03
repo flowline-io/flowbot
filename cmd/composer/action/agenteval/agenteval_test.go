@@ -22,8 +22,10 @@ func TestEvalCommandShape(t *testing.T) {
 			require.NotNil(t, sub.Flags().Lookup("model"))
 			require.NotNil(t, sub.Flags().Lookup("judge-model"))
 			require.NotNil(t, sub.Flags().Lookup("cases"))
+			require.NotNil(t, sub.Flags().Lookup("run"))
 		case "run":
 			require.NotNil(t, sub.Flags().Lookup("cases"))
+			require.NotNil(t, sub.Flags().Lookup("run"))
 		}
 	}
 	require.True(t, names["run"])
@@ -35,11 +37,22 @@ func TestEvalCommandShape(t *testing.T) {
 func TestRunRegressionWritesReport(t *testing.T) {
 	t.Parallel()
 	out := t.TempDir()
-	require.NoError(t, runRegression(t.Context(), out, ""))
+	require.NoError(t, runRegression(t.Context(), out, "", ""))
 	require.FileExists(t, filepath.Join(out, "regression_latest.json"))
 	report, err := eval.LoadReportJSON(filepath.Join(out, "regression_latest.json"))
 	require.NoError(t, err)
 	require.Equal(t, report.Summary.Total, report.Summary.Passed)
+}
+
+func TestRunRegressionFilterByRun(t *testing.T) {
+	t.Parallel()
+	out := t.TempDir()
+	require.NoError(t, runRegression(t.Context(), out, "", "echo_happy"))
+	report, err := eval.LoadReportJSON(filepath.Join(out, "regression_latest.json"))
+	require.NoError(t, err)
+	require.Equal(t, 1, report.Summary.Total)
+	require.Equal(t, "echo_happy", report.Cases[0].Name)
+	require.Equal(t, 1, report.Summary.Passed)
 }
 
 func TestLimitSmokeLogic(t *testing.T) {

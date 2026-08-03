@@ -54,8 +54,9 @@ type caseExpect struct {
 }
 
 type caseOutcome struct {
-	FinalTextContains []string         `yaml:"final_text_contains"`
-	Files             []caseFileAssert `yaml:"files"`
+	FinalTextContains    []string         `yaml:"final_text_contains"`
+	FinalTextContainsAny []string         `yaml:"final_text_contains_any"`
+	Files                []caseFileAssert `yaml:"files"`
 }
 
 type caseFileAssert struct {
@@ -149,7 +150,8 @@ func scenarioFromCase(cf caseFile, scripts []agentllm.ResponseScript) Scenario {
 			SoftMaxSteps:      cf.Expect.SoftMaxSteps,
 			RequireCompletion: cf.Expect.RequireCompletion,
 			Outcome: OutcomeAsserts{
-				FinalTextContains: cf.Expect.Outcome.FinalTextContains,
+				FinalTextContains:    cf.Expect.Outcome.FinalTextContains,
+				FinalTextContainsAny: cf.Expect.Outcome.FinalTextContainsAny,
 			},
 		},
 	}

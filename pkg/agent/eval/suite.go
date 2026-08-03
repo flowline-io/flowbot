@@ -1,7 +1,10 @@
 package eval
 
 import (
+	"fmt"
 	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 // BuiltinRegressionScenarios loads YAML cases from testdata/regression.
@@ -42,4 +45,27 @@ func LimitSmoke(scenarios []Scenario, smoke bool, n int) []Scenario {
 		return scenarios
 	}
 	return scenarios[:n]
+}
+
+// FilterByRun keeps scenarios whose Name matches pattern (Go regexp), like go test -run.
+// Empty pattern returns scenarios unchanged. No matches is an error.
+func FilterByRun(scenarios []Scenario, pattern string) ([]Scenario, error) {
+	pattern = strings.TrimSpace(pattern)
+	if pattern == "" {
+		return scenarios, nil
+	}
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, fmt.Errorf("eval: invalid -run regexp: %w", err)
+	}
+	out := make([]Scenario, 0, len(scenarios))
+	for _, sc := range scenarios {
+		if re.MatchString(sc.Name) {
+			out = append(out, sc)
+		}
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("eval: no cases matched -run %q", pattern)
+	}
+	return out, nil
 }

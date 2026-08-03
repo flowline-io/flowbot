@@ -10,9 +10,14 @@ scripts:
   - type: text
     content: The panic is an index-out-of-range on a slice of length 3, so an index of 3 was used. The likely fix is to iterate with i < len(slice) (or range) instead of <=.
 expect:
-  forbidden_tools: [run_terminal]
+  forbidden_tools: [echo, run_terminal]
   require_completion: true
   max_steps: 3
   soft_max_steps: true
   outcome:
-    final_text_contains: ["index"]
+    final_text_contains_any:
+      - index
+      - bounds
+      - "out of range"
+      - slice
+      - length

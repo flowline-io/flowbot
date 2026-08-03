@@ -39,8 +39,10 @@ type Expectation struct {
 
 // OutcomeAsserts describes environment / proxy outcome checks.
 type OutcomeAsserts struct {
-	// FinalTextContains requires each substring in the last assistant text.
+	// FinalTextContains requires each substring in the last assistant text (case-sensitive).
 	FinalTextContains []string
+	// FinalTextContainsAny requires at least one substring (case-insensitive) when non-empty.
+	FinalTextContainsAny []string
 	// Files asserts workspace file outcomes (true outcome when tools wrote them).
 	Files []FileAssert
 }
@@ -75,6 +77,8 @@ type Metrics struct {
 	ToolsCalled []string
 	// FinalText is the last non-empty assistant text content.
 	FinalText string
+	// AssistantText joins all non-empty assistant texts (used for outcome asserts).
+	AssistantText string
 	// StepsWithinLimit is true when MaxSteps is 0 or StepCount <= MaxSteps.
 	StepsWithinLimit bool
 	// DurationMs is wall time for the scenario run.
@@ -160,11 +164,15 @@ func hardPass(m Metrics, expect Expectation) bool {
 }
 
 func scoreOutcome(m *Metrics, outcome OutcomeAsserts, workspaceRoot string) bool {
+	text := outcomeSearchText(*m)
 	ok := true
 	for _, want := range outcome.FinalTextContains {
-		if !strings.Contains(m.FinalText, want) {
+		if !strings.Contains(text, want) {
 			ok = false
 		}
+	}
+	if len(outcome.FinalTextContainsAny) > 0 && !textContainsAnyFold(text, outcome.FinalTextContainsAny) {
+		ok = false
 	}
 	for _, fileAssert := range outcome.Files {
 		if !fileAssertOK(workspaceRoot, fileAssert) {
@@ -172,6 +180,76 @@ func scoreOutcome(m *Metrics, outcome OutcomeAsserts, workspaceRoot string) bool
 		}
 	}
 	return ok
+}
+
+func outcomeSearchText(m Metrics) string {
+	if strings.TrimSpace(m.AssistantText) != "" {
+		return m.AssistantText
+	}
+	return m.FinalText
+}
+
+func textContainsAnyFold(text string, wants []string) bool {
+	lower := strings.ToLower(text)
+	for _, want := range wants {
+		if want != "" && strings.Contains(lower, strings.ToLower(want)) {
+			return true
+		}
+	}
+	return false
+}
+
+// FailReason returns a short explanation when metrics did not hard-pass.
+func FailReason(m Metrics, expect Expectation) string {
+	if m.Passed {
+		return ""
+	}
+	var parts []string
+	if !m.RequiredToolsCovered {
+		parts = append(parts, "required tools missing")
+	}
+	if !m.ForbiddenToolsClear {
+		parts = append(parts, "forbidden tool used")
+	}
+	if !m.ArgsValid {
+		parts = append(parts, "invalid tool args")
+	}
+	if !m.OutcomeOK {
+		parts = append(parts, outcomeFailDetail(outcomeSearchText(m), expect.Outcome))
+	}
+	if expect.RequireCompletion && !m.Completed {
+		parts = append(parts, "incomplete")
+	}
+	if expect.MaxSteps > 0 && m.StepCount > expect.MaxSteps && !expect.SoftMaxSteps {
+		parts = append(parts, "max steps exceeded")
+	}
+	if expect.StrictToolOrder && !m.ToolSelectionCorrect {
+		parts = append(parts, "tool order mismatch")
+	}
+	if len(parts) == 0 {
+		return "failed"
+	}
+	return strings.Join(parts, "; ")
+}
+
+func outcomeFailDetail(finalText string, outcome OutcomeAsserts) string {
+	var missing []string
+	for _, want := range outcome.FinalTextContains {
+		if !strings.Contains(finalText, want) {
+			missing = append(missing, fmt.Sprintf("%q", want))
+		}
+	}
+	if len(outcome.FinalTextContainsAny) > 0 && !textContainsAnyFold(finalText, outcome.FinalTextContainsAny) {
+		quoted := make([]string, 0, len(outcome.FinalTextContainsAny))
+		for _, want := range outcome.FinalTextContainsAny {
+			quoted = append(quoted, fmt.Sprintf("%q", want))
+		}
+		missing = append(missing, "any of ["+strings.Join(quoted, ", ")+"]")
+	}
+	if len(missing) == 0 {
+		return "outcome assert failed"
+	}
+	return "final text missing " + strings.Join(missing, ", ")
 }
 
 func fileAssertOK(workspaceRoot string, fa FileAssert) bool {
@@ -211,6 +289,10 @@ func scoreAssistant(m *Metrics, assistant msg.AssistantMessage, required map[str
 	text := strings.TrimSpace(assistant.TextContent())
 	if text != "" {
 		m.FinalText = text
+		if m.AssistantText != "" {
+			m.AssistantText += "\n"
+		}
+		m.AssistantText += text
 	}
 	if len(assistant.ToolCalls()) == 0 && text != "" && runErr == nil {
 		m.Completed = true

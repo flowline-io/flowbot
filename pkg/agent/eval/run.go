@@ -26,18 +26,19 @@ type RunResult struct {
 // RunFakeScenario executes one scenario with FakeModel scripts.
 func RunFakeScenario(ctx context.Context, scenario Scenario) (RunResult, error) {
 	model := agentllm.NewFakeModel(scenario.Scripts...)
-	return executeScenario(ctx, scenario, model)
+	return executeScenario(ctx, scenario, model, "")
 }
 
 // RunWithModel executes one scenario against an arbitrary llms.Model.
-func RunWithModel(ctx context.Context, scenario Scenario, model llms.Model) (RunResult, error) {
+// modelName is forwarded via llms.WithModel; empty defaults to "eval" (FakeModel-safe).
+func RunWithModel(ctx context.Context, scenario Scenario, model llms.Model, modelName string) (RunResult, error) {
 	if model == nil {
 		return RunResult{}, fmt.Errorf("eval: model is required")
 	}
-	return executeScenario(ctx, scenario, model)
+	return executeScenario(ctx, scenario, model, modelName)
 }
 
-func executeScenario(ctx context.Context, scenario Scenario, model llms.Model) (RunResult, error) {
+func executeScenario(ctx context.Context, scenario Scenario, model llms.Model, modelName string) (RunResult, error) {
 	reg := tool.NewRegistry()
 	for _, item := range scenario.Tools {
 		if err := reg.Register(item); err != nil {
@@ -45,7 +46,10 @@ func executeScenario(ctx context.Context, scenario Scenario, model llms.Model) (
 		}
 	}
 	cfg := loop.DefaultConfig()
-	cfg.ModelName = "eval"
+	if modelName == "" {
+		modelName = "eval"
+	}
+	cfg.ModelName = modelName
 	if scenario.Expect.MaxSteps > 0 {
 		cfg.MaxSteps = scenario.Expect.MaxSteps
 	}

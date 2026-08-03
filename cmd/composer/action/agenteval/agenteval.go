@@ -41,16 +41,18 @@ func runCommand() *cobra.Command {
 	var (
 		outDir   string
 		casesDir string
+		runPat   string
 	)
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "run regression suite with FakeModel (CI-safe)",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runRegression(cmd.Context(), outDir, casesDir)
+			return runRegression(cmd.Context(), outDir, casesDir, runPat)
 		},
 	}
 	cmd.Flags().StringVar(&outDir, "out", defaultOutDir, "output directory for JSON/Markdown reports")
 	cmd.Flags().StringVar(&casesDir, "cases", "", "regression cases directory (default: package testdata/regression)")
+	cmd.Flags().StringVar(&runPat, "run", "", "regexp matching case names (like go test -run)")
 	return cmd
 }
 
@@ -64,6 +66,7 @@ func liveCommand() *cobra.Command {
 		judgeName  string
 		judgeFake  bool
 		configPath string
+		runPat     string
 	)
 	cmd := &cobra.Command{
 		Use:   "live",
@@ -72,24 +75,26 @@ func liveCommand() *cobra.Command {
 			return runCapability(cmd.Context(), liveFlags{
 				outDir: outDir, casesDir: casesDir, trials: trials, smoke: smoke,
 				modelName: modelName, judgeName: judgeName, judgeFake: judgeFake, configPath: configPath,
+				runPattern: runPat,
 			})
 		},
 	}
 	cmd.Flags().StringVar(&outDir, "out", defaultOutDir, "output directory for JSON/Markdown reports")
 	cmd.Flags().StringVar(&casesDir, "cases", "", "capability cases directory (default: testdata/capability/openqa)")
 	cmd.Flags().IntVar(&trials, "trials", defaultTrials, "number of trials per task (k)")
-	cmd.Flags().BoolVar(&smoke, "smoke", true, "limit openqa to smoke subset (max 5)")
+	cmd.Flags().BoolVar(&smoke, "smoke", true, "limit openqa to smoke subset (max 5); ignored when --run is set")
 	cmd.Flags().StringVar(&modelName, "model", "", "subject model name from flowbot.yaml (empty = FakeModel scripts)")
 	cmd.Flags().StringVar(&judgeName, "judge-model", "", "judge model name from flowbot.yaml (requires --model unless --judge-fake)")
 	cmd.Flags().BoolVar(&judgeFake, "judge-fake", true, "use scripted FakeModel judge (set false with --judge-model for real judge)")
 	cmd.Flags().StringVar(&configPath, "config", defaultConfigPath, "directory containing flowbot.yaml (for --model/--judge-model)")
+	cmd.Flags().StringVar(&runPat, "run", "", "regexp matching case names (like go test -run)")
 	return cmd
 }
 
 type liveFlags struct {
-	outDir, casesDir, modelName, judgeName, configPath string
-	trials                                             int
-	smoke, judgeFake                                   bool
+	outDir, casesDir, modelName, judgeName, configPath, runPattern string
+	trials                                                         int
+	smoke, judgeFake                                               bool
 }
 
 func compareCommand() *cobra.Command {
@@ -126,7 +131,7 @@ func exportCommand() *cobra.Command {
 	return cmd
 }
 
-func runRegression(ctx context.Context, outDir, casesDir string) error {
+func runRegression(ctx context.Context, outDir, casesDir, runPattern string) error {
 	workspace := filepath.Join(outDir, "workspaces", fmt.Sprintf("%d", time.Now().UnixNano()))
 	var scenarios []eval.Scenario
 	var err error
@@ -138,13 +143,31 @@ func runRegression(ctx context.Context, outDir, casesDir string) error {
 	if err != nil {
 		return err
 	}
+	scenarios, err = eval.FilterByRun(scenarios, runPattern)
+	if err != nil {
+		return err
+	}
 	cases := make([]eval.CaseResult, 0, len(scenarios))
-	for _, sc := range scenarios {
+	for idx, sc := range scenarios {
+		printProgress(eval.ProgressEvent{
+			Phase: "case_start", CaseName: sc.Name,
+			CaseIndex: idx + 1, CaseTotal: len(scenarios),
+		})
+		start := time.Now()
 		run, err := eval.RunFakeScenario(ctx, sc)
 		if err != nil {
 			return err
 		}
-		cases = append(cases, eval.CaseResultFromRun(sc.Name, run))
+		cr := eval.CaseResultFromRun(sc.Name, run)
+		if !cr.Passed && cr.Error == "" {
+			cr.Error = eval.FailReason(run.Metrics, sc.Expect)
+		}
+		cases = append(cases, cr)
+		printProgress(eval.ProgressEvent{
+			Phase: "case_done", CaseName: sc.Name,
+			CaseIndex: idx + 1, CaseTotal: len(scenarios),
+			Passed: cr.Passed, Duration: time.Since(start), Detail: cr.Error,
+		})
 	}
 	return writeReports(outDir, "regression", eval.NewReport("regression", cases))
 }
@@ -160,7 +183,14 @@ func runCapability(ctx context.Context, f liveFlags) error {
 	if err != nil {
 		return err
 	}
-	scenarios = eval.LimitSmoke(scenarios, f.smoke, defaultSmokeLimit)
+	if f.runPattern != "" {
+		scenarios, err = eval.FilterByRun(scenarios, f.runPattern)
+	} else {
+		scenarios = eval.LimitSmoke(scenarios, f.smoke, defaultSmokeLimit)
+	}
+	if err != nil {
+		return err
+	}
 
 	goldDir, err := eval.OpenQAGoldDir()
 	if err != nil && f.casesDir != "" {
@@ -190,13 +220,41 @@ func runCapability(ctx context.Context, f liveFlags) error {
 
 	report, err := eval.RunLiveScenarios(ctx, scenarios, subject, eval.LiveOptions{
 		Trials:     f.trials,
+		ModelName:  f.modelName,
 		JudgeModel: judgeModel,
 		GoldByCase: goldByCase,
+		OnProgress: printProgress,
 	})
 	if err != nil {
 		return err
 	}
 	return writeReports(f.outDir, "capability", report)
+}
+
+func printProgress(ev eval.ProgressEvent) {
+	switch ev.Phase {
+	case "case_start":
+		_, _ = fmt.Fprintf(os.Stdout, "=== RUN   %s\n", ev.CaseName)
+	case "trial":
+		status := "PASS"
+		if !ev.Passed {
+			status = "FAIL"
+		}
+		_, _ = fmt.Fprintf(os.Stdout, "    --- %s: trial %d/%d (%.3fs)\n",
+			status, ev.Trial, ev.Trials, ev.Duration.Seconds())
+		if !ev.Passed && ev.Detail != "" {
+			_, _ = fmt.Fprintf(os.Stdout, "        %s\n", ev.Detail)
+		}
+	case "case_done":
+		status := "PASS"
+		if !ev.Passed {
+			status = "FAIL"
+		}
+		_, _ = fmt.Fprintf(os.Stdout, "--- %s: %s (%.3fs)\n", status, ev.CaseName, ev.Duration.Seconds())
+		if !ev.Passed && ev.Detail != "" {
+			_, _ = fmt.Fprintf(os.Stdout, "    %s\n", ev.Detail)
+		}
+	}
 }
 
 func resolveSubjectModel(ctx context.Context, f liveFlags, scenarios []eval.Scenario) (llms.Model, error) {
@@ -319,6 +377,11 @@ func writeReports(outDir, prefix string, report eval.EvalReport) error {
 	_, _ = fmt.Fprintf(os.Stdout, "wrote %s\n", mdPath)
 	_, _ = fmt.Fprintf(os.Stdout, "summary: %d/%d passed\n", report.Summary.Passed, report.Summary.Total)
 	if report.Summary.Failed > 0 {
+		for _, c := range report.Cases {
+			if !c.Passed {
+				_, _ = fmt.Fprintf(os.Stdout, "FAIL\t%s\n", c.Name)
+			}
+		}
 		return fmt.Errorf("agenteval: %d case(s) failed", report.Summary.Failed)
 	}
 	return nil
