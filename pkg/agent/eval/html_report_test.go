@@ -3,7 +3,6 @@ package eval_test
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent/eval"
@@ -86,7 +85,7 @@ func TestWriteHTMLReports(t *testing.T) {
 	require.FileExists(t, detail)
 	raw, err := os.ReadFile(detail)
 	require.NoError(t, err)
-	assert.True(t, strings.Contains(string(raw), "echo_happy"))
+	assert.Contains(t, string(raw), "echo_happy")
 }
 
 func sampleReport(suite, caseName string, passed bool) eval.EvalReport {
