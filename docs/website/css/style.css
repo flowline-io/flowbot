@@ -503,7 +503,8 @@ img {
 	transition: all var(--transition);
 	display: flex;
 	flex-direction: column;
-	justify-content: space-between;
+	justify-content: flex-start;
+	gap: 10px;
 }
 
 .bento-card:hover {
@@ -551,6 +552,7 @@ img {
 	font-size: 0.88rem;
 	color: var(--white-dim);
 	line-height: 1.55;
+	margin: 0;
 }
 
 /* Code card highlight */
@@ -565,6 +567,11 @@ img {
 	overflow-x: auto;
 	margin-top: 12px;
 	border: 1px solid var(--abyss-border);
+}
+
+.bento-card .code-preview,
+.bento-card .audit-log {
+	margin-top: 14px;
 }
 .code-preview .kw {
 	color: #c792ea;
@@ -731,6 +738,11 @@ img {
 	color: var(--white-muted);
 }
 
+.footer-license {
+	color: var(--white-muted);
+	font-size: 0.82rem;
+}
+
 /* --- Page Hero (subpages) --- */
 .page-hero {
 	padding: 140px 28px 60px;
@@ -757,6 +769,55 @@ img {
 	color: var(--white-dim);
 	max-width: 560px;
 	margin: 0 auto;
+}
+
+.section-subtitle-centered {
+	margin: 0 auto;
+}
+
+.workflow-step-types {
+	margin-top: 28px;
+	color: var(--white-muted);
+	font-size: 0.88rem;
+}
+
+.workflow-code-preview {
+	max-width: 620px;
+	margin: 24px auto 0;
+	text-align: left;
+}
+
+.error-page {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 24px;
+	position: relative;
+	z-index: 1;
+}
+
+.error-code {
+	font-family: var(--mono);
+	font-size: 6rem;
+	font-weight: 800;
+	color: var(--cyan);
+	margin-bottom: 0;
+}
+
+.error-message {
+	color: var(--white-dim);
+	font-size: 1.1rem;
+	margin-bottom: 32px;
+}
+
+.error-actions {
+	display: inline-flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	justify-content: center;
 }
 
 .docs-hero-desc {
@@ -1308,5 +1369,21 @@ img {
 	}
 	.card-grid {
 		grid-template-columns: 1fr;
+	}
+	.error-code {
+		font-size: 4.2rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
 	}
 }

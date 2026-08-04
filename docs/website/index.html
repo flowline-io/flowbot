@@ -28,18 +28,15 @@
 		<!-- Navigation -->
 		<nav class="nav">
 			<div class="nav-inner">
-				<a href="https://flowline-io.github.io/" class="nav-logo"
+				<a href="index.html" class="nav-logo"
 					>flowbot<span>.io</span></a
 				>
 				<ul class="nav-links">
-					<li><a href="#overview">Overview</a></li>
-					<li><a href="#problem">Problem</a></li>
-					<li><a href="#capabilities">Capabilities</a></li>
-					<li><a href="#workflow">Workflow</a></li>
-					<li><a href="design.html">Design</a></li>
+					<li><a href="index.html">Home</a></li>
+					<li><a href="design.html">Product</a></li>
 					<li><a href="api.html">API</a></li>
+					<li><a href="tutorials.html">Learn</a></li>
 					<li><a href="skills.html">Skills</a></li>
-					<li><a href="tutorials.html">Tutorials</a></li>
 					<li><a href="docs/getting-started/">Docs</a></li>
 				</ul>
 				<a
@@ -47,7 +44,7 @@
 					class="nav-cta"
 					target="_blank"
 					rel="noopener"
-					>GitHub</a
+					>Community</a
 				>
 				<button class="nav-toggle" aria-label="Menu">
 					<span></span><span></span><span></span>
@@ -63,23 +60,23 @@
 				<div class="hero-grid">
 					<div class="hero-text">
 						<h1 class="hero-title">
-							The <em>Orchestration Engine</em> for Your Homelab
+							The <em>Orchestration Engine</em> for Homelab Systems
 						</h1>
 						<p class="hero-desc">
-							Not just a data hub — an orchestration center that
-							connects isolated self-hosted apps into a unified,
-							programmable data stream.
+							Discover your self-hosted apps, compose capabilities,
+							and operate reliable automation across services from
+							one runtime.
 						</p>
 						<div class="hero-actions">
 							<a href="tutorials.html" class="btn btn-primary"
-								>Get Started &#8627;</a
+								>Discover Tutorials &#8627;</a
 							>
 							<a
 								href="https://github.com/flowline-io/flowbot"
 								class="btn btn-secondary"
 								target="_blank"
 								rel="noopener"
-								>View Source &#8599;</a
+								>Join Community &#8599;</a
 							>
 						</div>
 
@@ -314,7 +311,7 @@
 					<h2 class="section-title">
 						Composable <em>Automation</em>
 					</h2>
-					<p class="section-subtitle" style="margin: 0 auto">
+					<p class="section-subtitle section-subtitle-centered">
 						Connect capabilities like building blocks. Each step
 						invokes a capability through the unified ability layer.
 						The DAG execution engine handles parallelism, error
@@ -329,13 +326,7 @@
 						<div class="dag-node end">notify.send</div>
 					</div>
 
-					<p
-						style="
-							margin-top: 28px;
-							color: var(--white-muted);
-							font-size: 0.88rem;
-						"
-					>
+					<p class="workflow-step-types">
 						Built-in step types: <code>Capability</code>,
 						<code>Message</code>, <code>Fetch</code>,
 						<code>Feed</code>, <code>LLM</code>,
@@ -343,14 +334,7 @@
 						<code>Unique</code>, <code>Torrent</code>
 					</p>
 
-					<div
-						class="code-preview"
-						style="
-							max-width: 620px;
-							margin: 24px auto 0;
-							text-align: left;
-						"
-					>
+					<div class="code-preview workflow-code-preview">
 						<pre><span class="cmt">// Every step invokes through the same pattern</span>
 <span class="kw">result</span>, err := <span class="fn">ability.Invoke</span>(ctx, <span class="str">"bookmark"</span>,
     ability.OpList,
@@ -370,18 +354,15 @@
 						rel="noopener"
 						>GitHub</a
 					>
+					<a href="index.html">Home</a>
 					<a href="design.html">Design</a>
 					<a href="api.html">API</a>
-					<a href="skills.html">Skills</a>
 					<a href="tutorials.html">Tutorials</a>
+					<a href="skills.html">Skills</a>
 					<a href="docs/getting-started/">Docs</a>
-					<span style="color: var(--white-muted); font-size: 0.82rem"
-						>GPL-3.0</span
-					>
+					<span class="footer-license">GPL-3.0</span>
 				</div>
-				<div class="footer-right">
-					Built for the Homelabbers, by the Homelabbers.
-				</div>
+				<div class="footer-right">Discover. Compose. Operate.</div>
 			</footer>
 		</div>
 

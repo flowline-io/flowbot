@@ -4,6 +4,9 @@
 
 (function () {
   "use strict";
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
 
   // --- Mobile Nav Toggle ---
   const navToggle = document.querySelector(".nav-toggle");
@@ -41,31 +44,47 @@
   // Active link for subpages
   (function () {
     const path = window.location.pathname;
+
+    function resolveSitePath(rawPath) {
+      var normalized = rawPath.replace(/\\/g, "/");
+      var localMarker = "/docs/website/";
+      var hostedMarker = "/flowbot/";
+
+      if (normalized.indexOf(localMarker) !== -1) {
+        return normalized.split(localMarker)[1] || "index.html";
+      }
+      if (normalized.indexOf(hostedMarker) !== -1) {
+        return normalized.split(hostedMarker)[1] || "index.html";
+      }
+      return normalized.replace(/^\/+/, "") || "index.html";
+    }
+
+    const sitePath = resolveSitePath(path);
+    const normalizedSitePath = sitePath.endsWith("/")
+      ? sitePath + "index.html"
+      : sitePath;
+    const currentPage =
+      normalizedSitePath.split("/").filter(Boolean).pop() || "index.html";
+
     document.querySelectorAll(".nav-links a[href]").forEach(function (link) {
       var href = link.getAttribute("href");
       // Skip anchor-only links (those are handled by scroll)
       if (href.charAt(0) === "#") return;
       // Skip external links
       if (href.indexOf("://") !== -1) return;
-      // Match if path ends with the href (supports directory-prefixed links)
-      if (href && path.endsWith(href)) {
+      // Exact page match for local html pages
+      if (href && href.endsWith(".html") && currentPage === href) {
         link.classList.add("active");
         return;
       }
-      // Match if path ends with href/index.html (directory-style links)
-      if (href && (path + "index.html").endsWith(href)) {
+      // Docs section: highlight Docs nav when browsing generated docs pages
+      if (
+        href.indexOf("docs/") === 0 &&
+        (normalizedSitePath.indexOf("docs/") === 0 ||
+          normalizedSitePath.indexOf("/docs/") !== -1)
+      ) {
         link.classList.add("active");
         return;
-      }
-      // Docs section: highlight Docs nav on any /docs/ page
-      if (path.indexOf("/docs/") !== -1 && href.indexOf("docs/") === 0) {
-        link.classList.add("active");
-        return;
-      }
-      // Fallback: match last path segment
-      var currentPage = path.split("/").filter(Boolean).pop() || "index.html";
-      if (currentPage === href) {
-        link.classList.add("active");
       }
     });
   })();
@@ -131,6 +150,18 @@
       });
     }
 
+    if (prefersReducedMotion) {
+      lines.forEach(function (line) {
+        const div = document.createElement("div");
+        div.className = "terminal-line";
+        div.innerHTML = '<span class="' + line.cls + '"></span>';
+        div.querySelector("span").textContent = line.text;
+        container.appendChild(div);
+      });
+      if (cursor) cursor.style.animation = "none";
+      return;
+    }
+
     // Pause cursor blink during typing
     if (cursor) cursor.style.animation = "none";
     setTimeout(startTyping, 600);
@@ -138,6 +169,7 @@
 
   // --- Background Node Graph (Canvas) ---
   (function () {
+    if (prefersReducedMotion) return;
     const canvas = document.getElementById("bg-canvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -149,6 +181,7 @@
       canvas.height = rect.height * window.devicePixelRatio;
       canvas.style.width = rect.width + "px";
       canvas.style.height = rect.height + "px";
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
 
@@ -241,6 +274,7 @@
 
   // --- Hero Topology Canvas ---
   (function () {
+    if (prefersReducedMotion) return;
     const canvas = document.getElementById("hero-canvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -252,6 +286,7 @@
       canvas.height = rect.height * window.devicePixelRatio;
       canvas.style.width = rect.width + "px";
       canvas.style.height = rect.height + "px";
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
 
@@ -491,6 +526,7 @@
 
   // --- Workflow DAG Background Canvas ---
   (function () {
+    if (prefersReducedMotion) return;
     const canvas = document.getElementById("workflow-canvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -502,6 +538,7 @@
       canvas.height = rect.height * window.devicePixelRatio;
       canvas.style.width = rect.width + "px";
       canvas.style.height = rect.height + "px";
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
 
