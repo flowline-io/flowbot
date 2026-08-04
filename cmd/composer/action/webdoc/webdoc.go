@@ -75,16 +75,14 @@ const pageTemplate = `<!doctype html>
 <div class="nav-inner">
 <a href="{{.BasePath}}index.html" class="nav-logo">flowbot<span>.io</span></a>
 <ul class="nav-links">
-<li><a href="{{.BasePath}}index.html#overview">Overview</a></li>
-<li><a href="{{.BasePath}}index.html#problem">Problem</a></li>
-<li><a href="{{.BasePath}}index.html#capabilities">Capabilities</a></li>
-<li><a href="{{.BasePath}}index.html#workflow">Workflow</a></li>
-<li><a href="{{.BasePath}}design.html">Design</a></li>
+<li><a href="{{.BasePath}}index.html">Home</a></li>
+<li><a href="{{.BasePath}}design.html">Product</a></li>
 <li><a href="{{.BasePath}}api.html">API</a></li>
-<li><a href="{{.BasePath}}tutorials.html">Tutorials</a></li>
+<li><a href="{{.BasePath}}tutorials.html">Learn</a></li>
+<li><a href="{{.BasePath}}skills.html">Skills</a></li>
 <li><a href="{{.BasePath}}docs/getting-started/">Docs</a></li>
 </ul>
-<a href="https://github.com/flowline-io/flowbot" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
+<a href="https://github.com/flowline-io/flowbot" class="nav-cta" target="_blank" rel="noopener">Community</a>
 <button class="nav-toggle" aria-label="Menu">
 <span></span><span></span><span></span>
 </button>
@@ -120,14 +118,16 @@ const pageTemplate = `<!doctype html>
 <footer class="footer">
 <div class="footer-left">
 <a href="https://github.com/flowline-io/flowbot" target="_blank" rel="noopener">GitHub</a>
+<a href="{{.BasePath}}index.html">Home</a>
 <a href="{{.BasePath}}design.html">Design</a>
 <a href="{{.BasePath}}api.html">API</a>
 <a href="{{.BasePath}}tutorials.html">Tutorials</a>
+<a href="{{.BasePath}}skills.html">Skills</a>
 <a href="{{.BasePath}}docs/getting-started/">Docs</a>
-<span style="color: var(--white-muted); font-size: 0.82rem">GPL-3.0</span>
+<span class="footer-license">GPL-3.0</span>
 </div>
 <div class="footer-right">
-Built for the Homelabbers, by the Homelabbers.
+Discover. Compose. Operate.
 </div>
 </footer>
 <script src="{{.BasePath}}js/main.js"></script>

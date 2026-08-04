@@ -72,8 +72,14 @@
       if (href.charAt(0) === "#") return;
       // Skip external links
       if (href.indexOf("://") !== -1) return;
-      // Exact page match for local html pages
-      if (href && href.endsWith(".html") && currentPage === href) {
+      // Exact page match for top-level website pages only.
+      // For docs/* pages we should not activate Home/Product/API/Learn/Skills.
+      if (
+        href &&
+        href.endsWith(".html") &&
+        normalizedSitePath.indexOf("docs/") !== 0 &&
+        currentPage === href
+      ) {
         link.classList.add("active");
         return;
       }

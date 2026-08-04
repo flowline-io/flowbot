@@ -6,7 +6,7 @@
 		<title>API Reference — Flowbot</title>
 		<meta
 			name="description"
-			content="Complete Flowbot API reference: REST endpoints, authentication, pagination, capability plane, management plane, health probes, and error codes."
+			content="Flowbot API overview: primary HTTP surfaces, auth, probes, and OpenAPI artifacts. Swagger is partial; handlers and user docs remain the source of truth."
 		/>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -60,11 +60,11 @@
 			</div>
 
 			<div class="content">
-				<h2>OpenAPI Specification</h2>
+				<h2>OpenAPI Artifacts</h2>
 				<p>
-					The complete REST API is defined as an OpenAPI 3.0
-					specification. View the machine-readable spec or the
-					interactive Swagger UI:
+					Swagger is an auxiliary surface and does not fully define
+					all HTTP routes. Use it as a quick reference alongside
+					server handlers and user-guide documentation:
 				</p>
 				<ul>
 					<li>
@@ -103,7 +103,7 @@
 				<h3>Authentication</h3>
 				<pre>X-AccessToken: &lt;your-token&gt;</pre>
 
-				<h3>Routing Planes</h3>
+				<h3>Primary HTTP Surfaces</h3>
 				<table>
 					<thead>
 						<tr>
@@ -114,14 +114,19 @@
 					</thead>
 					<tbody>
 						<tr>
-							<td><code>/service/{capability}/*</code></td>
-							<td>Capability Plane</td>
+							<td><code>/service/{module}/*</code></td>
+							<td>Module Routes</td>
 							<td>Business operations</td>
 						</tr>
 						<tr>
 							<td><code>/hub/*</code></td>
 							<td>Management Plane</td>
 							<td>App lifecycle, health</td>
+						</tr>
+						<tr>
+							<td><code>/chatagent/*</code></td>
+							<td>Chat Agent API</td>
+							<td>Agent HTTP endpoints</td>
 						</tr>
 					</tbody>
 				</table>
