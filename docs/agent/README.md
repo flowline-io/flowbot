@@ -139,9 +139,10 @@ Compare optimization A/B with scorecard deltas (`total` / L1 / L2 / L3):
 go run ./cmd/composer agenteval compare --baseline before.json --candidate after.json
 ```
 
-### Phase 2 (documented only)
+### Phase 2
 
-Harness reliability report (run through `pkg/agent/harness`) and Docker `Sandbox` implementation — not in Phase 1.
+Harness reliability report is available through `agenteval harness` (runs through `pkg/agent/harness`), and Docker sandbox mode can be selected via `--sandbox=docker`.
+For current eval fixtures, Docker isolation primarily applies to tools that execute commands (`Exec` path).
 Examples:
 
 ```bash

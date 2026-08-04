@@ -1,0 +1,24 @@
+name: harness_write_file_ok
+suite: harness
+tier: combo
+prompt: write out.txt with hello
+toolset: write_file
+workspace: true
+scripts:
+  - type: tool_call
+    id: c1
+    name: write_file
+    args: '{"path":"out.txt","content":"hello"}'
+  - type: text
+    content: done
+expect:
+  required_tools: [write_file]
+  required_args:
+    write_file: [path, content]
+  max_steps: 5
+  require_completion: true
+  outcome:
+    final_text_contains: [done]
+    files:
+      - path: out.txt
+        equals: hello

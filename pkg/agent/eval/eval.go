@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/pkg/agent/env"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
@@ -140,6 +141,10 @@ type Scenario struct {
 	Tools []tool.Tool
 	// WorkspaceRoot is the isolated workspace for file outcome checks and coding tools.
 	WorkspaceRoot string
+	// ExecEnv is the tool execution environment bound to WorkspaceRoot.
+	ExecEnv env.ExecutionEnv
+	// Sandbox tracks workspace lifecycle for per-trial resets.
+	Sandbox Sandbox
 	// Fixtures seed WorkspaceRoot before each trial (live multi-trial isolation).
 	Fixtures []WorkspaceFixture
 	// Expect defines scoring criteria.

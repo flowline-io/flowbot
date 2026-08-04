@@ -8,12 +8,18 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
-	"github.com/goccy/go-yaml"
+	"github.com/flowline-io/flowbot/pkg/agent/env"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
+	"github.com/goccy/go-yaml"
 )
+
+// LoadOptions customizes scenario loading/runtime wiring.
+type LoadOptions struct {
+	Sandbox Sandbox
+}
 
 // caseFile is the on-disk YAML shape for regression/capability scenarios.
 type caseFile struct {
@@ -71,6 +77,11 @@ type caseFileAssert struct {
 // LoadScenariosFromDir loads *.yaml case files from dir into Scenarios.
 // workspaceParent is used when a case sets workspace: true.
 func LoadScenariosFromDir(dir, workspaceParent string) ([]Scenario, error) {
+	return LoadScenariosFromDirWithOptions(dir, workspaceParent, LoadOptions{})
+}
+
+// LoadScenariosFromDirWithOptions loads *.yaml case files from dir using explicit options.
+func LoadScenariosFromDirWithOptions(dir, workspaceParent string, opts LoadOptions) ([]Scenario, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("eval: read cases dir: %w", err)
@@ -81,7 +92,7 @@ func LoadScenariosFromDir(dir, workspaceParent string) ([]Scenario, error) {
 			continue
 		}
 		path := filepath.Join(dir, ent.Name())
-		sc, err := LoadScenarioFile(path, workspaceParent)
+		sc, err := LoadScenarioFileWithOptions(path, workspaceParent, opts)
 		if err != nil {
 			return nil, fmt.Errorf("eval: load %s: %w", path, err)
 		}
@@ -95,6 +106,11 @@ func LoadScenariosFromDir(dir, workspaceParent string) ([]Scenario, error) {
 
 // LoadScenarioFile loads one YAML case file.
 func LoadScenarioFile(path, workspaceParent string) (Scenario, error) {
+	return LoadScenarioFileWithOptions(path, workspaceParent, LoadOptions{})
+}
+
+// LoadScenarioFileWithOptions loads one YAML case file with options.
+func LoadScenarioFileWithOptions(path, workspaceParent string, opts LoadOptions) (Scenario, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		return Scenario{}, err
@@ -111,15 +127,35 @@ func LoadScenarioFile(path, workspaceParent string) (Scenario, error) {
 		return Scenario{}, err
 	}
 	sc := scenarioFromCase(cf, scripts)
-	if err := prepareScenarioWorkspace(&sc, cf, workspaceParent); err != nil {
+	sb := cloneSandbox(opts.Sandbox)
+	if sb == nil {
+		sb = NewWorkspaceSandbox()
+	}
+	if err := prepareScenarioWorkspace(&sc, cf, workspaceParent, sb); err != nil {
 		return Scenario{}, err
 	}
-	tools, err := toolsForToolset(cf.Toolset, sc.WorkspaceRoot)
+	tools, err := toolsForToolset(cf.Toolset, sc.WorkspaceRoot, sc.ExecEnv)
 	if err != nil {
 		return Scenario{}, err
 	}
 	sc.Tools = tools
 	return sc, nil
+}
+
+func cloneSandbox(sb Sandbox) Sandbox {
+	switch s := sb.(type) {
+	case nil:
+		return nil
+	case *WorkspaceSandbox:
+		return &WorkspaceSandbox{}
+	case *DockerSandbox:
+		clone := *s
+		clone.root = ""
+		return &clone
+	default:
+		// Best effort fallback for custom implementations.
+		return sb
+	}
 }
 
 func scriptsFromCase(in []caseScript) ([]agentllm.ResponseScript, error) {
@@ -172,24 +208,31 @@ func scenarioFromCase(cf caseFile, scripts []agentllm.ResponseScript) Scenario {
 	return sc
 }
 
-func prepareScenarioWorkspace(sc *Scenario, cf caseFile, workspaceParent string) error {
+func prepareScenarioWorkspace(sc *Scenario, cf caseFile, workspaceParent string, sb Sandbox) error {
 	needsWorkspace := cf.Workspace || len(cf.Fixtures) > 0 || toolsetNeedsWorkspace(cf.Toolset)
 	if !needsWorkspace {
 		return nil
 	}
-	sb := NewWorkspaceSandbox()
 	root, err := sb.Prepare(workspaceParent, cf.Name)
 	if err != nil {
 		return err
 	}
 	sc.WorkspaceRoot = root
+	sc.Sandbox = sb
+	if rs, ok := sb.(RuntimeSandbox); ok {
+		sc.ExecEnv = rs.ExecutionEnv(root)
+	} else {
+		sc.ExecEnv = env.Default()
+	}
 	return ResetScenarioWorkspace(*sc)
 }
 
 // ResetScenarioWorkspace clears WorkspaceRoot and rewrites Fixtures for an isolated trial.
 func ResetScenarioWorkspace(sc Scenario) error {
-	sb := NewWorkspaceSandbox()
-	sb.root = sc.WorkspaceRoot
+	sb := sc.Sandbox
+	if sb == nil {
+		sb = &WorkspaceSandbox{root: sc.WorkspaceRoot}
+	}
 	return sb.Reset(sc.WorkspaceRoot, sc.Fixtures)
 }
 
@@ -219,7 +262,10 @@ func writeFixtures(root string, fixtures []caseFixture) error {
 	return nil
 }
 
-func toolsForToolset(toolset, workspaceRoot string) ([]tool.Tool, error) {
+func toolsForToolset(toolset, workspaceRoot string, execEnv env.ExecutionEnv) ([]tool.Tool, error) {
+	if execEnv == nil {
+		execEnv = env.Default()
+	}
 	ws := coding.Workspace{Root: workspaceRoot}
 	switch strings.TrimSpace(toolset) {
 	case "none", "text":
@@ -230,19 +276,19 @@ func toolsForToolset(toolset, workspaceRoot string) ([]tool.Tool, error) {
 		if workspaceRoot == "" {
 			return nil, fmt.Errorf("write_file toolset requires workspace")
 		}
-		return []tool.Tool{coding.WriteFileTool{Workspace: ws}}, nil
+		return []tool.Tool{coding.WriteFileTool{Workspace: ws, Env: execEnv}}, nil
 	case "read_file":
 		if workspaceRoot == "" {
 			return nil, fmt.Errorf("read_file toolset requires workspace")
 		}
-		return []tool.Tool{coding.ReadFileTool{Workspace: ws}}, nil
+		return []tool.Tool{coding.ReadFileTool{Workspace: ws, Env: execEnv}}, nil
 	case "fs":
 		if workspaceRoot == "" {
 			return nil, fmt.Errorf("fs toolset requires workspace")
 		}
 		return []tool.Tool{
-			coding.ReadFileTool{Workspace: ws},
-			coding.WriteFileTool{Workspace: ws},
+			coding.ReadFileTool{Workspace: ws, Env: execEnv},
+			coding.WriteFileTool{Workspace: ws, Env: execEnv},
 			echo.Tool{},
 		}, nil
 	case "coding":
@@ -250,10 +296,10 @@ func toolsForToolset(toolset, workspaceRoot string) ([]tool.Tool, error) {
 			return nil, fmt.Errorf("coding toolset requires workspace")
 		}
 		return []tool.Tool{
-			coding.ReadFileTool{Workspace: ws},
-			coding.WriteFileTool{Workspace: ws},
-			coding.GlobFilesTool{Workspace: ws},
-			coding.GrepFilesTool{Workspace: ws},
+			coding.ReadFileTool{Workspace: ws, Env: execEnv},
+			coding.WriteFileTool{Workspace: ws, Env: execEnv},
+			coding.GlobFilesTool{Workspace: ws, Env: execEnv},
+			coding.GrepFilesTool{Workspace: ws, Env: execEnv},
 			echo.Tool{},
 		}, nil
 	default:

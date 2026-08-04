@@ -1,6 +1,7 @@
 package agenteval
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -27,19 +28,34 @@ func TestEvalCommandShape(t *testing.T) {
 		case "run":
 			require.NotNil(t, sub.Flags().Lookup("cases"))
 			require.NotNil(t, sub.Flags().Lookup("run"))
+		case "harness":
+			require.NotNil(t, sub.Flags().Lookup("cases"))
+			require.NotNil(t, sub.Flags().Lookup("run"))
 		}
 	}
 	require.True(t, names["run"])
+	require.True(t, names["harness"])
 	require.True(t, names["live"])
 	require.True(t, names["compare"])
 	require.True(t, names["export"])
 	require.True(t, names["report"])
 }
 
+func TestRunHarnessWritesReport(t *testing.T) {
+	t.Parallel()
+	out := t.TempDir()
+	require.NoError(t, runHarnessRegression(t.Context(), out, "", "", liveFlags{}))
+	require.FileExists(t, filepath.Join(out, "harness_latest.json"))
+	report, err := eval.LoadReportJSON(filepath.Join(out, "harness_latest.json"))
+	require.NoError(t, err)
+	require.Equal(t, "harness", report.Suite)
+	require.Equal(t, report.Summary.Total, report.Summary.Passed)
+}
+
 func TestRunRegressionWritesReport(t *testing.T) {
 	t.Parallel()
 	out := t.TempDir()
-	require.NoError(t, runRegression(t.Context(), out, "", ""))
+	require.NoError(t, runRegression(t.Context(), out, "", "", liveFlags{}))
 	require.FileExists(t, filepath.Join(out, "regression_latest.json"))
 	require.FileExists(t, filepath.Join(out, "index.html"))
 	report, err := eval.LoadReportJSON(filepath.Join(out, "regression_latest.json"))
@@ -61,7 +77,7 @@ func TestRunReportSingleDetail(t *testing.T) {
 func TestRunRegressionFilterByRun(t *testing.T) {
 	t.Parallel()
 	out := t.TempDir()
-	require.NoError(t, runRegression(t.Context(), out, "", "echo_happy"))
+	require.NoError(t, runRegression(t.Context(), out, "", "echo_happy", liveFlags{}))
 	report, err := eval.LoadReportJSON(filepath.Join(out, "regression_latest.json"))
 	require.NoError(t, err)
 	require.Equal(t, 1, report.Summary.Total)
@@ -101,4 +117,22 @@ func TestFilterSmokeLogic(t *testing.T) {
 	}
 	got := eval.FilterSmoke(scenarios, true, eval.DefaultSmokeCaseNames)
 	require.Len(t, got, 2)
+}
+
+func TestResolveLoadOptions(t *testing.T) {
+	t.Parallel()
+
+	t.Run("invalid sandbox mode", func(t *testing.T) {
+		t.Parallel()
+		_, err := resolveLoadOptions(liveFlags{sandboxMode: "bad"})
+		require.Error(t, err)
+	})
+
+	t.Run("docker mode accepts empty image with default", func(t *testing.T) {
+		t.Parallel()
+		opts, err := resolveLoadOptions(liveFlags{sandboxMode: "docker"})
+		require.NoError(t, err)
+		require.NotNil(t, opts.Sandbox)
+		require.Equal(t, fmt.Sprintf("%T", eval.NewDockerSandbox(eval.DockerSandboxConfig{})), fmt.Sprintf("%T", opts.Sandbox))
+	})
 }

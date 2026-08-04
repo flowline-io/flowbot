@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -29,6 +30,12 @@ func RunFakeScenario(ctx context.Context, scenario Scenario) (RunResult, error) 
 	return executeScenario(ctx, scenario, model, "")
 }
 
+// RunFakeScenarioWithHarness executes one scenario through pkg/agent/harness with FakeModel scripts.
+func RunFakeScenarioWithHarness(ctx context.Context, scenario Scenario) (RunResult, error) {
+	model := agentllm.NewFakeModel(scenario.Scripts...)
+	return executeScenarioWithHarness(ctx, scenario, model, "")
+}
+
 // RunWithModel executes one scenario against an arbitrary llms.Model.
 // modelName is forwarded via llms.WithModel; empty defaults to "eval" (FakeModel-safe).
 func RunWithModel(ctx context.Context, scenario Scenario, model llms.Model, modelName string) (RunResult, error) {
@@ -36,6 +43,14 @@ func RunWithModel(ctx context.Context, scenario Scenario, model llms.Model, mode
 		return RunResult{}, fmt.Errorf("eval: model is required")
 	}
 	return executeScenario(ctx, scenario, model, modelName)
+}
+
+// RunWithModelHarness executes one scenario through pkg/agent/harness.
+func RunWithModelHarness(ctx context.Context, scenario Scenario, model llms.Model, modelName string) (RunResult, error) {
+	if model == nil {
+		return RunResult{}, fmt.Errorf("eval: model is required")
+	}
+	return executeScenarioWithHarness(ctx, scenario, model, modelName)
 }
 
 func executeScenario(ctx context.Context, scenario Scenario, model llms.Model, modelName string) (RunResult, error) {
@@ -60,6 +75,57 @@ func executeScenario(ctx context.Context, scenario Scenario, model llms.Model, m
 	metrics := ScoreScenario(messages, scenario, err)
 	metrics.DurationMs = time.Since(start).Milliseconds()
 	return RunResult{Messages: messages, Metrics: metrics, Err: err}, nil
+}
+
+func executeScenarioWithHarness(ctx context.Context, scenario Scenario, model llms.Model, modelName string) (RunResult, error) {
+	reg := tool.NewRegistry()
+	for _, item := range scenario.Tools {
+		if err := reg.Register(item); err != nil {
+			return RunResult{}, fmt.Errorf("eval: register tool: %w", err)
+		}
+	}
+	cfg := loop.DefaultConfig()
+	if modelName == "" {
+		modelName = "eval"
+	}
+	cfg.ModelName = modelName
+	if scenario.Expect.MaxSteps > 0 {
+		cfg.MaxSteps = scenario.Expect.MaxSteps
+	}
+	hr := harness.New(harness.Options{
+		AgentOptions: loop.Options{
+			Model:    model,
+			Registry: reg,
+			Config:   cfg,
+		},
+		ModelName: modelName,
+	})
+	start := time.Now()
+	stream, err := hr.Prompt(ctx, msg.NewUserMessage(scenario.Prompt))
+	if err != nil {
+		return RunResult{}, err
+	}
+	res, awaitErr := stream.Await(ctx)
+	if awaitErr != nil {
+		return RunResult{}, awaitErr
+	}
+	if waitErr := hr.WaitIdle(ctx); waitErr != nil {
+		return RunResult{}, waitErr
+	}
+	messages := agentMessagesFromAny(res.Messages)
+	metrics := ScoreScenario(messages, scenario, res.Err)
+	metrics.DurationMs = time.Since(start).Milliseconds()
+	return RunResult{Messages: messages, Metrics: metrics, Err: res.Err}, nil
+}
+
+func agentMessagesFromAny(items []any) []msg.AgentMessage {
+	out := make([]msg.AgentMessage, 0, len(items))
+	for _, item := range items {
+		if m, ok := item.(msg.AgentMessage); ok {
+			out = append(out, m)
+		}
+	}
+	return out
 }
 
 // TranscriptSummary builds a short readable excerpt from messages.

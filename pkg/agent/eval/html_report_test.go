@@ -17,15 +17,18 @@ func TestListStampedReports(t *testing.T) {
 	late := sampleReport("capability", "case_b", false)
 	require.NoError(t, eval.WriteReportJSON(filepath.Join(dir, "capability_20260101T120000Z.json"), early))
 	require.NoError(t, eval.WriteReportJSON(filepath.Join(dir, "capability_20260102T120000Z.json"), late))
+	require.NoError(t, eval.WriteReportJSON(filepath.Join(dir, "harness_20260103T120000Z.json"), sampleReport("harness", "harness_echo_happy", true)))
 	require.NoError(t, eval.WriteReportJSON(filepath.Join(dir, "capability_latest.json"), late))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "notes.txt"), []byte("skip"), 0o644))
 
 	files, err := eval.ListStampedReports(dir)
 	require.NoError(t, err)
-	require.Len(t, files, 2)
+	require.Len(t, files, 3)
 	assert.Equal(t, "20260101T120000Z", files[0].Stamp)
 	assert.Equal(t, "20260102T120000Z", files[1].Stamp)
+	assert.Equal(t, "20260103T120000Z", files[2].Stamp)
 	assert.Equal(t, "capability", files[0].Suite)
+	assert.Equal(t, "harness", files[2].Suite)
 	assert.NotNil(t, files[0].Report.Scorecard)
 }
 

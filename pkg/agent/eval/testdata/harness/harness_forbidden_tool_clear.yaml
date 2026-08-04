@@ -1,0 +1,14 @@
+name: harness_forbidden_tool_clear
+suite: harness
+tier: basic
+prompt: say hello without tools
+toolset: echo
+scripts:
+  - type: text
+    content: hello
+expect:
+  forbidden_tools: [echo]
+  max_steps: 3
+  require_completion: true
+  outcome:
+    final_text_contains: [hello]

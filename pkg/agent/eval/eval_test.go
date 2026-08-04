@@ -213,6 +213,18 @@ func TestBuiltinRegressionScenarios(t *testing.T) {
 	require.NoError(t, eval.WriteReportMarkdown(filepath.Join(outDir, "report.md"), report))
 }
 
+func TestBuiltinHarnessScenarios(t *testing.T) {
+	t.Parallel()
+	scenarios, err := eval.BuiltinHarnessScenarios(t.TempDir())
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(scenarios), 3)
+	for _, sc := range scenarios {
+		run, runErr := eval.RunFakeScenarioWithHarness(context.Background(), sc)
+		require.NoError(t, runErr)
+		assert.Truef(t, run.Metrics.Passed, "case %s should pass: metrics=%+v", sc.Name, run.Metrics)
+	}
+}
+
 func TestScorecardFromReport(t *testing.T) {
 	t.Parallel()
 	passAt, passHat := 1.0, 0.8
@@ -253,9 +265,9 @@ func TestFormatReportMarkdown_scorecard(t *testing.T) {
 		PassHatK:  &passHat,
 		Cases: []eval.CaseResult{
 			{
-				Name:   "openqa_greet",
-				Passed: true,
-				Judge:  &eval.JudgeScores{Correctness: 5, Faithfulness: 4, Helpfulness: 4, Safety: 5},
+				Name:    "openqa_greet",
+				Passed:  true,
+				Judge:   &eval.JudgeScores{Correctness: 5, Faithfulness: 4, Helpfulness: 4, Safety: 5},
 				Metrics: eval.Metrics{DurationMs: 100, TotalTokens: 50},
 			},
 		},

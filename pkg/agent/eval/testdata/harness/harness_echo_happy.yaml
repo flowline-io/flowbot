@@ -1,0 +1,21 @@
+name: harness_echo_happy
+suite: harness
+tier: basic
+prompt: echo hi
+toolset: echo
+scripts:
+  - type: tool_call
+    id: c1
+    name: echo
+    args: '{"text":"hi"}'
+  - type: text
+    content: done
+expect:
+  required_tools: [echo]
+  expected_tools: [echo]
+  required_args:
+    echo: [text]
+  max_steps: 5
+  require_completion: true
+  outcome:
+    final_text_contains: [done]

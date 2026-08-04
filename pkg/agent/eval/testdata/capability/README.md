@@ -25,7 +25,7 @@ Set `tier: basic|combo|system|repair` on each case (default **basic**).
 | system | End-to-end discover → edit → verify (fs tools only) |
 | repair | First hop fails (`IsError`); agent recovers |
 
-Optional `metrics: [compliance]` marks L1 compliance eligibility (also inferred from `refuse_` / `admit_` / `*_schema*` names and `forbidden_tools`).
+Optional `metrics: [compliance]` marks L1 compliance eligibility (also inferred from `refuse_` / `admit_` / `*_schema*` names).
 
 ```bash
 # medium + hard (recommended for optimization A/B — avoids smoke saturation)
@@ -54,6 +54,8 @@ go run ./cmd/composer agenteval live --model SUBJECT --difficulty hard --smoke=f
 
 `--smoke` (default) runs `DefaultSmokeCaseNames` only (easy OpenQA). It does **not** include `repair` / `system`. Prefer `--difficulty medium+` or `--smoke=false` for scoring headroom.
 
-## Phase 2 (not in this tree yet)
+## Phase 2
 
-Harness reliability suite (true `pkg/agent/harness` path) and Docker sandbox implementation.
+- Harness reliability suite now lives under `pkg/agent/eval/testdata/harness/` and runs via `agenteval harness`.
+- Docker sandbox can be selected with `--sandbox=docker` (`--sandbox-image/--sandbox-network/--sandbox-memory`).
+- Current capability fixtures use file tools (`read_file` / `write_file` / `glob_files` / `grep_files`) that hit the workspace filesystem API; Docker isolation mainly affects `Exec`-based tools.

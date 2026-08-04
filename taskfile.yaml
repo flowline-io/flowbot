@@ -207,6 +207,11 @@ tasks:
     cmds:
       - go run ./cmd/composer agenteval live --out tmp/agent_eval --trials 3 --smoke
 
+  agent:eval:harness:
+    desc: Run harness reliability eval suite through pkg/agent/harness
+    cmds:
+      - go run ./cmd/composer agenteval harness --out tmp/agent_eval
+
   # Development tools
   tools:
     desc: Install all development tools

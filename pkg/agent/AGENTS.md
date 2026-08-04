@@ -59,6 +59,7 @@ go test ./pkg/agent/...
 go test ./pkg/agent/eval/...
 go tool task agent:eval       # FakeModel regression via composer
 go tool task agent:eval:live  # capability path (L1/L2/L3 Total + appendix pass^k)
+go tool task agent:eval:harness # harness reliability path via pkg/agent/harness
 ```
 
 Eval notes: extend `Expectation`/`Score` (required/forbidden tools, outcome asserts); keep `ExpectedTools` order soft unless `StrictToolOrder`. Scorecard Total = 0.2*L1+0.5*L2+0.3*L3 (judge quality is appendix-only). Case YAML may set `tier` / `metrics`. Do not import `internal/server/chatagent` from this package. Product policy evals live in `internal/server/chatagent/eval`. See [docs/agent/README.md](../../docs/agent/README.md#agent-evaluation).

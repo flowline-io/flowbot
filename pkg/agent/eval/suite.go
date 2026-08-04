@@ -21,6 +21,11 @@ var DefaultSmokeCaseNames = []string{
 
 // BuiltinRegressionScenarios loads YAML cases from testdata/regression.
 func BuiltinRegressionScenarios(workspaceParent string) ([]Scenario, error) {
+	return BuiltinRegressionScenariosWithOptions(workspaceParent, LoadOptions{})
+}
+
+// BuiltinRegressionScenariosWithOptions loads regression YAML with explicit options.
+func BuiltinRegressionScenariosWithOptions(workspaceParent string, opts LoadOptions) ([]Scenario, error) {
 	dir, err := ResolveCasesDir(
 		filepath.Join("testdata", "regression"),
 		filepath.Join("pkg", "agent", "eval", "testdata", "regression"),
@@ -28,7 +33,24 @@ func BuiltinRegressionScenarios(workspaceParent string) ([]Scenario, error) {
 	if err != nil {
 		return nil, err
 	}
-	return LoadScenariosFromDir(dir, workspaceParent)
+	return LoadScenariosFromDirWithOptions(dir, workspaceParent, opts)
+}
+
+// BuiltinHarnessScenarios loads YAML cases from testdata/harness.
+func BuiltinHarnessScenarios(workspaceParent string) ([]Scenario, error) {
+	return BuiltinHarnessScenariosWithOptions(workspaceParent, LoadOptions{})
+}
+
+// BuiltinHarnessScenariosWithOptions loads harness YAML with explicit options.
+func BuiltinHarnessScenariosWithOptions(workspaceParent string, opts LoadOptions) ([]Scenario, error) {
+	dir, err := ResolveCasesDir(
+		filepath.Join("testdata", "harness"),
+		filepath.Join("pkg", "agent", "eval", "testdata", "harness"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return LoadScenariosFromDirWithOptions(dir, workspaceParent, opts)
 }
 
 // BuiltinOpenQASmoke loads capability openqa YAML cases (full openqa set; apply FilterSmoke separately).
@@ -45,11 +67,16 @@ func BuiltinOpenQASmoke() ([]Scenario, error) {
 
 // BuiltinCapabilityScenarios loads openqa + tools capability cases.
 func BuiltinCapabilityScenarios(workspaceParent string) ([]Scenario, error) {
+	return BuiltinCapabilityScenariosWithOptions(workspaceParent, LoadOptions{})
+}
+
+// BuiltinCapabilityScenariosWithOptions loads capability cases with explicit loader options.
+func BuiltinCapabilityScenariosWithOptions(workspaceParent string, opts LoadOptions) ([]Scenario, error) {
 	dirs, err := CapabilityCaseDirs()
 	if err != nil {
 		return nil, err
 	}
-	return LoadScenariosFromDirs(dirs, workspaceParent)
+	return LoadScenariosFromDirsWithOptions(dirs, workspaceParent, opts)
 }
 
 // CapabilityCaseDirs resolves openqa, tools, and repair case directories.
@@ -175,9 +202,14 @@ func FilterByRun(scenarios []Scenario, pattern string) ([]Scenario, error) {
 
 // LoadScenariosFromDirs loads YAML cases from multiple directories (order preserved, then sorted by name).
 func LoadScenariosFromDirs(dirs []string, workspaceParent string) ([]Scenario, error) {
+	return LoadScenariosFromDirsWithOptions(dirs, workspaceParent, LoadOptions{})
+}
+
+// LoadScenariosFromDirsWithOptions loads YAML cases with explicit options.
+func LoadScenariosFromDirsWithOptions(dirs []string, workspaceParent string, opts LoadOptions) ([]Scenario, error) {
 	var out []Scenario
 	for _, dir := range dirs {
-		part, err := LoadScenariosFromDir(dir, workspaceParent)
+		part, err := LoadScenariosFromDirWithOptions(dir, workspaceParent, opts)
 		if err != nil {
 			return nil, err
 		}

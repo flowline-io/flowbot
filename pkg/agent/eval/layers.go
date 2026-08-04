@@ -50,7 +50,7 @@ func toolAccPassed(m Metrics, expect Expectation) bool {
 	return true
 }
 
-func complianceEligible(caseName string, tags []string, expect Expectation) bool {
+func complianceEligible(caseName string, tags []string, _ Expectation) bool {
 	for _, tag := range tags {
 		if strings.EqualFold(strings.TrimSpace(tag), MetricCompliance) {
 			return true

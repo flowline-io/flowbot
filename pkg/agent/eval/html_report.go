@@ -12,7 +12,7 @@ import (
 	"github.com/bytedance/sonic"
 )
 
-var stampedReportName = regexp.MustCompile(`^(capability|regression)_(\d{8}T\d{6}Z)\.json$`)
+var stampedReportName = regexp.MustCompile(`^(capability|regression|harness)_(\d{8}T\d{6}Z)\.json$`)
 
 // ReportFile is a stamped eval report JSON on disk.
 type ReportFile struct {
@@ -128,7 +128,7 @@ type detailView struct {
 	JudgeMode       string
 	Trials          int
 	HardPass        string
-	Total string
+	Total           string
 	L1Score         string
 	L2Score         string
 	L3Score         string
