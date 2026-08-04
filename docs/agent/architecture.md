@@ -1,6 +1,6 @@
 # Agent Engine Architecture
 
-Reference implementation: [pi-agent-core](https://github.com/earendil-works/pi-agent) (TypeScript). Flowbot's Go port lives in `pkg/agent/` with langchaingo at the LLM boundary only.
+Reference implementation: pi-agent-core (TypeScript). Flowbot's Go port lives in `pkg/agent/` with langchaingo at the LLM boundary only.
 
 ## Position in Flowbot
 
@@ -208,7 +208,7 @@ agent_start → turn_start → message_start/end
 
 ## Hooks (`pkg/agent/hooks`)
 
-Typed extension points aligned with [pi-agent](https://github.com/earendil-works/pi-agent) harness hooks. Handlers register on a per-run `hooks.Registry`; the harness bridges loop-affecting hooks into `msg.Config` before each `Prompt`.
+Typed extension points aligned with pi-agent harness hooks. Handlers register on a per-run `hooks.Registry`; the harness bridges loop-affecting hooks into `msg.Config` before each `Prompt`.
 
 ```mermaid
 flowchart LR
