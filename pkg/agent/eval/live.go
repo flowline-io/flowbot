@@ -48,6 +48,10 @@ type LiveOptions struct {
 	OnProgress ProgressFunc
 	// JudgeMode labels quality scoring: "fake", "none", or "model:<name>".
 	JudgeMode string
+	// LatencyBudgetMs overrides default L3 latency budget when > 0.
+	LatencyBudgetMs int64
+	// TokenBudget overrides default L3 token budget when > 0.
+	TokenBudget int
 }
 
 // RunLiveScenarios runs each scenario k times with a real (or fake) model and aggregates pass@k / pass^k.
@@ -98,6 +102,8 @@ func RunLiveScenarios(ctx context.Context, scenarios []Scenario, model llms.Mode
 			report.JudgeMode = "fake"
 		}
 	}
+	report.LatencyBudgetMs = opts.LatencyBudgetMs
+	report.TokenBudget = opts.TokenBudget
 	passAt := PassAtK(allTrials)
 	passHat := PassHatK(allTrials)
 	report.PassAtK = &passAt
@@ -106,7 +112,10 @@ func RunLiveScenarios(ctx context.Context, scenarios []Scenario, model llms.Mode
 		avg := agreeSum / float64(agreeN)
 		report.JudgeGoldAgreement = &avg
 	}
-	sc := ScorecardFromReport(report)
+	sc := ScorecardFromReportOpts(report, ScorecardOptions{
+		LatencyBudgetMs: opts.LatencyBudgetMs,
+		TokenBudget:     opts.TokenBudget,
+	})
 	report.Scorecard = &sc
 	return report, nil
 }
@@ -125,6 +134,7 @@ func runLiveCase(
 	})
 
 	trialPasses := make([]bool, 0, k)
+	trialMetrics := make([]Metrics, 0, k)
 	var last RunResult
 	var totalDuration int64
 	var totalTokens int
@@ -140,6 +150,7 @@ func runLiveCase(
 		totalDuration += run.Metrics.DurationMs
 		totalTokens += run.Metrics.TotalTokens
 		trialPasses = append(trialPasses, run.Metrics.Passed)
+		trialMetrics = append(trialMetrics, run.Metrics)
 		emitProgress(opts.OnProgress, ProgressEvent{
 			Phase: "trial", CaseName: scenario.Name,
 			CaseIndex: idx + 1, CaseTotal: total,
@@ -149,10 +160,12 @@ func runLiveCase(
 		})
 	}
 
-		cr := CaseResultFromRun(scenario.Name, last)
-		cr.Difficulty = NormalizeDifficulty(scenario.Difficulty)
-		cr.TrialPasses = trialPasses
-		cr.Passed = allTrialsPassed(trialPasses)
+	cr := CaseResultFromRun(scenario.Name, last)
+	cr.Difficulty = NormalizeDifficulty(scenario.Difficulty)
+	cr.Tier = NormalizeTier(scenario.Tier)
+	cr.TrialPasses = trialPasses
+	cr.TrialMetrics = trialMetrics
+	cr.Passed = allTrialsPassed(trialPasses)
 	if !cr.Passed && cr.TranscriptSummary == "" {
 		cr.TranscriptSummary = TranscriptSummary(last.Messages, 40)
 	}

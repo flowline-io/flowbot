@@ -76,6 +76,22 @@ func TestLimitSmokeLogic(t *testing.T) {
 	require.Len(t, eval.LimitSmoke(scenarios, false, 5), 7)
 }
 
+func TestRunCapabilityFakeRepeatsDoesNotUnderflowScripts(t *testing.T) {
+	t.Parallel()
+	out := t.TempDir()
+	err := runCapability(t.Context(), liveFlags{
+		outDir:    out,
+		smoke:     true,
+		trials:    1,
+		repeats:   2,
+		judgeFake: true,
+	})
+	require.NoError(t, err)
+	report, loadErr := eval.LoadReportJSON(filepath.Join(out, "capability_latest.json"))
+	require.NoError(t, loadErr)
+	require.NotNil(t, report.Scorecard)
+}
+
 func TestFilterSmokeLogic(t *testing.T) {
 	t.Parallel()
 	scenarios := []eval.Scenario{

@@ -1,5 +1,6 @@
 name: forbidden_tool_clear
 suite: regression
+tier: basic
 prompt: just say ok without tools
 toolset: echo
 scripts:

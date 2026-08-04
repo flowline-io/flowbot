@@ -1,5 +1,6 @@
 name: openqa_greet
 suite: capability
+tier: basic
 prompt: Say hello in one short sentence.
 toolset: echo
 scripts:

@@ -57,10 +57,23 @@ type FileAssert struct {
 	Equals string
 }
 
+// Tier labels for the golden dataset ladder.
+const (
+	TierBasic  = "basic"
+	TierCombo  = "combo"
+	TierSystem = "system"
+	TierRepair = "repair"
+)
+
+// MetricCompliance tags a case as L1 compliance-eligible regardless of name heuristics.
+const MetricCompliance = "compliance"
+
 // Metrics captures scored outcomes for one scenario run.
 type Metrics struct {
 	// ToolSelectionCorrect is true when ExpectedTools appear in order (soft metric).
 	ToolSelectionCorrect bool
+	// ToolSelectionTracked is true when ExpectedTools was non-empty (soft metric denominator).
+	ToolSelectionTracked bool
 	// RequiredToolsCovered is true when every RequiredTools entry was called.
 	RequiredToolsCovered bool
 	// ForbiddenToolsClear is true when no ForbiddenTools entry was called.
@@ -69,6 +82,10 @@ type Metrics struct {
 	ArgsValid bool
 	// OutcomeOK is true when OutcomeAsserts passed (or none were set).
 	OutcomeOK bool
+	// TextOutcomeOK is true when final-text asserts passed (or none were set).
+	TextOutcomeOK bool
+	// FileOutcomeOK is true when file asserts passed (or none were set).
+	FileOutcomeOK bool
 	// StepCount is the number of assistant turns observed.
 	StepCount int
 	// Completed is true when the run finished with a final assistant message and no error.
@@ -85,6 +102,20 @@ type Metrics struct {
 	DurationMs int64
 	// TotalTokens sums assistant Usage.TotalTokens when reported.
 	TotalTokens int
+	// ToolErrorCount is the number of tool results with IsError.
+	ToolErrorCount int
+	// NaturalRepairEligible is true when ToolErrorCount >= 1.
+	NaturalRepairEligible bool
+	// NaturalRepairSuccess is true when eligible and Passed.
+	NaturalRepairSuccess bool
+	// ComplianceEligible is true when this trial counts toward L1.
+	ComplianceEligible bool
+	// CompliancePassed is the L1 gate result for this trial.
+	CompliancePassed bool
+	// ToolAccEligible is true when this trial counts toward ToolCallAcc.
+	ToolAccEligible bool
+	// ToolAccPassed is the ToolCallAcc hard-gate result for this trial.
+	ToolAccPassed bool
 	// Passed is the hard CI gate (required/forbidden/args/outcome/completion/max steps; order only if strict).
 	Passed bool
 }
@@ -97,6 +128,10 @@ type Scenario struct {
 	Suite string
 	// Difficulty is easy, medium, or hard (capability ladder).
 	Difficulty string
+	// Tier is basic, combo, system, or repair.
+	Tier string
+	// MetricsTags lists optional metric tags (e.g. compliance).
+	MetricsTags []string
 	// Prompt is the user message.
 	Prompt string
 	// Scripts are FakeModel responses in order.
@@ -131,6 +166,8 @@ func ScoreWithWorkspace(messages []msg.AgentMessage, expect Expectation, runErr 
 		RequiredToolsCovered: true,
 		ForbiddenToolsClear:  true,
 		OutcomeOK:            true,
+		TextOutcomeOK:        true,
+		FileOutcomeOK:        true,
 	}
 	required := expect.RequiredArgs
 	if required == nil {
@@ -144,18 +181,30 @@ func ScoreWithWorkspace(messages []msg.AgentMessage, expect Expectation, runErr 
 		}
 		scoreAssistant(&m, assistant, required, runErr)
 	}
+	m.ToolErrorCount = CountToolErrors(messages)
 	if expect.RequireCompletion && runErr != nil {
 		m.Completed = false
 	}
 	m.ToolSelectionCorrect = toolsMatch(expect.ExpectedTools, m.ToolsCalled)
+	m.ToolSelectionTracked = len(expect.ExpectedTools) > 0
 	m.RequiredToolsCovered = toolsCovered(expect.RequiredTools, m.ToolsCalled)
 	m.ForbiddenToolsClear = toolsForbiddenClear(expect.ForbiddenTools, m.ToolsCalled)
 	m.StepsWithinLimit = expect.MaxSteps == 0 || m.StepCount <= expect.MaxSteps
 	if expect.MaxSteps > 0 && m.StepCount > expect.MaxSteps && !expect.SoftMaxSteps {
 		m.Completed = false
 	}
-	m.OutcomeOK = scoreOutcome(&m, expect.Outcome, workspaceRoot)
+	m.TextOutcomeOK, m.FileOutcomeOK = scoreOutcomeParts(m, expect.Outcome, workspaceRoot)
+	m.OutcomeOK = m.TextOutcomeOK && m.FileOutcomeOK
 	m.Passed = hardPass(m, expect)
+	m.NaturalRepairEligible = m.ToolErrorCount >= 1
+	m.NaturalRepairSuccess = m.NaturalRepairEligible && m.Passed
+	return m
+}
+
+// ScoreScenario scores a run and annotates L1/L2 layer fields from scenario metadata.
+func ScoreScenario(messages []msg.AgentMessage, sc Scenario, runErr error) Metrics {
+	m := ScoreWithWorkspace(messages, sc.Expect, runErr, sc.WorkspaceRoot)
+	AnnotateLayerMetrics(&m, sc.Name, sc.Tier, sc.MetricsTags, sc.Expect)
 	return m
 }
 
@@ -176,23 +225,29 @@ func hardPass(m Metrics, expect Expectation) bool {
 }
 
 func scoreOutcome(m *Metrics, outcome OutcomeAsserts, workspaceRoot string) bool {
-	text := outcomeSearchText(*m)
-	ok := true
+	textOK, fileOK := scoreOutcomeParts(*m, outcome, workspaceRoot)
+	return textOK && fileOK
+}
+
+func scoreOutcomeParts(m Metrics, outcome OutcomeAsserts, workspaceRoot string) (textOK, fileOK bool) {
+	text := outcomeSearchText(m)
+	textOK = true
 	norm := normalizeOutcomeText(text)
 	for _, want := range outcome.FinalTextContains {
 		if !strings.Contains(norm, normalizeOutcomeText(want)) {
-			ok = false
+			textOK = false
 		}
 	}
 	if len(outcome.FinalTextContainsAny) > 0 && !textContainsAnyFold(text, outcome.FinalTextContainsAny) {
-		ok = false
+		textOK = false
 	}
+	fileOK = true
 	for _, fileAssert := range outcome.Files {
 		if !fileAssertOK(workspaceRoot, fileAssert) {
-			ok = false
+			fileOK = false
 		}
 	}
-	return ok
+	return textOK, fileOK
 }
 
 func outcomeSearchText(m Metrics) string {

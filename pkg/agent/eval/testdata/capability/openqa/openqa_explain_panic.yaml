@@ -1,5 +1,6 @@
 name: openqa_explain_panic
 suite: capability
+tier: basic
 prompt: |
   Explain this Go panic in one short paragraph and name the likely fix:
   panic: runtime error: index out of range [3] with length 3

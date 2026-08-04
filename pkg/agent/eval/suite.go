@@ -52,7 +52,7 @@ func BuiltinCapabilityScenarios(workspaceParent string) ([]Scenario, error) {
 	return LoadScenariosFromDirs(dirs, workspaceParent)
 }
 
-// CapabilityCaseDirs resolves openqa and tools case directories.
+// CapabilityCaseDirs resolves openqa, tools, and repair case directories.
 func CapabilityCaseDirs() ([]string, error) {
 	openqa, err := ResolveCasesDir(
 		filepath.Join("testdata", "capability", "openqa"),
@@ -68,7 +68,50 @@ func CapabilityCaseDirs() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []string{openqa, tools}, nil
+	dirs := []string{openqa, tools}
+	repair, err := ResolveCasesDir(
+		filepath.Join("testdata", "capability", "repair"),
+		filepath.Join("pkg", "agent", "eval", "testdata", "capability", "repair"),
+	)
+	if err == nil {
+		dirs = append(dirs, repair)
+	}
+	return dirs, nil
+}
+
+// FilterByTier keeps scenarios whose Tier is in the allowlist (comma-separated or repeated).
+// Empty spec returns scenarios unchanged.
+func FilterByTier(scenarios []Scenario, spec string) ([]Scenario, error) {
+	spec = strings.TrimSpace(spec)
+	if spec == "" {
+		return scenarios, nil
+	}
+	want := make(map[string]struct{})
+	for _, part := range strings.Split(spec, ",") {
+		part = strings.TrimSpace(strings.ToLower(part))
+		if part == "" {
+			continue
+		}
+		switch part {
+		case TierBasic, TierCombo, TierSystem, TierRepair:
+			want[part] = struct{}{}
+		default:
+			return nil, fmt.Errorf("eval: invalid --tier %q (use basic|combo|system|repair)", part)
+		}
+	}
+	if len(want) == 0 {
+		return nil, fmt.Errorf("eval: empty --tier spec")
+	}
+	out := make([]Scenario, 0, len(scenarios))
+	for _, sc := range scenarios {
+		if _, ok := want[NormalizeTier(sc.Tier)]; ok {
+			out = append(out, sc)
+		}
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("eval: no cases matched --tier %q", spec)
+	}
+	return out, nil
 }
 
 // OpenQAGoldDir resolves the openqa gold directory.

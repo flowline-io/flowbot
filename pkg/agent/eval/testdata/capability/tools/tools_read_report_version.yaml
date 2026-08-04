@@ -1,5 +1,6 @@
 name: tools_read_report_version
 suite: capability
+tier: basic
 prompt: Read VERSION and tell me the version string in one short sentence.
 toolset: read_file
 workspace: true

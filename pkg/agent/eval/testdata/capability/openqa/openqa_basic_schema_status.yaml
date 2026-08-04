@@ -1,0 +1,19 @@
+name: openqa_basic_schema_status
+suite: capability
+difficulty: easy
+tier: basic
+metrics: [compliance]
+prompt: Reply with ONLY a JSON object with keys "ok" (boolean) and "code" (integer 0). No markdown.
+toolset: none
+scripts:
+  - type: text
+    content: '{"ok":true,"code":0}'
+expect:
+  forbidden_tools: [echo, run_terminal]
+  require_completion: true
+  soft_max_steps: true
+  outcome:
+    final_text_contains:
+      - '"ok"'
+      - '"code"'
+      - "0"

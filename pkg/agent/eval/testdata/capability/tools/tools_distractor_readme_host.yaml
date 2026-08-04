@@ -1,6 +1,7 @@
 name: tools_distractor_readme_host
 suite: capability
 difficulty: medium
+tier: combo
 prompt: |
   What is the database host? README may be outdated — use app/settings.yaml as source of truth.
 toolset: fs

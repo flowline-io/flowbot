@@ -1,5 +1,6 @@
 name: openqa_clarify_ambiguous
 suite: capability
+tier: basic
 prompt: Deploy it.
 toolset: none
 scripts:

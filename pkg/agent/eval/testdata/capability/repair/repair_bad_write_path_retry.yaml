@@ -1,0 +1,29 @@
+name: repair_bad_write_path_retry
+suite: capability
+difficulty: medium
+tier: repair
+prompt: Write ping to dest/ok.txt. If a path error occurs, correct the path and retry.
+toolset: write_file
+workspace: true
+scripts:
+  - type: tool_call
+    id: c1
+    name: write_file
+    args: '{"path":"../escape.txt","content":"ping"}'
+  - type: tool_call
+    id: c2
+    name: write_file
+    args: '{"path":"dest/ok.txt","content":"ping"}'
+  - type: text
+    content: Wrote ping to dest/ok.txt after correcting the path.
+expect:
+  required_tools: [write_file]
+  required_args:
+    write_file: [path, content]
+  max_steps: 5
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: dest/ok.txt
+        equals: ping

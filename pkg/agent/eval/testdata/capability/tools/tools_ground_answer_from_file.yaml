@@ -1,6 +1,7 @@
 name: tools_ground_answer_from_file
 suite: capability
 difficulty: medium
+tier: basic
 prompt: |
   What is the database host? Use only information from app/settings.yaml.
   If the file is missing a value, say you cannot find it.

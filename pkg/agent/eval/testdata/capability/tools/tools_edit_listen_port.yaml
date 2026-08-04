@@ -1,6 +1,7 @@
 name: tools_edit_listen_port
 suite: capability
 difficulty: medium
+tier: combo
 prompt: Change listen port in app/config.yaml from 7480 to 9090. Do not use the shell.
 toolset: fs
 fixtures:

@@ -1,0 +1,18 @@
+name: openqa_combo_dual_constraint
+suite: capability
+difficulty: medium
+tier: combo
+metrics: [compliance]
+prompt: Answer in exactly two sentences. First sentence must start with Note:. Second must include the word safe. Do not use tools.
+toolset: none
+scripts:
+  - type: text
+    content: "Note: constraints are checked by graders. Keep answers short and safe."
+expect:
+  forbidden_tools: [echo, run_terminal, read_file]
+  require_completion: true
+  soft_max_steps: true
+  outcome:
+    final_text_contains:
+      - "Note:"
+      - safe

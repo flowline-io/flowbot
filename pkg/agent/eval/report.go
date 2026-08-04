@@ -36,7 +36,11 @@ type EvalReport struct {
 	JudgeGoldAgreement *float64 `json:"judge_gold_agreement,omitempty"`
 	// JudgeMode is "fake", "none", or "model:<name>" for interpreting quality scores.
 	JudgeMode string `json:"judge_mode,omitempty"`
-	// Scorecard aggregates reliability and quality for optimization A/B.
+	// LatencyBudgetMs is the L3 latency budget used for this report when set.
+	LatencyBudgetMs int64 `json:"latency_budget_ms,omitempty"`
+	// TokenBudget is the L3 token budget used for this report when set.
+	TokenBudget int `json:"token_budget,omitempty"`
+	// Scorecard aggregates L1/L2/L3 Total for optimization A/B.
 	Scorecard *CapabilityScorecard `json:"scorecard,omitempty"`
 }
 
@@ -53,10 +57,14 @@ type CaseResult struct {
 	Name string `json:"name"`
 	// Difficulty is easy, medium, or hard when set.
 	Difficulty string `json:"difficulty,omitempty"`
+	// Tier is basic, combo, system, or repair when set.
+	Tier string `json:"tier,omitempty"`
 	// Passed is the hard gate result.
 	Passed bool `json:"passed"`
-	// Metrics holds detailed scores.
+	// Metrics holds detailed scores (last trial for multi-trial cases).
 	Metrics Metrics `json:"metrics"`
+	// TrialMetrics holds per-trial metrics for multi-trial cases.
+	TrialMetrics []Metrics `json:"trial_metrics,omitempty"`
 	// TranscriptSummary is a short human-readable trajectory excerpt (failed cases).
 	TranscriptSummary string `json:"transcript_summary,omitempty"`
 	// Error is a run-level error message when present.
@@ -138,17 +146,39 @@ func writeReportHeader(b *strings.Builder, report EvalReport, sc CapabilityScore
 func writeScorecardTable(b *strings.Builder, report EvalReport, sc CapabilityScorecard) {
 	_, _ = b.WriteString("\n## Scorecard\n\n")
 	_, _ = b.WriteString("| Metric | Value |\n| --- | --- |\n")
-	_, _ = fmt.Fprintf(b, "| **capability_index** (0–100) | **%.2f** |\n", sc.CapabilityIndex)
-	_, _ = fmt.Fprintf(b, "| reliability | %.4f |\n", sc.Reliability)
+	_, _ = fmt.Fprintf(b, "| **total** (0-100) | **%.2f** |\n", sc.Total)
+	_, _ = fmt.Fprintf(b, "| L1 compliance | %.4f |\n", sc.L1Score)
+	_, _ = fmt.Fprintf(b, "| L2 execution | %.4f |\n", sc.L2Score)
+	_, _ = fmt.Fprintf(b, "| L3 efficiency | %.4f |\n", sc.L3Score)
+	_, _ = fmt.Fprintf(b, "| pass@1 | %.4f |\n", sc.PassAt1)
+	if sc.PassAt1CI != nil {
+		_, _ = fmt.Fprintf(b, "| pass@1 Wilson CI | [%.4f, %.4f] |\n", sc.PassAt1CI.Low, sc.PassAt1CI.High)
+	}
+	if sc.ToolCallAcc != nil {
+		_, _ = fmt.Fprintf(b, "| tool_call_acc | %.4f |\n", *sc.ToolCallAcc)
+	}
+	if sc.RepairRate != nil {
+		_, _ = fmt.Fprintf(b, "| repair_rate | %.4f |\n", *sc.RepairRate)
+	}
+	if sc.LatencyScore != nil {
+		_, _ = fmt.Fprintf(b, "| latency_score | %.4f |\n", *sc.LatencyScore)
+	}
+	if sc.TokenScore != nil {
+		_, _ = fmt.Fprintf(b, "| token_score | %.4f |\n", *sc.TokenScore)
+	}
+	_, _ = fmt.Fprintf(b, "| reliability (appendix) | %.4f |\n", sc.Reliability)
 	if sc.PassAtK != nil {
-		_, _ = fmt.Fprintf(b, "| pass@k | %.4f |\n", *sc.PassAtK)
+		_, _ = fmt.Fprintf(b, "| pass@k (appendix) | %.4f |\n", *sc.PassAtK)
 	}
 	if sc.PassHatK != nil {
-		_, _ = fmt.Fprintf(b, "| pass^k | %.4f |\n", *sc.PassHatK)
+		_, _ = fmt.Fprintf(b, "| pass^k (appendix) | %.4f |\n", *sc.PassHatK)
 	}
 	writeQualityRows(b, sc)
 	if sc.JudgeGoldAgreement != nil {
 		_, _ = fmt.Fprintf(b, "| judge_gold_agreement | %.4f |\n", *sc.JudgeGoldAgreement)
+	}
+	if sc.NaturalRepairRate != nil {
+		_, _ = fmt.Fprintf(b, "| natural_repair_rate | %.4f |\n", *sc.NaturalRepairRate)
 	}
 	if report.TotalDurationMs > 0 {
 		_, _ = fmt.Fprintf(b, "| total_duration_ms | %d |\n", report.TotalDurationMs)
@@ -264,11 +294,14 @@ type CompareDiff struct {
 	UnchangedFail      []string             `json:"unchanged_fail"`
 	OnlyBaseline       []string             `json:"only_baseline"`
 	OnlyCandidate      []string             `json:"only_candidate"`
-	BaselineScorecard  CapabilityScorecard  `json:"baseline_scorecard"`
-	CandidateScorecard CapabilityScorecard  `json:"candidate_scorecard"`
-	IndexDelta         float64              `json:"index_delta"`
-	ReliabilityDelta   float64              `json:"reliability_delta"`
-	QualityDelta       *float64             `json:"quality_delta,omitempty"`
+	BaselineScorecard  CapabilityScorecard `json:"baseline_scorecard"`
+	CandidateScorecard CapabilityScorecard `json:"candidate_scorecard"`
+	TotalDelta         float64             `json:"total_delta"`
+	L1Delta            float64             `json:"l1_delta"`
+	L2Delta            float64             `json:"l2_delta"`
+	L3Delta            float64             `json:"l3_delta"`
+	ReliabilityDelta   float64             `json:"reliability_delta"`
+	QualityDelta       *float64            `json:"quality_delta,omitempty"`
 }
 
 // CompareReports contrastively compares two eval reports by case name and scorecard.
@@ -282,7 +315,10 @@ func CompareReports(baseline, candidate EvalReport) CompareDiff {
 		CandidateSuite:     candidate.Suite,
 		BaselineScorecard:  baseSC,
 		CandidateScorecard: candSC,
-		IndexDelta:         round2(candSC.CapabilityIndex - baseSC.CapabilityIndex),
+		TotalDelta:         round2(candSC.Total - baseSC.Total),
+		L1Delta:            round2(candSC.L1Score - baseSC.L1Score),
+		L2Delta:            round2(candSC.L2Score - baseSC.L2Score),
+		L3Delta:            round2(candSC.L3Score - baseSC.L3Score),
 		ReliabilityDelta:   round2(candSC.Reliability - baseSC.Reliability),
 	}
 	if baseSC.QualityAvg != nil && candSC.QualityAvg != nil {
@@ -350,8 +386,14 @@ func FormatCompareMarkdown(diff CompareDiff) string {
 	_, _ = fmt.Fprintf(&b, "- candidate: %s\n", diff.CandidateSuite)
 	_, _ = b.WriteString("\n## Scorecard delta\n\n")
 	_, _ = fmt.Fprintf(&b, "| Metric | Baseline | Candidate | Delta |\n| --- | --- | --- | --- |\n")
-	_, _ = fmt.Fprintf(&b, "| capability_index | %.2f | %.2f | %+.2f |\n",
-		diff.BaselineScorecard.CapabilityIndex, diff.CandidateScorecard.CapabilityIndex, diff.IndexDelta)
+	_, _ = fmt.Fprintf(&b, "| total | %.2f | %.2f | %+.2f |\n",
+		diff.BaselineScorecard.Total, diff.CandidateScorecard.Total, diff.TotalDelta)
+	_, _ = fmt.Fprintf(&b, "| L1 | %.4f | %.4f | %+.4f |\n",
+		diff.BaselineScorecard.L1Score, diff.CandidateScorecard.L1Score, diff.L1Delta)
+	_, _ = fmt.Fprintf(&b, "| L2 | %.4f | %.4f | %+.4f |\n",
+		diff.BaselineScorecard.L2Score, diff.CandidateScorecard.L2Score, diff.L2Delta)
+	_, _ = fmt.Fprintf(&b, "| L3 | %.4f | %.4f | %+.4f |\n",
+		diff.BaselineScorecard.L3Score, diff.CandidateScorecard.L3Score, diff.L3Delta)
 	_, _ = fmt.Fprintf(&b, "| reliability | %.4f | %.4f | %+.4f |\n",
 		diff.BaselineScorecard.Reliability, diff.CandidateScorecard.Reliability, diff.ReliabilityDelta)
 	if diff.QualityDelta != nil && diff.BaselineScorecard.QualityAvg != nil && diff.CandidateScorecard.QualityAvg != nil {

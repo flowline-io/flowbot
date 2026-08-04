@@ -1,5 +1,6 @@
 name: edit_config_no_shell
 suite: regression
+tier: combo
 prompt: Change the port in app/config.yaml from 7480 to 8080. Do not use the shell.
 toolset: fs
 fixtures:

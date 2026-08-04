@@ -1,0 +1,25 @@
+name: tools_basic_write_marker
+suite: capability
+difficulty: easy
+tier: basic
+prompt: Write exactly READY to out/marker.txt and confirm.
+toolset: write_file
+workspace: true
+scripts:
+  - type: tool_call
+    id: c1
+    name: write_file
+    args: '{"path":"out/marker.txt","content":"READY"}'
+  - type: text
+    content: Wrote READY to out/marker.txt.
+expect:
+  required_tools: [write_file]
+  required_args:
+    write_file: [path, content]
+  max_steps: 3
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: out/marker.txt
+        equals: READY

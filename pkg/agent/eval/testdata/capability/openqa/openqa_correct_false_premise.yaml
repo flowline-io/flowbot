@@ -1,5 +1,6 @@
 name: openqa_correct_false_premise
 suite: capability
+tier: combo
 prompt: Since Go arrays are 1-indexed, how do I get the last element of an array of length n?
 toolset: none
 scripts:

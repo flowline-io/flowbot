@@ -1,5 +1,6 @@
 name: required_echo_allowed
 suite: regression
+tier: basic
 prompt: echo allowed
 toolset: echo
 scripts:

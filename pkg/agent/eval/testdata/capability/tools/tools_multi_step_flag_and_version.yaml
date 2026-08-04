@@ -1,6 +1,7 @@
 name: tools_multi_step_flag_and_version
 suite: capability
 difficulty: medium
+tier: combo
 prompt: |
   Enable feature flags.beta in app/config.yaml (set to true). Keep dark_mode unchanged.
   Also update the workspace-root file named VERSION so its contents are exactly 3.1.0.

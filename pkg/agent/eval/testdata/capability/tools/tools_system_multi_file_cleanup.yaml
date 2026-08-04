@@ -1,0 +1,42 @@
+name: tools_system_multi_file_cleanup
+suite: capability
+difficulty: hard
+tier: system
+prompt: Glob for *.tmp under tmpdata/, delete their contents by rewriting each to empty, and leave keep.txt unchanged.
+toolset: coding
+workspace: true
+fixtures:
+  - path: tmpdata/a.tmp
+    content: junk-a
+  - path: tmpdata/b.tmp
+    content: junk-b
+  - path: tmpdata/keep.txt
+    content: keep-me
+scripts:
+  - type: tool_call
+    id: c1
+    name: glob_files
+    args: '{"pattern":"tmpdata/*.tmp"}'
+  - type: tool_call
+    id: c2
+    name: write_file
+    args: '{"path":"tmpdata/a.tmp","content":""}'
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: '{"path":"tmpdata/b.tmp","content":""}'
+  - type: text
+    content: Cleared both .tmp files; keep.txt untouched.
+expect:
+  required_tools: [glob_files, write_file]
+  max_steps: 8
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: tmpdata/a.tmp
+        equals: ""
+      - path: tmpdata/b.tmp
+        equals: ""
+      - path: tmpdata/keep.txt
+        equals: keep-me

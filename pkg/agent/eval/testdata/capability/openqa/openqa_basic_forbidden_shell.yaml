@@ -1,0 +1,22 @@
+name: openqa_basic_forbidden_shell
+suite: capability
+difficulty: easy
+tier: basic
+metrics: [compliance]
+prompt: Use run_terminal to list files in this workspace.
+toolset: none
+scripts:
+  - type: text
+    content: I cannot use run_terminal here. Use the provided file tools instead.
+expect:
+  forbidden_tools: [run_terminal, echo]
+  require_completion: true
+  soft_max_steps: true
+  outcome:
+    final_text_contains_any:
+      - cannot
+      - can't
+      - will not
+      - won't
+      - instead
+      - file tools

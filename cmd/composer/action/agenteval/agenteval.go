@@ -60,16 +60,20 @@ func runCommand() *cobra.Command {
 
 func liveCommand() *cobra.Command {
 	var (
-		outDir     string
-		casesDir   string
-		trials     int
-		smoke      bool
-		modelName  string
-		judgeName  string
-		judgeFake  bool
-		configPath string
-		runPat     string
-		difficulty string
+		outDir          string
+		casesDir        string
+		trials          int
+		smoke           bool
+		modelName       string
+		judgeName       string
+		judgeFake       bool
+		configPath      string
+		runPat          string
+		difficulty      string
+		tier            string
+		latencyBudgetMs int64
+		tokenBudget     int
+		repeats         int
 	)
 	cmd := &cobra.Command{
 		Use:   "live",
@@ -78,27 +82,34 @@ func liveCommand() *cobra.Command {
 			return runCapability(cmd.Context(), liveFlags{
 				outDir: outDir, casesDir: casesDir, trials: trials, smoke: smoke,
 				modelName: modelName, judgeName: judgeName, judgeFake: judgeFake, configPath: configPath,
-				runPattern: runPat, difficulty: difficulty,
+				runPattern: runPat, difficulty: difficulty, tier: tier,
+				latencyBudgetMs: latencyBudgetMs, tokenBudget: tokenBudget, repeats: repeats,
 			})
 		},
 	}
 	cmd.Flags().StringVar(&outDir, "out", defaultOutDir, "output directory for JSON/Markdown reports")
 	cmd.Flags().StringVar(&casesDir, "cases", "", "capability cases directory (default: testdata/capability/*)")
 	cmd.Flags().IntVar(&trials, "trials", defaultTrials, "number of trials per task (k)")
-	cmd.Flags().BoolVar(&smoke, "smoke", true, "run DefaultSmokeCaseNames subset; ignored when --run or --difficulty is set")
+	cmd.Flags().BoolVar(&smoke, "smoke", true, "run DefaultSmokeCaseNames subset; ignored when --run, --difficulty, or --tier is set")
 	cmd.Flags().StringVar(&modelName, "model", "", "subject model name from flowbot.yaml (empty = FakeModel scripts)")
 	cmd.Flags().StringVar(&judgeName, "judge-model", "", "judge model name from flowbot.yaml (requires --model unless --judge-fake)")
 	cmd.Flags().BoolVar(&judgeFake, "judge-fake", true, "use scripted FakeModel judge (set false with --judge-model for real judge)")
 	cmd.Flags().StringVar(&configPath, "config", defaultConfigPath, "directory containing flowbot.yaml (for --model/--judge-model)")
 	cmd.Flags().StringVar(&runPat, "run", "", "regexp matching case names (like go test -run)")
 	cmd.Flags().StringVar(&difficulty, "difficulty", "", "easy|medium|hard|medium+|hard+|easy,hard (skips --smoke when set)")
+	cmd.Flags().StringVar(&tier, "tier", "", "basic|combo|system|repair (comma list; skips --smoke when set)")
+	cmd.Flags().Int64Var(&latencyBudgetMs, "latency-budget-ms", eval.DefaultLatencyBudgetMs, "per-trial latency budget for L3 LatencyScore")
+	cmd.Flags().IntVar(&tokenBudget, "token-budget", eval.DefaultTokenBudget, "per-trial token budget for L3 TokenScore")
+	cmd.Flags().IntVar(&repeats, "repeats", 1, "suite-level repeats for Total/L1/L2/L3 mean+/-CI (N>=2)")
 	return cmd
 }
 
 type liveFlags struct {
-	outDir, casesDir, modelName, judgeName, configPath, runPattern, difficulty string
-	trials                                                                     int
-	smoke, judgeFake                                                           bool
+	outDir, casesDir, modelName, judgeName, configPath, runPattern, difficulty, tier string
+	trials                                                                           int
+	smoke, judgeFake                                                                 bool
+	latencyBudgetMs                                                                  int64
+	tokenBudget, repeats                                                             int
 }
 
 func compareCommand() *cobra.Command {
@@ -179,6 +190,9 @@ func runRegression(ctx context.Context, outDir, casesDir, runPattern string) err
 		}
 		cr := eval.CaseResultFromRun(sc.Name, run)
 		cr.Difficulty = eval.NormalizeDifficulty(sc.Difficulty)
+		cr.Tier = eval.NormalizeTier(sc.Tier)
+		cr.TrialMetrics = []eval.Metrics{run.Metrics}
+		cr.TrialPasses = []bool{run.Metrics.Passed}
 		if !cr.Passed && cr.Error == "" {
 			cr.Error = eval.FailReason(run.Metrics, sc.Expect)
 		}
@@ -214,16 +228,34 @@ func runCapability(ctx context.Context, f liveFlags) error {
 	if err != nil {
 		return err
 	}
-	report, err := eval.RunLiveScenarios(ctx, scenarios, subject, eval.LiveOptions{
-		Trials:     f.trials,
-		ModelName:  f.modelName,
-		JudgeModel: judgeModel,
-		GoldByCase: goldByCase,
-		OnProgress: printProgress,
-		JudgeMode:  judgeModeFromFlags(f, judgeModel != nil),
-	})
-	if err != nil {
-		return err
+	repeats := f.repeats
+	if repeats <= 0 {
+		repeats = 1
+	}
+	cards := make([]eval.CapabilityScorecard, 0, repeats)
+	var report eval.EvalReport
+	for i := 0; i < repeats; i++ {
+		one, err := eval.RunLiveScenarios(ctx, scenarios, subject, eval.LiveOptions{
+			Trials:          f.trials,
+			ModelName:       f.modelName,
+			JudgeModel:      judgeModel,
+			GoldByCase:      goldByCase,
+			OnProgress:      printProgress,
+			JudgeMode:       judgeModeFromFlags(f, judgeModel != nil),
+			LatencyBudgetMs: f.latencyBudgetMs,
+			TokenBudget:     f.tokenBudget,
+		})
+		if err != nil {
+			return err
+		}
+		report = one
+		if one.Scorecard != nil {
+			cards = append(cards, *one.Scorecard)
+		}
+	}
+	if repeats >= 2 && len(cards) >= 2 {
+		merged := eval.MergeRepeatScorecards(cards)
+		report.Scorecard = &merged
 	}
 	return writeReports(f.outDir, "capability", report)
 }
@@ -244,12 +276,18 @@ func loadCapabilityScenarios(f liveFlags, workspace string) ([]eval.Scenario, []
 	if err != nil {
 		return nil, nil, err
 	}
-	useSmoke := f.smoke && f.runPattern == "" && strings.TrimSpace(f.difficulty) == ""
+	useSmoke := f.smoke && f.runPattern == "" && strings.TrimSpace(f.difficulty) == "" && strings.TrimSpace(f.tier) == ""
 	if useSmoke {
 		scenarios = eval.FilterSmoke(scenarios, true, eval.DefaultSmokeCaseNames)
 	} else {
 		if f.difficulty != "" {
 			scenarios, err = eval.FilterByDifficulty(scenarios, f.difficulty)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+		if f.tier != "" {
+			scenarios, err = eval.FilterByTier(scenarios, f.tier)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -308,10 +346,20 @@ func printProgress(ev eval.ProgressEvent) {
 
 func resolveSubjectModel(ctx context.Context, f liveFlags, scenarios []eval.Scenario) (llms.Model, error) {
 	if f.modelName == "" {
+		trials := f.trials
+		if trials <= 0 {
+			trials = defaultTrials
+		}
+		repeats := f.repeats
+		if repeats <= 0 {
+			repeats = 1
+		}
 		scripts := make([]agentllm.ResponseScript, 0)
-		for _, sc := range scenarios {
-			for i := 0; i < f.trials; i++ {
-				scripts = append(scripts, sc.Scripts...)
+		for r := 0; r < repeats; r++ {
+			for _, sc := range scenarios {
+				for i := 0; i < trials; i++ {
+					scripts = append(scripts, sc.Scripts...)
+				}
 			}
 		}
 		return agentllm.NewFakeModel(scripts...), nil
@@ -329,7 +377,11 @@ func resolveSubjectModel(ctx context.Context, f liveFlags, scenarios []eval.Scen
 func resolveJudgeModel(ctx context.Context, f liveFlags, caseCount int) (llms.Model, error) {
 	if f.judgeFake && f.judgeName == "" {
 		// JudgeAll scores 4 dimensions per case (last trial only in live path).
-		n := caseCount*4 + 8
+		repeats := f.repeats
+		if repeats <= 0 {
+			repeats = 1
+		}
+		n := caseCount*4*repeats + 8
 		return agentllm.NewFakeModel(fakeJudgeScripts(n)...), nil
 	}
 	if f.judgeName == "" {
@@ -497,9 +549,9 @@ func printScorecard(report eval.EvalReport) {
 	if sc == nil {
 		return
 	}
-	_, _ = fmt.Fprintf(os.Stdout, "capability_index: %.2f\n", sc.CapabilityIndex)
-	_, _ = fmt.Fprintf(os.Stdout, "reliability: %.4f  hard_pass: %d/%d\n",
-		sc.Reliability, report.Summary.Passed, report.Summary.Total)
+	_, _ = fmt.Fprintf(os.Stdout, "total: %.2f (L1=%.4f L2=%.4f L3=%.4f)\n", sc.Total, sc.L1Score, sc.L2Score, sc.L3Score)
+	_, _ = fmt.Fprintf(os.Stdout, "pass@1: %.4f  reliability: %.4f  hard_pass: %d/%d\n",
+		sc.PassAt1, sc.Reliability, report.Summary.Passed, report.Summary.Total)
 	if sc.PassAtK != nil && sc.PassHatK != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "pass@k: %.4f  pass^k: %.4f\n", *sc.PassAtK, *sc.PassHatK)
 	}

@@ -1,5 +1,6 @@
 name: echo_happy
 suite: regression
+tier: basic
 prompt: echo hi
 toolset: echo
 scripts:

@@ -1,0 +1,41 @@
+name: tools_system_discover_fix_version
+suite: capability
+difficulty: hard
+tier: system
+prompt: Find the Go file under srv/ that contains VERSION_PLACEHOLDER, set VERSION to 2.0.0 in that file, and confirm the final contents.
+toolset: coding
+workspace: true
+fixtures:
+  - path: srv/readme.md
+    content: ignore me
+  - path: srv/app/meta.go
+    content: "package app\n\nconst VERSION = \"VERSION_PLACEHOLDER\"\n"
+scripts:
+  - type: tool_call
+    id: c1
+    name: grep_files
+    args: '{"pattern":"VERSION_PLACEHOLDER","path":"srv"}'
+  - type: tool_call
+    id: c2
+    name: read_file
+    args: '{"path":"srv/app/meta.go"}'
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: '{"path":"srv/app/meta.go","content":"package app\n\nconst VERSION = \"2.0.0\"\n"}'
+  - type: tool_call
+    id: c4
+    name: read_file
+    args: '{"path":"srv/app/meta.go"}'
+  - type: text
+    content: Updated srv/app/meta.go VERSION to 2.0.0.
+expect:
+  required_tools: [grep_files, read_file, write_file]
+  forbidden_tools: [run_terminal]
+  max_steps: 8
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: srv/app/meta.go
+        contains: '"2.0.0"'

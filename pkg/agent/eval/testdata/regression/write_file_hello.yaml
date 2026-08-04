@@ -1,5 +1,6 @@
 name: write_file_hello
 suite: regression
+tier: basic
 prompt: write hello to out.txt
 toolset: write_file
 workspace: true

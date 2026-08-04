@@ -85,20 +85,31 @@ go tool task test:specs   # includes tests/specs/agent_spec_test.go
 | Suite | Purpose | How to run |
 | ----- | ------- | ---------- |
 | **regression** | Near-100% FakeModel / deterministic gates | `go test ./pkg/agent/eval/...` or `go tool task agent:eval` (CI: [Agent Eval](../../.github/workflows/agent-eval.yml)) |
-| **capability** | Quality climb; multi-trial `pass@k` / `pass^k` | `go tool task agent:eval:live` (local/nightly; not a PR hard gate) |
+| **capability** | Layered L1/L2/L3 climb; multi-trial Pass@1 + appendix `pass@k` / `pass^k` | `go tool task agent:eval:live` (local/nightly; not a PR hard gate) |
 
 ### Fake vs true outcome
 
 - **FakeModel regression** exercises grader wiring and **proxy outcomes** (completion, forbidden tools, max steps). Scripts already choose the tool path, so tool *order* is soft by default (`ExpectedTools`); hard tool gates are `RequiredTools` coverage and `ForbiddenTools`.
-- **True outcomes** use isolated workspaces (e.g. `write_file` + file asserts) or live models.
+- **True outcomes** use isolated workspaces (e.g. `write_file` + file asserts) or live models. Workspaces go through the eval `Sandbox` interface (default `WorkspaceSandbox`; Docker deferred).
 - **Product policy** outcomes live in `internal/server/chatagent/eval` (permission.Evaluator / DCG with fixtures)—not inside `pkg/agent/eval`.
 
 ### Graders and gates
 
-- CI hard gates: required/forbidden tools, args, outcome asserts, completion, max steps. LLM-as-judge never blocks PRs.
-- Live: default `k=3` trials; report `pass^k` (all trials) as the reliability signal; `pass@k` for capability exploration.
+- CI hard gates: required/forbidden tools, args, outcome asserts, completion, max steps. LLM-as-judge never blocks PRs and does **not** enter Total.
+- Live: default `k=3` trials; case PASS still requires all trials pass; **Pass@1** = successful trials / (cases×k) enters L3.
 - OpenQA smoke ≤5 tasks; gold files under `pkg/agent/eval/testdata/capability/openqa/`. Judge–gold **agreement** = fraction of dimensions with `|judge−gold|≤1` on a 1–5 scale (skip score `0` / Unknown).
-- Capability fixtures: `openqa/` (instruction/safety/honesty) + `tools/` (true file outcomes). Default `--smoke` uses `DefaultSmokeCaseNames`; `--smoke=false` runs the full set.
+- Capability fixtures: `openqa/` + `tools/` + `repair/`. Default `--smoke` uses `DefaultSmokeCaseNames` (excludes repair/system); `--smoke=false` runs the full set.
+
+### Scorecard (replaces capability_index)
+
+```
+Total = 100 * (0.2*L1 + 0.5*L2 + 0.3*L3)
+L1 = compliance rate (forbidden tools + text guardrails; not tool selection)
+L2 = (ToolCallAcc + RepairRate) / 2   # RepairRate from tier=repair only; else ToolCallAcc
+L3 = mean(Pass@1, LatencyScore?, TokenScore?)  # omit dims when actual==0
+```
+
+Appendix: judge quality, `pass@k` / `pass^k`, natural repair rate. Wilson CI on Pass@1/RepairRate; `--repeats N` (N≥2) for Total CI. Budgets: `--latency-budget-ms` (default 8000), `--token-budget` (default 6000). Historical `capability_index` trends are discontinued.
 
 ### Graduation
 
@@ -115,20 +126,22 @@ go run ./cmd/composer agenteval export --report ... --out tmp/agent_eval/drafts
 go run ./cmd/composer agenteval report --dir tmp/agent_eval   # HTML overview + detail pages
 ```
 
-Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`, `--run`, `--difficulty` (`easy|medium|hard|medium+`).
-
-Reports include a **capability scorecard** (`capability_index` 0–100 = reliability + quality). Quality dimensions require a real judge:
+Flags: `--cases`, `--out`, `--trials`, `--smoke`, `--model`, `--judge-model`, `--config`, `--run`, `--difficulty`, `--tier`, `--latency-budget-ms`, `--token-budget`, `--repeats`.
 
 ```bash
 go run ./cmd/composer agenteval live --model SUBJECT --judge-model JUDGE --judge-fake=false --difficulty medium+
+go run ./cmd/composer agenteval live --model SUBJECT --tier repair --smoke=false
 ```
 
-Compare optimization A/B with scorecard deltas:
+Compare optimization A/B with scorecard deltas (`total` / L1 / L2 / L3):
 
 ```bash
 go run ./cmd/composer agenteval compare --baseline before.json --candidate after.json
 ```
 
+### Phase 2 (documented only)
+
+Harness reliability report (run through `pkg/agent/harness`) and Docker `Sandbox` implementation — not in Phase 1.
 Examples:
 
 ```bash

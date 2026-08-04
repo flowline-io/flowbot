@@ -1,6 +1,7 @@
 name: tools_resolve_conflicting_ports
 suite: capability
 difficulty: hard
+tier: combo
 prompt: |
   What listen port should production use? Multiple files disagree.
   Prefer app/prod.yaml over README.md and app/dev.yaml. Answer with the port number.

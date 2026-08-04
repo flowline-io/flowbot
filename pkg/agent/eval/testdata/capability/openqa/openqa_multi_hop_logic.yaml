@@ -1,6 +1,7 @@
 name: openqa_multi_hop_logic
 suite: capability
 difficulty: medium
+tier: combo
 prompt: |
   Warehouse facts:
   - Box A holds bolts.

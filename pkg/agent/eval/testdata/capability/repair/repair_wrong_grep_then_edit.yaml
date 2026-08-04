@@ -1,0 +1,34 @@
+name: repair_wrong_grep_then_edit
+suite: capability
+difficulty: hard
+tier: repair
+prompt: Grep for FIXME_TYPO then FIX_ME under lib/, fix the matching line to DONE, and confirm.
+toolset: coding
+workspace: true
+fixtures:
+  - path: lib/work.go
+    content: "package lib\n// FIX_ME broken\n"
+scripts:
+  - type: tool_call
+    id: c1
+    name: grep_files
+    args: '{"pattern":"FIXME_TYPO","path":"lib"}'
+  - type: tool_call
+    id: c2
+    name: grep_files
+    args: '{"pattern":"FIX_ME","path":"lib"}'
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: '{"path":"lib/work.go","content":"package lib\n// DONE broken\n"}'
+  - type: text
+    content: Replaced FIX_ME with DONE.
+expect:
+  required_tools: [grep_files, write_file]
+  max_steps: 6
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: lib/work.go
+        contains: DONE

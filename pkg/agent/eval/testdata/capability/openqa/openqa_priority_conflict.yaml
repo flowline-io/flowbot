@@ -1,6 +1,7 @@
 name: openqa_priority_conflict
 suite: capability
 difficulty: medium
+tier: combo
 prompt: |
   Write a one-line status. Constraints:
   1) Use the word GREEN.

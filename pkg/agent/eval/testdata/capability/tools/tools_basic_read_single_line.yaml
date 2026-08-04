@@ -1,0 +1,27 @@
+name: tools_basic_read_single_line
+suite: capability
+difficulty: easy
+tier: basic
+prompt: Read notes/tip.txt and reply with only the file contents.
+toolset: read_file
+workspace: true
+fixtures:
+  - path: notes/tip.txt
+    content: use soft_max_steps for live eval
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"notes/tip.txt"}'
+  - type: text
+    content: use soft_max_steps for live eval
+expect:
+  required_tools: [read_file]
+  required_args:
+    read_file: [path]
+  max_steps: 3
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    final_text_contains:
+      - soft_max_steps

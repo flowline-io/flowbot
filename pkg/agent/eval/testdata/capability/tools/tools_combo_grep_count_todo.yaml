@@ -1,0 +1,30 @@
+name: tools_combo_grep_count_todo
+suite: capability
+difficulty: medium
+tier: combo
+prompt: Grep for TODO in pkg/ and report how many matching lines you found (include the number).
+toolset: coding
+workspace: true
+fixtures:
+  - path: pkg/a.go
+    content: "package pkg\n// TODO: one\n"
+  - path: pkg/b.go
+    content: "package pkg\n// TODO: two\n"
+scripts:
+  - type: tool_call
+    id: c1
+    name: grep_files
+    args: '{"pattern":"TODO","path":"pkg"}'
+  - type: text
+    content: Found 2 TODO matching lines under pkg/.
+expect:
+  required_tools: [grep_files]
+  required_args:
+    grep_files: [pattern]
+  max_steps: 4
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    final_text_contains_any:
+      - "2"
+      - two

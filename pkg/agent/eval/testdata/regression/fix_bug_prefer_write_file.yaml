@@ -1,5 +1,6 @@
 name: fix_bug_prefer_write_file
 suite: regression
+tier: combo
 prompt: Fix the off-by-one in src/sum.go (loop should use < not <=). Prefer write_file over shell sed.
 toolset: fs
 fixtures:

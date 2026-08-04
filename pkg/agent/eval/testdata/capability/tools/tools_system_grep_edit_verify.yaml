@@ -1,0 +1,38 @@
+name: tools_system_grep_edit_verify
+suite: capability
+difficulty: hard
+tier: system
+prompt: Find the file with BROKEN_FLAG, set it to false, then re-read the file to verify.
+toolset: coding
+workspace: true
+fixtures:
+  - path: cfg/flags.yaml
+    content: "feature:\n  BROKEN_FLAG: true\n  other: 1\n"
+scripts:
+  - type: tool_call
+    id: c1
+    name: grep_files
+    args: '{"pattern":"BROKEN_FLAG","path":"cfg"}'
+  - type: tool_call
+    id: c2
+    name: read_file
+    args: '{"path":"cfg/flags.yaml"}'
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: '{"path":"cfg/flags.yaml","content":"feature:\n  BROKEN_FLAG: false\n  other: 1\n"}'
+  - type: tool_call
+    id: c4
+    name: read_file
+    args: '{"path":"cfg/flags.yaml"}'
+  - type: text
+    content: BROKEN_FLAG is now false.
+expect:
+  required_tools: [grep_files, write_file, read_file]
+  max_steps: 8
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: cfg/flags.yaml
+        contains: "BROKEN_FLAG: false"

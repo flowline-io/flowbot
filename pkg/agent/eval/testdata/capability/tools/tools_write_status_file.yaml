@@ -1,5 +1,6 @@
 name: tools_write_status_file
 suite: capability
+tier: basic
 prompt: Create status.txt containing exactly READY (no extra whitespace or lines).
 toolset: write_file
 workspace: true

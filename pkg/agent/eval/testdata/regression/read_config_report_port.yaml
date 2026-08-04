@@ -1,5 +1,6 @@
 name: read_config_report_port
 suite: regression
+tier: basic
 prompt: Read app/config.yaml and tell me which port the service listens on.
 toolset: read_file
 fixtures:

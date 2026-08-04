@@ -1,6 +1,8 @@
 name: openqa_nested_json_schema
 suite: capability
 difficulty: hard
+tier: basic
+metrics: [compliance]
 prompt: |
   Reply with ONLY a JSON object (no markdown fences) matching this schema:
   {"ok": boolean, "items": [{"id": string, "score": integer 1-3}], "note": string}

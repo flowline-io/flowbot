@@ -20,6 +20,8 @@ type caseFile struct {
 	Name       string        `yaml:"name"`
 	Suite      string        `yaml:"suite"`
 	Difficulty string        `yaml:"difficulty"` // easy | medium | hard (empty = easy)
+	Tier       string        `yaml:"tier"`       // basic | combo | system | repair
+	Metrics    []string      `yaml:"metrics"`    // e.g. compliance
 	Prompt     string        `yaml:"prompt"`
 	Toolset    string        `yaml:"toolset"`
 	Workspace  bool          `yaml:"workspace"`
@@ -137,11 +139,13 @@ func scriptsFromCase(in []caseScript) ([]agentllm.ResponseScript, error) {
 
 func scenarioFromCase(cf caseFile, scripts []agentllm.ResponseScript) Scenario {
 	sc := Scenario{
-		Name:       cf.Name,
-		Suite:      cf.Suite,
-		Difficulty: NormalizeDifficulty(cf.Difficulty),
-		Prompt:     cf.Prompt,
-		Scripts:    scripts,
+		Name:        cf.Name,
+		Suite:       cf.Suite,
+		Difficulty:  NormalizeDifficulty(cf.Difficulty),
+		Tier:        NormalizeTier(cf.Tier),
+		MetricsTags: append([]string(nil), cf.Metrics...),
+		Prompt:      cf.Prompt,
+		Scripts:     scripts,
 		Expect: Expectation{
 			RequiredTools:     cf.Expect.RequiredTools,
 			ForbiddenTools:    cf.Expect.ForbiddenTools,
@@ -173,8 +177,9 @@ func prepareScenarioWorkspace(sc *Scenario, cf caseFile, workspaceParent string)
 	if !needsWorkspace {
 		return nil
 	}
-	root := filepath.Join(workspaceParent, cf.Name)
-	if err := os.MkdirAll(root, 0o755); err != nil {
+	sb := NewWorkspaceSandbox()
+	root, err := sb.Prepare(workspaceParent, cf.Name)
+	if err != nil {
 		return err
 	}
 	sc.WorkspaceRoot = root
@@ -183,20 +188,9 @@ func prepareScenarioWorkspace(sc *Scenario, cf caseFile, workspaceParent string)
 
 // ResetScenarioWorkspace clears WorkspaceRoot and rewrites Fixtures for an isolated trial.
 func ResetScenarioWorkspace(sc Scenario) error {
-	if strings.TrimSpace(sc.WorkspaceRoot) == "" {
-		return nil
-	}
-	if err := os.RemoveAll(sc.WorkspaceRoot); err != nil {
-		return fmt.Errorf("eval: reset workspace: %w", err)
-	}
-	if err := os.MkdirAll(sc.WorkspaceRoot, 0o755); err != nil {
-		return err
-	}
-	fixtures := make([]caseFixture, 0, len(sc.Fixtures))
-	for _, f := range sc.Fixtures {
-		fixtures = append(fixtures, caseFixture{Path: f.Path, Content: f.Content})
-	}
-	return writeFixtures(sc.WorkspaceRoot, fixtures)
+	sb := NewWorkspaceSandbox()
+	sb.root = sc.WorkspaceRoot
+	return sb.Reset(sc.WorkspaceRoot, sc.Fixtures)
 }
 
 func toolsetNeedsWorkspace(toolset string) bool {

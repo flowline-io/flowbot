@@ -1,6 +1,7 @@
 name: tools_glob_find_and_redact
 suite: capability
 difficulty: hard
+tier: system
 prompt: |
   Find the secrets YAML under configs/ (do not assume the filename), then redact the password
   value to REDACTED while keeping the username. Write the updated file back.

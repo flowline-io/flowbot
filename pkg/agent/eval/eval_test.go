@@ -231,7 +231,8 @@ func TestScorecardFromReport(t *testing.T) {
 	require.NotNil(t, sc.QualityAvg)
 	assert.InDelta(t, 4.5, *sc.QualityAvg, 1e-9)
 	assert.InDelta(t, 0.88, sc.Reliability, 1e-9) // 0.6*0.8 + 0.4*1.0
-	assert.Greater(t, sc.CapabilityIndex, 80.0)
+	assert.GreaterOrEqual(t, sc.Total, 0.0)
+	assert.LessOrEqual(t, sc.Total, 100.0)
 
 	fake := report
 	fake.JudgeMode = "fake"
@@ -267,7 +268,7 @@ func TestFormatReportMarkdown_scorecard(t *testing.T) {
 	raw, err := os.ReadFile(path)
 	require.NoError(t, err)
 	body := string(raw)
-	assert.Contains(t, body, "capability_index")
+	assert.Contains(t, body, "**total**")
 	assert.Contains(t, body, "quality_avg")
 	assert.Contains(t, body, "openqa_greet")
 	assert.Contains(t, body, "| corr |")

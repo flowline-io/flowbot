@@ -57,7 +57,7 @@ func executeScenario(ctx context.Context, scenario Scenario, model llms.Model, m
 	messages, err := loop.RunLoop(ctx, []msg.AgentMessage{
 		msg.NewUserMessage(scenario.Prompt),
 	}, &msg.Context{}, cfg, loop.LoopDeps{Model: model, Registry: reg}, nil)
-	metrics := ScoreWithWorkspace(messages, scenario.Expect, err, scenario.WorkspaceRoot)
+	metrics := ScoreScenario(messages, scenario, err)
 	metrics.DurationMs = time.Since(start).Milliseconds()
 	return RunResult{Messages: messages, Metrics: metrics, Err: err}, nil
 }

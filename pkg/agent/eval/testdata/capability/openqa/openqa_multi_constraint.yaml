@@ -1,5 +1,6 @@
 name: openqa_multi_constraint
 suite: capability
+tier: combo
 prompt: |
   In at most two short sentences, name one benefit of code review and one risk of skipping tests.
   Do not use bullet lists or tools.

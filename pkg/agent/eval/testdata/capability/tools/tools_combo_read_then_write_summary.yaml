@@ -1,0 +1,36 @@
+name: tools_combo_read_then_write_summary
+suite: capability
+difficulty: medium
+tier: combo
+prompt: Read data/source.txt and write a one-line summary to data/summary.txt containing the word SUMMARY and the source text.
+toolset: fs
+workspace: true
+fixtures:
+  - path: data/source.txt
+    content: flowbot eval ladder
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"data/source.txt"}'
+  - type: tool_call
+    id: c2
+    name: write_file
+    args: '{"path":"data/summary.txt","content":"SUMMARY flowbot eval ladder"}'
+  - type: text
+    content: Wrote SUMMARY flowbot eval ladder to data/summary.txt.
+expect:
+  required_tools: [read_file, write_file]
+  expected_tools: [read_file, write_file]
+  required_args:
+    read_file: [path]
+    write_file: [path, content]
+  max_steps: 5
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: data/summary.txt
+        contains: SUMMARY
+      - path: data/summary.txt
+        contains: flowbot eval ladder

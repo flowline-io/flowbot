@@ -1,6 +1,7 @@
 name: tools_grep_then_fix_todo
 suite: capability
 difficulty: hard
+tier: system
 prompt: |
   Find the Go file that still contains TODO(panic) and fix that line so Sum returns the sum of xs
   without panicking on empty input. Keep package and function name.

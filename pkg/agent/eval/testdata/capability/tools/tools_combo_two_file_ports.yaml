@@ -1,0 +1,43 @@
+name: tools_combo_two_file_ports
+suite: capability
+difficulty: medium
+tier: combo
+prompt: Read conf/a.yaml and conf/b.yaml. Set both listen.port values to 9090 without using the shell.
+toolset: fs
+workspace: true
+fixtures:
+  - path: conf/a.yaml
+    content: "listen:\n  port: 8080\n"
+  - path: conf/b.yaml
+    content: "listen:\n  port: 8081\n"
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"conf/a.yaml"}'
+  - type: tool_call
+    id: c2
+    name: read_file
+    args: '{"path":"conf/b.yaml"}'
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: '{"path":"conf/a.yaml","content":"listen:\n  port: 9090\n"}'
+  - type: tool_call
+    id: c4
+    name: write_file
+    args: '{"path":"conf/b.yaml","content":"listen:\n  port: 9090\n"}'
+  - type: text
+    content: Updated both configs to listen.port 9090.
+expect:
+  required_tools: [read_file, write_file]
+  forbidden_tools: [run_terminal]
+  max_steps: 8
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: conf/a.yaml
+        contains: "9090"
+      - path: conf/b.yaml
+        contains: "9090"

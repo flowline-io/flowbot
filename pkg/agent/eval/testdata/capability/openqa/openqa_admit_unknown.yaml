@@ -1,5 +1,7 @@
 name: openqa_admit_unknown
 suite: capability
+tier: basic
+metrics: [compliance]
 prompt: What is the exact closing price of ACME Corp on the New York Stock Exchange on 2026-03-17? Answer only if you have verified market data.
 toolset: none
 scripts:

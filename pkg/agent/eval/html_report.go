@@ -128,7 +128,11 @@ type detailView struct {
 	JudgeMode       string
 	Trials          int
 	HardPass        string
-	CapabilityIndex string
+	Total string
+	L1Score         string
+	L2Score         string
+	L3Score         string
+	PassAt1         string
 	Reliability     string
 	PassAtK         string
 	PassHatK        string
@@ -192,7 +196,11 @@ func detailPageData(report EvalReport) detailView {
 		JudgeMode:       report.JudgeMode,
 		Trials:          report.Trials,
 		HardPass:        fmt.Sprintf("%d/%d (%.1f%%)", report.Summary.Passed, report.Summary.Total, 100*sc.HardPassRate),
-		CapabilityIndex: fmt.Sprintf("%.2f", sc.CapabilityIndex),
+		Total:           fmt.Sprintf("%.2f", sc.Total),
+		L1Score:         fmt.Sprintf("%.4f", sc.L1Score),
+		L2Score:         fmt.Sprintf("%.4f", sc.L2Score),
+		L3Score:         fmt.Sprintf("%.4f", sc.L3Score),
+		PassAt1:         fmt.Sprintf("%.4f", sc.PassAt1),
 		Reliability:     fmt.Sprintf("%.4f", sc.Reliability),
 		PassAtK:         optionalFloat(sc.PassAtK, "%.4f"),
 		PassHatK:        optionalFloat(sc.PassHatK, "%.4f"),
@@ -280,7 +288,7 @@ func overviewPageData(reports []ReportFile) (overviewView, error) {
 				sc = &tmp
 			}
 			cs.Labels = append(cs.Labels, f.Stamp)
-			cs.Index = append(cs.Index, sc.CapabilityIndex)
+			cs.Index = append(cs.Index, sc.Total)
 			cs.Hard = append(cs.Hard, sc.HardPassRate)
 			cs.PassAt = append(cs.PassAt, sc.PassAtK)
 			cs.PassHat = append(cs.PassHat, sc.PassHatK)
@@ -288,7 +296,7 @@ func overviewPageData(reports []ReportFile) (overviewView, error) {
 			so.Runs = append(so.Runs, runRow{
 				Stamp:      f.Stamp,
 				HardPass:   fmt.Sprintf("%d/%d", f.Report.Summary.Passed, f.Report.Summary.Total),
-				Index:      fmt.Sprintf("%.2f", sc.CapabilityIndex),
+				Index:      fmt.Sprintf("%.2f", sc.Total),
 				DetailHref: "html/" + DetailHTMLName(f.Suite, f.Stamp),
 				Passed:     f.Report.Summary.Passed,
 				Total:      f.Report.Summary.Total,
@@ -348,7 +356,11 @@ pre { background:#0b1016; border:1px solid var(--border); border-radius:6px; pad
 <h2>Scorecard</h2>
 <table>
 <tr><th>Metric</th><th>Value</th></tr>
-<tr><td>capability_index</td><td><strong>{{.CapabilityIndex}}</strong></td></tr>
+<tr><td>total</td><td><strong>{{.Total}}</strong></td></tr>
+<tr><td>L1</td><td>{{.L1Score}}</td></tr>
+<tr><td>L2</td><td>{{.L2Score}}</td></tr>
+<tr><td>L3</td><td>{{.L3Score}}</td></tr>
+<tr><td>pass@1</td><td>{{.PassAt1}}</td></tr>
 <tr><td>reliability</td><td>{{.Reliability}}</td></tr>
 <tr><td>pass@k</td><td>{{.PassAtK}}</td></tr>
 <tr><td>pass^k</td><td>{{.PassHatK}}</td></tr>
@@ -426,7 +438,7 @@ th { color:var(--muted); font-weight:500; }
 <h2>{{.Name}}</h2>
 <div class="chart-wrap"><canvas id="chart-{{.Name}}"></canvas></div>
 <table>
-<tr><th>stamp</th><th>hard_pass</th><th>capability_index</th><th>detail</th></tr>
+<tr><th>stamp</th><th>hard_pass</th><th>total</th><th>detail</th></tr>
 {{range .Runs}}
 <tr>
 <td>{{.Stamp}}</td>
@@ -459,7 +471,7 @@ for (const s of payload.suites || []) {
     data: {
       labels: s.labels,
       datasets: [
-        series('capability_index', s.index, '#7eb6ff'),
+        series('total', s.index, '#7eb6ff'),
         series('hard_pass_rate', s.hard.map(v => v * 100), '#3ecf8e'),
         series('pass@k', (s.pass_at || []).map(v => v == null ? null : v * 100), '#ffd580'),
         series('pass^k', (s.pass_hat || []).map(v => v == null ? null : v * 100), '#c792ea'),
@@ -476,7 +488,7 @@ for (const s of payload.suites || []) {
             label: (ctx) => {
               const v = ctx.parsed.y;
               if (v == null) return ctx.dataset.label + ': n/a';
-              if (ctx.dataset.label === 'capability_index') return ctx.dataset.label + ': ' + v.toFixed(2);
+              if (ctx.dataset.label === 'total') return ctx.dataset.label + ': ' + v.toFixed(2);
               if (ctx.dataset.label === 'quality_avg') return ctx.dataset.label + ': ' + (v / 20).toFixed(2);
               return ctx.dataset.label + ': ' + (v / 100).toFixed(4);
             }

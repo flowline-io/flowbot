@@ -1,0 +1,34 @@
+name: repair_bad_glob_then_fix
+suite: capability
+difficulty: medium
+tier: repair
+prompt: Find conf*.yaml under settings/ (you may mistype the pattern once) and set mode to prod.
+toolset: coding
+workspace: true
+fixtures:
+  - path: settings/conf.yaml
+    content: "mode: dev\n"
+scripts:
+  - type: tool_call
+    id: c1
+    name: glob_files
+    args: '{"pattern":"settings/confx*.yaml"}'
+  - type: tool_call
+    id: c2
+    name: glob_files
+    args: '{"pattern":"settings/conf*.yaml"}'
+  - type: tool_call
+    id: c3
+    name: write_file
+    args: '{"path":"settings/conf.yaml","content":"mode: prod\n"}'
+  - type: text
+    content: Set mode to prod in settings/conf.yaml.
+expect:
+  required_tools: [glob_files, write_file]
+  max_steps: 6
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: settings/conf.yaml
+        contains: "mode: prod"

@@ -1,0 +1,27 @@
+name: repair_missing_then_create
+suite: capability
+difficulty: medium
+tier: repair
+prompt: Ensure out/created.txt contains hello. If the file is missing, create it. Prefer checking first.
+toolset: fs
+workspace: true
+scripts:
+  - type: tool_call
+    id: c1
+    name: read_file
+    args: '{"path":"out/created.txt"}'
+  - type: tool_call
+    id: c2
+    name: write_file
+    args: '{"path":"out/created.txt","content":"hello"}'
+  - type: text
+    content: Created out/created.txt with hello after the initial read failed.
+expect:
+  required_tools: [read_file, write_file]
+  max_steps: 5
+  soft_max_steps: true
+  require_completion: true
+  outcome:
+    files:
+      - path: out/created.txt
+        equals: hello
