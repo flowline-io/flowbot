@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -10,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -499,7 +502,7 @@ func TestEngine_ExecuteWebhook(t *testing.T) {
 	}
 }
 
-func TestEngine_ExecuteWebhookMutex(t *testing.T) {
+func TestEngine_ExecuteWebhookNotBlockedByCronMutex(t *testing.T) {
 	t.Parallel()
 	def := Definition{
 		Name:    "mutex-test",
@@ -515,39 +518,25 @@ func TestEngine_ExecuteWebhookMutex(t *testing.T) {
 	e := NewEngine([]Definition{def}, nil, nil, noopPC, noopEC)
 	defer e.Stop()
 
-	mu := e.mu[def.Name]
+	mu := e.MutexFor(def.Name)
 	require.NotNil(t, mu)
-
 	mu.Lock()
+	defer mu.Unlock()
 
-	started := make(chan struct{})
-	done := make(chan struct{})
+	done := make(chan error, 1)
 	go func() {
-		close(started)
-		event := types.DataEvent{EventID: "mtx-ev", EventType: "t"}
-		_ = e.ExecuteWebhook(context.Background(), &def, event)
-		close(done)
+		done <- e.ExecuteWebhook(context.Background(), &def, types.DataEvent{EventID: "mtx-ev", EventType: "t"})
 	}()
 
-	<-started
-	time.Sleep(50 * time.Millisecond)
-
 	select {
-	case <-done:
-		t.Fatal("ExecuteWebhook completed before mutex released")
-	default:
-	}
-
-	mu.Unlock()
-
-	select {
-	case <-done:
+	case err := <-done:
+		require.NoError(t, err)
 	case <-time.After(time.Second):
-		t.Fatal("ExecuteWebhook did not complete after mutex release")
+		t.Fatal("ExecuteWebhook blocked on cron mutex")
 	}
 }
 
-func TestEngine_HandleEventMutex(t *testing.T) {
+func TestEngine_HandleEvent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name  string
@@ -555,21 +544,21 @@ func TestEngine_HandleEventMutex(t *testing.T) {
 		event types.DataEvent
 	}{
 		{
-			name: "single pipeline acquires and releases mutex",
+			name: "single pipeline handles event",
 			defs: []Definition{
 				{Name: "p1", Enabled: true, Trigger: Trigger{Event: "e1"}, Steps: []Step{}},
 			},
 			event: types.DataEvent{EventID: "evt1", EventType: "e1"},
 		},
 		{
-			name: "no matching event does not block",
+			name: "no matching event is a no-op",
 			defs: []Definition{
 				{Name: "p1", Enabled: true, Trigger: Trigger{Event: "e1"}, Steps: []Step{}},
 			},
 			event: types.DataEvent{EventID: "evt2", EventType: "no-match"},
 		},
 		{
-			name: "multiple pipelines for same event each lock independently",
+			name: "multiple pipelines for same event all run",
 			defs: []Definition{
 				{Name: "p1", Enabled: true, Trigger: Trigger{Event: "e1"}, Steps: []Step{}},
 				{Name: "p2", Enabled: true, Trigger: Trigger{Event: "e1"}, Steps: []Step{}},
@@ -586,6 +575,53 @@ func TestEngine_HandleEventMutex(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestEngine_HandleEventConcurrentSamePipeline(t *testing.T) {
+	t.Parallel()
+	var inFlight atomic.Int32
+	var maxInFlight atomic.Int32
+	release := make(chan struct{})
+
+	registerExampleInvoker(t, "hold", func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		n := inFlight.Add(1)
+		for {
+			cur := maxInFlight.Load()
+			if n <= cur || maxInFlight.CompareAndSwap(cur, n) {
+				break
+			}
+		}
+		<-release
+		inFlight.Add(-1)
+		return &capability.InvokeResult{Data: map[string]any{"ok": true}}, nil
+	})
+
+	defs := []Definition{{
+		Name:    "concurrent-events",
+		Enabled: true,
+		Trigger: Trigger{Event: "hold.event"},
+		Steps:   []Step{{Name: "hold", Capability: hub.CapExample, Operation: "hold"}},
+	}}
+	e := NewEngine(defs, nil, nil, noopPC, noopEC)
+	defer e.Stop()
+
+	var wg sync.WaitGroup
+	for i := range 2 {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			err := e.Handler()(context.Background(), types.DataEvent{
+				EventID:   fmt.Sprintf("ev-%d", i),
+				EventType: "hold.event",
+			})
+			assert.NoError(t, err)
+		}(i)
+	}
+
+	require.Eventually(t, func() bool { return maxInFlight.Load() >= 2 }, time.Second, 10*time.Millisecond)
+	close(release)
+	wg.Wait()
+	assert.GreaterOrEqual(t, maxInFlight.Load(), int32(2))
 }
 
 func TestMergeTags(t *testing.T) {

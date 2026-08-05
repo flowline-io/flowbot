@@ -187,16 +187,12 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 		if e.eventMetrics != nil {
 			e.eventMetrics.IncMatched(event.EventType, def.Name)
 		}
-		func() {
-			mu := e.mu[def.Name]
-			if mu != nil {
-				mu.Lock()
-				defer mu.Unlock()
-			}
-			if err := e.executePipeline(ctx, def, event, "event"); err != nil {
-				flog.Error(fmt.Errorf("pipeline %s: %w", def.Name, err))
-			}
-		}()
+		// Concurrent runs of the same pipeline are allowed; idempotency is
+		// enforced by event_consumptions (unique consumer_name+event_id).
+		// The per-pipeline mutex is reserved for cron overlap skipping only.
+		if err := e.executePipeline(ctx, def, event, "event"); err != nil {
+			flog.Error(fmt.Errorf("pipeline %s: %w", def.Name, err))
+		}
 	}
 
 	return nil
@@ -695,6 +691,16 @@ func (e *Engine) checkDedupAndRecord(ctx context.Context, pipelineName, eventID,
 		return true, nil
 	}
 	if err := e.store.RecordConsumption(ctx, pipelineName, eventID); err != nil {
+		// Concurrent handlers for the same event may race past HasConsumed;
+		// unique (consumer_name, event_id) then makes Record fail — treat as deduped.
+		consumedAfter, checkErr := e.store.HasConsumed(ctx, pipelineName, eventID)
+		if checkErr == nil && consumedAfter {
+			flog.Info("pipeline %s already consumed event %s (record race)", pipelineName, eventID)
+			if e.eventMetrics != nil {
+				e.eventMetrics.IncDedup(eventType, pipelineName)
+			}
+			return true, nil
+		}
 		return false, fmt.Errorf("record consumption: %w", err)
 	}
 	return false, nil
@@ -783,12 +789,6 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 	def := e.findResumableDef(run.PipelineName)
 	if def == nil {
 		return fmt.Errorf("no resumable pipeline definition for %s (run %d)", run.PipelineName, runID)
-	}
-
-	mu := e.mu[def.Name]
-	if mu != nil {
-		mu.Lock()
-		defer mu.Unlock()
 	}
 
 	rc := NewRenderContext(cp.Event)
@@ -947,15 +947,10 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 	}
 }
 
-// ExecuteWebhook executes a pipeline from a webhook trigger. It uses the
-// per-pipeline mutex for concurrency control and calls executePipeline
-// with a synthetic event.
+// ExecuteWebhook executes a pipeline from a webhook trigger.
+// Concurrent webhook/event runs for the same pipeline are allowed; cron
+// overlap control uses a separate TryLock path in executeCronJob.
 func (e *Engine) ExecuteWebhook(ctx context.Context, def *Definition, event types.DataEvent) error {
-	mu := e.mu[def.Name]
-	if mu != nil {
-		mu.Lock()
-		defer mu.Unlock()
-	}
 	return e.executePipeline(ctx, *def, event, "webhook")
 }
 
@@ -1000,7 +995,8 @@ func (e *Engine) emitRunComplete(ctx context.Context, runID int64, def *Definiti
 	e.callback.OnRunComplete(ctx, runID, def.Name, elapsed, failed, errMsg)
 }
 
-// MutexFor returns the per-pipeline mutex for the given pipeline name.
+// MutexFor returns the per-pipeline mutex used to skip overlapping cron ticks.
+// Event and webhook execution do not hold this mutex for the run duration.
 // Exported for testing (BDD specs).
 func (e *Engine) MutexFor(name string) *sync.Mutex {
 	return e.mu[name]

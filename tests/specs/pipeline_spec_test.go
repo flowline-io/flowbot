@@ -372,7 +372,7 @@ var _ = Describe("Webhook trigger", Label("pipeline"), func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	It("serializes concurrent webhook calls via mutex", func() {
+	It("allows concurrent webhook runs while cron mutex is held", func() {
 		def := pipeline.Definition{
 			Name:    "webhook-spec-mutex-" + types.Id(),
 			Enabled: true,
@@ -391,18 +391,16 @@ var _ = Describe("Webhook trigger", Label("pipeline"), func() {
 
 		mu := engine.MutexFor(def.Name)
 		Expect(mu).NotTo(BeNil())
-
 		mu.Lock()
-		done := make(chan struct{})
+		defer mu.Unlock()
+
+		done := make(chan error, 1)
 		go func() {
 			event := types.DataEvent{EventID: "concurrent-spec", EventType: "spec.mutex.event"}
-			_ = engine.ExecuteWebhook(context.Background(), &def, event)
-			close(done)
+			done <- engine.ExecuteWebhook(context.Background(), &def, event)
 		}()
 
-		Consistently(done, 100*time.Millisecond).ShouldNot(BeClosed())
-		mu.Unlock()
-		Eventually(done, time.Second).Should(BeClosed())
+		Eventually(done, time.Second).Should(Receive(BeNil()))
 	})
 
 	It("records pipeline run for webhook trigger", func() {
