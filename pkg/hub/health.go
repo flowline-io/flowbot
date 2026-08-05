@@ -73,8 +73,7 @@ func (c *Checker) Check(ctx context.Context) *HealthResult {
 	}
 
 	// Add endpoint-level health for discovered capabilities.
-	endpointChecker := NewEndpointHealthChecker(5 * time.Second)
-	for _, ch := range endpointChecker.CheckCapabilities(ctx, c.registry) {
+	for _, ch := range defaultEndpointHealthChecker.CheckCapabilities(ctx, c.registry) {
 		result.Details = append(result.Details, ch)
 		if ch.Status != HealthHealthy {
 			result.Status = HealthDegraded

@@ -5,10 +5,20 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/homelab"
 )
+
+const (
+	defaultEndpointHealthTimeout = 5 * time.Second
+	endpointHealthConcurrency    = 8
+)
+
+// defaultEndpointHealthChecker is shared across health checks so callers reuse
+// one http.Client instead of allocating per Check().
+var defaultEndpointHealthChecker = NewEndpointHealthChecker(defaultEndpointHealthTimeout)
 
 // EndpointHealthChecker probes HTTP endpoints discovered on homelab apps to
 // determine their health status.
@@ -49,15 +59,22 @@ func (c *EndpointHealthChecker) Check(ctx context.Context, healthURL string) (He
 	return HealthUnhealthy, nil
 }
 
+type endpointProbeJob struct {
+	idx       int
+	healthURL string
+}
+
 // CheckCapabilities probes all discovered endpoint health URLs across
 // all homelab apps and builds CapabilityHealth entries. Capabilities that are
 // already registered in the hub registry are skipped to avoid duplicates.
+// Probes run concurrently (bounded) while preserving apps×capabilities order.
 func (c *EndpointHealthChecker) CheckCapabilities(ctx context.Context, registry *Registry) []CapabilityHealth {
 	apps := homelab.DefaultRegistry.List()
-	var results []CapabilityHealth
+	results := make([]CapabilityHealth, 0)
+	jobs := make([]endpointProbeJob, 0)
+
 	for _, app := range apps {
 		for _, cap := range app.Capabilities {
-			// Skip if this capability is already registered in the hub.
 			if registry != nil {
 				if _, ok := registry.Get(CapabilityType(cap.Capability)); ok {
 					continue
@@ -76,16 +93,32 @@ func (c *EndpointHealthChecker) CheckCapabilities(ctx context.Context, registry 
 					results = append(results, ch)
 					continue
 				}
-				status, err := c.Check(ctx, healthURL)
-				if err != nil {
-					ch.Status = HealthUnhealthy
-					ch.Description = err.Error()
-				} else {
-					ch.Status = status
-				}
+				jobs = append(jobs, endpointProbeJob{idx: len(results), healthURL: healthURL})
 			}
 			results = append(results, ch)
 		}
 	}
+
+	if len(jobs) == 0 {
+		return results
+	}
+
+	sem := make(chan struct{}, endpointHealthConcurrency)
+	var wg sync.WaitGroup
+	for _, job := range jobs {
+		wg.Go(func() {
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			status, err := c.Check(ctx, job.healthURL)
+			if err != nil {
+				results[job.idx].Status = HealthUnhealthy
+				results[job.idx].Description = err.Error()
+				return
+			}
+			results[job.idx].Status = status
+		})
+	}
+	wg.Wait()
 	return results
 }
