@@ -8,6 +8,7 @@ import (
 	"strings"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsessionsummary"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agenttodo"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -542,4 +543,44 @@ func TestAgentMemoryFactsAndSessionSummaries(t *testing.T) {
 			tt.run(t, sqlitetest.OpenClient(t, t.Name()))
 		})
 	}
+}
+
+func TestAgentStore_ReplaceAndMergeTodos(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	as := NewAgentStore(client)
+	ctx := context.Background()
+
+	require.NoError(t, as.ReplaceAgentTodosForSession(ctx, "sess-1", []*gen.AgentTodo{
+		{Flag: types.Id(), ItemID: "a", Content: "one", Status: "pending", SortOrder: 1},
+		{Flag: types.Id(), ItemID: "b", Content: "two", Status: "pending", SortOrder: 2},
+	}))
+	rows, err := client.AgentTodo.Query().Where(agenttodo.SessionIDEQ("sess-1")).Order(gen.Asc(agenttodo.FieldSortOrder)).All(ctx)
+	require.NoError(t, err)
+	require.Len(t, rows, 2)
+	assert.Equal(t, "one", rows[0].Content)
+
+	require.NoError(t, as.MergeAgentTodosForSession(ctx, "sess-1", []*gen.AgentTodo{
+		{Flag: types.Id(), ItemID: "a", Content: "one-updated", Status: "done", SortOrder: 1},
+		{Flag: types.Id(), ItemID: "c", Content: "three", Status: "pending", SortOrder: 3},
+	}))
+	rows, err = client.AgentTodo.Query().Where(agenttodo.SessionIDEQ("sess-1")).Order(gen.Asc(agenttodo.FieldSortOrder)).All(ctx)
+	require.NoError(t, err)
+	require.Len(t, rows, 3)
+	byItem := map[string]*gen.AgentTodo{}
+	for _, row := range rows {
+		byItem[row.ItemID] = row
+	}
+	assert.Equal(t, "one-updated", byItem["a"].Content)
+	assert.Equal(t, "done", byItem["a"].Status)
+	assert.Equal(t, "two", byItem["b"].Content)
+	assert.Equal(t, "three", byItem["c"].Content)
+
+	require.NoError(t, as.ReplaceAgentTodosForSession(ctx, "sess-1", []*gen.AgentTodo{
+		{Flag: types.Id(), ItemID: "z", Content: "only", Status: "pending", SortOrder: 0},
+	}))
+	rows, err = client.AgentTodo.Query().Where(agenttodo.SessionIDEQ("sess-1")).All(ctx)
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+	assert.Equal(t, "z", rows[0].ItemID)
 }

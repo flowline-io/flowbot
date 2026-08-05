@@ -137,6 +137,10 @@ func loginSubmit(ctx fiber.Ctx) error {
 		return renderLoginForm(ctx, next, msg)
 	}
 
+	return continueLoginAfterPasswordOK(ctx, ws, account, next)
+}
+
+func continueLoginAfterPasswordOK(ctx fiber.Ctx, ws *store.WebAccountStore, account *gen.WebAccount, next string) error {
 	if err := ws.EnsureUser(context.Background(), account.UID, account.Username); err != nil {
 		flog.Error(fmt.Errorf("ensure user on login: %w", err))
 		return renderLoginForm(ctx, next, "Internal error")

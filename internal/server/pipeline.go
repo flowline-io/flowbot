@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -26,7 +27,6 @@ import (
 )
 
 const progressPublishTimeout = 2 * time.Second
-const progressJobBuffer = 256
 
 type progressJobKind int
 
@@ -47,10 +47,13 @@ type progressJob struct {
 }
 
 // pipelineStepCallback publishes pipeline progress events to Redis Streams
-// through a single worker so XAdd order matches callback order.
+// through an ordered drain loop so XAdd order matches callback order without
+// blocking the pipeline engine on a full channel.
 type pipelineStepCallback struct {
-	rdb *redis.Client
-	ch  chan progressJob
+	rdb      *redis.Client
+	mu       sync.Mutex
+	queue    []progressJob
+	draining bool
 }
 
 // NewPipelineStepCallback creates a callback backed by the Redis client.
@@ -59,12 +62,7 @@ func NewPipelineStepCallback(client *redis.Client) pipeline.StepCallback {
 	if client == nil {
 		return nil
 	}
-	c := &pipelineStepCallback{
-		rdb: client,
-		ch:  make(chan progressJob, progressJobBuffer),
-	}
-	go c.loop()
-	return c
+	return &pipelineStepCallback{rdb: client}
 }
 
 func (c *pipelineStepCallback) OnRunStart(_ context.Context, runID int64, pipelineName string,
@@ -128,28 +126,58 @@ func (c *pipelineStepCallback) enqueueXAdd(runID int64, evt pipeline.StepProgres
 			runID, evt.StepName, err)
 		return
 	}
-	c.ch <- progressJob{
+	c.enqueue(progressJob{
 		kind:     progressJobXAdd,
 		runID:    runID,
 		payload:  payload,
 		stepName: evt.StepName,
 		status:   evt.Status,
-	}
+	})
 }
 
 func (c *pipelineStepCallback) enqueueExpire(runID int64, ttl time.Duration) {
-	c.ch <- progressJob{kind: progressJobExpire, runID: runID, ttl: ttl}
+	c.enqueue(progressJob{kind: progressJobExpire, runID: runID, ttl: ttl})
 }
 
-// waitIdleForTest drains queued jobs; for tests only.
+func (c *pipelineStepCallback) enqueue(job progressJob) {
+	c.mu.Lock()
+	c.queue = append(c.queue, job)
+	start := !c.draining
+	if start {
+		c.draining = true
+	}
+	c.mu.Unlock()
+	if start {
+		go c.drain()
+	}
+}
+
 func (c *pipelineStepCallback) waitIdleForTest() {
-	done := make(chan struct{})
-	c.ch <- progressJob{kind: progressJobSync, done: done}
-	<-done
+	for {
+		c.mu.Lock()
+		idle := len(c.queue) == 0 && !c.draining
+		c.mu.Unlock()
+		if idle {
+			return
+		}
+		done := make(chan struct{})
+		c.enqueue(progressJob{kind: progressJobSync, done: done})
+		<-done
+	}
 }
 
-func (c *pipelineStepCallback) loop() {
-	for job := range c.ch {
+func (c *pipelineStepCallback) drain() {
+	for {
+		c.mu.Lock()
+		if len(c.queue) == 0 {
+			c.draining = false
+			c.mu.Unlock()
+			return
+		}
+		job := c.queue[0]
+		c.queue = c.queue[1:]
+		c.mu.Unlock()
+
 		switch job.kind {
 		case progressJobXAdd:
 			c.doXAdd(job)

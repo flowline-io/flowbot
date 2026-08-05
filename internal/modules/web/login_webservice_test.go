@@ -256,6 +256,26 @@ func TestLoginSubmitBackfillsMissingUser(t *testing.T) {
 	require.Equal(t, "admin", got.Name)
 }
 
+func TestContinueLoginAfterPasswordOKEnsureUserFails(t *testing.T) {
+	app, _, _ := setupTestAppWithDB(t)
+	app.Post("/_test/continue-login", func(c fiber.Ctx) error {
+		return continueLoginAfterPasswordOK(c, store.NewWebAccountStore(nil), &gen.WebAccount{
+			UID: "user-admin", Username: "admin", TotpEnabled: true,
+		}, "")
+	})
+	req := httptest.NewRequest(http.MethodPost, "/_test/continue-login", http.NoBody)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Empty(t, resp.Header.Get("HX-Redirect"))
+	assertPendingCookie(t, resp, false)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(body), "Internal error")
+}
+
 func TestLogin2FASubmit(t *testing.T) {
 	app, _, client := setupTestAppWithDB(t)
 	seedWebAccount(t, client, "admin", "flowbot-dev-pass", true)

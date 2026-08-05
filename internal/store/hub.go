@@ -52,13 +52,18 @@ func NewHubStore(client *gen.Client) *HubStore {
 
 // SaveHomelabApps upserts a batch of discovered homelab apps.
 // Existing rows are loaded once by name, new rows use CreateBulk, and updates run in one transaction.
+// Duplicate names in the input keep the last occurrence.
 func (s *HubStore) SaveHomelabApps(ctx context.Context, apps []homelab.App) error {
 	if s == nil || s.client == nil || len(apps) == 0 {
 		return nil
 	}
 
+	apps = collapseAppsByName(apps)
 	now := time.Now()
-	names := uniqueAppNames(apps)
+	names := make([]string, len(apps))
+	for i, homelabApp := range apps {
+		names[i] = homelabApp.Name
+	}
 	existingRows, err := s.client.App.Query().Where(app.NameIn(names...)).All(ctx)
 	if err != nil {
 		return fmt.Errorf("hub: list apps: %w", err)
@@ -92,17 +97,18 @@ func (s *HubStore) SaveHomelabApps(ctx context.Context, apps []homelab.App) erro
 	return nil
 }
 
-func uniqueAppNames(apps []homelab.App) []string {
-	names := make([]string, 0, len(apps))
-	seen := make(map[string]struct{}, len(apps))
+func collapseAppsByName(apps []homelab.App) []homelab.App {
+	idx := make(map[string]int, len(apps))
+	out := make([]homelab.App, 0, len(apps))
 	for _, homelabApp := range apps {
-		if _, ok := seen[homelabApp.Name]; ok {
+		if i, ok := idx[homelabApp.Name]; ok {
+			out[i] = homelabApp
 			continue
 		}
-		seen[homelabApp.Name] = struct{}{}
-		names = append(names, homelabApp.Name)
+		idx[homelabApp.Name] = len(out)
+		out = append(out, homelabApp)
 	}
-	return names
+	return out
 }
 
 func firstAppByName(rows []*gen.App) map[string]*gen.App {
@@ -125,7 +131,7 @@ func applyHomelabAppWrites(ctx context.Context, tx *gen.Tx, apps []homelab.App, 
 		if err != nil {
 			return nil, err
 		}
-		if existing, ok := byName[homelabApp.Name]; ok && existing.ID != 0 {
+		if existing, ok := byName[homelabApp.Name]; ok {
 			if _, err := tx.App.UpdateOne(existing).
 				SetPath(homelabApp.Path).
 				SetStatus(string(homelabApp.Status)).
@@ -136,9 +142,6 @@ func applyHomelabAppWrites(ctx context.Context, tx *gen.Tx, apps []homelab.App, 
 			}
 			continue
 		}
-		if _, ok := byName[homelabApp.Name]; ok {
-			continue
-		}
 		creates = append(creates, tx.App.Create().
 			SetName(homelabApp.Name).
 			SetPath(homelabApp.Path).
@@ -146,7 +149,6 @@ func applyHomelabAppWrites(ctx context.Context, tx *gen.Tx, apps []homelab.App, 
 			SetDockerInfo(info).
 			SetCreatedAt(now).
 			SetUpdatedAt(now))
-		byName[homelabApp.Name] = &gen.App{Name: homelabApp.Name}
 	}
 	return creates, nil
 }

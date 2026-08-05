@@ -1056,35 +1056,6 @@ func (s *Service) ApplyQuestAdjudication(ctx context.Context, userID, questFlag,
 	return s.store.MarkAdjudicationApplied(ctx, adjudication.ID)
 }
 
-func (s *Service) buildQuestDMView(ctx context.Context, p *gen.LifeProfile, q *gen.LifeQuest) (QuestDMView, error) {
-	view := QuestDMView{Quest: q}
-	if q == nil || p == nil {
-		return view, nil
-	}
-	evidenceRows, err := s.store.ListEvidenceByQuest(ctx, p.ID, q.ID)
-	if err != nil {
-		return view, err
-	}
-	view.Evidence = make([]QuestEvidenceView, 0, len(evidenceRows))
-	for _, row := range evidenceRows {
-		view.Evidence = append(view.Evidence, mapQuestEvidenceView(row))
-	}
-	adjudication, err := s.store.GetLatestAdjudicationByQuest(ctx, p.ID, q.ID)
-	if err != nil {
-		return view, err
-	}
-	if adjudication != nil {
-		mapped := mapQuestAdjudicationView(adjudication)
-		view.Adjudication = &mapped
-	}
-	chance, err := s.dropChanceForQuest(ctx, p, q)
-	if err != nil {
-		return view, err
-	}
-	view.DropChance = chance
-	return view, nil
-}
-
 // InventoryItem pairs inventory with equipment template.
 type InventoryItem struct {
 	Inv   *gen.LifeInventory
@@ -1641,37 +1612,12 @@ type ActionLogView struct {
 
 func (s *Service) equippedBuffs(ctx context.Context, slots *gen.LifeEquippedSlots) (pkglife.BuffTotals, error) {
 	empty := pkglife.BuffTotals{Stats: map[string]float64{}, GoldMult: 1}
-	if slots == nil {
-		return empty, nil
-	}
-	now := time.Now()
-	if pkglife.IsTarnished(slots.TarnishedUntil, now) {
-		return empty, nil
-	}
-	invIDs := slotInventoryIDs(slots)
-	if len(invIDs) == 0 {
-		return empty, nil
-	}
-	invByID, err := s.store.MapInventoryByIDs(ctx, invIDs)
+	invByID, eqByID, invIDs, now, err := s.loadEquippedMaps(ctx, slots)
 	if err != nil {
 		return empty, err
 	}
-	equipIDs := make([]int64, 0, len(invByID))
-	equipSeen := make(map[int64]struct{}, len(invByID))
-	for _, id := range invIDs {
-		inv := invByID[id]
-		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
-			continue
-		}
-		if _, ok := equipSeen[inv.EquipmentID]; ok {
-			continue
-		}
-		equipSeen[inv.EquipmentID] = struct{}{}
-		equipIDs = append(equipIDs, inv.EquipmentID)
-	}
-	eqByID, err := s.store.MapEquipmentByIDs(ctx, equipIDs)
-	if err != nil {
-		return empty, err
+	if invByID == nil {
+		return empty, nil
 	}
 	var buffMaps []map[string]float64
 	for _, id := range invIDs {
@@ -1690,20 +1636,41 @@ func (s *Service) equippedBuffs(ctx context.Context, slots *gen.LifeEquippedSlot
 
 func (s *Service) equippedPrivileges(ctx context.Context, slots *gen.LifeEquippedSlots) (map[string]any, error) {
 	out := map[string]any{}
-	if slots == nil {
+	invByID, eqByID, invIDs, now, err := s.loadEquippedMaps(ctx, slots)
+	if err != nil {
+		return nil, err
+	}
+	if invByID == nil {
 		return out, nil
 	}
+	for _, id := range invIDs {
+		inv := invByID[id]
+		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
+			continue
+		}
+		eq := eqByID[inv.EquipmentID]
+		if eq == nil {
+			continue
+		}
+		maps.Copy(out, eq.AiUnlockedPrivilege)
+	}
+	return out, nil
+}
+
+func (s *Service) loadEquippedMaps(ctx context.Context, slots *gen.LifeEquippedSlots) (
+	map[int64]*gen.LifeInventory, map[int64]*gen.LifeEquipment, []int64, time.Time, error,
+) {
 	now := time.Now()
-	if pkglife.IsTarnished(slots.TarnishedUntil, now) {
-		return out, nil
+	if slots == nil || pkglife.IsTarnished(slots.TarnishedUntil, now) {
+		return nil, nil, nil, now, nil
 	}
 	invIDs := slotInventoryIDs(slots)
 	if len(invIDs) == 0 {
-		return out, nil
+		return nil, nil, nil, now, nil
 	}
 	invByID, err := s.store.MapInventoryByIDs(ctx, invIDs)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, now, err
 	}
 	equipIDs := make([]int64, 0, len(invByID))
 	equipSeen := make(map[int64]struct{}, len(invByID))
@@ -1720,20 +1687,9 @@ func (s *Service) equippedPrivileges(ctx context.Context, slots *gen.LifeEquippe
 	}
 	eqByID, err := s.store.MapEquipmentByIDs(ctx, equipIDs)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, now, err
 	}
-	for _, id := range invIDs {
-		inv := invByID[id]
-		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
-			continue
-		}
-		eq := eqByID[inv.EquipmentID]
-		if eq == nil {
-			continue
-		}
-		maps.Copy(out, eq.AiUnlockedPrivilege)
-	}
-	return out, nil
+	return invByID, eqByID, invIDs, now, nil
 }
 
 func privilegeDepth(privs map[string]any) string {
