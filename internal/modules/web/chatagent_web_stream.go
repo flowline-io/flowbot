@@ -17,7 +17,10 @@ func streamWebSessionEvents(ctx fiber.Ctx, sessionID string) error {
 	ctx.Set("Connection", "keep-alive")
 
 	reqCtx := ctx.Context()
-	svc := chatAgentService()
+	svc, err := chatAgentService()
+	if err != nil {
+		return err
+	}
 	return ctx.SendStreamWriter(func(w *bufio.Writer) {
 		hub := svc.GetSessionEventHub(sessionID)
 		subID := fmt.Sprintf("web-%p", w)

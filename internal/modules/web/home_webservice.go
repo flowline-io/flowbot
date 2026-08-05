@@ -214,6 +214,6 @@ func approvalBadge(ctx fiber.Ctx) error {
 		return err
 	}
 	ctx.Type("html")
-	count := chatAgentService().CountPendingApprovalSessions()
+	count := pendingApprovalSessionCount()
 	return partials.ApprovalCountBadge(count).Render(context.Background(), ctx.Response().BodyWriter())
 }
