@@ -678,6 +678,7 @@ func TestRegistry_InvokeCacheHit(t *testing.T) {
 			result1, err := r.Invoke(t.Context(), hub.CapKarakeep, "list", map[string]any{"key": "val"})
 			require.NoError(t, err)
 			require.Equal(t, 1, callCount)
+			waitTestCache(t)
 
 			result2, err := r.Invoke(t.Context(), hub.CapKarakeep, "list", map[string]any{"key": "val"})
 			require.NoError(t, err)
@@ -729,6 +730,7 @@ func TestRegistry_InvokeCacheMiss(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, 1, callCount)
 			assert.Equal(t, "fresh", result.Data)
+			waitTestCache(t)
 
 			if tt.name == "different params produce different cache keys" {
 				result2, err := r.Invoke(t.Context(), hub.CapKarakeep, "list", map[string]any{"key": "second"})
@@ -783,6 +785,7 @@ func TestRegistry_InvokeCacheMutationInvalidates(t *testing.T) {
 			_, err = r.Invoke(t.Context(), hub.CapKarakeep, "list", nil)
 			require.NoError(t, err)
 			require.Equal(t, 1, listCallCount)
+			waitTestCache(t)
 
 			_, err = r.Invoke(t.Context(), hub.CapKarakeep, "create", nil)
 			require.NoError(t, err)
@@ -794,6 +797,7 @@ func TestRegistry_InvokeCacheMutationInvalidates(t *testing.T) {
 			if tt.name == "write on one capability does not affect another capability" {
 				_, err = r.Invoke(t.Context(), hub.CapKanboard, "list_tasks", nil)
 				require.NoError(t, err)
+				waitTestCache(t)
 				_, err = r.Invoke(t.Context(), hub.CapKanboard, "list_tasks", nil)
 				require.NoError(t, err)
 				require.Equal(t, 1, kanbanCallCount, "kanban cache should survive bookmark write")
@@ -841,6 +845,7 @@ func TestRegistry_InvokeCacheCursorSkip(t *testing.T) {
 
 			_, err = r.Invoke(t.Context(), hub.CapKarakeep, "list", params)
 			require.NoError(t, err)
+			waitTestCache(t)
 			_, err = r.Invoke(t.Context(), hub.CapKarakeep, "list", params)
 			require.NoError(t, err)
 
@@ -887,6 +892,7 @@ func TestRegistry_InvokeCacheSerializationRoundtrip(t *testing.T) {
 
 			_, err = r.Invoke(t.Context(), hub.CapKarakeep, "list", nil)
 			require.NoError(t, err)
+			waitTestCache(t)
 
 			result, err := r.Invoke(t.Context(), hub.CapKarakeep, "list", nil)
 			require.NoError(t, err)
@@ -953,4 +959,56 @@ func setupTestCache(t *testing.T) *cache.Cache {
 	c, err := cache.NewCache(&config.Type{})
 	require.NoError(t, err)
 	return c
+}
+
+// waitTestCache drains ristretto write buffers so subsequent reads see prior Sets.
+func waitTestCache(t *testing.T) {
+	t.Helper()
+	if cache.Instance != nil {
+		cache.Instance.Wait()
+	}
+}
+
+func TestBuildCacheKey(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		a    map[string]any
+		b    map[string]any
+		same bool
+	}{
+		{
+			name: "same content different map iteration order",
+			a:    map[string]any{"b": 2, "a": 1},
+			b:    map[string]any{"a": 1, "b": 2},
+			same: true,
+		},
+		{
+			name: "different params produce different keys",
+			a:    map[string]any{"key": "first"},
+			b:    map[string]any{"key": "second"},
+			same: false,
+		},
+		{
+			name: "empty params are stable",
+			a:    map[string]any{},
+			b:    nil,
+			same: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ka := buildCacheKey(hub.CapKarakeep, "list", tt.a)
+			kb := buildCacheKey(hub.CapKarakeep, "list", tt.b)
+			assert.Contains(t, ka, "ability:karakeep:list:")
+			if tt.same {
+				assert.Equal(t, ka, kb)
+			} else {
+				assert.NotEqual(t, ka, kb)
+			}
+		})
+	}
 }

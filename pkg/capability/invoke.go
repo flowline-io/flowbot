@@ -104,15 +104,22 @@ func buildCacheKey(capability hub.CapabilityType, operation string, params map[s
 		keys = append(keys, k)
 	}
 	slices.Sort(keys)
-	sorted := make(map[string]any, len(keys))
-	for _, k := range keys {
-		sorted[k] = params[k]
-	}
-	data, _ := sonic.MarshalString(sorted)
+
 	h := sha256.New()
-	_, _ = h.Write([]byte(data))
-	hash := hex.EncodeToString(h.Sum(nil))
-	return "ability:" + string(capability) + ":" + operation + ":" + hash
+	_, _ = h.Write([]byte(capability))
+	_, _ = h.Write([]byte{0})
+	_, _ = h.Write([]byte(operation))
+	for _, k := range keys {
+		_, _ = h.Write([]byte{0})
+		_, _ = h.Write([]byte(k))
+		_, _ = h.Write([]byte{0})
+		b, err := sonic.Marshal(params[k])
+		if err != nil {
+			continue
+		}
+		_, _ = h.Write(b)
+	}
+	return "ability:" + string(capability) + ":" + operation + ":" + hex.EncodeToString(h.Sum(nil))
 }
 
 func hasCursorParam(params map[string]any) bool {
@@ -120,11 +127,10 @@ func hasCursorParam(params map[string]any) bool {
 	return ok
 }
 
-func cacheRead(capability hub.CapabilityType, operation string, params map[string]any) *InvokeResult {
+func cacheRead(cacheKey string) *InvokeResult {
 	if cache.Instance == nil {
 		return nil
 	}
-	cacheKey := buildCacheKey(capability, operation, params)
 	cached, ok := cache.Instance.GetBytes(cacheKey)
 	if !ok {
 		return nil
@@ -136,11 +142,10 @@ func cacheRead(capability hub.CapabilityType, operation string, params map[strin
 	return &result
 }
 
-func cacheWrite(capability hub.CapabilityType, operation string, params map[string]any, result *InvokeResult) {
+func cacheWrite(cacheKey string, capability hub.CapabilityType, result *InvokeResult) {
 	if cache.Instance == nil {
 		return
 	}
-	cacheKey := buildCacheKey(capability, operation, params)
 	clone := *result
 	clone.Events = nil
 	data, err := sonic.MarshalString(&clone)
@@ -148,7 +153,6 @@ func cacheWrite(capability hub.CapabilityType, operation string, params map[stri
 		return
 	}
 	cache.Instance.SetWithTTLCap(cacheKey, []byte(data), 1, cache.TTLShort.Duration(), string(capability))
-	cache.Instance.Wait()
 }
 
 func cacheInvalidate(capability hub.CapabilityType) {
@@ -264,8 +268,10 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	isMut := IsMutation(operation)
 	skipCache := isMut || hasCursorParam(params)
 
+	var cacheKey string
 	if !skipCache {
-		if cached := cacheRead(capability, operation, params); cached != nil {
+		cacheKey = buildCacheKey(capability, operation, params)
+		if cached := cacheRead(cacheKey); cached != nil {
 			return cached, nil
 		}
 	}
@@ -306,7 +312,7 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	r.emitEvents(ctx, capability, operation, result)
 
 	if !skipCache {
-		cacheWrite(capability, operation, params, result)
+		cacheWrite(cacheKey, capability, result)
 	}
 	if isMut {
 		cacheInvalidate(capability)
