@@ -207,27 +207,51 @@ func TestRedisStoreListCache(t *testing.T) {
 
 // TestRedisStoreSortedSet tests ZAdd / ZRangeByScore / ZRem.
 func TestRedisStoreSortedSet(t *testing.T) {
+	t.Parallel()
 	mr := miniredis.RunT(t)
 	client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
 	store := NewRedisStore(client)
 	ctx := context.Background()
-	key := NewKey("test", "zset", "due")
 
-	require.NoError(t, store.ZAdd(ctx, key, 10, "a"))
-	require.NoError(t, store.ZAdd(ctx, key, 20, "b"))
-	require.NoError(t, store.ZAdd(ctx, key, 30, "c"))
+	t.Run("range by score returns inclusive members", func(t *testing.T) {
+		key := NewKey("test", "zset", "range")
+		require.NoError(t, store.ZAdd(ctx, key, 10, "a"))
+		require.NoError(t, store.ZAdd(ctx, key, 20, "b"))
+		require.NoError(t, store.ZAdd(ctx, key, 30, "c"))
 
-	got, err := store.ZRangeByScore(ctx, key, 0, 20)
-	require.NoError(t, err)
-	require.Equal(t, []string{"a", "b"}, got)
+		got, err := store.ZRangeByScore(ctx, key, 0, 20)
+		require.NoError(t, err)
+		require.Equal(t, []string{"a", "b"}, got)
+	})
 
-	n, err := store.ZRem(ctx, key, "a")
-	require.NoError(t, err)
-	require.Equal(t, int64(1), n)
+	t.Run("removes member", func(t *testing.T) {
+		key := NewKey("test", "zset", "rem")
+		require.NoError(t, store.ZAdd(ctx, key, 10, "a"))
+		require.NoError(t, store.ZAdd(ctx, key, 20, "b"))
 
-	got, err = store.ZRangeByScore(ctx, key, 0, 100)
-	require.NoError(t, err)
-	require.Equal(t, []string{"b", "c"}, got)
+		n, err := store.ZRem(ctx, key, "a")
+		require.NoError(t, err)
+		require.Equal(t, int64(1), n)
+
+		got, err := store.ZRangeByScore(ctx, key, 0, 100)
+		require.NoError(t, err)
+		require.Equal(t, []string{"b"}, got)
+	})
+
+	t.Run("rem missing member is zero", func(t *testing.T) {
+		key := NewKey("test", "zset", "missing")
+		n, err := store.ZRem(ctx, key, "nope")
+		require.NoError(t, err)
+		require.Equal(t, int64(0), n)
+	})
+
+	t.Run("empty score window returns empty", func(t *testing.T) {
+		key := NewKey("test", "zset", "empty-window")
+		require.NoError(t, store.ZAdd(ctx, key, 50, "x"))
+		got, err := store.ZRangeByScore(ctx, key, 0, 10)
+		require.NoError(t, err)
+		require.Empty(t, got)
+	})
 }
 
 // TestRedisStoreUtilityMethods tests ScanKeys and ExistsRaw utility methods.

@@ -279,6 +279,9 @@ func TestChecker_Check_ReusesSharedEndpointChecker(t *testing.T) {
 	homelab.DefaultRegistry.Replace(nil)
 	t.Cleanup(func() { homelab.DefaultRegistry.Replace(old) })
 
+	shared := defaultEndpointHealthChecker
+	require.NotNil(t, shared)
+
 	registry := NewRegistry()
 	require.NoError(t, registry.Register(Descriptor{
 		Type: CapExample, App: "example", Healthy: true, Instance: "ok",
@@ -286,10 +289,12 @@ func TestChecker_Check_ReusesSharedEndpointChecker(t *testing.T) {
 	checker := NewChecker(registry)
 
 	first := checker.Check(t.Context())
+	assert.Same(t, shared, defaultEndpointHealthChecker)
 	second := checker.Check(t.Context())
+	assert.Same(t, shared, defaultEndpointHealthChecker)
+
 	require.NotNil(t, first)
 	require.NotNil(t, second)
 	assert.Equal(t, HealthHealthy, first.Status)
 	assert.Equal(t, HealthHealthy, second.Status)
-	require.NotNil(t, defaultEndpointHealthChecker)
 }

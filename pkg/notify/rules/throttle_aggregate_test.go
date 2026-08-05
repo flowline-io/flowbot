@@ -154,43 +154,119 @@ func TestEnqueueAndFlushAggregation(t *testing.T) {
 
 func TestEnqueueForAggregation_CapsBuffer(t *testing.T) {
 	t.Parallel()
-	store := newTestRedisStore(t)
-	engine := New(store)
-	ctx := context.Background()
 
-	for i := range aggregateBufferMax + 5 {
-		err := engine.EnqueueForAggregation(ctx, "cap", "event.a", "slack", map[string]any{"n": i})
-		require.NoError(t, err)
+	tests := []struct {
+		name      string
+		pushCount int
+		wantLen   int
+		wantFirst float64
+		wantLast  float64
+	}{
+		{
+			name:      "under cap keeps all",
+			pushCount: 3,
+			wantLen:   3,
+			wantFirst: 0,
+			wantLast:  2,
+		},
+		{
+			name:      "exactly at cap keeps all",
+			pushCount: aggregateBufferMax,
+			wantLen:   aggregateBufferMax,
+			wantFirst: 0,
+			wantLast:  float64(aggregateBufferMax - 1),
+		},
+		{
+			name:      "over cap retains newest",
+			pushCount: aggregateBufferMax + 5,
+			wantLen:   aggregateBufferMax,
+			wantFirst: 5,
+			wantLast:  float64(aggregateBufferMax + 4),
+		},
 	}
 
-	got, err := engine.FlushAggregation(ctx, "cap", "event.a", "slack")
-	require.NoError(t, err)
-	require.Len(t, got, aggregateBufferMax)
-	assert.InDelta(t, float64(5), got[0]["n"], 0)
-	assert.InDelta(t, float64(aggregateBufferMax+4), got[len(got)-1]["n"], 0)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			store := newTestRedisStore(t)
+			engine := New(store)
+			ctx := context.Background()
+
+			for i := range tt.pushCount {
+				err := engine.EnqueueForAggregation(ctx, "cap", "event.a", "slack", map[string]any{"n": i})
+				require.NoError(t, err)
+			}
+
+			got, err := engine.FlushAggregation(ctx, "cap", "event.a", "slack")
+			require.NoError(t, err)
+			require.Len(t, got, tt.wantLen)
+			assert.InDelta(t, tt.wantFirst, got[0]["n"], 0)
+			assert.InDelta(t, tt.wantLast, got[len(got)-1]["n"], 0)
+		})
+	}
 }
 
 func TestFlushAggregation_RemovesDueMember(t *testing.T) {
 	t.Parallel()
-	store := newTestRedisStore(t)
+
+	tests := []struct {
+		name string
+	}{
+		{name: "flush clears due index"},
+		{name: "empty flush clears stale due member"},
+		{name: "second flush stays empty"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			store := newTestRedisStore(t)
+			engine := New(store)
+			ctx := context.Background()
+
+			if tt.name != "empty flush clears stale due member" {
+				require.NoError(t, engine.EnqueueForAggregation(ctx, "due1", "event.a", "slack", map[string]any{"n": 1}))
+			}
+			first, err := engine.SetAggregateTimer(ctx, "due1", "event.a", "slack", 0)
+			require.NoError(t, err)
+			require.True(t, first)
+
+			keys, err := engine.ScanExpiredAggregates(ctx)
+			require.NoError(t, err)
+			require.Len(t, keys, 1)
+
+			_, err = engine.FlushAggregation(ctx, "due1", "event.a", "slack")
+			require.NoError(t, err)
+
+			keys, err = engine.ScanExpiredAggregates(ctx)
+			require.NoError(t, err)
+			assert.Empty(t, keys)
+
+			if tt.name == "second flush stays empty" {
+				got, err := engine.FlushAggregation(ctx, "due1", "event.a", "slack")
+				require.NoError(t, err)
+				assert.Empty(t, got)
+			}
+		})
+	}
+}
+
+func TestSetAggregateTimer_SetsBufferTTL(t *testing.T) {
+	t.Parallel()
+	mr := miniredis.RunT(t)
+	client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+	store := cache.NewRedisStore(client)
 	engine := New(store)
 	ctx := context.Background()
 
-	require.NoError(t, engine.EnqueueForAggregation(ctx, "due1", "event.a", "slack", map[string]any{"n": 1}))
-	first, err := engine.SetAggregateTimer(ctx, "due1", "event.a", "slack", 0)
+	require.NoError(t, engine.EnqueueForAggregation(ctx, "ttl1", "event.a", "slack", map[string]any{"n": 1}))
+	first, err := engine.SetAggregateTimer(ctx, "ttl1", "event.a", "slack", time.Minute)
 	require.NoError(t, err)
 	require.True(t, first)
 
-	keys, err := engine.ScanExpiredAggregates(ctx)
-	require.NoError(t, err)
-	require.Len(t, keys, 1)
-
-	_, err = engine.FlushAggregation(ctx, "due1", "event.a", "slack")
-	require.NoError(t, err)
-
-	keys, err = engine.ScanExpiredAggregates(ctx)
-	require.NoError(t, err)
-	assert.Empty(t, keys)
+	bufKey := cache.NewKey("notify", "agg:buffer", "ttl1:event.a:slack").String()
+	ttl := mr.TTL(bufKey)
+	assert.InDelta(t, (time.Minute + aggregateBufferGrace).Seconds(), ttl.Seconds(), 2)
 }
 
 func TestSetAggregateTimer(t *testing.T) {
@@ -236,35 +312,40 @@ func TestSetAggregateTimer(t *testing.T) {
 	}
 }
 
-func TestParseAggregateKey(t *testing.T) {
+func TestParseAggregateMember(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name   string
-		key    string
+		member string
 		want   AggregateKey
 		wantOK bool
 	}{
 		{
-			name:   "valid timer key parses components",
-			key:    "notify:agg:timer:rule1:infra.down:slack",
+			name:   "valid member parses components",
+			member: "rule1:infra.down:slack",
 			want:   AggregateKey{RuleID: "rule1", EventType: "infra.down", Channel: "slack"},
 			wantOK: true,
 		},
 		{
-			name:   "channel with colon in event type",
-			key:    "notify:agg:timer:r:e:extra:ntfy",
+			name:   "channel may contain colons",
+			member: "r:e:extra:ntfy",
 			want:   AggregateKey{RuleID: "r", EventType: "e", Channel: "extra:ntfy"},
 			wantOK: true,
 		},
 		{
 			name:   "too few segments is rejected",
-			key:    "notify:agg:timer:only",
+			member: "only:two",
 			wantOK: false,
 		},
 		{
-			name:   "empty key is rejected",
-			key:    "",
+			name:   "empty member is rejected",
+			member: "",
+			wantOK: false,
+		},
+		{
+			name:   "empty rule id is rejected",
+			member: ":event:slack",
 			wantOK: false,
 		},
 	}
@@ -272,7 +353,7 @@ func TestParseAggregateKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, ok := parseAggregateKey(tt.key)
+			got, ok := parseAggregateMember(tt.member)
 			assert.Equal(t, tt.wantOK, ok)
 			if tt.wantOK {
 				assert.Equal(t, tt.want, got)

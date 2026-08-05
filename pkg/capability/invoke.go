@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"slices"
 	"sync"
 	"time"
@@ -98,7 +99,7 @@ func SetBulkheadCallbacks() {
 	)
 }
 
-func buildCacheKey(capability hub.CapabilityType, operation string, params map[string]any) string {
+func buildCacheKey(capability hub.CapabilityType, operation string, params map[string]any) (string, error) {
 	keys := make([]string, 0, len(params))
 	for k := range params {
 		keys = append(keys, k)
@@ -115,11 +116,11 @@ func buildCacheKey(capability hub.CapabilityType, operation string, params map[s
 		_, _ = h.Write([]byte{0})
 		b, err := sonic.Marshal(params[k])
 		if err != nil {
-			continue
+			return "", fmt.Errorf("capability cache key: marshal param %q: %w", k, err)
 		}
 		_, _ = h.Write(b)
 	}
-	return "ability:" + string(capability) + ":" + operation + ":" + hex.EncodeToString(h.Sum(nil))
+	return "ability:" + string(capability) + ":" + operation + ":" + hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func hasCursorParam(params map[string]any) bool {
@@ -270,9 +271,15 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 
 	var cacheKey string
 	if !skipCache {
-		cacheKey = buildCacheKey(capability, operation, params)
-		if cached := cacheRead(cacheKey); cached != nil {
-			return cached, nil
+		key, keyErr := buildCacheKey(capability, operation, params)
+		if keyErr != nil {
+			// Fail closed: skip cache rather than hash incomplete params.
+			skipCache = true
+		} else {
+			cacheKey = key
+			if cached := cacheRead(cacheKey); cached != nil {
+				return cached, nil
+			}
 		}
 	}
 

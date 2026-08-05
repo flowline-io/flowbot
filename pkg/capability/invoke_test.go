@@ -793,6 +793,7 @@ func TestRegistry_InvokeCacheMutationInvalidates(t *testing.T) {
 			_, err = r.Invoke(t.Context(), hub.CapKarakeep, "list", nil)
 			require.NoError(t, err)
 			require.Equal(t, 2, listCallCount, "cache should be invalidated after write")
+			waitTestCache(t)
 
 			if tt.name == "write on one capability does not affect another capability" {
 				_, err = r.Invoke(t.Context(), hub.CapKanboard, "list_tasks", nil)
@@ -973,10 +974,11 @@ func TestBuildCacheKey(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		a    map[string]any
-		b    map[string]any
-		same bool
+		name    string
+		a       map[string]any
+		b       map[string]any
+		same    bool
+		wantErr bool
 	}{
 		{
 			name: "same content different map iteration order",
@@ -996,13 +998,25 @@ func TestBuildCacheKey(t *testing.T) {
 			b:    nil,
 			same: true,
 		},
+		{
+			name:    "unmarshalable param returns error",
+			a:       map[string]any{"bad": make(chan int)},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ka := buildCacheKey(hub.CapKarakeep, "list", tt.a)
-			kb := buildCacheKey(hub.CapKarakeep, "list", tt.b)
+			ka, errA := buildCacheKey(hub.CapKarakeep, "list", tt.a)
+			if tt.wantErr {
+				require.Error(t, errA)
+				assert.Empty(t, ka)
+				return
+			}
+			require.NoError(t, errA)
+			kb, errB := buildCacheKey(hub.CapKarakeep, "list", tt.b)
+			require.NoError(t, errB)
 			assert.Contains(t, ka, "ability:karakeep:list:")
 			if tt.same {
 				assert.Equal(t, ka, kb)
@@ -1011,4 +1025,23 @@ func TestBuildCacheKey(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRegistry_InvokeSkipsCacheOnKeyError(t *testing.T) {
+	t.Cleanup(func() { cache.Instance = nil })
+	_ = setupTestCache(t)
+
+	r := NewRegistry()
+	callCount := 0
+	require.NoError(t, r.Register(hub.CapKarakeep, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+		callCount++
+		return &InvokeResult{Data: "ok"}, nil
+	}))
+
+	params := map[string]any{"bad": make(chan int)}
+	_, err := r.Invoke(t.Context(), hub.CapKarakeep, "list", params)
+	require.NoError(t, err)
+	_, err = r.Invoke(t.Context(), hub.CapKarakeep, "list", params)
+	require.NoError(t, err)
+	assert.Equal(t, 2, callCount, "unmarshalable params must not be cached")
 }

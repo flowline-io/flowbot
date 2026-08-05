@@ -73,7 +73,10 @@ func (e *Engine) SetAggregateTimer(ctx context.Context, ruleID, eventType, chann
 	member := aggregateMember(ruleID, eventType, channel)
 	dueAt := float64(time.Now().Add(window).Unix())
 	if err := e.store.ZAdd(ctx, aggregateDueKey(), dueAt, member); err != nil {
-		return true, fmt.Errorf("failed to index aggregate due: %w", err)
+		if delErr := e.store.Del(ctx, key); delErr != nil {
+			flog.Warn("[notify-rules] failed to roll back aggregate timer after due index error: %v", delErr)
+		}
+		return false, fmt.Errorf("failed to index aggregate due: %w", err)
 	}
 
 	bufKey := cache.NewKey("notify", "agg:buffer", member)
@@ -158,19 +161,5 @@ func parseAggregateMember(member string) (AggregateKey, bool) {
 		RuleID:    parts[0],
 		EventType: parts[1],
 		Channel:   parts[2],
-	}, true
-}
-
-// parseAggregateKey parses a full Redis key of the form
-// notify:agg:timer|buffer:{ruleID}:{eventType}:{channel}.
-func parseAggregateKey(key string) (AggregateKey, bool) {
-	parts := strings.SplitN(key, ":", 6)
-	if len(parts) < 6 {
-		return AggregateKey{}, false
-	}
-	return AggregateKey{
-		RuleID:    parts[3],
-		EventType: parts[4],
-		Channel:   parts[5],
 	}, true
 }
