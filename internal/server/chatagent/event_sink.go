@@ -1,8 +1,14 @@
 package chatagent
 
 import (
+	"errors"
 	"sync"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
+
+// ErrStreamEventDropped is returned when Publish drops an event because the buffer is full.
+var ErrStreamEventDropped = errors.New("stream event dropped: channel full")
 
 // ChannelPublisher sends stream events to a buffered channel for SSE writers.
 type ChannelPublisher struct {
@@ -22,6 +28,7 @@ func NewChannelPublisher(buffer int) *ChannelPublisher {
 // Publish enqueues one stream event for the SSE writer goroutine.
 // Never blocks: a dead or slow consumer must not stall confirm gates or hub fan-out
 // (e.g. after the primary messages SSE disconnects while a run is still waiting).
+// Returns ErrStreamEventDropped when the buffer is full (event is discarded after a warn log).
 func (p *ChannelPublisher) Publish(event StreamEvent) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -30,11 +37,13 @@ func (p *ChannelPublisher) Publish(event StreamEvent) error {
 	}
 	select {
 	case p.ch <- event:
+		return nil
 	default:
 		// Drop when the buffer is full. Critical events are still best-effort;
 		// observers subscribe on their own channels and stay writable.
+		flog.Warn("[chat-agent] stream event dropped type=%s (buffer full)", event.Type)
+		return ErrStreamEventDropped
 	}
-	return nil
 }
 
 // Events returns the readable event channel.

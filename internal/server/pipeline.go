@@ -236,6 +236,11 @@ func setupAbilityEmitter(cfg *config.Type, ac *metrics.CapabilityCollector) erro
 		if !ok {
 			return
 		}
+		if store.Database == nil || store.Database.GetClient() == nil {
+			flog.Warn("capability_emitter: skipped, store.Database not ready")
+			return
+		}
+		eventStore := store.EventStoreFromDB()
 		for _, ref := range result.Events {
 			eventID := resolveEmittedEventID(ref)
 
@@ -251,13 +256,47 @@ func setupAbilityEmitter(cfg *config.Type, ac *metrics.CapabilityCollector) erro
 				CreatedAt:      time.Now(),
 			}
 
-			eventStore := store.EventStoreFromDB()
-			_ = eventStore.AppendDataEvent(ctx, dataEvent)
-			_ = eventStore.AppendEventOutbox(ctx, dataEvent)
-			_ = event.PublishMessage(ctx, DataEventTopic, dataEvent)
+			// EventEmitter cannot return errors to the Invoke caller; log and
+			// surface publish failure so operators can detect silent drops.
+			if err := persistAndPublishDataEvent(ctx, eventStore, event.PublishMessage, DataEventTopic, dataEvent, "capability_emitter"); err != nil {
+				flog.Error(err)
+			}
 		}
 	})
 
+	return nil
+}
+
+// dataEventPersister is the store seam used by persistAndPublishDataEvent.
+type dataEventPersister interface {
+	AppendDataEvent(ctx context.Context, de types.DataEvent) error
+	AppendEventOutbox(ctx context.Context, de types.DataEvent) error
+}
+
+// dataEventPublisher publishes a payload to a topic (typically event.PublishMessage).
+type dataEventPublisher func(ctx context.Context, topic string, payload any) error
+
+// persistAndPublishDataEvent writes the audit row + outbox, then publishes to the bus.
+// Append failures are logged and do not abort publish (same policy as event_source).
+// Publish failure is logged and returned so callers that can retry may do so.
+func persistAndPublishDataEvent(
+	ctx context.Context,
+	persister dataEventPersister,
+	publish dataEventPublisher,
+	topic string,
+	de types.DataEvent,
+	logPrefix string,
+) error {
+	if err := persister.AppendDataEvent(ctx, de); err != nil {
+		flog.Error(fmt.Errorf("%s: AppendDataEvent failed event_id=%s: %w", logPrefix, de.EventID, err))
+	}
+	if err := persister.AppendEventOutbox(ctx, de); err != nil {
+		flog.Error(fmt.Errorf("%s: AppendEventOutbox failed event_id=%s: %w", logPrefix, de.EventID, err))
+	}
+	if err := publish(ctx, topic, de); err != nil {
+		flog.Error(fmt.Errorf("%s: PublishMessage to %s failed event_id=%s: %w", logPrefix, topic, de.EventID, err))
+		return fmt.Errorf("%s: publish failed: %w", logPrefix, err)
+	}
 	return nil
 }
 
@@ -333,15 +372,8 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 				enrichDataEventApp(&events[i])
 				de := events[i]
 				flog.Debug("event_source: storing event %s type=%s source=%s", de.EventID, de.EventType, de.Source)
-				if err := eventStore.AppendDataEvent(ctx, de); err != nil {
-					flog.Error(fmt.Errorf("event_source: AppendDataEvent failed: %w", err))
-				}
-				if err := eventStore.AppendEventOutbox(ctx, de); err != nil {
-					flog.Error(fmt.Errorf("event_source: AppendEventOutbox failed: %w", err))
-				}
-				if err := event.PublishMessage(ctx, DataEventTopic, de); err != nil {
-					flog.Error(fmt.Errorf("event_source: PublishMessage to %s failed: %w", DataEventTopic, err))
-					return fmt.Errorf("event_source: publish failed: %w", err)
+				if err := persistAndPublishDataEvent(ctx, eventStore, event.PublishMessage, DataEventTopic, de, "event_source"); err != nil {
+					return err
 				}
 			}
 			return nil

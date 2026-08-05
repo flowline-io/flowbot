@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -220,3 +221,96 @@ func TestEnrichDataEventApp(t *testing.T) {
 
 // verify pollingPersistenceAdapter implements capability.Persistence.
 var _ capability.Persistence = (*pollingPersistenceAdapter)(nil)
+
+type stubDataEventPersister struct {
+	appendDataErr   error
+	appendOutboxErr error
+	dataCalls       int
+	outboxCalls     int
+}
+
+func (s *stubDataEventPersister) AppendDataEvent(_ context.Context, _ types.DataEvent) error {
+	s.dataCalls++
+	return s.appendDataErr
+}
+
+func (s *stubDataEventPersister) AppendEventOutbox(_ context.Context, _ types.DataEvent) error {
+	s.outboxCalls++
+	return s.appendOutboxErr
+}
+
+func TestPersistAndPublishDataEvent(t *testing.T) {
+	t.Parallel()
+	pubErr := errors.New("redis unavailable")
+	sample := types.DataEvent{EventID: "evt-1", EventType: "test.created"}
+
+	tests := []struct {
+		name            string
+		appendDataErr   error
+		appendOutboxErr error
+		publishErr      error
+		wantErr         bool
+		wantPublish     bool
+	}{
+		{
+			name:        "all succeed",
+			wantPublish: true,
+		},
+		{
+			name:          "append data fails but still publishes",
+			appendDataErr: errors.New("db down"),
+			wantPublish:   true,
+		},
+		{
+			name:            "append outbox fails but still publishes",
+			appendOutboxErr: errors.New("outbox down"),
+			wantPublish:     true,
+		},
+		{
+			name:        "publish failure is returned",
+			publishErr:  pubErr,
+			wantErr:     true,
+			wantPublish: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			persister := &stubDataEventPersister{
+				appendDataErr:   tt.appendDataErr,
+				appendOutboxErr: tt.appendOutboxErr,
+			}
+			published := 0
+			publish := func(_ context.Context, topic string, payload any) error {
+				published++
+				assert.Equal(t, DataEventTopic, topic)
+				ev, ok := payload.(types.DataEvent)
+				require.True(t, ok)
+				assert.Equal(t, sample.EventID, ev.EventID)
+				return tt.publishErr
+			}
+
+			err := persistAndPublishDataEvent(
+				context.Background(),
+				persister,
+				publish,
+				DataEventTopic,
+				sample,
+				"test_emitter",
+			)
+			assert.Equal(t, 1, persister.dataCalls)
+			assert.Equal(t, 1, persister.outboxCalls)
+			if tt.wantPublish {
+				assert.Equal(t, 1, published)
+			} else {
+				assert.Equal(t, 0, published)
+			}
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, pubErr)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}

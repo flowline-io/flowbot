@@ -23,14 +23,14 @@ func TestChannelPublisherPublish(t *testing.T) {
 			pub := NewChannelPublisher(1)
 			require.NoError(t, pub.Publish(StreamEvent{Type: EventTypeDelta, Text: "first"}))
 
-			done := make(chan struct{})
+			done := make(chan error, 1)
 			go func() {
-				_ = pub.Publish(StreamEvent{Type: tt.eventType, Text: "second"})
-				close(done)
+				done <- pub.Publish(StreamEvent{Type: tt.eventType, Text: "second"})
 			}()
 
 			select {
-			case <-done:
+			case err := <-done:
+				require.ErrorIs(t, err, ErrStreamEventDropped)
 			case <-time.After(50 * time.Millisecond):
 				t.Fatal("publish should return immediately when full")
 			}
@@ -76,14 +76,14 @@ func TestChannelPublisherTimingEventsNonBlocking(t *testing.T) {
 			pub := NewChannelPublisher(1)
 			require.NoError(t, pub.Publish(StreamEvent{Type: EventTypeDelta, Text: "first"}))
 
-			done := make(chan struct{})
+			done := make(chan error, 1)
 			go func() {
-				_ = pub.Publish(tt.event)
-				close(done)
+				done <- pub.Publish(tt.event)
 			}()
 
 			select {
-			case <-done:
+			case err := <-done:
+				require.ErrorIs(t, err, ErrStreamEventDropped)
 			case <-time.After(50 * time.Millisecond):
 				t.Fatal("publish should return immediately when full")
 			}
