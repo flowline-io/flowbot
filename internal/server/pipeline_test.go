@@ -251,6 +251,8 @@ func (s *stubDataEventPersister) MarkOutboxPublished(_ context.Context, eventID 
 func TestPersistAndPublishDataEvent(t *testing.T) {
 	t.Parallel()
 	pubErr := errors.New("redis unavailable")
+	dataErr := errors.New("db down")
+	outboxErr := errors.New("outbox down")
 	sample := types.DataEvent{EventID: "evt-1", EventType: "test.created"}
 
 	tests := []struct {
@@ -259,7 +261,7 @@ func TestPersistAndPublishDataEvent(t *testing.T) {
 		appendOutboxErr error
 		publishErr      error
 		markErr         error
-		wantErr         bool
+		wantErr         error
 		wantPublish     bool
 		wantMark        bool
 	}{
@@ -269,23 +271,20 @@ func TestPersistAndPublishDataEvent(t *testing.T) {
 			wantMark:    true,
 		},
 		{
-			name:          "append data fails but still publishes and marks",
-			appendDataErr: errors.New("db down"),
-			wantPublish:   true,
-			wantMark:      true,
+			name:          "append data fails aborts before publish",
+			appendDataErr: dataErr,
+			wantErr:       dataErr,
 		},
 		{
-			name:            "append outbox fails but still publishes and marks",
-			appendOutboxErr: errors.New("outbox down"),
-			wantPublish:     true,
-			wantMark:        true,
+			name:            "append outbox fails aborts before publish",
+			appendOutboxErr: outboxErr,
+			wantErr:         outboxErr,
 		},
 		{
 			name:        "publish failure is returned and does not mark",
 			publishErr:  pubErr,
-			wantErr:     true,
+			wantErr:     pubErr,
 			wantPublish: true,
-			wantMark:    false,
 		},
 		{
 			name:        "mark failure is logged but publish succeeds",
@@ -321,7 +320,11 @@ func TestPersistAndPublishDataEvent(t *testing.T) {
 				"test_emitter",
 			)
 			assert.Equal(t, 1, persister.dataCalls)
-			assert.Equal(t, 1, persister.outboxCalls)
+			if tt.appendDataErr != nil {
+				assert.Equal(t, 0, persister.outboxCalls)
+			} else {
+				assert.Equal(t, 1, persister.outboxCalls)
+			}
 			if tt.wantPublish {
 				assert.Equal(t, 1, published)
 			} else {
@@ -333,9 +336,9 @@ func TestPersistAndPublishDataEvent(t *testing.T) {
 			} else {
 				assert.Equal(t, 0, persister.markCalls)
 			}
-			if tt.wantErr {
+			if tt.wantErr != nil {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, pubErr)
+				assert.ErrorIs(t, err, tt.wantErr)
 				return
 			}
 			require.NoError(t, err)

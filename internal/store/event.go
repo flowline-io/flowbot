@@ -97,6 +97,9 @@ func (s *EventStore) AppendEventOutbox(ctx context.Context, event types.DataEven
 	if event.Tags != nil {
 		payload["tags"] = map[string]any(event.Tags)
 	}
+	if event.Data != nil {
+		payload["data"] = map[string]any(event.Data)
+	}
 	_, err := s.client.EventOutbox.Create().
 		SetEventID(event.EventID).
 		SetPayload(payload).
@@ -119,6 +122,7 @@ func (s *EventStore) MarkOutboxPublished(ctx context.Context, eventID string) er
 
 // ListPendingDataEventOutbox returns unpublished DataEvent outbox rows older than olderThan.
 // Skips domain-specific outbox rows (e.g. life lore) that share the same table but lack event_type.
+// Scans in batches so a long run of lore rows cannot starve DataEvent redelivery.
 func (s *EventStore) ListPendingDataEventOutbox(ctx context.Context, olderThan time.Time, limit int) ([]types.DataEvent, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
@@ -126,28 +130,41 @@ func (s *EventStore) ListPendingDataEventOutbox(ctx context.Context, olderThan t
 	if limit <= 0 {
 		limit = 50
 	}
-	rows, err := s.client.EventOutbox.Query().
-		Where(
-			eventoutbox.PublishedEQ(false),
-			eventoutbox.CreatedAtLT(olderThan),
-		).
-		Order(gen.Asc(eventoutbox.FieldCreatedAt)).
-		Limit(limit * 5).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
+	const batchSize = 100
+	const maxBatches = 50
 	out := make([]types.DataEvent, 0, limit)
-	for _, row := range rows {
-		de, ok := dataEventFromOutboxPayload(row.Payload, row.CreatedAt)
-		if !ok {
-			continue
+	offset := 0
+	for range maxBatches {
+		rows, err := s.client.EventOutbox.Query().
+			Where(
+				eventoutbox.PublishedEQ(false),
+				eventoutbox.CreatedAtLT(olderThan),
+			).
+			Order(gen.Asc(eventoutbox.FieldCreatedAt)).
+			Offset(offset).
+			Limit(batchSize).
+			All(ctx)
+		if err != nil {
+			return nil, err
 		}
-		if de.EventID == "" {
-			de.EventID = row.EventID
+		if len(rows) == 0 {
+			break
 		}
-		out = append(out, de)
-		if len(out) >= limit {
+		for _, row := range rows {
+			de, ok := dataEventFromOutboxPayload(row.Payload, row.CreatedAt)
+			if !ok {
+				continue
+			}
+			if de.EventID == "" {
+				de.EventID = row.EventID
+			}
+			out = append(out, de)
+			if len(out) >= limit {
+				return out, nil
+			}
+		}
+		offset += len(rows)
+		if len(rows) < batchSize {
 			break
 		}
 	}
@@ -187,6 +204,9 @@ func dataEventFromOutboxPayload(payload map[string]any, createdAt time.Time) (ty
 	}
 	if tags, ok := payload["tags"].(map[string]any); ok && len(tags) > 0 {
 		de.Tags = types.KV(tags)
+	}
+	if data, ok := payload["data"].(map[string]any); ok && len(data) > 0 {
+		de.Data = types.KV(data)
 	}
 	return de, true
 }

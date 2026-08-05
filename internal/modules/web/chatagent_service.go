@@ -36,11 +36,11 @@ func chatAgentService() (*chatagent.Service, error) {
 	return webChatAgentService, nil
 }
 
-// pendingApprovalSessionCount returns pending approval count, or 0 if the service is unset.
-func pendingApprovalSessionCount() int {
+// pendingApprovalSessionCount returns the pending approval count from the shared service.
+func pendingApprovalSessionCount() (int, error) {
 	svc, err := chatAgentService()
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	return svc.CountPendingApprovalSessions()
+	return svc.CountPendingApprovalSessions(), nil
 }

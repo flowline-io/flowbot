@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -83,6 +84,7 @@ func TestEventStore_OutboxLifecycle(t *testing.T) {
 		EventID:   "outbox-evt-1",
 		EventType: "bookmark.created",
 		Source:    "karakeep",
+		Data:      map[string]any{"url": "https://example.com"},
 		Tags:      map[string]any{"project": "alpha"},
 	}
 	require.NoError(t, store.AppendEventOutbox(ctx, event))
@@ -93,6 +95,9 @@ func TestEventStore_OutboxLifecycle(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, rows, 1)
 	assert.False(t, rows[0].Published)
+	data, ok := rows[0].Payload["data"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "https://example.com", data["url"])
 
 	require.NoError(t, store.MarkOutboxPublished(ctx, "outbox-evt-1"))
 	updated, err := client.EventOutbox.Get(ctx, rows[0].ID)
@@ -111,6 +116,7 @@ func TestEventStore_ListPendingDataEventOutbox(t *testing.T) {
 		SetEventID("old-data").
 		SetPayload(map[string]any{
 			"event_id": "old-data", "event_type": "bookmark.created", "source": "karakeep",
+			"data": map[string]any{"k": "v"},
 		}).
 		SetPublished(false).
 		SetCreatedAt(now.Add(-2 * time.Minute)).
@@ -150,6 +156,41 @@ func TestEventStore_ListPendingDataEventOutbox(t *testing.T) {
 	assert.Equal(t, "old-data", pending[0].EventID)
 	assert.Equal(t, "bookmark.created", pending[0].EventType)
 	assert.Equal(t, "karakeep", pending[0].Source)
+	assert.Equal(t, "v", pending[0].Data["k"])
+}
+
+func TestEventStore_ListPendingDataEventOutboxSkipsLeadingLore(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	store := NewEventStore(client)
+	ctx := context.Background()
+	now := time.Now()
+
+	for i := range 15 {
+		_, err := client.EventOutbox.Create().
+			SetEventID(fmt.Sprintf("lore-%02d", i)).
+			SetPayload(map[string]any{
+				"event_id": fmt.Sprintf("lore-%02d", i), "type": LifeLoreRequestedType,
+			}).
+			SetPublished(false).
+			SetCreatedAt(now.Add(-time.Duration(30-i) * time.Minute)).
+			Save(ctx)
+		require.NoError(t, err)
+	}
+	_, err := client.EventOutbox.Create().
+		SetEventID("data-after-lore").
+		SetPayload(map[string]any{
+			"event_id": "data-after-lore", "event_type": "bookmark.created",
+		}).
+		SetPublished(false).
+		SetCreatedAt(now.Add(-1 * time.Minute)).
+		Save(ctx)
+	require.NoError(t, err)
+
+	pending, err := store.ListPendingDataEventOutbox(ctx, now.Add(-30*time.Second), 5)
+	require.NoError(t, err)
+	require.Len(t, pending, 1)
+	assert.Equal(t, "data-after-lore", pending[0].EventID)
 }
 
 func TestEventStore_GetDataEventByEventID(t *testing.T) {

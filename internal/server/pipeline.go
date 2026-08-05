@@ -279,10 +279,9 @@ type dataEventPersister interface {
 type dataEventPublisher func(ctx context.Context, topic string, payload any) error
 
 // persistAndPublishDataEvent writes the audit row + outbox, then publishes to the bus.
-// Append failures are logged and do not abort publish (same policy as event_source).
-// Publish failure is logged and returned so callers that can retry may do so.
-// On successful publish the outbox row is marked published; mark failure is logged
-// so the redelivery loop can republish (pipeline consumption is idempotent).
+// AppendDataEvent / AppendEventOutbox failures abort before publish (no MarkOutboxPublished),
+// so redelivery can still pick up durable outbox rows. Publish failure leaves the outbox
+// unpublished for the redelivery loop. Mark failure is logged only.
 func persistAndPublishDataEvent(
 	ctx context.Context,
 	persister dataEventPersister,
@@ -293,9 +292,11 @@ func persistAndPublishDataEvent(
 ) error {
 	if err := persister.AppendDataEvent(ctx, de); err != nil {
 		flog.Error(fmt.Errorf("%s: AppendDataEvent failed event_id=%s: %w", logPrefix, de.EventID, err))
+		return fmt.Errorf("%s: AppendDataEvent failed: %w", logPrefix, err)
 	}
 	if err := persister.AppendEventOutbox(ctx, de); err != nil {
 		flog.Error(fmt.Errorf("%s: AppendEventOutbox failed event_id=%s: %w", logPrefix, de.EventID, err))
+		return fmt.Errorf("%s: AppendEventOutbox failed: %w", logPrefix, err)
 	}
 	if err := publish(ctx, topic, de); err != nil {
 		flog.Error(fmt.Errorf("%s: PublishMessage to %s failed event_id=%s: %w", logPrefix, topic, de.EventID, err))

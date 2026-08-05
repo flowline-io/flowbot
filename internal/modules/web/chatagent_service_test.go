@@ -18,7 +18,9 @@ func TestChatAgentServiceUnsetReturnsError(t *testing.T) {
 	require.Error(t, err)
 	assert.Nil(t, svc)
 	require.ErrorIs(t, err, types.ErrInternal)
-	assert.Equal(t, 0, pendingApprovalSessionCount())
+
+	_, err = pendingApprovalSessionCount()
+	require.ErrorIs(t, err, types.ErrInternal)
 }
 
 func TestChatAgentServiceReturnsInstalled(t *testing.T) {
@@ -30,4 +32,8 @@ func TestChatAgentServiceReturnsInstalled(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, svc)
 	assert.Same(t, webChatAgentService, svc)
+
+	count, err := pendingApprovalSessionCount()
+	require.NoError(t, err)
+	assert.GreaterOrEqual(t, count, 0)
 }

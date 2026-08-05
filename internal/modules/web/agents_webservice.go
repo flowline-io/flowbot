@@ -59,11 +59,15 @@ const (
 	agentsListFilterArchived      = "archived"
 )
 
-func agentsEndpoints() partials.ChatAgentEndpoints {
-	return agentsEndpointsWithFilter("", types.Uid(""))
+func agentsEndpoints() (partials.ChatAgentEndpoints, error) {
+	pending, err := pendingApprovalSessionCount()
+	if err != nil {
+		return partials.ChatAgentEndpoints{}, err
+	}
+	return agentsEndpointsWithFilter("", types.Uid(""), pending), nil
 }
 
-func agentsEndpointsWithFilter(filter string, uid types.Uid) partials.ChatAgentEndpoints {
+func agentsEndpointsWithFilter(filter string, uid types.Uid, pendingCount int) partials.ChatAgentEndpoints {
 	return partials.ChatAgentEndpoints{
 		CreateURL:            "/service/web/agents",
 		ListURL:              "/service/web/agents/list",
@@ -71,7 +75,7 @@ func agentsEndpointsWithFilter(filter string, uid types.Uid) partials.ChatAgentE
 		PinURLTemplate:       "/service/web/agents/{id}/pin",
 		ArchiveURLTemplate:   "/service/web/agents/{id}/archive",
 		Filter:               normalizeAgentsListFilter(filter),
-		PendingApprovalCount: pendingApprovalSessionCount(),
+		PendingApprovalCount: pendingCount,
 		RenderMarkdownURL:    "/service/web/agents/render-markdown",
 		SkillsURL:            "/service/web/agents/skills",
 		SelectableModels:     selectableModelOptions(),
@@ -182,15 +186,20 @@ func agentsPage(ctx fiber.Ctx) error {
 	filter := normalizeAgentsListFilter(ctx.Query("filter"))
 	var items []model.AgentSession
 	var nextCursor string
+	pendingCount := 0
 	if enabled {
 		var err error
 		items, nextCursor, err = listUserAgentSessionModels(ctx, "", filter)
 		if err != nil {
 			return types.Errorf(types.ErrInternal, "list agents: %v", err)
 		}
+		pendingCount, err = pendingApprovalSessionCount()
+		if err != nil {
+			return err
+		}
 	}
 	ctx.Type("html")
-	return pages.AgentsPage(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx)), enabled).
+	return pages.AgentsPage(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount), enabled).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -209,8 +218,12 @@ func agentsTable(ctx fiber.Ctx) error {
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to load sessions")
 	}
+	pendingCount, err := pendingApprovalSessionCount()
+	if err != nil {
+		return err
+	}
 	ctx.Type("html")
-	endpoints := agentsEndpointsWithFilter(filter, webRequestUID(ctx))
+	endpoints := agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)
 	if cursor != "" {
 		return partials.ChatAgentSessionListAppend(items, nextCursor, endpoints).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -737,13 +750,9 @@ func agentChatEvents(ctx fiber.Ctx) error {
 	return streamWebSessionEvents(ctx, sessionID)
 }
 
-func applyAgentsActivityFilter(opts *store.ListChatSessionsOptions, filter string) (empty bool, err error) {
+func applyAgentsActivityFilter(opts *store.ListChatSessionsOptions, filter string, svc *chatagent.Service) (noMatchingActivitySessions bool, err error) {
 	switch filter {
 	case agentsListFilterRunning, agentsListFilterNeedsApproval:
-		svc, err := chatAgentService()
-		if err != nil {
-			return false, err
-		}
 		flags := svc.ListSessionIDsByActivity(filter)
 		if len(flags) == 0 {
 			return true, nil
@@ -754,17 +763,13 @@ func applyAgentsActivityFilter(opts *store.ListChatSessionsOptions, filter strin
 	return false, nil
 }
 
-func sessionActivityOrEmpty(sessionID string) string {
-	svc, err := chatAgentService()
-	if err != nil {
-		return ""
-	}
-	return svc.SessionActivity(sessionID)
-}
-
 func listUserAgentSessionModels(ctx fiber.Ctx, cursor, filter string) ([]model.AgentSession, string, error) {
 	if store.Database == nil {
 		return nil, "", errors.New("store not available")
+	}
+	svc, err := chatAgentService()
+	if err != nil {
+		return nil, "", err
 	}
 	uid := getUID(ctx)
 	filter = normalizeAgentsListFilter(filter)
@@ -779,7 +784,7 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor, filter string) ([]model.A
 		Archived:    &archived,
 		PinnedFirst: !archivedOnly,
 	}
-	empty, err := applyAgentsActivityFilter(&opts, filter)
+	empty, err := applyAgentsActivityFilter(&opts, filter, svc)
 	if err != nil {
 		return nil, "", err
 	}
@@ -794,7 +799,7 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor, filter string) ([]model.A
 	items := make([]model.AgentSession, 0, len(rows))
 	for _, row := range rows {
 		item := mapAgentSession(row)
-		item.Activity = sessionActivityOrEmpty(row.Flag)
+		item.Activity = svc.SessionActivity(row.Flag)
 		items = append(items, item)
 		leafBySession[row.Flag] = row.LeafID
 	}
@@ -862,8 +867,12 @@ func setAgentChatPinned(ctx fiber.Ctx, pinned bool) error {
 	if err != nil {
 		return toastError(ctx, "Failed to refresh sessions")
 	}
+	pendingCount, err := pendingApprovalSessionCount()
+	if err != nil {
+		return err
+	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx))).
+	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -895,8 +904,12 @@ func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
 	if err != nil {
 		return toastError(ctx, "Failed to refresh sessions")
 	}
+	pendingCount, err := pendingApprovalSessionCount()
+	if err != nil {
+		return err
+	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx))).
+	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
