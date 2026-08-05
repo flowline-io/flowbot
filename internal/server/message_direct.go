@@ -73,12 +73,17 @@ func directIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e
 }
 
 func buildDirectMessageContext(eventCtx context.Context, eventID string, msg protocol.MessageEventData) (directMessageContext, error) {
-	uid, err := registerPlatformUser(msg)
+	platform, err := store.PlatformStoreFromDB().GetPlatformByName(eventCtx, msg.Self.Platform)
 	if err != nil {
 		return directMessageContext{}, err
 	}
 
-	topic, err := registerPlatformChannel(msg)
+	uid, err := registerPlatformUser(msg, platform)
+	if err != nil {
+		return directMessageContext{}, err
+	}
+
+	topic, err := registerPlatformChannel(msg, platform)
 	if err != nil {
 		return directMessageContext{}, err
 	}
@@ -91,11 +96,6 @@ func buildDirectMessageContext(eventCtx context.Context, eventID string, msg pro
 	}
 	ctx.SetContext(eventCtx)
 	ctx.SetTimeout(10 * time.Minute)
-
-	platform, err := store.PlatformStoreFromDB().GetPlatformByName(ctx.Context(), msg.Self.Platform)
-	if err != nil {
-		return directMessageContext{}, err
-	}
 
 	return directMessageContext{
 		ctx:        ctx,

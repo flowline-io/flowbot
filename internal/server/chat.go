@@ -107,9 +107,24 @@ func refreshThreadSessionCache(ctx types.Context, uid types.Uid, scope, sessionI
 	if sessionID == "" {
 		return
 	}
-	if err := bindThreadSession(ctx, uid, scope, sessionID); err != nil {
+	if err := touchThreadSessionCache(ctx, uid, scope); err != nil {
 		flog.Error(fmt.Errorf("refresh chat session cache: %w", err))
 	}
+}
+
+// touchThreadSessionCache extends TTLs on existing session keys without rewriting values.
+func touchThreadSessionCache(ctx types.Context, uid types.Uid, scope string) error {
+	ttl := cache.TTLSession
+	if err := cacheStore.Expire(ctx.Context(), threadChatKey(uid, scope), ttl); err != nil {
+		return fmt.Errorf("expire thread session key uid=%s scope=%s: %w", uid, scope, err)
+	}
+	if err := cacheStore.Expire(ctx.Context(), enabledChatKey(uid), ttl); err != nil {
+		return fmt.Errorf("expire chat enabled uid=%s: %w", uid, err)
+	}
+	if err := cacheStore.Expire(ctx.Context(), threadsSetKey(uid), ttl); err != nil {
+		return fmt.Errorf("expire chat threads set uid=%s: %w", uid, err)
+	}
+	return nil
 }
 
 func ensureThreadSession(ctx types.Context, uid types.Uid, scope, sessionID, msgAlt string) string {

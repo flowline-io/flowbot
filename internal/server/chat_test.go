@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
@@ -179,6 +180,46 @@ func TestChatCommandThreadID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, chatCommandThreadID(msg, tt.msgAlt))
+		})
+	}
+}
+
+func TestRefreshThreadSessionCache(t *testing.T) {
+	tests := []struct {
+		name      string
+		sessionID string
+		bindFirst bool
+	}{
+		{name: "empty session is no-op", sessionID: ""},
+		{name: "extends ttl without rewriting session value", sessionID: "sess-refresh-1", bindFirst: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mr := miniredis.RunT(t)
+			client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+			cacheStore = cache.NewRedisStore(client)
+			t.Cleanup(func() { cacheStore = nil })
+
+			ctx := types.Context{}
+			ctx.SetContext(t.Context())
+			uid := types.Uid("uid-refresh")
+			scope := "thread-refresh"
+
+			if tt.bindFirst {
+				require.NoError(t, bindThreadSession(ctx, uid, scope, tt.sessionID))
+				mr.FastForward(time.Hour)
+			}
+
+			refreshThreadSessionCache(ctx, uid, scope, tt.sessionID)
+
+			if !tt.bindFirst {
+				assert.Empty(t, loadThreadSessionID(ctx, uid, scope))
+				return
+			}
+			assert.Equal(t, tt.sessionID, loadThreadSessionID(ctx, uid, scope))
+			ttl := mr.TTL(threadChatKey(uid, scope).String())
+			assert.Greater(t, ttl, 20*time.Hour)
+			assert.True(t, isChatEnabled(ctx, uid))
 		})
 	}
 }

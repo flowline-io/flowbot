@@ -246,8 +246,14 @@ func TestRegisterPlatformUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			setupSQLiteTestDB(t)
 			data := tt.seed(t)
+			platform, err := store.PlatformStoreFromDB().GetPlatformByName(context.Background(), data.Self.Platform)
+			if tt.wantErr && err != nil {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
 
-			uid, err := registerPlatformUser(data)
+			uid, err := registerPlatformUser(data, platform)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -349,8 +355,10 @@ func TestRegisterPlatformChannel(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			setupSQLiteTestDB(t)
 			data := tt.seed(t)
+			platform, err := store.PlatformStoreFromDB().GetPlatformByName(context.Background(), data.Self.Platform)
+			require.NoError(t, err)
 
-			flag, err := registerPlatformChannel(data)
+			flag, err := registerPlatformChannel(data, platform)
 			if tt.wantErr {
 				require.Error(t, err)
 				return

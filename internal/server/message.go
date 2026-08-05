@@ -34,13 +34,19 @@ func groupIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e 
 		return
 	}
 
-	uid, err := registerPlatformUser(msg)
+	platform, err := store.PlatformStoreFromDB().GetPlatformByName(eventCtx, msg.Self.Platform)
 	if err != nil {
 		flog.Error(err)
 		return
 	}
 
-	topic, err := registerPlatformChannel(msg)
+	uid, err := registerPlatformUser(msg, platform)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+
+	topic, err := registerPlatformChannel(msg, platform)
 	if err != nil {
 		flog.Error(err)
 		return

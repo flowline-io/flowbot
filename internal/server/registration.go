@@ -27,6 +27,7 @@ func resolvePlatformUserFlag(data protocol.MessageEventData) string {
 }
 
 // registerPlatformUser registers a platform user based on the provided message event data.
+// platform must already be resolved by the caller (one lookup per inbound message).
 // It checks if the platform user already exists by its flag, and if found, retrieves the existing user flag.
 // If the platform user does not exist, it creates a new user and platform user entry in the database.
 // It also associates the platform user with the platform.
@@ -36,12 +37,11 @@ func resolvePlatformUserFlag(data protocol.MessageEventData) string {
 // Relink updates platform_users only; chat sessions created under an orphan uid keep that uid
 // until the user runs platform "end" then "chat" (or otherwise starts a new session).
 // Returns the user flag and an error if any operation fails.
-func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
-	ctx := context.Background()
-	platform, err := store.PlatformStoreFromDB().GetPlatformByName(ctx, data.Self.Platform)
-	if err != nil {
-		return "", err
+func registerPlatformUser(data protocol.MessageEventData, platform *gen.Platform) (types.Uid, error) {
+	if platform == nil {
+		return "", fmt.Errorf("register platform user: platform is nil")
 	}
+	ctx := context.Background()
 
 	platformUserFlag := resolvePlatformUserFlag(data)
 
@@ -187,14 +187,14 @@ func platformUserProfileDefaults(platformName, flag string) (email, avatarURL st
 }
 
 // registerPlatformChannel registers a platform channel based on the provided message event data.
+// platform must already be resolved by the caller (one lookup per inbound message).
 // It checks if the platform channel already exists by its topic ID, and if found, retrieves the existing channel flag.
 // If the platform channel does not exist, it creates a new channel and platform channel entry in the database.
 // It also associates the platform channel with the user who triggered the event.
 // Returns the channel flag and an error if any operation fails.
-func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
-	platform, err := store.PlatformStoreFromDB().GetPlatformByName(context.Background(), data.Self.Platform)
-	if err != nil {
-		return "", err
+func registerPlatformChannel(data protocol.MessageEventData, platform *gen.Platform) (string, error) {
+	if platform == nil {
+		return "", fmt.Errorf("register platform channel: platform is nil")
 	}
 
 	platformChannel, err := store.PlatformStoreFromDB().GetPlatformChannelByFlag(context.Background(), data.TopicId)
