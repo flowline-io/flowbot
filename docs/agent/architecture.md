@@ -294,7 +294,7 @@ Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain av
 
 | File | Role |
 | ---- | ---- |
-| `factory.go` | Map `config.Model` → OpenAI / Anthropic / Gemini langchaingo clients |
+| `factory.go` | Map `config.Model` → OpenAI / Anthropic / Gemini (OpenAI-compatible HTTP) langchaingo clients |
 | `stream.go` | `StreamAssistant()` — streaming + tool call assembly + pre-stream retry |
 | `retry.go` | `IsRetryableLLMError`, `RetryConfig` |
 | `fake.go` | Scriptable `llms.Model` for unit tests and BDD |

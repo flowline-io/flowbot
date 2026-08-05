@@ -341,6 +341,7 @@ model, name, err := agentllm.NewModel(ctx, "gpt-4o") // model name from config.m
 ```
 
 Supported providers (via `pkg/agent/llm` provider constants): OpenAI, OpenAI-compatible, Anthropic, Gemini.
+Gemini uses Google's OpenAI-compatible endpoint (`https://generativelanguage.googleapis.com/v1beta/openai/` by default; override with `models[].base_url`).
 
 For tests, use `agentllm.NewFakeModel` with scripted `ResponseScript` entries (text and/or tool calls).
 

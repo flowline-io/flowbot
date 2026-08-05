@@ -153,6 +153,14 @@ func TestFillMediaPartForProvider(t *testing.T) {
 			wantData: true,
 		},
 		{
+			name:     "gemini image uses data uri via openai-compatible path",
+			provider: "gemini",
+			kind:     msg.MediaKindImage,
+			mime:     "image/png",
+			data:     png,
+			wantURL:  "data:image/png;base64,iVBORw==",
+		},
+		{
 			name:     "default image prefers data uri over private signed url",
 			provider: "unknown",
 			kind:     msg.MediaKindImage,

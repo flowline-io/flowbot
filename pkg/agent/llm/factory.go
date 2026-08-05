@@ -9,9 +9,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/anthropic"
-	"github.com/tmc/langchaingo/llms/googleai"
 	"github.com/tmc/langchaingo/llms/openai"
 )
+
+// defaultGeminiOpenAIBaseURL is Google's OpenAI-compatible Gemini endpoint.
+// See https://ai.google.dev/gemini-api/docs/openai
+const defaultGeminiOpenAIBaseURL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 type pooledModel struct {
 	model    llms.Model
@@ -75,17 +78,19 @@ func GetOrCreateModel(ctx context.Context, modelName string) (llms.Model, string
 // NewModel creates a langchaingo model from flowbot model configuration.
 // Provider reasoning is enabled per request in StreamAssistant via ReasoningCallOptions
 // because langchaingo exposes extended thinking through GenerateContent call options.
-func NewModel(ctx context.Context, modelName string) (llms.Model, string, error) {
+// Gemini uses Google's OpenAI-compatible HTTP endpoint (not llms/googleai) to avoid
+// pulling cloud.google.com/go and vertexai into the runtime binary.
+func NewModel(_ context.Context, modelName string) (llms.Model, string, error) {
 	cfg := resolveModel(modelName)
 	if cfg.Provider == "" {
 		return nil, "", fmt.Errorf("agent llm: unknown model %q", modelName)
 	}
 
 	switch cfg.Provider {
-	case ProviderOpenAI, ProviderOpenAICompatible:
+	case ProviderOpenAI, ProviderOpenAICompatible, ProviderGemini:
 		opts := []openai.Option{openai.WithToken(cfg.ApiKey), openai.WithModel(modelName)}
-		if cfg.BaseUrl != "" {
-			opts = append(opts, openai.WithBaseURL(cfg.BaseUrl))
+		if baseURL := openaiCompatibleBaseURL(cfg); baseURL != "" {
+			opts = append(opts, openai.WithBaseURL(baseURL))
 		}
 		opts = append(opts, openai.WithHTTPClient(openaiHTTPClient(needsThinkingHTTPClient(modelName))))
 		model, err := openai.New(opts...)
@@ -106,15 +111,25 @@ func NewModel(ctx context.Context, modelName string) (llms.Model, string, error)
 			return nil, "", fmt.Errorf("agent llm: anthropic model: %w", err)
 		}
 		return model, modelName, nil
-	case ProviderGemini:
-		model, err := googleai.New(ctx, googleai.WithAPIKey(cfg.ApiKey), googleai.WithDefaultModel(modelName))
-		if err != nil {
-			return nil, "", fmt.Errorf("agent llm: gemini model: %w", err)
-		}
-		return model, modelName, nil
 	default:
 		return nil, "", fmt.Errorf("agent llm: unsupported provider %q", cfg.Provider)
 	}
+}
+
+// openaiCompatibleBaseURL returns the chat-completions base URL for OpenAI-family providers.
+func openaiCompatibleBaseURL(cfg config.Model) string {
+	if cfg.BaseUrl != "" {
+		return cfg.BaseUrl
+	}
+	if cfg.Provider == ProviderGemini {
+		return defaultGeminiOpenAIBaseURL
+	}
+	return ""
+}
+
+// OpenAICompatibleBaseURLForTest exposes openaiCompatibleBaseURL for unit tests.
+func OpenAICompatibleBaseURLForTest(cfg config.Model) string {
+	return openaiCompatibleBaseURL(cfg)
 }
 
 // ProviderForModel returns the configured provider name for a model.

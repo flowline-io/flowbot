@@ -99,6 +99,7 @@ search:
 # Model configuration
 models:
   - provider: "openai" # openai, openai_compatible, gemini, anthropic
+    # gemini defaults to https://generativelanguage.googleapis.com/v1beta/openai/ when base_url is empty
     base_url: "https://api.openai.com/v1"
     api_key: ""
     model_names:

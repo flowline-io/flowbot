@@ -261,10 +261,11 @@ func mediaPayloadModeFor(provider string, kind msg.MediaKind) mediaPayloadMode {
 		return mediaPayloadBinary
 	}
 	switch provider {
-	case llm.ProviderAnthropic, llm.ProviderGemini:
+	case llm.ProviderAnthropic:
 		return mediaPayloadBinary
 	default:
-		// openai, openai_compatible, and unknown providers: inline data URIs.
+		// openai, openai_compatible, gemini (OpenAI-compatible endpoint), and unknown:
+		// inline data URIs.
 		return mediaPayloadDataURL
 	}
 }
