@@ -225,8 +225,11 @@ var _ capability.Persistence = (*pollingPersistenceAdapter)(nil)
 type stubDataEventPersister struct {
 	appendDataErr   error
 	appendOutboxErr error
+	markErr         error
 	dataCalls       int
 	outboxCalls     int
+	markCalls       int
+	markedIDs       []string
 }
 
 func (s *stubDataEventPersister) AppendDataEvent(_ context.Context, _ types.DataEvent) error {
@@ -239,6 +242,12 @@ func (s *stubDataEventPersister) AppendEventOutbox(_ context.Context, _ types.Da
 	return s.appendOutboxErr
 }
 
+func (s *stubDataEventPersister) MarkOutboxPublished(_ context.Context, eventID string) error {
+	s.markCalls++
+	s.markedIDs = append(s.markedIDs, eventID)
+	return s.markErr
+}
+
 func TestPersistAndPublishDataEvent(t *testing.T) {
 	t.Parallel()
 	pubErr := errors.New("redis unavailable")
@@ -249,28 +258,40 @@ func TestPersistAndPublishDataEvent(t *testing.T) {
 		appendDataErr   error
 		appendOutboxErr error
 		publishErr      error
+		markErr         error
 		wantErr         bool
 		wantPublish     bool
+		wantMark        bool
 	}{
 		{
-			name:        "all succeed",
+			name:        "all succeed marks outbox published",
 			wantPublish: true,
+			wantMark:    true,
 		},
 		{
-			name:          "append data fails but still publishes",
+			name:          "append data fails but still publishes and marks",
 			appendDataErr: errors.New("db down"),
 			wantPublish:   true,
+			wantMark:      true,
 		},
 		{
-			name:            "append outbox fails but still publishes",
+			name:            "append outbox fails but still publishes and marks",
 			appendOutboxErr: errors.New("outbox down"),
 			wantPublish:     true,
+			wantMark:        true,
 		},
 		{
-			name:        "publish failure is returned",
+			name:        "publish failure is returned and does not mark",
 			publishErr:  pubErr,
 			wantErr:     true,
 			wantPublish: true,
+			wantMark:    false,
+		},
+		{
+			name:        "mark failure is logged but publish succeeds",
+			markErr:     errors.New("mark failed"),
+			wantPublish: true,
+			wantMark:    true,
 		},
 	}
 	for _, tt := range tests {
@@ -279,6 +300,7 @@ func TestPersistAndPublishDataEvent(t *testing.T) {
 			persister := &stubDataEventPersister{
 				appendDataErr:   tt.appendDataErr,
 				appendOutboxErr: tt.appendOutboxErr,
+				markErr:         tt.markErr,
 			}
 			published := 0
 			publish := func(_ context.Context, topic string, payload any) error {
@@ -304,6 +326,12 @@ func TestPersistAndPublishDataEvent(t *testing.T) {
 				assert.Equal(t, 1, published)
 			} else {
 				assert.Equal(t, 0, published)
+			}
+			if tt.wantMark {
+				assert.Equal(t, 1, persister.markCalls)
+				assert.Equal(t, []string{sample.EventID}, persister.markedIDs)
+			} else {
+				assert.Equal(t, 0, persister.markCalls)
 			}
 			if tt.wantErr {
 				require.Error(t, err)

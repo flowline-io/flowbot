@@ -161,6 +161,7 @@ func initPipeline(
 	}
 
 	registerPipelineHandler(router, subscriber, engine, ec)
+	startOutboxRedeliveryLoop(lc)
 
 	lc.Append(fx.Hook{
 		OnStop: func(_ context.Context) error {
@@ -271,6 +272,7 @@ func setupAbilityEmitter(cfg *config.Type, ac *metrics.CapabilityCollector) erro
 type dataEventPersister interface {
 	AppendDataEvent(ctx context.Context, de types.DataEvent) error
 	AppendEventOutbox(ctx context.Context, de types.DataEvent) error
+	MarkOutboxPublished(ctx context.Context, eventID string) error
 }
 
 // dataEventPublisher publishes a payload to a topic (typically event.PublishMessage).
@@ -279,6 +281,8 @@ type dataEventPublisher func(ctx context.Context, topic string, payload any) err
 // persistAndPublishDataEvent writes the audit row + outbox, then publishes to the bus.
 // Append failures are logged and do not abort publish (same policy as event_source).
 // Publish failure is logged and returned so callers that can retry may do so.
+// On successful publish the outbox row is marked published; mark failure is logged
+// so the redelivery loop can republish (pipeline consumption is idempotent).
 func persistAndPublishDataEvent(
 	ctx context.Context,
 	persister dataEventPersister,
@@ -296,6 +300,9 @@ func persistAndPublishDataEvent(
 	if err := publish(ctx, topic, de); err != nil {
 		flog.Error(fmt.Errorf("%s: PublishMessage to %s failed event_id=%s: %w", logPrefix, topic, de.EventID, err))
 		return fmt.Errorf("%s: publish failed: %w", logPrefix, err)
+	}
+	if err := persister.MarkOutboxPublished(ctx, de.EventID); err != nil {
+		flog.Error(fmt.Errorf("%s: MarkOutboxPublished failed event_id=%s: %w", logPrefix, de.EventID, err))
 	}
 	return nil
 }

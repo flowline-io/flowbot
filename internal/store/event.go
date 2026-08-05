@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -114,6 +115,92 @@ func (s *EventStore) MarkOutboxPublished(ctx context.Context, eventID string) er
 		SetPublished(true).
 		Save(ctx)
 	return err
+}
+
+// ListPendingDataEventOutbox returns unpublished DataEvent outbox rows older than olderThan.
+// Skips domain-specific outbox rows (e.g. life lore) that share the same table but lack event_type.
+func (s *EventStore) ListPendingDataEventOutbox(ctx context.Context, olderThan time.Time, limit int) ([]types.DataEvent, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	if limit <= 0 {
+		limit = 50
+	}
+	rows, err := s.client.EventOutbox.Query().
+		Where(
+			eventoutbox.PublishedEQ(false),
+			eventoutbox.CreatedAtLT(olderThan),
+		).
+		Order(gen.Asc(eventoutbox.FieldCreatedAt)).
+		Limit(limit * 5).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]types.DataEvent, 0, limit)
+	for _, row := range rows {
+		de, ok := dataEventFromOutboxPayload(row.Payload, row.CreatedAt)
+		if !ok {
+			continue
+		}
+		if de.EventID == "" {
+			de.EventID = row.EventID
+		}
+		out = append(out, de)
+		if len(out) >= limit {
+			break
+		}
+	}
+	return out, nil
+}
+
+// dataEventFromOutboxPayload reconstructs a DataEvent from an event_outbox payload.
+// Returns ok=false for non-DataEvent rows (e.g. life.inventory.lore_requested).
+func dataEventFromOutboxPayload(payload map[string]any, createdAt time.Time) (types.DataEvent, bool) {
+	if payload == nil {
+		return types.DataEvent{}, false
+	}
+	rawType, ok := payload["event_type"]
+	if !ok {
+		return types.DataEvent{}, false
+	}
+	eventType, ok := rawType.(string)
+	if !ok {
+		return types.DataEvent{}, false
+	}
+	eventType = strings.TrimSpace(eventType)
+	if eventType == "" {
+		return types.DataEvent{}, false
+	}
+	de := types.DataEvent{
+		EventID:        stringField(payload, "event_id"),
+		EventType:      eventType,
+		Source:         stringField(payload, "source"),
+		Capability:     stringField(payload, "capability"),
+		Operation:      stringField(payload, "operation"),
+		App:            stringField(payload, "app"),
+		EntityID:       stringField(payload, "entity_id"),
+		IdempotencyKey: stringField(payload, "idempotency_key"),
+		UID:            stringField(payload, "uid"),
+		Topic:          stringField(payload, "topic"),
+		CreatedAt:      createdAt,
+	}
+	if tags, ok := payload["tags"].(map[string]any); ok && len(tags) > 0 {
+		de.Tags = types.KV(tags)
+	}
+	return de, true
+}
+
+func stringField(m map[string]any, key string) string {
+	raw, ok := m[key]
+	if !ok {
+		return ""
+	}
+	v, ok := raw.(string)
+	if !ok {
+		return ""
+	}
+	return strings.TrimSpace(v)
 }
 
 // ListDataEventsOptions holds filters and pagination for listing data events.

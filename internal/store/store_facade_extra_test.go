@@ -100,6 +100,58 @@ func TestEventStore_OutboxLifecycle(t *testing.T) {
 	assert.True(t, updated.Published)
 }
 
+func TestEventStore_ListPendingDataEventOutbox(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	store := NewEventStore(client)
+	ctx := context.Background()
+	now := time.Now()
+
+	_, err := client.EventOutbox.Create().
+		SetEventID("old-data").
+		SetPayload(map[string]any{
+			"event_id": "old-data", "event_type": "bookmark.created", "source": "karakeep",
+		}).
+		SetPublished(false).
+		SetCreatedAt(now.Add(-2 * time.Minute)).
+		Save(ctx)
+	require.NoError(t, err)
+	_, err = client.EventOutbox.Create().
+		SetEventID("fresh-data").
+		SetPayload(map[string]any{
+			"event_id": "fresh-data", "event_type": "issue.created", "source": "gitea",
+		}).
+		SetPublished(false).
+		SetCreatedAt(now.Add(-5 * time.Second)).
+		Save(ctx)
+	require.NoError(t, err)
+	_, err = client.EventOutbox.Create().
+		SetEventID("lore-1").
+		SetPayload(map[string]any{
+			"event_id": "lore-1", "type": LifeLoreRequestedType,
+		}).
+		SetPublished(false).
+		SetCreatedAt(now.Add(-2 * time.Minute)).
+		Save(ctx)
+	require.NoError(t, err)
+	_, err = client.EventOutbox.Create().
+		SetEventID("already-published").
+		SetPayload(map[string]any{
+			"event_id": "already-published", "event_type": "done.event",
+		}).
+		SetPublished(true).
+		SetCreatedAt(now.Add(-2 * time.Minute)).
+		Save(ctx)
+	require.NoError(t, err)
+
+	pending, err := store.ListPendingDataEventOutbox(ctx, now.Add(-30*time.Second), 50)
+	require.NoError(t, err)
+	require.Len(t, pending, 1)
+	assert.Equal(t, "old-data", pending[0].EventID)
+	assert.Equal(t, "bookmark.created", pending[0].EventType)
+	assert.Equal(t, "karakeep", pending[0].Source)
+}
+
 func TestEventStore_GetDataEventByEventID(t *testing.T) {
 	t.Parallel()
 	client := sqlitetest.OpenClient(t, t.Name())
