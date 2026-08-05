@@ -806,15 +806,107 @@ func (s *Service) ListPendingQuestDMViews(ctx context.Context, userID string) ([
 	if err != nil {
 		return nil, err
 	}
+	if len(quests) == 0 {
+		return nil, nil
+	}
+
+	bundle, err := s.loadPendingQuestDMBundle(ctx, p, quests)
+	if err != nil {
+		return nil, err
+	}
 	out := make([]QuestDMView, 0, len(quests))
 	for _, q := range quests {
-		view, err := s.buildQuestDMView(ctx, p, q)
-		if err != nil {
-			return nil, err
+		if q == nil {
+			continue
 		}
-		out = append(out, view)
+		out = append(out, assembleQuestDMView(p, q, bundle))
 	}
 	return out, nil
+}
+
+type pendingQuestDMBundle struct {
+	evidenceByQuest map[int64][]*gen.LifeEvidence
+	adjudications   map[int64]*gen.LifeAdjudication
+	buffs           pkglife.BuffTotals
+	lootByTier      map[string]*gen.LifeLootTable
+}
+
+func (s *Service) loadPendingQuestDMBundle(ctx context.Context, p *gen.LifeProfile, quests []*gen.LifeQuest) (*pendingQuestDMBundle, error) {
+	questIDs, tiers := questIDsAndTiers(quests)
+	evidenceRows, err := s.store.ListEvidenceByQuestIDs(ctx, p.ID, questIDs)
+	if err != nil {
+		return nil, err
+	}
+	adjudications, err := s.store.MapLatestAdjudicationsByQuestIDs(ctx, p.ID, questIDs)
+	if err != nil {
+		return nil, err
+	}
+	slots, err := s.store.GetEquippedSlots(ctx, p.ID)
+	if err != nil {
+		return nil, err
+	}
+	buffs, err := s.equippedBuffs(ctx, slots)
+	if err != nil {
+		return nil, err
+	}
+	lootByTier, err := s.store.MapLootTablesByTiers(ctx, tiers)
+	if err != nil {
+		return nil, err
+	}
+	return &pendingQuestDMBundle{
+		evidenceByQuest: groupEvidenceByQuest(evidenceRows),
+		adjudications:   adjudications,
+		buffs:           buffs,
+		lootByTier:      lootByTier,
+	}, nil
+}
+
+func questIDsAndTiers(quests []*gen.LifeQuest) ([]int64, []string) {
+	questIDs := make([]int64, 0, len(quests))
+	tiers := make([]string, 0, len(quests))
+	tierSeen := make(map[string]struct{}, len(quests))
+	for _, q := range quests {
+		if q == nil {
+			continue
+		}
+		questIDs = append(questIDs, q.ID)
+		if _, ok := tierSeen[q.DropTier]; ok {
+			continue
+		}
+		tierSeen[q.DropTier] = struct{}{}
+		tiers = append(tiers, q.DropTier)
+	}
+	return questIDs, tiers
+}
+
+func groupEvidenceByQuest(rows []*gen.LifeEvidence) map[int64][]*gen.LifeEvidence {
+	out := make(map[int64][]*gen.LifeEvidence)
+	for _, row := range rows {
+		if row == nil || row.QuestID == nil {
+			continue
+		}
+		out[*row.QuestID] = append(out[*row.QuestID], row)
+	}
+	return out
+}
+
+func assembleQuestDMView(p *gen.LifeProfile, q *gen.LifeQuest, bundle *pendingQuestDMBundle) QuestDMView {
+	view := QuestDMView{Quest: q}
+	for _, row := range bundle.evidenceByQuest[q.ID] {
+		view.Evidence = append(view.Evidence, mapQuestEvidenceView(row))
+	}
+	if adjudication := bundle.adjudications[q.ID]; adjudication != nil {
+		mapped := mapQuestAdjudicationView(adjudication)
+		view.Adjudication = &mapped
+	}
+	base := 0.15
+	if lootTable := bundle.lootByTier[q.DropTier]; lootTable != nil {
+		base = lootTable.BaseDropChance
+	}
+	view.DropChance = pkglife.PreviewDropChance(pkglife.LootInput{
+		BaseDropChance: base, ProfileBonus: p.BaseDropRateBonus, EquippedDropRate: bundle.buffs.DropRate,
+	})
+	return view
 }
 
 // SubmitQuestEvidence stores a new evidence item for a pending quest.
@@ -1556,23 +1648,38 @@ func (s *Service) equippedBuffs(ctx context.Context, slots *gen.LifeEquippedSlot
 	if pkglife.IsTarnished(slots.TarnishedUntil, now) {
 		return empty, nil
 	}
-	ids := slotInventoryIDPtrs(slots)
-	var buffMaps []map[string]float64
-	for _, id := range ids {
-		if id == nil {
-			continue
-		}
-		inv, err := s.store.GetInventory(ctx, *id)
-		if err != nil {
-			return empty, err
-		}
+	invIDs := slotInventoryIDs(slots)
+	if len(invIDs) == 0 {
+		return empty, nil
+	}
+	invByID, err := s.store.MapInventoryByIDs(ctx, invIDs)
+	if err != nil {
+		return empty, err
+	}
+	equipIDs := make([]int64, 0, len(invByID))
+	equipSeen := make(map[int64]struct{}, len(invByID))
+	for _, id := range invIDs {
+		inv := invByID[id]
 		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
 			continue
 		}
-		eq, err := s.store.GetEquipment(ctx, inv.EquipmentID)
-		if err != nil {
-			return empty, err
+		if _, ok := equipSeen[inv.EquipmentID]; ok {
+			continue
 		}
+		equipSeen[inv.EquipmentID] = struct{}{}
+		equipIDs = append(equipIDs, inv.EquipmentID)
+	}
+	eqByID, err := s.store.MapEquipmentByIDs(ctx, equipIDs)
+	if err != nil {
+		return empty, err
+	}
+	var buffMaps []map[string]float64
+	for _, id := range invIDs {
+		inv := invByID[id]
+		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
+			continue
+		}
+		eq := eqByID[inv.EquipmentID]
 		if eq == nil {
 			continue
 		}
@@ -1590,21 +1697,37 @@ func (s *Service) equippedPrivileges(ctx context.Context, slots *gen.LifeEquippe
 	if pkglife.IsTarnished(slots.TarnishedUntil, now) {
 		return out, nil
 	}
-	for _, id := range slotInventoryIDPtrs(slots) {
-		if id == nil {
-			continue
-		}
-		inv, err := s.store.GetInventory(ctx, *id)
-		if err != nil {
-			return nil, err
-		}
+	invIDs := slotInventoryIDs(slots)
+	if len(invIDs) == 0 {
+		return out, nil
+	}
+	invByID, err := s.store.MapInventoryByIDs(ctx, invIDs)
+	if err != nil {
+		return nil, err
+	}
+	equipIDs := make([]int64, 0, len(invByID))
+	equipSeen := make(map[int64]struct{}, len(invByID))
+	for _, id := range invIDs {
+		inv := invByID[id]
 		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
 			continue
 		}
-		eq, err := s.store.GetEquipment(ctx, inv.EquipmentID)
-		if err != nil {
-			return nil, err
+		if _, ok := equipSeen[inv.EquipmentID]; ok {
+			continue
 		}
+		equipSeen[inv.EquipmentID] = struct{}{}
+		equipIDs = append(equipIDs, inv.EquipmentID)
+	}
+	eqByID, err := s.store.MapEquipmentByIDs(ctx, equipIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, id := range invIDs {
+		inv := invByID[id]
+		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
+			continue
+		}
+		eq := eqByID[inv.EquipmentID]
 		if eq == nil {
 			continue
 		}

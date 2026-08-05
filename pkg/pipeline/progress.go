@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/bytedance/sonic"
 )
 
 // StepCallback receives progress events during pipeline execution.
@@ -36,6 +38,28 @@ type StepProgressEvent struct {
 	ElapsedMs    int64          `json:"elapsed_ms,omitempty"`
 	Error        string         `json:"error,omitempty"`
 	TotalSteps   int            `json:"total_steps,omitempty"`
+}
+
+// IsTerminalProgressJSON reports whether progress JSON is a run-level terminal event
+// (complete/failed) without unmarshaling Input/Output payloads.
+func IsTerminalProgressJSON(data string) bool {
+	idxNode, err := sonic.GetFromString(data, "step_index")
+	if err != nil {
+		return false
+	}
+	stepIndex, err := idxNode.Int64()
+	if err != nil || stepIndex != -1 {
+		return false
+	}
+	statusNode, err := sonic.GetFromString(data, "status")
+	if err != nil {
+		return false
+	}
+	status, err := statusNode.String()
+	if err != nil {
+		return false
+	}
+	return status == "complete" || status == "failed"
 }
 
 // StreamName returns the Redis Stream name for a given run ID.

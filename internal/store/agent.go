@@ -154,6 +154,7 @@ func (s *AgentStore) ReplaceAgentTodosForSession(ctx context.Context, sessionID 
 		_ = tx.Rollback()
 		return fmt.Errorf("postgres: delete agent todos: %w", err)
 	}
+	builders := make([]*gen.AgentTodoCreate, 0, len(items))
 	for _, item := range items {
 		if item == nil {
 			continue
@@ -171,9 +172,12 @@ func (s *AgentStore) ReplaceAgentTodosForSession(ctx context.Context, sessionID 
 		if !item.UpdatedAt.IsZero() {
 			builder = builder.SetUpdatedAt(item.UpdatedAt)
 		}
-		if _, err := builder.Save(ctx); err != nil {
+		builders = append(builders, builder)
+	}
+	if len(builders) > 0 {
+		if _, err := tx.AgentTodo.CreateBulk(builders...).Save(ctx); err != nil {
 			_ = tx.Rollback()
-			return fmt.Errorf("postgres: create agent todo: %w", err)
+			return fmt.Errorf("postgres: create agent todos: %w", err)
 		}
 	}
 	if err := tx.Commit(); err != nil {
@@ -184,52 +188,42 @@ func (s *AgentStore) ReplaceAgentTodosForSession(ctx context.Context, sessionID 
 
 // MergeAgentTodosForSession merges agent todos for session.
 func (s *AgentStore) MergeAgentTodosForSession(ctx context.Context, sessionID string, items []*gen.AgentTodo) error {
-	tx, err := s.client.Tx(ctx)
-	if err != nil {
-		return fmt.Errorf("postgres: merge agent todos tx: %w", err)
-	}
+	builders := make([]*gen.AgentTodoCreate, 0, len(items))
+	now := time.Now()
 	for _, item := range items {
 		if item == nil {
 			continue
 		}
-		existing, err := tx.AgentTodo.Query().
-			Where(agenttodo.SessionIDEQ(sessionID), agenttodo.ItemIDEQ(item.ItemID)).
-			Only(ctx)
-		if err != nil && !gen.IsNotFound(err) {
-			_ = tx.Rollback()
-			return fmt.Errorf("postgres: query agent todo: %w", err)
-		}
-		if existing != nil {
-			updater := tx.AgentTodo.UpdateOneID(existing.ID).
-				SetContent(item.Content).
-				SetStatus(item.Status).
-				SetSortOrder(item.SortOrder)
-			if err := updater.Exec(ctx); err != nil {
-				_ = tx.Rollback()
-				return fmt.Errorf("postgres: update agent todo: %w", err)
-			}
-			continue
-		}
-		builder := tx.AgentTodo.Create().
+		builder := s.client.AgentTodo.Create().
 			SetFlag(item.Flag).
 			SetSessionID(sessionID).
 			SetItemID(item.ItemID).
 			SetContent(item.Content).
 			SetStatus(item.Status).
-			SetSortOrder(item.SortOrder)
+			SetSortOrder(item.SortOrder).
+			SetUpdatedAt(now)
 		if !item.CreatedAt.IsZero() {
 			builder = builder.SetCreatedAt(item.CreatedAt)
 		}
 		if !item.UpdatedAt.IsZero() {
 			builder = builder.SetUpdatedAt(item.UpdatedAt)
 		}
-		if _, err := builder.Save(ctx); err != nil {
-			_ = tx.Rollback()
-			return fmt.Errorf("postgres: create agent todo: %w", err)
-		}
+		builders = append(builders, builder)
 	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("postgres: commit merge agent todos: %w", err)
+	if len(builders) == 0 {
+		return nil
+	}
+	err := s.client.AgentTodo.CreateBulk(builders...).
+		OnConflictColumns(agenttodo.FieldSessionID, agenttodo.FieldItemID).
+		Update(func(u *gen.AgentTodoUpsert) {
+			u.UpdateContent()
+			u.UpdateStatus()
+			u.UpdateSortOrder()
+			u.UpdateUpdatedAt()
+		}).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: merge agent todos: %w", err)
 	}
 	return nil
 }

@@ -179,6 +179,7 @@ func (s *NotifyStore) MarkRead(ctx context.Context, uid string, ids ...int64) er
 		return fmt.Errorf("mark notification records read: %w", err)
 	}
 	seen := make(map[string]struct{})
+	correlations := make([]string, 0)
 	for _, rec := range recs {
 		if rec.CorrelationID == "" {
 			continue
@@ -187,11 +188,9 @@ func (s *NotifyStore) MarkRead(ctx context.Context, uid string, ids ...int64) er
 			continue
 		}
 		seen[rec.CorrelationID] = struct{}{}
-		if err := s.CancelDeferredByCorrelation(ctx, uid, rec.CorrelationID); err != nil {
-			return err
-		}
+		correlations = append(correlations, rec.CorrelationID)
 	}
-	return nil
+	return s.CancelDeferredByCorrelations(ctx, uid, correlations...)
 }
 
 // MarkReadByCorrelation marks unread inapp (or any) records with the correlation id as read and cancels deferred.
@@ -217,13 +216,21 @@ func (s *NotifyStore) MarkReadByCorrelation(ctx context.Context, uid, correlatio
 
 // CancelDeferredByCorrelation sets deferred rows with the correlation id to cancelled.
 func (s *NotifyStore) CancelDeferredByCorrelation(ctx context.Context, uid, correlationID string) error {
-	if s == nil || s.client == nil || correlationID == "" {
+	if correlationID == "" {
+		return nil
+	}
+	return s.CancelDeferredByCorrelations(ctx, uid, correlationID)
+}
+
+// CancelDeferredByCorrelations cancels deferred notification records for any of the given correlation ids.
+func (s *NotifyStore) CancelDeferredByCorrelations(ctx context.Context, uid string, correlationIDs ...string) error {
+	if s == nil || s.client == nil || len(correlationIDs) == 0 {
 		return nil
 	}
 	_, err := s.client.NotificationRecord.Update().
 		Where(
 			notificationrecord.UID(uid),
-			notificationrecord.CorrelationIDEQ(correlationID),
+			notificationrecord.CorrelationIDIn(correlationIDs...),
 			notificationrecord.StatusEQ(notificationrecord.StatusDeferred),
 		).
 		SetStatus(notificationrecord.StatusCancelled).

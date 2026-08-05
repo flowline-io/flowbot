@@ -51,57 +51,104 @@ func NewHubStore(client *gen.Client) *HubStore {
 }
 
 // SaveHomelabApps upserts a batch of discovered homelab apps.
-// Each app is looked up by name; existing rows are updated, new rows are created.
+// Existing rows are loaded once by name, new rows use CreateBulk, and updates run in one transaction.
 func (s *HubStore) SaveHomelabApps(ctx context.Context, apps []homelab.App) error {
-	if s == nil || s.client == nil {
-		return nil
-	}
-	if len(apps) == 0 {
+	if s == nil || s.client == nil || len(apps) == 0 {
 		return nil
 	}
 
 	now := time.Now()
+	names := uniqueAppNames(apps)
+	existingRows, err := s.client.App.Query().Where(app.NameIn(names...)).All(ctx)
+	if err != nil {
+		return fmt.Errorf("hub: list apps: %w", err)
+	}
+	byName := firstAppByName(existingRows)
 
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("hub: begin save apps tx: %w", err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	creates, err := applyHomelabAppWrites(ctx, tx, apps, byName, now)
+	if err != nil {
+		return err
+	}
+	if len(creates) > 0 {
+		if _, err := tx.App.CreateBulk(creates...).Save(ctx); err != nil {
+			return fmt.Errorf("hub: create apps: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("hub: commit save apps: %w", err)
+	}
+	committed = true
+	return nil
+}
+
+func uniqueAppNames(apps []homelab.App) []string {
+	names := make([]string, 0, len(apps))
+	seen := make(map[string]struct{}, len(apps))
+	for _, homelabApp := range apps {
+		if _, ok := seen[homelabApp.Name]; ok {
+			continue
+		}
+		seen[homelabApp.Name] = struct{}{}
+		names = append(names, homelabApp.Name)
+	}
+	return names
+}
+
+func firstAppByName(rows []*gen.App) map[string]*gen.App {
+	byName := make(map[string]*gen.App, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		if _, ok := byName[row.Name]; !ok {
+			byName[row.Name] = row
+		}
+	}
+	return byName
+}
+
+func applyHomelabAppWrites(ctx context.Context, tx *gen.Tx, apps []homelab.App, byName map[string]*gen.App, now time.Time) ([]*gen.AppCreate, error) {
+	creates := make([]*gen.AppCreate, 0)
 	for _, homelabApp := range apps {
 		info, err := appJSON(homelabApp)
 		if err != nil {
-			return err
+			return nil, err
 		}
-
-		existing, err := s.client.App.Query().
-			Where(app.NameEQ(homelabApp.Name)).
-			First(ctx)
-		if err != nil {
-			if !gen.IsNotFound(err) {
-				return err
-			}
-			// Not found: create.
-			_, createErr := s.client.App.Create().
-				SetName(homelabApp.Name).
-				SetPath(homelabApp.Path).
-				SetStatus(string(homelabApp.Status)).
-				SetDockerInfo(info).
-				SetCreatedAt(now).
-				SetUpdatedAt(now).
-				Save(ctx)
-			if createErr != nil {
-				return createErr
-			}
-		} else {
-			// Found: update.
-			_, updateErr := s.client.App.UpdateOne(existing).
+		if existing, ok := byName[homelabApp.Name]; ok && existing.ID != 0 {
+			if _, err := tx.App.UpdateOne(existing).
 				SetPath(homelabApp.Path).
 				SetStatus(string(homelabApp.Status)).
 				SetDockerInfo(info).
 				SetUpdatedAt(now).
-				Save(ctx)
-			if updateErr != nil {
-				return updateErr
+				Save(ctx); err != nil {
+				return nil, fmt.Errorf("hub: update app %s: %w", homelabApp.Name, err)
 			}
+			continue
 		}
+		if _, ok := byName[homelabApp.Name]; ok {
+			continue
+		}
+		creates = append(creates, tx.App.Create().
+			SetName(homelabApp.Name).
+			SetPath(homelabApp.Path).
+			SetStatus(string(homelabApp.Status)).
+			SetDockerInfo(info).
+			SetCreatedAt(now).
+			SetUpdatedAt(now))
+		byName[homelabApp.Name] = &gen.App{Name: homelabApp.Name}
 	}
-
-	return nil
+	return creates, nil
 }
 
 func appJSON(ha homelab.App) (schema.JSON, error) {

@@ -25,9 +25,32 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 )
 
-// pipelineStepCallback publishes pipeline progress events to Redis Streams.
+const progressPublishTimeout = 2 * time.Second
+const progressJobBuffer = 256
+
+type progressJobKind int
+
+const (
+	progressJobXAdd progressJobKind = iota
+	progressJobExpire
+	progressJobSync
+)
+
+type progressJob struct {
+	kind     progressJobKind
+	runID    int64
+	payload  []byte
+	stepName string
+	status   string
+	ttl      time.Duration
+	done     chan struct{}
+}
+
+// pipelineStepCallback publishes pipeline progress events to Redis Streams
+// through a single worker so XAdd order matches callback order.
 type pipelineStepCallback struct {
 	rdb *redis.Client
+	ch  chan progressJob
 }
 
 // NewPipelineStepCallback creates a callback backed by the Redis client.
@@ -36,7 +59,12 @@ func NewPipelineStepCallback(client *redis.Client) pipeline.StepCallback {
 	if client == nil {
 		return nil
 	}
-	return &pipelineStepCallback{rdb: client}
+	c := &pipelineStepCallback{
+		rdb: client,
+		ch:  make(chan progressJob, progressJobBuffer),
+	}
+	go c.loop()
+	return c
 }
 
 func (c *pipelineStepCallback) OnRunStart(_ context.Context, runID int64, pipelineName string,
@@ -45,8 +73,8 @@ func (c *pipelineStepCallback) OnRunStart(_ context.Context, runID int64, pipeli
 		RunID: runID, PipelineName: pipelineName,
 		StepIndex: -1, Status: "start", TotalSteps: totalSteps,
 	}
-	c.publish(runID, evt)
-	go c.publishExpire(runID, pipeline.StreamTTLFailsafe)
+	c.enqueueXAdd(runID, evt)
+	c.enqueueExpire(runID, pipeline.StreamTTLFailsafe)
 }
 
 func (c *pipelineStepCallback) OnStepStart(_ context.Context, runID int64, pipelineName string,
@@ -56,7 +84,7 @@ func (c *pipelineStepCallback) OnStepStart(_ context.Context, runID int64, pipel
 		StepIndex: stepIndex, StepName: stepName,
 		Status: "running", Input: input,
 	}
-	c.publish(runID, evt)
+	c.enqueueXAdd(runID, evt)
 }
 
 func (c *pipelineStepCallback) OnStepDone(_ context.Context, runID int64, pipelineName string,
@@ -66,7 +94,7 @@ func (c *pipelineStepCallback) OnStepDone(_ context.Context, runID int64, pipeli
 		StepIndex: stepIndex, StepName: stepName,
 		Status: "done", Output: output, ElapsedMs: elapsedMs,
 	}
-	c.publish(runID, evt)
+	c.enqueueXAdd(runID, evt)
 }
 
 func (c *pipelineStepCallback) OnStepError(_ context.Context, runID int64, pipelineName string,
@@ -76,7 +104,7 @@ func (c *pipelineStepCallback) OnStepError(_ context.Context, runID int64, pipel
 		StepIndex: stepIndex, StepName: stepName,
 		Status: "error", Error: err.Error(), ElapsedMs: elapsedMs,
 	}
-	c.publish(runID, evt)
+	c.enqueueXAdd(runID, evt)
 }
 
 func (c *pipelineStepCallback) OnRunComplete(_ context.Context, runID int64, pipelineName string,
@@ -89,39 +117,70 @@ func (c *pipelineStepCallback) OnRunComplete(_ context.Context, runID int64, pip
 		RunID: runID, PipelineName: pipelineName,
 		StepIndex: -1, Status: status, ElapsedMs: elapsedMs, Error: errMsg,
 	}
-	c.publish(runID, evt)
-	go c.publishExpire(runID, pipeline.StreamTTLDrain)
+	c.enqueueXAdd(runID, evt)
+	c.enqueueExpire(runID, pipeline.StreamTTLDrain)
 }
 
-// publishExpire sets a TTL on the stream. Call with go to avoid blocking the pipeline engine.
-func (c *pipelineStepCallback) publishExpire(runID int64, ttl time.Duration) {
-	expCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	if err := c.rdb.Expire(expCtx, pipeline.StreamName(runID), ttl).Err(); err != nil {
-		flog.Warn("pipeline live: Expire stream failed run=%d: %v", runID, err)
-	}
-}
-
-// publish sends a progress event to the per-run Redis Stream asynchronously
-// to avoid blocking the pipeline engine on Redis latency or errors.
-func (c *pipelineStepCallback) publish(runID int64, evt pipeline.StepProgressEvent) {
+func (c *pipelineStepCallback) enqueueXAdd(runID int64, evt pipeline.StepProgressEvent) {
 	payload, err := sonic.Marshal(evt)
 	if err != nil {
 		flog.Warn("pipeline live: marshal event failed run=%d step=%s: %v",
 			runID, evt.StepName, err)
 		return
 	}
-	go func() {
-		pubCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		if err := c.rdb.XAdd(pubCtx, &redis.XAddArgs{
-			Stream: pipeline.StreamName(runID),
-			Values: map[string]any{"data": payload},
-		}).Err(); err != nil && !errors.Is(err, context.Canceled) {
-			flog.Warn("pipeline live: XAdd failed run=%d step=%s status=%s: %v",
-				runID, evt.StepName, evt.Status, err)
+	c.ch <- progressJob{
+		kind:     progressJobXAdd,
+		runID:    runID,
+		payload:  payload,
+		stepName: evt.StepName,
+		status:   evt.Status,
+	}
+}
+
+func (c *pipelineStepCallback) enqueueExpire(runID int64, ttl time.Duration) {
+	c.ch <- progressJob{kind: progressJobExpire, runID: runID, ttl: ttl}
+}
+
+// waitIdleForTest drains queued jobs; for tests only.
+func (c *pipelineStepCallback) waitIdleForTest() {
+	done := make(chan struct{})
+	c.ch <- progressJob{kind: progressJobSync, done: done}
+	<-done
+}
+
+func (c *pipelineStepCallback) loop() {
+	for job := range c.ch {
+		switch job.kind {
+		case progressJobXAdd:
+			c.doXAdd(job)
+		case progressJobExpire:
+			c.doExpire(job)
+		case progressJobSync:
+			if job.done != nil {
+				close(job.done)
+			}
 		}
-	}()
+	}
+}
+
+func (c *pipelineStepCallback) doXAdd(job progressJob) {
+	pubCtx, cancel := context.WithTimeout(context.Background(), progressPublishTimeout)
+	defer cancel()
+	if err := c.rdb.XAdd(pubCtx, &redis.XAddArgs{
+		Stream: pipeline.StreamName(job.runID),
+		Values: map[string]any{"data": job.payload},
+	}).Err(); err != nil && !errors.Is(err, context.Canceled) {
+		flog.Warn("pipeline live: XAdd failed run=%d step=%s status=%s: %v",
+			job.runID, job.stepName, job.status, err)
+	}
+}
+
+func (c *pipelineStepCallback) doExpire(job progressJob) {
+	expCtx, cancel := context.WithTimeout(context.Background(), progressPublishTimeout)
+	defer cancel()
+	if err := c.rdb.Expire(expCtx, pipeline.StreamName(job.runID), job.ttl).Err(); err != nil {
+		flog.Warn("pipeline live: Expire stream failed run=%d: %v", job.runID, err)
+	}
 }
 
 const DataEventTopic = "pipeline:data_event"

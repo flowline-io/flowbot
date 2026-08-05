@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/bytedance/sonic"
@@ -78,7 +77,7 @@ func TestPipelineStepCallbackPublish(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.invoke()
-			time.Sleep(50 * time.Millisecond)
+			cb.waitIdleForTest()
 
 			runID := int64(42)
 			switch tt.status {
@@ -97,6 +96,34 @@ func TestPipelineStepCallbackPublish(t *testing.T) {
 			require.NoError(t, sonic.Unmarshal([]byte(raw), &evt))
 			assert.Equal(t, tt.status, evt.Status)
 		})
+	}
+}
+
+func TestPipelineStepCallbackPreservesOrder(t *testing.T) {
+	mr := miniredis.RunT(t)
+	client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+	cb, ok := NewPipelineStepCallback(client).(*pipelineStepCallback)
+	require.True(t, ok)
+
+	runID := int64(77)
+	cb.OnRunStart(context.Background(), runID, "pipe-order", "trigger", 2, nil)
+	cb.OnStepStart(context.Background(), runID, "pipe-order", 0, "a", nil)
+	cb.OnStepDone(context.Background(), runID, "pipe-order", 0, "a", map[string]any{"n": 1}, 1)
+	cb.OnStepStart(context.Background(), runID, "pipe-order", 1, "b", nil)
+	cb.OnStepDone(context.Background(), runID, "pipe-order", 1, "b", map[string]any{"n": 2}, 1)
+	cb.OnRunComplete(context.Background(), runID, "pipe-order", 3, false, "")
+	cb.waitIdleForTest()
+
+	entries, err := client.XRange(context.Background(), pipeline.StreamName(runID), "-", "+").Result()
+	require.NoError(t, err)
+	require.Len(t, entries, 6)
+	want := []string{"start", "running", "done", "running", "done", "complete"}
+	for i, status := range want {
+		raw, ok := entries[i].Values["data"].(string)
+		require.True(t, ok)
+		var evt pipeline.StepProgressEvent
+		require.NoError(t, sonic.Unmarshal([]byte(raw), &evt))
+		assert.Equal(t, status, evt.Status, "entry %d", i)
 	}
 }
 
@@ -119,7 +146,7 @@ func TestPipelineStepCallbackRunComplete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			runID := int64(200 + i)
 			cb.OnRunComplete(context.Background(), runID, "pipe-b", 99, tt.failed, "boom")
-			time.Sleep(50 * time.Millisecond)
+			cb.waitIdleForTest()
 			entries, err := client.XRange(context.Background(), pipeline.StreamName(runID), "-", "+").Result()
 			require.NoError(t, err)
 			require.NotEmpty(t, entries)

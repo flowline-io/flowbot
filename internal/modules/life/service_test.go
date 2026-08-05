@@ -275,6 +275,53 @@ func TestSubmitQuestEvidenceStoresPendingQuestProof(t *testing.T) {
 	assert.Equal(t, "note", rows[0].SourceType)
 }
 
+func TestListPendingQuestDMViewsBatchesLookups(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "pending-dm-user", "", "")
+	require.NoError(t, err)
+	chars, err := svc.store.ListCharacteristics(ctx, profile.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, chars)
+	skill, err := svc.store.CreateSkill(ctx, profile.ID, chars[0].ID, "Systems Design", 0.5)
+	require.NoError(t, err)
+
+	q1, err := svc.store.CreateQuest(ctx, &gen.LifeQuest{
+		LifeProfileID: profile.ID, SkillID: skill.ID, Title: "Quest One", Prompt: "p1",
+		Type: "One-Time", AiEvaluatedDifficulty: "A", BaseExpReward: 10, BaseGoldReward: 1, DropTier: "Epic", Status: "Pending",
+	})
+	require.NoError(t, err)
+	q2, err := svc.store.CreateQuest(ctx, &gen.LifeQuest{
+		LifeProfileID: profile.ID, SkillID: skill.ID, Title: "Quest Two", Prompt: "p2",
+		Type: "One-Time", AiEvaluatedDifficulty: "B", BaseExpReward: 20, BaseGoldReward: 2, DropTier: "Rare", Status: "Pending",
+	})
+	require.NoError(t, err)
+	_, err = svc.store.CreateEvidence(ctx, store.LifeEvidenceInput{
+		ProfileID: profile.ID, QuestID: &q1.ID, SourceType: "note", Content: "proof", Summary: "proof",
+	})
+	require.NoError(t, err)
+	_, err = svc.store.CreateAdjudication(ctx, store.LifeAdjudicationInput{
+		ProfileID: profile.ID, QuestID: q2.ID, Status: "suggested", Verdict: "partial", Reason: "need more",
+	})
+	require.NoError(t, err)
+	require.NoError(t, svc.store.UpsertLootTable(ctx, "Epic", 0.4, nil))
+
+	views, err := svc.ListPendingQuestDMViews(ctx, "pending-dm-user")
+	require.NoError(t, err)
+	require.Len(t, views, 2)
+	byTitle := map[string]QuestDMView{}
+	for _, v := range views {
+		byTitle[v.Quest.Title] = v
+	}
+	require.Len(t, byTitle["Quest One"].Evidence, 1)
+	require.NotNil(t, byTitle["Quest Two"].Adjudication)
+	assert.Equal(t, "partial", byTitle["Quest Two"].Adjudication.Verdict)
+	assert.InDelta(t, 0.4, byTitle["Quest One"].DropChance, 0.0001)
+}
+
 func TestDismissQuestMarksPendingWithoutRust(t *testing.T) {
 	t.Parallel()
 	client := sqlitetest.OpenClient(t, t.Name())

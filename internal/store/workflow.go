@@ -135,6 +135,10 @@ func upsertWorkflowRow(ctx context.Context, tx *gen.Tx, meta *types.WorkflowMeta
 }
 
 func createWorkflowTasks(ctx context.Context, tx *gen.Tx, workflowID int64, tasks []types.WorkflowTask) error {
+	if len(tasks) == 0 {
+		return nil
+	}
+	builders := make([]*gen.WorkflowTaskCreate, 0, len(tasks))
 	for _, t := range tasks {
 		builder := tx.WorkflowTask.Create().
 			SetWorkflowID(workflowID).
@@ -147,23 +151,28 @@ func createWorkflowTasks(ctx context.Context, tx *gen.Tx, workflowID int64, task
 		if retry := pkgworkflow.RetryToMap(t.Retry); retry != nil {
 			builder = builder.SetRetry(retry)
 		}
-		if _, err := builder.Save(ctx); err != nil {
-			return fmt.Errorf("create workflow task %s: %w", t.ID, err)
-		}
+		builders = append(builders, builder)
+	}
+	if _, err := tx.WorkflowTask.CreateBulk(builders...).Save(ctx); err != nil {
+		return fmt.Errorf("create workflow tasks: %w", err)
 	}
 	return nil
 }
 
 func createWorkflowTriggers(ctx context.Context, tx *gen.Tx, workflowID int64, triggers []types.WorkflowTriggerDef) error {
+	if len(triggers) == 0 {
+		return nil
+	}
+	builders := make([]*gen.WorkflowTriggerCreate, 0, len(triggers))
 	for _, tr := range triggers {
-		if _, err := tx.WorkflowTrigger.Create().
+		builders = append(builders, tx.WorkflowTrigger.Create().
 			SetWorkflowID(workflowID).
 			SetType(tr.Type).
 			SetEnabled(tr.Enabled).
-			SetRule(map[string]any(tr.Rule)).
-			Save(ctx); err != nil {
-			return fmt.Errorf("create workflow trigger %s: %w", tr.Type, err)
-		}
+			SetRule(map[string]any(tr.Rule)))
+	}
+	if _, err := tx.WorkflowTrigger.CreateBulk(builders...).Save(ctx); err != nil {
+		return fmt.Errorf("create workflow triggers: %w", err)
 	}
 	return nil
 }

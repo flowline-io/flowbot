@@ -930,6 +930,21 @@ func (s *LifeStore) ListEvidenceByQuest(ctx context.Context, profileID, questID 
 		All(ctx)
 }
 
+// ListEvidenceByQuestIDs returns evidence for many quests, newest first overall.
+// Callers group by QuestID.
+func (s *LifeStore) ListEvidenceByQuestIDs(ctx context.Context, profileID int64, questIDs []int64) ([]*gen.LifeEvidence, error) {
+	if !s.ready() || len(questIDs) == 0 {
+		return nil, nil
+	}
+	return s.client.LifeEvidence.Query().
+		Where(
+			lifeevidence.LifeProfileIDEQ(profileID),
+			lifeevidence.QuestIDIn(questIDs...),
+		).
+		Order(gen.Desc(lifeevidence.FieldCreatedAt)).
+		All(ctx)
+}
+
 // CreateAdjudication inserts one suggested quest ruling.
 func (s *LifeStore) CreateAdjudication(ctx context.Context, in LifeAdjudicationInput) (*gen.LifeAdjudication, error) {
 	if !s.ready() {
@@ -972,6 +987,34 @@ func (s *LifeStore) GetLatestAdjudicationByQuest(ctx context.Context, profileID,
 		return nil, fmt.Errorf("life: get adjudication: %w", err)
 	}
 	return row, nil
+}
+
+// MapLatestAdjudicationsByQuestIDs returns the newest ruling per quest id.
+func (s *LifeStore) MapLatestAdjudicationsByQuestIDs(ctx context.Context, profileID int64, questIDs []int64) (map[int64]*gen.LifeAdjudication, error) {
+	out := make(map[int64]*gen.LifeAdjudication, len(questIDs))
+	if !s.ready() || len(questIDs) == 0 {
+		return out, nil
+	}
+	rows, err := s.client.LifeAdjudication.Query().
+		Where(
+			lifeadjudication.LifeProfileIDEQ(profileID),
+			lifeadjudication.QuestIDIn(questIDs...),
+		).
+		Order(gen.Desc(lifeadjudication.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list adjudications: %w", err)
+	}
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		if _, ok := out[row.QuestID]; ok {
+			continue
+		}
+		out[row.QuestID] = row
+	}
+	return out, nil
 }
 
 // GetAdjudicationByFlag returns a quest ruling by flag scoped to profile.
@@ -1080,6 +1123,24 @@ func (s *LifeStore) GetEquipment(ctx context.Context, id int64) (*gen.LifeEquipm
 		return nil, err
 	}
 	return row, nil
+}
+
+// MapEquipmentByIDs returns equipment templates keyed by id.
+func (s *LifeStore) MapEquipmentByIDs(ctx context.Context, ids []int64) (map[int64]*gen.LifeEquipment, error) {
+	out := make(map[int64]*gen.LifeEquipment, len(ids))
+	if !s.ready() || len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := s.client.LifeEquipment.Query().Where(lifeequipment.IDIn(ids...)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list equipment: %w", err)
+	}
+	for _, row := range rows {
+		if row != nil {
+			out[row.ID] = row
+		}
+	}
+	return out, nil
 }
 
 // UpsertLootTable creates or updates a loot table by tier.
@@ -1205,6 +1266,24 @@ func (s *LifeStore) GetLootTable(ctx context.Context, tier string) (*gen.LifeLoo
 	return row, nil
 }
 
+// MapLootTablesByTiers returns loot tables keyed by drop tier.
+func (s *LifeStore) MapLootTablesByTiers(ctx context.Context, tiers []string) (map[string]*gen.LifeLootTable, error) {
+	out := make(map[string]*gen.LifeLootTable, len(tiers))
+	if !s.ready() || len(tiers) == 0 {
+		return out, nil
+	}
+	rows, err := s.client.LifeLootTable.Query().Where(lifeloottable.DropTierIn(tiers...)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list loot tables: %w", err)
+	}
+	for _, row := range rows {
+		if row != nil {
+			out[row.DropTier] = row
+		}
+	}
+	return out, nil
+}
+
 // CreateInventory inserts an inventory instance.
 func (s *LifeStore) CreateInventory(ctx context.Context, profileID, equipmentID int64, questID *int64, loreStatus string) (*gen.LifeInventory, error) {
 	if !s.ready() {
@@ -1287,6 +1366,24 @@ func (s *LifeStore) GetInventory(ctx context.Context, id int64) (*gen.LifeInvent
 		return nil, err
 	}
 	return row, nil
+}
+
+// MapInventoryByIDs returns inventory rows keyed by id.
+func (s *LifeStore) MapInventoryByIDs(ctx context.Context, ids []int64) (map[int64]*gen.LifeInventory, error) {
+	out := make(map[int64]*gen.LifeInventory, len(ids))
+	if !s.ready() || len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := s.client.LifeInventory.Query().Where(lifeinventory.IDIn(ids...)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list inventory: %w", err)
+	}
+	for _, row := range rows {
+		if row != nil {
+			out[row.ID] = row
+		}
+	}
+	return out, nil
 }
 
 // UpdateInventoryLore sets instance lore fields and status.
@@ -1661,8 +1758,8 @@ func (s *LifeStore) PersistFailQuest(ctx context.Context, profileID, questID int
 	if _, err := tx.LifeEquippedSlots.Update().Where(lifeequippedslots.LifeProfileIDEQ(profileID)).SetTarnishedUntil(until).Save(ctx); err != nil {
 		return fmt.Errorf("life: set slots rust: %w", err)
 	}
-	for _, id := range rustInvIDs {
-		if _, err := tx.LifeInventory.UpdateOneID(id).SetTarnishedUntil(until).Save(ctx); err != nil {
+	if len(rustInvIDs) > 0 {
+		if _, err := tx.LifeInventory.Update().Where(lifeinventory.IDIn(rustInvIDs...)).SetTarnishedUntil(until).Save(ctx); err != nil {
 			return fmt.Errorf("life: set inventory rust: %w", err)
 		}
 	}
@@ -1691,8 +1788,8 @@ func clearCompleteRust(ctx context.Context, tx *gen.Tx, in LifeCompletePersist) 
 	if _, err := tx.LifeEquippedSlots.Update().Where(lifeequippedslots.LifeProfileIDEQ(in.ProfileID)).ClearTarnishedUntil().Save(ctx); err != nil {
 		return fmt.Errorf("life: clear slots rust: %w", err)
 	}
-	for _, id := range in.RustInvIDs {
-		if _, err := tx.LifeInventory.UpdateOneID(id).ClearTarnishedUntil().Save(ctx); err != nil {
+	if len(in.RustInvIDs) > 0 {
+		if _, err := tx.LifeInventory.Update().Where(lifeinventory.IDIn(in.RustInvIDs...)).ClearTarnishedUntil().Save(ctx); err != nil {
 			return fmt.Errorf("life: clear inventory rust: %w", err)
 		}
 	}
