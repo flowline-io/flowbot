@@ -152,6 +152,47 @@ func TestEnqueueAndFlushAggregation(t *testing.T) {
 	}
 }
 
+func TestEnqueueForAggregation_CapsBuffer(t *testing.T) {
+	t.Parallel()
+	store := newTestRedisStore(t)
+	engine := New(store)
+	ctx := context.Background()
+
+	for i := range aggregateBufferMax + 5 {
+		err := engine.EnqueueForAggregation(ctx, "cap", "event.a", "slack", map[string]any{"n": i})
+		require.NoError(t, err)
+	}
+
+	got, err := engine.FlushAggregation(ctx, "cap", "event.a", "slack")
+	require.NoError(t, err)
+	require.Len(t, got, aggregateBufferMax)
+	assert.InDelta(t, float64(5), got[0]["n"], 0)
+	assert.InDelta(t, float64(aggregateBufferMax+4), got[len(got)-1]["n"], 0)
+}
+
+func TestFlushAggregation_RemovesDueMember(t *testing.T) {
+	t.Parallel()
+	store := newTestRedisStore(t)
+	engine := New(store)
+	ctx := context.Background()
+
+	require.NoError(t, engine.EnqueueForAggregation(ctx, "due1", "event.a", "slack", map[string]any{"n": 1}))
+	first, err := engine.SetAggregateTimer(ctx, "due1", "event.a", "slack", 0)
+	require.NoError(t, err)
+	require.True(t, first)
+
+	keys, err := engine.ScanExpiredAggregates(ctx)
+	require.NoError(t, err)
+	require.Len(t, keys, 1)
+
+	_, err = engine.FlushAggregation(ctx, "due1", "event.a", "slack")
+	require.NoError(t, err)
+
+	keys, err = engine.ScanExpiredAggregates(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, keys)
+}
+
 func TestSetAggregateTimer(t *testing.T) {
 	t.Parallel()
 

@@ -166,6 +166,46 @@ func (s *RedisStore) Len(ctx context.Context, key Key) (int64, error) {
 	return s.client.LLen(ctx, key.String()).Result()
 }
 
+// Trim keeps only the list elements in the inclusive range [start, stop].
+func (s *RedisStore) Trim(ctx context.Context, key Key, start, stop int64) error {
+	if err := s.client.LTrim(ctx, key.String(), start, stop).Err(); err != nil {
+		return fmt.Errorf("redis ltrim %s: %w", key.String(), err)
+	}
+	return nil
+}
+
+// ZAdd adds a member with the given score to a sorted set.
+func (s *RedisStore) ZAdd(ctx context.Context, key Key, score float64, member string) error {
+	if err := s.client.ZAdd(ctx, key.String(), redis.Z{Score: score, Member: member}).Err(); err != nil {
+		return fmt.Errorf("redis zadd %s: %w", key.String(), err)
+	}
+	return nil
+}
+
+// ZRangeByScore returns sorted-set members with scores in [minScore, maxScore] inclusive.
+func (s *RedisStore) ZRangeByScore(ctx context.Context, key Key, minScore, maxScore float64) ([]string, error) {
+	members, err := s.client.ZRangeByScore(ctx, key.String(), &redis.ZRangeBy{
+		Min: fmt.Sprintf("%f", minScore),
+		Max: fmt.Sprintf("%f", maxScore),
+	}).Result()
+	if err != nil {
+		return nil, fmt.Errorf("redis zrangebyscore %s: %w", key.String(), err)
+	}
+	return members, nil
+}
+
+// ZRem removes members from a sorted set.
+func (s *RedisStore) ZRem(ctx context.Context, key Key, members ...string) (int64, error) {
+	if len(members) == 0 {
+		return 0, nil
+	}
+	n, err := s.client.ZRem(ctx, key.String(), toAny(members)...).Result()
+	if err != nil {
+		return 0, fmt.Errorf("redis zrem %s: %w", key.String(), err)
+	}
+	return n, nil
+}
+
 // ScanKeys scans for keys matching a pattern, returning all matching keys.
 func (s *RedisStore) ScanKeys(ctx context.Context, pattern string, count int64) ([]string, error) {
 	var keys []string

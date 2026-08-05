@@ -1254,3 +1254,22 @@ func TestRenderString_CacheConsistency(t *testing.T) {
 		})
 	}
 }
+
+func TestRenderString_ShorthandCached(t *testing.T) {
+	t.Parallel()
+	e := New()
+	data1 := &TemplateData{Event: map[string]any{"id": "first"}}
+	data2 := &TemplateData{Event: map[string]any{"id": "second"}}
+
+	first, err := e.RenderString(`{{event.id}}`, data1)
+	require.NoError(t, err)
+	assert.Equal(t, "first", first)
+
+	second, err := e.RenderString(`{{event.id}}`, data2)
+	require.NoError(t, err)
+	assert.Equal(t, "second", second)
+
+	fnForm, err := e.RenderString(`{{event "id"}}`, data2)
+	require.NoError(t, err)
+	assert.Equal(t, "second", fnForm)
+}

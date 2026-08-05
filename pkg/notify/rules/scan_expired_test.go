@@ -18,26 +18,26 @@ func TestScanExpiredAggregates(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		setup    func(*testing.T, *Engine, *miniredis.Miniredis)
+		setup    func(*testing.T, *Engine)
 		wantLen  int
 		wantRule string
 	}{
 		{
-			name: "expired timer key is returned",
-			setup: func(t *testing.T, engine *Engine, mr *miniredis.Miniredis) {
+			name: "due member with past score is returned",
+			setup: func(t *testing.T, engine *Engine) {
 				t.Helper()
 				ctx := context.Background()
 				require.NoError(t, engine.EnqueueForAggregation(ctx, "rule-exp", "event.a", "slack", map[string]any{"n": 1}))
-				_, err := engine.SetAggregateTimer(ctx, "rule-exp", "event.a", "slack", 50*time.Millisecond)
+				// Zero window indexes due score at now; Scan includes score <= now.
+				_, err := engine.SetAggregateTimer(ctx, "rule-exp", "event.a", "slack", 0)
 				require.NoError(t, err)
-				mr.FastForward(100 * time.Millisecond)
 			},
 			wantLen:  1,
 			wantRule: "rule-exp",
 		},
 		{
-			name: "active timer is not returned",
-			setup: func(t *testing.T, engine *Engine, _ *miniredis.Miniredis) {
+			name: "future due member is not returned",
+			setup: func(t *testing.T, engine *Engine) {
 				t.Helper()
 				ctx := context.Background()
 				require.NoError(t, engine.EnqueueForAggregation(ctx, "rule-live", "event.b", "slack", map[string]any{"n": 1}))
@@ -48,7 +48,7 @@ func TestScanExpiredAggregates(t *testing.T) {
 		},
 		{
 			name:    "nil store returns empty",
-			setup:   func(_ *testing.T, _ *Engine, _ *miniredis.Miniredis) {},
+			setup:   func(_ *testing.T, _ *Engine) {},
 			wantLen: 0,
 		},
 	}
@@ -57,15 +57,14 @@ func TestScanExpiredAggregates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var engine *Engine
-			var mr *miniredis.Miniredis
 			if tt.name == "nil store returns empty" {
 				engine = New(nil)
 			} else {
-				mr = miniredis.RunT(t)
+				mr := miniredis.RunT(t)
 				client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
 				engine = New(cache.NewRedisStore(client))
 			}
-			tt.setup(t, engine, mr)
+			tt.setup(t, engine)
 
 			keys, err := engine.ScanExpiredAggregates(context.Background())
 			require.NoError(t, err)
@@ -84,9 +83,8 @@ func TestWorkerScanAndFlushExpiredTimer(t *testing.T) {
 	ctx := context.Background()
 
 	require.NoError(t, engine.EnqueueForAggregation(ctx, "worker-rule", "event.z", "ntfy", map[string]any{"n": 1}))
-	_, err := engine.SetAggregateTimer(ctx, "worker-rule", "event.z", "ntfy", 20*time.Millisecond)
+	_, err := engine.SetAggregateTimer(ctx, "worker-rule", "event.z", "ntfy", 0)
 	require.NoError(t, err)
-	mr.FastForward(30 * time.Millisecond)
 
 	var flushed int
 	w := NewWorker(engine, time.Hour, func(_ context.Context, ruleID, eventType, channel string, items []map[string]any) {

@@ -162,15 +162,13 @@ func funcNow() string {
 }
 
 // RenderString renders a template string with the given TemplateData.
-// Templates are cached by their preprocessed string; on cache hit the
-// cached parse tree is cloned and fresh data-dependent functions
-// (event, input, step) are attached via closures for the current call.
+// Templates are cached by their original string; preprocessing and parse run
+// only on cache miss. On hit the cached parse tree is cloned and fresh
+// data-dependent functions (event, input, step) are attached via closures.
 func (*Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 	if !strings.Contains(tmpl, "{{") {
 		return tmpl, nil
 	}
-
-	tmpl = preprocessTemplate(tmpl)
 
 	fm := makeFuncs(data)
 
@@ -182,8 +180,9 @@ func (*Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 		}
 		t = cloned.Funcs(fm)
 	} else {
+		preprocessed := preprocessTemplate(tmpl)
 		var err error
-		t, err = txtpl.New("render").Funcs(fm).Parse(tmpl)
+		t, err = txtpl.New("render").Funcs(fm).Parse(preprocessed)
 		if err != nil {
 			return "", fmt.Errorf("template parse: %w", err)
 		}

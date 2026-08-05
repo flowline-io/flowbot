@@ -193,6 +193,41 @@ func TestRedisStoreListCache(t *testing.T) {
 		n, _ := store.Len(context.Background(), key)
 		require.Equal(t, int64(0), n)
 	})
+
+	t.Run("Trim keeps range", func(t *testing.T) {
+		key := NewKey("test", "list", "trim")
+		_, err := store.Push(context.Background(), key, "a", "b", "c", "d")
+		require.NoError(t, err)
+		require.NoError(t, store.Trim(context.Background(), key, -2, -1))
+		items, err := store.Range(context.Background(), key, 0, -1)
+		require.NoError(t, err)
+		require.Equal(t, []string{"c", "d"}, items)
+	})
+}
+
+// TestRedisStoreSortedSet tests ZAdd / ZRangeByScore / ZRem.
+func TestRedisStoreSortedSet(t *testing.T) {
+	mr := miniredis.RunT(t)
+	client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+	store := NewRedisStore(client)
+	ctx := context.Background()
+	key := NewKey("test", "zset", "due")
+
+	require.NoError(t, store.ZAdd(ctx, key, 10, "a"))
+	require.NoError(t, store.ZAdd(ctx, key, 20, "b"))
+	require.NoError(t, store.ZAdd(ctx, key, 30, "c"))
+
+	got, err := store.ZRangeByScore(ctx, key, 0, 20)
+	require.NoError(t, err)
+	require.Equal(t, []string{"a", "b"}, got)
+
+	n, err := store.ZRem(ctx, key, "a")
+	require.NoError(t, err)
+	require.Equal(t, int64(1), n)
+
+	got, err = store.ZRangeByScore(ctx, key, 0, 100)
+	require.NoError(t, err)
+	require.Equal(t, []string{"b", "c"}, got)
 }
 
 // TestRedisStoreUtilityMethods tests ScanKeys and ExistsRaw utility methods.

@@ -61,6 +61,8 @@ type ListCache interface {
 	Range(ctx context.Context, key Key, start, stop int64) ([]string, error)
 	// Len returns the current length of the list.
 	Len(ctx context.Context, key Key) (int64, error)
+	// Trim keeps only elements in the inclusive range [start, stop].
+	Trim(ctx context.Context, key Key, start, stop int64) error
 	// Clear removes all elements from the list.
 	Clear(ctx context.Context, key Key) error
 }
