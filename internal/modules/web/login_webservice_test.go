@@ -16,6 +16,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -224,6 +225,35 @@ func TestLoginSubmit(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLoginSubmitBackfillsMissingUser(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	seedWebAccount(t, client, "admin", "flowbot-dev-pass", true)
+	uid := webauth.UIDForUsername("admin")
+	_, err := client.User.Delete().Where(user.FlagEQ(uid)).Exec(context.Background())
+	require.NoError(t, err)
+	_, err = store.UserStoreFromDB().UserGet(context.Background(), types.Uid(uid))
+	require.ErrorIs(t, err, types.ErrNotFound)
+
+	form := url.Values{}
+	form.Set("username", "admin")
+	form.Set("password", "flowbot-dev-pass")
+	req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	AttachCSRFForTest(req)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, "/service/web/login/2fa", resp.Header.Get("HX-Redirect"))
+	assertPendingCookie(t, resp, true)
+
+	got, err := store.UserStoreFromDB().UserGet(context.Background(), types.Uid(uid))
+	require.NoError(t, err)
+	require.Equal(t, uid, got.Flag)
+	require.Equal(t, "admin", got.Name)
 }
 
 func TestLogin2FASubmit(t *testing.T) {

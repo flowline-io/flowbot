@@ -137,7 +137,10 @@ func loginSubmit(ctx fiber.Ctx) error {
 		return renderLoginForm(ctx, next, msg)
 	}
 
-	_ = ws.EnsureUser(context.Background(), account.UID, account.Username)
+	if err := ws.EnsureUser(context.Background(), account.UID, account.Username); err != nil {
+		flog.Error(fmt.Errorf("ensure user on login: %w", err))
+		return renderLoginForm(ctx, next, "Internal error")
+	}
 
 	if !account.TotpEnabled {
 		if err := issuePendingSession(ctx, webauth.KindPendingEnroll, account.UID, account.Username); err != nil {
