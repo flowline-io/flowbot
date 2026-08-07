@@ -468,8 +468,8 @@ github.com/fatih/structtag v1.2.0 h1:/OdNE99OxoI/PqaW/SuSK9uxxT3f/tcSZgon/ssNSx4
 github.com/fatih/structtag v1.2.0/go.mod h1:mBJUNpUnHmRKrKlQQlmCrh5PuhftFbNv8Ys4/aAZl94=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
-github.com/flc1125/go-cron/v4 v4.10.0 h1:ahtoXMlYAj45aIr1teWzyfx23yA7HGARPu684hDQ2n8=
-github.com/flc1125/go-cron/v4 v4.10.0/go.mod h1:IKYsy6ESQF8440cVMEozK6T0Hq0SZG9HljJvEK7wpBE=
+github.com/flc1125/go-cron/v4 v4.11.0 h1:Uz//UGyyKsGwlMdZqDvXJYQ5GCkQvQ/XDZiVB+TAYss=
+github.com/flc1125/go-cron/v4 v4.11.0/go.mod h1:ciT+zjkhTS4GxVLO/1vFKfQPEo8I4QFNFrFkjtd2N1A=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=
 github.com/frankban/quicktest v1.14.6/go.mod h1:4ptaffx2x8+WTWXmUCuVU6aPUX1/Mz7zb5vbUoiM6w0=
 github.com/fsnotify/fsnotify v1.10.1 h1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx59Ho=
