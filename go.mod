@@ -19,7 +19,7 @@ require (
 	github.com/creachadair/jrpc2 v1.3.5
 	github.com/dgraph-io/ristretto/v2 v2.4.2
 	github.com/docker/go-units v0.5.0
-	github.com/flc1125/go-cron/v4 v4.10.0
+	github.com/flc1125/go-cron/v4 v4.11.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/goccy/go-yaml v1.19.2
