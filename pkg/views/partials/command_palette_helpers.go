@@ -43,6 +43,7 @@ func CommandPaletteNavPages() []CommandPaletteNavPage {
 		{"Health", "System", "/service/web/healthz"},
 		{"Tokens", "System", "/service/web/tokens"},
 		{"Configs", "System", "/service/web/configs"},
+		{"Runtime Settings", "System", "/service/web/settings"},
 		{"About", "System", "/service/web/about"},
 	}
 	out := make([]CommandPaletteNavPage, 0, len(catalog))

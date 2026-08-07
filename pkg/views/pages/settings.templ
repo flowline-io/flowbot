@@ -1,0 +1,73 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ SettingsPage(data SettingsPageData) {
+	@layout.Base("Runtime Settings — Flowbot") {
+		@partials.TableFilterScripts()
+		@partials.PageHeader("Runtime Settings", "Read-only view of the effective flowbot.yaml configuration for this process. Secrets are redacted.")
+		<div class="flowbot-settings" x-data="tableFilter" data-testid="settings-page">
+			<div class="flowbot-surface flowbot-settings-toolbar">
+				@partials.TableFilterBar("Search by key, value, or description…", "settings-table-filter")
+			</div>
+			<div class="flowbot-settings-groups">
+				for _, section := range data.Sections {
+					<section
+						class="flowbot-surface flowbot-settings-group"
+						data-testid={ "settings-group-" + section.Name }
+						x-show="groupVisible($el)">
+						<header class="flowbot-settings-group-head">
+							<h2 class="flowbot-settings-group-title">{ section.Title }</h2>
+							<span class="flowbot-settings-group-meta">{ settingsSectionCount(section) }</span>
+						</header>
+						<div class="flowbot-settings-table-wrap">
+							<table class="table flowbot-settings-table">
+								<thead>
+									<tr>
+										<th scope="col">Key</th>
+										<th scope="col">Value</th>
+										<th scope="col">Description</th>
+									</tr>
+								</thead>
+								<tbody>
+									for _, row := range section.Entries {
+										<tr
+											data-filter-text={ row.FilterText }
+											data-testid={ "settings-row-" + row.Path }
+											x-show="rowMatches($el)">
+											<td class="flowbot-settings-key">
+												<code>{ row.Path }</code>
+											</td>
+											<td class="flowbot-settings-value">
+												switch row.ValueKind {
+													case SettingsValueSecret:
+														<span class="flowbot-settings-secret" title="Redacted">{ row.Value }</span>
+													case SettingsValueEmpty:
+														<span class="flowbot-settings-empty">{ row.Value }</span>
+													case SettingsValueCode:
+														<pre class="flowbot-settings-code">{ row.Value }</pre>
+													default:
+														<span class="flowbot-settings-text">{ row.Value }</span>
+												}
+											</td>
+											<td class="flowbot-settings-desc">
+												if row.Description != "" {
+													{ row.Description }
+												} else {
+													<span class="flowbot-settings-empty">—</span>
+												}
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</section>
+				}
+			</div>
+		</div>
+	}
+}

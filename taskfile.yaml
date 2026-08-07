@@ -262,3 +262,8 @@ tasks:
     desc: Generate Go code from Templ templates
     cmds:
       - go tool templ generate
+
+  config:docs:
+    desc: Regenerate pkg/config FieldDocs from struct godoc
+    cmds:
+      - go generate ./pkg/config/

@@ -161,13 +161,13 @@ type mediaConfig struct {
 	// Individual handler config params to pass to handlers unchanged.
 	Handlers map[string]any `json:"handlers" yaml:"handlers" mapstructure:"handlers"`
 	// SignSecret is the default HMAC secret for FS-signed chatagent media URLs.
-	SignSecret string `json:"sign_secret" yaml:"sign_secret" mapstructure:"sign_secret"`
+	SignSecret string `json:"sign_secret" yaml:"sign_secret" mapstructure:"sign_secret" sensitive:"true"`
 }
 
 // PostgresConfig holds PostgreSQL connection and optional pool overrides.
 type PostgresConfig struct {
 	// DSN is the PostgreSQL connection string.
-	DSN string `json:"dsn" yaml:"dsn" mapstructure:"dsn" validate:"required,min=1"`
+	DSN string `json:"dsn" yaml:"dsn" mapstructure:"dsn" sensitive:"true" validate:"required,min=1"`
 	// MaxResults caps query result sets (0 = adapter default).
 	MaxResults int `json:"max_results,omitempty" yaml:"max_results,omitempty" mapstructure:"max_results"`
 	// MaxOpenConns is the maximum open connections (0 = pool default).
@@ -242,7 +242,7 @@ type LogRotation struct {
 type Redis struct {
 	// URL is the Redis connection URI, e.g. redis://:password@127.0.0.1:6379/0.
 	// Password must be non-empty (validated separately from struct tags).
-	URL string `json:"url" yaml:"url" mapstructure:"url" validate:"required,min=1"`
+	URL string `json:"url" yaml:"url" mapstructure:"url" sensitive:"true" validate:"required,min=1"`
 	// Maximum number of connections in the pool (0 = go-redis default: 10*GOMAXPROCS)
 	PoolSize int `json:"pool_size" yaml:"pool_size" mapstructure:"pool_size"`
 	// Minimum number of idle connections maintained in the pool (0 = default: none)
@@ -306,9 +306,9 @@ type Discord struct {
 	// Discord client ID
 	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id" validate:"required_if=Enabled true"`
 	// Discord client secret
-	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret" validate:"required_if=Enabled true"`
+	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret" sensitive:"true" validate:"required_if=Enabled true"`
 	// Discord bot token
-	BotToken string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token" validate:"required_if=Enabled true"`
+	BotToken string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token" sensitive:"true" validate:"required_if=Enabled true"`
 }
 
 type Telegram struct {
@@ -369,9 +369,9 @@ type ExecutorMachineConfig struct {
 	// Username
 	Username string `json:"username" yaml:"username" mapstructure:"username"`
 	// Password
-	Password string `json:"password" yaml:"password" mapstructure:"password"`
+	Password string `json:"password" yaml:"password" mapstructure:"password" sensitive:"true"`
 	// HostKey is the base64-encoded SSH host public key
-	HostKey string `json:"host_key" yaml:"host_key" mapstructure:"host_key"`
+	HostKey string `json:"host_key" yaml:"host_key" mapstructure:"host_key" sensitive:"true"`
 }
 
 type Executor struct {
@@ -393,7 +393,7 @@ type Metrics struct {
 	// BearerToken is an optional dedicated scrape secret for GET /metrics.
 	// When set, Authorization: Bearer <token> (or X-AccessToken) matching this value is accepted.
 	// Otherwise a valid access token with admin:metrics (or admin:*) scope is required.
-	BearerToken string `json:"bearer_token" yaml:"bearer_token" mapstructure:"bearer_token"`
+	BearerToken string `json:"bearer_token" yaml:"bearer_token" mapstructure:"bearer_token" sensitive:"true"`
 }
 
 // HTTPConfig holds HTTP boundary hardening settings.
@@ -650,13 +650,13 @@ type ChatAgentMediaConfig struct {
 	// SignedURLTTL is the lifetime of signed media URLs; zero defaults to 60m.
 	SignedURLTTL time.Duration `json:"signed_url_ttl" yaml:"signed_url_ttl" mapstructure:"signed_url_ttl"`
 	// SignSecret is the HMAC secret for FS-signed media URLs; falls back to media.sign_secret when empty.
-	SignSecret string `json:"sign_secret" yaml:"sign_secret" mapstructure:"sign_secret"`
+	SignSecret string `json:"sign_secret" yaml:"sign_secret" mapstructure:"sign_secret" sensitive:"true"`
 }
 
 // ChatAgentWebSearchConfig configures the web_search tool via SerpApi.
 type ChatAgentWebSearchConfig struct {
 	// APIKey is the SerpApi private key (https://serpapi.com/search-api).
-	APIKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
+	APIKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key" sensitive:"true"`
 }
 
 // LLMRetryConfig configures transient LLM call retries.
@@ -716,7 +716,7 @@ type ChatAgentSandboxConfig struct {
 	ServerURL string `json:"server_url" yaml:"server_url" mapstructure:"server_url"`
 	// AccessToken is a dedicated Hub access token for the flowbot CLI inside the sandbox.
 	// When empty, credentials are not injected. Injected as FLOWBOT_TOKEN and a mounted token file.
-	AccessToken string `json:"access_token" yaml:"access_token" mapstructure:"access_token"`
+	AccessToken string `json:"access_token" yaml:"access_token" mapstructure:"access_token" sensitive:"true"`
 }
 
 type Model struct {
@@ -725,7 +725,7 @@ type Model struct {
 	// Base URL
 	BaseUrl string `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
 	// API key
-	ApiKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
+	ApiKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key" sensitive:"true"`
 	// Useful model names
 	ModelNames []string `json:"model_names" yaml:"model_names" mapstructure:"model_names"`
 }

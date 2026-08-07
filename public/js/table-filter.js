@@ -14,6 +14,19 @@
         }
         return text.toLowerCase().includes(this.search.toLowerCase());
       },
+
+      groupVisible(sectionEl) {
+        if (!this.search) {
+          return true;
+        }
+        const rows = sectionEl.querySelectorAll('[data-filter-text]');
+        for (let i = 0; i < rows.length; i++) {
+          if (this.rowMatches(rows[i])) {
+            return true;
+          }
+        }
+        return false;
+      },
     }));
   }
 

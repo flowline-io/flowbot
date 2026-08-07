@@ -5,12 +5,13 @@ import (
 )
 
 // allWebserviceRules lists every route group registered under /service/web.
-// Rules() exposes each slice separately (30 groups).
+// Rules() exposes each slice separately (31 groups).
 var allWebserviceRules = [][]webservice.Rule{
 	homeWebserviceRules,
 	loginWebserviceRules,
 	accountWebserviceRules,
 	configWebserviceRules,
+	settingsWebserviceRules,
 	healthzWebserviceRules,
 	aboutWebserviceRules,
 	hubWebserviceRules,
