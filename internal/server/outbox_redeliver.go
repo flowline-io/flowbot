@@ -14,9 +14,10 @@ import (
 )
 
 const (
-	outboxRedeliveryInterval = 15 * time.Second
-	outboxRedeliveryMinAge   = 30 * time.Second
-	outboxRedeliveryBatch    = 50
+	outboxRedeliveryInterval          = 15 * time.Second
+	outboxRedeliveryMinAge            = 30 * time.Second
+	outboxRedeliveryBatch             = 50
+	outboxRedeliveryMaxBatchesPerTick = 40 // up to 2000 events per tick while catching up
 )
 
 // outboxStore is the store seam for DataEvent outbox redelivery.
@@ -58,13 +59,54 @@ func outboxRedeliveryLoop(stop <-chan struct{}, storeFn func() outboxStore, publ
 			if s == nil {
 				continue
 			}
-			if n, err := redeliverPendingOutbox(context.Background(), s, publish, time.Now().Add(-outboxRedeliveryMinAge), outboxRedeliveryBatch); err != nil {
+			olderThan := time.Now().Add(-outboxRedeliveryMinAge)
+			n, more, err := redeliverOutboxCatchUp(context.Background(), s, publish, olderThan, outboxRedeliveryBatch, outboxRedeliveryMaxBatchesPerTick)
+			if err != nil {
 				flog.Warn("outbox redelivery: %v", err)
-			} else if n > 0 {
-				flog.Info("outbox redelivery: republished %d pending event(s)", n)
+				continue
+			}
+			if n == 0 {
+				continue
+			}
+			if more {
+				flog.Info("outbox redelivery: republished %d pending event(s); more remain", n)
+			} else {
+				flog.Info("outbox redelivery: republished %d pending event(s); backlog cleared", n)
 			}
 		}
 	}
+}
+
+// redeliverOutboxCatchUp publishes pending outbox rows in batches until empty or maxBatches.
+// more is true when a full final batch suggests unpublished rows may still remain.
+func redeliverOutboxCatchUp(
+	ctx context.Context,
+	s outboxStore,
+	publish dataEventPublisher,
+	olderThan time.Time,
+	batch int,
+	maxBatches int,
+) (published int, more bool, err error) {
+	if batch <= 0 {
+		batch = outboxRedeliveryBatch
+	}
+	if maxBatches <= 0 {
+		maxBatches = 1
+	}
+	for range maxBatches {
+		n, err := redeliverPendingOutbox(ctx, s, publish, olderThan, batch)
+		if err != nil {
+			return published, false, err
+		}
+		if n == 0 {
+			return published, false, nil
+		}
+		published += n
+		if n < batch {
+			return published, false, nil
+		}
+	}
+	return published, true, nil
 }
 
 // redeliverPendingOutbox publishes unpublished DataEvent outbox rows and marks them published on success.

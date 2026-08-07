@@ -13,13 +13,14 @@ import (
 )
 
 type stubOutboxStore struct {
-	pending     []types.DataEvent
-	listErr     error
-	markErr     error
-	markCalls   []string
-	listCalls   int
-	listOlder   time.Time
-	listLimit   int
+	pending      []types.DataEvent
+	pendingPages [][]types.DataEvent
+	listErr      error
+	markErr      error
+	markCalls    []string
+	listCalls    int
+	listOlder    time.Time
+	listLimit    int
 }
 
 func (s *stubOutboxStore) ListPendingDataEventOutbox(_ context.Context, olderThan time.Time, limit int) ([]types.DataEvent, error) {
@@ -28,6 +29,14 @@ func (s *stubOutboxStore) ListPendingDataEventOutbox(_ context.Context, olderTha
 	s.listLimit = limit
 	if s.listErr != nil {
 		return nil, s.listErr
+	}
+	if len(s.pendingPages) > 0 {
+		page := s.pendingPages[0]
+		s.pendingPages = s.pendingPages[1:]
+		if limit > 0 && len(page) > limit {
+			return page[:limit], nil
+		}
+		return page, nil
 	}
 	return s.pending, nil
 }
@@ -120,6 +129,73 @@ func TestRedeliverPendingOutbox(t *testing.T) {
 			assert.Equal(t, tt.wantN, n)
 			assert.Equal(t, tt.wantPublish, publishCount)
 			assert.Equal(t, tt.wantMarked, s.markCalls)
+		})
+	}
+}
+
+func TestRedeliverOutboxCatchUp(t *testing.T) {
+	t.Parallel()
+
+	page := func(ids ...string) []types.DataEvent {
+		out := make([]types.DataEvent, 0, len(ids))
+		for _, id := range ids {
+			out = append(out, types.DataEvent{EventID: id, EventType: "t"})
+		}
+		return out
+	}
+
+	tests := []struct {
+		name        string
+		pages       [][]types.DataEvent
+		batch       int
+		maxBatches  int
+		wantN       int
+		wantMore    bool
+		wantLists   int
+		wantPublish int
+	}{
+		{
+			name:       "empty",
+			pages:      [][]types.DataEvent{{}},
+			batch:      50,
+			maxBatches: 4,
+			wantLists:  1,
+		},
+		{
+			name:        "drains partial final page",
+			pages:       [][]types.DataEvent{page("a", "b"), page("c")},
+			batch:       2,
+			maxBatches:  4,
+			wantN:       3,
+			wantLists:   2,
+			wantPublish: 3,
+		},
+		{
+			name:        "stops at maxBatches with more remaining",
+			pages:       [][]types.DataEvent{page("a", "b"), page("c", "d"), page("e", "f")},
+			batch:       2,
+			maxBatches:  2,
+			wantN:       4,
+			wantMore:    true,
+			wantLists:   2,
+			wantPublish: 4,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			s := &stubOutboxStore{pendingPages: tt.pages}
+			publishCount := 0
+			publish := func(_ context.Context, _ string, _ any) error {
+				publishCount++
+				return nil
+			}
+			n, more, err := redeliverOutboxCatchUp(context.Background(), s, publish, time.Now().Add(-time.Minute), tt.batch, tt.maxBatches)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantN, n)
+			assert.Equal(t, tt.wantMore, more)
+			assert.Equal(t, tt.wantLists, s.listCalls)
+			assert.Equal(t, tt.wantPublish, publishCount)
 		})
 	}
 }

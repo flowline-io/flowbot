@@ -103,6 +103,10 @@ func TestEventStore_OutboxLifecycle(t *testing.T) {
 	updated, err := client.EventOutbox.Get(ctx, rows[0].ID)
 	require.NoError(t, err)
 	assert.True(t, updated.Published)
+
+	err = store.MarkOutboxPublished(ctx, "missing-outbox-id")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
 }
 
 func TestEventStore_ListPendingDataEventOutbox(t *testing.T) {

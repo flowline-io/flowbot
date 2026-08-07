@@ -113,11 +113,17 @@ func (s *EventStore) MarkOutboxPublished(ctx context.Context, eventID string) er
 	if s == nil || s.client == nil {
 		return nil
 	}
-	_, err := s.client.EventOutbox.Update().
+	n, err := s.client.EventOutbox.Update().
 		Where(eventoutbox.EventID(eventID)).
 		SetPublished(true).
 		Save(ctx)
-	return err
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return fmt.Errorf("event outbox mark published: event_id=%s not found", eventID)
+	}
+	return nil
 }
 
 // ListPendingDataEventOutbox returns unpublished DataEvent outbox rows older than olderThan.

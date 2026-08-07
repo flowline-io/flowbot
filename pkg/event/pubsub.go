@@ -120,7 +120,6 @@ func NewRouter(_ *sdktrace.TracerProvider) (*message.Router, error) {
 
 	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
 		return func(message *message.Message) ([]*message.Message, error) {
-			flog.Debug("executing handler specific middleware for %s", message.UUID)
 			stats.EventTotalCounter().Inc()
 			return h(message)
 		}
