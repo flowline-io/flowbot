@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
 	"github.com/flowline-io/flowbot/pkg/capability/fireflyiii"
+	"github.com/flowline-io/flowbot/pkg/capability/gateway"
 	"github.com/flowline-io/flowbot/pkg/capability/gitea"
 	"github.com/flowline-io/flowbot/pkg/capability/github"
 	"github.com/flowline-io/flowbot/pkg/capability/kanboard"
@@ -40,6 +41,7 @@ type capDoc struct {
 func workflowCapabilityCatalog() []capDoc {
 	specs := []capability.Spec{
 		core.CatalogSpec(),
+		gateway.CatalogSpec(),
 		karakeep.CatalogSpec(),
 		kanboard.CatalogSpec(),
 		miniflux.CatalogSpec(),

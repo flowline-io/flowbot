@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifytemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/predicate"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // NotifyTemplateUpdate is the builder for updating NotifyTemplate entities.
@@ -107,13 +107,13 @@ func (_u *NotifyTemplateUpdate) SetNillableDefaultTemplate(v *string) *NotifyTem
 }
 
 // SetOverrides sets the "overrides" field.
-func (_u *NotifyTemplateUpdate) SetOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateUpdate {
+func (_u *NotifyTemplateUpdate) SetOverrides(v []model.NotifyTemplateOverride) *NotifyTemplateUpdate {
 	_u.mutation.SetOverrides(v)
 	return _u
 }
 
 // AppendOverrides appends value to the "overrides" field.
-func (_u *NotifyTemplateUpdate) AppendOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateUpdate {
+func (_u *NotifyTemplateUpdate) AppendOverrides(v []model.NotifyTemplateOverride) *NotifyTemplateUpdate {
 	_u.mutation.AppendOverrides(v)
 	return _u
 }
@@ -345,13 +345,13 @@ func (_u *NotifyTemplateUpdateOne) SetNillableDefaultTemplate(v *string) *Notify
 }
 
 // SetOverrides sets the "overrides" field.
-func (_u *NotifyTemplateUpdateOne) SetOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateUpdateOne {
+func (_u *NotifyTemplateUpdateOne) SetOverrides(v []model.NotifyTemplateOverride) *NotifyTemplateUpdateOne {
 	_u.mutation.SetOverrides(v)
 	return _u
 }
 
 // AppendOverrides appends value to the "overrides" field.
-func (_u *NotifyTemplateUpdateOne) AppendOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateUpdateOne {
+func (_u *NotifyTemplateUpdateOne) AppendOverrides(v []model.NotifyTemplateOverride) *NotifyTemplateUpdateOne {
 	_u.mutation.AppendOverrides(v)
 	return _u
 }

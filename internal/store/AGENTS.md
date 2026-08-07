@@ -6,7 +6,7 @@ Ent + PostgreSQL. Domain query APIs are concrete `*Store` types in package `stor
 
 - `store.go` — connection registry (`Database`, narrow `Adapter`), `Init` / `Migrate`
 - `dto.go` — shared list/filter option types used across domain stores
-- Domain stores (same package): `user.go`, `platform.go`, `message.go`, `chat.go`, `agent.go`, `file.go`, `module_data.go`, `runtime_agent.go`, `notify_config.go`, `audit.go`, `event.go`, `pipeline.go`, `polling.go`, `workflow.go`, `workflow_run.go`, `hub.go`, `resource_chain.go`, `clip.go`, `page_data.go`, `notify.go` (records), `llm_usage.go`, plus `life.go` / `web_account.go` / …
+- Domain stores (same package): `user.go`, `platform.go`, `message.go`, `chat.go`, `agent.go`, `file.go`, `module_data.go`, `runtime_agent.go`, `notify_config.go`, `audit.go`, `event.go`, `pipeline.go`, `polling.go`, `workflow.go`, `workflow_run.go`, `hub.go`, `resource_chain.go`, `clip.go`, `gateway.go`, `page_data.go`, `notify.go` (records), `llm_usage.go`, plus `life.go` / `web_account.go` / …
 - `postgres/adapter.go`, `postgres/pool.go` — open/close/ping/pool/`GetClient` only
 - Schemas: `ent/schema/`; generated: `ent/gen/`
 - Tests: co-located `*_test.go`; in-memory helper `sqlitetest/`

@@ -36,12 +36,18 @@ tasks:
     cmds:
       - go build -v -o bin/flowbot-cli ./cmd/cli
 
+  build:gateway:
+    desc: Build local CLI gateway sidecar
+    cmds:
+      - go build -v -o bin/flowbot-gateway ./cmd/gateway
+
   build:all:
     desc: Build all binaries
     cmds:
       - task: build
       - task: build:composer
       - task: build:cli
+      - task: build:gateway
 
   # Run tasks
   run:
@@ -59,6 +65,11 @@ tasks:
     desc: Run flowbot CLI (task run:cli -- --help)
     cmds:
       - go run ./cmd/cli {{.CLI_ARGS}}
+
+  run:gateway:
+    desc: Run flowbot Gateway (task run:gateway -- --help)
+    cmds:
+      - go run ./cmd/gateway {{.CLI_ARGS}}
 
   # Code quality tasks
   cloc:

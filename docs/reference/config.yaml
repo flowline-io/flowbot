@@ -176,6 +176,16 @@ core:
     # allow_hosts:
     #   - "api.example.com"
 
+# CapGateway: local CLI workers (cmd/gateway). Distinct from notification gateway (pkg/notify).
+# Access tokens for workers are created with: composer admin token (scope gateway:worker).
+gateway:
+  enabled: false
+  run_timeout: 30m
+  worker_stale_after: 60s
+  lease_ttl: 90s
+  # permission: ask   # ask | allow — merges into DefaultConfig only; user DB overrides still win
+  # max_output_bytes: 8192
+
 # Flowbot instance configuration
 flowbot:
   # External URL of this Flowbot instance

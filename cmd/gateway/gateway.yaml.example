@@ -1,0 +1,17 @@
+# Local CLI gateway sidecar (not the notification gateway).
+# Create an access token with scope gateway:worker via: composer admin token
+
+flowbot_url: "http://127.0.0.1:6060"
+access_token: ""
+
+# default_workspace: "D:/Projects/flowbot"
+# workspace_allowlist:
+#   - "D:/Projects"
+# claim_interval: 2s
+# heartbeat_interval: 20s
+# max_concurrent: 1
+# job_timeout: 30m
+# cursor_binary: agent
+# cursor_api_key: ""  # or set CURSOR_API_KEY
+# listen: "127.0.0.1:8787"  # optional local healthz only
+# Log level via flag: flowbot-gateway -log-level=debug -config gateway.yaml

@@ -27,6 +27,22 @@ const KeyKnowledge = "knowledge"
 // KeyTodo is the permission key for session todo checklist tools.
 const KeyTodo = "todo"
 
+// KeyGateway is the permission key for local CLI gateway tools (run_cursor).
+const KeyGateway = "gateway"
+
+var gatewayDefaultAction = ActionAsk
+
+// SetGatewayDefaultAction overrides the DefaultConfig gateway rule (from flowbot.yaml).
+// User DB permission overlays still win via EffectiveConfig. Only ask/allow are accepted.
+func SetGatewayDefaultAction(action Action) {
+	switch action {
+	case ActionAllow, ActionAsk:
+		gatewayDefaultAction = action
+	default:
+		gatewayDefaultAction = ActionAsk
+	}
+}
+
 // DefaultConfig returns OpenCode-style baseline rules used when the user has no overrides.
 func DefaultConfig() Config {
 	return Config{
@@ -64,6 +80,7 @@ func DefaultConfig() Config {
 			Default: ActionAsk,
 		},
 		KeyTodo:     {Default: ActionAllow},
+		KeyGateway:  {Default: gatewayDefaultAction},
 		KeyDoomLoop: {Default: ActionAsk},
 		KeyExternalDirectory: {
 			Patterns: []PatternRule{

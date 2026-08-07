@@ -21,6 +21,8 @@ const (
 	CapCore CapabilityType = "core"
 	// CapLife is the solo Life gamification AI capability (quest eval, lore).
 	CapLife CapabilityType = "life"
+	// CapGateway is the local CLI gateway capability (run_cursor via cmd/gateway workers).
+	CapGateway CapabilityType = "gateway"
 )
 
 // EventDef describes an event that a capability emits.

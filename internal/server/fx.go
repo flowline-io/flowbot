@@ -54,6 +54,7 @@ var Modules = fx.Options(
 		initWorkflow,
 		initAgentAbility,
 		initClipAbility,
+		initGatewayAbility,
 		initChatAgentScheduler,
 		handleModules,
 		handlePlatform,

@@ -35,6 +35,7 @@ const (
 	ToolSearchSessionSummaries = "search_session_summaries"
 	ToolTodoWrite              = "todo_write"
 	ToolListTodos              = "list_todos"
+	ToolRunCursor              = "run_cursor"
 )
 
 // PermissionKeyForTool maps a tool name to its OpenCode permission key.
@@ -62,6 +63,8 @@ func PermissionKeyForTool(tool string) string {
 		return KeyMemory
 	case ToolTodoWrite, ToolListTodos:
 		return KeyTodo
+	case ToolRunCursor:
+		return KeyGateway
 	default:
 		return KeyWildcard
 	}

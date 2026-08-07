@@ -76,6 +76,10 @@ type Tx struct {
 	Fileupload *FileuploadClient
 	// Form is the client for interacting with the Form builders.
 	Form *FormClient
+	// GatewayJob is the client for interacting with the GatewayJob builders.
+	GatewayJob *GatewayJobClient
+	// GatewayWorker is the client for interacting with the GatewayWorker builders.
+	GatewayWorker *GatewayWorkerClient
 	// Instruct is the client for interacting with the Instruct builders.
 	Instruct *InstructClient
 	// LLMUsageRecord is the client for interacting with the LLMUsageRecord builders.
@@ -347,6 +351,8 @@ func (tx *Tx) init() {
 	tx.EventOutbox = NewEventOutboxClient(tx.config)
 	tx.Fileupload = NewFileuploadClient(tx.config)
 	tx.Form = NewFormClient(tx.config)
+	tx.GatewayJob = NewGatewayJobClient(tx.config)
+	tx.GatewayWorker = NewGatewayWorkerClient(tx.config)
 	tx.Instruct = NewInstructClient(tx.config)
 	tx.LLMUsageRecord = NewLLMUsageRecordClient(tx.config)
 	tx.LifeAIContext = NewLifeAIContextClient(tx.config)

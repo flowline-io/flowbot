@@ -98,6 +98,9 @@ type Type struct {
 	// Core configures CapCore runtime primitives (HTTP SSRF policy, workspace).
 	Core CoreConfig `json:"core" yaml:"core" mapstructure:"core"`
 
+	// Gateway configures CapGateway (local CLI worker jobs). Not the notification gateway.
+	Gateway GatewayConfig `json:"gateway" yaml:"gateway" mapstructure:"gateway"`
+
 	// Plugin system configuration
 	Plugins *plugintypes.PluginConfig `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
 
@@ -497,6 +500,23 @@ type CoreConfig struct {
 	Workspace string `json:"workspace" yaml:"workspace" mapstructure:"workspace"`
 	// HTTP configures outbound http_request SSRF policy.
 	HTTP CoreHTTPConfig `json:"http" yaml:"http" mapstructure:"http"`
+}
+
+// GatewayConfig configures CapGateway and local-CLI worker job leases.
+// Distinct from the notification gateway (pkg/notify).
+type GatewayConfig struct {
+	// Enabled registers CapGateway when true.
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// RunTimeout is how long capability run waits for a terminal job status.
+	RunTimeout time.Duration `json:"run_timeout" yaml:"run_timeout" mapstructure:"run_timeout"`
+	// WorkerStaleAfter marks workers unhealthy when heartbeat is older than this.
+	WorkerStaleAfter time.Duration `json:"worker_stale_after" yaml:"worker_stale_after" mapstructure:"worker_stale_after"`
+	// LeaseTTL is the running-job lease duration renewed by heartbeats.
+	LeaseTTL time.Duration `json:"lease_ttl" yaml:"lease_ttl" mapstructure:"lease_ttl"`
+	// Permission merges into DefaultConfig["gateway"]: "ask" (default) or "allow" only.
+	Permission string `json:"permission" yaml:"permission" mapstructure:"permission"`
+	// MaxOutputBytes truncates job output on complete (0 uses chat_agent.max_tool_output).
+	MaxOutputBytes int `json:"max_output_bytes" yaml:"max_output_bytes" mapstructure:"max_output_bytes"`
 }
 
 // CoreHTTPConfig controls CapCore http_request outbound access.

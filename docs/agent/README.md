@@ -20,6 +20,7 @@ This package is distinct from:
 | [Chat Agent Feature Checklist](./chatagent-feature-checklist.md) | Frozen product acceptance boundary (REST/Web/DM/orchestration) |
 | [Chat Agent Remediation Audit](./chatagent-remediation-audit.md) | Schedule/stream duplication and `pkg/agent` boundary audit |
 | [Agent Sandbox](./agent-sandbox.md) | Cloud Agent ephemeral Docker image (`flowbot-agent-sandbox`) |
+| [Local CLI Gateway](./local-cli-gateway.md) | Homelab ↔ `cmd/gateway` Cursor worker (pull model; not notification gateway) |
 | [Diagram](./agent.puml) | PlantUML component diagram (render with PlantUML) |
 
 ## Quick Start

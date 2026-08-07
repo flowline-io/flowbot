@@ -71,6 +71,8 @@ const (
 	ScopeWorkflowRead  = "workflow:read"
 	ScopeWorkflowRun   = "workflow:run"
 	ScopeChatAgentChat = "chatagent:chat"
+	// ScopeGatewayWorker authorizes cmd/gateway claim/result/heartbeat APIs.
+	ScopeGatewayWorker = "gateway:worker"
 )
 
 // legacyScopeStrings maps deprecated token scope strings to canonical provider scopes.
@@ -234,5 +236,6 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeWorkflowRead, Description: "read workflows"},
 		{Value: ScopeWorkflowRun, Description: "apply, delete, and run workflows"},
 		{Value: ScopeChatAgentChat, Description: "chat agent"},
+		{Value: ScopeGatewayWorker, Description: "local CLI gateway worker"},
 	}
 }

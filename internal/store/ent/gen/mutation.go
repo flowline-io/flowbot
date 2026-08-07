@@ -43,6 +43,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayjob"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayworker"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementprogress"
@@ -98,7 +100,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowtask"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowtrigger"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 const (
@@ -142,6 +144,8 @@ const (
 	TypeEventOutbox               = "EventOutbox"
 	TypeFileupload                = "Fileupload"
 	TypeForm                      = "Form"
+	TypeGatewayJob                = "GatewayJob"
+	TypeGatewayWorker             = "GatewayWorker"
 	TypeInstruct                  = "Instruct"
 	TypeLLMUsageRecord            = "LLMUsageRecord"
 	TypeLifeAIContext             = "LifeAIContext"
@@ -23152,6 +23156,1845 @@ func (m *FormMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *FormMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Form edge %s", name)
+}
+
+// GatewayJobMutation represents an operation that mutates the GatewayJob nodes in the graph.
+type GatewayJobMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int64
+	job_id         *string
+	uid            *string
+	cli            *string
+	prompt         *string
+	cwd            *string
+	status         *string
+	output         *string
+	exit_code      *int
+	addexit_code   *int
+	error_text     *string
+	truncated      *bool
+	duration_ms    *int64
+	addduration_ms *int64
+	worker_id      *string
+	lease_until    *time.Time
+	claimed_at     *time.Time
+	finished_at    *time.Time
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*GatewayJob, error)
+	predicates     []predicate.GatewayJob
+}
+
+var _ ent.Mutation = (*GatewayJobMutation)(nil)
+
+// gatewayjobOption allows management of the mutation configuration using functional options.
+type gatewayjobOption func(*GatewayJobMutation)
+
+// newGatewayJobMutation creates new mutation for the GatewayJob entity.
+func newGatewayJobMutation(c config, op Op, opts ...gatewayjobOption) *GatewayJobMutation {
+	m := &GatewayJobMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeGatewayJob,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withGatewayJobID sets the ID field of the mutation.
+func withGatewayJobID(id int64) gatewayjobOption {
+	return func(m *GatewayJobMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *GatewayJob
+		)
+		m.oldValue = func(ctx context.Context) (*GatewayJob, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().GatewayJob.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withGatewayJob sets the old GatewayJob of the mutation.
+func withGatewayJob(node *GatewayJob) gatewayjobOption {
+	return func(m *GatewayJobMutation) {
+		m.oldValue = func(context.Context) (*GatewayJob, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m GatewayJobMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m GatewayJobMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of GatewayJob entities.
+func (m *GatewayJobMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *GatewayJobMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *GatewayJobMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().GatewayJob.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetJobID sets the "job_id" field.
+func (m *GatewayJobMutation) SetJobID(s string) {
+	m.job_id = &s
+}
+
+// JobID returns the value of the "job_id" field in the mutation.
+func (m *GatewayJobMutation) JobID() (r string, exists bool) {
+	v := m.job_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobID returns the old "job_id" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldJobID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJobID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJobID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobID: %w", err)
+	}
+	return oldValue.JobID, nil
+}
+
+// ResetJobID resets all changes to the "job_id" field.
+func (m *GatewayJobMutation) ResetJobID() {
+	m.job_id = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *GatewayJobMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *GatewayJobMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *GatewayJobMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetCli sets the "cli" field.
+func (m *GatewayJobMutation) SetCli(s string) {
+	m.cli = &s
+}
+
+// Cli returns the value of the "cli" field in the mutation.
+func (m *GatewayJobMutation) Cli() (r string, exists bool) {
+	v := m.cli
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCli returns the old "cli" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldCli(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCli is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCli requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCli: %w", err)
+	}
+	return oldValue.Cli, nil
+}
+
+// ResetCli resets all changes to the "cli" field.
+func (m *GatewayJobMutation) ResetCli() {
+	m.cli = nil
+}
+
+// SetPrompt sets the "prompt" field.
+func (m *GatewayJobMutation) SetPrompt(s string) {
+	m.prompt = &s
+}
+
+// Prompt returns the value of the "prompt" field in the mutation.
+func (m *GatewayJobMutation) Prompt() (r string, exists bool) {
+	v := m.prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrompt returns the old "prompt" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldPrompt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrompt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
+	}
+	return oldValue.Prompt, nil
+}
+
+// ResetPrompt resets all changes to the "prompt" field.
+func (m *GatewayJobMutation) ResetPrompt() {
+	m.prompt = nil
+}
+
+// SetCwd sets the "cwd" field.
+func (m *GatewayJobMutation) SetCwd(s string) {
+	m.cwd = &s
+}
+
+// Cwd returns the value of the "cwd" field in the mutation.
+func (m *GatewayJobMutation) Cwd() (r string, exists bool) {
+	v := m.cwd
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCwd returns the old "cwd" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldCwd(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCwd is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCwd requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCwd: %w", err)
+	}
+	return oldValue.Cwd, nil
+}
+
+// ResetCwd resets all changes to the "cwd" field.
+func (m *GatewayJobMutation) ResetCwd() {
+	m.cwd = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *GatewayJobMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *GatewayJobMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *GatewayJobMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetOutput sets the "output" field.
+func (m *GatewayJobMutation) SetOutput(s string) {
+	m.output = &s
+}
+
+// Output returns the value of the "output" field in the mutation.
+func (m *GatewayJobMutation) Output() (r string, exists bool) {
+	v := m.output
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutput returns the old "output" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldOutput(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutput is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutput requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutput: %w", err)
+	}
+	return oldValue.Output, nil
+}
+
+// ResetOutput resets all changes to the "output" field.
+func (m *GatewayJobMutation) ResetOutput() {
+	m.output = nil
+}
+
+// SetExitCode sets the "exit_code" field.
+func (m *GatewayJobMutation) SetExitCode(i int) {
+	m.exit_code = &i
+	m.addexit_code = nil
+}
+
+// ExitCode returns the value of the "exit_code" field in the mutation.
+func (m *GatewayJobMutation) ExitCode() (r int, exists bool) {
+	v := m.exit_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExitCode returns the old "exit_code" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldExitCode(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExitCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExitCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExitCode: %w", err)
+	}
+	return oldValue.ExitCode, nil
+}
+
+// AddExitCode adds i to the "exit_code" field.
+func (m *GatewayJobMutation) AddExitCode(i int) {
+	if m.addexit_code != nil {
+		*m.addexit_code += i
+	} else {
+		m.addexit_code = &i
+	}
+}
+
+// AddedExitCode returns the value that was added to the "exit_code" field in this mutation.
+func (m *GatewayJobMutation) AddedExitCode() (r int, exists bool) {
+	v := m.addexit_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearExitCode clears the value of the "exit_code" field.
+func (m *GatewayJobMutation) ClearExitCode() {
+	m.exit_code = nil
+	m.addexit_code = nil
+	m.clearedFields[gatewayjob.FieldExitCode] = struct{}{}
+}
+
+// ExitCodeCleared returns if the "exit_code" field was cleared in this mutation.
+func (m *GatewayJobMutation) ExitCodeCleared() bool {
+	_, ok := m.clearedFields[gatewayjob.FieldExitCode]
+	return ok
+}
+
+// ResetExitCode resets all changes to the "exit_code" field.
+func (m *GatewayJobMutation) ResetExitCode() {
+	m.exit_code = nil
+	m.addexit_code = nil
+	delete(m.clearedFields, gatewayjob.FieldExitCode)
+}
+
+// SetErrorText sets the "error_text" field.
+func (m *GatewayJobMutation) SetErrorText(s string) {
+	m.error_text = &s
+}
+
+// ErrorText returns the value of the "error_text" field in the mutation.
+func (m *GatewayJobMutation) ErrorText() (r string, exists bool) {
+	v := m.error_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorText returns the old "error_text" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldErrorText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorText: %w", err)
+	}
+	return oldValue.ErrorText, nil
+}
+
+// ResetErrorText resets all changes to the "error_text" field.
+func (m *GatewayJobMutation) ResetErrorText() {
+	m.error_text = nil
+}
+
+// SetTruncated sets the "truncated" field.
+func (m *GatewayJobMutation) SetTruncated(b bool) {
+	m.truncated = &b
+}
+
+// Truncated returns the value of the "truncated" field in the mutation.
+func (m *GatewayJobMutation) Truncated() (r bool, exists bool) {
+	v := m.truncated
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTruncated returns the old "truncated" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldTruncated(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTruncated is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTruncated requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTruncated: %w", err)
+	}
+	return oldValue.Truncated, nil
+}
+
+// ResetTruncated resets all changes to the "truncated" field.
+func (m *GatewayJobMutation) ResetTruncated() {
+	m.truncated = nil
+}
+
+// SetDurationMs sets the "duration_ms" field.
+func (m *GatewayJobMutation) SetDurationMs(i int64) {
+	m.duration_ms = &i
+	m.addduration_ms = nil
+}
+
+// DurationMs returns the value of the "duration_ms" field in the mutation.
+func (m *GatewayJobMutation) DurationMs() (r int64, exists bool) {
+	v := m.duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationMs returns the old "duration_ms" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldDurationMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationMs: %w", err)
+	}
+	return oldValue.DurationMs, nil
+}
+
+// AddDurationMs adds i to the "duration_ms" field.
+func (m *GatewayJobMutation) AddDurationMs(i int64) {
+	if m.addduration_ms != nil {
+		*m.addduration_ms += i
+	} else {
+		m.addduration_ms = &i
+	}
+}
+
+// AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
+func (m *GatewayJobMutation) AddedDurationMs() (r int64, exists bool) {
+	v := m.addduration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationMs resets all changes to the "duration_ms" field.
+func (m *GatewayJobMutation) ResetDurationMs() {
+	m.duration_ms = nil
+	m.addduration_ms = nil
+}
+
+// SetWorkerID sets the "worker_id" field.
+func (m *GatewayJobMutation) SetWorkerID(s string) {
+	m.worker_id = &s
+}
+
+// WorkerID returns the value of the "worker_id" field in the mutation.
+func (m *GatewayJobMutation) WorkerID() (r string, exists bool) {
+	v := m.worker_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkerID returns the old "worker_id" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldWorkerID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkerID: %w", err)
+	}
+	return oldValue.WorkerID, nil
+}
+
+// ResetWorkerID resets all changes to the "worker_id" field.
+func (m *GatewayJobMutation) ResetWorkerID() {
+	m.worker_id = nil
+}
+
+// SetLeaseUntil sets the "lease_until" field.
+func (m *GatewayJobMutation) SetLeaseUntil(t time.Time) {
+	m.lease_until = &t
+}
+
+// LeaseUntil returns the value of the "lease_until" field in the mutation.
+func (m *GatewayJobMutation) LeaseUntil() (r time.Time, exists bool) {
+	v := m.lease_until
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLeaseUntil returns the old "lease_until" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldLeaseUntil(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLeaseUntil is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLeaseUntil requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLeaseUntil: %w", err)
+	}
+	return oldValue.LeaseUntil, nil
+}
+
+// ClearLeaseUntil clears the value of the "lease_until" field.
+func (m *GatewayJobMutation) ClearLeaseUntil() {
+	m.lease_until = nil
+	m.clearedFields[gatewayjob.FieldLeaseUntil] = struct{}{}
+}
+
+// LeaseUntilCleared returns if the "lease_until" field was cleared in this mutation.
+func (m *GatewayJobMutation) LeaseUntilCleared() bool {
+	_, ok := m.clearedFields[gatewayjob.FieldLeaseUntil]
+	return ok
+}
+
+// ResetLeaseUntil resets all changes to the "lease_until" field.
+func (m *GatewayJobMutation) ResetLeaseUntil() {
+	m.lease_until = nil
+	delete(m.clearedFields, gatewayjob.FieldLeaseUntil)
+}
+
+// SetClaimedAt sets the "claimed_at" field.
+func (m *GatewayJobMutation) SetClaimedAt(t time.Time) {
+	m.claimed_at = &t
+}
+
+// ClaimedAt returns the value of the "claimed_at" field in the mutation.
+func (m *GatewayJobMutation) ClaimedAt() (r time.Time, exists bool) {
+	v := m.claimed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClaimedAt returns the old "claimed_at" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldClaimedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClaimedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClaimedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClaimedAt: %w", err)
+	}
+	return oldValue.ClaimedAt, nil
+}
+
+// ClearClaimedAt clears the value of the "claimed_at" field.
+func (m *GatewayJobMutation) ClearClaimedAt() {
+	m.claimed_at = nil
+	m.clearedFields[gatewayjob.FieldClaimedAt] = struct{}{}
+}
+
+// ClaimedAtCleared returns if the "claimed_at" field was cleared in this mutation.
+func (m *GatewayJobMutation) ClaimedAtCleared() bool {
+	_, ok := m.clearedFields[gatewayjob.FieldClaimedAt]
+	return ok
+}
+
+// ResetClaimedAt resets all changes to the "claimed_at" field.
+func (m *GatewayJobMutation) ResetClaimedAt() {
+	m.claimed_at = nil
+	delete(m.clearedFields, gatewayjob.FieldClaimedAt)
+}
+
+// SetFinishedAt sets the "finished_at" field.
+func (m *GatewayJobMutation) SetFinishedAt(t time.Time) {
+	m.finished_at = &t
+}
+
+// FinishedAt returns the value of the "finished_at" field in the mutation.
+func (m *GatewayJobMutation) FinishedAt() (r time.Time, exists bool) {
+	v := m.finished_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinishedAt returns the old "finished_at" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldFinishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinishedAt: %w", err)
+	}
+	return oldValue.FinishedAt, nil
+}
+
+// ClearFinishedAt clears the value of the "finished_at" field.
+func (m *GatewayJobMutation) ClearFinishedAt() {
+	m.finished_at = nil
+	m.clearedFields[gatewayjob.FieldFinishedAt] = struct{}{}
+}
+
+// FinishedAtCleared returns if the "finished_at" field was cleared in this mutation.
+func (m *GatewayJobMutation) FinishedAtCleared() bool {
+	_, ok := m.clearedFields[gatewayjob.FieldFinishedAt]
+	return ok
+}
+
+// ResetFinishedAt resets all changes to the "finished_at" field.
+func (m *GatewayJobMutation) ResetFinishedAt() {
+	m.finished_at = nil
+	delete(m.clearedFields, gatewayjob.FieldFinishedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *GatewayJobMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *GatewayJobMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *GatewayJobMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *GatewayJobMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *GatewayJobMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the GatewayJob entity.
+// If the GatewayJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayJobMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *GatewayJobMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the GatewayJobMutation builder.
+func (m *GatewayJobMutation) Where(ps ...predicate.GatewayJob) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the GatewayJobMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GatewayJobMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.GatewayJob, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *GatewayJobMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GatewayJobMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (GatewayJob).
+func (m *GatewayJobMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *GatewayJobMutation) Fields() []string {
+	fields := make([]string, 0, 17)
+	if m.job_id != nil {
+		fields = append(fields, gatewayjob.FieldJobID)
+	}
+	if m.uid != nil {
+		fields = append(fields, gatewayjob.FieldUID)
+	}
+	if m.cli != nil {
+		fields = append(fields, gatewayjob.FieldCli)
+	}
+	if m.prompt != nil {
+		fields = append(fields, gatewayjob.FieldPrompt)
+	}
+	if m.cwd != nil {
+		fields = append(fields, gatewayjob.FieldCwd)
+	}
+	if m.status != nil {
+		fields = append(fields, gatewayjob.FieldStatus)
+	}
+	if m.output != nil {
+		fields = append(fields, gatewayjob.FieldOutput)
+	}
+	if m.exit_code != nil {
+		fields = append(fields, gatewayjob.FieldExitCode)
+	}
+	if m.error_text != nil {
+		fields = append(fields, gatewayjob.FieldErrorText)
+	}
+	if m.truncated != nil {
+		fields = append(fields, gatewayjob.FieldTruncated)
+	}
+	if m.duration_ms != nil {
+		fields = append(fields, gatewayjob.FieldDurationMs)
+	}
+	if m.worker_id != nil {
+		fields = append(fields, gatewayjob.FieldWorkerID)
+	}
+	if m.lease_until != nil {
+		fields = append(fields, gatewayjob.FieldLeaseUntil)
+	}
+	if m.claimed_at != nil {
+		fields = append(fields, gatewayjob.FieldClaimedAt)
+	}
+	if m.finished_at != nil {
+		fields = append(fields, gatewayjob.FieldFinishedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, gatewayjob.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, gatewayjob.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *GatewayJobMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case gatewayjob.FieldJobID:
+		return m.JobID()
+	case gatewayjob.FieldUID:
+		return m.UID()
+	case gatewayjob.FieldCli:
+		return m.Cli()
+	case gatewayjob.FieldPrompt:
+		return m.Prompt()
+	case gatewayjob.FieldCwd:
+		return m.Cwd()
+	case gatewayjob.FieldStatus:
+		return m.Status()
+	case gatewayjob.FieldOutput:
+		return m.Output()
+	case gatewayjob.FieldExitCode:
+		return m.ExitCode()
+	case gatewayjob.FieldErrorText:
+		return m.ErrorText()
+	case gatewayjob.FieldTruncated:
+		return m.Truncated()
+	case gatewayjob.FieldDurationMs:
+		return m.DurationMs()
+	case gatewayjob.FieldWorkerID:
+		return m.WorkerID()
+	case gatewayjob.FieldLeaseUntil:
+		return m.LeaseUntil()
+	case gatewayjob.FieldClaimedAt:
+		return m.ClaimedAt()
+	case gatewayjob.FieldFinishedAt:
+		return m.FinishedAt()
+	case gatewayjob.FieldCreatedAt:
+		return m.CreatedAt()
+	case gatewayjob.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *GatewayJobMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case gatewayjob.FieldJobID:
+		return m.OldJobID(ctx)
+	case gatewayjob.FieldUID:
+		return m.OldUID(ctx)
+	case gatewayjob.FieldCli:
+		return m.OldCli(ctx)
+	case gatewayjob.FieldPrompt:
+		return m.OldPrompt(ctx)
+	case gatewayjob.FieldCwd:
+		return m.OldCwd(ctx)
+	case gatewayjob.FieldStatus:
+		return m.OldStatus(ctx)
+	case gatewayjob.FieldOutput:
+		return m.OldOutput(ctx)
+	case gatewayjob.FieldExitCode:
+		return m.OldExitCode(ctx)
+	case gatewayjob.FieldErrorText:
+		return m.OldErrorText(ctx)
+	case gatewayjob.FieldTruncated:
+		return m.OldTruncated(ctx)
+	case gatewayjob.FieldDurationMs:
+		return m.OldDurationMs(ctx)
+	case gatewayjob.FieldWorkerID:
+		return m.OldWorkerID(ctx)
+	case gatewayjob.FieldLeaseUntil:
+		return m.OldLeaseUntil(ctx)
+	case gatewayjob.FieldClaimedAt:
+		return m.OldClaimedAt(ctx)
+	case gatewayjob.FieldFinishedAt:
+		return m.OldFinishedAt(ctx)
+	case gatewayjob.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case gatewayjob.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown GatewayJob field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GatewayJobMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case gatewayjob.FieldJobID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobID(v)
+		return nil
+	case gatewayjob.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case gatewayjob.FieldCli:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCli(v)
+		return nil
+	case gatewayjob.FieldPrompt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrompt(v)
+		return nil
+	case gatewayjob.FieldCwd:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCwd(v)
+		return nil
+	case gatewayjob.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case gatewayjob.FieldOutput:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutput(v)
+		return nil
+	case gatewayjob.FieldExitCode:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExitCode(v)
+		return nil
+	case gatewayjob.FieldErrorText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorText(v)
+		return nil
+	case gatewayjob.FieldTruncated:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTruncated(v)
+		return nil
+	case gatewayjob.FieldDurationMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationMs(v)
+		return nil
+	case gatewayjob.FieldWorkerID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkerID(v)
+		return nil
+	case gatewayjob.FieldLeaseUntil:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLeaseUntil(v)
+		return nil
+	case gatewayjob.FieldClaimedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClaimedAt(v)
+		return nil
+	case gatewayjob.FieldFinishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinishedAt(v)
+		return nil
+	case gatewayjob.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case gatewayjob.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown GatewayJob field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *GatewayJobMutation) AddedFields() []string {
+	var fields []string
+	if m.addexit_code != nil {
+		fields = append(fields, gatewayjob.FieldExitCode)
+	}
+	if m.addduration_ms != nil {
+		fields = append(fields, gatewayjob.FieldDurationMs)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *GatewayJobMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case gatewayjob.FieldExitCode:
+		return m.AddedExitCode()
+	case gatewayjob.FieldDurationMs:
+		return m.AddedDurationMs()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GatewayJobMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case gatewayjob.FieldExitCode:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExitCode(v)
+		return nil
+	case gatewayjob.FieldDurationMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationMs(v)
+		return nil
+	}
+	return fmt.Errorf("unknown GatewayJob numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *GatewayJobMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(gatewayjob.FieldExitCode) {
+		fields = append(fields, gatewayjob.FieldExitCode)
+	}
+	if m.FieldCleared(gatewayjob.FieldLeaseUntil) {
+		fields = append(fields, gatewayjob.FieldLeaseUntil)
+	}
+	if m.FieldCleared(gatewayjob.FieldClaimedAt) {
+		fields = append(fields, gatewayjob.FieldClaimedAt)
+	}
+	if m.FieldCleared(gatewayjob.FieldFinishedAt) {
+		fields = append(fields, gatewayjob.FieldFinishedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *GatewayJobMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *GatewayJobMutation) ClearField(name string) error {
+	switch name {
+	case gatewayjob.FieldExitCode:
+		m.ClearExitCode()
+		return nil
+	case gatewayjob.FieldLeaseUntil:
+		m.ClearLeaseUntil()
+		return nil
+	case gatewayjob.FieldClaimedAt:
+		m.ClearClaimedAt()
+		return nil
+	case gatewayjob.FieldFinishedAt:
+		m.ClearFinishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown GatewayJob nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *GatewayJobMutation) ResetField(name string) error {
+	switch name {
+	case gatewayjob.FieldJobID:
+		m.ResetJobID()
+		return nil
+	case gatewayjob.FieldUID:
+		m.ResetUID()
+		return nil
+	case gatewayjob.FieldCli:
+		m.ResetCli()
+		return nil
+	case gatewayjob.FieldPrompt:
+		m.ResetPrompt()
+		return nil
+	case gatewayjob.FieldCwd:
+		m.ResetCwd()
+		return nil
+	case gatewayjob.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case gatewayjob.FieldOutput:
+		m.ResetOutput()
+		return nil
+	case gatewayjob.FieldExitCode:
+		m.ResetExitCode()
+		return nil
+	case gatewayjob.FieldErrorText:
+		m.ResetErrorText()
+		return nil
+	case gatewayjob.FieldTruncated:
+		m.ResetTruncated()
+		return nil
+	case gatewayjob.FieldDurationMs:
+		m.ResetDurationMs()
+		return nil
+	case gatewayjob.FieldWorkerID:
+		m.ResetWorkerID()
+		return nil
+	case gatewayjob.FieldLeaseUntil:
+		m.ResetLeaseUntil()
+		return nil
+	case gatewayjob.FieldClaimedAt:
+		m.ResetClaimedAt()
+		return nil
+	case gatewayjob.FieldFinishedAt:
+		m.ResetFinishedAt()
+		return nil
+	case gatewayjob.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case gatewayjob.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown GatewayJob field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *GatewayJobMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *GatewayJobMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *GatewayJobMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *GatewayJobMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *GatewayJobMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *GatewayJobMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *GatewayJobMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown GatewayJob unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *GatewayJobMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown GatewayJob edge %s", name)
+}
+
+// GatewayWorkerMutation represents an operation that mutates the GatewayWorker nodes in the graph.
+type GatewayWorkerMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	worker_id     *string
+	last_seen_at  *time.Time
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*GatewayWorker, error)
+	predicates    []predicate.GatewayWorker
+}
+
+var _ ent.Mutation = (*GatewayWorkerMutation)(nil)
+
+// gatewayworkerOption allows management of the mutation configuration using functional options.
+type gatewayworkerOption func(*GatewayWorkerMutation)
+
+// newGatewayWorkerMutation creates new mutation for the GatewayWorker entity.
+func newGatewayWorkerMutation(c config, op Op, opts ...gatewayworkerOption) *GatewayWorkerMutation {
+	m := &GatewayWorkerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeGatewayWorker,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withGatewayWorkerID sets the ID field of the mutation.
+func withGatewayWorkerID(id int64) gatewayworkerOption {
+	return func(m *GatewayWorkerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *GatewayWorker
+		)
+		m.oldValue = func(ctx context.Context) (*GatewayWorker, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().GatewayWorker.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withGatewayWorker sets the old GatewayWorker of the mutation.
+func withGatewayWorker(node *GatewayWorker) gatewayworkerOption {
+	return func(m *GatewayWorkerMutation) {
+		m.oldValue = func(context.Context) (*GatewayWorker, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m GatewayWorkerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m GatewayWorkerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of GatewayWorker entities.
+func (m *GatewayWorkerMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *GatewayWorkerMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *GatewayWorkerMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().GatewayWorker.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkerID sets the "worker_id" field.
+func (m *GatewayWorkerMutation) SetWorkerID(s string) {
+	m.worker_id = &s
+}
+
+// WorkerID returns the value of the "worker_id" field in the mutation.
+func (m *GatewayWorkerMutation) WorkerID() (r string, exists bool) {
+	v := m.worker_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkerID returns the old "worker_id" field's value of the GatewayWorker entity.
+// If the GatewayWorker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayWorkerMutation) OldWorkerID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkerID: %w", err)
+	}
+	return oldValue.WorkerID, nil
+}
+
+// ResetWorkerID resets all changes to the "worker_id" field.
+func (m *GatewayWorkerMutation) ResetWorkerID() {
+	m.worker_id = nil
+}
+
+// SetLastSeenAt sets the "last_seen_at" field.
+func (m *GatewayWorkerMutation) SetLastSeenAt(t time.Time) {
+	m.last_seen_at = &t
+}
+
+// LastSeenAt returns the value of the "last_seen_at" field in the mutation.
+func (m *GatewayWorkerMutation) LastSeenAt() (r time.Time, exists bool) {
+	v := m.last_seen_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastSeenAt returns the old "last_seen_at" field's value of the GatewayWorker entity.
+// If the GatewayWorker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayWorkerMutation) OldLastSeenAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastSeenAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastSeenAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastSeenAt: %w", err)
+	}
+	return oldValue.LastSeenAt, nil
+}
+
+// ResetLastSeenAt resets all changes to the "last_seen_at" field.
+func (m *GatewayWorkerMutation) ResetLastSeenAt() {
+	m.last_seen_at = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *GatewayWorkerMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *GatewayWorkerMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the GatewayWorker entity.
+// If the GatewayWorker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayWorkerMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *GatewayWorkerMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *GatewayWorkerMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *GatewayWorkerMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the GatewayWorker entity.
+// If the GatewayWorker object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GatewayWorkerMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *GatewayWorkerMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the GatewayWorkerMutation builder.
+func (m *GatewayWorkerMutation) Where(ps ...predicate.GatewayWorker) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the GatewayWorkerMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GatewayWorkerMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.GatewayWorker, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *GatewayWorkerMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GatewayWorkerMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (GatewayWorker).
+func (m *GatewayWorkerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *GatewayWorkerMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.worker_id != nil {
+		fields = append(fields, gatewayworker.FieldWorkerID)
+	}
+	if m.last_seen_at != nil {
+		fields = append(fields, gatewayworker.FieldLastSeenAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, gatewayworker.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, gatewayworker.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *GatewayWorkerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case gatewayworker.FieldWorkerID:
+		return m.WorkerID()
+	case gatewayworker.FieldLastSeenAt:
+		return m.LastSeenAt()
+	case gatewayworker.FieldCreatedAt:
+		return m.CreatedAt()
+	case gatewayworker.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *GatewayWorkerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case gatewayworker.FieldWorkerID:
+		return m.OldWorkerID(ctx)
+	case gatewayworker.FieldLastSeenAt:
+		return m.OldLastSeenAt(ctx)
+	case gatewayworker.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case gatewayworker.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown GatewayWorker field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GatewayWorkerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case gatewayworker.FieldWorkerID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkerID(v)
+		return nil
+	case gatewayworker.FieldLastSeenAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastSeenAt(v)
+		return nil
+	case gatewayworker.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case gatewayworker.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown GatewayWorker field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *GatewayWorkerMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *GatewayWorkerMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GatewayWorkerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown GatewayWorker numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *GatewayWorkerMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *GatewayWorkerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *GatewayWorkerMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown GatewayWorker nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *GatewayWorkerMutation) ResetField(name string) error {
+	switch name {
+	case gatewayworker.FieldWorkerID:
+		m.ResetWorkerID()
+		return nil
+	case gatewayworker.FieldLastSeenAt:
+		m.ResetLastSeenAt()
+		return nil
+	case gatewayworker.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case gatewayworker.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown GatewayWorker field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *GatewayWorkerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *GatewayWorkerMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *GatewayWorkerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *GatewayWorkerMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *GatewayWorkerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *GatewayWorkerMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *GatewayWorkerMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown GatewayWorker unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *GatewayWorkerMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown GatewayWorker edge %s", name)
 }
 
 // InstructMutation represents an operation that mutates the Instruct nodes in the graph.
@@ -48985,8 +50828,8 @@ type NotifyTemplateMutation struct {
 	description      *string
 	default_format   *string
 	default_template *string
-	overrides        *[]schema.NotifyTemplateOverride
-	appendoverrides  []schema.NotifyTemplateOverride
+	overrides        *[]model.NotifyTemplateOverride
+	appendoverrides  []model.NotifyTemplateOverride
 	is_default       *bool
 	created_at       *time.Time
 	updated_at       *time.Time
@@ -49294,13 +51137,13 @@ func (m *NotifyTemplateMutation) ResetDefaultTemplate() {
 }
 
 // SetOverrides sets the "overrides" field.
-func (m *NotifyTemplateMutation) SetOverrides(sto []schema.NotifyTemplateOverride) {
-	m.overrides = &sto
+func (m *NotifyTemplateMutation) SetOverrides(mto []model.NotifyTemplateOverride) {
+	m.overrides = &mto
 	m.appendoverrides = nil
 }
 
 // Overrides returns the value of the "overrides" field in the mutation.
-func (m *NotifyTemplateMutation) Overrides() (r []schema.NotifyTemplateOverride, exists bool) {
+func (m *NotifyTemplateMutation) Overrides() (r []model.NotifyTemplateOverride, exists bool) {
 	v := m.overrides
 	if v == nil {
 		return
@@ -49311,7 +51154,7 @@ func (m *NotifyTemplateMutation) Overrides() (r []schema.NotifyTemplateOverride,
 // OldOverrides returns the old "overrides" field's value of the NotifyTemplate entity.
 // If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotifyTemplateMutation) OldOverrides(ctx context.Context) (v []schema.NotifyTemplateOverride, err error) {
+func (m *NotifyTemplateMutation) OldOverrides(ctx context.Context) (v []model.NotifyTemplateOverride, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldOverrides is only allowed on UpdateOne operations")
 	}
@@ -49325,13 +51168,13 @@ func (m *NotifyTemplateMutation) OldOverrides(ctx context.Context) (v []schema.N
 	return oldValue.Overrides, nil
 }
 
-// AppendOverrides adds sto to the "overrides" field.
-func (m *NotifyTemplateMutation) AppendOverrides(sto []schema.NotifyTemplateOverride) {
-	m.appendoverrides = append(m.appendoverrides, sto...)
+// AppendOverrides adds mto to the "overrides" field.
+func (m *NotifyTemplateMutation) AppendOverrides(mto []model.NotifyTemplateOverride) {
+	m.appendoverrides = append(m.appendoverrides, mto...)
 }
 
 // AppendedOverrides returns the list of values that were appended to the "overrides" field in this mutation.
-func (m *NotifyTemplateMutation) AppendedOverrides() ([]schema.NotifyTemplateOverride, bool) {
+func (m *NotifyTemplateMutation) AppendedOverrides() ([]model.NotifyTemplateOverride, bool) {
 	if len(m.appendoverrides) == 0 {
 		return nil, false
 	}
@@ -49612,7 +51455,7 @@ func (m *NotifyTemplateMutation) SetField(name string, value ent.Value) error {
 		m.SetDefaultTemplate(v)
 		return nil
 	case notifytemplate.FieldOverrides:
-		v, ok := value.([]schema.NotifyTemplateOverride)
+		v, ok := value.([]model.NotifyTemplateOverride)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

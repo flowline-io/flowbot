@@ -51,6 +51,7 @@ Mutation ops change remote/system state; prefer read ops when exploring.
 | `core` | [capabilities/core.md](capabilities/core.md) — Core runtime primitives: notify, clip, agent, HTTP, sandboxed exec, and KV |
 | `devops` | [capabilities/devops.md](capabilities/devops.md) — DevOps aggregator for beszel, uptimekuma, traefik, grafana, wakapi, and dozzle |
 | `fireflyiii` | [capabilities/fireflyiii.md](capabilities/fireflyiii.md) — Finance capability for Firefly III |
+| `gateway` | [capabilities/gateway.md](capabilities/gateway.md) — Local CLI gateway: delegate coarse run_cursor jobs to cmd/gateway workers |
 | `gitea` | [capabilities/gitea.md](capabilities/gitea.md) — Forge capability |
 | `github` | [capabilities/github.md](capabilities/github.md) — GitHub capability |
 | `kanboard` | [capabilities/kanboard.md](capabilities/kanboard.md) — Kanban capability |

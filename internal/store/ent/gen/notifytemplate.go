@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifytemplate"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // NotifyTemplate is the model entity for the NotifyTemplate schema.
@@ -30,7 +30,7 @@ type NotifyTemplate struct {
 	// DefaultTemplate holds the value of the "default_template" field.
 	DefaultTemplate string `json:"default_template,omitempty"`
 	// Overrides holds the value of the "overrides" field.
-	Overrides []schema.NotifyTemplateOverride `json:"overrides,omitempty"`
+	Overrides []model.NotifyTemplateOverride `json:"overrides,omitempty"`
 	// IsDefault holds the value of the "is_default" field.
 	IsDefault bool `json:"is_default,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.

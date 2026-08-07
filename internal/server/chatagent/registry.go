@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
+	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
 	agentnotify "github.com/flowline-io/flowbot/internal/server/chatagent/tools/notify"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
@@ -32,6 +33,9 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	}
 	uid := registryUID(taskDeps, scheduleDeps)
 	if err := agentnotify.Register(registry, uid); err != nil {
+		return nil, err
+	}
+	if err := agentgw.Register(registry, string(uid)); err != nil {
 		return nil, err
 	}
 	if err := registry.Register(ReadSkillTool{}); err != nil {
@@ -95,6 +99,7 @@ func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
 	names = append(names, clip.ActiveToolNames()...)
 	names = append(names, agentnotify.ActiveToolNames()...)
+	names = append(names, agentgw.ActiveToolNames()...)
 	names = append(names, "read_skill", delegateSubagentToolName)
 	names = append(names, KnowledgeToolNames()...)
 	names = append(names, scheduleToolNames()...)

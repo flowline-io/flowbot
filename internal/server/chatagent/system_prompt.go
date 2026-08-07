@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
+	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 )
@@ -83,6 +84,7 @@ func DefaultToolSnippets() map[string]string {
 		searchSessionSummariesToolName: "Search archived chat session summaries by keyword",
 		clip.CreateToolName:            "Create a shareable markdown clip and return its full public URL",
 		clip.GetToolName:               "Read a shareable markdown clip by slug",
+		agentgw.RunCursorToolName:      "Delegate a coding task to the local Cursor CLI via flowbot-gateway",
 		searchKnowledgeToolName:        "Search the knowledge base; returns path, title, tags, and summary",
 		getKnowledgeToolName:           "Read a knowledge base markdown document by path",
 	}

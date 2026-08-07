@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifytemplate"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // NotifyTemplateCreate is the builder for creating a NotifyTemplate entity.
@@ -70,7 +70,7 @@ func (_c *NotifyTemplateCreate) SetDefaultTemplate(v string) *NotifyTemplateCrea
 }
 
 // SetOverrides sets the "overrides" field.
-func (_c *NotifyTemplateCreate) SetOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateCreate {
+func (_c *NotifyTemplateCreate) SetOverrides(v []model.NotifyTemplateOverride) *NotifyTemplateCreate {
 	_c.mutation.SetOverrides(v)
 	return _c
 }
@@ -418,7 +418,7 @@ func (u *NotifyTemplateUpsert) UpdateDefaultTemplate() *NotifyTemplateUpsert {
 }
 
 // SetOverrides sets the "overrides" field.
-func (u *NotifyTemplateUpsert) SetOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateUpsert {
+func (u *NotifyTemplateUpsert) SetOverrides(v []model.NotifyTemplateOverride) *NotifyTemplateUpsert {
 	u.Set(notifytemplate.FieldOverrides, v)
 	return u
 }
@@ -582,7 +582,7 @@ func (u *NotifyTemplateUpsertOne) UpdateDefaultTemplate() *NotifyTemplateUpsertO
 }
 
 // SetOverrides sets the "overrides" field.
-func (u *NotifyTemplateUpsertOne) SetOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateUpsertOne {
+func (u *NotifyTemplateUpsertOne) SetOverrides(v []model.NotifyTemplateOverride) *NotifyTemplateUpsertOne {
 	return u.Update(func(s *NotifyTemplateUpsert) {
 		s.SetOverrides(v)
 	})
@@ -918,7 +918,7 @@ func (u *NotifyTemplateUpsertBulk) UpdateDefaultTemplate() *NotifyTemplateUpsert
 }
 
 // SetOverrides sets the "overrides" field.
-func (u *NotifyTemplateUpsertBulk) SetOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateUpsertBulk {
+func (u *NotifyTemplateUpsertBulk) SetOverrides(v []model.NotifyTemplateOverride) *NotifyTemplateUpsertBulk {
 	return u.Update(func(s *NotifyTemplateUpsert) {
 		s.SetOverrides(v)
 	})

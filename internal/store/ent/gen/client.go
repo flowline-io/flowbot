@@ -46,6 +46,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayjob"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayworker"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementprogress"
@@ -171,6 +173,10 @@ type Client struct {
 	Fileupload *FileuploadClient
 	// Form is the client for interacting with the Form builders.
 	Form *FormClient
+	// GatewayJob is the client for interacting with the GatewayJob builders.
+	GatewayJob *GatewayJobClient
+	// GatewayWorker is the client for interacting with the GatewayWorker builders.
+	GatewayWorker *GatewayWorkerClient
 	// Instruct is the client for interacting with the Instruct builders.
 	Instruct *InstructClient
 	// LLMUsageRecord is the client for interacting with the LLMUsageRecord builders.
@@ -322,6 +328,8 @@ func (c *Client) init() {
 	c.EventOutbox = NewEventOutboxClient(c.config)
 	c.Fileupload = NewFileuploadClient(c.config)
 	c.Form = NewFormClient(c.config)
+	c.GatewayJob = NewGatewayJobClient(c.config)
+	c.GatewayWorker = NewGatewayWorkerClient(c.config)
 	c.Instruct = NewInstructClient(c.config)
 	c.LLMUsageRecord = NewLLMUsageRecordClient(c.config)
 	c.LifeAIContext = NewLifeAIContextClient(c.config)
@@ -500,6 +508,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EventOutbox:               NewEventOutboxClient(cfg),
 		Fileupload:                NewFileuploadClient(cfg),
 		Form:                      NewFormClient(cfg),
+		GatewayJob:                NewGatewayJobClient(cfg),
+		GatewayWorker:             NewGatewayWorkerClient(cfg),
 		Instruct:                  NewInstructClient(cfg),
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		LifeAIContext:             NewLifeAIContextClient(cfg),
@@ -605,6 +615,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EventOutbox:               NewEventOutboxClient(cfg),
 		Fileupload:                NewFileuploadClient(cfg),
 		Form:                      NewFormClient(cfg),
+		GatewayJob:                NewGatewayJobClient(cfg),
+		GatewayWorker:             NewGatewayWorkerClient(cfg),
 		Instruct:                  NewInstructClient(cfg),
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		LifeAIContext:             NewLifeAIContextClient(cfg),
@@ -694,20 +706,21 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
-		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
-		c.LLMUsageRecord, c.LifeAIContext, c.LifeAchievement,
-		c.LifeAchievementProgress, c.LifeAchievementUnlock, c.LifeActionDependency,
-		c.LifeActionLog, c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
-		c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots, c.LifeEvidence,
-		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
-		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeReward,
-		c.LifeRewardRedemption, c.LifeSkill, c.Message, c.NotificationRecord,
-		c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData,
-		c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
-		c.Url, c.User, c.WebAccount, c.Workflow, c.WorkflowRun, c.WorkflowStepRun,
-		c.WorkflowTask, c.WorkflowTrigger,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.GatewayJob,
+		c.GatewayWorker, c.Instruct, c.LLMUsageRecord, c.LifeAIContext,
+		c.LifeAchievement, c.LifeAchievementProgress, c.LifeAchievementUnlock,
+		c.LifeActionDependency, c.LifeActionLog, c.LifeActionOccurrence,
+		c.LifeActionSpec, c.LifeAdjudication, c.LifeCharacteristic, c.LifeEquipment,
+		c.LifeEquippedSlots, c.LifeEvidence, c.LifeGoal, c.LifeHabitCheckin,
+		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
+		c.LifeReward, c.LifeRewardRedemption, c.LifeSkill, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
+		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
+		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
+		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WebAccount,
+		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
+		c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -723,20 +736,21 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
-		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
-		c.LLMUsageRecord, c.LifeAIContext, c.LifeAchievement,
-		c.LifeAchievementProgress, c.LifeAchievementUnlock, c.LifeActionDependency,
-		c.LifeActionLog, c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
-		c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots, c.LifeEvidence,
-		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
-		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeReward,
-		c.LifeRewardRedemption, c.LifeSkill, c.Message, c.NotificationRecord,
-		c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData,
-		c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
-		c.Url, c.User, c.WebAccount, c.Workflow, c.WorkflowRun, c.WorkflowStepRun,
-		c.WorkflowTask, c.WorkflowTrigger,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.GatewayJob,
+		c.GatewayWorker, c.Instruct, c.LLMUsageRecord, c.LifeAIContext,
+		c.LifeAchievement, c.LifeAchievementProgress, c.LifeAchievementUnlock,
+		c.LifeActionDependency, c.LifeActionLog, c.LifeActionOccurrence,
+		c.LifeActionSpec, c.LifeAdjudication, c.LifeCharacteristic, c.LifeEquipment,
+		c.LifeEquippedSlots, c.LifeEvidence, c.LifeGoal, c.LifeHabitCheckin,
+		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
+		c.LifeReward, c.LifeRewardRedemption, c.LifeSkill, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
+		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
+		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
+		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WebAccount,
+		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
+		c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -809,6 +823,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Fileupload.mutate(ctx, m)
 	case *FormMutation:
 		return c.Form.mutate(ctx, m)
+	case *GatewayJobMutation:
+		return c.GatewayJob.mutate(ctx, m)
+	case *GatewayWorkerMutation:
+		return c.GatewayWorker.mutate(ctx, m)
 	case *InstructMutation:
 		return c.Instruct.mutate(ctx, m)
 	case *LLMUsageRecordMutation:
@@ -5175,6 +5193,272 @@ func (c *FormClient) mutate(ctx context.Context, m *FormMutation) (Value, error)
 		return (&FormDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown Form mutation op: %q", m.Op())
+	}
+}
+
+// GatewayJobClient is a client for the GatewayJob schema.
+type GatewayJobClient struct {
+	config
+}
+
+// NewGatewayJobClient returns a client for the GatewayJob from the given config.
+func NewGatewayJobClient(c config) *GatewayJobClient {
+	return &GatewayJobClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gatewayjob.Hooks(f(g(h())))`.
+func (c *GatewayJobClient) Use(hooks ...Hook) {
+	c.hooks.GatewayJob = append(c.hooks.GatewayJob, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gatewayjob.Intercept(f(g(h())))`.
+func (c *GatewayJobClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GatewayJob = append(c.inters.GatewayJob, interceptors...)
+}
+
+// Create returns a builder for creating a GatewayJob entity.
+func (c *GatewayJobClient) Create() *GatewayJobCreate {
+	mutation := newGatewayJobMutation(c.config, OpCreate)
+	return &GatewayJobCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GatewayJob entities.
+func (c *GatewayJobClient) CreateBulk(builders ...*GatewayJobCreate) *GatewayJobCreateBulk {
+	return &GatewayJobCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GatewayJobClient) MapCreateBulk(slice any, setFunc func(*GatewayJobCreate, int)) *GatewayJobCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GatewayJobCreateBulk{err: fmt.Errorf("calling to GatewayJobClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GatewayJobCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GatewayJobCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GatewayJob.
+func (c *GatewayJobClient) Update() *GatewayJobUpdate {
+	mutation := newGatewayJobMutation(c.config, OpUpdate)
+	return &GatewayJobUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GatewayJobClient) UpdateOne(_m *GatewayJob) *GatewayJobUpdateOne {
+	mutation := newGatewayJobMutation(c.config, OpUpdateOne, withGatewayJob(_m))
+	return &GatewayJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GatewayJobClient) UpdateOneID(id int64) *GatewayJobUpdateOne {
+	mutation := newGatewayJobMutation(c.config, OpUpdateOne, withGatewayJobID(id))
+	return &GatewayJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GatewayJob.
+func (c *GatewayJobClient) Delete() *GatewayJobDelete {
+	mutation := newGatewayJobMutation(c.config, OpDelete)
+	return &GatewayJobDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GatewayJobClient) DeleteOne(_m *GatewayJob) *GatewayJobDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GatewayJobClient) DeleteOneID(id int64) *GatewayJobDeleteOne {
+	builder := c.Delete().Where(gatewayjob.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GatewayJobDeleteOne{builder}
+}
+
+// Query returns a query builder for GatewayJob.
+func (c *GatewayJobClient) Query() *GatewayJobQuery {
+	return &GatewayJobQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGatewayJob},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GatewayJob entity by its id.
+func (c *GatewayJobClient) Get(ctx context.Context, id int64) (*GatewayJob, error) {
+	return c.Query().Where(gatewayjob.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GatewayJobClient) GetX(ctx context.Context, id int64) *GatewayJob {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GatewayJobClient) Hooks() []Hook {
+	return c.hooks.GatewayJob
+}
+
+// Interceptors returns the client interceptors.
+func (c *GatewayJobClient) Interceptors() []Interceptor {
+	return c.inters.GatewayJob
+}
+
+func (c *GatewayJobClient) mutate(ctx context.Context, m *GatewayJobMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GatewayJobCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GatewayJobUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GatewayJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GatewayJobDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GatewayJob mutation op: %q", m.Op())
+	}
+}
+
+// GatewayWorkerClient is a client for the GatewayWorker schema.
+type GatewayWorkerClient struct {
+	config
+}
+
+// NewGatewayWorkerClient returns a client for the GatewayWorker from the given config.
+func NewGatewayWorkerClient(c config) *GatewayWorkerClient {
+	return &GatewayWorkerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gatewayworker.Hooks(f(g(h())))`.
+func (c *GatewayWorkerClient) Use(hooks ...Hook) {
+	c.hooks.GatewayWorker = append(c.hooks.GatewayWorker, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gatewayworker.Intercept(f(g(h())))`.
+func (c *GatewayWorkerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GatewayWorker = append(c.inters.GatewayWorker, interceptors...)
+}
+
+// Create returns a builder for creating a GatewayWorker entity.
+func (c *GatewayWorkerClient) Create() *GatewayWorkerCreate {
+	mutation := newGatewayWorkerMutation(c.config, OpCreate)
+	return &GatewayWorkerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GatewayWorker entities.
+func (c *GatewayWorkerClient) CreateBulk(builders ...*GatewayWorkerCreate) *GatewayWorkerCreateBulk {
+	return &GatewayWorkerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GatewayWorkerClient) MapCreateBulk(slice any, setFunc func(*GatewayWorkerCreate, int)) *GatewayWorkerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GatewayWorkerCreateBulk{err: fmt.Errorf("calling to GatewayWorkerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GatewayWorkerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GatewayWorkerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GatewayWorker.
+func (c *GatewayWorkerClient) Update() *GatewayWorkerUpdate {
+	mutation := newGatewayWorkerMutation(c.config, OpUpdate)
+	return &GatewayWorkerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GatewayWorkerClient) UpdateOne(_m *GatewayWorker) *GatewayWorkerUpdateOne {
+	mutation := newGatewayWorkerMutation(c.config, OpUpdateOne, withGatewayWorker(_m))
+	return &GatewayWorkerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GatewayWorkerClient) UpdateOneID(id int64) *GatewayWorkerUpdateOne {
+	mutation := newGatewayWorkerMutation(c.config, OpUpdateOne, withGatewayWorkerID(id))
+	return &GatewayWorkerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GatewayWorker.
+func (c *GatewayWorkerClient) Delete() *GatewayWorkerDelete {
+	mutation := newGatewayWorkerMutation(c.config, OpDelete)
+	return &GatewayWorkerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GatewayWorkerClient) DeleteOne(_m *GatewayWorker) *GatewayWorkerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GatewayWorkerClient) DeleteOneID(id int64) *GatewayWorkerDeleteOne {
+	builder := c.Delete().Where(gatewayworker.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GatewayWorkerDeleteOne{builder}
+}
+
+// Query returns a query builder for GatewayWorker.
+func (c *GatewayWorkerClient) Query() *GatewayWorkerQuery {
+	return &GatewayWorkerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGatewayWorker},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GatewayWorker entity by its id.
+func (c *GatewayWorkerClient) Get(ctx context.Context, id int64) (*GatewayWorker, error) {
+	return c.Query().Where(gatewayworker.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GatewayWorkerClient) GetX(ctx context.Context, id int64) *GatewayWorker {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GatewayWorkerClient) Hooks() []Hook {
+	return c.hooks.GatewayWorker
+}
+
+// Interceptors returns the client interceptors.
+func (c *GatewayWorkerClient) Interceptors() []Interceptor {
+	return c.inters.GatewayWorker
+}
+
+func (c *GatewayWorkerClient) mutate(ctx context.Context, m *GatewayWorkerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GatewayWorkerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GatewayWorkerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GatewayWorkerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GatewayWorkerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GatewayWorker mutation op: %q", m.Op())
 	}
 }
 
@@ -12368,18 +12652,19 @@ type (
 		AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		LifeAIContext, LifeAchievement, LifeAchievementProgress, LifeAchievementUnlock,
-		LifeActionDependency, LifeActionLog, LifeActionOccurrence, LifeActionSpec,
-		LifeAdjudication, LifeCharacteristic, LifeEquipment, LifeEquippedSlots,
-		LifeEvidence, LifeGoal, LifeHabitCheckin, LifeInventory, LifeLootTable,
-		LifePlanNode, LifeProfile, LifeQuest, LifeReward, LifeRewardRedemption,
-		LifeSkill, Message, NotificationRecord, NotifyChannel, NotifyRule,
-		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
-		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform, PlatformBot,
-		PlatformChannel, PlatformChannelUser, PlatformUser, PollingState, ResourceLink,
-		Topic, Url, User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun,
-		WorkflowTask, WorkflowTrigger []ent.Hook
+		EventConsumption, EventOutbox, Fileupload, Form, GatewayJob, GatewayWorker,
+		Instruct, LLMUsageRecord, LifeAIContext, LifeAchievement,
+		LifeAchievementProgress, LifeAchievementUnlock, LifeActionDependency,
+		LifeActionLog, LifeActionOccurrence, LifeActionSpec, LifeAdjudication,
+		LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeEvidence, LifeGoal,
+		LifeHabitCheckin, LifeInventory, LifeLootTable, LifePlanNode, LifeProfile,
+		LifeQuest, LifeReward, LifeRewardRedemption, LifeSkill, Message,
+		NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page,
+		PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
+		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
+		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
+		User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun, WorkflowTask,
+		WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, AgentKnowledge, AgentMemoryFact, AgentPlan, AgentSessionSummary,
@@ -12387,17 +12672,18 @@ type (
 		AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		LifeAIContext, LifeAchievement, LifeAchievementProgress, LifeAchievementUnlock,
-		LifeActionDependency, LifeActionLog, LifeActionOccurrence, LifeActionSpec,
-		LifeAdjudication, LifeCharacteristic, LifeEquipment, LifeEquippedSlots,
-		LifeEvidence, LifeGoal, LifeHabitCheckin, LifeInventory, LifeLootTable,
-		LifePlanNode, LifeProfile, LifeQuest, LifeReward, LifeRewardRedemption,
-		LifeSkill, Message, NotificationRecord, NotifyChannel, NotifyRule,
-		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
-		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform, PlatformBot,
-		PlatformChannel, PlatformChannelUser, PlatformUser, PollingState, ResourceLink,
-		Topic, Url, User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun,
-		WorkflowTask, WorkflowTrigger []ent.Interceptor
+		EventConsumption, EventOutbox, Fileupload, Form, GatewayJob, GatewayWorker,
+		Instruct, LLMUsageRecord, LifeAIContext, LifeAchievement,
+		LifeAchievementProgress, LifeAchievementUnlock, LifeActionDependency,
+		LifeActionLog, LifeActionOccurrence, LifeActionSpec, LifeAdjudication,
+		LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeEvidence, LifeGoal,
+		LifeHabitCheckin, LifeInventory, LifeLootTable, LifePlanNode, LifeProfile,
+		LifeQuest, LifeReward, LifeRewardRedemption, LifeSkill, Message,
+		NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page,
+		PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
+		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
+		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
+		User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun, WorkflowTask,
+		WorkflowTrigger []ent.Interceptor
 	}
 )

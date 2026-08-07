@@ -47,6 +47,7 @@ tests/
 │   ├── example_spec_test.go            # Example module
 │   ├── gitea_spec_test.go              # Gitea module
 │   ├── github_spec_test.go             # GitHub module
+│   ├── gateway_spec_test.go            # Local CLI gateway worker APIs
 │   ├── health_spec_test.go             # Health checks + smoke tests
 │   ├── homelab_spec_test.go            # Homelab scanner
 │   ├── hub_spec_test.go                # Hub management

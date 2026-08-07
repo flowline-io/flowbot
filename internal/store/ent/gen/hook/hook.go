@@ -393,6 +393,30 @@ func (f FormFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FormMutation", m)
 }
 
+// The GatewayJobFunc type is an adapter to allow the use of ordinary
+// function as GatewayJob mutator.
+type GatewayJobFunc func(context.Context, *gen.GatewayJobMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GatewayJobFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GatewayJobMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GatewayJobMutation", m)
+}
+
+// The GatewayWorkerFunc type is an adapter to allow the use of ordinary
+// function as GatewayWorker mutator.
+type GatewayWorkerFunc func(context.Context, *gen.GatewayWorkerMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GatewayWorkerFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GatewayWorkerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GatewayWorkerMutation", m)
+}
+
 // The InstructFunc type is an adapter to allow the use of ordinary
 // function as Instruct mutator.
 type InstructFunc func(context.Context, *gen.InstructMutation) (gen.Value, error)

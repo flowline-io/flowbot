@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 const (
@@ -74,7 +74,7 @@ var (
 	// DefaultTemplateValidator is a validator for the "default_template" field. It is called by the builders before save.
 	DefaultTemplateValidator func(string) error
 	// DefaultOverrides holds the default value on creation for the "overrides" field.
-	DefaultOverrides []schema.NotifyTemplateOverride
+	DefaultOverrides []model.NotifyTemplateOverride
 	// DefaultIsDefault holds the default value on creation for the "is_default" field.
 	DefaultIsDefault bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

@@ -833,6 +833,64 @@ var (
 			},
 		},
 	}
+	// GatewayJobsColumns holds the columns for the "gateway_jobs" table.
+	GatewayJobsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "job_id", Type: field.TypeString, Unique: true},
+		{Name: "uid", Type: field.TypeString, Default: ""},
+		{Name: "cli", Type: field.TypeString},
+		{Name: "prompt", Type: field.TypeString, Size: 2147483647},
+		{Name: "cwd", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "output", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "exit_code", Type: field.TypeInt, Nullable: true},
+		{Name: "error_text", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "truncated", Type: field.TypeBool, Default: false},
+		{Name: "duration_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "worker_id", Type: field.TypeString, Default: ""},
+		{Name: "lease_until", Type: field.TypeTime, Nullable: true},
+		{Name: "claimed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// GatewayJobsTable holds the schema information for the "gateway_jobs" table.
+	GatewayJobsTable = &schema.Table{
+		Name:       "gateway_jobs",
+		Columns:    GatewayJobsColumns,
+		PrimaryKey: []*schema.Column{GatewayJobsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gatewayjob_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{GatewayJobsColumns[6], GatewayJobsColumns[16]},
+			},
+			{
+				Name:    "gatewayjob_status_lease_until",
+				Unique:  false,
+				Columns: []*schema.Column{GatewayJobsColumns[6], GatewayJobsColumns[13]},
+			},
+			{
+				Name:    "gatewayjob_uid",
+				Unique:  false,
+				Columns: []*schema.Column{GatewayJobsColumns[2]},
+			},
+		},
+	}
+	// GatewayWorkersColumns holds the columns for the "gateway_workers" table.
+	GatewayWorkersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "worker_id", Type: field.TypeString, Unique: true},
+		{Name: "last_seen_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// GatewayWorkersTable holds the schema information for the "gateway_workers" table.
+	GatewayWorkersTable = &schema.Table{
+		Name:       "gateway_workers",
+		Columns:    GatewayWorkersColumns,
+		PrimaryKey: []*schema.Column{GatewayWorkersColumns[0]},
+	}
 	// InstructColumns holds the columns for the "instruct" table.
 	InstructColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2502,6 +2560,8 @@ var (
 		EventOutboxTable,
 		FileuploadsTable,
 		FormTable,
+		GatewayJobsTable,
+		GatewayWorkersTable,
 		InstructTable,
 		LlmUsageRecordsTable,
 		LifeAiContextsTable,
@@ -2655,6 +2715,12 @@ func init() {
 	}
 	FormTable.Annotation = &entsql.Annotation{
 		Table: "form",
+	}
+	GatewayJobsTable.Annotation = &entsql.Annotation{
+		Table: "gateway_jobs",
+	}
+	GatewayWorkersTable.Annotation = &entsql.Annotation{
+		Table: "gateway_workers",
 	}
 	InstructTable.Annotation = &entsql.Annotation{
 		Table: "instruct",

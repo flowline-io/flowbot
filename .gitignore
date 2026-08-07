@@ -26,6 +26,7 @@ web_auth_encryption.key
 /rules_bak/
 pipelines.yaml
 gosec-report.json
+gateway.yaml
 
 # Data & Database
 *.sqlite3
