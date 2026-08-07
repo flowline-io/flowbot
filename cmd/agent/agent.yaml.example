@@ -1,0 +1,9 @@
+# Local headless agent (flowbot-agent).
+# Create an access token with scope agent:headless via: composer admin token
+
+flowbot_url: "http://127.0.0.1:6060"
+access_token: ""
+
+# Env overrides (higher precedence than this file):
+#   FLOWBOT_URL / FLOWBOT_SERVER_URL
+#   FLOWBOT_AGENT_TOKEN / FLOWBOT_TOKEN

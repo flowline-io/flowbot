@@ -27,6 +27,7 @@ web_auth_encryption.key
 pipelines.yaml
 gosec-report.json
 gateway.yaml
+agent.yaml
 
 # Data & Database
 *.sqlite3

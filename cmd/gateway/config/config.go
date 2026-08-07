@@ -24,6 +24,7 @@ type Config struct {
 	JobTimeout         time.Duration `yaml:"job_timeout"`
 	CursorBinary       string        `yaml:"cursor_binary"`
 	CursorAPIKey       string        `yaml:"cursor_api_key"`
+	AgentAccessToken   string        `yaml:"agent_access_token"`
 	Listen             string        `yaml:"listen"`
 }
 
@@ -64,13 +65,23 @@ func (c *Config) applyDefaults() {
 	if c.CursorBinary == "" {
 		c.CursorBinary = "agent"
 	}
+	c.applyEnvOverrides()
+}
+
+func (c *Config) applyEnvOverrides() {
 	if c.CursorAPIKey == "" {
 		c.CursorAPIKey = os.Getenv("CURSOR_API_KEY")
+	}
+	if c.AgentAccessToken == "" {
+		c.AgentAccessToken = os.Getenv("FLOWBOT_AGENT_TOKEN")
 	}
 	if tok := os.Getenv("FLOWBOT_TOKEN"); tok != "" && c.AccessToken == "" {
 		c.AccessToken = tok
 	}
 	if u := os.Getenv("FLOWBOT_SERVER_URL"); u != "" && c.FlowbotURL == "" {
+		c.FlowbotURL = u
+	}
+	if u := os.Getenv("FLOWBOT_URL"); u != "" && c.FlowbotURL == "" {
 		c.FlowbotURL = u
 	}
 }

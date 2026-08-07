@@ -13,14 +13,21 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// Cursor runs the Cursor headless CLI (agent -p ...).
+// Cursor runs a headless coding CLI binary with Cursor-compatible flags.
+// It may invoke Cursor's `agent` (CURSOR_API_KEY) or flowbot-agent
+// (FLOWBOT_URL + FLOWBOT_AGENT_TOKEN) depending on Binary and child env.
 type Cursor struct {
-	Binary  string
-	APIKey  string
-	Timeout time.Duration
+	Binary string
+	// APIKey is CURSOR_API_KEY for the upstream Cursor CLI.
+	APIKey string
+	// FlowbotURL is injected for flowbot-agent as FLOWBOT_URL.
+	FlowbotURL string
+	// AgentAccessToken is injected for flowbot-agent as FLOWBOT_AGENT_TOKEN (agent:headless).
+	AgentAccessToken string
+	Timeout          time.Duration
 }
 
-// NewCursor builds a Cursor runner.
+// NewCursor builds a Cursor/flowbot-agent runner.
 func NewCursor(binary, apiKey string, timeout time.Duration) *Cursor {
 	if binary == "" {
 		binary = "agent"
@@ -29,6 +36,13 @@ func NewCursor(binary, apiKey string, timeout time.Duration) *Cursor {
 		timeout = 30 * time.Minute
 	}
 	return &Cursor{Binary: binary, APIKey: apiKey, Timeout: timeout}
+}
+
+// WithFlowbotAgent injects Flowbot URL and agent:headless token for flowbot-agent.
+func (c *Cursor) WithFlowbotAgent(flowbotURL, agentToken string) *Cursor {
+	c.FlowbotURL = flowbotURL
+	c.AgentAccessToken = agentToken
+	return c
 }
 
 // Run implements Runner.
@@ -50,11 +64,7 @@ func (c *Cursor) Run(ctx context.Context, job *types.GatewayJob, workspace strin
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	if c.APIKey != "" {
-		cmd.Env = append(os.Environ(), "CURSOR_API_KEY="+c.APIKey)
-	} else {
-		cmd.Env = os.Environ()
-	}
+	cmd.Env = append(os.Environ(), c.childEnv()...)
 	flog.Info("starting cursor cli job_id=%s binary=%s workspace=%s timeout=%s",
 		job.JobID, c.Binary, workspace, c.Timeout)
 	start := time.Now()
@@ -82,6 +92,20 @@ func (c *Cursor) Run(ctx context.Context, job *types.GatewayJob, workspace strin
 			job.JobID, code, time.Since(start).Milliseconds(), stdout.Len(), stderr.Len())
 	}
 	return Result{Output: out, ExitCode: code, Err: err}
+}
+
+func (c *Cursor) childEnv() []string {
+	var env []string
+	if c.APIKey != "" {
+		env = append(env, "CURSOR_API_KEY="+c.APIKey)
+	}
+	if c.FlowbotURL != "" {
+		env = append(env, "FLOWBOT_URL="+c.FlowbotURL)
+	}
+	if c.AgentAccessToken != "" {
+		env = append(env, "FLOWBOT_AGENT_TOKEN="+c.AgentAccessToken)
+	}
+	return env
 }
 
 func truncateForLog(s string, maxLen int) string {

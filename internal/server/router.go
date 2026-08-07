@@ -71,6 +71,7 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	RegisterChatAgentRoutes(a, ChatAgentService())
 	RegisterChatAgentSignedMediaRoute(a)
 	RegisterGatewayRoutes(a)
+	RegisterAgentLLMRoutes(a)
 	// platform
 	a.All("/platform/:platform", ctl.platformCallback)
 }

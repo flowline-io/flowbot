@@ -13,5 +13,10 @@ access_token: ""
 # job_timeout: 30m
 # cursor_binary: agent
 # cursor_api_key: ""  # or set CURSOR_API_KEY
+#
+# Prefer flowbot-agent (built via: go tool task build:agent):
+# cursor_binary: flowbot-agent
+# agent_access_token: ""  # token with scope agent:headless (or FLOWBOT_AGENT_TOKEN)
+#
 # listen: "127.0.0.1:8787"  # optional local healthz only
 # Log level via flag: flowbot-gateway -log-level=debug -config gateway.yaml

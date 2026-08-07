@@ -41,6 +41,11 @@ tasks:
     cmds:
       - go build -v -o bin/flowbot-gateway ./cmd/gateway
 
+  build:agent:
+    desc: Build local headless agent CLI
+    cmds:
+      - go build -v -o bin/flowbot-agent ./cmd/agent
+
   build:all:
     desc: Build all binaries
     cmds:
@@ -48,6 +53,7 @@ tasks:
       - task: build:composer
       - task: build:cli
       - task: build:gateway
+      - task: build:agent
 
   # Run tasks
   run:
@@ -70,6 +76,11 @@ tasks:
     desc: Run flowbot Gateway (task run:gateway -- --help)
     cmds:
       - go run ./cmd/gateway {{.CLI_ARGS}}
+
+  run:agent:
+    desc: Run flowbot Agent (task run:agent -- --help)
+    cmds:
+      - go run ./cmd/agent {{.CLI_ARGS}}
 
   # Code quality tasks
   cloc:

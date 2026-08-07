@@ -38,6 +38,30 @@ func TestActiveToolNames(t *testing.T) {
 	}
 }
 
+func TestRegisterHeadless(t *testing.T) {
+	t.Parallel()
+	ws := coding.Workspace{Root: t.TempDir()}
+	reg := tool.NewRegistry()
+	names, err := coding.RegisterHeadless(reg, ws, nil, coding.HeadlessOptions{Force: true})
+	require.NoError(t, err)
+	assert.Equal(t, coding.HeadlessToolNames(true), names)
+	for _, name := range names {
+		_, ok := reg.Get(name)
+		assert.True(t, ok, "missing %s", name)
+	}
+	_, ok := reg.Get("web_search")
+	assert.False(t, ok)
+
+	regRO := tool.NewRegistry()
+	roNames, err := coding.RegisterHeadless(regRO, ws, nil, coding.HeadlessOptions{Force: false})
+	require.NoError(t, err)
+	assert.Equal(t, coding.HeadlessToolNames(false), roNames)
+	_, ok = regRO.Get("write_file")
+	assert.False(t, ok)
+	_, ok = regRO.Get("run_terminal")
+	assert.False(t, ok)
+}
+
 func TestRegisterAll(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()

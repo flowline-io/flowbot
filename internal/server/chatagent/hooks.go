@@ -112,38 +112,24 @@ func resolveRunConfirm(ctx context.Context, deps ChatHookDeps) *ConfirmGate {
 
 func registerDCGHook(reg *hooks.Registry, deps ChatHookDeps) {
 	hooks.OnToolCall(reg, func(ctx context.Context, event hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
-		command, ok, err := dcg.CommandForTool(event.ToolCall.Name, event.Args)
+		verdict, err := dcg.EvaluateToolCall(ctx, event.ToolCall.Name, event.Args, deps.DCG)
 		if err != nil {
-			flog.Warn("[chat-agent] dcg synth failed session=%s tool=%s: %v",
+			flog.Warn("[chat-agent] dcg evaluate failed session=%s tool=%s: %v",
 				deps.SessionID, event.ToolCall.Name, err)
 			return &hooks.ToolCallResult{Block: true, Reason: err.Error()}, nil
 		}
-		if !ok {
+		if verdict.Skip {
 			return nil, nil
 		}
 		flog.Debug("[chat-agent] dcg check session=%s tool=%s command=%q",
-			deps.SessionID, event.ToolCall.Name, dcg.TruncateCommandForLog(command))
-		checker := deps.DCG
-		if checker == nil {
-			checker = dcg.DefaultChecker()
-		}
-		decision, err := checker.Check(ctx, command)
-		if err != nil {
-			flog.Warn("[chat-agent] dcg check error session=%s tool=%s command=%q: %v",
-				deps.SessionID, event.ToolCall.Name, dcg.TruncateCommandForLog(command), err)
-			return &hooks.ToolCallResult{Block: true, Reason: err.Error()}, nil
-		}
-		if !decision.Allow {
-			reason := decision.Reason
-			if reason == "" {
-				reason = dcg.ReasonBlocked
-			}
+			deps.SessionID, event.ToolCall.Name, dcg.TruncateCommandForLog(verdict.Command))
+		if verdict.Block {
 			flog.Info("[chat-agent] dcg blocked session=%s tool=%s rule=%s pack=%s reason=%s command=%q",
-				deps.SessionID, event.ToolCall.Name, decision.RuleID, decision.PackID, reason, dcg.TruncateCommandForLog(command))
-			return &hooks.ToolCallResult{Block: true, Reason: reason}, nil
+				deps.SessionID, event.ToolCall.Name, verdict.RuleID, verdict.PackID, verdict.Reason, dcg.TruncateCommandForLog(verdict.Command))
+			return &hooks.ToolCallResult{Block: true, Reason: verdict.Reason}, nil
 		}
 		flog.Debug("[chat-agent] dcg allowed session=%s tool=%s command=%q",
-			deps.SessionID, event.ToolCall.Name, dcg.TruncateCommandForLog(command))
+			deps.SessionID, event.ToolCall.Name, dcg.TruncateCommandForLog(verdict.Command))
 		return nil, nil
 	})
 }

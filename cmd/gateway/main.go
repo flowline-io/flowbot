@@ -46,8 +46,10 @@ func main() {
 	}
 
 	api := client.New(cfg.FlowbotURL, cfg.AccessToken)
+	cursorRunner := runner.NewCursor(cfg.CursorBinary, cfg.CursorAPIKey, cfg.JobTimeout).
+		WithFlowbotAgent(cfg.FlowbotURL, cfg.AgentAccessToken)
 	runners := map[types.GatewayCLI]runner.Runner{
-		types.GatewayCLICursor:   runner.NewCursor(cfg.CursorBinary, cfg.CursorAPIKey, cfg.JobTimeout),
+		types.GatewayCLICursor:   cursorRunner,
 		types.GatewayCLIOpenCode: runner.Unsupported{Name: "opencode"},
 	}
 	w := worker.New(api, cfg, runners)
