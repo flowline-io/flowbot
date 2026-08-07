@@ -79,7 +79,7 @@ var _ = Describe("Agent LLM proxy API", Label("agent", "api"), func() {
 		body := `{"model":"client-ignored","messages":[{"role":"user","content":"hi"}],"stream":false}`
 		req := JSONRequest(http.MethodPost, "/agent/v1/chat/completions", []byte(body))
 		req.Header.Set("X-AccessToken", token)
-		resp, err := App.Test(req, 10*time.Second)
+		resp, err := App.Test(req, fiber.TestConfig{Timeout: 10 * time.Second})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 		raw, err := io.ReadAll(resp.Body)
