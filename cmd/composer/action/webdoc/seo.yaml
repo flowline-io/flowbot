@@ -1,0 +1,31 @@
+# Site SEO build config (not published to GitHub Pages).
+# Entry-page title/description/canonical/OG are injected between <!-- seo:start --> and <!-- seo:end -->.
+base_url: https://flowline-io.github.io
+sitemap_paths:
+  - /
+  - /design.html
+  - /api.html
+  - /tutorials.html
+  - /skills.html
+entry_pages:
+  - file: index.html
+    path: /
+    title: "Flowbot — The Orchestration Engine for Your Homelab"
+    description: "Discover self-hosted apps, compose capabilities, and operate cross-service automation from one homelab orchestration runtime."
+    website_json_ld: true
+  - file: design.html
+    path: /design.html
+    title: "Architecture & Design — Flowbot"
+    description: "Flowbot technical design: six-layer stack, capability abstraction, declarative pipelines, workflow runtime, and durable events."
+  - file: api.html
+    path: /api.html
+    title: "API Reference — Flowbot"
+    description: "Flowbot HTTP API overview: primary surfaces, auth, probes, and OpenAPI artifacts for integrating with the orchestration runtime."
+  - file: tutorials.html
+    path: /tutorials.html
+    title: "Tutorials — Learn Flowbot"
+    description: "Step-by-step Flowbot tutorials: install, configure, discover apps, build pipelines and workflows, and operate your homelab."
+  - file: skills.html
+    path: /skills.html
+    title: "Skills — Flowbot Assistant"
+    description: "Flowbot AI assistant skills mapped to capability IDs and platform workflows, generated from CLI trees."

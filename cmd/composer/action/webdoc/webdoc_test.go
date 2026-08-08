@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseFrontMatter(t *testing.T) {
@@ -216,4 +217,98 @@ func TestDirToTitle(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestAbsoluteURL(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		base string
+		path string
+		want string
+	}{
+		{name: "home slash", base: "https://flowline-io.github.io", path: "/", want: "https://flowline-io.github.io/"},
+		{name: "home empty", base: "https://flowline-io.github.io/", path: "", want: "https://flowline-io.github.io/"},
+		{name: "html page", base: "https://flowline-io.github.io", path: "/design.html", want: "https://flowline-io.github.io/design.html"},
+		{name: "docs path no leading slash", base: "https://flowline-io.github.io", path: "docs/getting-started/", want: "https://flowline-io.github.io/docs/getting-started/"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, absoluteURL(tt.base, tt.path))
+		})
+	}
+}
+
+func TestLoadSEOConfig(t *testing.T) {
+	t.Parallel()
+	cfg, err := loadSEOConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "https://flowline-io.github.io", cfg.BaseURL)
+	assert.Equal(t, []string{
+		"/",
+		"/design.html",
+		"/api.html",
+		"/tutorials.html",
+		"/skills.html",
+	}, cfg.SitemapPaths)
+	require.NotEmpty(t, cfg.EntryPages)
+	assert.Equal(t, "index.html", cfg.EntryPages[0].File)
+	assert.True(t, cfg.EntryPages[0].WebsiteJSONLD)
+}
+
+func TestBuildSitemapXML(t *testing.T) {
+	t.Parallel()
+	got := buildSitemapXML("https://flowline-io.github.io", []string{"/", "/design.html"})
+	assert.Contains(t, got, `<loc>https://flowline-io.github.io/</loc>`)
+	assert.Contains(t, got, `<loc>https://flowline-io.github.io/design.html</loc>`)
+	assert.Contains(t, got, `xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"`)
+}
+
+func TestBuildRobotsTxt(t *testing.T) {
+	t.Parallel()
+	got := buildRobotsTxt("https://flowline-io.github.io")
+	assert.Contains(t, got, "User-agent: *")
+	assert.Contains(t, got, "Allow: /")
+	assert.Contains(t, got, "Sitemap: https://flowline-io.github.io/sitemap.xml")
+}
+
+func TestBuildEntrySEOBlock(t *testing.T) {
+	t.Parallel()
+	block, err := buildEntrySEOBlock("https://flowline-io.github.io", seoEntryPage{
+		Path:          "/design.html",
+		Title:         "Architecture & Design — Flowbot",
+		Description:   "Design overview.",
+		WebsiteJSONLD: false,
+	})
+	require.NoError(t, err)
+	assert.Contains(t, block, "<title>Architecture &amp; Design — Flowbot</title>")
+	assert.Contains(t, block, `rel="canonical" href="https://flowline-io.github.io/design.html"`)
+	assert.Contains(t, block, `property="og:title"`)
+	assert.Contains(t, block, `name="twitter:card" content="summary"`)
+	assert.NotContains(t, block, "application/ld+json")
+}
+
+func TestBuildEntrySEOBlockJSONLD(t *testing.T) {
+	t.Parallel()
+	block, err := buildEntrySEOBlock("https://flowline-io.github.io", seoEntryPage{
+		Path:          "/",
+		Title:         "Flowbot",
+		Description:   "Homelab orchestration.",
+		WebsiteJSONLD: true,
+	})
+	require.NoError(t, err)
+	assert.Contains(t, block, `"@type": "WebSite"`)
+	assert.Contains(t, block, `"url": "https://flowline-io.github.io/"`)
+}
+
+func TestReplaceSEOBlock(t *testing.T) {
+	t.Parallel()
+	src := "<head>\n\t\t<!-- seo:start -->\n\t\told\n\t\t<!-- seo:end -->\n\t\t<link />\n</head>"
+	got, err := replaceSEOBlock(src, "\t\t<title>New</title>\n")
+	require.NoError(t, err)
+	assert.Contains(t, got, "<!-- seo:start -->\n\t\t<title>New</title>\n\t\t<!-- seo:end -->")
+	assert.NotContains(t, got, "old")
+	assert.Contains(t, got, "<link />")
 }

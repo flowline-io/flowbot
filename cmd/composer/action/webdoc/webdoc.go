@@ -44,14 +44,15 @@ type DocNavPage struct {
 
 // Page holds data for the HTML template.
 type Page struct {
-	Title       string
-	Description string
-	Content     template.HTML
-	BasePath    string
-	DocSections []DocSection
-	AccentColor string
-	Wide        bool
-	HideSidebar bool
+	Title        string
+	Description  string
+	CanonicalURL string
+	Content      template.HTML
+	BasePath     string
+	DocSections  []DocSection
+	AccentColor  string
+	Wide         bool
+	HideSidebar  bool
 }
 
 // pageTemplate is the HTML wrapper matching the website's visual identity.
@@ -62,6 +63,15 @@ const pageTemplate = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{{.Title}} — Flowbot</title>
 {{if .Description}}<meta name="description" content="{{.Description}}" />{{end}}
+<link rel="canonical" href="{{.CanonicalURL}}" />
+<meta property="og:title" content="{{.Title}} — Flowbot" />
+{{if .Description}}<meta property="og:description" content="{{.Description}}" />{{end}}
+<meta property="og:url" content="{{.CanonicalURL}}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Flowbot" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="{{.Title}} — Flowbot" />
+{{if .Description}}<meta name="twitter:description" content="{{.Description}}" />{{end}}
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -119,11 +129,11 @@ const pageTemplate = `<!doctype html>
 <div class="footer-left">
 <a href="https://github.com/flowline-io/flowbot" target="_blank" rel="noopener">GitHub</a>
 <a href="{{.BasePath}}index.html">Home</a>
-<a href="{{.BasePath}}design.html">Design</a>
-<a href="{{.BasePath}}api.html">API</a>
-<a href="{{.BasePath}}tutorials.html">Tutorials</a>
-<a href="{{.BasePath}}skills.html">Skills</a>
-<a href="{{.BasePath}}docs/getting-started/">Docs</a>
+<a href="{{.BasePath}}design.html">Product Design</a>
+<a href="{{.BasePath}}api.html">API Reference</a>
+<a href="{{.BasePath}}tutorials.html">Tutorials &amp; Guides</a>
+<a href="{{.BasePath}}skills.html">AI Skills</a>
+<a href="{{.BasePath}}docs/getting-started/">Getting Started</a>
 <span class="footer-license">GPL-3.0</span>
 </div>
 <div class="footer-right">
@@ -170,11 +180,20 @@ func WebDocAction(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("collecting pages: %w", err)
 	}
 
+	seoCfg, err := loadSEOConfig()
+	if err != nil {
+		return err
+	}
+
 	websiteRoot := filepath.Join(srcDir, "website")
 	for i := range allPages {
-		if err := convertFile(srcDir, outDir, &allPages[i], i, allPages, websiteRoot); err != nil {
+		if err := convertFile(srcDir, outDir, &allPages[i], i, allPages, websiteRoot, seoCfg.BaseURL); err != nil {
 			return err
 		}
+	}
+
+	if err := writeSEOAssets(websiteRoot, seoCfg); err != nil {
+		return err
 	}
 
 	_, _ = fmt.Println("website docs generated successfully")
@@ -345,7 +364,7 @@ func outURL(relPath string) string {
 	return url
 }
 
-func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allPages []docPageInfo, websiteRoot string) error {
+func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allPages []docPageInfo, websiteRoot, siteBaseURL string) error {
 	input, err := os.ReadFile(filepath.Join(srcDir, info.SourcePath))
 	if err != nil {
 		return fmt.Errorf("reading %s: %w", info.SourcePath, err)
@@ -377,14 +396,15 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 	}
 
 	page := Page{
-		Title:       info.Title,
-		Description: info.FrontMatter.Description,
-		Content:     safeContent,
-		BasePath:    basePath,
-		DocSections: buildSectionsWithActive(allPages, activeIndex),
-		AccentColor: info.FrontMatter.AccentColor,
-		Wide:        info.FrontMatter.Wide,
-		HideSidebar: info.FrontMatter.HideSidebar,
+		Title:        info.Title,
+		Description:  info.FrontMatter.Description,
+		CanonicalURL: absoluteURL(siteBaseURL, info.OutURL),
+		Content:      safeContent,
+		BasePath:     basePath,
+		DocSections:  buildSectionsWithActive(allPages, activeIndex),
+		AccentColor:  info.FrontMatter.AccentColor,
+		Wide:         info.FrontMatter.Wide,
+		HideSidebar:  info.FrontMatter.HideSidebar,
 	}
 
 	var buf bytes.Buffer
