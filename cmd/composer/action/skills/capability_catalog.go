@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
+	"github.com/flowline-io/flowbot/pkg/capability/email"
 	"github.com/flowline-io/flowbot/pkg/capability/fireflyiii"
 	"github.com/flowline-io/flowbot/pkg/capability/gateway"
 	"github.com/flowline-io/flowbot/pkg/capability/gitea"
@@ -49,6 +50,7 @@ func workflowCapabilityCatalog() []capDoc {
 		trilium.CatalogSpec(),
 		fireflyiii.CatalogSpec(),
 		transmission.CatalogSpec(),
+		email.CatalogSpec(),
 		nocodb.CatalogSpec(),
 		devops.CatalogSpec(),
 		gitea.CatalogSpec(),

@@ -264,6 +264,53 @@ func TestTransmissionWebserviceRules_Structure(t *testing.T) {
 	}
 }
 
+func TestEmailWebserviceRules_Structure(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should not be empty",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.NotEmpty(t, emailWebserviceRules)
+			},
+		},
+		{
+			name: "should contain email endpoints",
+			test: func(t *testing.T) {
+				t.Parallel()
+				paths := make(map[string]bool)
+				for _, r := range emailWebserviceRules {
+					paths[r.Path] = true
+				}
+				for _, expected := range []string{
+					"/send",
+					"/messages",
+					"/message",
+					"/search",
+					"/messages/read",
+					"/messages/unread",
+					"/health",
+				} {
+					assert.True(t, paths[expected], "expected path %q in email webservice rules", expected)
+				}
+			},
+		},
+		{
+			name: "should have seven rules",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.Len(t, emailWebserviceRules, 7)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
+	}
+}
+
 func TestNocodbWebserviceRules_Structure(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

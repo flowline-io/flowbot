@@ -24,6 +24,7 @@ func TestAllLeafCommandsHaveRunE(t *testing.T) {
 		{name: "trilium", fn: TriliumCommand},
 		{name: "fireflyiii", fn: FireflyiiiCommand},
 		{name: "transmission", fn: TransmissionCommand},
+		{name: "email", fn: EmailCommand},
 		{name: "nocodb", fn: NocodbCommand},
 		{name: "devops", fn: DevopsCommand},
 		{name: "config", fn: ConfigCommand},

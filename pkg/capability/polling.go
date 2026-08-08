@@ -84,6 +84,18 @@ func (m *EventSourceManager) pollOnce(ctx context.Context, name string, entry *p
 
 	newEvents := m.diffAndEmit(ctx, entry, result.Items)
 
+	if hook, ok := entry.resource.(PostEmitHook); ok && len(newEvents) > 0 {
+		emitted := make([]any, 0, len(newEvents))
+		for _, ev := range newEvents {
+			if item, ok := ev.Data["item"]; ok {
+				emitted = append(emitted, item)
+			}
+		}
+		if err := hook.AfterEmit(ctx, emitted); err != nil {
+			flog.Warn("event_source: %s AfterEmit: %v", name, err)
+		}
+	}
+
 	entry.mu.Lock()
 	if result.NextCursor != "" {
 		entry.cursor = result.NextCursor
@@ -142,6 +154,9 @@ func (m *EventSourceManager) diffAndEmit(ctx context.Context, entry *pollEntry, 
 			IdempotencyKey: key,
 			CreatedAt:      time.Now(),
 			Data:           types.KV{"item": item},
+		}
+		if cp, ok := entry.resource.(CapabilityProvider); ok {
+			ev.Capability = cp.Capability()
 		}
 		newEvents = append(newEvents, ev)
 	}

@@ -42,6 +42,7 @@ func main() {
 		command.TriliumCommand(),
 		command.FireflyiiiCommand(),
 		command.TransmissionCommand(),
+		command.EmailCommand(),
 		command.NocodbCommand(),
 		command.DevopsCommand(),
 		command.ConfigCommand(),

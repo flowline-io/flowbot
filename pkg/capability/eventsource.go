@@ -48,6 +48,16 @@ type PollingResource interface {
 	List(ctx context.Context, cursor string) (PollResult, error)
 }
 
+// CapabilityProvider is optionally implemented by PollingResource to stamp DataEvent.Capability.
+type CapabilityProvider interface {
+	Capability() string
+}
+
+// PostEmitHook is optionally implemented by PollingResource to run after events are emitted.
+type PostEmitHook interface {
+	AfterEmit(ctx context.Context, items []any) error
+}
+
 // PollResult carries a batch of items returned by a polling List call.
 type PollResult struct {
 	Items      []any

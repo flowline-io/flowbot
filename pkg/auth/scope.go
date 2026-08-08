@@ -37,6 +37,8 @@ const (
 	ScopeServiceFireflyiiiWrite   = "service:fireflyiii:write"
 	ScopeServiceTransmissionRead  = "service:transmission:read"
 	ScopeServiceTransmissionWrite = "service:transmission:write"
+	ScopeServiceEmailRead         = "service:email:read"
+	ScopeServiceEmailWrite        = "service:email:write"
 	ScopeServiceNocodbRead        = "service:nocodb:read"
 	ScopeServiceNocodbWrite       = "service:nocodb:write"
 	ScopeServiceGiteaRead         = "service:gitea:read"
@@ -223,6 +225,8 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeServiceFireflyiiiWrite, Description: "write fireflyiii"},
 		{Value: ScopeServiceTransmissionRead, Description: "read transmission"},
 		{Value: ScopeServiceTransmissionWrite, Description: "write transmission"},
+		{Value: ScopeServiceEmailRead, Description: "read email"},
+		{Value: ScopeServiceEmailWrite, Description: "write email"},
 		{Value: ScopeServiceNocodbRead, Description: "read nocodb"},
 		{Value: ScopeServiceNocodbWrite, Description: "write nocodb"},
 		{Value: ScopeServiceGiteaRead, Description: "read gitea"},

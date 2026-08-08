@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
+	capemail "github.com/flowline-io/flowbot/pkg/capability/email"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
@@ -1179,6 +1180,113 @@ func transmissionHealth(ctx fiber.Ctx) error {
 
 func invokeTransmission(ctx fiber.Ctx, operation string, params map[string]any) error {
 	res, err := capability.Invoke(context.Background(), hub.CapTransmission, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
+}
+
+// --- Email routes (registered under /service/email) ---
+
+var emailWebserviceRules = []webservice.Rule{
+	webservice.Post("/send", sendEmail),
+	webservice.Get("/messages", listEmailMessages),
+	webservice.Get("/message", getEmailMessage),
+	webservice.Get("/search", searchEmailMessages),
+	webservice.Post("/messages/read", markEmailRead),
+	webservice.Post("/messages/unread", markEmailUnread),
+	webservice.Get("/health", emailHealth),
+}
+
+func sendEmail(ctx fiber.Ctx) error {
+	var body struct {
+		To       []string `json:"to"`
+		Cc       []string `json:"cc"`
+		Bcc      []string `json:"bcc"`
+		Subject  string   `json:"subject"`
+		Text     string   `json:"text"`
+		HTML     string   `json:"html"`
+		FromName string   `json:"from_name"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode email send request", err)
+	}
+	return invokeEmail(ctx, capemail.OpSend, map[string]any{
+		"to": body.To, "cc": body.Cc, "bcc": body.Bcc,
+		"subject": body.Subject, "text": body.Text, "html": body.HTML, "from_name": body.FromName,
+	})
+}
+
+func listEmailMessages(ctx fiber.Ctx) error {
+	params := map[string]any{}
+	if v := ctx.Query("mailbox"); v != "" {
+		params["mailbox"] = v
+	}
+	if v := ctx.Query("unseen_only"); v != "" {
+		params["unseen_only"] = v == "true" || v == "1"
+	}
+	if v := ctx.Query("limit"); v != "" {
+		params["limit"] = v
+	}
+	if v := ctx.Query("cursor"); v != "" {
+		params["cursor"] = v
+	}
+	return invokeEmail(ctx, capemail.OpList, params)
+}
+
+func getEmailMessage(ctx fiber.Ctx) error {
+	id := ctx.Query("id")
+	if id == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	return invokeEmail(ctx, capemail.OpGet, map[string]any{"id": id})
+}
+
+func searchEmailMessages(ctx fiber.Ctx) error {
+	params := map[string]any{}
+	for _, key := range []string{"mailbox", "from", "to", "subject", "since", "before", "limit", "cursor"} {
+		if v := ctx.Query(key); v != "" {
+			params[key] = v
+		}
+	}
+	if v := ctx.Query("unseen"); v != "" {
+		params["unseen"] = v == "true" || v == "1"
+	}
+	return invokeEmail(ctx, capemail.OpSearch, params)
+}
+
+func markEmailRead(ctx fiber.Ctx) error {
+	var body struct {
+		ID string `json:"id"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode email mark read request", err)
+	}
+	if body.ID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	return invokeEmail(ctx, capemail.OpMarkRead, map[string]any{"id": body.ID})
+}
+
+func markEmailUnread(ctx fiber.Ctx) error {
+	var body struct {
+		ID string `json:"id"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode email mark unread request", err)
+	}
+	if body.ID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	return invokeEmail(ctx, capemail.OpMarkUnread, map[string]any{"id": body.ID})
+}
+
+func emailHealth(ctx fiber.Ctx) error {
+	return invokeEmail(ctx, capemail.OpHealth, map[string]any{})
+}
+
+func invokeEmail(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := capability.Invoke(context.Background(), hub.CapEmail, operation, params)
 	if err != nil {
 		return err
 	}

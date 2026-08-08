@@ -12,6 +12,7 @@ const (
 	CapMemos        CapabilityType = "memos"
 	CapFireflyiii   CapabilityType = "fireflyiii"
 	CapTransmission CapabilityType = "transmission"
+	CapEmail        CapabilityType = "email"
 	CapNocodb       CapabilityType = "nocodb"
 	CapGitea        CapabilityType = "gitea"
 	CapGithub       CapabilityType = "github"

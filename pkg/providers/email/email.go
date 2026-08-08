@@ -1,101 +1,111 @@
-// Package email implements the email provider.
+// Package email implements SMTP send and IMAP read for the email provider.
 package email
 
 import (
-	"crypto/tls"
 	"fmt"
-	"net"
-	"net/smtp"
+	"strconv"
 	"strings"
+
+	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
-const (
-	ID       = "email"
-	Host     = "host"
-	Port     = "port"
-	Username = "username"
-	Password = "password"
-)
-
-type Config struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
+// Client is an SMTP/IMAP email client backed by YAML config.
+type Client struct {
+	cfg Config
 }
 
-func SendEmail(config *Config, toMail, title, content string) error {
-	header := make(map[string]string)
-	header["From"] = "Assistant" + "<" + config.Username + ">"
-	header["To"] = toMail
-	header["Subject"] = title
-	header["Content-Type"] = "text/html; charset=UTF-8"
-	body := content
-	var message strings.Builder
-	for k, v := range header {
-		_, _ = message.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+// GetClient returns an email client from YAML config.
+// Returns nil, nil when username or hosts are not configured.
+func GetClient() (*Client, error) {
+	cfg, ok := loadConfig()
+	if !ok {
+		return nil, nil
 	}
-	_, _ = message.WriteString("\r\n" + body)
-	auth := smtp.PlainAuth(
-		"",
-		config.Username,
-		config.Password,
-		config.Host,
-	)
-	return sendMailUsingTLS(
-		fmt.Sprintf("%s:%d", config.Host, config.Port),
-		auth,
-		config.Username,
-		[]string{toMail},
-		[]byte(message.String()),
-	)
+	return NewClient(cfg)
 }
 
-func dial(addr string) (*smtp.Client, error) {
-	conn, err := tls.Dial("tcp", addr, nil)
-	if err != nil {
-		return nil, err
+// NewClient validates config and returns a client.
+func NewClient(cfg Config) (*Client, error) {
+	if cfg.Username == "" || cfg.Password == "" {
+		return nil, fmt.Errorf("email: username and password are required")
 	}
-	host, _, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, err
+	if cfg.SMTPHost == "" && cfg.IMAPHost == "" {
+		return nil, fmt.Errorf("email: smtp_host or imap_host is required")
 	}
-	return smtp.NewClient(conn, host)
+	if cfg.Mailbox == "" {
+		cfg.Mailbox = "INBOX"
+	}
+	if cfg.SMTPPort == 0 {
+		cfg.SMTPPort = 465
+	}
+	if cfg.IMAPPort == 0 {
+		cfg.IMAPPort = 993
+	}
+	cfg.SMTPTLS = ResolveTLSMode(cfg.SMTPTLS, cfg.SMTPPort, 465)
+	cfg.IMAPTLS = ResolveTLSMode(cfg.IMAPTLS, cfg.IMAPPort, 993)
+	return &Client{cfg: cfg}, nil
 }
 
-func sendMailUsingTLS(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
-	c, err := dial(addr)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = c.Close() }()
+// Config returns a copy of the client configuration.
+func (c *Client) Config() Config {
+	return c.cfg
+}
 
-	if auth != nil {
-		if ok, _ := c.Extension("AUTH"); ok {
-			if err = c.Auth(auth); err != nil {
-				return err
-			}
+func loadConfig() (Config, bool) {
+	username, _ := providers.GetConfig(ID, UsernameKey)
+	password, _ := providers.GetConfig(ID, PasswordKey)
+	smtpHost, _ := providers.GetConfig(ID, SMTPHostKey)
+	imapHost, _ := providers.GetConfig(ID, IMAPHostKey)
+	if username.String() == "" || password.String() == "" {
+		return Config{}, false
+	}
+	if smtpHost.String() == "" && imapHost.String() == "" {
+		return Config{}, false
+	}
+
+	cfg := Config{
+		Username: username.String(),
+		Password: password.String(),
+		SMTPHost: smtpHost.String(),
+		IMAPHost: imapHost.String(),
+	}
+
+	if v, _ := providers.GetConfig(ID, SMTPPortKey); v.String() != "" {
+		if n, err := strconv.Atoi(v.String()); err == nil {
+			cfg.SMTPPort = n
 		}
 	}
-	if err = c.Mail(from); err != nil {
-		return err
-	}
-	for _, addr := range to {
-		if err = c.Rcpt(addr); err != nil {
-			return err
+	if v, _ := providers.GetConfig(ID, IMAPPortKey); v.String() != "" {
+		if n, err := strconv.Atoi(v.String()); err == nil {
+			cfg.IMAPPort = n
 		}
 	}
-	w, err := c.Data()
-	if err != nil {
-		return err
+	if v, _ := providers.GetConfig(ID, SMTPTLSKey); v.String() != "" {
+		cfg.SMTPTLS = v.String()
 	}
-	_, err = w.Write(msg)
-	if err != nil {
-		return err
+	if v, _ := providers.GetConfig(ID, IMAPTLSKey); v.String() != "" {
+		cfg.IMAPTLS = v.String()
 	}
-	err = w.Close()
-	if err != nil {
-		return err
+	if v, _ := providers.GetConfig(ID, MailboxKey); v.String() != "" {
+		cfg.Mailbox = v.String()
 	}
-	return c.Quit()
+	cfg.UnseenOnly = true
+	if v, _ := providers.GetConfig(ID, UnseenOnlyKey); v.String() != "" {
+		cfg.UnseenOnly = parseBoolDefault(v.String(), true)
+	}
+	if v, _ := providers.GetConfig(ID, MarkSeenAfterEmitKey); v.String() != "" {
+		cfg.MarkSeenAfterEmit = parseBoolDefault(v.String(), false)
+	}
+	return cfg, true
+}
+
+func parseBoolDefault(s string, def bool) bool {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "true", "1", "yes", "on":
+		return true
+	case "false", "0", "no", "off":
+		return false
+	default:
+		return def
+	}
 }

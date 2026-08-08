@@ -340,6 +340,19 @@ vendors:
   # Transmission configuration
   transmission:
     endpoint: ""
+  # Email (SMTP send + IMAP read)
+  email:
+    username: ""
+    password: ""
+    smtp_host: ""
+    smtp_port: 465
+    smtp_tls: ""   # tls | starttls; empty infers from port (465→tls, else starttls)
+    imap_host: ""
+    imap_port: 993
+    imap_tls: ""   # tls | starttls; empty infers from port (993→tls, else starttls)
+    mailbox: "INBOX"
+    unseen_only: true
+    mark_seen_after_emit: false
   # Gitea configuration
   gitea:
     endpoint: ""

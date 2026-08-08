@@ -202,6 +202,29 @@ type Torrent struct {
 	ErrorString  string  `json:"error_string,omitzero"`
 }
 
+// MailAttachment describes an email attachment without binary content.
+type MailAttachment struct {
+	Filename string `json:"filename,omitzero"`
+	MIMEType string `json:"mime_type,omitzero"`
+	Size     int64  `json:"size,omitzero"`
+}
+
+// MailMessage is an email message exposed by the email capability.
+type MailMessage struct {
+	ID          string           `json:"id"`
+	Mailbox     string           `json:"mailbox,omitzero"`
+	From        []string         `json:"from,omitzero"`
+	To          []string         `json:"to,omitzero"`
+	Cc          []string         `json:"cc,omitzero"`
+	Subject     string           `json:"subject,omitzero"`
+	Date        time.Time        `json:"date,omitzero"`
+	MessageID   string           `json:"message_id,omitzero"`
+	Seen        bool             `json:"seen"`
+	Attachments []MailAttachment `json:"attachments,omitzero"`
+	Text        string           `json:"text,omitzero"`
+	HTML        string           `json:"html,omitzero"`
+}
+
 // NocoBase represents a NocoDB base/project.
 type NocoBase struct {
 	ID    string `json:"id"`

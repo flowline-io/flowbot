@@ -13,6 +13,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/capability"
+	emailAdapter "github.com/flowline-io/flowbot/pkg/capability/email"
 	exampleAdapter "github.com/flowline-io/flowbot/pkg/capability/example"
 	giteaAdapter "github.com/flowline-io/flowbot/pkg/capability/gitea"
 	kanboardAdapter "github.com/flowline-io/flowbot/pkg/capability/kanboard"
@@ -99,6 +100,8 @@ func (moduleHandler) Bootstrap() error {
 	flog.Info("hub: registered example poller")
 	mgr.RegisterPolling(triliumAdapter.NewPoller())
 	flog.Info("hub: registered trilium note poller")
+	mgr.RegisterPolling(emailAdapter.NewPoller())
+	flog.Info("hub: registered email message poller")
 	return nil
 }
 
@@ -113,6 +116,7 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	module.Webservice(app, "memos", memoWebserviceRules)
 	module.Webservice(app, "fireflyiii", fireflyiiiWebserviceRules)
 	module.Webservice(app, "transmission", transmissionWebserviceRules)
+	module.Webservice(app, "email", emailWebserviceRules)
 	module.Webservice(app, "nocodb", nocodbWebserviceRules)
 	module.Webservice(app, "devops", devopsWebserviceRules)
 }

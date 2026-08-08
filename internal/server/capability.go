@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
+	"github.com/flowline-io/flowbot/pkg/capability/email"
 	"github.com/flowline-io/flowbot/pkg/capability/fireflyiii"
 	"github.com/flowline-io/flowbot/pkg/capability/gitea"
 	"github.com/flowline-io/flowbot/pkg/capability/github"
@@ -27,6 +28,7 @@ func initCapabilityHub() error {
 		memos.Register("memos", memos.New()),
 		fireflyiii.Register("fireflyiii", fireflyiii.New()),
 		transmission.Register("transmission", transmission.New()),
+		email.Register("email", email.New()),
 		nocodb.Register("nocodb", nocodb.New()),
 		gitea.Register("gitea", gitea.New()),
 		github.Register("github", github.New()),

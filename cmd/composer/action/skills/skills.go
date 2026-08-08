@@ -374,6 +374,35 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
+		Name:         string(hub.CapEmail),
+		Title:        "Email",
+		CommandFn:    command.EmailCommand,
+		Description:  "Send and read email via SMTP/IMAP with flowbot email.",
+		Keywords:     "email, mail, smtp, imap, inbox, send, unread",
+		ScopesNote:   "`service:email:read` / `service:email:write`",
+		ResponseHint: "Message ids are opaque strings from `list`/`search`; use `-o json` for next_cursor.",
+		LimitsNote:   "No attachment download/upload in CLI; get returns text/html bodies and attachment metadata only.",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Send an email",
+				Description: "When a user wants to send a message:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot email send --to \"user@example.com\" --subject \"Hello\" --text \"Body\""},
+					{Step: 2, Note: "Prefer --text for plain mail; use --html when HTML is required. Confirm recipients before send."},
+				},
+			},
+			{
+				Title:       "Find and read messages",
+				Description: "When a user asks to inspect inbox mail:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot email list --unseen-only"},
+					{Step: 2, Command: "flowbot email get <id>"},
+					{Step: 3, Note: "Mark processed mail with `flowbot email mark-read <id>` when appropriate."},
+				},
+			},
+		},
+	},
+	{
 		Name:         string(hub.CapNocodb),
 		Title:        "NocoDB",
 		CommandFn:    command.NocodbCommand,

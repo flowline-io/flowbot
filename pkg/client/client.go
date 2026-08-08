@@ -52,6 +52,7 @@ type Client struct {
 	Trilium      *TriliumClient
 	Fireflyiii   *FireflyiiiClient
 	Transmission *TransmissionClient
+	Email        *EmailClient
 	Nocodb       *NocodbClient
 	Devops       *DevopsClient
 }
@@ -90,6 +91,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Trilium = &TriliumClient{c: c}
 	c.Fireflyiii = &FireflyiiiClient{c: c}
 	c.Transmission = &TransmissionClient{c: c}
+	c.Email = &EmailClient{c: c}
 	c.Nocodb = &NocodbClient{c: c}
 	c.Devops = &DevopsClient{c: c}
 
