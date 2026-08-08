@@ -89,14 +89,26 @@ var _ = SynchronizedBeforeSuite(
 		if redisImage == "" {
 			redisImage = "redis:7-alpine"
 		}
-		redisC, err = testcontainers.GenericContainer(suiteCtx, testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image:        redisImage,
-				ExposedPorts: []string{"6379/tcp"},
-				WaitingFor:   wait.ForListeningPort("6379/tcp"),
-			},
-			Started: true,
-		})
+		// Retry: GitHub runners occasionally fail image pull/create with
+		// "No such image" under Docker Hub rate limits or daemon flakes.
+		const redisStartAttempts = 3
+		for attempt := 1; attempt <= redisStartAttempts; attempt++ {
+			redisC, err = testcontainers.GenericContainer(suiteCtx, testcontainers.GenericContainerRequest{
+				ContainerRequest: testcontainers.ContainerRequest{
+					Image:        redisImage,
+					ExposedPorts: []string{"6379/tcp"},
+					WaitingFor:   wait.ForListeningPort("6379/tcp"),
+				},
+				Started: true,
+			})
+			if err == nil {
+				break
+			}
+			GinkgoWriter.Printf("Redis container start attempt %d/%d failed: %v\n", attempt, redisStartAttempts, err)
+			if attempt < redisStartAttempts {
+				time.Sleep(time.Duration(attempt) * 2 * time.Second)
+			}
+		}
 		Expect(err).NotTo(HaveOccurred(), "failed to start Redis container")
 
 		redisHost, err := redisC.Host(suiteCtx)

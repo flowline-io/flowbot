@@ -66,6 +66,10 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-bdd
       cancel-in-progress: true
+    # Prefer AWS Public ECR mirrors to avoid Docker Hub rate limits on GH runners.
+    env:
+      POSTGRES_IMAGE: public.ecr.aws/docker/library/postgres:16-alpine
+      REDIS_IMAGE: public.ecr.aws/docker/library/redis:7-alpine
     steps:
       - uses: actions/checkout@v7
 
@@ -77,6 +81,19 @@ jobs:
 
       - name: Go mod download
         run: go mod download
+
+      - name: Pull BDD container images
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if docker pull "$POSTGRES_IMAGE" && docker pull "$REDIS_IMAGE"; then
+              exit 0
+            fi
+            echo "image pull attempt ${attempt} failed; retrying..."
+            sleep $((attempt * 5))
+          done
+          echo "failed to pull BDD images after retries" >&2
+          exit 1
 
       - name: BDD Acceptance Tests
         run: go tool task test:specs:ci
