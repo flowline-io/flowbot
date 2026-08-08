@@ -43,14 +43,6 @@ func TestIsSensitivePath(t *testing.T) {
 
 func TestSettingsCatalog_redactsAndDescribes(t *testing.T) {
 	t.Parallel()
-	prevDocs := FieldDocs
-	FieldDocs = map[string]string{
-		"listen":       "HTTP listen address",
-		"postgres.dsn": "PostgreSQL connection string",
-		"redis.url":    "Redis connection URI",
-		"log.level":    "Log level",
-	}
-	t.Cleanup(func() { FieldDocs = prevDocs })
 
 	cfg := Type{
 		Listen: ":8080",
@@ -69,23 +61,27 @@ func TestSettingsCatalog_redactsAndDescribes(t *testing.T) {
 	listen, ok := byPath["listen"]
 	require.True(t, ok)
 	assert.Equal(t, ":8080", listen.Value)
-	assert.Equal(t, "HTTP listen address", listen.Description)
+	assert.Equal(t, FieldDocs["listen"], listen.Description)
+	assert.NotEmpty(t, listen.Description)
 	assert.False(t, listen.Sensitive)
 
 	dsn, ok := byPath["postgres.dsn"]
 	require.True(t, ok)
 	assert.Equal(t, maskedSecret, dsn.Value)
 	assert.True(t, dsn.Sensitive)
-	assert.Equal(t, "PostgreSQL connection string", dsn.Description)
+	assert.Equal(t, FieldDocs["postgres.dsn"], dsn.Description)
+	assert.NotEmpty(t, dsn.Description)
 
 	redisURL, ok := byPath["redis.url"]
 	require.True(t, ok)
 	assert.Equal(t, maskedSecret, redisURL.Value)
 	assert.True(t, redisURL.Sensitive)
+	assert.Equal(t, FieldDocs["redis.url"], redisURL.Description)
 
 	level, ok := byPath["log.level"]
 	require.True(t, ok)
 	assert.Equal(t, "info", level.Value)
+	assert.Equal(t, FieldDocs["log.level"], level.Description)
 }
 
 func TestSettingsCatalog_zeroValuesAndNilPointer(t *testing.T) {
