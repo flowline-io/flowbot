@@ -78,6 +78,8 @@ func TestBuildMIMEMessage(t *testing.T) {
 		name       string
 		in         SendInput
 		wantSubstr []string
+		wantAbsent []string
+		wantErr    bool
 	}{
 		{
 			name: "html only",
@@ -99,15 +101,52 @@ func TestBuildMIMEMessage(t *testing.T) {
 				"<b>x</b>",
 			},
 		},
+		{
+			name:    "subject CRLF rejected",
+			in:      SendInput{To: []string{"a@b.c"}, Subject: "Hi\r\nBcc: evil@x.y", Text: "body"},
+			wantErr: true,
+		},
+		{
+			name:    "to CRLF rejected",
+			in:      SendInput{To: []string{"a@b.c\r\nBcc: evil@x.y"}, Subject: "Hi", Text: "body"},
+			wantErr: true,
+		},
+		{
+			name:    "from name CRLF rejected",
+			in:      SendInput{To: []string{"a@b.c"}, Subject: "Hi", Text: "body", FromName: "Bot\r\nBcc: evil@x.y"},
+			wantErr: true,
+		},
+		{
+			name: "html script stripped",
+			in:   SendInput{To: []string{"a@b.c"}, Subject: "Hi", HTML: `<p>ok</p><script>alert(1)</script>`},
+			wantSubstr: []string{
+				"<p>ok</p>",
+			},
+			wantAbsent: []string{
+				"<script>",
+				"alert(1)",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			msg, err := buildMIMEMessage("Assistant <u@example.com>", tt.in)
+			in, err := sanitizeSendInput(tt.in)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			fromHeader, err := formatFromHeader(in.FromName, "u@example.com")
+			require.NoError(t, err)
+			msg, err := buildMIMEMessage(fromHeader, in)
 			require.NoError(t, err)
 			s := string(msg)
 			for _, sub := range tt.wantSubstr {
 				assert.Contains(t, s, sub)
+			}
+			for _, absent := range tt.wantAbsent {
+				assert.NotContains(t, s, absent)
 			}
 		})
 	}

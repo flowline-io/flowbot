@@ -2,12 +2,20 @@ package email
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/tls"
+	"encoding/hex"
 	"fmt"
 	"net"
+	"net/mail"
 	"net/smtp"
 	"strings"
+
+	"github.com/microcosm-cc/bluemonday"
 )
+
+// emailHTMLPolicy allows common safe markup in HTML bodies and strips scripts/handlers.
+var emailHTMLPolicy = bluemonday.UGCPolicy()
 
 // Send delivers a message via SMTP.
 func (c *Client) Send(ctx context.Context, in SendInput) error {
@@ -27,10 +35,15 @@ func (c *Client) Send(ctx context.Context, in SendInput) error {
 		return fmt.Errorf("email: text or html body is required")
 	}
 
+	in, err := sanitizeSendInput(in)
+	if err != nil {
+		return err
+	}
+
 	fromAddr := c.cfg.Username
-	fromHeader := fromAddr
-	if name := strings.TrimSpace(in.FromName); name != "" {
-		fromHeader = fmt.Sprintf("%s <%s>", name, fromAddr)
+	fromHeader, err := formatFromHeader(in.FromName, fromAddr)
+	if err != nil {
+		return err
 	}
 
 	msg, err := buildMIMEMessage(fromHeader, in)
@@ -53,7 +66,131 @@ func (c *Client) Send(ctx context.Context, in SendInput) error {
 	}
 }
 
+// sanitizeSendInput validates addresses/headers against CRLF injection and
+// sanitizes body content before it is incorporated into an SMTP message.
+func sanitizeSendInput(in SendInput) (SendInput, error) {
+	out := SendInput{
+		FromName: strings.TrimSpace(in.FromName),
+		Subject:  strings.TrimSpace(in.Subject),
+		Text:     sanitizeTextBody(in.Text),
+		HTML:     sanitizeHTMLBody(in.HTML),
+	}
+	if err := rejectHeaderValue(out.FromName, "from_name"); err != nil {
+		return SendInput{}, err
+	}
+	if err := rejectHeaderValue(out.Subject, "subject"); err != nil {
+		return SendInput{}, err
+	}
+	if out.Subject == "" {
+		return SendInput{}, fmt.Errorf("email: subject is required")
+	}
+
+	var err error
+	if out.To, err = sanitizeAddresses(in.To, "to"); err != nil {
+		return SendInput{}, err
+	}
+	if out.Cc, err = sanitizeAddresses(in.Cc, "cc"); err != nil {
+		return SendInput{}, err
+	}
+	if out.Bcc, err = sanitizeAddresses(in.Bcc, "bcc"); err != nil {
+		return SendInput{}, err
+	}
+	if len(out.To) == 0 {
+		return SendInput{}, fmt.Errorf("email: to is required")
+	}
+	if strings.TrimSpace(out.Text) == "" && strings.TrimSpace(out.HTML) == "" {
+		return SendInput{}, fmt.Errorf("email: text or html body is required")
+	}
+	return out, nil
+}
+
+func sanitizeAddresses(addrs []string, field string) ([]string, error) {
+	if len(addrs) == 0 {
+		return nil, nil
+	}
+	out := make([]string, 0, len(addrs))
+	for _, addr := range addrs {
+		parsed, err := sanitizeAddress(addr)
+		if err != nil {
+			return nil, fmt.Errorf("email: invalid %s: %w", field, err)
+		}
+		out = append(out, parsed)
+	}
+	return out, nil
+}
+
+func sanitizeAddress(addr string) (string, error) {
+	addr = strings.TrimSpace(addr)
+	if addr == "" {
+		return "", fmt.Errorf("empty address")
+	}
+	if err := rejectHeaderValue(addr, "address"); err != nil {
+		return "", err
+	}
+	parsed, err := mail.ParseAddress(addr)
+	if err != nil {
+		return "", err
+	}
+	if err := rejectHeaderValue(parsed.Address, "address"); err != nil {
+		return "", err
+	}
+	if parsed.Name != "" {
+		if err := rejectHeaderValue(parsed.Name, "address name"); err != nil {
+			return "", err
+		}
+		return (&mail.Address{Name: parsed.Name, Address: parsed.Address}).String(), nil
+	}
+	return parsed.Address, nil
+}
+
+func formatFromHeader(name, addr string) (string, error) {
+	if err := rejectHeaderValue(addr, "from"); err != nil {
+		return "", err
+	}
+	name = strings.TrimSpace(name)
+	if err := rejectHeaderValue(name, "from_name"); err != nil {
+		return "", err
+	}
+	return (&mail.Address{Name: name, Address: addr}).String(), nil
+}
+
+func rejectHeaderValue(v, field string) error {
+	if strings.ContainsAny(v, "\r\n\x00") {
+		return fmt.Errorf("email: %s contains invalid control characters", field)
+	}
+	return nil
+}
+
+func sanitizeTextBody(s string) string {
+	// Plain-text bodies may contain newlines; strip NUL only.
+	return strings.ReplaceAll(s, "\x00", "")
+}
+
+func sanitizeHTMLBody(s string) string {
+	if strings.TrimSpace(s) == "" {
+		return ""
+	}
+	return emailHTMLPolicy.Sanitize(strings.ReplaceAll(s, "\x00", ""))
+}
+
 func buildMIMEMessage(fromHeader string, in SendInput) ([]byte, error) {
+	if err := rejectHeaderValue(fromHeader, "from"); err != nil {
+		return nil, err
+	}
+	if err := rejectHeaderValue(in.Subject, "subject"); err != nil {
+		return nil, err
+	}
+	for _, addr := range in.To {
+		if err := rejectHeaderValue(addr, "to"); err != nil {
+			return nil, err
+		}
+	}
+	for _, addr := range in.Cc {
+		if err := rejectHeaderValue(addr, "cc"); err != nil {
+			return nil, err
+		}
+	}
+
 	var b strings.Builder
 	writeHeader := func(k, v string) {
 		_, _ = b.WriteString(k)
@@ -73,7 +210,10 @@ func buildMIMEMessage(fromHeader string, in SendInput) ([]byte, error) {
 	hasHTML := strings.TrimSpace(in.HTML) != ""
 	switch {
 	case hasText && hasHTML:
-		boundary := "flowbot-email-boundary"
+		boundary, err := randomMIMEBoundary()
+		if err != nil {
+			return nil, err
+		}
 		writeHeader("Content-Type", `multipart/alternative; boundary="`+boundary+`"`)
 		_, _ = b.WriteString("\r\n")
 		_, _ = b.WriteString("--" + boundary + "\r\n")
@@ -93,6 +233,14 @@ func buildMIMEMessage(fromHeader string, in SendInput) ([]byte, error) {
 		_, _ = b.WriteString(in.Text)
 	}
 	return []byte(b.String()), nil
+}
+
+func randomMIMEBoundary() (string, error) {
+	var buf [16]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		return "", fmt.Errorf("email: mime boundary: %w", err)
+	}
+	return "flowbot-" + hex.EncodeToString(buf[:]), nil
 }
 
 func sendSMTPTLS(ctx context.Context, addr, host string, auth smtp.Auth, from string, to []string, msg []byte) error {
