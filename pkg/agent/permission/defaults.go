@@ -1,5 +1,7 @@
 package permission
 
+import "sync/atomic"
+
 // KeyDoomLoop is the permission key for loop-detection critical hits (ask/deny/allow).
 const KeyDoomLoop = "doom_loop"
 
@@ -30,17 +32,31 @@ const KeyTodo = "todo"
 // KeyGateway is the permission key for local CLI gateway tools (run_cursor).
 const KeyGateway = "gateway"
 
-var gatewayDefaultAction = ActionAsk
+// gatewayDefaultAction stores Action; initialized to ActionAsk.
+var gatewayDefaultAction atomic.Value
+
+func init() {
+	gatewayDefaultAction.Store(ActionAsk)
+}
 
 // SetGatewayDefaultAction overrides the DefaultConfig gateway rule (from flowbot.yaml).
 // User DB permission overlays still win via EffectiveConfig. Only ask/allow are accepted.
 func SetGatewayDefaultAction(action Action) {
 	switch action {
 	case ActionAllow, ActionAsk:
-		gatewayDefaultAction = action
+		gatewayDefaultAction.Store(action)
 	default:
-		gatewayDefaultAction = ActionAsk
+		gatewayDefaultAction.Store(ActionAsk)
 	}
+}
+
+func loadGatewayDefaultAction() Action {
+	if v := gatewayDefaultAction.Load(); v != nil {
+		if a, ok := v.(Action); ok {
+			return a
+		}
+	}
+	return ActionAsk
 }
 
 // DefaultConfig returns OpenCode-style baseline rules used when the user has no overrides.
@@ -80,7 +96,7 @@ func DefaultConfig() Config {
 			Default: ActionAsk,
 		},
 		KeyTodo:     {Default: ActionAllow},
-		KeyGateway:  {Default: gatewayDefaultAction},
+		KeyGateway:  {Default: loadGatewayDefaultAction()},
 		KeyDoomLoop: {Default: ActionAsk},
 		KeyExternalDirectory: {
 			Patterns: []PatternRule{
