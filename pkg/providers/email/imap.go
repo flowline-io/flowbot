@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	"slices"
 	"strconv"
 	"strings"
@@ -239,7 +240,7 @@ func (c *Client) dialIMAP(ctx context.Context) (*imapclient.Client, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	addr := fmt.Sprintf("%s:%d", c.cfg.IMAPHost, c.cfg.IMAPPort)
+	addr := net.JoinHostPort(c.cfg.IMAPHost, strconv.Itoa(c.cfg.IMAPPort))
 	tlsConfig := &tls.Config{ServerName: c.cfg.IMAPHost, MinVersion: tls.VersionTLS12}
 
 	var ic *imapclient.Client

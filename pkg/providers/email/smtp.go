@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"strconv"
 	"strings"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -55,7 +56,7 @@ func (c *Client) Send(ctx context.Context, in SendInput) error {
 	recipients = append(recipients, in.Cc...)
 	recipients = append(recipients, in.Bcc...)
 
-	addr := fmt.Sprintf("%s:%d", c.cfg.SMTPHost, c.cfg.SMTPPort)
+	addr := net.JoinHostPort(c.cfg.SMTPHost, strconv.Itoa(c.cfg.SMTPPort))
 	auth := smtp.PlainAuth("", c.cfg.Username, c.cfg.Password, c.cfg.SMTPHost)
 
 	switch c.cfg.SMTPTLS {
@@ -283,7 +284,7 @@ func sendSMTPSTARTTLS(ctx context.Context, addr, host string, auth smtp.Auth, fr
 }
 
 func (c *Client) checkSMTP(ctx context.Context) error {
-	addr := fmt.Sprintf("%s:%d", c.cfg.SMTPHost, c.cfg.SMTPPort)
+	addr := net.JoinHostPort(c.cfg.SMTPHost, strconv.Itoa(c.cfg.SMTPPort))
 	auth := smtp.PlainAuth("", c.cfg.Username, c.cfg.Password, c.cfg.SMTPHost)
 	var client *smtp.Client
 	var err error

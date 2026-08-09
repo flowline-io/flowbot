@@ -62,7 +62,7 @@ func (s *WorkspaceSandbox) Reset(root string, fixtures []WorkspaceFixture) error
 	s.root = root
 	fx := make([]caseFixture, 0, len(fixtures))
 	for _, f := range fixtures {
-		fx = append(fx, caseFixture{Path: f.Path, Content: f.Content})
+		fx = append(fx, caseFixture(f))
 	}
 	return writeFixtures(root, fx)
 }

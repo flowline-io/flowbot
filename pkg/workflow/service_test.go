@@ -57,7 +57,7 @@ type mockRunStore struct {
 	nextID  int64
 }
 
-func (m *mockRunStore) CreateRun(_ context.Context, workflowID int64, workflowName, _ string, triggerType string, _, _ map[string]any) (*model.WorkflowRun, error) {
+func (m *mockRunStore) CreateRun(_ context.Context, workflowID int64, workflowName, _, triggerType string, _, _ map[string]any) (*model.WorkflowRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextID++

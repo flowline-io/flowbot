@@ -27,7 +27,7 @@ var (
 	// Recursive/force deletes, disk wipe, destructive git reset/clean.
 	destructivePattern = regexp.MustCompile(`(?i)\brm\s+(-[a-zA-Z]*[rRfF]|--recursive|--force)\b|\bdel\s+/[fs]\b|\brmdir\s+/s\b|\bRemove-Item\b.*(-(Recurse|Force)\b)|\bformat\s+[A-Za-z]:|\bmkfs(\.[a-z0-9]+)?\b|\bdd\s+.*\b(if|of)=(/dev/|[A-Za-z]:)|\bshred\b|\btruncate\s+-s\s*0\b|\bfind\b.*\s-delete\b|\bwipefs\b|\bunlink\b|\bgit\s+reset\s+--hard\b|\bgit\s+clean\s+-[a-zA-Z]*f`)
 
-	privilegePattern = regexp.MustCompile(`(?i)\b(sudo|sudoedit|doas|pkexec|runas)\b|\bsu\b(\s|$)|chmod\s+([0-7]{3,4}|[ugoa]*[+-=][rwxXstugo]+)\b|\bchown\b|\bchgrp\b`)
+	privilegePattern = regexp.MustCompile(`(?i)\b(sudo|sudoedit|doas|pkexec|runas)\b|\bsu\b(\s|$)|chmod\s+([0-7]{3,4}|[ugoa]*[-+=][rwxXstugo]+)\b|\bchown\b|\bchgrp\b`)
 
 	forcePushPattern = regexp.MustCompile(`(?i)\bgit\s+push\b.*(\s--force(-with-lease|-if-includes)?(=|\b)|\s-f\b|\s\+[^\s]+)`)
 

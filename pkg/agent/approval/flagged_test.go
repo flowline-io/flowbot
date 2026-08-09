@@ -168,6 +168,24 @@ func TestEvaluateFlagged(t *testing.T) {
 			wantFlagged: true,
 		},
 		{
+			name: "chmod remove mode privilege",
+			req: permission.Request{
+				Tool:          permission.ToolRunTerminal,
+				Args:          map[string]any{"command": "chmod u-w file"},
+				WorkspaceRoot: root,
+			},
+			wantFlagged: true,
+		},
+		{
+			name: "chmod assign mode privilege",
+			req: permission.Request{
+				Tool:          permission.ToolRunTerminal,
+				Args:          map[string]any{"command": "chmod a=rwx dir"},
+				WorkspaceRoot: root,
+			},
+			wantFlagged: true,
+		},
+		{
 			name: "pkexec privilege",
 			req: permission.Request{
 				Tool:          permission.ToolRunTerminal,

@@ -74,6 +74,8 @@ func TestWriteOverviewHTML(t *testing.T) {
 	assert.Contains(t, body, "20260102T010000Z")
 	assert.Contains(t, body, "html/capability_20260101T010000Z.html")
 	assert.Contains(t, body, "html/capability_20260102T010000Z.html")
+	assert.Contains(t, body, `"name":"capability"`)
+	assert.Contains(t, body, `"labels":["20260101T010000Z","20260102T010000Z"]`)
 }
 
 func TestWriteHTMLReports(t *testing.T) {

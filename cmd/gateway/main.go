@@ -25,17 +25,20 @@ func main() {
 	cfgPath := flag.String("config", "gateway.yaml", "path to gateway.yaml")
 	logLevel := flag.String("log-level", "info", "log level: debug, info, warn, error")
 	flag.Parse()
+	os.Exit(run(*cfgPath, *logLevel))
+}
 
-	flog.Init(flog.Config{Level: *logLevel})
+func run(cfgPath, logLevel string) int {
+	flog.Init(flog.Config{Level: logLevel})
 
-	cfg, err := config.Load(*cfgPath)
+	cfg, err := config.Load(cfgPath)
 	if err != nil {
-		flog.Error(fmt.Errorf("load config %s: %w", *cfgPath, err))
-		os.Exit(1)
+		flog.Error(fmt.Errorf("load config %s: %w", cfgPath, err))
+		return 1
 	}
 	if err := cfg.Validate(); err != nil {
 		flog.Error(fmt.Errorf("invalid config: %w", err))
-		os.Exit(1)
+		return 1
 	}
 
 	if path, lookErr := exec.LookPath(cfg.CursorBinary); lookErr != nil {
@@ -66,9 +69,10 @@ func main() {
 		cfg.ClaimInterval, cfg.HeartbeatInterval, cfg.JobTimeout, cfg.CursorBinary)
 	if err := w.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		flog.Error(fmt.Errorf("worker stopped: %w", err))
-		os.Exit(1)
+		return 1
 	}
 	flog.Info("flowbot-gateway stopped")
+	return 0
 }
 
 func serveHealthz(ctx context.Context, addr string) {

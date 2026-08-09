@@ -184,9 +184,11 @@ func (s *RedisStore) ZAdd(ctx context.Context, key Key, score float64, member st
 
 // ZRangeByScore returns sorted-set members with scores in [minScore, maxScore] inclusive.
 func (s *RedisStore) ZRangeByScore(ctx context.Context, key Key, minScore, maxScore float64) ([]string, error) {
-	members, err := s.client.ZRangeByScore(ctx, key.String(), &redis.ZRangeBy{
-		Min: fmt.Sprintf("%f", minScore),
-		Max: fmt.Sprintf("%f", maxScore),
+	members, err := s.client.ZRangeArgs(ctx, redis.ZRangeArgs{
+		Key:     key.String(),
+		Start:   minScore,
+		Stop:    maxScore,
+		ByScore: true,
 	}).Result()
 	if err != nil {
 		return nil, fmt.Errorf("redis zrangebyscore %s: %w", key.String(), err)

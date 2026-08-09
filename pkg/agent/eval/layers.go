@@ -7,7 +7,7 @@ import (
 )
 
 // AnnotateLayerMetrics fills L1/L2/natural-repair fields after hard scoring.
-func AnnotateLayerMetrics(m *Metrics, caseName string, tier string, tags []string, expect Expectation) {
+func AnnotateLayerMetrics(m *Metrics, caseName, tier string, tags []string, expect Expectation) {
 	if m == nil {
 		return
 	}

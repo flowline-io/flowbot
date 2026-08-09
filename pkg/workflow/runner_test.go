@@ -38,7 +38,7 @@ func newMockWorkflowStore() *mockWorkflowStore {
 	}
 }
 
-func (m *mockWorkflowStore) CreateRun(_ context.Context, workflowID int64, workflowName, _ string, triggerType string, _, _ map[string]any) (*model.WorkflowRun, error) {
+func (m *mockWorkflowStore) CreateRun(_ context.Context, workflowID int64, workflowName, _, triggerType string, _, _ map[string]any) (*model.WorkflowRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextRunID++

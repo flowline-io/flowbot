@@ -223,7 +223,7 @@ func LoadScenariosFromDirsWithOptions(dirs []string, workspaceParent string, opt
 }
 
 // DefaultGoldByCaseFromDirs merges gold files from multiple case directories.
-func DefaultGoldByCaseFromDirs(dirs []string, names []string) (map[string]GoldScores, error) {
+func DefaultGoldByCaseFromDirs(dirs, names []string) (map[string]GoldScores, error) {
 	out := make(map[string]GoldScores, len(names))
 	for _, dir := range dirs {
 		part, err := DefaultGoldByCase(dir, names)

@@ -198,12 +198,10 @@ func scenarioFromCase(cf caseFile, scripts []agentllm.ResponseScript) Scenario {
 		},
 	}
 	for _, f := range cf.Fixtures {
-		sc.Fixtures = append(sc.Fixtures, WorkspaceFixture{Path: f.Path, Content: f.Content})
+		sc.Fixtures = append(sc.Fixtures, WorkspaceFixture(f))
 	}
 	for _, f := range cf.Expect.Outcome.Files {
-		sc.Expect.Outcome.Files = append(sc.Expect.Outcome.Files, FileAssert{
-			Path: f.Path, Contains: f.Contains, Equals: f.Equals,
-		})
+		sc.Expect.Outcome.Files = append(sc.Expect.Outcome.Files, FileAssert(f))
 	}
 	return sc
 }

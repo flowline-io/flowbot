@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-
-	"github.com/bytedance/sonic"
 )
 
 var stampedReportName = regexp.MustCompile(`^(capability|regression|harness)_(\d{8}T\d{6}Z)\.json$`)
@@ -94,12 +92,8 @@ func WriteOverviewHTML(path string, reports []ReportFile) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	data, err := overviewPageData(reports)
-	if err != nil {
-		return err
-	}
 	var b strings.Builder
-	if err := overviewHTMLTmpl.Execute(&b, data); err != nil {
+	if err := overviewHTMLTmpl.Execute(&b, overviewPageData(reports)); err != nil {
 		return err
 	}
 	return os.WriteFile(path, []byte(b.String()), 0o644)
@@ -161,7 +155,7 @@ type caseDetailView struct {
 
 type overviewView struct {
 	Suites    []suiteOverview
-	ChartJSON template.JS
+	ChartJSON chartPayload
 }
 
 type suiteOverview struct {
@@ -256,7 +250,7 @@ func optionalFloat(p *float64, format string) string {
 	return fmt.Sprintf(format, *p)
 }
 
-func overviewPageData(reports []ReportFile) (overviewView, error) {
+func overviewPageData(reports []ReportFile) overviewView {
 	bySuite := make(map[string][]ReportFile)
 	order := make([]string, 0)
 	for _, f := range reports {
@@ -305,14 +299,10 @@ func overviewPageData(reports []ReportFile) (overviewView, error) {
 		payload.Suites = append(payload.Suites, cs)
 		suites = append(suites, so)
 	}
-	raw, err := sonic.Marshal(payload)
-	if err != nil {
-		return overviewView{}, err
-	}
 	return overviewView{
 		Suites:    suites,
-		ChartJSON: template.JS(raw),
-	}, nil
+		ChartJSON: payload,
+	}
 }
 
 var detailHTMLTmpl = template.Must(template.New("detail").Parse(`<!DOCTYPE html>
