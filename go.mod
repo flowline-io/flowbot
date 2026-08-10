@@ -65,7 +65,7 @@ require (
 	github.com/tmc/langchaingo v0.1.14
 	github.com/valyala/fasthttp v1.73.0
 	github.com/yuin/goldmark v1.8.5
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.45.0
 	go.opentelemetry.io/otel/sdk v1.45.0
