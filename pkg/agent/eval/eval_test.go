@@ -439,7 +439,7 @@ func TestRunLiveScenarios_progress(t *testing.T) {
 func TestJudgeAllFake(t *testing.T) {
 	t.Parallel()
 	scripts := make([]agentllm.ResponseScript, 0, 4)
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		scripts = append(scripts, agentllm.ResponseScript{
 			Content: `{"score":4,"unknown":false,"reasoning":"fine"}`,
 		})
@@ -638,7 +638,7 @@ func TestLiveOpenQASmokeWithFake(t *testing.T) {
 
 	sc := scenarios[0]
 	scripts := make([]agentllm.ResponseScript, 0, 3)
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		scripts = append(scripts, sc.Scripts...)
 	}
 	model := agentllm.NewFakeModel(scripts...)

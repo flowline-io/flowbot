@@ -24,9 +24,12 @@ type ResponseScript struct {
 
 // FakeModel implements llms.Model with a queue of scripted responses.
 type FakeModel struct {
-	mu        sync.Mutex
-	responses []ResponseScript
-	calls     int
+	mu           sync.Mutex
+	responses    []ResponseScript
+	calls        int
+	lastMessages []llms.MessageContent
+	lastTools    []llms.Tool
+	lastCtx      context.Context
 }
 
 // NewFakeModel creates a fake model with the given response sequence.
@@ -53,8 +56,29 @@ func (f *FakeModel) Call(ctx context.Context, prompt string, options ...llms.Cal
 	return resp.Choices[0].Content, nil
 }
 
+// LastMessages returns the messages from the most recent GenerateContent call.
+func (f *FakeModel) LastMessages() []llms.MessageContent {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]llms.MessageContent(nil), f.lastMessages...)
+}
+
+// LastTools returns the tools from the most recent GenerateContent call.
+func (f *FakeModel) LastTools() []llms.Tool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]llms.Tool(nil), f.lastTools...)
+}
+
+// LastContext returns the context from the most recent GenerateContent call.
+func (f *FakeModel) LastContext() context.Context {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.lastCtx
+}
+
 // GenerateContent returns the next scripted response.
-func (f *FakeModel) GenerateContent(ctx context.Context, _ []llms.MessageContent, options ...llms.CallOption) (*llms.ContentResponse, error) {
+func (f *FakeModel) GenerateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (*llms.ContentResponse, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -67,6 +91,9 @@ func (f *FakeModel) GenerateContent(ctx context.Context, _ []llms.MessageContent
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.calls++
+	f.lastCtx = ctx
+	f.lastMessages = append([]llms.MessageContent(nil), messages...)
+	f.lastTools = append([]llms.Tool(nil), opts.Tools...)
 
 	if len(f.responses) == 0 {
 		return &llms.ContentResponse{

@@ -170,7 +170,7 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 	}
 	before := h.ContextManager().GetContextUsage(branch).Tokens
 
-	err = h.ContextManager().CompactAndReload(ctx, h.Session(), h.Agent(), ctxmgr.CompactOpts{Force: true})
+	report, err := h.ContextManager().CompactAndReload(ctx, h.Session(), h.Agent(), ctxmgr.CompactOpts{Force: true})
 	if err != nil {
 		if agentresult.IsCode(err, "nothing_to_compact") {
 			return &ManualCompactionResult{Compacted: false, TokensBefore: before, TokensAfter: before}, nil
@@ -184,7 +184,7 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 	}
 	after := h.ContextManager().GetContextUsage(branch).Tokens
 	return &ManualCompactionResult{
-		Compacted:    true,
+		Compacted:    report.Changed(),
 		TokensBefore: before,
 		TokensAfter:  after,
 	}, nil

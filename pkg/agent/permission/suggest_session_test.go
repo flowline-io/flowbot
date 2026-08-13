@@ -58,4 +58,3 @@ func TestSessionStateGrants(t *testing.T) {
 		})
 	}
 }
-

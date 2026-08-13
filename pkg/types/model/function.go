@@ -15,8 +15,8 @@ type FunctionDefinition struct {
 	MetadataPublished   *string   `json:"metadata_published,omitempty"`
 	EntrypointPublished *string   `json:"entrypoint_published,omitempty"`
 	SourcePublished     *string   `json:"source_published,omitempty"`
-	CreatedAt           time.Time `json:"created_at,omitempty"`
-	UpdatedAt           time.Time `json:"updated_at,omitempty"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 // FunctionDefinitionVersion is an immutable published snapshot of a named function.

@@ -286,14 +286,14 @@ func LoadReportJSON(path string) (EvalReport, error) {
 
 // CompareDiff summarizes differences between a baseline and candidate report.
 type CompareDiff struct {
-	BaselineSuite      string               `json:"baseline_suite"`
-	CandidateSuite     string               `json:"candidate_suite"`
-	Improved           []string             `json:"improved"`
-	Regressed          []string             `json:"regressed"`
-	UnchangedPass      []string             `json:"unchanged_pass"`
-	UnchangedFail      []string             `json:"unchanged_fail"`
-	OnlyBaseline       []string             `json:"only_baseline"`
-	OnlyCandidate      []string             `json:"only_candidate"`
+	BaselineSuite      string              `json:"baseline_suite"`
+	CandidateSuite     string              `json:"candidate_suite"`
+	Improved           []string            `json:"improved"`
+	Regressed          []string            `json:"regressed"`
+	UnchangedPass      []string            `json:"unchanged_pass"`
+	UnchangedFail      []string            `json:"unchanged_fail"`
+	OnlyBaseline       []string            `json:"only_baseline"`
+	OnlyCandidate      []string            `json:"only_candidate"`
 	BaselineScorecard  CapabilityScorecard `json:"baseline_scorecard"`
 	CandidateScorecard CapabilityScorecard `json:"candidate_scorecard"`
 	TotalDelta         float64             `json:"total_delta"`

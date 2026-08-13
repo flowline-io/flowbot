@@ -3,6 +3,7 @@ package eval
 import (
 	"cmp"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -114,7 +115,7 @@ func FilterByTier(scenarios []Scenario, spec string) ([]Scenario, error) {
 		return scenarios, nil
 	}
 	want := make(map[string]struct{})
-	for _, part := range strings.Split(spec, ",") {
+	for part := range strings.SplitSeq(spec, ",") {
 		part = strings.TrimSpace(strings.ToLower(part))
 		if part == "" {
 			continue
@@ -230,9 +231,7 @@ func DefaultGoldByCaseFromDirs(dirs, names []string) (map[string]GoldScores, err
 		if err != nil {
 			return nil, err
 		}
-		for k, v := range part {
-			out[k] = v
-		}
+		maps.Copy(out, part)
 	}
 	return out, nil
 }

@@ -31,6 +31,8 @@ type Options struct {
 	ContextWindow int
 	Settings      Settings
 	SystemPrompt  string
+	Tools         []llms.Tool
+	ThinkingLevel string
 }
 
 // Manager orchestrates compaction, branch summarization, and context budget checks.
@@ -40,6 +42,8 @@ type Manager struct {
 	contextWindow int
 	settings      Settings
 	systemPrompt  string
+	tools         []llms.Tool
+	thinkingLevel string
 }
 
 // New creates a context manager for harness integration.
@@ -50,6 +54,8 @@ func New(opts Options) *Manager {
 		contextWindow: opts.ContextWindow,
 		settings:      opts.Settings.WithDefaults(),
 		systemPrompt:  opts.SystemPrompt,
+		tools:         append([]llms.Tool(nil), opts.Tools...),
+		thinkingLevel: opts.ThinkingLevel,
 	}
 }
 
@@ -61,6 +67,16 @@ func (m *Manager) Settings() Settings {
 // UpdateSystemPrompt replaces the system prompt used for context usage estimates.
 func (m *Manager) UpdateSystemPrompt(systemPrompt string) {
 	m.systemPrompt = systemPrompt
+}
+
+// UpdateTools replaces the tool schemas forwarded on summarization requests.
+func (m *Manager) UpdateTools(tools []llms.Tool) {
+	m.tools = append([]llms.Tool(nil), tools...)
+}
+
+// UpdateThinkingLevel replaces the thinking level forwarded on summarization requests.
+func (m *Manager) UpdateThinkingLevel(level string) {
+	m.thinkingLevel = level
 }
 
 // ContextWindow returns the configured model context window size.
@@ -95,20 +111,21 @@ func (m *Manager) EnsureWithinBudget(ctx context.Context, sess *session.Session,
 	if !ShouldCompact(usage.Tokens, m.contextWindow, m.settings) {
 		return nil
 	}
-	return m.compactPath(ctx, sess, ag, path, CompactOpts{Force: false}, usage.Tokens)
+	_, err = m.compactPath(ctx, sess, ag, path, CompactOpts{Force: false}, usage.Tokens)
+	return err
 }
 
 // CompactAndReload compacts the current branch and reloads agent state.
-func (m *Manager) CompactAndReload(ctx context.Context, sess *session.Session, ag StatefulAgent, opts CompactOpts) error {
+func (m *Manager) CompactAndReload(ctx context.Context, sess *session.Session, ag StatefulAgent, opts CompactOpts) (CompactReport, error) {
 	if sess == nil {
-		return fmt.Errorf("ctxmgr: nil session")
+		return CompactReport{}, fmt.Errorf("ctxmgr: nil session")
 	}
 	if !opts.Force && !m.settings.Enabled {
-		return nil
+		return CompactReport{}, nil
 	}
 	path, err := sess.GetBranch(ctx, "")
 	if err != nil {
-		return fmt.Errorf("ctxmgr: load branch: %w", err)
+		return CompactReport{}, fmt.Errorf("ctxmgr: load branch: %w", err)
 	}
 	usage := m.GetContextUsage(path)
 	if ag != nil {
@@ -171,27 +188,95 @@ func (m *Manager) compactPath(
 	path []session.TreeEntry,
 	opts CompactOpts,
 	contextTokens int,
-) error {
-	extra := agentExtraMessages(ag, path)
+) (CompactReport, error) {
+	outcome, err := m.applyPrune(ctx, sess, ag, path, contextTokens)
+	if err != nil {
+		return outcome.report, err
+	}
+	if !opts.Force && outcome.report.Pruned && !ShouldCompact(outcome.contextTokens, m.contextWindow, m.settings) {
+		return outcome.report, m.reloadKeepingExtras(ctx, sess, ag, outcome.extras)
+	}
+	return m.summarizeAndPersist(ctx, sess, ag, outcome.path, outcome.extras, opts, outcome.contextTokens, outcome.report)
+}
+
+type pruneOutcome struct {
+	extras        []msg.AgentMessage
+	report        CompactReport
+	path          []session.TreeEntry
+	contextTokens int
+}
+
+func (m *Manager) applyPrune(
+	ctx context.Context,
+	sess *session.Session,
+	ag StatefulAgent,
+	path []session.TreeEntry,
+	contextTokens int,
+) (pruneOutcome, error) {
+	out := pruneOutcome{path: path, contextTokens: contextTokens}
+	rawExtra := agentExtraMessages(ag, path)
+	out.extras = PruneToolOutputs(rawExtra, m.settings)
+	if EstimateContextTokens(rawExtra).Tokens != EstimateContextTokens(out.extras).Tokens {
+		out.report.Pruned = true
+	}
+
+	pruned, err := persistPrunedToolResults(ctx, sess, path, m.settings)
+	if err != nil {
+		return out, err
+	}
+	out.report.Pruned = pruned || out.report.Pruned
+	if pruned {
+		out.path, err = sess.GetBranch(ctx, "")
+		if err != nil {
+			return out, fmt.Errorf("ctxmgr: load pruned branch: %w", err)
+		}
+	}
+	if out.report.Pruned {
+		out.contextTokens = m.GetContextUsage(out.path).Tokens + EstimateContextTokens(out.extras).Tokens
+	}
+	return out, nil
+}
+
+func (m *Manager) summarizeAndPersist(
+	ctx context.Context,
+	sess *session.Session,
+	ag StatefulAgent,
+	path []session.TreeEntry,
+	extra []msg.AgentMessage,
+	opts CompactOpts,
+	contextTokens int,
+	report CompactReport,
+) (CompactReport, error) {
 	preparationResult := PrepareCompaction(path, m.settings, PrepareOptions{
 		Force:         opts.Force,
 		ExtraMessages: extra,
 	})
 	if !preparationResult.IsOk() {
 		_, adaptErr := result.GetOrError(preparationResult)
-		return adaptErr
+		return report, adaptErr
 	}
 	preparation := preparationResult.Value()
 	if preparation == nil {
-		if ShouldCompact(contextTokens, m.contextWindow, m.settings) || opts.Force {
-			return ErrCompactionRequired
+		if report.Pruned {
+			return report, m.reloadKeepingExtras(ctx, sess, ag, extra)
 		}
-		return nil
+		if ShouldCompact(contextTokens, m.contextWindow, m.settings) || opts.Force {
+			return report, ErrCompactionRequired
+		}
+		return report, nil
 	}
+	preparation.SystemPrompt = m.systemPrompt
+	preparation.Tools = m.tools
+	preparation.ThinkingLevel = m.thinkingLevel
 	compactResult := RunCompaction(ctx, m.model, m.modelName, preparation)
 	if !compactResult.IsOk() {
 		_, adaptErr := result.GetOrError(compactResult)
-		return adaptErr
+		if report.Pruned {
+			if reloadErr := m.reloadKeepingExtras(ctx, sess, ag, extra); reloadErr != nil {
+				return report, reloadErr
+			}
+		}
+		return report, adaptErr
 	}
 	compacted := compactResult.Value()
 	if err := sess.AppendCompaction(ctx, session.CompactionResult{
@@ -202,11 +287,33 @@ func (m *Manager) compactPath(
 		ReadFiles:        compacted.ReadFiles,
 		ModifiedFiles:    compacted.ModifiedFiles,
 	}); err != nil {
-		return fmt.Errorf("ctxmgr: persist compaction: %w", err)
+		return report, fmt.Errorf("ctxmgr: persist compaction: %w", err)
 	}
+	report.Summarized = true
 	if ag != nil {
-		return m.ReloadAgentState(ctx, sess, ag)
+		return report, m.ReloadAgentState(ctx, sess, ag)
 	}
+	return report, nil
+}
+
+func (m *Manager) reloadKeepingExtras(
+	ctx context.Context,
+	sess *session.Session,
+	ag StatefulAgent,
+	extras []msg.AgentMessage,
+) error {
+	if ag == nil {
+		return nil
+	}
+	if err := m.ReloadAgentState(ctx, sess, ag); err != nil {
+		return err
+	}
+	if len(extras) == 0 {
+		return nil
+	}
+	ag.ApplyState(func(state *msg.Context) {
+		state.Messages = append(state.Messages, extras...)
+	})
 	return nil
 }
 

@@ -856,4 +856,3 @@ func (s *ModuleDataStore) record(ctx context.Context, id, digit int64) error {
 	}
 	return nil
 }
-

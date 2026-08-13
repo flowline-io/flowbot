@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -89,32 +89,6 @@ func TestFindCutPointSplitTurn(t *testing.T) {
 			if tt.wantSplitTurn {
 				assert.GreaterOrEqual(t, got.TurnStartIndex, 0)
 			}
-		})
-	}
-}
-
-func TestSerializeConversationTruncatesToolOutput(t *testing.T) {
-	t.Parallel()
-
-	longText := strings.Repeat("x", 2500)
-	got := ctxmgr.SerializeConversation([]msg.AgentMessage{
-		msg.ToolResultMessage{Parts: []msg.ContentPart{msg.TextPart{Text: longText}}},
-	})
-
-	tests := []struct {
-		name string
-		text string
-		want string
-	}{
-		{name: "includes prefix", text: got, want: "[Tool result]:"},
-		{name: "truncates long output", text: got, want: "more characters truncated"},
-		{name: "starts with tool marker", text: got, want: "[Tool result]: "},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Contains(t, tt.text, tt.want)
 		})
 	}
 }

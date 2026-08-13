@@ -487,6 +487,126 @@ func TestHarnessRespectsCompactionDisabledOnOverflow(t *testing.T) {
 	assert.Equal(t, 1, fakeModel.Calls())
 }
 
+func TestHarnessOverflowRetryAfterPruneOnly(t *testing.T) {
+	t.Parallel()
+
+	appendToolTurn := func(ctx context.Context, t *testing.T, sess *session.Session, toolText string) {
+		t.Helper()
+		require.NoError(t, sess.Append(ctx, session.TreeEntry{
+			ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("read the file"),
+		}))
+		require.NoError(t, sess.Append(ctx, session.TreeEntry{
+			ID: "2", ParentID: "1", Type: session.EntryMessage, Message: msg.AssistantMessage{
+				Parts: []msg.ContentPart{msg.ToolCallPart{ID: "c1", Name: "echo", Arguments: `{}`}},
+			},
+		}))
+		require.NoError(t, sess.Append(ctx, session.TreeEntry{
+			ID: "3", ParentID: "2", Type: session.EntryMessage, Message: msg.ToolResultMessage{
+				ToolCallID: "c1",
+				Name:       "echo",
+				Parts:      []msg.ContentPart{msg.TextPart{Text: toolText}},
+			},
+		}))
+	}
+
+	tests := []struct {
+		name           string
+		prune          bool
+		toolText       string
+		wantCalls      int
+		wantCompaction bool
+	}{
+		{
+			name:           "recovers without summarization",
+			prune:          true,
+			toolText:       strings.Repeat("a", 20000),
+			wantCalls:      2,
+			wantCompaction: false,
+		},
+		{
+			name:           "prune disabled still summarizes",
+			prune:          false,
+			toolText:       strings.Repeat("a", 20000),
+			wantCalls:      3,
+			wantCompaction: true,
+		},
+		{
+			name:           "small tool results still summarize after overflow",
+			prune:          true,
+			toolText:       "small",
+			wantCalls:      3,
+			wantCompaction: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := context.Background()
+			store := session.NewMemoryStorage()
+			sess := session.New(store)
+			appendToolTurn(ctx, t, sess, tt.toolText)
+
+			fakeModel := agentllm.NewFakeModel(
+				agentllm.ResponseScript{Err: fmt.Errorf("Your input exceeds the context window of this model")},
+				agentllm.ResponseScript{Content: "## Goal\ncompacted"},
+				agentllm.ResponseScript{Content: "recovered after overflow"},
+			)
+			ctxMgr := ctxmgr.New(ctxmgr.Options{
+				Model:         fakeModel,
+				ModelName:     "fake",
+				ContextWindow: 128000,
+				Settings: ctxmgr.Settings{
+					Enabled:          true,
+					PruneToolOutputs: tt.prune,
+					ReserveTokens:    16384,
+					KeepRecentTokens: 2,
+				},
+				SystemPrompt: "system",
+			})
+			h := harness.New(harness.Options{
+				AgentOptions:   loop.Options{Model: fakeModel},
+				Session:        sess,
+				ContextManager: ctxMgr,
+				SystemPrompt:   "system",
+				ModelName:      "fake",
+			})
+
+			_, err := h.Prompt(ctx, msg.NewUserMessage("hello"))
+			require.NoError(t, err)
+			require.NoError(t, h.WaitIdle(ctx))
+			require.NoError(t, h.LastRunResult().Err)
+			assert.Equal(t, tt.wantCalls, fakeModel.Calls())
+			if !tt.wantCompaction {
+				assert.NotContains(t, joinedHarnessText(fakeModel), "compaction engine")
+			}
+
+			entries, err := store.ListEntries(ctx)
+			require.NoError(t, err)
+			hasCompaction := false
+			for _, entry := range entries {
+				if entry.Type == session.EntryCompaction {
+					hasCompaction = true
+					break
+				}
+			}
+			assert.Equal(t, tt.wantCompaction, hasCompaction)
+		})
+	}
+}
+
+func joinedHarnessText(fake *agentllm.FakeModel) string {
+	var b strings.Builder
+	for _, message := range fake.LastMessages() {
+		for _, part := range message.Parts {
+			if text, ok := part.(llms.TextContent); ok {
+				_, _ = b.WriteString(text.Text)
+			}
+		}
+	}
+	return b.String()
+}
+
 func TestHarnessRouterDualModelRouting(t *testing.T) {
 	tests := []struct {
 		name      string

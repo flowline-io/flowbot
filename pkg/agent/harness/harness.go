@@ -317,6 +317,7 @@ func (h *Harness) prepareContext(ctx context.Context) error {
 	if h.ctxMgr == nil || h.session == nil {
 		return nil
 	}
+	h.syncCompactionTools()
 	ctx, span := trace.StartSpan(ctx, "agent.compact")
 	defer span.End()
 	if err := h.ctxMgr.EnsureWithinBudget(ctx, h.session, h.agent); err != nil {
@@ -327,6 +328,14 @@ func (h *Harness) prepareContext(ctx context.Context) error {
 	metrics.Agent().IncCompact("ok")
 	h.emitContextUsage(ctx)
 	return nil
+}
+
+func (h *Harness) syncCompactionTools() {
+	if h.ctxMgr == nil {
+		return
+	}
+	h.ctxMgr.UpdateTools(tool.BuildLLMTools(h.registry.ActiveTools()))
+	h.ctxMgr.UpdateThinkingLevel(h.loopBaseCfg.ThinkingLevel)
 }
 
 func (h *Harness) emitContextUsage(ctx context.Context) {
@@ -366,24 +375,31 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, pr
 		}
 		metrics.Agent().IncOverflowRetry(fmt.Sprintf("%d", nextLevel))
 		ctx, span := trace.StartSpan(ctx, "agent.compact")
-		compactErr := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{Force: force})
+		h.syncCompactionTools()
+		report, compactErr := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{Force: force})
+		if report.Changed() {
+			if compactErr != nil {
+				flog.Warn("harness: compaction warning after surface change code=%s: %v", agentresult.CodeOf(compactErr), compactErr)
+			}
+			metrics.Agent().IncCompact("ok")
+			span.End()
+			h.emitObservation(ctx, hooks.ObservationEvent{Type: hooks.EventContextCompacted})
+			h.emitContextUsage(ctx)
+			retryStream, promptErr := h.agent.Prompt(ctx, prompts...)
+			if promptErr != nil {
+				h.finishStream(ctx, result)
+				return result
+			}
+			return h.watchStream(ctx, retryStream, prompts, nextLevel)
+		}
 		if compactErr != nil {
 			metrics.Agent().IncCompact("error")
 			trace.RecordError(ctx, compactErr)
-			span.End()
-			h.finishStream(ctx, result)
-			return agentevent.Result{Messages: result.Messages, Err: errors.Join(result.Err, compactErr)}
+			flog.Warn("harness: compaction did not advance surface code=%s: %v", agentresult.CodeOf(compactErr), compactErr)
 		}
-		metrics.Agent().IncCompact("ok")
 		span.End()
-		h.emitObservation(ctx, hooks.ObservationEvent{Type: hooks.EventContextCompacted})
-		h.emitContextUsage(ctx)
-		retryStream, promptErr := h.agent.Prompt(ctx, prompts...)
-		if promptErr != nil {
-			h.finishStream(ctx, result)
-			return result
-		}
-		return h.watchStream(ctx, retryStream, prompts, nextLevel)
+		h.finishStream(ctx, result)
+		return result
 	}
 
 	h.finishStream(ctx, result)

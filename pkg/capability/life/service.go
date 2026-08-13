@@ -75,26 +75,26 @@ type QuestEvidence struct {
 
 // AdjudicateQuestRequest carries one quest plus its evidence context.
 type AdjudicateQuestRequest struct {
-	QuestTitle      string                 `json:"quest_title"`
-	QuestPrompt     string                 `json:"quest_prompt,omitempty"`
-	QuestType       string                 `json:"quest_type,omitempty"`
-	Difficulty      string                 `json:"difficulty,omitempty"`
-	BaseExp         int                    `json:"base_exp,omitempty"`
-	BaseGold        int                    `json:"base_gold,omitempty"`
-	AIPersonality   string                 `json:"ai_personality,omitempty"`
-	CompletionRate  float64                `json:"completion_rate,omitempty"`
-	Mood            map[string]any         `json:"mood,omitempty"`
-	RecentActionLog []map[string]any       `json:"recent_action_log,omitempty"`
-	Evidence        []QuestEvidence        `json:"evidence,omitempty"`
-	ActiveGoals     []string               `json:"active_goals,omitempty"`
+	QuestTitle      string           `json:"quest_title"`
+	QuestPrompt     string           `json:"quest_prompt,omitempty"`
+	QuestType       string           `json:"quest_type,omitempty"`
+	Difficulty      string           `json:"difficulty,omitempty"`
+	BaseExp         int              `json:"base_exp,omitempty"`
+	BaseGold        int              `json:"base_gold,omitempty"`
+	AIPersonality   string           `json:"ai_personality,omitempty"`
+	CompletionRate  float64          `json:"completion_rate,omitempty"`
+	Mood            map[string]any   `json:"mood,omitempty"`
+	RecentActionLog []map[string]any `json:"recent_action_log,omitempty"`
+	Evidence        []QuestEvidence  `json:"evidence,omitempty"`
+	ActiveGoals     []string         `json:"active_goals,omitempty"`
 }
 
 // QuestAdjudication is the structured AI ruling for one quest.
 type QuestAdjudication struct {
-	Verdict           string   `json:"verdict"`
-	Reason            string   `json:"reason"`
-	SuggestedExp      int      `json:"suggested_exp"`
-	SuggestedGold     int      `json:"suggested_gold"`
+	Verdict            string   `json:"verdict"`
+	Reason             string   `json:"reason"`
+	SuggestedExp       int      `json:"suggested_exp"`
+	SuggestedGold      int      `json:"suggested_gold"`
 	SuggestedNextSteps []string `json:"suggested_next_steps,omitempty"`
 }
 

@@ -637,7 +637,7 @@ func buildLifeQuestsData(
 	return pages.LifeQuestsData{
 		Pending: rowsPending, Completed: rowsDone, Goals: goalRows, TodayActions: todayActions, TodayHabits: todayHabits, ActionLogs: logRows,
 		CompletedPage: completedInfo, ActionLogsPage: logsInfo,
-		HistoryTab: pages.LifeNormalizeHistoryTab(historyTab),
+		HistoryTab:   pages.LifeNormalizeHistoryTab(historyTab),
 		PendingCount: len(rowsPending),
 	}
 }

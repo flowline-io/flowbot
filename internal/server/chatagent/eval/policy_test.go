@@ -2,6 +2,7 @@ package eval_test
 
 import (
 	"context"
+	"maps"
 	"os"
 	"path/filepath"
 	"testing"
@@ -57,9 +58,7 @@ func TestPolicyOutcomesFromTestdata(t *testing.T) {
 				}
 				ev := permission.NewEvaluator(cfg)
 				args := map[string]any{}
-				for k, v := range tc.Args {
-					args[k] = v
-				}
+				maps.Copy(args, tc.Args)
 				if tc.Path != "" {
 					args["path"] = tc.Path
 				}

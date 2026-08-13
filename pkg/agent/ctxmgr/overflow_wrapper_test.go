@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -48,7 +49,7 @@ var indexSegmentPattern = regexp.MustCompile(`\[\d+]`)
 // SettingsCatalog builds redacted, schema-complete setting groups from cfg.
 func SettingsCatalog(cfg Type) []SettingGroup {
 	var entries []SettingEntry
-	walkValue(reflect.ValueOf(cfg), reflect.TypeOf(cfg), "", false, &entries)
+	walkValue(reflect.ValueOf(cfg), reflect.TypeFor[Type](), "", false, &entries)
 
 	order := make([]string, 0)
 	grouped := make(map[string][]SettingEntry)
@@ -84,12 +85,7 @@ func isSensitivePath(path string, explicit bool) bool {
 	if explicit {
 		return true
 	}
-	for _, seg := range pathSegments(path) {
-		if sensitiveSegment(seg) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(pathSegments(path), sensitiveSegment)
 }
 
 func pathSegments(path string) []string {
@@ -150,7 +146,7 @@ func walkValue(v reflect.Value, t reflect.Type, path string, parentNil bool, out
 
 	switch v.Kind() {
 	case reflect.Struct:
-		if v.Type() == reflect.TypeOf(time.Duration(0)) {
+		if v.Type() == reflect.TypeFor[time.Duration]() {
 			appendLeaf(path, v, false, parentNil, out)
 			return
 		}
@@ -185,7 +181,7 @@ func walkStructField(fv reflect.Value, sf reflect.StructField, childPath string,
 
 	if ft.Kind() == reflect.Pointer {
 		if fv.IsNil() || parentNil {
-			if deref := ft.Elem(); deref.Kind() == reflect.Struct && deref != reflect.TypeOf(time.Time{}) {
+			if deref := ft.Elem(); deref.Kind() == reflect.Struct && deref != reflect.TypeFor[time.Time]() {
 				walkStructSchema(deref, childPath, true, out)
 				return
 			}
@@ -199,7 +195,7 @@ func walkStructField(fv reflect.Value, sf reflect.StructField, childPath string,
 	}
 
 	switch {
-	case ft.Kind() == reflect.Struct && ft != reflect.TypeOf(time.Duration(0)) && ft != reflect.TypeOf(time.Time{}):
+	case ft.Kind() == reflect.Struct && ft != reflect.TypeFor[time.Duration]() && ft != reflect.TypeFor[time.Time]():
 		walkValue(fv, ft, childPath, parentNil, out)
 	case ft.Kind() == reflect.Slice || ft.Kind() == reflect.Array:
 		walkSliceField(fv, ft, childPath, explicit, out)
@@ -224,8 +220,8 @@ func walkStructSchema(t reflect.Type, path string, asNotSet bool, out *[]Setting
 		})
 		return
 	}
-	for i := 0; i < t.NumField(); i++ {
-		sf := t.Field(i)
+	for sf := range t.Fields() {
+		sf := sf
 		if sf.PkgPath != "" {
 			continue
 		}
@@ -240,7 +236,7 @@ func walkStructSchema(t reflect.Type, path string, asNotSet bool, out *[]Setting
 			ft = ft.Elem()
 		}
 		switch {
-		case ft == reflect.TypeOf(time.Duration(0)) || ft == reflect.TypeOf(time.Time{}):
+		case ft == reflect.TypeFor[time.Duration]() || ft == reflect.TypeFor[time.Time]():
 			*out = append(*out, SettingEntry{
 				Path:      childPath,
 				Value:     notSetDisplay,
@@ -280,7 +276,7 @@ func walkSliceField(v reflect.Value, t reflect.Type, path string, explicit bool,
 	// Expand composite elements so nested secrets (e.g. modules[].auth.password) are redacted by path.
 	switch elem.Kind() {
 	case reflect.Struct:
-		if elem != reflect.TypeOf(time.Time{}) {
+		if elem != reflect.TypeFor[time.Time]() {
 			for i := 0; i < v.Len(); i++ {
 				walkValue(v.Index(i), v.Index(i).Type(), fmt.Sprintf("%s[%d]", path, i), false, out)
 			}
@@ -386,7 +382,7 @@ func formatDisplayValue(v reflect.Value) string {
 	if !v.IsValid() {
 		return notSetDisplay
 	}
-	if v.Type() == reflect.TypeOf(time.Duration(0)) {
+	if v.Type() == reflect.TypeFor[time.Duration]() {
 		d := time.Duration(v.Int())
 		if d == 0 {
 			return emptyDisplay

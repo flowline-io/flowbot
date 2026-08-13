@@ -345,4 +345,3 @@ func (s *PlatformStore) GetChannels(ctx context.Context) ([]*gen.Channel, error)
 	copy(result, channels)
 	return result, nil
 }
-

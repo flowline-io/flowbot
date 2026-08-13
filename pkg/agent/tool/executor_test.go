@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

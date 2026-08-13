@@ -1,17 +1,13 @@
 package ctxmgr
 
 import (
-	"strings"
-
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 )
 
-const toolResultMaxChars = 2000
+const compactionInstructionPreamble = `You are now acting as a compaction engine. Condense the conversation ABOVE into a structured checkpoint that another LLM will use to continue the work.
 
-const summarizationSystemPrompt = `You are a context summarization assistant. Your task is to read a conversation between a user and an AI assistant, then produce a structured summary following the exact format specified.
-
-Do NOT continue the conversation. Do NOT respond to any questions in the conversation. ONLY output the structured summary.`
+`
 
 const summarizationPrompt = `The messages above are a conversation to summarize. Create a structured context checkpoint summary that another LLM will use to continue the work.
 
@@ -44,9 +40,11 @@ Use this EXACT format:
 - [Any data, examples, or references needed to continue]
 - [Or "(none)" if not applicable]
 
-Keep each section concise. Preserve exact file paths, function names, and error messages.`
+Keep each section concise. Preserve exact file paths, function names, and error messages.
 
-const updateSummarizationPrompt = `The messages above are NEW conversation messages to incorporate into the existing summary provided in <previous-summary> tags.
+Do NOT mention this summarization request. Output only the checkpoint text without calling a tool.`
+
+const updateSummarizationPrompt = `The conversation ABOVE includes a prior checkpoint followed by newer messages.
 
 Update the existing structured summary with new information. RULES:
 - PRESERVE all existing information from the previous summary
@@ -83,7 +81,9 @@ Use this EXACT format:
 ## Critical Context
 - [Preserve important context, add new if needed]
 
-Keep each section concise. Preserve exact file paths, function names, and error messages.`
+Keep each section concise. Preserve exact file paths, function names, and error messages.
+
+Do NOT mention this summarization request. Output only the checkpoint text without calling a tool.`
 
 const turnPrefixSummarizationPrompt = `This is the PREFIX of a turn that was too large to keep. The SUFFIX (recent work) is retained.
 
@@ -98,32 +98,12 @@ Summarize the prefix to provide context for the retained suffix:
 ## Context for Suffix
 - [Information needed to understand the retained recent work]
 
-Be concise. Focus on what's needed to understand the kept suffix.`
+Be concise. Focus on what's needed to understand the kept suffix.
 
-// SerializeConversation converts agent messages to plain text for summarization prompts.
-func SerializeConversation(messages []msg.AgentMessage) string {
-	parts := make([]string, 0, len(messages))
-	for _, message := range messages {
-		if serialized := serializeOneMessage(message); serialized != "" {
-			parts = append(parts, serialized)
-		}
-	}
-	return strings.Join(parts, "\n\n")
-}
+Do NOT mention this summarization request. Output only the checkpoint text without calling a tool.`
 
-func buildSummarizationPrompt(messages []msg.AgentMessage, previousSummary, basePrompt string) (string, error) {
-	conversationText := SerializeConversation(messages)
-	var b strings.Builder
-	_, _ = b.WriteString("<conversation>\n")
-	_, _ = b.WriteString(conversationText)
-	_, _ = b.WriteString("\n</conversation>\n\n")
-	if previousSummary != "" {
-		_, _ = b.WriteString("<previous-summary>\n")
-		_, _ = b.WriteString(previousSummary)
-		_, _ = b.WriteString("\n</previous-summary>\n\n")
-	}
-	_, _ = b.WriteString(basePrompt)
-	return b.String(), nil
+func compactionInstruction(basePrompt string) string {
+	return compactionInstructionPreamble + basePrompt
 }
 
 func messageFromEntry(entry session.TreeEntry) (msg.AgentMessage, bool) {

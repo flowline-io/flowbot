@@ -21,9 +21,9 @@ const (
 )
 
 type seoConfig struct {
-	BaseURL      string          `yaml:"base_url"`
-	SitemapPaths []string        `yaml:"sitemap_paths"`
-	EntryPages   []seoEntryPage  `yaml:"entry_pages"`
+	BaseURL      string         `yaml:"base_url"`
+	SitemapPaths []string       `yaml:"sitemap_paths"`
+	EntryPages   []seoEntryPage `yaml:"entry_pages"`
 }
 
 type seoEntryPage struct {

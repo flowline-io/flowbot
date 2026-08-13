@@ -138,7 +138,7 @@ func runLiveCase(
 	var last RunResult
 	var totalDuration int64
 	var totalTokens int
-	for i := 0; i < k; i++ {
+	for i := range k {
 		if err := ResetScenarioWorkspace(scenario); err != nil {
 			return CaseResult{}, nil, 0, 0, err
 		}

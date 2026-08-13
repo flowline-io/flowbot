@@ -17,7 +17,7 @@ func withMediaMaxSize(t *testing.T, maxSize int64) {
 	t.Helper()
 	prev := appConfig.App
 	t.Cleanup(func() { appConfig.App = prev })
-	require.NoError(t, sonic.Unmarshal([]byte(fmt.Sprintf(`{"media":{"max_size":%d}}`, maxSize)), &appConfig.App))
+	require.NoError(t, sonic.Unmarshal(fmt.Appendf(nil, `{"media":{"max_size":%d}}`, maxSize), &appConfig.App))
 }
 
 func TestInit_Validation(t *testing.T) {

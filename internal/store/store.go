@@ -112,7 +112,6 @@ func (s storeObj) DbStats() func() any {
 	return adp.Stats
 }
 
-
 // Adapter is the database connection facade (open/close/ping/client).
 // Domain persistence lives on *Store types (ChatStore, AgentStore, …).
 type Adapter interface {

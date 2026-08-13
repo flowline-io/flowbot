@@ -782,7 +782,7 @@ func TestGatewaySendDeferredInappAndMuteExternal(t *testing.T) {
 
 type pluginInappStub struct{}
 
-func (*pluginInappStub) Protocol() string   { return ChannelInapp }
+func (*pluginInappStub) Protocol() string { return ChannelInapp }
 func (*pluginInappStub) Templates() []string {
 	return []string{"{schema}://inbox"}
 }

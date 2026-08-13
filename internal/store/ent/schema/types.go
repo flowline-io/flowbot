@@ -611,4 +611,3 @@ type ResourceRef = types.ResourceRef
 // ResourceEdge represents a directed resource link with full source and target
 // details plus pipeline metadata and creation time.
 type ResourceEdge = types.ResourceEdge
-

@@ -13,11 +13,11 @@ type stubDBOnlyAdapter struct {
 	client *gen.Client
 }
 
-func (*stubDBOnlyAdapter) Open(_ config.StoreType) error              { return nil }
-func (*stubDBOnlyAdapter) Close() error                              { return nil }
-func (*stubDBOnlyAdapter) IsOpen() bool                              { return true }
-func (*stubDBOnlyAdapter) GetName() string                           { return "stub-db-only" }
-func (*stubDBOnlyAdapter) Stats() any                                { return nil }
+func (*stubDBOnlyAdapter) Open(_ config.StoreType) error { return nil }
+func (*stubDBOnlyAdapter) Close() error                  { return nil }
+func (*stubDBOnlyAdapter) IsOpen() bool                  { return true }
+func (*stubDBOnlyAdapter) GetName() string               { return "stub-db-only" }
+func (*stubDBOnlyAdapter) Stats() any                    { return nil }
 func (*stubDBOnlyAdapter) Ping(_ context.Context) (time.Duration, error) {
 	return 0, nil
 }

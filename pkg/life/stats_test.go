@@ -26,8 +26,8 @@ func TestBuildStatsPage(t *testing.T) {
 	now := time.Date(2026, 7, 28, 18, 0, 0, 0, loc)
 
 	tests := []struct {
-		name string
-		in   life.StatsInput
+		name  string
+		in    life.StatsInput
 		check func(t *testing.T, page life.StatsPage)
 	}{
 		{
@@ -70,7 +70,7 @@ func TestBuildStatsPage(t *testing.T) {
 						GainedGold: 1,
 					},
 					{
-						// UTC evening is next calendar day in CST — still in window as 07-28 local? 
+						// UTC evening is next calendar day in CST — still in window as 07-28 local?
 						// 2026-07-27 20:00 UTC = 2026-07-28 04:00 CST
 						At:                 time.Date(2026, 7, 27, 20, 0, 0, 0, time.UTC),
 						GainedExp:          3,

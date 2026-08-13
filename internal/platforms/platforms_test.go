@@ -128,8 +128,10 @@ func TestMessageConvertInfo(t *testing.T) {
 		},
 		{name: "nil model", input: types.InfoMsg{Title: "Empty"}, wantType: "action_card"},
 		{
-			name:       "struct model flattens to fields",
-			input:      types.InfoMsg{Title: "Struct", Model: struct{ Key string `json:"key"` }{Key: "val"}},
+			name: "struct model flattens to fields",
+			input: types.InfoMsg{Title: "Struct", Model: struct {
+				Key string `json:"key"`
+			}{Key: "val"}},
 			wantType:   "action_card",
 			wantFields: map[string]any{"key": "val"},
 		},

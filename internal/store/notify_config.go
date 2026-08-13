@@ -607,4 +607,3 @@ func notifyTemplateToModel(row *gen.NotifyTemplate) (model.NotifyTemplate, error
 		UpdatedAt:       row.UpdatedAt,
 	}, nil
 }
-

@@ -534,7 +534,7 @@ func resolveJudgeModel(ctx context.Context, f liveFlags, caseCount int) (llms.Mo
 func fakeJudgeScripts(n int) []agentllm.ResponseScript {
 	scripts := make([]agentllm.ResponseScript, 0, n)
 	body := `{"score":5,"unknown":false,"reasoning":"ok"}`
-	for i := 0; i < n; i++ {
+	for range n {
 		scripts = append(scripts, agentllm.ResponseScript{Content: body})
 	}
 	return scripts

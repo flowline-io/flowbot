@@ -15,7 +15,7 @@ const (
 type CompactionConfig struct {
 	// Auto turns on threshold-based compaction before agent runs.
 	Auto *bool `json:"auto" yaml:"auto" mapstructure:"auto"`
-	// Prune removes older tool outputs from the compaction prompt before summarization.
+	// Prune rewrites oversized current tool results before summarization.
 	Prune *bool `json:"prune" yaml:"prune" mapstructure:"prune"`
 	// Reserved is headroom reserved below the model context window.
 	Reserved int `json:"reserved" yaml:"reserved" mapstructure:"reserved"`
@@ -60,7 +60,7 @@ func (c CompactionConfig) AutoEnabled() bool {
 	return cfg.Auto != nil && *cfg.Auto
 }
 
-// PruneEnabled reports whether older tool results should be pruned during compaction.
+// PruneEnabled reports whether oversized tool results should be rewritten before summarization.
 func (c CompactionConfig) PruneEnabled() bool {
 	cfg := c.WithDefaults()
 	return cfg.Prune != nil && *cfg.Prune

@@ -122,7 +122,13 @@ func generateBranchSummary(
 	messages []msg.AgentMessage,
 	settings Settings,
 ) result.Result[string, result.BranchSummaryError] {
-	compactionResult := generateSummary(ctx, model, modelName, messages, "", summarizationPrompt, settings)
+	compactionResult := generateSummary(ctx, summaryRequest{
+		Model:      model,
+		ModelName:  modelName,
+		Messages:   messages,
+		BasePrompt: summarizationPrompt,
+		Settings:   settings,
+	})
 	if !compactionResult.IsOk() {
 		compErr := compactionResult.ErrorValue()
 		return result.Err[string, result.BranchSummaryError](

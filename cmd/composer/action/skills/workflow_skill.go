@@ -42,9 +42,9 @@ type platformSpec struct {
 	StepTypes                []stepTypeSpec
 	IncludeCapabilityCatalog bool
 	// Kind selects template set: "workflow" (default) or "pipeline".
-	Kind      string
-	CommandFn func() *cobra.Command
-	ExampleFS embed.FS
+	Kind       string
+	CommandFn  func() *cobra.Command
+	ExampleFS  embed.FS
 	ExampleDir string
 }
 

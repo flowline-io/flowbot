@@ -266,7 +266,6 @@ func mapDataEvents(rows []*gen.DataEvent) []model.DataEvent {
 	return out
 }
 
-
 func mapPermissionsView(view chatagent.PermissionsView) model.PermissionsView {
 	return model.PermissionsView{
 		Defaults: view.Defaults,

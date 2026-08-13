@@ -51,7 +51,7 @@ func FilterByDifficulty(scenarios []Scenario, spec string) ([]Scenario, error) {
 
 func parseDifficultySpec(spec string) (map[string]struct{}, error) {
 	want := make(map[string]struct{})
-	for _, part := range strings.Split(spec, ",") {
+	for part := range strings.SplitSeq(spec, ",") {
 		part = strings.TrimSpace(strings.ToLower(part))
 		if part == "" {
 			continue

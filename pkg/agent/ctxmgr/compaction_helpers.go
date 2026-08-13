@@ -140,8 +140,9 @@ func buildCompactionPreparation(
 			ExtractFileOpsFromMessage(message, fileOps)
 		}
 	}
-	messagesToSummarize = PruneToolOutputs(messagesToSummarize, settings)
-	turnPrefix = PruneToolOutputs(turnPrefix, settings)
+	latest := latestToolResultsByCallID(pathEntries)
+	messagesToSummarize = overlayToolResults(messagesToSummarize, latest)
+	turnPrefix = overlayToolResults(turnPrefix, latest)
 
 	return result.Ok[*CompactionPreparation, result.CompactionError](&CompactionPreparation{
 		FirstKeptEntryID:    firstKept.ID,

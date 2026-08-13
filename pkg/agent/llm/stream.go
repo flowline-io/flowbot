@@ -362,7 +362,41 @@ func Complete(
 	modelName string,
 	maxTokens int,
 ) (string, error) {
-	return CompleteWithRetry(ctx, model, systemPrompt, messages, modelName, maxTokens, RetryConfigFromChatAgent(config.App.ChatAgent.LLMRetry))
+	return runCompletion(ctx, completeParams{
+		model:        model,
+		systemPrompt: systemPrompt,
+		messages:     messages,
+		modelName:    modelName,
+		maxTokens:    maxTokens,
+	}, RetryConfigFromChatAgent(config.App.ChatAgent.LLMRetry))
+}
+
+// CompleteRequest is a non-streaming completion. Compaction uses it so the
+// summarizer can reuse the conversation prefix (system, tools, thinking).
+type CompleteRequest struct {
+	Model                  llms.Model
+	SystemPrompt           string
+	Messages               []llms.MessageContent
+	ModelName              string
+	MaxTokens              int
+	Tools                  []llms.Tool
+	ThinkingLevel          string
+	AssistantToolReasoning map[string]string
+}
+
+// CompleteWithTools is Complete plus tool schemas, thinking, and prior-turn
+// reasoning so summarization can reuse a warm prefix.
+func CompleteWithTools(ctx context.Context, req CompleteRequest) (string, error) {
+	return runCompletion(ctx, completeParams{
+		model:                  req.Model,
+		systemPrompt:           req.SystemPrompt,
+		messages:               req.Messages,
+		modelName:              req.ModelName,
+		maxTokens:              req.MaxTokens,
+		tools:                  req.Tools,
+		thinkingLevel:          req.ThinkingLevel,
+		assistantToolReasoning: req.AssistantToolReasoning,
+	}, RetryConfigFromChatAgent(config.App.ChatAgent.LLMRetry))
 }
 
 // CompleteWithRetry performs a non-streaming completion with an explicit retry policy.
@@ -375,16 +409,43 @@ func CompleteWithRetry(
 	maxTokens int,
 	retryCfg RetryConfig,
 ) (string, error) {
-	if systemPrompt != "" {
-		messages = append([]llms.MessageContent{llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt)}, messages...)
+	return runCompletion(ctx, completeParams{
+		model:        model,
+		systemPrompt: systemPrompt,
+		messages:     messages,
+		modelName:    modelName,
+		maxTokens:    maxTokens,
+	}, retryCfg)
+}
+
+type completeParams struct {
+	model                  llms.Model
+	systemPrompt           string
+	messages               []llms.MessageContent
+	modelName              string
+	maxTokens              int
+	tools                  []llms.Tool
+	thinkingLevel          string
+	assistantToolReasoning map[string]string
+}
+
+func runCompletion(ctx context.Context, params completeParams, retryCfg RetryConfig) (string, error) {
+	messages := params.messages
+	if params.systemPrompt != "" {
+		messages = append([]llms.MessageContent{llms.TextParts(llms.ChatMessageTypeSystem, params.systemPrompt)}, messages...)
 	}
 	var content string
 	_, err := backoff.Do(ctx, retryCfg.toBackoff(), func(attemptCtx context.Context) error {
-		opts := []llms.CallOption{llms.WithModel(modelName)}
-		if maxTokens > 0 {
-			opts = append(opts, llms.WithMaxTokens(maxTokens))
+		opts := []llms.CallOption{
+			llms.WithModel(params.modelName),
+			llms.WithTools(params.tools),
 		}
-		resp, callErr := model.GenerateContent(attemptCtx, messages, opts...)
+		if params.maxTokens > 0 {
+			opts = append(opts, llms.WithMaxTokens(params.maxTokens))
+		}
+		attemptCtx = WithThinkingLevel(attemptCtx, params.thinkingLevel)
+		attemptCtx = WithAssistantToolReasoning(attemptCtx, params.assistantToolReasoning)
+		resp, callErr := params.model.GenerateContent(attemptCtx, messages, opts...)
 		if callErr != nil {
 			if attemptCtx.Err() != nil {
 				return ErrAborted

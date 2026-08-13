@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
+	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -294,6 +295,8 @@ func (s *Service) buildRunHarness(ctx context.Context, req RunRequest, textLen i
 		ContextWindow: contextWindow,
 		Settings:      compactionSettings,
 		SystemPrompt:  systemPrompt,
+		Tools:         tool.BuildLLMTools(registry.ActiveTools()),
+		ThinkingLevel: cfg.ThinkingLevel,
 	})
 
 	flog.Debug("[chat-agent] harness prompt session=%s model=%s dual_model=%t chat_model=%s tool_model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d context_window=%d compaction_enabled=%t",

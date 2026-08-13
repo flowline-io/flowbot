@@ -203,6 +203,7 @@ ctxMgr := ctxmgr.New(ctxmgr.Options{
     ContextWindow: config.ChatAgentContextWindow(),
     Settings:      ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction),
     SystemPrompt:  systemPrompt,
+    Tools:         tool.BuildLLMTools(registry.ActiveTools()),
 })
 ```
 

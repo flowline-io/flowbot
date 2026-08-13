@@ -3,11 +3,13 @@ package ctxmgr
 import (
 	"context"
 	"errors"
+	"strings"
 
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
+	"github.com/flowline-io/flowbot/pkg/agent/transform"
 	"github.com/google/uuid"
 	"github.com/tmc/langchaingo/llms"
 )
@@ -21,6 +23,17 @@ type CompactionResult struct {
 	ModifiedFiles    []string
 }
 
+// CompactReport records whether a compaction pass changed the model-visible surface.
+type CompactReport struct {
+	Pruned     bool
+	Summarized bool
+}
+
+// Changed reports whether prune or summarization changed the model-visible surface.
+func (r CompactReport) Changed() bool {
+	return r.Pruned || r.Summarized
+}
+
 // CompactionPreparation holds precomputed compaction inputs.
 type CompactionPreparation struct {
 	FirstKeptEntryID    string
@@ -31,6 +44,9 @@ type CompactionPreparation struct {
 	PreviousSummary     string
 	FileOps             FileOperations
 	Settings            Settings
+	SystemPrompt        string
+	Tools               []llms.Tool
+	ThinkingLevel       string
 }
 
 // ShouldCompact reports whether context usage exceeds the compaction threshold.
@@ -96,27 +112,44 @@ func RunCompaction(
 		)
 	}
 
+	req := summaryRequest{
+		Model:         model,
+		ModelName:     modelName,
+		Settings:      preparation.Settings,
+		SystemPrompt:  preparation.SystemPrompt,
+		Tools:         preparation.Tools,
+		ThinkingLevel: preparation.ThinkingLevel,
+	}
+
 	var summary string
 	if preparation.IsSplitTurn && len(preparation.TurnPrefixMessages) > 0 {
 		historySummary := "No prior history."
 		if len(preparation.MessagesToSummarize) > 0 {
-			historyResult := generateSummary(ctx, model, modelName, preparation.MessagesToSummarize, preparation.PreviousSummary, summarizationPrompt, preparation.Settings)
+			req.Messages = preparation.MessagesToSummarize
+			req.PreviousSummary = preparation.PreviousSummary
+			req.BasePrompt = summarizationPrompt
+			historyResult := generateSummary(ctx, req)
 			if !historyResult.IsOk() {
 				return result.Err[*CompactionResult, result.CompactionError](historyResult.ErrorValue())
 			}
 			historySummary = historyResult.Value()
 		}
-		turnPrefixResult := generateSummary(ctx, model, modelName, preparation.TurnPrefixMessages, "", turnPrefixSummarizationPrompt, preparation.Settings)
+		req.Messages = preparation.TurnPrefixMessages
+		req.PreviousSummary = ""
+		req.BasePrompt = turnPrefixSummarizationPrompt
+		turnPrefixResult := generateSummary(ctx, req)
 		if !turnPrefixResult.IsOk() {
 			return result.Err[*CompactionResult, result.CompactionError](turnPrefixResult.ErrorValue())
 		}
 		summary = historySummary + "\n\n## Turn Prefix Summary\n" + turnPrefixResult.Value()
 	} else if len(preparation.MessagesToSummarize) > 0 {
-		basePrompt := summarizationPrompt
+		req.Messages = preparation.MessagesToSummarize
+		req.PreviousSummary = preparation.PreviousSummary
+		req.BasePrompt = summarizationPrompt
 		if preparation.PreviousSummary != "" {
-			basePrompt = updateSummarizationPrompt
+			req.BasePrompt = updateSummarizationPrompt
 		}
-		summaryResult := generateSummary(ctx, model, modelName, preparation.MessagesToSummarize, preparation.PreviousSummary, basePrompt, preparation.Settings)
+		summaryResult := generateSummary(ctx, req)
 		if !summaryResult.IsOk() {
 			return result.Err[*CompactionResult, result.CompactionError](summaryResult.ErrorValue())
 		}
@@ -139,34 +172,51 @@ func RunCompaction(
 	})
 }
 
-func generateSummary(
-	ctx context.Context,
-	model llms.Model,
-	modelName string,
-	messages []msg.AgentMessage,
-	previousSummary string,
-	basePrompt string,
-	settings Settings,
-) result.Result[string, result.CompactionError] {
-	settings = settings.WithDefaults()
-	promptText, err := buildSummarizationPrompt(messages, previousSummary, basePrompt)
+type summaryRequest struct {
+	Model           llms.Model
+	ModelName       string
+	Messages        []msg.AgentMessage
+	PreviousSummary string
+	BasePrompt      string
+	Settings        Settings
+	SystemPrompt    string
+	Tools           []llms.Tool
+	ThinkingLevel   string
+}
+
+func generateSummary(ctx context.Context, req summaryRequest) result.Result[string, result.CompactionError] {
+	req.Settings = req.Settings.WithDefaults()
+	replay := req.Messages
+	if req.PreviousSummary != "" {
+		replay = append([]msg.AgentMessage{msg.CompactionSummaryMessage{Summary: req.PreviousSummary}}, replay...)
+	}
+	replay = session.SanitizeToolMessageOrder(replay)
+	llmMessages, err := transform.DefaultConvertToLLM(replay)
 	if err != nil {
 		return result.Err[string, result.CompactionError](
 			result.NewCompactionError("invalid_session", "build summarization prompt", err),
 		)
 	}
+	llmMessages = append(llmMessages, llms.TextParts(llms.ChatMessageTypeHuman, compactionInstruction(req.BasePrompt)))
 	if errors.Is(ctx.Err(), context.Canceled) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		return result.Err[string, result.CompactionError](
 			result.NewCompactionError("aborted", "summarization aborted", ctx.Err()),
 		)
 	}
-	maxTokens := settings.ReserveTokens * 4 / 5
+	maxTokens := req.Settings.ReserveTokens * 4 / 5
 	if maxTokens <= 0 {
 		maxTokens = 4096
 	}
-	content, err := agentllm.Complete(ctx, model, summarizationSystemPrompt, []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeHuman, promptText),
-	}, modelName, maxTokens)
+	content, err := agentllm.CompleteWithTools(ctx, agentllm.CompleteRequest{
+		Model:                  req.Model,
+		SystemPrompt:           req.SystemPrompt,
+		Messages:               llmMessages,
+		ModelName:              req.ModelName,
+		MaxTokens:              maxTokens,
+		Tools:                  req.Tools,
+		ThinkingLevel:          req.ThinkingLevel,
+		AssistantToolReasoning: collectAssistantToolReasoning(replay),
+	})
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, agentllm.ErrAborted) {
 			return result.Err[string, result.CompactionError](
@@ -183,6 +233,27 @@ func generateSummary(
 		)
 	}
 	return result.Ok[string, result.CompactionError](content)
+}
+
+func collectAssistantToolReasoning(messages []msg.AgentMessage) map[string]string {
+	out := map[string]string{}
+	for _, message := range messages {
+		assistant, ok := message.(msg.AssistantMessage)
+		if !ok {
+			continue
+		}
+		for _, call := range assistant.ToolCalls() {
+			id := strings.TrimSpace(call.ID)
+			if id == "" {
+				continue
+			}
+			out[id] = assistant.ThinkingText
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func indexOfEntry(entries []session.TreeEntry, id string) int {

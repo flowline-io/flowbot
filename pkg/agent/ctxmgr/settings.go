@@ -9,7 +9,8 @@ const (
 
 // Settings controls compaction and branch summarization behavior.
 type Settings struct {
-	Enabled          bool
+	Enabled bool
+	// PruneToolOutputs rewrites oversized current tool results before summarization.
 	PruneToolOutputs bool
 	ReserveTokens    int
 	KeepRecentTokens int

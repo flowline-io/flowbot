@@ -3,6 +3,7 @@ package email
 import (
 	"encoding/base64"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -73,10 +74,8 @@ func ResolveTLSMode(mode string, port int, implicitPorts ...int) string {
 	case TLSModeTLS, TLSModeSTARTTLS:
 		return m
 	}
-	for _, p := range implicitPorts {
-		if port == p {
-			return TLSModeTLS
-		}
+	if slices.Contains(implicitPorts, port) {
+		return TLSModeTLS
 	}
 	return TLSModeSTARTTLS
 }

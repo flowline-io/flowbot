@@ -13,7 +13,7 @@ import (
 func TestRegisterAndCatalogSpec(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name  string
 		check func(t *testing.T)
 	}{
 		{

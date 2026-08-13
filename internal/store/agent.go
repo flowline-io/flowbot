@@ -1356,4 +1356,3 @@ func (s *AgentStore) GetAgentSubagentTask(ctx context.Context, id int64) (*gen.A
 	}
 	return row, nil
 }
-

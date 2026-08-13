@@ -156,6 +156,60 @@ func TestCompleteWithRetry(t *testing.T) {
 	assert.Equal(t, 2, model.Calls())
 }
 
+func TestCompleteWithTools(t *testing.T) {
+	t.Parallel()
+	echoTool := llms.Tool{
+		Type:     "function",
+		Function: &llms.FunctionDefinition{Name: "echo", Description: "echo"},
+	}
+	tests := []struct {
+		name          string
+		tools         []llms.Tool
+		thinkingLevel string
+		reasoning     map[string]string
+		wantName      string
+	}{
+		{
+			name:          "forwards tools thinking and reasoning on the completion call",
+			tools:         []llms.Tool{echoTool},
+			thinkingLevel: agentllm.ThinkingLevelHigh,
+			reasoning:     map[string]string{"c1": "prior think"},
+			wantName:      "echo",
+		},
+		{name: "forwards empty tools when the list is nil", tools: nil},
+		{name: "forwards empty tools when the list has no entries", tools: []llms.Tool{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
+			got, err := agentllm.CompleteWithTools(context.Background(), agentllm.CompleteRequest{
+				Model:                  model,
+				SystemPrompt:           "system",
+				Messages:               []llms.MessageContent{llms.TextParts(llms.ChatMessageTypeHuman, "hi")},
+				ModelName:              "test",
+				Tools:                  tt.tools,
+				ThinkingLevel:          tt.thinkingLevel,
+				AssistantToolReasoning: tt.reasoning,
+			})
+			require.NoError(t, err)
+			assert.Equal(t, "ok", got)
+			if tt.wantName == "" {
+				assert.Empty(t, model.LastTools())
+			} else {
+				require.NotEmpty(t, model.LastTools())
+				assert.Equal(t, tt.wantName, model.LastTools()[0].Function.Name)
+			}
+			wantLevel := agentllm.ThinkingLevelDefault
+			if tt.thinkingLevel != "" {
+				wantLevel = tt.thinkingLevel
+			}
+			assert.Equal(t, wantLevel, agentllm.ThinkingLevelFromContext(model.LastContext()))
+			assert.Equal(t, tt.reasoning, agentllm.AssistantToolReasoningFromContext(model.LastContext()))
+		})
+	}
+}
+
 func TestRetryConfigFromChatAgent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

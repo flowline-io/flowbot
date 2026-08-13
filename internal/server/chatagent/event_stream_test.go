@@ -190,11 +190,11 @@ func TestStartAPIEventStream(t *testing.T) {
 func TestStartAPIEventStreamFirstDeltaImmediate(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name       string
-		updates    []agentevent.Event
-		wantFirst  StreamEvent
-		wantFinal  StreamEvent
-		wantCount  int
+		name      string
+		updates   []agentevent.Event
+		wantFirst StreamEvent
+		wantFinal StreamEvent
+		wantCount int
 	}{
 		{
 			name: "text first flush then coalesce on close",

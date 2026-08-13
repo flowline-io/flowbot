@@ -167,10 +167,10 @@ func TestLLMAdjudicateQuestSuccess(t *testing.T) {
 		Content: `{"verdict":"completed","reason":"The evidence shows the feature shipped.","suggested_exp":150,"suggested_gold":40,"suggested_next_steps":["Write a short retro"]}`,
 	})
 	ruling, err := testLLM(fake).AdjudicateQuest(context.Background(), lifecap.AdjudicateQuestRequest{
-		QuestTitle: "Ship AI DM MVP",
+		QuestTitle:  "Ship AI DM MVP",
 		QuestPrompt: "Ship the first quest adjudication flow",
-		BaseExp:    150,
-		BaseGold:   40,
+		BaseExp:     150,
+		BaseGold:    40,
 		Evidence: []lifecap.QuestEvidence{
 			{SourceType: "note", Content: "Implemented and tested the flow."},
 		},

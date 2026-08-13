@@ -154,22 +154,25 @@ Long-running sessions are kept within model limits by `pkg/agent/ctxmgr`:
 
 | Component | Role |
 | --------- | ---- |
-| `ctxmgr.Manager` | Threshold checks, compaction, branch summarization, agent state reload |
+| `ctxmgr.Manager` | Threshold checks, prune-then-summarize compaction, branch summarization, agent state reload |
 | `ctxmgr.ShouldCompact` | Triggers when `tokens > contextWindow - reserveTokens` |
-| `ctxmgr.RunCompaction` | LLM summary of discarded history; persists `EntryCompaction` |
-| `ctxmgr.IsContextOverflowErr` | Detects provider overflow errors for multi-level compact retry |
+| `ctxmgr.PruneToolOutputs` | Rewrites oversized tool results to head + omission marker + tail without a model call |
+| `ctxmgr.RunCompaction` | LLM summary of discarded history; replays conversation system, tools, and shadowed messages with a trailing instruction |
+| `ctxmgr.IsContextOverflowErr` | Detects provider overflow errors for compact retry |
 
 Harness integration (`harness.Options.ContextManager`):
 
-- **Before run**: `EnsureWithinBudget` compacts when over threshold
+- **Before run**: `EnsureWithinBudget` prunes oversized tool results, then summarizes if still over threshold
 - **After overflow**: L1 `CompactAndReload(Force:false)` → L2 `Force:true` → fail
 - **MoveTo**: auto branch summarization when summary is empty
+
+Rationale: [.agents/notes/implemented/architecture/2026-08-13-compaction-prune-then-prefix-summary.md](../../.agents/notes/implemented/architecture/2026-08-13-compaction-prune-then-prefix-summary.md).
 
 Configuration:
 
 - Per-model context limits in the built-in catalog at `pkg/agent/model/catalog.go`
 - Unknown models fall back to `model.DefaultContextWindow` (128000)
-- `chat_agent.compaction` for `enabled`, `reserve_tokens`, `keep_recent_tokens`
+- `chat_agent.compaction` for `auto`, `prune`, `reserved`, `keep_recent_tokens`
 
 ## Dual-Model Routing
 

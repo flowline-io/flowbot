@@ -243,4 +243,3 @@ func (s *UserStore) UpdatePlatformUser(ctx context.Context, item *gen.PlatformUs
 	}
 	return nil
 }
-

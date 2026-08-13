@@ -264,4 +264,3 @@ func TestGetOrRefreshToken(t *testing.T) {
 		assert.ErrorIs(t, err, types.ErrForbidden)
 	})
 }
-

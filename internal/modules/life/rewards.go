@@ -14,24 +14,24 @@ import (
 
 // RewardView is one catalog reward for the Rewards UI.
 type RewardView struct {
-	Flag            string
-	Name            string
-	Notes           string
-	Price           int
-	CooldownHours   int
-	Active          bool
-	OnCooldown      bool
-	CooldownEndsAt  string
-	CanAfford       bool
-	LastRedeemedAt  string
+	Flag           string
+	Name           string
+	Notes          string
+	Price          int
+	CooldownHours  int
+	Active         bool
+	OnCooldown     bool
+	CooldownEndsAt string
+	CanAfford      bool
+	LastRedeemedAt string
 }
 
 // RedemptionView is one redemption history row for the Rewards UI.
 type RedemptionView struct {
-	Flag        string
-	RewardName  string
-	PricePaid   int
-	RedeemedAt  string
+	Flag       string
+	RewardName string
+	PricePaid  int
+	RedeemedAt string
 }
 
 // RewardsPage is the full Rewards page model.

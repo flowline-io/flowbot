@@ -3,6 +3,7 @@ package exec_test
 import (
 	"context"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -130,10 +131,5 @@ func (c *captureEnv) Exec(_ context.Context, opts env.ExecOptions) result.Result
 }
 
 func hasEnvPrefix(envVars []string, want string) bool {
-	for _, e := range envVars {
-		if e == want {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(envVars, want)
 }

@@ -115,4 +115,3 @@ func (s *RuntimeAgentStore) UpdateAgentOnlineDuration(ctx context.Context, uid t
 	}
 	return nil
 }
-

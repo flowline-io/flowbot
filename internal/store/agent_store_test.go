@@ -2,10 +2,6 @@ package store
 
 import (
 	"context"
-	"testing"
-	"time"
-	"strconv"
-	"strings"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsessionsummary"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agenttodo"
@@ -13,6 +9,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestAgentSkillByFlagAndDelete(t *testing.T) {

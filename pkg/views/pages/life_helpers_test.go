@@ -217,7 +217,7 @@ func TestLifeSkillTreeBranchOpen(t *testing.T) {
 func TestLifeBuildPageInfo(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name               string
+		name                 string
 		page, perPage, total int
 		wantPage, wantPages  int
 		wantPrev, wantNext   bool
