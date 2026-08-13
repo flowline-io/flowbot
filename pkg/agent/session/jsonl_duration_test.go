@@ -58,3 +58,27 @@ func TestMarshalEntryDurationFields(t *testing.T) {
 		})
 	}
 }
+
+func TestMarshalEntryTurnTrace(t *testing.T) {
+	t.Parallel()
+
+	section := session.NewTraceSection("system_body", "identity")
+	entry := session.TreeEntry{
+		ID:         "t1",
+		ParentID:   "u1",
+		Type:       session.EntryTurnTrace,
+		Sections:   []session.TraceSection{section},
+		AssembleMs: 12,
+	}
+	raw, err := session.MarshalEntry(entry)
+	require.NoError(t, err)
+	got, err := session.UnmarshalEntry(raw)
+	require.NoError(t, err)
+	assert.Equal(t, session.EntryTurnTrace, got.Type)
+	assert.Equal(t, int64(12), got.AssembleMs)
+	require.Len(t, got.Sections, 1)
+	assert.Equal(t, "system_body", got.Sections[0].Name)
+	assert.Equal(t, "identity", got.Sections[0].Content)
+	assert.Equal(t, section.Hash, got.Sections[0].Hash)
+	assert.Nil(t, got.Message)
+}

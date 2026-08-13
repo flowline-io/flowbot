@@ -33,7 +33,7 @@ func TestGetOrCreateHarness(t *testing.T) {
 		{
 			name: "creates harness on first call",
 			run: func(t *testing.T, svc *Service) {
-				h, err := svc.getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "hi"}, 2)
+				h, _, err := svc.getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "hi"}, 2)
 				require.NoError(t, err)
 				require.NotNil(t, h)
 				_, ok := svc.harnessPoolMap().Load(sessionID)
@@ -44,9 +44,9 @@ func TestGetOrCreateHarness(t *testing.T) {
 			name: "reuses pooled harness on second call",
 			run: func(t *testing.T, svc *Service) {
 				req := RunRequest{SessionID: sessionID, Text: "hello"}
-				h1, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
+				h1, _, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
 				require.NoError(t, err)
-				h2, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
+				h2, _, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
 				require.NoError(t, err)
 				assert.Same(t, h1, h2)
 			},
@@ -55,10 +55,10 @@ func TestGetOrCreateHarness(t *testing.T) {
 			name: "evict removes stale pooled entry",
 			run: func(t *testing.T, svc *Service) {
 				req := RunRequest{SessionID: sessionID, Text: "ping"}
-				first, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
+				first, _, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
 				require.NoError(t, err)
 				svc.EvictHarnessPool(sessionID)
-				second, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
+				second, _, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
 				require.NoError(t, err)
 				assert.NotSame(t, first, second)
 			},
@@ -88,11 +88,11 @@ func TestApplySessionModeUpdatesTools(t *testing.T) {
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive), Mode: ModePlan,
 	}))
 
-	h, err := svc.getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "plan task"}, 9)
+	h, _, err := svc.getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "plan task"}, 9)
 	require.NoError(t, err)
 	require.NotNil(t, h)
 
-	err = applySessionMode(ctx, h, RunRequest{
+	_, err = applySessionMode(ctx, h, RunRequest{
 		SessionID: sessionID,
 		Text:      "plan task",
 		Kind:      RunKindInteractive,

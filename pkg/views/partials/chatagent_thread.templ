@@ -17,6 +17,9 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 		data-events-url={ endpoints.EventsURL }
 		data-render-markdown-url={ endpoints.RenderMarkdownURL }
 		data-context-url={ endpoints.ContextURL }
+		if endpoints.TrajectoryURL != "" {
+			data-trajectory-url={ endpoints.TrajectoryURL }
+		}
 		data-default-model={ endpoints.DefaultModel }
 		data-session-model={ session.Model }
 		data-session-thinking={ session.ThinkingLevel }
@@ -43,6 +46,22 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 					<p id="chatagent-session-model-label" class="text-xs text-base-content/50 mt-0.5 truncate" data-testid="chatagent-session-model-label">
 						{ chatAgentSessionSettingsLabel(session, endpoints.DefaultModel) }
 					</p>
+					if endpoints.TrajectoryURL != "" {
+						<div class="chatagent-view-toggle mt-2 flex gap-1" data-testid="chatagent-view-toggle" role="tablist" aria-label="Session view">
+							<button
+								type="button"
+								class="btn btn-ghost btn-xs chatagent-view-btn is-active"
+								data-chatagent-view="chat"
+								data-testid="chatagent-view-chat"
+								aria-selected="true">Chat</button>
+							<button
+								type="button"
+								class="btn btn-ghost btn-xs chatagent-view-btn"
+								data-chatagent-view="trajectory"
+								data-testid="chatagent-view-trajectory"
+								aria-selected="false">Trajectory</button>
+						</div>
+					}
 				</div>
 				<div class="hidden lg:flex flex-wrap justify-end gap-1 shrink-0 pt-0.5" data-testid="chatagent-header-actions-desktop">
 					if session.State == "Active" && endpoints.CloseURL != "" {
@@ -141,6 +160,23 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 				for _, msg := range messages {
 					@ChatAgentMessage(msg, false)
 				}
+			</div>
+			<div id="chatagent-trajectory" class="chatagent-trajectory hidden flex-1 min-h-0 flex flex-col" data-testid="chatagent-trajectory" hidden>
+				<div id="chatagent-trajectory-gantt" class="chatagent-trajectory-gantt shrink-0" data-testid="chatagent-trajectory-gantt"></div>
+				<div class="chatagent-trajectory-body flex-1 min-h-0 flex">
+					<div id="chatagent-trajectory-log" class="chatagent-trajectory-log flex-1 min-h-0 overflow-y-auto" data-testid="chatagent-trajectory-log"></div>
+					<aside id="chatagent-trajectory-inspector" class="chatagent-trajectory-inspector hidden" data-testid="chatagent-trajectory-inspector" hidden>
+						<div class="chatagent-trajectory-inspector-head">
+							<span id="chatagent-trajectory-inspector-title" class="text-sm font-semibold tracking-tight"></span>
+							<button type="button" class="btn btn-ghost btn-xs btn-square" data-testid="chatagent-trajectory-inspector-close" aria-label="Close inspector">&times;</button>
+						</div>
+						<div class="chatagent-trajectory-inspector-tabs" role="tablist">
+							<button type="button" class="chatagent-inspector-tab is-active" data-inspector-tab="preview" data-testid="chatagent-trajectory-tab-preview">Preview</button>
+							<button type="button" class="chatagent-inspector-tab" data-inspector-tab="raw" data-testid="chatagent-trajectory-tab-raw">Raw</button>
+						</div>
+						<pre id="chatagent-trajectory-inspector-body" class="chatagent-trajectory-inspector-body" data-testid="chatagent-trajectory-inspector-body"></pre>
+					</aside>
+				</div>
 			</div>
 			<button
 				type="button"

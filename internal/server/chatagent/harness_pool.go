@@ -65,7 +65,7 @@ func (s *Service) ResetHarnessPoolForTest() {
 	s.harnessPool = sync.Map{}
 }
 
-func (s *Service) getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, error) {
+func (s *Service) getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, promptTrace, error) {
 	s.evictStaleHarnesses()
 
 	var h *harness.Harness
@@ -76,7 +76,7 @@ func (s *Service) getOrCreateHarness(ctx context.Context, req RunRequest, textLe
 		} else {
 			entry.touchLastUsed()
 			if refreshed, err := s.refreshPooledHarness(ctx, req, entry, textLen); err != nil {
-				return nil, err
+				return nil, promptTrace{}, err
 			} else if refreshed != nil {
 				s.harnessPool.Store(req.SessionID, refreshed)
 				h = refreshed.harness
@@ -90,7 +90,7 @@ func (s *Service) getOrCreateHarness(ctx context.Context, req RunRequest, textLe
 	if h == nil {
 		built, err := s.buildRunHarness(ctx, req, textLen)
 		if err != nil {
-			return nil, err
+			return nil, promptTrace{}, err
 		}
 		created := &pooledHarness{
 			harness:    built.harness,
@@ -102,13 +102,20 @@ func (s *Service) getOrCreateHarness(ctx context.Context, req RunRequest, textLe
 		h = built.harness
 	}
 
-	if err := applySessionMode(ctx, h, req); err != nil {
-		return nil, err
+	trace, err := applySessionMode(ctx, h, req)
+	if err != nil {
+		return nil, promptTrace{}, err
 	}
-	return h, nil
+	return h, trace, nil
 }
 
-func applySessionMode(ctx context.Context, h *harness.Harness, req RunRequest) error {
+type promptTrace struct {
+	Sections   []session.TraceSection
+	AssembleMs int64
+}
+
+func applySessionMode(ctx context.Context, h *harness.Harness, req RunRequest) (promptTrace, error) {
+	started := time.Now()
 	mode := LoadSessionMode(ctx, req.SessionID)
 	kind := req.Kind
 	if kind == "" {
@@ -126,17 +133,23 @@ func applySessionMode(ctx context.Context, h *harness.Harness, req RunRequest) e
 
 	workspace, err := WorkspaceFromConfig()
 	if err != nil {
-		return err
+		return promptTrace{}, err
 	}
-	systemPrompt := SessionSystemPrompt(ctx, workspace, mode)
+	var systemPrompt string
+	var sections []session.TraceSection
 	if len(req.Skills) > 0 {
-		systemPrompt = buildFilteredSystemPrompt(ctx, workspace, req.Skills)
+		systemPrompt, sections = buildFilteredSystemPromptParts(ctx, workspace, req.Skills)
+	} else {
+		systemPrompt, sections = SessionSystemPromptParts(ctx, workspace, mode)
 	}
 	h.SetSystemPrompt(systemPrompt)
 	if ctxMgr := h.ContextManager(); ctxMgr != nil {
 		ctxMgr.UpdateSystemPrompt(systemPrompt)
 	}
-	return nil
+	return promptTrace{
+		Sections:   sections,
+		AssembleMs: time.Since(started).Milliseconds(),
+	}, nil
 }
 
 type builtHarness struct {

@@ -3,6 +3,7 @@ package chatagent
 import (
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,6 +23,7 @@ func TestIsObserverStreamEvent(t *testing.T) {
 		{name: "done is not observer", eventType: EventTypeDone, want: false},
 		{name: "tool is not observer", eventType: EventTypeTool, want: false},
 		{name: "empty type is not observer", eventType: "", want: false},
+		{name: "turn_trace is not observer", eventType: EventTypeTurnTrace, want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -69,7 +71,17 @@ func TestMarshalStreamEvent(t *testing.T) {
 			wantSub: `"subagent":"general-purpose"`,
 		},
 		{
-			name: "confirm resolved timeout",
+			name: "turn_trace event",
+			event: StreamEvent{
+				Type:       EventTypeTurnTrace,
+				ID:         "trace-1",
+				AssembleMs: 8,
+				Sections:   []session.TraceSection{session.NewTraceSection("system_body", "identity")},
+			},
+			wantSub: `"type":"turn_trace"`,
+		},
+		{
+			name: "confirm_resolved includes reason",
 			event: StreamEvent{
 				Type:     EventTypeConfirmResolved,
 				ID:       "c-1",

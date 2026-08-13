@@ -143,6 +143,14 @@ func TestChatAgentThreadScriptsIncludesClipCopy(t *testing.T) {
 	if !strings.Contains(html, "/static/js/chatagent-codeblocks.js") {
 		t.Fatalf("want chatagent-codeblocks.js in thread scripts\nhtml=%s", html)
 	}
+	if !strings.Contains(html, "/static/js/chatagent-trajectory.js") {
+		t.Fatalf("want chatagent-trajectory.js in thread scripts\nhtml=%s", html)
+	}
+	trajIdx := strings.Index(html, "/static/js/chatagent-trajectory.js")
+	threadIdx := strings.Index(html, "/static/js/chatagent-thread.js")
+	if trajIdx < 0 || threadIdx < 0 || trajIdx > threadIdx {
+		t.Fatalf("want chatagent-trajectory.js before chatagent-thread.js\nhtml=%s", html)
+	}
 }
 
 func TestChatAgentToolMessageCollapse(t *testing.T) {
@@ -307,6 +315,44 @@ func TestChatAgentThreadJumpToBottomControl(t *testing.T) {
 				t.Fatalf("want jump-to-bottom id\nhtml=%s", html)
 			}
 		})
+	}
+}
+
+func TestChatAgentThreadTrajectoryView(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	err := ChatAgentThread(
+		model.AgentSession{Flag: "sess-1", State: "Active", Title: "Task"},
+		nil,
+		nil,
+		ChatAgentEndpoints{
+			MessagesURL:       "/service/web/agents/sess-1/messages",
+			CancelURL:         "/service/web/agents/sess-1/cancel",
+			ConfirmURL:        "/service/web/agents/sess-1/confirm",
+			EventsURL:         "/service/web/agents/sess-1/events",
+			RenderMarkdownURL: "/service/web/agents/render-markdown",
+			TrajectoryURL:     "/service/web/agents/sess-1/trajectory",
+		},
+		nil,
+	).Render(context.Background(), &buf)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	wants := []string{
+		`data-trajectory-url="/service/web/agents/sess-1/trajectory"`,
+		`data-testid="chatagent-view-toggle"`,
+		`data-testid="chatagent-view-chat"`,
+		`data-testid="chatagent-view-trajectory"`,
+		`data-testid="chatagent-trajectory"`,
+		`data-testid="chatagent-trajectory-gantt"`,
+		`data-testid="chatagent-trajectory-inspector"`,
+		`data-testid="chatagent-input-bar"`,
+	}
+	for _, want := range wants {
+		if !strings.Contains(html, want) {
+			t.Fatalf("want %q\nhtml=%s", want, html)
+		}
 	}
 }
 

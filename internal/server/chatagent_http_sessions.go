@@ -107,6 +107,21 @@ func (h *chatAgentHTTP) listMessages(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{"messages": messages})
 }
 
+func (h *chatAgentHTTP) listTrajectory(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	view, err := chatagent.ListSessionTrajectory(c.Context(), sessionID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(view)
+}
+
 func (h *chatAgentHTTP) exportSession(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)

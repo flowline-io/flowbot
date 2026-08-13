@@ -212,3 +212,27 @@ func TestDefaultToolSnippets(t *testing.T) {
 		})
 	}
 }
+
+func TestBuildSystemPromptPartsMatchesPrompt(t *testing.T) {
+	chatagent.LockAppConfigForTest(t)
+	root := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# Project rules\nUse TDD."), 0o644))
+
+	opts := chatagent.BuildSystemPromptOptions{
+		CWD:         root,
+		MemoryFacts: []chatagent.InjectedMemoryFact{{Key: "lang", Value: "go", Pinned: true}},
+	}
+	prompt, sections := chatagent.BuildSystemPromptParts(opts)
+	assert.Equal(t, prompt, chatagent.BuildSystemPrompt(opts))
+	require.NotEmpty(t, sections)
+	names := make([]string, 0, len(sections))
+	for _, section := range sections {
+		names = append(names, section.Name)
+		assert.NotEmpty(t, section.Hash)
+		assert.NotEmpty(t, section.Content)
+	}
+	assert.Contains(t, names, chatagent.TraceSectionSystemBody)
+	assert.Contains(t, names, chatagent.TraceSectionContextFile)
+	assert.Contains(t, names, chatagent.TraceSectionMemory)
+	assert.Contains(t, names, chatagent.TraceSectionRuntime)
+}

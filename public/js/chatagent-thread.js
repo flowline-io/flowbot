@@ -589,6 +589,9 @@
         var buffer = '';
 
         function handleStreamEvent(ev) {
+          if (ns.handleTrajectoryStreamEvent) {
+            ns.handleTrajectoryStreamEvent(ev, threadRoot);
+          }
           if (ev.type === 'thinking') {
             if (!thinkingState) {
               thinkingState = appendThinkingBlock(messagesEl);

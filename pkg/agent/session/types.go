@@ -1,6 +1,11 @@
 package session
 
-import "github.com/flowline-io/flowbot/pkg/agent/msg"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
+)
 
 // EntryType identifies a persisted session tree node.
 type EntryType string
@@ -12,7 +17,25 @@ const (
 	EntryBranchSummary     EntryType = "branch_summary"
 	EntryCompaction        EntryType = "compaction"
 	EntryCustom            EntryType = "custom"
+	EntryTurnTrace         EntryType = "turn_trace"
 )
+
+// TraceSection is one named payload in a turn_trace node.
+type TraceSection struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
+	Hash    string `json:"hash"`
+}
+
+// NewTraceSection builds a section with a SHA-256 hex hash of content.
+func NewTraceSection(name, content string) TraceSection {
+	sum := sha256.Sum256([]byte(content))
+	return TraceSection{
+		Name:    name,
+		Content: content,
+		Hash:    hex.EncodeToString(sum[:]),
+	}
+}
 
 // TreeEntry is one node in the append-only session tree.
 type TreeEntry struct {
@@ -30,6 +53,8 @@ type TreeEntry struct {
 	TokensBefore     int              `json:"tokens_before,omitempty"`
 	ReadFiles        []string         `json:"read_files,omitempty"`
 	ModifiedFiles    []string         `json:"modified_files,omitempty"`
+	Sections         []TraceSection   `json:"sections,omitempty"`
+	AssembleMs       int64            `json:"assemble_ms,omitempty"`
 }
 
 // Context is the reconstructed runtime view of a branch path.

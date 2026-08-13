@@ -29,6 +29,16 @@ func TestFindCutPoint(t *testing.T) {
 		{name: "keeps recent within budget", entries: entries, start: 0, end: 3, keepRecent: 10, wantFirst: "2"},
 		{name: "empty range", entries: entries, start: 0, end: 0, keepRecent: 100, wantFirst: "1"},
 		{name: "full keep", entries: entries[:1], start: 0, end: 1, keepRecent: 100000, wantFirst: "1"},
+		{
+			name: "skips turn_trace when selecting cut",
+			entries: []session.TreeEntry{
+				{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("old")},
+				{ID: "trace", Type: session.EntryTurnTrace, Sections: []session.TraceSection{session.NewTraceSection("system_body", "sys")}},
+				{ID: "2", Type: session.EntryMessage, Message: longText},
+				{ID: "3", Type: session.EntryMessage, Message: msg.NewUserMessage("recent")},
+			},
+			start: 0, end: 4, keepRecent: 10, wantFirst: "2",
+		},
 	}
 
 	for _, tt := range tests {

@@ -24,6 +24,7 @@ type ChatAgentEndpoints struct {
 	InspectURL         string
 	RenderMarkdownURL  string
 	ContextURL         string
+	TrajectoryURL      string
 	TodosURL           string
 	// SkillsURL returns enabled skills for the composer slash picker.
 	SkillsURL string

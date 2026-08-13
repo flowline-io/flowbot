@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -22,6 +23,7 @@ const promptCacheTTL = 60 * time.Second
 
 type promptCacheEntry struct {
 	prompt            string
+	sections          []session.TraceSection
 	loadedAt          time.Time
 	configHash        string
 	skillsMaxRev      time.Time
@@ -60,6 +62,12 @@ func PromptCacheVersion() uint64 {
 
 // CachedSystemPrompt returns the chat assistant system prompt, reusing a process cache when inputs are unchanged.
 func CachedSystemPrompt(ctx context.Context, ws coding.Workspace) string {
+	prompt, _ := CachedSystemPromptParts(ctx, ws)
+	return prompt
+}
+
+// CachedSystemPromptParts returns the cached prompt and turn_trace sections.
+func CachedSystemPromptParts(ctx context.Context, ws coding.Workspace) (string, []session.TraceSection) {
 	configHash := promptConfigHash(ws.Root)
 	fileMTimes := collectContextFileMTimes(ws.Root, config.App.ChatAgent.ContextFiles)
 	skillsMaxRev, err := loadSkillsMaxUpdatedAt(ctx)
@@ -85,13 +93,14 @@ func CachedSystemPrompt(ctx context.Context, ws coding.Workspace) string {
 		cached.memoryScope == memoryScope &&
 		cached.memoryFingerprint == memoryFP &&
 		contextFileMTimesEqual(cached.fileMTimes, fileMTimes) {
-		return cached.prompt
+		return cached.prompt, cloneTraceSections(cached.sections)
 	}
 
-	prompt := buildSystemPromptUncached(ctx, ws)
+	prompt, sections := buildSystemPromptUncachedParts(ctx, ws)
 	promptCacheMu.Lock()
 	promptCache = promptCacheEntry{
 		prompt:            prompt,
+		sections:          cloneTraceSections(sections),
 		loadedAt:          time.Now().UTC(),
 		configHash:        configHash,
 		skillsMaxRev:      skillsMaxRev,
@@ -102,7 +111,7 @@ func CachedSystemPrompt(ctx context.Context, ws coding.Workspace) string {
 	}
 	promptCacheVer.Add(1)
 	promptCacheMu.Unlock()
-	return prompt
+	return prompt, sections
 }
 
 func loadMemoryFactsFingerprint(ctx context.Context, scope string) string {
@@ -137,7 +146,7 @@ func loadInjectableMemoryFacts(ctx context.Context, scope string) []InjectedMemo
 	return out
 }
 
-func buildSystemPromptUncached(ctx context.Context, ws coding.Workspace) string {
+func buildSystemPromptUncachedParts(ctx context.Context, ws coding.Workspace) (string, []session.TraceSection) {
 	cfg := config.App.ChatAgent
 	skills, err := LoadSkillsFromStore(ctx)
 	if err != nil {
@@ -153,7 +162,7 @@ func buildSystemPromptUncached(ctx context.Context, ws coding.Workspace) string 
 	memoryFacts := loadInjectableMemoryFacts(ctx, resolveToolMemoryScope(ctx))
 	flog.Debug("[chat-agent] system prompt workspace=%s skills=%d subagents=%d context_files=%d memory_facts=%d",
 		ws.Root, len(skills), len(subagents), len(contextFiles), len(memoryFacts))
-	return BuildSystemPrompt(BuildSystemPromptOptions{
+	return BuildSystemPromptParts(BuildSystemPromptOptions{
 		CustomPrompt:       cfg.SystemPrompt,
 		PromptGuidelines:   cfg.PromptGuidelines,
 		AppendSystemPrompt: cfg.AppendSystemPrompt,
@@ -165,16 +174,15 @@ func buildSystemPromptUncached(ctx context.Context, ws coding.Workspace) string 
 	})
 }
 
-// SessionSystemPrompt builds the system prompt for one session mode.
-func SessionSystemPrompt(ctx context.Context, ws coding.Workspace, mode string) string {
+// SessionSystemPromptParts returns the session prompt and turn_trace sections.
+func SessionSystemPromptParts(ctx context.Context, ws coding.Workspace, mode string) (string, []session.TraceSection) {
 	if mode != ModePlan {
-		return CachedSystemPrompt(ctx, ws)
+		return CachedSystemPromptParts(ctx, ws)
 	}
-	return buildPlanModeSystemPrompt(ctx, ws)
+	return buildPlanModeSystemPromptParts(ctx, ws)
 }
 
-// buildFilteredSystemPrompt builds a system prompt with only the selected skills injected.
-func buildFilteredSystemPrompt(ctx context.Context, ws coding.Workspace, skillNames []string) string {
+func buildFilteredSystemPromptParts(ctx context.Context, ws coding.Workspace, skillNames []string) (string, []session.TraceSection) {
 	cfg := config.App.ChatAgent
 	allSkills, err := LoadSkillsFromStore(ctx)
 	if err != nil {
@@ -188,7 +196,7 @@ func buildFilteredSystemPrompt(ctx context.Context, ws coding.Workspace, skillNa
 		subagents = nil
 	}
 	contextFiles := loadContextFiles(ws.Root, cfg.ContextFiles)
-	return BuildSystemPrompt(BuildSystemPromptOptions{
+	return BuildSystemPromptParts(BuildSystemPromptOptions{
 		CustomPrompt:       cfg.SystemPrompt,
 		PromptGuidelines:   cfg.PromptGuidelines,
 		AppendSystemPrompt: cfg.AppendSystemPrompt,
@@ -200,7 +208,7 @@ func buildFilteredSystemPrompt(ctx context.Context, ws coding.Workspace, skillNa
 	})
 }
 
-func buildPlanModeSystemPrompt(ctx context.Context, ws coding.Workspace) string {
+func buildPlanModeSystemPromptParts(ctx context.Context, ws coding.Workspace) (string, []session.TraceSection) {
 	cfg := config.App.ChatAgent
 	skills, err := LoadSkillsFromStore(ctx)
 	if err != nil {
@@ -213,7 +221,7 @@ func buildPlanModeSystemPrompt(ctx context.Context, ws coding.Workspace) string 
 		subagents = nil
 	}
 	contextFiles := loadContextFiles(ws.Root, cfg.ContextFiles)
-	return BuildSystemPrompt(BuildSystemPromptOptions{
+	return BuildSystemPromptParts(BuildSystemPromptOptions{
 		CustomPrompt:       cfg.SystemPrompt,
 		PromptGuidelines:   append([]string(nil), cfg.PromptGuidelines...),
 		AppendSystemPrompt: cfg.AppendSystemPrompt,
@@ -225,6 +233,15 @@ func buildPlanModeSystemPrompt(ctx context.Context, ws coding.Workspace) string 
 		Mode:               ModePlan,
 		MemoryFacts:        loadInjectableMemoryFacts(ctx, resolveToolMemoryScope(ctx)),
 	})
+}
+
+func cloneTraceSections(in []session.TraceSection) []session.TraceSection {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]session.TraceSection, len(in))
+	copy(out, in)
+	return out
 }
 
 func promptConfigHash(workspaceRoot string) string {

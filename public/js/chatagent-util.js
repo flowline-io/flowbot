@@ -73,6 +73,11 @@
     if (!btn || !container) {
       return;
     }
+    var thread = container.closest('[data-chatagent-root="thread"]');
+    if (thread && thread.getAttribute('data-session-view') === 'trajectory') {
+      btn.classList.add('hidden');
+      return;
+    }
     var state = getScrollState(container);
     var stick = state ? state.stickToBottom : ns.isNearBottom(container);
     btn.classList.toggle('hidden', stick);

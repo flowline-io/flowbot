@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
 	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
+	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 )
@@ -92,6 +93,22 @@ func DefaultToolSnippets() map[string]string {
 
 // BuildSystemPrompt constructs the chat assistant system prompt.
 func BuildSystemPrompt(options BuildSystemPromptOptions) string {
+	prompt, _ := BuildSystemPromptParts(options)
+	return prompt
+}
+
+// Trace section names owned by chatagent for turn_trace payloads.
+const (
+	TraceSectionSystemBody  = "system_body"
+	TraceSectionContextFile = "context_file"
+	TraceSectionSkills      = "skills"
+	TraceSectionMemory      = "memory"
+	TraceSectionRuntime     = "runtime"
+)
+
+// BuildSystemPromptParts returns the concatenated system prompt and the named
+// sections used by turn_trace. The prompt string matches BuildSystemPrompt.
+func BuildSystemPromptParts(options BuildSystemPromptOptions) (string, []session.TraceSection) {
 	cwd := normalizePromptPath(options.CWD)
 	language := config.App.Flowbot.Language
 	if language == "" {
@@ -122,7 +139,7 @@ func BuildSystemPrompt(options BuildSystemPromptOptions) string {
 	subagents := options.Subagents
 
 	if custom := strings.TrimSpace(options.CustomPrompt); custom != "" {
-		return finalizePrompt(custom+appendSection, contextFiles, skills, subagents, options.MemoryFacts, date, cwd, language, tools)
+		return finalizePromptParts(custom+appendSection, contextFiles, skills, subagents, options.MemoryFacts, date, cwd, language, tools)
 	}
 
 	toolsList := formatToolsList(tools, snippets)
@@ -150,7 +167,7 @@ In addition to the tools above, you may receive other custom tools depending on 
 - If the task can be completed end-to-end, do so without asking unnecessary follow-up questions.
 `, toolsList, workflow)
 
-	return finalizePrompt(body+appendSection, contextFiles, skills, subagents, options.MemoryFacts, date, cwd, language, tools)
+	return finalizePromptParts(body+appendSection, contextFiles, skills, subagents, options.MemoryFacts, date, cwd, language, tools)
 }
 
 // SystemPrompt builds the default chat assistant prompt from workspace, config, and DB skills.
@@ -323,7 +340,7 @@ Describe proposed changes step-by-step so the user can approve execution after e
 Your plan is saved automatically; the server appends a plan:// link the user can open with /open.`
 }
 
-func finalizePrompt(
+func finalizePromptParts(
 	body string,
 	contextFiles []ContextFile,
 	skills []Skill,
@@ -331,45 +348,68 @@ func finalizePrompt(
 	memoryFacts []InjectedMemoryFact,
 	date, cwd, language string,
 	tools []string,
-) string {
+) (string, []session.TraceSection) {
 	var prompt strings.Builder
+	sections := make([]session.TraceSection, 0, 8)
+
 	writePrompt(&prompt, body)
+	if strings.TrimSpace(body) != "" {
+		sections = append(sections, session.NewTraceSection(TraceSectionSystemBody, body))
+	}
 
 	if len(memoryFacts) > 0 {
-		writePrompt(&prompt, "\n\n<memory_facts>\n")
-		writePrompt(&prompt, "Durable facts for the current memory scope (pinned preferred). Use memory tools for facts not listed here.\n")
+		var memory strings.Builder
+		writePrompt(&memory, "Durable facts for the current memory scope (pinned preferred). Use memory tools for facts not listed here.\n")
 		for _, fact := range memoryFacts {
 			pin := ""
 			if fact.Pinned {
 				pin = " pinned=true"
 			}
-			writePrompt(&prompt, fmt.Sprintf("- %s=%s%s\n", fact.Key, fact.Value, pin))
+			writePrompt(&memory, fmt.Sprintf("- %s=%s%s\n", fact.Key, fact.Value, pin))
 		}
+		writePrompt(&prompt, "\n\n<memory_facts>\n")
+		writePrompt(&prompt, memory.String())
 		writePrompt(&prompt, "</memory_facts>\n")
+		sections = append(sections, session.NewTraceSection(TraceSectionMemory, memory.String()))
 	}
 
 	if len(contextFiles) > 0 && hasTool(tools, "read_file") {
 		writePrompt(&prompt, "\n\n<project_context>\n\nProject-specific instructions and guidelines:\n\n")
 		for _, file := range contextFiles {
-			writePrompt(&prompt, fmt.Sprintf("<project_instructions path=%q>\n%s\n</project_instructions>\n\n", file.Path, file.Content))
+			block := fmt.Sprintf("<project_instructions path=%q>\n%s\n</project_instructions>\n\n", file.Path, file.Content)
+			writePrompt(&prompt, block)
+			sections = append(sections, session.NewTraceSection(TraceSectionContextFile, file.Path+"\n\n"+file.Content))
 		}
 		writePrompt(&prompt, "</project_context>\n")
 	}
 
+	var skillsBlock strings.Builder
 	if hasTool(tools, "read_skill") {
-		writePrompt(&prompt, FormatSkillsForPrompt(skills))
+		text := FormatSkillsForPrompt(skills)
+		writePrompt(&prompt, text)
+		writePrompt(&skillsBlock, text)
 	}
-
 	if hasTool(tools, delegateSubagentToolName) {
-		writePrompt(&prompt, FormatSubagentsForPrompt(subagents))
+		text := FormatSubagentsForPrompt(subagents)
+		writePrompt(&prompt, text)
+		writePrompt(&skillsBlock, text)
+	}
+	if skillsBlock.Len() > 0 {
+		sections = append(sections, session.NewTraceSection(TraceSectionSkills, skillsBlock.String()))
 	}
 
+	var runtime strings.Builder
+	writePrompt(&runtime, fmt.Sprintf("Current date: %s\n", date))
+	writePrompt(&runtime, fmt.Sprintf("Current working directory: %s\n", cwd))
+	writePrompt(&runtime, fmt.Sprintf("Response language: %s\n", language))
+	writePrompt(&runtime, "Hard rules: stay inside the workspace sandbox; call only listed tools; follow Response language unless the user requests another.")
 	writePrompt(&prompt, fmt.Sprintf("\nCurrent date: %s", date))
 	writePrompt(&prompt, fmt.Sprintf("\nCurrent working directory: %s", cwd))
 	writePrompt(&prompt, fmt.Sprintf("\nResponse language: %s", language))
 	writePrompt(&prompt, "\nHard rules: stay inside the workspace sandbox; call only listed tools; follow Response language unless the user requests another.")
+	sections = append(sections, session.NewTraceSection(TraceSectionRuntime, runtime.String()))
 
-	return prompt.String()
+	return prompt.String(), sections
 }
 
 func writePrompt(b *strings.Builder, text string) {

@@ -99,12 +99,12 @@ func (s *Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (str
 	ctx = WithMemoryScope(ctx, ResolveMemoryScope(req))
 	ctx = withRunIO(ctx, req.API)
 
-	h, err := s.ensureHarness(ctx, req, len(strings.TrimSpace(req.Text)))
+	h, trace, err := s.ensureHarness(ctx, req, len(strings.TrimSpace(req.Text)))
 	if err != nil {
 		return "", err
 	}
 
-	return s.executeRun(ctx, h, req, start, sink)
+	return s.executeRun(ctx, h, req, start, sink, trace)
 }
 
 // prepareRun validates the request and stamps RunStartedAt.
@@ -125,7 +125,7 @@ func (s *Service) lockSession(sessionID string) func() {
 }
 
 // ensureHarness returns a pooled or newly built harness for the session.
-func (s *Service) ensureHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, error) {
+func (s *Service) ensureHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, promptTrace, error) {
 	return s.getOrCreateHarness(ctx, req, textLen)
 }
 
@@ -156,7 +156,7 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 		return nil, err
 	}
 
-	h, err := s.ensureHarness(ctx, RunRequest{SessionID: sessionID}, 0)
+	h, _, err := s.ensureHarness(ctx, RunRequest{SessionID: sessionID}, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func validateRunRequest(ctx context.Context, req RunRequest) error {
 }
 
 // executeRun runs hooks/permission/confirm → stream → deliver → cleanup for one turn.
-func (s *Service) executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time, sink StreamSink) (string, error) {
+func (s *Service) executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time, sink StreamSink, trace promptTrace) (string, error) {
 	if !req.RunStartedAt.IsZero() {
 		h.SetRunStartedAt(req.RunStartedAt)
 	} else {
@@ -216,6 +216,10 @@ func (s *Service) executeRun(ctx context.Context, h *harness.Harness, req RunReq
 
 	userMsg, mediaParts, err := buildRunUserMessage(ctx, req)
 	if err != nil {
+		return "", err
+	}
+
+	if err := appendTurnTrace(ctx, h, req, trace); err != nil {
 		return "", err
 	}
 

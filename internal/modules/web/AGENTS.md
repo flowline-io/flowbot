@@ -15,7 +15,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 - Scripts order of truth: `pkg/views/partials/chatagent_scripts.templ`
   - Composer: `util → slash → chat`
   - Approval: `util → approval → chat`
-  - Thread: `util → sse → markdown → codeblocks → context → approval → todos → thread → slash → chat → clip-copy`
+  - Thread: `util → sse → markdown → codeblocks → context → approval → todos → trajectory → thread → slash → chat → clip-copy`
 - Namespace: `window.FlowbotChatAgent` only — no monolithic chatagent JS.
 
 ## Non-obvious rules

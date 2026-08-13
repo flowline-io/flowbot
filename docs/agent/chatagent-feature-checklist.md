@@ -11,7 +11,7 @@ Both channels use `chatagent.StreamEvent` JSON (`type` discriminator) from `inte
 
 | Channel | Message send (primary turn stream) | Live event subscribe | Subscribe filter |
 | ------- | ---------------------------------- | -------------------- | ---------------- |
-| REST | `POST /chatagent/sessions/:id/messages` — full SSE (`delta` / `thinking` / `tool` / … / `done`) | `GET /chatagent/sessions/:id/events` | `confirm`, `confirm_resolved`, `canceled`, `mode_change`, `run_complete` |
+| REST | `POST /chatagent/sessions/:id/messages` — full SSE (`delta` / `thinking` / `tool` / `turn_trace` / … / `done`) | `GET /chatagent/sessions/:id/events` | `confirm`, `confirm_resolved`, `canceled`, `mode_change`, `run_complete` |
 | Web | `POST /service/web/agents/:id/messages` — turn execution; UI may use fetch/SSE depending on handler | `GET /service/web/agents/:id/events` | **Same subset** (`chatagent_web_stream.go`) |
 
 Event **shape** (`StreamEvent`) is shared. Both `/events` subscribers use the same type filter (not full deltas). Primary turn tokens come from the messages/send path (REST `StreamAPIRun`), not from `/events`.
@@ -36,7 +36,8 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | R-01 | Agent info | `GET /chatagent/info` | Disabled → 503 | `chatagent_http_test.go`, BDD chat HTTP |
 | R-02 | List / create / close sessions | `GET\|POST /chatagent/sessions`, `DELETE …/:id` | Closed → not found for owner ops | unit + `chat_agent_chat_spec_test.go` |
 | R-03 | List messages / plans / todos | `GET …/messages`, `GET …/plans`, `GET …/todos` | Empty history; user rows may include `attachments[]` | unit HTTP tests |
-| R-04 | Send message (full SSE stream) | `POST …/messages` JSON `{text, attachments?}` | Empty text **and** no attachments → 400; run in flight 409; max 8 attachments; MIME allowlist; model missing modality → 400 | `chat_agent_chat_spec_test.go`, multimodal unit tests |
+| R-03a | Session trajectory | `GET …/trajectory` | Old sessions omit SYSTEM/CONTEXT when no `turn_trace`; owner 404/403 same as messages | `trajectory_test.go`, `chatagent_http_test.go` |
+| R-04 | Send message (full SSE stream) | `POST …/messages` JSON `{text, attachments?}` | Empty text **and** no attachments → 400; run in flight 409; max 8 attachments; MIME allowlist; model missing modality → 400; `turn_trace` is primary-channel only (not `/events`) | `chat_agent_chat_spec_test.go`, multimodal unit tests, `protocol_test.go` |
 | R-04a | Upload session media | `POST …/media` multipart | Strict MIME allowlist; binds `(session_id, owner)`; requires media public base when FS signing needed | media upload tests |
 | R-04b | Modality gate | Before run | Audio/video Reject until catalog marks `ModalityAudioIn`/`ModalityVideoIn`; unknown models allow image only | modality reject tests |
 | R-05 | Subscribe session events | `GET …/events` | Client disconnect; buffered hub | `session_events_test.go` |
@@ -63,6 +64,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-04a | Composer media (upload + paste image) | Two-step: upload media then send with `file_id`s | MIME allowlist; max 8; modality Reject / missing `public_base_url` surfaced in UI | `chatagent-chat.js` + media unit/HTTP tests |
 | W-05 | Context ring + popover | `GET …/context` + JS | Token window zero | `agents_page_spec_test.go` context It |
 | W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert; tool/thinking collapse; codeblock chrome; jump-to-bottom | chat BDD stream done; `chatagent_message_test.go` |
+| W-10 | Trajectory view | Chat \| Trajectory on the thread; `GET …/trajectory`; Duration gantt + Preview/Raw inspector | `?view=trajectory`; composer stays; no SYSTEM/CONTEXT without `turn_trace`; `thread.js` forwards `turn_trace` SSE | `agents_page_spec_test.go`, `chatagent_message_test.go`, `agents_webservice_test.go` |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
 | W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model | agents page + `chatagent-chat.js` |
 | W-09 | Approval flow UX | Nav/Home pending-approval badge; docked session approval bar; Allow once / Always allow matching copy | Badge count from runtime gates; always button only when pattern suggested; auto-mode escalate hides Always | `session_activity_test.go`, helpers/home/message unit tests; `GET /service/web/approval-badge` |
@@ -107,6 +109,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | O-10 | Skills tool / memory tool / delegate_subagent tool / todo tools | registry + tools | Allowlists for subagents | skills/memory/subagent/todo tests |
 | O-11 | Sensors / progress / usage recording | sensors, progress, usage_record | | unit tests |
 | O-12 | Prompt cache | `prompt_cache.go` | Invalidation on config change | `prompt_cache_test.go` |
+| O-13 | Persist `turn_trace` | `executeRun` after prompt assembly, `h.Session().Append` | Skip `RunKindPipeline`; one node per `Run`; publish SSE when API publisher is set | `service.go` / trajectory persist tests |
 
 ## 7. Out of scope / non-goals for this remediation
 
@@ -136,6 +139,7 @@ Use after each vertical slice and before freeze sign-off.
 13. Title: first user message eventually updates session title (or test-disabled path).
 14. REST smoke: `POST /chatagent/sessions/:id/messages` SSE reaches `done`; `GET …/events` receives hub events when a run publishes.
 15. Multimodal: upload an image via `POST …/media`, send with attachments (optional empty text) on a vision-capable model; history shows attachment; audio/video on unmarked models returns 400.
+16. Trajectory: open a session, switch Chat | Trajectory (`?view=trajectory`); after a turn, SYSTEM/CONTEXT match the injection; Duration gantt shows Input/Model/Tools; inspector Preview/Raw on a row.
 
 ---
 

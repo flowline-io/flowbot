@@ -2,6 +2,7 @@ package chatagent
 
 import (
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/pkg/agent/session"
 )
 
 // Stream event type constants for Chat Agent SSE clients.
@@ -17,6 +18,7 @@ const (
 	EventTypeCanceled        = "canceled"
 	EventTypeDone            = "done"
 	EventTypeError           = "error"
+	EventTypeTurnTrace       = "turn_trace"
 	// EventTypeRunComplete notifies /events observers that an API turn finished
 	// and session history is durable (used when the primary messages SSE is gone).
 	EventTypeRunComplete = "run_complete"
@@ -75,6 +77,10 @@ type StreamEvent struct {
 
 	// done
 	Resources []ResourceRef `json:"resources,omitempty"`
+
+	// turn_trace
+	Sections   []session.TraceSection `json:"sections,omitempty"`
+	AssembleMs int64                  `json:"assemble_ms,omitempty"`
 }
 
 // ResourceRef identifies one loadable resource emitted with a done event.

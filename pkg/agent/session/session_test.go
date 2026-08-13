@@ -52,6 +52,18 @@ func TestSession_BuildContextAndMoveTo(t *testing.T) {
 			},
 			wantModel: "gpt",
 		},
+		{
+			name: "turn_trace is not an LLM message",
+			setup: func(ctx context.Context, s *session.Session) error {
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("a")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{
+					ID: "trace", ParentID: "root", Type: session.EntryTurnTrace,
+					Sections: []session.TraceSection{session.NewTraceSection("system_body", "identity")},
+				}))
+				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "trace", Type: session.EntryMessage, Message: msg.NewUserMessage("b")})
+			},
+			wantMessages: 2,
+		},
 	}
 
 	for _, tt := range tests {

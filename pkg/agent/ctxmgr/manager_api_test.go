@@ -2,6 +2,7 @@ package ctxmgr_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
@@ -60,6 +61,25 @@ func TestManagerSettingsAndPrompt(t *testing.T) {
 			tt.run(t)
 		})
 	}
+}
+
+func TestGetContextUsageIgnoresTurnTrace(t *testing.T) {
+	t.Parallel()
+
+	mgr := ctxmgr.New(ctxmgr.Options{
+		Model:         agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"}),
+		ModelName:     "fake",
+		ContextWindow: 4096,
+		SystemPrompt:  "system",
+	})
+	user := session.TreeEntry{ID: "u1", Type: session.EntryMessage, Message: msg.NewUserMessage("hello")}
+	trace := session.TreeEntry{
+		ID: "t1", ParentID: "u1", Type: session.EntryTurnTrace,
+		Sections: []session.TraceSection{session.NewTraceSection("system_body", strings.Repeat("injected ", 400))},
+	}
+	without := mgr.GetContextUsage([]session.TreeEntry{user})
+	withTrace := mgr.GetContextUsage([]session.TreeEntry{user, trace})
+	assert.Equal(t, without.Tokens, withTrace.Tokens)
 }
 
 func TestManagerMoveTo(t *testing.T) {

@@ -37,7 +37,7 @@ func adjustCutIndexFromCompaction(entries []session.TreeEntry, cutIndex, startIn
 		if prev.Type == session.EntryCompaction {
 			break
 		}
-		if prev.Type == session.EntryMessage {
+		if prev.Type == session.EntryMessage || prev.Type == session.EntryTurnTrace {
 			break
 		}
 		cutIndex--

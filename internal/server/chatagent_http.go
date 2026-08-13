@@ -30,6 +30,7 @@ func RegisterChatAgentRoutes(a *fiber.App, svc *chatagent.Service) {
 	a.Post("/chatagent/sessions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.createSession)))
 	a.Delete("/chatagent/sessions/:id", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.closeSession)))
 	a.Get("/chatagent/sessions/:id/messages", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listMessages)))
+	a.Get("/chatagent/sessions/:id/trajectory", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listTrajectory)))
 	a.Get("/chatagent/sessions/:id/plans", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listSessionPlans)))
 	a.Get("/chatagent/sessions/:id/todos", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listSessionTodos)))
 	a.Get("/chatagent/resources", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.getResource)))

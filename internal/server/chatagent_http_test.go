@@ -218,6 +218,24 @@ func TestChatAgentHTTPListMessages(t *testing.T) {
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 }
 
+func TestChatAgentHTTPListTrajectory(t *testing.T) {
+	setupChatAgentHTTPTest(t, &gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)})
+	h := newChatAgentHTTP(ChatAgentService())
+	app := fiber.New()
+	app.Get("/chatagent/sessions/:id/trajectory", func(c fiber.Ctx) error {
+		c.Locals("route:ctx", &route.RequestContext{
+			UID:    types.Uid("user-1"),
+			Scopes: []string{auth.ScopeChatAgentChat},
+		})
+		return h.listTrajectory(c)
+	})
+
+	req := httptest.NewRequest("GET", "/chatagent/sessions/sess-1/trajectory", http.NoBody)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+}
+
 func TestChatAgentHTTPConfirmNotFound(t *testing.T) {
 	setupChatAgentHTTPTest(t, &gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)})
 	h := newChatAgentHTTP(ChatAgentService())

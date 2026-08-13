@@ -3,7 +3,6 @@ package web
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -580,7 +579,7 @@ func TestAgentChatContext(t *testing.T) {
 			checkJSON: func(t *testing.T, body []byte) {
 				t.Helper()
 				var report chatagent.ContextUsageReport
-				require.NoError(t, json.Unmarshal(body, &report))
+				require.NoError(t, sonic.Unmarshal(body, &report))
 				assert.Equal(t, "test-model", report.Model)
 				assert.Equal(t, 100_000, report.ContextWindow)
 				gotIDs := make([]string, 0, len(report.Categories))
@@ -621,6 +620,27 @@ func TestAgentChatContext(t *testing.T) {
 	}
 }
 
+func TestAgentChatTrajectory(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		ts := &testStore{chatSessionsByFlag: map[string]*gen.ChatSession{
+			"sess-owned": {Flag: "sess-owned", Title: "Owned", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+		}}
+		app := setupAuthenticatedApp(t, ts)
+		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/sess-owned/trajectory", http.NoBody)
+		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		var view chatagent.TrajectoryView
+		require.NoError(t, sonic.Unmarshal(body, &view))
+		assert.NotNil(t, view.Rows)
+	})
+}
+
 func TestAgentChatPageOwner(t *testing.T) {
 	now := time.Now().UTC()
 	tests := []struct {
@@ -647,6 +667,24 @@ func TestAgentChatPageOwner(t *testing.T) {
 			},
 			wantStatus: http.StatusOK,
 			wantBody:   "chatagent-context-ring",
+		},
+		{
+			name: "owner page includes trajectory toggle",
+			path: "/service/web/agents/sess-owned",
+			sessions: map[string]*gen.ChatSession{
+				"sess-owned": {Flag: "sess-owned", Title: "Owned", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `data-testid="chatagent-view-toggle"`,
+		},
+		{
+			name: "owner page includes trajectory url",
+			path: "/service/web/agents/sess-owned",
+			sessions: map[string]*gen.ChatSession{
+				"sess-owned": {Flag: "sess-owned", Title: "Owned", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `data-trajectory-url="/service/web/agents/sess-owned/trajectory"`,
 		},
 		{
 			name: "non-owner forbidden",

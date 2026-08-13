@@ -126,6 +126,7 @@ Sessions are **append-only trees**, not linear chat arrays. Each node has `ID`, 
 | `active_tools_change` | Record tool allowlist |
 | `branch_summary` | Context after rollback to a branch |
 | `compaction` | Summarized history; rebuilt via `BuildContext` compaction boundaries |
+| `turn_trace` | Diagnostic prompt snapshot for the trajectory view |
 
 ```
 root ──► user msg ──► assistant ──► tool result ──► leaf
@@ -138,6 +139,8 @@ root ──► user msg ──► assistant ──► tool result ──► leaf
 - **`session.SerializeSession` / `DeserializeSession`** — JSONL marshal helpers (sonic)
 
 `session.BuildContext(path)` reconstructs `[]msg.AgentMessage` and model/tool state from a branch path, honoring compaction boundaries via `first_kept_entry_id`.
+
+Trajectory (Chat | Trajectory on the web thread) joins `turn_trace` nodes with messages; rationale: [.agents/notes/implemented/feature/2026-08-13-chatagent-trajectory.md](../../.agents/notes/implemented/feature/2026-08-13-chatagent-trajectory.md).
 
 ## Persistent memory (chatagent)
 

@@ -315,3 +315,35 @@ func TestHandleAPIStreamEventTiming(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleAPIStreamEventOmitsTurnTrace(t *testing.T) {
+	t.Parallel()
+	pub := &apiEventRecorder{}
+	tracker := &apiStreamTracker{
+		coalescer:          newStreamCoalescer(),
+		reasoningCoalescer: newStreamCoalescer(),
+	}
+	events := []agentevent.Event{
+		{Type: agentevent.TypeMessageStart, Message: msg.AssistantMessage{}},
+		{Type: agentevent.TypeMessageUpdate, TextDelta: "hi"},
+		{Type: agentevent.TypeMessageUpdate, ReasoningDelta: "plan"},
+		{
+			Type:     agentevent.TypeToolExecutionEnd,
+			ToolCall: msg.ToolCallPart{ID: "1", Name: "echo"},
+			ToolResult: msg.ToolResultMessage{
+				Name:  "echo",
+				Parts: []msg.ContentPart{msg.TextPart{Text: "ok"}},
+			},
+		},
+		{Type: agentevent.TypeTurnEnd, DurationMs: 12, Step: 1},
+	}
+	for _, ev := range events {
+		handleAPIStreamEvent(t.Context(), pub, tracker, ev)
+	}
+	got := pub.snapshot()
+	require.NotEmpty(t, got)
+	for _, event := range got {
+		assert.NotEqual(t, EventTypeTurnTrace, event.Type)
+		assert.False(t, IsObserverStreamEvent(event.Type), event.Type)
+	}
+}

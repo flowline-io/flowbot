@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/bytedance/sonic"
 	webmod "github.com/flowline-io/flowbot/internal/modules/web"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
@@ -37,7 +38,7 @@ func (a *agentsWebAdapter) IsOpen() bool                     { return true }
 func (a *agentsWebAdapter) GetName() string                  { return "bdd-agents" }
 func (a *agentsWebAdapter) Stats() any                       { return nil }
 func (a *agentsWebAdapter) GetDB() any                       { return a.ent }
-func (a *agentsWebAdapter) GetClient() *gen.Client            { return a.ent }
+func (a *agentsWebAdapter) GetClient() *gen.Client           { return a.ent }
 
 func (a *agentsWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -267,7 +268,7 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 
 			Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 			var payload map[string]string
-			Expect(json.Unmarshal(ReadBody(resp), &payload)).To(Succeed())
+			Expect(sonic.Unmarshal(ReadBody(resp), &payload)).To(Succeed())
 			newID := payload["session_id"]
 			Expect(newID).NotTo(BeEmpty())
 
@@ -285,6 +286,8 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 			Expect(string(detailBody)).To(ContainSubstring("chatagent-context-ring"))
 			Expect(string(detailBody)).To(ContainSubstring("Show context usage"))
 			Expect(string(detailBody)).To(ContainSubstring("data-context-url=\"/service/web/agents/" + newID + "/context\""))
+			Expect(string(detailBody)).To(ContainSubstring("data-testid=\"chatagent-view-toggle\""))
+			Expect(string(detailBody)).To(ContainSubstring("data-trajectory-url=\"/service/web/agents/" + newID + "/trajectory\""))
 		})
 	})
 
@@ -299,10 +302,28 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			var report map[string]any
-			Expect(json.Unmarshal(ReadBody(resp), &report)).To(Succeed())
+			Expect(sonic.Unmarshal(ReadBody(resp), &report)).To(Succeed())
 			Expect(report).To(HaveKey("categories"))
 			Expect(report).To(HaveKey("context_window"))
 			Expect(report).To(HaveKey("model"))
+		})
+	})
+
+	Describe("GET /service/web/agents/:id/trajectory", func() {
+		It("returns empty rows when the session has no turn_trace", func() {
+			req := MakeRequest(http.MethodGet, fmt.Sprintf("/service/web/agents/%s/trajectory", sessionID), nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agents-token"})
+			webmod.AttachCSRFForTest(req)
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			defer resp.Body.Close()
+
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			var view map[string]any
+			Expect(sonic.Unmarshal(ReadBody(resp), &view)).To(Succeed())
+			Expect(view).To(HaveKey("rows"))
+			rows, _ := view["rows"].([]any)
+			Expect(rows).To(BeEmpty())
 		})
 	})
 })
