@@ -66,10 +66,11 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-bdd
       cancel-in-progress: true
-    # Prefer AWS Public ECR mirrors to avoid Docker Hub rate limits on GH runners.
+    # Pre-pull Postgres/Redis from registry mirrors, then tag to the spec defaults.
+    # Rationale: .agents/notes/implemented/testing/2026-08-13-bdd-ci-image-mirrors.md
     env:
-      POSTGRES_IMAGE: public.ecr.aws/docker/library/postgres:16-alpine
-      REDIS_IMAGE: public.ecr.aws/docker/library/redis:7-alpine
+      POSTGRES_IMAGE: postgres:16-alpine
+      REDIS_IMAGE: redis:7-alpine
     steps:
       - uses: actions/checkout@v7
 
@@ -85,15 +86,42 @@ jobs:
       - name: Pull BDD container images
         run: |
           set -euo pipefail
-          for attempt in 1 2 3; do
-            if docker pull "$POSTGRES_IMAGE" && docker pull "$REDIS_IMAGE"; then
-              exit 0
+
+          pull_one() {
+            local dest="$1"
+            shift
+            if docker image inspect "$dest" >/dev/null 2>&1; then
+              echo "${dest} already present"
+              return 0
             fi
-            echo "image pull attempt ${attempt} failed; retrying..."
-            sleep $((attempt * 5))
-          done
-          echo "failed to pull BDD images after retries" >&2
-          exit 1
+            local attempt src
+            for attempt in 1 2 3 4 5; do
+              for src in "$@"; do
+                echo "pulling ${src} -> ${dest} (attempt ${attempt})"
+                if docker pull "$src"; then
+                  if [ "$src" != "$dest" ]; then
+                    docker tag "$src" "$dest"
+                  fi
+                  return 0
+                fi
+              done
+              echo "image pull attempt ${attempt} failed for ${dest}; retrying..."
+              sleep $((attempt * 15))
+            done
+            echo "failed to pull ${dest} after retries" >&2
+            return 1
+          }
+
+          # Redis tries GCR first so two images do not consume the same ECR
+          # anonymous quota back-to-back on a shared GitHub runner IP.
+          pull_one "$POSTGRES_IMAGE" \
+            public.ecr.aws/docker/library/postgres:16-alpine \
+            mirror.gcr.io/library/postgres:16-alpine \
+            postgres:16-alpine
+          pull_one "$REDIS_IMAGE" \
+            mirror.gcr.io/library/redis:7-alpine \
+            public.ecr.aws/docker/library/redis:7-alpine \
+            redis:7-alpine
 
       - name: BDD Acceptance Tests
         run: go tool task test:specs:ci

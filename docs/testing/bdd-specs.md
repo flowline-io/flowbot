@@ -373,7 +373,7 @@ go tool cover -html=coverage.out
 
 ## CI Integration
 
-The BDD step in `.github/workflows/testing.yml`:
+The BDD job in `.github/workflows/testing.yml` pre-pulls Postgres and Redis from registry mirrors and tags them to the spec defaults ([rationale](../../.agents/notes/implemented/testing/2026-08-13-bdd-ci-image-mirrors.md)), then:
 
 ```yaml
 - name: BDD Acceptance Tests
