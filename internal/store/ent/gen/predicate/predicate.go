@@ -102,6 +102,15 @@ type Fileupload func(*sql.Selector)
 // Form is the predicate function for form builders.
 type Form func(*sql.Selector)
 
+// FunctionDefinition is the predicate function for functiondefinition builders.
+type FunctionDefinition func(*sql.Selector)
+
+// FunctionDefinitionVersion is the predicate function for functiondefinitionversion builders.
+type FunctionDefinitionVersion func(*sql.Selector)
+
+// FunctionRun is the predicate function for functionrun builders.
+type FunctionRun func(*sql.Selector)
+
 // GatewayJob is the predicate function for gatewayjob builders.
 type GatewayJob func(*sql.Selector)
 

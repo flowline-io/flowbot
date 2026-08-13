@@ -70,6 +70,8 @@ const (
 
 	ScopePipelineRead  = "pipeline:read"
 	ScopePipelineRun   = "pipeline:run"
+	ScopeFunctionRead  = "function:read"
+	ScopeFunctionRun   = "function:run"
 	ScopeWorkflowRead  = "workflow:read"
 	ScopeWorkflowRun   = "workflow:run"
 	ScopeChatAgentChat = "chatagent:chat"
@@ -149,8 +151,9 @@ func isWriteHTTPMethod(method string) bool {
 }
 
 // MinimumServiceScope returns the default minimum scope for /service/{group} routes.
-// Web and pipeline module routes map to pipeline:*; workflow module routes map to workflow:*;
-// hub module routes map to hub:capabilities:read; provider modules use service:{group}:read|write.
+// Web and pipeline module routes map to pipeline:*; functions module routes map to function:*;
+// workflow module routes map to workflow:*; hub module routes map to hub:capabilities:read;
+// provider modules use service:{group}:read|write.
 func MinimumServiceScope(group, method string) string {
 	switch group {
 	case "web", "pipeline":
@@ -158,6 +161,11 @@ func MinimumServiceScope(group, method string) string {
 			return ScopePipelineRun
 		}
 		return ScopePipelineRead
+	case "functions":
+		if isWriteHTTPMethod(method) {
+			return ScopeFunctionRun
+		}
+		return ScopeFunctionRead
 	case "workflow":
 		if isWriteHTTPMethod(method) {
 			return ScopeWorkflowRun
@@ -175,7 +183,7 @@ func MinimumServiceScope(group, method string) string {
 
 // HasMinimumServiceScope reports whether scopes satisfy the default /service/{group} gate.
 // Write scopes satisfy read for the same provider group; pipeline:run satisfies pipeline:read;
-// workflow:run satisfies workflow:read.
+// function:run satisfies function:read; workflow:run satisfies workflow:read.
 func HasMinimumServiceScope(scopes []string, group, method string) bool {
 	required := MinimumServiceScope(group, method)
 	if HasScope(scopes, required) {
@@ -185,6 +193,8 @@ func HasMinimumServiceScope(scopes []string, group, method string) bool {
 		switch group {
 		case "web", "pipeline":
 			return HasScope(scopes, ScopePipelineRun)
+		case "functions":
+			return HasScope(scopes, ScopeFunctionRun)
 		case "workflow":
 			return HasScope(scopes, ScopeWorkflowRun)
 		case "hub":
@@ -239,6 +249,8 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeServiceExampleWrite, Description: "write example"},
 		{Value: ScopePipelineRead, Description: "read pipelines"},
 		{Value: ScopePipelineRun, Description: "apply, delete, and run pipelines"},
+		{Value: ScopeFunctionRead, Description: "read named functions"},
+		{Value: ScopeFunctionRun, Description: "apply, delete, and manage named functions"},
 		{Value: ScopeWorkflowRead, Description: "read workflows"},
 		{Value: ScopeWorkflowRun, Description: "apply, delete, and run workflows"},
 		{Value: ScopeChatAgentChat, Description: "chat agent"},

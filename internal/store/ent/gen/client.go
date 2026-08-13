@@ -46,6 +46,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayjob"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayworker"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
@@ -173,6 +176,12 @@ type Client struct {
 	Fileupload *FileuploadClient
 	// Form is the client for interacting with the Form builders.
 	Form *FormClient
+	// FunctionDefinition is the client for interacting with the FunctionDefinition builders.
+	FunctionDefinition *FunctionDefinitionClient
+	// FunctionDefinitionVersion is the client for interacting with the FunctionDefinitionVersion builders.
+	FunctionDefinitionVersion *FunctionDefinitionVersionClient
+	// FunctionRun is the client for interacting with the FunctionRun builders.
+	FunctionRun *FunctionRunClient
 	// GatewayJob is the client for interacting with the GatewayJob builders.
 	GatewayJob *GatewayJobClient
 	// GatewayWorker is the client for interacting with the GatewayWorker builders.
@@ -328,6 +337,9 @@ func (c *Client) init() {
 	c.EventOutbox = NewEventOutboxClient(c.config)
 	c.Fileupload = NewFileuploadClient(c.config)
 	c.Form = NewFormClient(c.config)
+	c.FunctionDefinition = NewFunctionDefinitionClient(c.config)
+	c.FunctionDefinitionVersion = NewFunctionDefinitionVersionClient(c.config)
+	c.FunctionRun = NewFunctionRunClient(c.config)
 	c.GatewayJob = NewGatewayJobClient(c.config)
 	c.GatewayWorker = NewGatewayWorkerClient(c.config)
 	c.Instruct = NewInstructClient(c.config)
@@ -508,6 +520,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EventOutbox:               NewEventOutboxClient(cfg),
 		Fileupload:                NewFileuploadClient(cfg),
 		Form:                      NewFormClient(cfg),
+		FunctionDefinition:        NewFunctionDefinitionClient(cfg),
+		FunctionDefinitionVersion: NewFunctionDefinitionVersionClient(cfg),
+		FunctionRun:               NewFunctionRunClient(cfg),
 		GatewayJob:                NewGatewayJobClient(cfg),
 		GatewayWorker:             NewGatewayWorkerClient(cfg),
 		Instruct:                  NewInstructClient(cfg),
@@ -615,6 +630,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EventOutbox:               NewEventOutboxClient(cfg),
 		Fileupload:                NewFileuploadClient(cfg),
 		Form:                      NewFormClient(cfg),
+		FunctionDefinition:        NewFunctionDefinitionClient(cfg),
+		FunctionDefinitionVersion: NewFunctionDefinitionVersionClient(cfg),
+		FunctionRun:               NewFunctionRunClient(cfg),
 		GatewayJob:                NewGatewayJobClient(cfg),
 		GatewayWorker:             NewGatewayWorkerClient(cfg),
 		Instruct:                  NewInstructClient(cfg),
@@ -706,21 +724,21 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
-		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.GatewayJob,
-		c.GatewayWorker, c.Instruct, c.LLMUsageRecord, c.LifeAIContext,
-		c.LifeAchievement, c.LifeAchievementProgress, c.LifeAchievementUnlock,
-		c.LifeActionDependency, c.LifeActionLog, c.LifeActionOccurrence,
-		c.LifeActionSpec, c.LifeAdjudication, c.LifeCharacteristic, c.LifeEquipment,
-		c.LifeEquippedSlots, c.LifeEvidence, c.LifeGoal, c.LifeHabitCheckin,
-		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
-		c.LifeReward, c.LifeRewardRedemption, c.LifeSkill, c.Message,
-		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WebAccount,
-		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
-		c.WorkflowTrigger,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.FunctionDefinition,
+		c.FunctionDefinitionVersion, c.FunctionRun, c.GatewayJob, c.GatewayWorker,
+		c.Instruct, c.LLMUsageRecord, c.LifeAIContext, c.LifeAchievement,
+		c.LifeAchievementProgress, c.LifeAchievementUnlock, c.LifeActionDependency,
+		c.LifeActionLog, c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
+		c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots, c.LifeEvidence,
+		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
+		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeReward,
+		c.LifeRewardRedemption, c.LifeSkill, c.Message, c.NotificationRecord,
+		c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData,
+		c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WebAccount, c.Workflow, c.WorkflowRun, c.WorkflowStepRun,
+		c.WorkflowTask, c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -736,21 +754,21 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
-		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.GatewayJob,
-		c.GatewayWorker, c.Instruct, c.LLMUsageRecord, c.LifeAIContext,
-		c.LifeAchievement, c.LifeAchievementProgress, c.LifeAchievementUnlock,
-		c.LifeActionDependency, c.LifeActionLog, c.LifeActionOccurrence,
-		c.LifeActionSpec, c.LifeAdjudication, c.LifeCharacteristic, c.LifeEquipment,
-		c.LifeEquippedSlots, c.LifeEvidence, c.LifeGoal, c.LifeHabitCheckin,
-		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
-		c.LifeReward, c.LifeRewardRedemption, c.LifeSkill, c.Message,
-		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WebAccount,
-		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
-		c.WorkflowTrigger,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.FunctionDefinition,
+		c.FunctionDefinitionVersion, c.FunctionRun, c.GatewayJob, c.GatewayWorker,
+		c.Instruct, c.LLMUsageRecord, c.LifeAIContext, c.LifeAchievement,
+		c.LifeAchievementProgress, c.LifeAchievementUnlock, c.LifeActionDependency,
+		c.LifeActionLog, c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
+		c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots, c.LifeEvidence,
+		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
+		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeReward,
+		c.LifeRewardRedemption, c.LifeSkill, c.Message, c.NotificationRecord,
+		c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData,
+		c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WebAccount, c.Workflow, c.WorkflowRun, c.WorkflowStepRun,
+		c.WorkflowTask, c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -823,6 +841,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Fileupload.mutate(ctx, m)
 	case *FormMutation:
 		return c.Form.mutate(ctx, m)
+	case *FunctionDefinitionMutation:
+		return c.FunctionDefinition.mutate(ctx, m)
+	case *FunctionDefinitionVersionMutation:
+		return c.FunctionDefinitionVersion.mutate(ctx, m)
+	case *FunctionRunMutation:
+		return c.FunctionRun.mutate(ctx, m)
 	case *GatewayJobMutation:
 		return c.GatewayJob.mutate(ctx, m)
 	case *GatewayWorkerMutation:
@@ -5193,6 +5217,405 @@ func (c *FormClient) mutate(ctx context.Context, m *FormMutation) (Value, error)
 		return (&FormDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown Form mutation op: %q", m.Op())
+	}
+}
+
+// FunctionDefinitionClient is a client for the FunctionDefinition schema.
+type FunctionDefinitionClient struct {
+	config
+}
+
+// NewFunctionDefinitionClient returns a client for the FunctionDefinition from the given config.
+func NewFunctionDefinitionClient(c config) *FunctionDefinitionClient {
+	return &FunctionDefinitionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `functiondefinition.Hooks(f(g(h())))`.
+func (c *FunctionDefinitionClient) Use(hooks ...Hook) {
+	c.hooks.FunctionDefinition = append(c.hooks.FunctionDefinition, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `functiondefinition.Intercept(f(g(h())))`.
+func (c *FunctionDefinitionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FunctionDefinition = append(c.inters.FunctionDefinition, interceptors...)
+}
+
+// Create returns a builder for creating a FunctionDefinition entity.
+func (c *FunctionDefinitionClient) Create() *FunctionDefinitionCreate {
+	mutation := newFunctionDefinitionMutation(c.config, OpCreate)
+	return &FunctionDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FunctionDefinition entities.
+func (c *FunctionDefinitionClient) CreateBulk(builders ...*FunctionDefinitionCreate) *FunctionDefinitionCreateBulk {
+	return &FunctionDefinitionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FunctionDefinitionClient) MapCreateBulk(slice any, setFunc func(*FunctionDefinitionCreate, int)) *FunctionDefinitionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FunctionDefinitionCreateBulk{err: fmt.Errorf("calling to FunctionDefinitionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FunctionDefinitionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FunctionDefinitionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FunctionDefinition.
+func (c *FunctionDefinitionClient) Update() *FunctionDefinitionUpdate {
+	mutation := newFunctionDefinitionMutation(c.config, OpUpdate)
+	return &FunctionDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FunctionDefinitionClient) UpdateOne(_m *FunctionDefinition) *FunctionDefinitionUpdateOne {
+	mutation := newFunctionDefinitionMutation(c.config, OpUpdateOne, withFunctionDefinition(_m))
+	return &FunctionDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FunctionDefinitionClient) UpdateOneID(id int64) *FunctionDefinitionUpdateOne {
+	mutation := newFunctionDefinitionMutation(c.config, OpUpdateOne, withFunctionDefinitionID(id))
+	return &FunctionDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FunctionDefinition.
+func (c *FunctionDefinitionClient) Delete() *FunctionDefinitionDelete {
+	mutation := newFunctionDefinitionMutation(c.config, OpDelete)
+	return &FunctionDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FunctionDefinitionClient) DeleteOne(_m *FunctionDefinition) *FunctionDefinitionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FunctionDefinitionClient) DeleteOneID(id int64) *FunctionDefinitionDeleteOne {
+	builder := c.Delete().Where(functiondefinition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FunctionDefinitionDeleteOne{builder}
+}
+
+// Query returns a query builder for FunctionDefinition.
+func (c *FunctionDefinitionClient) Query() *FunctionDefinitionQuery {
+	return &FunctionDefinitionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFunctionDefinition},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FunctionDefinition entity by its id.
+func (c *FunctionDefinitionClient) Get(ctx context.Context, id int64) (*FunctionDefinition, error) {
+	return c.Query().Where(functiondefinition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FunctionDefinitionClient) GetX(ctx context.Context, id int64) *FunctionDefinition {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *FunctionDefinitionClient) Hooks() []Hook {
+	return c.hooks.FunctionDefinition
+}
+
+// Interceptors returns the client interceptors.
+func (c *FunctionDefinitionClient) Interceptors() []Interceptor {
+	return c.inters.FunctionDefinition
+}
+
+func (c *FunctionDefinitionClient) mutate(ctx context.Context, m *FunctionDefinitionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FunctionDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FunctionDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FunctionDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FunctionDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown FunctionDefinition mutation op: %q", m.Op())
+	}
+}
+
+// FunctionDefinitionVersionClient is a client for the FunctionDefinitionVersion schema.
+type FunctionDefinitionVersionClient struct {
+	config
+}
+
+// NewFunctionDefinitionVersionClient returns a client for the FunctionDefinitionVersion from the given config.
+func NewFunctionDefinitionVersionClient(c config) *FunctionDefinitionVersionClient {
+	return &FunctionDefinitionVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `functiondefinitionversion.Hooks(f(g(h())))`.
+func (c *FunctionDefinitionVersionClient) Use(hooks ...Hook) {
+	c.hooks.FunctionDefinitionVersion = append(c.hooks.FunctionDefinitionVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `functiondefinitionversion.Intercept(f(g(h())))`.
+func (c *FunctionDefinitionVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FunctionDefinitionVersion = append(c.inters.FunctionDefinitionVersion, interceptors...)
+}
+
+// Create returns a builder for creating a FunctionDefinitionVersion entity.
+func (c *FunctionDefinitionVersionClient) Create() *FunctionDefinitionVersionCreate {
+	mutation := newFunctionDefinitionVersionMutation(c.config, OpCreate)
+	return &FunctionDefinitionVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FunctionDefinitionVersion entities.
+func (c *FunctionDefinitionVersionClient) CreateBulk(builders ...*FunctionDefinitionVersionCreate) *FunctionDefinitionVersionCreateBulk {
+	return &FunctionDefinitionVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FunctionDefinitionVersionClient) MapCreateBulk(slice any, setFunc func(*FunctionDefinitionVersionCreate, int)) *FunctionDefinitionVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FunctionDefinitionVersionCreateBulk{err: fmt.Errorf("calling to FunctionDefinitionVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FunctionDefinitionVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FunctionDefinitionVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FunctionDefinitionVersion.
+func (c *FunctionDefinitionVersionClient) Update() *FunctionDefinitionVersionUpdate {
+	mutation := newFunctionDefinitionVersionMutation(c.config, OpUpdate)
+	return &FunctionDefinitionVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FunctionDefinitionVersionClient) UpdateOne(_m *FunctionDefinitionVersion) *FunctionDefinitionVersionUpdateOne {
+	mutation := newFunctionDefinitionVersionMutation(c.config, OpUpdateOne, withFunctionDefinitionVersion(_m))
+	return &FunctionDefinitionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FunctionDefinitionVersionClient) UpdateOneID(id int64) *FunctionDefinitionVersionUpdateOne {
+	mutation := newFunctionDefinitionVersionMutation(c.config, OpUpdateOne, withFunctionDefinitionVersionID(id))
+	return &FunctionDefinitionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FunctionDefinitionVersion.
+func (c *FunctionDefinitionVersionClient) Delete() *FunctionDefinitionVersionDelete {
+	mutation := newFunctionDefinitionVersionMutation(c.config, OpDelete)
+	return &FunctionDefinitionVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FunctionDefinitionVersionClient) DeleteOne(_m *FunctionDefinitionVersion) *FunctionDefinitionVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FunctionDefinitionVersionClient) DeleteOneID(id int64) *FunctionDefinitionVersionDeleteOne {
+	builder := c.Delete().Where(functiondefinitionversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FunctionDefinitionVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for FunctionDefinitionVersion.
+func (c *FunctionDefinitionVersionClient) Query() *FunctionDefinitionVersionQuery {
+	return &FunctionDefinitionVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFunctionDefinitionVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FunctionDefinitionVersion entity by its id.
+func (c *FunctionDefinitionVersionClient) Get(ctx context.Context, id int64) (*FunctionDefinitionVersion, error) {
+	return c.Query().Where(functiondefinitionversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FunctionDefinitionVersionClient) GetX(ctx context.Context, id int64) *FunctionDefinitionVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *FunctionDefinitionVersionClient) Hooks() []Hook {
+	return c.hooks.FunctionDefinitionVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *FunctionDefinitionVersionClient) Interceptors() []Interceptor {
+	return c.inters.FunctionDefinitionVersion
+}
+
+func (c *FunctionDefinitionVersionClient) mutate(ctx context.Context, m *FunctionDefinitionVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FunctionDefinitionVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FunctionDefinitionVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FunctionDefinitionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FunctionDefinitionVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown FunctionDefinitionVersion mutation op: %q", m.Op())
+	}
+}
+
+// FunctionRunClient is a client for the FunctionRun schema.
+type FunctionRunClient struct {
+	config
+}
+
+// NewFunctionRunClient returns a client for the FunctionRun from the given config.
+func NewFunctionRunClient(c config) *FunctionRunClient {
+	return &FunctionRunClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `functionrun.Hooks(f(g(h())))`.
+func (c *FunctionRunClient) Use(hooks ...Hook) {
+	c.hooks.FunctionRun = append(c.hooks.FunctionRun, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `functionrun.Intercept(f(g(h())))`.
+func (c *FunctionRunClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FunctionRun = append(c.inters.FunctionRun, interceptors...)
+}
+
+// Create returns a builder for creating a FunctionRun entity.
+func (c *FunctionRunClient) Create() *FunctionRunCreate {
+	mutation := newFunctionRunMutation(c.config, OpCreate)
+	return &FunctionRunCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FunctionRun entities.
+func (c *FunctionRunClient) CreateBulk(builders ...*FunctionRunCreate) *FunctionRunCreateBulk {
+	return &FunctionRunCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FunctionRunClient) MapCreateBulk(slice any, setFunc func(*FunctionRunCreate, int)) *FunctionRunCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FunctionRunCreateBulk{err: fmt.Errorf("calling to FunctionRunClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FunctionRunCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FunctionRunCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FunctionRun.
+func (c *FunctionRunClient) Update() *FunctionRunUpdate {
+	mutation := newFunctionRunMutation(c.config, OpUpdate)
+	return &FunctionRunUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FunctionRunClient) UpdateOne(_m *FunctionRun) *FunctionRunUpdateOne {
+	mutation := newFunctionRunMutation(c.config, OpUpdateOne, withFunctionRun(_m))
+	return &FunctionRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FunctionRunClient) UpdateOneID(id int64) *FunctionRunUpdateOne {
+	mutation := newFunctionRunMutation(c.config, OpUpdateOne, withFunctionRunID(id))
+	return &FunctionRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FunctionRun.
+func (c *FunctionRunClient) Delete() *FunctionRunDelete {
+	mutation := newFunctionRunMutation(c.config, OpDelete)
+	return &FunctionRunDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FunctionRunClient) DeleteOne(_m *FunctionRun) *FunctionRunDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FunctionRunClient) DeleteOneID(id int64) *FunctionRunDeleteOne {
+	builder := c.Delete().Where(functionrun.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FunctionRunDeleteOne{builder}
+}
+
+// Query returns a query builder for FunctionRun.
+func (c *FunctionRunClient) Query() *FunctionRunQuery {
+	return &FunctionRunQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFunctionRun},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FunctionRun entity by its id.
+func (c *FunctionRunClient) Get(ctx context.Context, id int64) (*FunctionRun, error) {
+	return c.Query().Where(functionrun.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FunctionRunClient) GetX(ctx context.Context, id int64) *FunctionRun {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *FunctionRunClient) Hooks() []Hook {
+	return c.hooks.FunctionRun
+}
+
+// Interceptors returns the client interceptors.
+func (c *FunctionRunClient) Interceptors() []Interceptor {
+	return c.inters.FunctionRun
+}
+
+func (c *FunctionRunClient) mutate(ctx context.Context, m *FunctionRunMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FunctionRunCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FunctionRunUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FunctionRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FunctionRunDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown FunctionRun mutation op: %q", m.Op())
 	}
 }
 
@@ -12652,19 +13075,19 @@ type (
 		AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, GatewayJob, GatewayWorker,
-		Instruct, LLMUsageRecord, LifeAIContext, LifeAchievement,
-		LifeAchievementProgress, LifeAchievementUnlock, LifeActionDependency,
-		LifeActionLog, LifeActionOccurrence, LifeActionSpec, LifeAdjudication,
-		LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeEvidence, LifeGoal,
-		LifeHabitCheckin, LifeInventory, LifeLootTable, LifePlanNode, LifeProfile,
-		LifeQuest, LifeReward, LifeRewardRedemption, LifeSkill, Message,
-		NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page,
-		PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
-		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
-		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
-		User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun, WorkflowTask,
-		WorkflowTrigger []ent.Hook
+		EventConsumption, EventOutbox, Fileupload, Form, FunctionDefinition,
+		FunctionDefinitionVersion, FunctionRun, GatewayJob, GatewayWorker, Instruct,
+		LLMUsageRecord, LifeAIContext, LifeAchievement, LifeAchievementProgress,
+		LifeAchievementUnlock, LifeActionDependency, LifeActionLog,
+		LifeActionOccurrence, LifeActionSpec, LifeAdjudication, LifeCharacteristic,
+		LifeEquipment, LifeEquippedSlots, LifeEvidence, LifeGoal, LifeHabitCheckin,
+		LifeInventory, LifeLootTable, LifePlanNode, LifeProfile, LifeQuest, LifeReward,
+		LifeRewardRedemption, LifeSkill, Message, NotificationRecord, NotifyChannel,
+		NotifyRule, NotifyTemplate, OAuth, Page, PageData, Parameter,
+		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
+		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
+		PollingState, ResourceLink, Topic, Url, User, WebAccount, Workflow,
+		WorkflowRun, WorkflowStepRun, WorkflowTask, WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, AgentKnowledge, AgentMemoryFact, AgentPlan, AgentSessionSummary,
@@ -12672,18 +13095,18 @@ type (
 		AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, GatewayJob, GatewayWorker,
-		Instruct, LLMUsageRecord, LifeAIContext, LifeAchievement,
-		LifeAchievementProgress, LifeAchievementUnlock, LifeActionDependency,
-		LifeActionLog, LifeActionOccurrence, LifeActionSpec, LifeAdjudication,
-		LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeEvidence, LifeGoal,
-		LifeHabitCheckin, LifeInventory, LifeLootTable, LifePlanNode, LifeProfile,
-		LifeQuest, LifeReward, LifeRewardRedemption, LifeSkill, Message,
-		NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page,
-		PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
-		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
-		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
-		User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun, WorkflowTask,
-		WorkflowTrigger []ent.Interceptor
+		EventConsumption, EventOutbox, Fileupload, Form, FunctionDefinition,
+		FunctionDefinitionVersion, FunctionRun, GatewayJob, GatewayWorker, Instruct,
+		LLMUsageRecord, LifeAIContext, LifeAchievement, LifeAchievementProgress,
+		LifeAchievementUnlock, LifeActionDependency, LifeActionLog,
+		LifeActionOccurrence, LifeActionSpec, LifeAdjudication, LifeCharacteristic,
+		LifeEquipment, LifeEquippedSlots, LifeEvidence, LifeGoal, LifeHabitCheckin,
+		LifeInventory, LifeLootTable, LifePlanNode, LifeProfile, LifeQuest, LifeReward,
+		LifeRewardRedemption, LifeSkill, Message, NotificationRecord, NotifyChannel,
+		NotifyRule, NotifyTemplate, OAuth, Page, PageData, Parameter,
+		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
+		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
+		PollingState, ResourceLink, Topic, Url, User, WebAccount, Workflow,
+		WorkflowRun, WorkflowStepRun, WorkflowTask, WorkflowTrigger []ent.Interceptor
 	}
 )

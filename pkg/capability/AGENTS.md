@@ -22,6 +22,9 @@ capability.Invoke(ctx, hub.CapCore, core.OpNotifySend, map[string]any{...})
 - **Exceptions** (CapType ≠ single provider ID):
   - `devops` (`hub.CapDevops`) aggregates beszel/uptimekuma/traefik/grafana/wakapi/dozzle/netalertx
   - `core` (`hub.CapCore`) aggregates notify/clip/agent plus runtime primitives (`http_request`, `run_code`, `run_terminal`, `kv_*`)
+  - `functions` (`hub.CapFunctions`) named FaaS invoke/get/health
+  - `life` (`hub.CapLife`) solo Life gamification AI
+  - `gateway` (`hub.CapGateway`) local CLI gateway workers
 - Domain event names stay stable; set `DataEvent.Capability` to provider ID
 - Pagination: limit + opaque cursor; hide provider pagination internals in the adapter
 - New caps: follow `pkg/capability/example/`

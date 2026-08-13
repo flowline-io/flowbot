@@ -43,6 +43,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayjob"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayworker"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
@@ -144,6 +147,9 @@ const (
 	TypeEventOutbox               = "EventOutbox"
 	TypeFileupload                = "Fileupload"
 	TypeForm                      = "Form"
+	TypeFunctionDefinition        = "FunctionDefinition"
+	TypeFunctionDefinitionVersion = "FunctionDefinitionVersion"
+	TypeFunctionRun               = "FunctionRun"
 	TypeGatewayJob                = "GatewayJob"
 	TypeGatewayWorker             = "GatewayWorker"
 	TypeInstruct                  = "Instruct"
@@ -23156,6 +23162,2593 @@ func (m *FormMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *FormMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Form edge %s", name)
+}
+
+// FunctionDefinitionMutation represents an operation that mutates the FunctionDefinition nodes in the graph.
+type FunctionDefinitionMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *int64
+	name                 *string
+	metadata_draft       *string
+	entrypoint_draft     *string
+	source_draft         *string
+	metadata_published   *string
+	entrypoint_published *string
+	source_published     *string
+	version              *int
+	addversion           *int
+	status               *functiondefinition.Status
+	created_by           *string
+	created_at           *time.Time
+	updated_at           *time.Time
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*FunctionDefinition, error)
+	predicates           []predicate.FunctionDefinition
+}
+
+var _ ent.Mutation = (*FunctionDefinitionMutation)(nil)
+
+// functiondefinitionOption allows management of the mutation configuration using functional options.
+type functiondefinitionOption func(*FunctionDefinitionMutation)
+
+// newFunctionDefinitionMutation creates new mutation for the FunctionDefinition entity.
+func newFunctionDefinitionMutation(c config, op Op, opts ...functiondefinitionOption) *FunctionDefinitionMutation {
+	m := &FunctionDefinitionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFunctionDefinition,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFunctionDefinitionID sets the ID field of the mutation.
+func withFunctionDefinitionID(id int64) functiondefinitionOption {
+	return func(m *FunctionDefinitionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FunctionDefinition
+		)
+		m.oldValue = func(ctx context.Context) (*FunctionDefinition, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FunctionDefinition.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFunctionDefinition sets the old FunctionDefinition of the mutation.
+func withFunctionDefinition(node *FunctionDefinition) functiondefinitionOption {
+	return func(m *FunctionDefinitionMutation) {
+		m.oldValue = func(context.Context) (*FunctionDefinition, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FunctionDefinitionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FunctionDefinitionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FunctionDefinition entities.
+func (m *FunctionDefinitionMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FunctionDefinitionMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FunctionDefinitionMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FunctionDefinition.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *FunctionDefinitionMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *FunctionDefinitionMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *FunctionDefinitionMutation) ResetName() {
+	m.name = nil
+}
+
+// SetMetadataDraft sets the "metadata_draft" field.
+func (m *FunctionDefinitionMutation) SetMetadataDraft(s string) {
+	m.metadata_draft = &s
+}
+
+// MetadataDraft returns the value of the "metadata_draft" field in the mutation.
+func (m *FunctionDefinitionMutation) MetadataDraft() (r string, exists bool) {
+	v := m.metadata_draft
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetadataDraft returns the old "metadata_draft" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldMetadataDraft(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetadataDraft is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetadataDraft requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetadataDraft: %w", err)
+	}
+	return oldValue.MetadataDraft, nil
+}
+
+// ResetMetadataDraft resets all changes to the "metadata_draft" field.
+func (m *FunctionDefinitionMutation) ResetMetadataDraft() {
+	m.metadata_draft = nil
+}
+
+// SetEntrypointDraft sets the "entrypoint_draft" field.
+func (m *FunctionDefinitionMutation) SetEntrypointDraft(s string) {
+	m.entrypoint_draft = &s
+}
+
+// EntrypointDraft returns the value of the "entrypoint_draft" field in the mutation.
+func (m *FunctionDefinitionMutation) EntrypointDraft() (r string, exists bool) {
+	v := m.entrypoint_draft
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntrypointDraft returns the old "entrypoint_draft" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldEntrypointDraft(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntrypointDraft is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntrypointDraft requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntrypointDraft: %w", err)
+	}
+	return oldValue.EntrypointDraft, nil
+}
+
+// ResetEntrypointDraft resets all changes to the "entrypoint_draft" field.
+func (m *FunctionDefinitionMutation) ResetEntrypointDraft() {
+	m.entrypoint_draft = nil
+}
+
+// SetSourceDraft sets the "source_draft" field.
+func (m *FunctionDefinitionMutation) SetSourceDraft(s string) {
+	m.source_draft = &s
+}
+
+// SourceDraft returns the value of the "source_draft" field in the mutation.
+func (m *FunctionDefinitionMutation) SourceDraft() (r string, exists bool) {
+	v := m.source_draft
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceDraft returns the old "source_draft" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldSourceDraft(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceDraft is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceDraft requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceDraft: %w", err)
+	}
+	return oldValue.SourceDraft, nil
+}
+
+// ResetSourceDraft resets all changes to the "source_draft" field.
+func (m *FunctionDefinitionMutation) ResetSourceDraft() {
+	m.source_draft = nil
+}
+
+// SetMetadataPublished sets the "metadata_published" field.
+func (m *FunctionDefinitionMutation) SetMetadataPublished(s string) {
+	m.metadata_published = &s
+}
+
+// MetadataPublished returns the value of the "metadata_published" field in the mutation.
+func (m *FunctionDefinitionMutation) MetadataPublished() (r string, exists bool) {
+	v := m.metadata_published
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetadataPublished returns the old "metadata_published" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldMetadataPublished(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetadataPublished is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetadataPublished requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetadataPublished: %w", err)
+	}
+	return oldValue.MetadataPublished, nil
+}
+
+// ClearMetadataPublished clears the value of the "metadata_published" field.
+func (m *FunctionDefinitionMutation) ClearMetadataPublished() {
+	m.metadata_published = nil
+	m.clearedFields[functiondefinition.FieldMetadataPublished] = struct{}{}
+}
+
+// MetadataPublishedCleared returns if the "metadata_published" field was cleared in this mutation.
+func (m *FunctionDefinitionMutation) MetadataPublishedCleared() bool {
+	_, ok := m.clearedFields[functiondefinition.FieldMetadataPublished]
+	return ok
+}
+
+// ResetMetadataPublished resets all changes to the "metadata_published" field.
+func (m *FunctionDefinitionMutation) ResetMetadataPublished() {
+	m.metadata_published = nil
+	delete(m.clearedFields, functiondefinition.FieldMetadataPublished)
+}
+
+// SetEntrypointPublished sets the "entrypoint_published" field.
+func (m *FunctionDefinitionMutation) SetEntrypointPublished(s string) {
+	m.entrypoint_published = &s
+}
+
+// EntrypointPublished returns the value of the "entrypoint_published" field in the mutation.
+func (m *FunctionDefinitionMutation) EntrypointPublished() (r string, exists bool) {
+	v := m.entrypoint_published
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntrypointPublished returns the old "entrypoint_published" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldEntrypointPublished(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntrypointPublished is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntrypointPublished requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntrypointPublished: %w", err)
+	}
+	return oldValue.EntrypointPublished, nil
+}
+
+// ClearEntrypointPublished clears the value of the "entrypoint_published" field.
+func (m *FunctionDefinitionMutation) ClearEntrypointPublished() {
+	m.entrypoint_published = nil
+	m.clearedFields[functiondefinition.FieldEntrypointPublished] = struct{}{}
+}
+
+// EntrypointPublishedCleared returns if the "entrypoint_published" field was cleared in this mutation.
+func (m *FunctionDefinitionMutation) EntrypointPublishedCleared() bool {
+	_, ok := m.clearedFields[functiondefinition.FieldEntrypointPublished]
+	return ok
+}
+
+// ResetEntrypointPublished resets all changes to the "entrypoint_published" field.
+func (m *FunctionDefinitionMutation) ResetEntrypointPublished() {
+	m.entrypoint_published = nil
+	delete(m.clearedFields, functiondefinition.FieldEntrypointPublished)
+}
+
+// SetSourcePublished sets the "source_published" field.
+func (m *FunctionDefinitionMutation) SetSourcePublished(s string) {
+	m.source_published = &s
+}
+
+// SourcePublished returns the value of the "source_published" field in the mutation.
+func (m *FunctionDefinitionMutation) SourcePublished() (r string, exists bool) {
+	v := m.source_published
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourcePublished returns the old "source_published" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldSourcePublished(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourcePublished is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourcePublished requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourcePublished: %w", err)
+	}
+	return oldValue.SourcePublished, nil
+}
+
+// ClearSourcePublished clears the value of the "source_published" field.
+func (m *FunctionDefinitionMutation) ClearSourcePublished() {
+	m.source_published = nil
+	m.clearedFields[functiondefinition.FieldSourcePublished] = struct{}{}
+}
+
+// SourcePublishedCleared returns if the "source_published" field was cleared in this mutation.
+func (m *FunctionDefinitionMutation) SourcePublishedCleared() bool {
+	_, ok := m.clearedFields[functiondefinition.FieldSourcePublished]
+	return ok
+}
+
+// ResetSourcePublished resets all changes to the "source_published" field.
+func (m *FunctionDefinitionMutation) ResetSourcePublished() {
+	m.source_published = nil
+	delete(m.clearedFields, functiondefinition.FieldSourcePublished)
+}
+
+// SetVersion sets the "version" field.
+func (m *FunctionDefinitionMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *FunctionDefinitionMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *FunctionDefinitionMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *FunctionDefinitionMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *FunctionDefinitionMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *FunctionDefinitionMutation) SetStatus(f functiondefinition.Status) {
+	m.status = &f
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *FunctionDefinitionMutation) Status() (r functiondefinition.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldStatus(ctx context.Context) (v functiondefinition.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *FunctionDefinitionMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *FunctionDefinitionMutation) SetCreatedBy(s string) {
+	m.created_by = &s
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *FunctionDefinitionMutation) CreatedBy() (r string, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *FunctionDefinitionMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FunctionDefinitionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FunctionDefinitionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FunctionDefinitionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FunctionDefinitionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FunctionDefinitionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FunctionDefinition entity.
+// If the FunctionDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FunctionDefinitionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the FunctionDefinitionMutation builder.
+func (m *FunctionDefinitionMutation) Where(ps ...predicate.FunctionDefinition) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FunctionDefinitionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FunctionDefinitionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FunctionDefinition, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FunctionDefinitionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FunctionDefinitionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FunctionDefinition).
+func (m *FunctionDefinitionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FunctionDefinitionMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.name != nil {
+		fields = append(fields, functiondefinition.FieldName)
+	}
+	if m.metadata_draft != nil {
+		fields = append(fields, functiondefinition.FieldMetadataDraft)
+	}
+	if m.entrypoint_draft != nil {
+		fields = append(fields, functiondefinition.FieldEntrypointDraft)
+	}
+	if m.source_draft != nil {
+		fields = append(fields, functiondefinition.FieldSourceDraft)
+	}
+	if m.metadata_published != nil {
+		fields = append(fields, functiondefinition.FieldMetadataPublished)
+	}
+	if m.entrypoint_published != nil {
+		fields = append(fields, functiondefinition.FieldEntrypointPublished)
+	}
+	if m.source_published != nil {
+		fields = append(fields, functiondefinition.FieldSourcePublished)
+	}
+	if m.version != nil {
+		fields = append(fields, functiondefinition.FieldVersion)
+	}
+	if m.status != nil {
+		fields = append(fields, functiondefinition.FieldStatus)
+	}
+	if m.created_by != nil {
+		fields = append(fields, functiondefinition.FieldCreatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, functiondefinition.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, functiondefinition.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FunctionDefinitionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case functiondefinition.FieldName:
+		return m.Name()
+	case functiondefinition.FieldMetadataDraft:
+		return m.MetadataDraft()
+	case functiondefinition.FieldEntrypointDraft:
+		return m.EntrypointDraft()
+	case functiondefinition.FieldSourceDraft:
+		return m.SourceDraft()
+	case functiondefinition.FieldMetadataPublished:
+		return m.MetadataPublished()
+	case functiondefinition.FieldEntrypointPublished:
+		return m.EntrypointPublished()
+	case functiondefinition.FieldSourcePublished:
+		return m.SourcePublished()
+	case functiondefinition.FieldVersion:
+		return m.Version()
+	case functiondefinition.FieldStatus:
+		return m.Status()
+	case functiondefinition.FieldCreatedBy:
+		return m.CreatedBy()
+	case functiondefinition.FieldCreatedAt:
+		return m.CreatedAt()
+	case functiondefinition.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FunctionDefinitionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case functiondefinition.FieldName:
+		return m.OldName(ctx)
+	case functiondefinition.FieldMetadataDraft:
+		return m.OldMetadataDraft(ctx)
+	case functiondefinition.FieldEntrypointDraft:
+		return m.OldEntrypointDraft(ctx)
+	case functiondefinition.FieldSourceDraft:
+		return m.OldSourceDraft(ctx)
+	case functiondefinition.FieldMetadataPublished:
+		return m.OldMetadataPublished(ctx)
+	case functiondefinition.FieldEntrypointPublished:
+		return m.OldEntrypointPublished(ctx)
+	case functiondefinition.FieldSourcePublished:
+		return m.OldSourcePublished(ctx)
+	case functiondefinition.FieldVersion:
+		return m.OldVersion(ctx)
+	case functiondefinition.FieldStatus:
+		return m.OldStatus(ctx)
+	case functiondefinition.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case functiondefinition.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case functiondefinition.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown FunctionDefinition field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FunctionDefinitionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case functiondefinition.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case functiondefinition.FieldMetadataDraft:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetadataDraft(v)
+		return nil
+	case functiondefinition.FieldEntrypointDraft:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntrypointDraft(v)
+		return nil
+	case functiondefinition.FieldSourceDraft:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceDraft(v)
+		return nil
+	case functiondefinition.FieldMetadataPublished:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetadataPublished(v)
+		return nil
+	case functiondefinition.FieldEntrypointPublished:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntrypointPublished(v)
+		return nil
+	case functiondefinition.FieldSourcePublished:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourcePublished(v)
+		return nil
+	case functiondefinition.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case functiondefinition.FieldStatus:
+		v, ok := value.(functiondefinition.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case functiondefinition.FieldCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case functiondefinition.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case functiondefinition.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionDefinition field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FunctionDefinitionMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, functiondefinition.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FunctionDefinitionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case functiondefinition.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FunctionDefinitionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case functiondefinition.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionDefinition numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FunctionDefinitionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(functiondefinition.FieldMetadataPublished) {
+		fields = append(fields, functiondefinition.FieldMetadataPublished)
+	}
+	if m.FieldCleared(functiondefinition.FieldEntrypointPublished) {
+		fields = append(fields, functiondefinition.FieldEntrypointPublished)
+	}
+	if m.FieldCleared(functiondefinition.FieldSourcePublished) {
+		fields = append(fields, functiondefinition.FieldSourcePublished)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FunctionDefinitionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FunctionDefinitionMutation) ClearField(name string) error {
+	switch name {
+	case functiondefinition.FieldMetadataPublished:
+		m.ClearMetadataPublished()
+		return nil
+	case functiondefinition.FieldEntrypointPublished:
+		m.ClearEntrypointPublished()
+		return nil
+	case functiondefinition.FieldSourcePublished:
+		m.ClearSourcePublished()
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionDefinition nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FunctionDefinitionMutation) ResetField(name string) error {
+	switch name {
+	case functiondefinition.FieldName:
+		m.ResetName()
+		return nil
+	case functiondefinition.FieldMetadataDraft:
+		m.ResetMetadataDraft()
+		return nil
+	case functiondefinition.FieldEntrypointDraft:
+		m.ResetEntrypointDraft()
+		return nil
+	case functiondefinition.FieldSourceDraft:
+		m.ResetSourceDraft()
+		return nil
+	case functiondefinition.FieldMetadataPublished:
+		m.ResetMetadataPublished()
+		return nil
+	case functiondefinition.FieldEntrypointPublished:
+		m.ResetEntrypointPublished()
+		return nil
+	case functiondefinition.FieldSourcePublished:
+		m.ResetSourcePublished()
+		return nil
+	case functiondefinition.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case functiondefinition.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case functiondefinition.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case functiondefinition.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case functiondefinition.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionDefinition field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FunctionDefinitionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FunctionDefinitionMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FunctionDefinitionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FunctionDefinitionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FunctionDefinitionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FunctionDefinitionMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FunctionDefinitionMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown FunctionDefinition unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FunctionDefinitionMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown FunctionDefinition edge %s", name)
+}
+
+// FunctionDefinitionVersionMutation represents an operation that mutates the FunctionDefinitionVersion nodes in the graph.
+type FunctionDefinitionVersionMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	function_name *string
+	version       *int
+	addversion    *int
+	metadata      *string
+	entrypoint    *string
+	source        *string
+	created_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*FunctionDefinitionVersion, error)
+	predicates    []predicate.FunctionDefinitionVersion
+}
+
+var _ ent.Mutation = (*FunctionDefinitionVersionMutation)(nil)
+
+// functiondefinitionversionOption allows management of the mutation configuration using functional options.
+type functiondefinitionversionOption func(*FunctionDefinitionVersionMutation)
+
+// newFunctionDefinitionVersionMutation creates new mutation for the FunctionDefinitionVersion entity.
+func newFunctionDefinitionVersionMutation(c config, op Op, opts ...functiondefinitionversionOption) *FunctionDefinitionVersionMutation {
+	m := &FunctionDefinitionVersionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFunctionDefinitionVersion,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFunctionDefinitionVersionID sets the ID field of the mutation.
+func withFunctionDefinitionVersionID(id int64) functiondefinitionversionOption {
+	return func(m *FunctionDefinitionVersionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FunctionDefinitionVersion
+		)
+		m.oldValue = func(ctx context.Context) (*FunctionDefinitionVersion, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FunctionDefinitionVersion.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFunctionDefinitionVersion sets the old FunctionDefinitionVersion of the mutation.
+func withFunctionDefinitionVersion(node *FunctionDefinitionVersion) functiondefinitionversionOption {
+	return func(m *FunctionDefinitionVersionMutation) {
+		m.oldValue = func(context.Context) (*FunctionDefinitionVersion, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FunctionDefinitionVersionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FunctionDefinitionVersionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FunctionDefinitionVersion entities.
+func (m *FunctionDefinitionVersionMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FunctionDefinitionVersionMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FunctionDefinitionVersionMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FunctionDefinitionVersion.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFunctionName sets the "function_name" field.
+func (m *FunctionDefinitionVersionMutation) SetFunctionName(s string) {
+	m.function_name = &s
+}
+
+// FunctionName returns the value of the "function_name" field in the mutation.
+func (m *FunctionDefinitionVersionMutation) FunctionName() (r string, exists bool) {
+	v := m.function_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFunctionName returns the old "function_name" field's value of the FunctionDefinitionVersion entity.
+// If the FunctionDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionVersionMutation) OldFunctionName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFunctionName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFunctionName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFunctionName: %w", err)
+	}
+	return oldValue.FunctionName, nil
+}
+
+// ResetFunctionName resets all changes to the "function_name" field.
+func (m *FunctionDefinitionVersionMutation) ResetFunctionName() {
+	m.function_name = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *FunctionDefinitionVersionMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *FunctionDefinitionVersionMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the FunctionDefinitionVersion entity.
+// If the FunctionDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionVersionMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *FunctionDefinitionVersionMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *FunctionDefinitionVersionMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *FunctionDefinitionVersionMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetMetadata sets the "metadata" field.
+func (m *FunctionDefinitionVersionMutation) SetMetadata(s string) {
+	m.metadata = &s
+}
+
+// Metadata returns the value of the "metadata" field in the mutation.
+func (m *FunctionDefinitionVersionMutation) Metadata() (r string, exists bool) {
+	v := m.metadata
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetadata returns the old "metadata" field's value of the FunctionDefinitionVersion entity.
+// If the FunctionDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionVersionMutation) OldMetadata(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetadata is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetadata requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetadata: %w", err)
+	}
+	return oldValue.Metadata, nil
+}
+
+// ResetMetadata resets all changes to the "metadata" field.
+func (m *FunctionDefinitionVersionMutation) ResetMetadata() {
+	m.metadata = nil
+}
+
+// SetEntrypoint sets the "entrypoint" field.
+func (m *FunctionDefinitionVersionMutation) SetEntrypoint(s string) {
+	m.entrypoint = &s
+}
+
+// Entrypoint returns the value of the "entrypoint" field in the mutation.
+func (m *FunctionDefinitionVersionMutation) Entrypoint() (r string, exists bool) {
+	v := m.entrypoint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntrypoint returns the old "entrypoint" field's value of the FunctionDefinitionVersion entity.
+// If the FunctionDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionVersionMutation) OldEntrypoint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntrypoint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntrypoint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntrypoint: %w", err)
+	}
+	return oldValue.Entrypoint, nil
+}
+
+// ResetEntrypoint resets all changes to the "entrypoint" field.
+func (m *FunctionDefinitionVersionMutation) ResetEntrypoint() {
+	m.entrypoint = nil
+}
+
+// SetSource sets the "source" field.
+func (m *FunctionDefinitionVersionMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *FunctionDefinitionVersionMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the FunctionDefinitionVersion entity.
+// If the FunctionDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionVersionMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *FunctionDefinitionVersionMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FunctionDefinitionVersionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FunctionDefinitionVersionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FunctionDefinitionVersion entity.
+// If the FunctionDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionDefinitionVersionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FunctionDefinitionVersionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the FunctionDefinitionVersionMutation builder.
+func (m *FunctionDefinitionVersionMutation) Where(ps ...predicate.FunctionDefinitionVersion) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FunctionDefinitionVersionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FunctionDefinitionVersionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FunctionDefinitionVersion, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FunctionDefinitionVersionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FunctionDefinitionVersionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FunctionDefinitionVersion).
+func (m *FunctionDefinitionVersionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FunctionDefinitionVersionMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.function_name != nil {
+		fields = append(fields, functiondefinitionversion.FieldFunctionName)
+	}
+	if m.version != nil {
+		fields = append(fields, functiondefinitionversion.FieldVersion)
+	}
+	if m.metadata != nil {
+		fields = append(fields, functiondefinitionversion.FieldMetadata)
+	}
+	if m.entrypoint != nil {
+		fields = append(fields, functiondefinitionversion.FieldEntrypoint)
+	}
+	if m.source != nil {
+		fields = append(fields, functiondefinitionversion.FieldSource)
+	}
+	if m.created_at != nil {
+		fields = append(fields, functiondefinitionversion.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FunctionDefinitionVersionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case functiondefinitionversion.FieldFunctionName:
+		return m.FunctionName()
+	case functiondefinitionversion.FieldVersion:
+		return m.Version()
+	case functiondefinitionversion.FieldMetadata:
+		return m.Metadata()
+	case functiondefinitionversion.FieldEntrypoint:
+		return m.Entrypoint()
+	case functiondefinitionversion.FieldSource:
+		return m.Source()
+	case functiondefinitionversion.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FunctionDefinitionVersionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case functiondefinitionversion.FieldFunctionName:
+		return m.OldFunctionName(ctx)
+	case functiondefinitionversion.FieldVersion:
+		return m.OldVersion(ctx)
+	case functiondefinitionversion.FieldMetadata:
+		return m.OldMetadata(ctx)
+	case functiondefinitionversion.FieldEntrypoint:
+		return m.OldEntrypoint(ctx)
+	case functiondefinitionversion.FieldSource:
+		return m.OldSource(ctx)
+	case functiondefinitionversion.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown FunctionDefinitionVersion field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FunctionDefinitionVersionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case functiondefinitionversion.FieldFunctionName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFunctionName(v)
+		return nil
+	case functiondefinitionversion.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case functiondefinitionversion.FieldMetadata:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetadata(v)
+		return nil
+	case functiondefinitionversion.FieldEntrypoint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntrypoint(v)
+		return nil
+	case functiondefinitionversion.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case functiondefinitionversion.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionDefinitionVersion field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FunctionDefinitionVersionMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, functiondefinitionversion.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FunctionDefinitionVersionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case functiondefinitionversion.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FunctionDefinitionVersionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case functiondefinitionversion.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionDefinitionVersion numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FunctionDefinitionVersionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FunctionDefinitionVersionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FunctionDefinitionVersionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FunctionDefinitionVersion nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FunctionDefinitionVersionMutation) ResetField(name string) error {
+	switch name {
+	case functiondefinitionversion.FieldFunctionName:
+		m.ResetFunctionName()
+		return nil
+	case functiondefinitionversion.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case functiondefinitionversion.FieldMetadata:
+		m.ResetMetadata()
+		return nil
+	case functiondefinitionversion.FieldEntrypoint:
+		m.ResetEntrypoint()
+		return nil
+	case functiondefinitionversion.FieldSource:
+		m.ResetSource()
+		return nil
+	case functiondefinitionversion.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionDefinitionVersion field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FunctionDefinitionVersionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FunctionDefinitionVersionMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FunctionDefinitionVersionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FunctionDefinitionVersionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FunctionDefinitionVersionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FunctionDefinitionVersionMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FunctionDefinitionVersionMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown FunctionDefinitionVersion unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FunctionDefinitionVersionMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown FunctionDefinitionVersion edge %s", name)
+}
+
+// FunctionRunMutation represents an operation that mutates the FunctionRun nodes in the graph.
+type FunctionRunMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int64
+	function_name   *string
+	version         *int
+	addversion      *int
+	status          *functionrun.Status
+	duration_ms     *int64
+	addduration_ms  *int64
+	exit_code       *int
+	addexit_code    *int
+	error           *string
+	result_json     *string
+	idempotency_key *string
+	created_at      *time.Time
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*FunctionRun, error)
+	predicates      []predicate.FunctionRun
+}
+
+var _ ent.Mutation = (*FunctionRunMutation)(nil)
+
+// functionrunOption allows management of the mutation configuration using functional options.
+type functionrunOption func(*FunctionRunMutation)
+
+// newFunctionRunMutation creates new mutation for the FunctionRun entity.
+func newFunctionRunMutation(c config, op Op, opts ...functionrunOption) *FunctionRunMutation {
+	m := &FunctionRunMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFunctionRun,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFunctionRunID sets the ID field of the mutation.
+func withFunctionRunID(id int64) functionrunOption {
+	return func(m *FunctionRunMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FunctionRun
+		)
+		m.oldValue = func(ctx context.Context) (*FunctionRun, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FunctionRun.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFunctionRun sets the old FunctionRun of the mutation.
+func withFunctionRun(node *FunctionRun) functionrunOption {
+	return func(m *FunctionRunMutation) {
+		m.oldValue = func(context.Context) (*FunctionRun, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FunctionRunMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FunctionRunMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FunctionRun entities.
+func (m *FunctionRunMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FunctionRunMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FunctionRunMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FunctionRun.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFunctionName sets the "function_name" field.
+func (m *FunctionRunMutation) SetFunctionName(s string) {
+	m.function_name = &s
+}
+
+// FunctionName returns the value of the "function_name" field in the mutation.
+func (m *FunctionRunMutation) FunctionName() (r string, exists bool) {
+	v := m.function_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFunctionName returns the old "function_name" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldFunctionName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFunctionName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFunctionName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFunctionName: %w", err)
+	}
+	return oldValue.FunctionName, nil
+}
+
+// ResetFunctionName resets all changes to the "function_name" field.
+func (m *FunctionRunMutation) ResetFunctionName() {
+	m.function_name = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *FunctionRunMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *FunctionRunMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *FunctionRunMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *FunctionRunMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *FunctionRunMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *FunctionRunMutation) SetStatus(f functionrun.Status) {
+	m.status = &f
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *FunctionRunMutation) Status() (r functionrun.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldStatus(ctx context.Context) (v functionrun.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *FunctionRunMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetDurationMs sets the "duration_ms" field.
+func (m *FunctionRunMutation) SetDurationMs(i int64) {
+	m.duration_ms = &i
+	m.addduration_ms = nil
+}
+
+// DurationMs returns the value of the "duration_ms" field in the mutation.
+func (m *FunctionRunMutation) DurationMs() (r int64, exists bool) {
+	v := m.duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationMs returns the old "duration_ms" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldDurationMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationMs: %w", err)
+	}
+	return oldValue.DurationMs, nil
+}
+
+// AddDurationMs adds i to the "duration_ms" field.
+func (m *FunctionRunMutation) AddDurationMs(i int64) {
+	if m.addduration_ms != nil {
+		*m.addduration_ms += i
+	} else {
+		m.addduration_ms = &i
+	}
+}
+
+// AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
+func (m *FunctionRunMutation) AddedDurationMs() (r int64, exists bool) {
+	v := m.addduration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationMs resets all changes to the "duration_ms" field.
+func (m *FunctionRunMutation) ResetDurationMs() {
+	m.duration_ms = nil
+	m.addduration_ms = nil
+}
+
+// SetExitCode sets the "exit_code" field.
+func (m *FunctionRunMutation) SetExitCode(i int) {
+	m.exit_code = &i
+	m.addexit_code = nil
+}
+
+// ExitCode returns the value of the "exit_code" field in the mutation.
+func (m *FunctionRunMutation) ExitCode() (r int, exists bool) {
+	v := m.exit_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExitCode returns the old "exit_code" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldExitCode(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExitCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExitCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExitCode: %w", err)
+	}
+	return oldValue.ExitCode, nil
+}
+
+// AddExitCode adds i to the "exit_code" field.
+func (m *FunctionRunMutation) AddExitCode(i int) {
+	if m.addexit_code != nil {
+		*m.addexit_code += i
+	} else {
+		m.addexit_code = &i
+	}
+}
+
+// AddedExitCode returns the value that was added to the "exit_code" field in this mutation.
+func (m *FunctionRunMutation) AddedExitCode() (r int, exists bool) {
+	v := m.addexit_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearExitCode clears the value of the "exit_code" field.
+func (m *FunctionRunMutation) ClearExitCode() {
+	m.exit_code = nil
+	m.addexit_code = nil
+	m.clearedFields[functionrun.FieldExitCode] = struct{}{}
+}
+
+// ExitCodeCleared returns if the "exit_code" field was cleared in this mutation.
+func (m *FunctionRunMutation) ExitCodeCleared() bool {
+	_, ok := m.clearedFields[functionrun.FieldExitCode]
+	return ok
+}
+
+// ResetExitCode resets all changes to the "exit_code" field.
+func (m *FunctionRunMutation) ResetExitCode() {
+	m.exit_code = nil
+	m.addexit_code = nil
+	delete(m.clearedFields, functionrun.FieldExitCode)
+}
+
+// SetError sets the "error" field.
+func (m *FunctionRunMutation) SetError(s string) {
+	m.error = &s
+}
+
+// Error returns the value of the "error" field in the mutation.
+func (m *FunctionRunMutation) Error() (r string, exists bool) {
+	v := m.error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldError returns the old "error" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldError(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldError: %w", err)
+	}
+	return oldValue.Error, nil
+}
+
+// ResetError resets all changes to the "error" field.
+func (m *FunctionRunMutation) ResetError() {
+	m.error = nil
+}
+
+// SetResultJSON sets the "result_json" field.
+func (m *FunctionRunMutation) SetResultJSON(s string) {
+	m.result_json = &s
+}
+
+// ResultJSON returns the value of the "result_json" field in the mutation.
+func (m *FunctionRunMutation) ResultJSON() (r string, exists bool) {
+	v := m.result_json
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResultJSON returns the old "result_json" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldResultJSON(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResultJSON is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResultJSON requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResultJSON: %w", err)
+	}
+	return oldValue.ResultJSON, nil
+}
+
+// ClearResultJSON clears the value of the "result_json" field.
+func (m *FunctionRunMutation) ClearResultJSON() {
+	m.result_json = nil
+	m.clearedFields[functionrun.FieldResultJSON] = struct{}{}
+}
+
+// ResultJSONCleared returns if the "result_json" field was cleared in this mutation.
+func (m *FunctionRunMutation) ResultJSONCleared() bool {
+	_, ok := m.clearedFields[functionrun.FieldResultJSON]
+	return ok
+}
+
+// ResetResultJSON resets all changes to the "result_json" field.
+func (m *FunctionRunMutation) ResetResultJSON() {
+	m.result_json = nil
+	delete(m.clearedFields, functionrun.FieldResultJSON)
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *FunctionRunMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *FunctionRunMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldIdempotencyKey(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ClearIdempotencyKey clears the value of the "idempotency_key" field.
+func (m *FunctionRunMutation) ClearIdempotencyKey() {
+	m.idempotency_key = nil
+	m.clearedFields[functionrun.FieldIdempotencyKey] = struct{}{}
+}
+
+// IdempotencyKeyCleared returns if the "idempotency_key" field was cleared in this mutation.
+func (m *FunctionRunMutation) IdempotencyKeyCleared() bool {
+	_, ok := m.clearedFields[functionrun.FieldIdempotencyKey]
+	return ok
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *FunctionRunMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+	delete(m.clearedFields, functionrun.FieldIdempotencyKey)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FunctionRunMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FunctionRunMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FunctionRun entity.
+// If the FunctionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FunctionRunMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FunctionRunMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the FunctionRunMutation builder.
+func (m *FunctionRunMutation) Where(ps ...predicate.FunctionRun) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FunctionRunMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FunctionRunMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FunctionRun, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FunctionRunMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FunctionRunMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FunctionRun).
+func (m *FunctionRunMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FunctionRunMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.function_name != nil {
+		fields = append(fields, functionrun.FieldFunctionName)
+	}
+	if m.version != nil {
+		fields = append(fields, functionrun.FieldVersion)
+	}
+	if m.status != nil {
+		fields = append(fields, functionrun.FieldStatus)
+	}
+	if m.duration_ms != nil {
+		fields = append(fields, functionrun.FieldDurationMs)
+	}
+	if m.exit_code != nil {
+		fields = append(fields, functionrun.FieldExitCode)
+	}
+	if m.error != nil {
+		fields = append(fields, functionrun.FieldError)
+	}
+	if m.result_json != nil {
+		fields = append(fields, functionrun.FieldResultJSON)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, functionrun.FieldIdempotencyKey)
+	}
+	if m.created_at != nil {
+		fields = append(fields, functionrun.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FunctionRunMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case functionrun.FieldFunctionName:
+		return m.FunctionName()
+	case functionrun.FieldVersion:
+		return m.Version()
+	case functionrun.FieldStatus:
+		return m.Status()
+	case functionrun.FieldDurationMs:
+		return m.DurationMs()
+	case functionrun.FieldExitCode:
+		return m.ExitCode()
+	case functionrun.FieldError:
+		return m.Error()
+	case functionrun.FieldResultJSON:
+		return m.ResultJSON()
+	case functionrun.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case functionrun.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FunctionRunMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case functionrun.FieldFunctionName:
+		return m.OldFunctionName(ctx)
+	case functionrun.FieldVersion:
+		return m.OldVersion(ctx)
+	case functionrun.FieldStatus:
+		return m.OldStatus(ctx)
+	case functionrun.FieldDurationMs:
+		return m.OldDurationMs(ctx)
+	case functionrun.FieldExitCode:
+		return m.OldExitCode(ctx)
+	case functionrun.FieldError:
+		return m.OldError(ctx)
+	case functionrun.FieldResultJSON:
+		return m.OldResultJSON(ctx)
+	case functionrun.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case functionrun.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown FunctionRun field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FunctionRunMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case functionrun.FieldFunctionName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFunctionName(v)
+		return nil
+	case functionrun.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case functionrun.FieldStatus:
+		v, ok := value.(functionrun.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case functionrun.FieldDurationMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationMs(v)
+		return nil
+	case functionrun.FieldExitCode:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExitCode(v)
+		return nil
+	case functionrun.FieldError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetError(v)
+		return nil
+	case functionrun.FieldResultJSON:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResultJSON(v)
+		return nil
+	case functionrun.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case functionrun.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionRun field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FunctionRunMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, functionrun.FieldVersion)
+	}
+	if m.addduration_ms != nil {
+		fields = append(fields, functionrun.FieldDurationMs)
+	}
+	if m.addexit_code != nil {
+		fields = append(fields, functionrun.FieldExitCode)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FunctionRunMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case functionrun.FieldVersion:
+		return m.AddedVersion()
+	case functionrun.FieldDurationMs:
+		return m.AddedDurationMs()
+	case functionrun.FieldExitCode:
+		return m.AddedExitCode()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FunctionRunMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case functionrun.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	case functionrun.FieldDurationMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationMs(v)
+		return nil
+	case functionrun.FieldExitCode:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExitCode(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionRun numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FunctionRunMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(functionrun.FieldExitCode) {
+		fields = append(fields, functionrun.FieldExitCode)
+	}
+	if m.FieldCleared(functionrun.FieldResultJSON) {
+		fields = append(fields, functionrun.FieldResultJSON)
+	}
+	if m.FieldCleared(functionrun.FieldIdempotencyKey) {
+		fields = append(fields, functionrun.FieldIdempotencyKey)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FunctionRunMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FunctionRunMutation) ClearField(name string) error {
+	switch name {
+	case functionrun.FieldExitCode:
+		m.ClearExitCode()
+		return nil
+	case functionrun.FieldResultJSON:
+		m.ClearResultJSON()
+		return nil
+	case functionrun.FieldIdempotencyKey:
+		m.ClearIdempotencyKey()
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionRun nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FunctionRunMutation) ResetField(name string) error {
+	switch name {
+	case functionrun.FieldFunctionName:
+		m.ResetFunctionName()
+		return nil
+	case functionrun.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case functionrun.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case functionrun.FieldDurationMs:
+		m.ResetDurationMs()
+		return nil
+	case functionrun.FieldExitCode:
+		m.ResetExitCode()
+		return nil
+	case functionrun.FieldError:
+		m.ResetError()
+		return nil
+	case functionrun.FieldResultJSON:
+		m.ResetResultJSON()
+		return nil
+	case functionrun.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case functionrun.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown FunctionRun field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FunctionRunMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FunctionRunMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FunctionRunMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FunctionRunMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FunctionRunMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FunctionRunMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FunctionRunMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown FunctionRun unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FunctionRunMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown FunctionRun edge %s", name)
 }
 
 // GatewayJobMutation represents an operation that mutates the GatewayJob nodes in the graph.

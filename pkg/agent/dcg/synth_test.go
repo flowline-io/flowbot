@@ -53,6 +53,12 @@ func TestSynthCommand(t *testing.T) {
 			code:     "print(1)",
 			wantErr:  true,
 		},
+		{
+			name:     "go run entrypoint",
+			language: "go",
+			code:     "package main\nfunc main() {}",
+			want:     "go run main.go",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -52,6 +52,7 @@ var Modules = fx.Options(
 		handleEvents,
 		initPipeline,
 		initWorkflow,
+		initFunctions,
 		initAgentAbility,
 		initClipAbility,
 		initGatewayAbility,

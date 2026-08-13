@@ -393,6 +393,42 @@ func (f FormFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FormMutation", m)
 }
 
+// The FunctionDefinitionFunc type is an adapter to allow the use of ordinary
+// function as FunctionDefinition mutator.
+type FunctionDefinitionFunc func(context.Context, *gen.FunctionDefinitionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FunctionDefinitionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.FunctionDefinitionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FunctionDefinitionMutation", m)
+}
+
+// The FunctionDefinitionVersionFunc type is an adapter to allow the use of ordinary
+// function as FunctionDefinitionVersion mutator.
+type FunctionDefinitionVersionFunc func(context.Context, *gen.FunctionDefinitionVersionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FunctionDefinitionVersionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.FunctionDefinitionVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FunctionDefinitionVersionMutation", m)
+}
+
+// The FunctionRunFunc type is an adapter to allow the use of ordinary
+// function as FunctionRun mutator.
+type FunctionRunFunc func(context.Context, *gen.FunctionRunMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FunctionRunFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.FunctionRunMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FunctionRunMutation", m)
+}
+
 // The GatewayJobFunc type is an adapter to allow the use of ordinary
 // function as GatewayJob mutator.
 type GatewayJobFunc func(context.Context, *gen.GatewayJobMutation) (gen.Value, error)

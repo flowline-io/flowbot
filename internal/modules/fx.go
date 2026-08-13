@@ -8,6 +8,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/modules/example"
+	"github.com/flowline-io/flowbot/internal/modules/functions"
 	"github.com/flowline-io/flowbot/internal/modules/hub"
 	"github.com/flowline-io/flowbot/internal/modules/life"
 	"github.com/flowline-io/flowbot/internal/modules/pipeline"
@@ -50,5 +51,6 @@ var Modules = fx.Options(
 		web.SetLoginRateLimiterCache,
 		workflow.Register,
 		pipeline.Register,
+		functions.Register,
 	),
 )

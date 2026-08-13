@@ -76,7 +76,7 @@ func (t RunCodeTool) Execute(ctx context.Context, id string, args map[string]any
 		Env:       t.executionEnv(),
 		Timeout:   timeout,
 		MaxOutput: t.Workspace.MaxOutput,
-	}, language, code, filename, "")
+	}, language, code, filename, "", nil)
 	if err != nil {
 		return toolError(id, t.Name(), err.Error()), nil
 	}

@@ -74,7 +74,7 @@ func runCodeInvoker(ctx context.Context, params map[string]any) (*capability.Inv
 	if err != nil {
 		return nil, err
 	}
-	res, err := pkgexec.RunCode(ctx, cfg, language, code, filename, workdir)
+	res, err := pkgexec.RunCode(ctx, cfg, language, code, filename, workdir, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -32,6 +32,7 @@ func main() {
 		command.LoginCommand(),
 		command.HubCommand(),
 		command.PipelineCommand(),
+		command.FunctionCommand(),
 		command.WorkflowCommand(),
 		command.BookmarkCommand(),
 		command.KanbanCommand(),

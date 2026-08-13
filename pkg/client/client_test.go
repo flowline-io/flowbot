@@ -57,6 +57,7 @@ func TestNewClient(t *testing.T) {
 			assert.NotNil(t, c.Server)
 			assert.NotNil(t, c.Hub)
 			assert.NotNil(t, c.Pipeline)
+			assert.NotNil(t, c.Function)
 			assert.NotNil(t, c.Workflow)
 			assert.NotNil(t, c.Forge)
 			assert.NotNil(t, c.Github)

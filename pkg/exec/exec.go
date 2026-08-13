@@ -18,8 +18,12 @@ const (
 	DefaultTimeout = 60 * time.Second
 	// MaxCodeBytes rejects run_code source above this size.
 	MaxCodeBytes = 256 << 10
+	// MaxJSONBytes is the function JSON in/out limit (64KiB).
+	MaxJSONBytes = 64 << 10
 	// DefaultMaxOutput truncates combined output beyond this byte count.
 	DefaultMaxOutput = 8192
+
+	goModContents = "module flowbotfn\n\ngo 1.26\n"
 )
 
 // Result holds process output from a terminal or code run.
@@ -114,7 +118,8 @@ func RunTerminal(ctx context.Context, cfg Config, command, workdir string) (Resu
 }
 
 // RunCode writes source under .flowbot-run and invokes a language interpreter.
-func RunCode(ctx context.Context, cfg Config, language, code, filename, workdir string) (Result, error) {
+// stdin is optional process standard input passed through ExecOptions.
+func RunCode(ctx context.Context, cfg Config, language, code, filename, workdir string, stdin []byte) (Result, error) {
 	language = strings.ToLower(strings.TrimSpace(language))
 	if language == "" || strings.TrimSpace(code) == "" {
 		return Result{}, fmt.Errorf("language and code are required")
@@ -152,12 +157,93 @@ func RunCode(ctx context.Context, cfg Config, language, code, filename, workdir 
 	execResult := execEnv.Exec(runCtx, env.ExecOptions{
 		Argv:    cmdArgs,
 		Dir:     dir,
+		Stdin:   stdin,
 		Timeout: runCtx,
 	})
 	if !execResult.IsOk() {
 		return Result{}, fmt.Errorf("%s", env.FormatExecutionError(execResult.ErrorValue()))
 	}
 	return formatResult(execResult.Value(), cfg.maxOutput()), nil
+}
+
+// RunEntrypoint writes entrypoint at workspace root (main.py|main.sh|main.go), optional go.mod for go,
+// and runs with stdin + env vars. It does not use .flowbot-run.
+func RunEntrypoint(ctx context.Context, cfg Config, entrypoint, source string, stdin []byte, processEnv []string) (Result, error) {
+	entrypoint = filepath.Base(strings.TrimSpace(entrypoint))
+	switch entrypoint {
+	case "main.py", "main.sh", "main.go":
+	default:
+		return Result{}, fmt.Errorf("entrypoint must be main.py, main.sh, or main.go")
+	}
+	if strings.TrimSpace(source) == "" {
+		return Result{}, fmt.Errorf("source is required")
+	}
+	if len(source) > MaxCodeBytes {
+		return Result{}, fmt.Errorf("source exceeds %d bytes", MaxCodeBytes)
+	}
+	language, err := languageFromEntrypoint(entrypoint)
+	if err != nil {
+		return Result{}, err
+	}
+	dir, err := cfg.ResolveWorkDir("")
+	if err != nil {
+		return Result{}, err
+	}
+	execEnv := cfg.executionEnv()
+	scriptPath := filepath.Join(dir, entrypoint)
+	if writeResult := execEnv.WriteFile(ctx, scriptPath, []byte(source), 0o644); !writeResult.IsOk() {
+		return Result{}, fmt.Errorf("write entrypoint: %s", env.FormatFileError(writeResult.ErrorValue()))
+	}
+	envVars := append([]string(nil), processEnv...)
+	if language == "go" {
+		modPath := filepath.Join(dir, "go.mod")
+		if writeResult := execEnv.WriteFile(ctx, modPath, []byte(goModContents), 0o644); !writeResult.IsOk() {
+			return Result{}, fmt.Errorf("write go.mod: %s", env.FormatFileError(writeResult.ErrorValue()))
+		}
+		envVars = mergeGoEnv(dir, envVars)
+	}
+	cmdArgs, err := interpreterCommand(language, entrypoint)
+	if err != nil {
+		return Result{}, err
+	}
+	runCtx, cancel := context.WithTimeout(ctx, cfg.timeout())
+	defer cancel()
+	execResult := execEnv.Exec(runCtx, env.ExecOptions{
+		Argv:    cmdArgs,
+		Dir:     dir,
+		Stdin:   stdin,
+		Env:     envVars,
+		Timeout: runCtx,
+	})
+	if !execResult.IsOk() {
+		return Result{}, fmt.Errorf("%s", env.FormatExecutionError(execResult.ErrorValue()))
+	}
+	return formatResult(execResult.Value(), cfg.maxOutput()), nil
+}
+
+func languageFromEntrypoint(entrypoint string) (string, error) {
+	switch entrypoint {
+	case "main.py":
+		return "python", nil
+	case "main.sh":
+		return "shell", nil
+	case "main.go":
+		return "go", nil
+	default:
+		return "", fmt.Errorf("unsupported entrypoint %q", entrypoint)
+	}
+}
+
+func mergeGoEnv(workspace string, extra []string) []string {
+	base := []string{
+		"GOPROXY=off",
+		"GOSUMDB=off",
+		"GOTELEMETRY=off",
+		"CGO_ENABLED=0",
+		"GOCACHE=" + filepath.Join(workspace, ".gocache"),
+		"GOPATH=" + filepath.Join(workspace, ".gopath"),
+	}
+	return append(base, extra...)
 }
 
 func formatResult(capture env.Capture, maxOutput int) Result {
@@ -179,6 +265,8 @@ func defaultFilename(language string) string {
 		return "script.py"
 	case "shell", "sh", "bash":
 		return "script.sh"
+	case "go", "golang":
+		return "main.go"
 	default:
 		return "snippet.txt"
 	}
@@ -190,6 +278,8 @@ func interpreterCommand(language, filePath string) ([]string, error) {
 		return []string{"python", filePath}, nil
 	case "shell", "sh", "bash":
 		return []string{"sh", filePath}, nil
+	case "go", "golang":
+		return []string{"go", "run", filepath.Base(filePath)}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language %q", language)
 	}

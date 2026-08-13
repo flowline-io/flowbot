@@ -37,6 +37,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayjob"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayworker"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
@@ -1075,6 +1078,96 @@ func init() {
 	form.DefaultUpdatedAt = formDescUpdatedAt.Default.(func() time.Time)
 	// form.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	form.UpdateDefaultUpdatedAt = formDescUpdatedAt.UpdateDefault.(func() time.Time)
+	functiondefinitionFields := schema.FunctionDefinition{}.Fields()
+	_ = functiondefinitionFields
+	// functiondefinitionDescName is the schema descriptor for name field.
+	functiondefinitionDescName := functiondefinitionFields[1].Descriptor()
+	// functiondefinition.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	functiondefinition.NameValidator = func() func(string) error {
+		validators := functiondefinitionDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// functiondefinitionDescMetadataDraft is the schema descriptor for metadata_draft field.
+	functiondefinitionDescMetadataDraft := functiondefinitionFields[2].Descriptor()
+	// functiondefinition.DefaultMetadataDraft holds the default value on creation for the metadata_draft field.
+	functiondefinition.DefaultMetadataDraft = functiondefinitionDescMetadataDraft.Default.(string)
+	// functiondefinitionDescEntrypointDraft is the schema descriptor for entrypoint_draft field.
+	functiondefinitionDescEntrypointDraft := functiondefinitionFields[3].Descriptor()
+	// functiondefinition.DefaultEntrypointDraft holds the default value on creation for the entrypoint_draft field.
+	functiondefinition.DefaultEntrypointDraft = functiondefinitionDescEntrypointDraft.Default.(string)
+	// functiondefinitionDescSourceDraft is the schema descriptor for source_draft field.
+	functiondefinitionDescSourceDraft := functiondefinitionFields[4].Descriptor()
+	// functiondefinition.DefaultSourceDraft holds the default value on creation for the source_draft field.
+	functiondefinition.DefaultSourceDraft = functiondefinitionDescSourceDraft.Default.(string)
+	// functiondefinitionDescVersion is the schema descriptor for version field.
+	functiondefinitionDescVersion := functiondefinitionFields[8].Descriptor()
+	// functiondefinition.DefaultVersion holds the default value on creation for the version field.
+	functiondefinition.DefaultVersion = functiondefinitionDescVersion.Default.(int)
+	// functiondefinitionDescCreatedBy is the schema descriptor for created_by field.
+	functiondefinitionDescCreatedBy := functiondefinitionFields[10].Descriptor()
+	// functiondefinition.DefaultCreatedBy holds the default value on creation for the created_by field.
+	functiondefinition.DefaultCreatedBy = functiondefinitionDescCreatedBy.Default.(string)
+	// functiondefinitionDescCreatedAt is the schema descriptor for created_at field.
+	functiondefinitionDescCreatedAt := functiondefinitionFields[11].Descriptor()
+	// functiondefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
+	functiondefinition.DefaultCreatedAt = functiondefinitionDescCreatedAt.Default.(func() time.Time)
+	// functiondefinitionDescUpdatedAt is the schema descriptor for updated_at field.
+	functiondefinitionDescUpdatedAt := functiondefinitionFields[12].Descriptor()
+	// functiondefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	functiondefinition.DefaultUpdatedAt = functiondefinitionDescUpdatedAt.Default.(func() time.Time)
+	// functiondefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	functiondefinition.UpdateDefaultUpdatedAt = functiondefinitionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	functiondefinitionversionFields := schema.FunctionDefinitionVersion{}.Fields()
+	_ = functiondefinitionversionFields
+	// functiondefinitionversionDescFunctionName is the schema descriptor for function_name field.
+	functiondefinitionversionDescFunctionName := functiondefinitionversionFields[1].Descriptor()
+	// functiondefinitionversion.FunctionNameValidator is a validator for the "function_name" field. It is called by the builders before save.
+	functiondefinitionversion.FunctionNameValidator = functiondefinitionversionDescFunctionName.Validators[0].(func(string) error)
+	// functiondefinitionversionDescMetadata is the schema descriptor for metadata field.
+	functiondefinitionversionDescMetadata := functiondefinitionversionFields[3].Descriptor()
+	// functiondefinitionversion.MetadataValidator is a validator for the "metadata" field. It is called by the builders before save.
+	functiondefinitionversion.MetadataValidator = functiondefinitionversionDescMetadata.Validators[0].(func(string) error)
+	// functiondefinitionversionDescEntrypoint is the schema descriptor for entrypoint field.
+	functiondefinitionversionDescEntrypoint := functiondefinitionversionFields[4].Descriptor()
+	// functiondefinitionversion.EntrypointValidator is a validator for the "entrypoint" field. It is called by the builders before save.
+	functiondefinitionversion.EntrypointValidator = functiondefinitionversionDescEntrypoint.Validators[0].(func(string) error)
+	// functiondefinitionversionDescSource is the schema descriptor for source field.
+	functiondefinitionversionDescSource := functiondefinitionversionFields[5].Descriptor()
+	// functiondefinitionversion.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	functiondefinitionversion.SourceValidator = functiondefinitionversionDescSource.Validators[0].(func(string) error)
+	// functiondefinitionversionDescCreatedAt is the schema descriptor for created_at field.
+	functiondefinitionversionDescCreatedAt := functiondefinitionversionFields[6].Descriptor()
+	// functiondefinitionversion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	functiondefinitionversion.DefaultCreatedAt = functiondefinitionversionDescCreatedAt.Default.(func() time.Time)
+	functionrunFields := schema.FunctionRun{}.Fields()
+	_ = functionrunFields
+	// functionrunDescFunctionName is the schema descriptor for function_name field.
+	functionrunDescFunctionName := functionrunFields[1].Descriptor()
+	// functionrun.FunctionNameValidator is a validator for the "function_name" field. It is called by the builders before save.
+	functionrun.FunctionNameValidator = functionrunDescFunctionName.Validators[0].(func(string) error)
+	// functionrunDescDurationMs is the schema descriptor for duration_ms field.
+	functionrunDescDurationMs := functionrunFields[4].Descriptor()
+	// functionrun.DefaultDurationMs holds the default value on creation for the duration_ms field.
+	functionrun.DefaultDurationMs = functionrunDescDurationMs.Default.(int64)
+	// functionrunDescError is the schema descriptor for error field.
+	functionrunDescError := functionrunFields[6].Descriptor()
+	// functionrun.DefaultError holds the default value on creation for the error field.
+	functionrun.DefaultError = functionrunDescError.Default.(string)
+	// functionrunDescCreatedAt is the schema descriptor for created_at field.
+	functionrunDescCreatedAt := functionrunFields[9].Descriptor()
+	// functionrun.DefaultCreatedAt holds the default value on creation for the created_at field.
+	functionrun.DefaultCreatedAt = functionrunDescCreatedAt.Default.(func() time.Time)
 	gatewayjobFields := schema.GatewayJob{}.Fields()
 	_ = gatewayjobFields
 	// gatewayjobDescJobID is the schema descriptor for job_id field.

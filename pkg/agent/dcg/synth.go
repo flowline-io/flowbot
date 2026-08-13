@@ -26,6 +26,9 @@ func SynthCommand(language, code string) (string, error) {
 		return "python -c " + quoted, nil
 	case "shell", "sh", "bash":
 		return "sh -c " + quoted, nil
+	case "go", "golang":
+		// Functions run `go run main.go`; synthesize a go-run shaped check for dcg.
+		return "go run main.go", nil
 	default:
 		return "", fmt.Errorf("dcg: unsupported language %q", language)
 	}

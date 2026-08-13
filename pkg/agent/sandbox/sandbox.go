@@ -97,6 +97,10 @@ type RunOptions struct {
 	Argv        []string
 	ServerURL   string
 	AccessToken string
+	// Env is appended to the container environment (KEY=VALUE).
+	Env []string
+	// Stdin is process input; non-empty values are written to .flowbot-stdin under the host workdir.
+	Stdin []byte
 	// CLIConfigDir is a host directory bind-mounted read-only at containerCLIConfigPath.
 	// When empty and AccessToken is set, DockerRunner materializes a temporary directory.
 	CLIConfigDir string
@@ -157,14 +161,7 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 	if opts.Timeout != nil {
 		runCtx = opts.Timeout
 	}
-	containerRoot := containerWorkspacePath(e.cfg.Workspace)
-	workDir := containerRoot
-	if opts.Dir != "" && e.cfg.Workspace != "" {
-		rel, err := filepath.Rel(e.cfg.Workspace, opts.Dir)
-		if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-			workDir = containerWorkspacePath(filepath.Join(e.cfg.Workspace, rel))
-		}
-	}
+	workDir := resolveContainerWorkDir(e.cfg.Workspace, opts.Dir)
 	runOpts := RunOptions{
 		Image:       e.cfg.Image,
 		Network:     e.cfg.Network,
@@ -175,25 +172,17 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 		Argv:        append([]string(nil), opts.Argv...),
 		ServerURL:   e.cfg.ServerURL,
 		AccessToken: e.cfg.AccessToken,
+		Env:         append([]string(nil), opts.Env...),
+		Stdin:       append([]byte(nil), opts.Stdin...),
+	}
+	if ferr := e.applyStdinRedirect(ctx, opts, &runOpts); ferr != nil {
+		return result.Err[env.Capture, result.ExecutionError](*ferr)
 	}
 	flog.Info("[sandbox] exec start workspace=%s workdir=%s cli_creds=%s %s",
 		e.cfg.Workspace, workDir, cliCredsLabel(runOpts.AccessToken), summarizeCommand(runOpts))
 	capture, err := e.runner.Run(runCtx, runOpts)
 	if err != nil {
-		code := "spawn_error"
-		cause := err
-		switch {
-		case runCtx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded):
-			code = "timeout"
-			if runCtx.Err() != nil {
-				cause = runCtx.Err()
-			}
-		case runCtx.Err() == context.Canceled || errors.Is(err, context.Canceled):
-			code = "aborted"
-			if runCtx.Err() != nil {
-				cause = runCtx.Err()
-			}
-		}
+		code, cause := classifyExecError(runCtx, err)
 		flog.Info("[sandbox] exec failed workspace=%s workdir=%s code=%s err=%s",
 			e.cfg.Workspace, workDir, code, cause.Error())
 		return result.Err[env.Capture, result.ExecutionError](
@@ -203,6 +192,59 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 	flog.Info("[sandbox] exec done workspace=%s workdir=%s exit_code=%d",
 		e.cfg.Workspace, workDir, capture.ExitCode)
 	return result.Ok[env.Capture, result.ExecutionError](capture)
+}
+
+func resolveContainerWorkDir(workspace, optsDir string) string {
+	containerRoot := containerWorkspacePath(workspace)
+	if optsDir == "" || workspace == "" {
+		return containerRoot
+	}
+	rel, err := filepath.Rel(workspace, optsDir)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return containerRoot
+	}
+	return containerWorkspacePath(filepath.Join(workspace, rel))
+}
+
+func (e *Env) applyStdinRedirect(ctx context.Context, opts env.ExecOptions, runOpts *RunOptions) *result.ExecutionError {
+	if len(opts.Stdin) == 0 {
+		return nil
+	}
+	hostWorkDir := e.cfg.Workspace
+	if opts.Dir != "" {
+		hostWorkDir = opts.Dir
+	}
+	stdinPath := filepath.Join(hostWorkDir, ".flowbot-stdin")
+	if wr := e.host.WriteFile(ctx, stdinPath, opts.Stdin, 0o644); !wr.IsOk() {
+		ferr := wr.ErrorValue()
+		err := result.NewExecutionError("spawn_error", ferr.Error(), nil)
+		return &err
+	}
+	if len(opts.Argv) > 0 {
+		runOpts.Command = shellJoin(opts.Argv) + " < .flowbot-stdin"
+		runOpts.Argv = nil
+	} else {
+		runOpts.Command = "(" + opts.Command + ") < .flowbot-stdin"
+	}
+	return nil
+}
+
+func classifyExecError(runCtx context.Context, err error) (string, error) {
+	cause := err
+	switch {
+	case runCtx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded):
+		if runCtx.Err() != nil {
+			cause = runCtx.Err()
+		}
+		return "timeout", cause
+	case runCtx.Err() == context.Canceled || errors.Is(err, context.Canceled):
+		if runCtx.Err() != nil {
+			cause = runCtx.Err()
+		}
+		return "aborted", cause
+	default:
+		return "spawn_error", cause
+	}
 }
 
 // DockerRunner runs commands via the Docker Engine API.
@@ -394,16 +436,21 @@ func ensureSandboxAgentReadable(path string) error {
 	return nil
 }
 
-// buildContainerEnv returns Docker Env entries for the flowbot CLI.
+// buildContainerEnv returns Docker Env entries for the flowbot CLI and caller-supplied vars.
 func buildContainerEnv(opts RunOptions) []string {
-	if opts.AccessToken == "" {
+	var out []string
+	if opts.AccessToken != "" {
+		if opts.ServerURL != "" {
+			out = append(out, envFlowbotServerURL+"="+opts.ServerURL)
+		}
+		out = append(out, envFlowbotToken+"="+opts.AccessToken)
+	}
+	if len(opts.Env) > 0 {
+		out = append(out, opts.Env...)
+	}
+	if len(out) == 0 {
 		return nil
 	}
-	var out []string
-	if opts.ServerURL != "" {
-		out = append(out, envFlowbotServerURL+"="+opts.ServerURL)
-	}
-	out = append(out, envFlowbotToken+"="+opts.AccessToken)
 	return out
 }
 
@@ -460,10 +507,10 @@ func waitAndCollectLogs(ctx context.Context, cli *client.Client, id, workspace, 
 	if err != nil {
 		return env.Capture{}, err
 	}
-	text := stripDockerLogHeaders(output)
+	stdout, stderr := demuxDockerLogs(output)
 	flog.Info("[sandbox] container done id=%s workspace=%s workdir=%s exit_code=%d",
 		id, workspace, workDir, exitCode)
-	return env.Capture{Stdout: text, Stderr: text, ExitCode: int(exitCode)}, nil
+	return env.Capture{Stdout: stdout, Stderr: stderr, ExitCode: int(exitCode)}, nil
 }
 
 // containerWorkspacePath normalizes the workspace path for container bind mounts and WorkingDir.
@@ -496,28 +543,65 @@ func buildCommand(opts RunOptions) ([]string, error) {
 }
 
 func stripDockerLogHeaders(data []byte) string {
-	if len(data) < 8 {
-		return string(data)
+	stdout, stderr := demuxDockerLogs(data)
+	if stderr == "" {
+		return stdout
 	}
-	var out bytes.Buffer
+	if stdout == "" {
+		return stderr
+	}
+	return stdout + stderr
+}
+
+// demuxDockerLogs splits Docker multiplexed log frames (stream byte 1=stdout, 2=stderr).
+func demuxDockerLogs(data []byte) (stdout, stderr string) {
+	if len(data) < 8 {
+		return string(data), ""
+	}
+	var outBuf, errBuf bytes.Buffer
 	rest := data
 	wrote := false
 	for len(rest) >= 8 {
+		stream := rest[0]
 		size := int(rest[4])<<24 | int(rest[5])<<16 | int(rest[6])<<8 | int(rest[7])
 		rest = rest[8:]
 		if size > len(rest) {
-			_, _ = out.Write(rest)
+			chunk := rest
+			switch stream {
+			case 2:
+				_, _ = errBuf.Write(chunk)
+			default:
+				_, _ = outBuf.Write(chunk)
+			}
 			wrote = true
 			break
 		}
-		_, _ = out.Write(rest[:size])
-		wrote = true
+		chunk := rest[:size]
 		rest = rest[size:]
+		switch stream {
+		case 2:
+			_, _ = errBuf.Write(chunk)
+		default:
+			_, _ = outBuf.Write(chunk)
+		}
+		wrote = true
 	}
 	if !wrote {
-		return string(data)
+		return string(data), ""
 	}
-	return out.String()
+	return outBuf.String(), errBuf.String()
+}
+
+func shellJoin(argv []string) string {
+	parts := make([]string, len(argv))
+	for i, arg := range argv {
+		parts[i] = shellQuote(arg)
+	}
+	return strings.Join(parts, " ")
+}
+
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'"
 }
 
 // Ensure Env implements ExecutionEnv.

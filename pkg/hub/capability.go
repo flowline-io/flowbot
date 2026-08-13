@@ -24,6 +24,8 @@ const (
 	CapLife CapabilityType = "life"
 	// CapGateway is the local CLI gateway capability (run_cursor via cmd/gateway workers).
 	CapGateway CapabilityType = "gateway"
+	// CapFunctions is the named-functions capability (pure transform invoke).
+	CapFunctions CapabilityType = "functions"
 )
 
 // EventDef describes an event that a capability emits.

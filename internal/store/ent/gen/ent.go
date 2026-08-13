@@ -44,6 +44,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayjob"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayworker"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
@@ -192,6 +195,9 @@ func checkColumn(t, c string) error {
 			eventoutbox.Table:               eventoutbox.ValidColumn,
 			fileupload.Table:                fileupload.ValidColumn,
 			form.Table:                      form.ValidColumn,
+			functiondefinition.Table:        functiondefinition.ValidColumn,
+			functiondefinitionversion.Table: functiondefinitionversion.ValidColumn,
+			functionrun.Table:               functionrun.ValidColumn,
 			gatewayjob.Table:                gatewayjob.ValidColumn,
 			gatewayworker.Table:             gatewayworker.ValidColumn,
 			instruct.Table:                  instruct.ValidColumn,

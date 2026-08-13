@@ -76,6 +76,12 @@ type Tx struct {
 	Fileupload *FileuploadClient
 	// Form is the client for interacting with the Form builders.
 	Form *FormClient
+	// FunctionDefinition is the client for interacting with the FunctionDefinition builders.
+	FunctionDefinition *FunctionDefinitionClient
+	// FunctionDefinitionVersion is the client for interacting with the FunctionDefinitionVersion builders.
+	FunctionDefinitionVersion *FunctionDefinitionVersionClient
+	// FunctionRun is the client for interacting with the FunctionRun builders.
+	FunctionRun *FunctionRunClient
 	// GatewayJob is the client for interacting with the GatewayJob builders.
 	GatewayJob *GatewayJobClient
 	// GatewayWorker is the client for interacting with the GatewayWorker builders.
@@ -351,6 +357,9 @@ func (tx *Tx) init() {
 	tx.EventOutbox = NewEventOutboxClient(tx.config)
 	tx.Fileupload = NewFileuploadClient(tx.config)
 	tx.Form = NewFormClient(tx.config)
+	tx.FunctionDefinition = NewFunctionDefinitionClient(tx.config)
+	tx.FunctionDefinitionVersion = NewFunctionDefinitionVersionClient(tx.config)
+	tx.FunctionRun = NewFunctionRunClient(tx.config)
 	tx.GatewayJob = NewGatewayJobClient(tx.config)
 	tx.GatewayWorker = NewGatewayWorkerClient(tx.config)
 	tx.Instruct = NewInstructClient(tx.config)

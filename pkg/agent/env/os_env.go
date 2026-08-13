@@ -155,14 +155,20 @@ func (OSExecutionEnv) Exec(ctx context.Context, opts ExecOptions) result.Result[
 		cmd.Dir = safeDir
 	}
 
-	var buf bytes.Buffer
-	cmd.Stdout = &buf
-	cmd.Stderr = &buf
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = &stdoutBuf
+	cmd.Stderr = &stderrBuf
+	if len(opts.Stdin) > 0 {
+		cmd.Stdin = bytes.NewReader(opts.Stdin)
+	}
+	if len(opts.Env) > 0 {
+		cmd.Env = append(os.Environ(), opts.Env...)
+	}
 
 	err := cmd.Run()
 	capture := Capture{
-		Stdout:   buf.String(),
-		Stderr:   buf.String(),
+		Stdout:   stdoutBuf.String(),
+		Stderr:   stderrBuf.String(),
 		ExitCode: 0,
 	}
 	if runCtx.Err() != nil {

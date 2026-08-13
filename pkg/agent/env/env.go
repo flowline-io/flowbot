@@ -22,6 +22,10 @@ type ExecOptions struct {
 	// Argv runs the binary directly without a shell when non-empty.
 	Argv []string
 	Dir  string
+	// Stdin is written to the process standard input when non-empty.
+	Stdin []byte
+	// Env is appended to the process environment (KEY=VALUE entries).
+	Env []string
 	// Timeout is the context governing cancellation and deadlines.
 	Timeout context.Context
 }
