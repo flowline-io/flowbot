@@ -2,6 +2,10 @@
 
 Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQL, Redis.
 
+## Pre-release stance: foundation over blast radius
+
+Until 1.0, prefer the correct foundation over compatibility shims. Domain event names stay stable ([capability](pkg/capability/AGENTS.md)). Rewrite this section at 1.0. Rationale: [.agents/notes/implemented/process/2026-08-13-pre-release-foundation-over-shims.md](.agents/notes/implemented/process/2026-08-13-pre-release-foundation-over-shims.md).
+
 ## Coding guidelines
 
 * Prioritize code correctness and clarity. Speed and efficiency are secondary unless otherwise specified.
@@ -13,6 +17,11 @@ Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQ
 * NEVER git commit unless asked.
 * Style that lint covers (imports, naming, JS quotes): follow `go tool task lint` / `revive.toml` / oxlint — do not restate here.
 
+## Decisions and docs
+
+* Non-trivial changes include an Agent Note in the same change. [scope](.agents/notes/README.md)
+* One home per fact: state a rule in its owning tier; elsewhere, link. Do not restate the same rule in `AGENTS.md`, architecture docs, and README. [tiers](docs/AGENTS.md)
+
 ## Verification
 
 * Before editing a package, read the nearest nested `AGENTS.md` and the matching `example/` when touching providers, capabilities, or modules.
@@ -20,16 +29,15 @@ Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQ
 
 ## Testing policy
 
-* Library / pure logic changes: table-driven unit tests (Red-Green-Refactor). Details: [docs/testing/tdd-specs.md](docs/testing/tdd-specs.md).
-* New modules or cross-boundary behavior changes: add or update BDD specs. Details: [docs/testing/bdd-specs.md](docs/testing/bdd-specs.md).
-* Docs / AGENTS / comment-only edits: no tests required.
-* Without Docker: always run unit tests; do not claim `test:specs` passed — state that BDD was skipped.
+* Tests describe behavior, not correctness. When intended behavior changes, change the tests in the same PR and explain why. Layers, Docker skip, and assembled example: [policy](docs/testing/README.md).
+
+## Dependencies
+
+* Prefer a maintained dependency over hand-rolling SSE, retry/backoff, or glob. Net-deletion bar and settled seams: [policy](.agents/notes/implemented/process/2026-08-13-dependencies-over-hand-rolling.md).
 
 ## Boundaries
 
-* Never import `internal/*` from `pkg/*` — inject interfaces from `internal/server` (or other product layers); migration allowlist lives in `internal/server/pkg_deps_test.go` and must shrink each wave.
-* Never put `*gen.*` or `internal/store` facades in `pkg` public APIs or templates — use `pkg/types` / `pkg/types/model` and adapters.
-* Domain enums used outside the store layer live in `pkg/types` (e.g. Instruct*, FormState, PipelineState, WorkflowRunState, ResourceRef); `ent/schema` may type-alias them — do not redefine parallel constants.
+* pkg vs internal import and API surface: [pkg-boundaries.md](docs/architecture/pkg-boundaries.md). Gate: `go test ./internal/server -run TestPkgMustNotImportInternal`.
 * Never import `pkg/providers/*` from `internal/modules/*` — use `capability.Invoke` (do not call provider clients from modules).
 * Never call hub / pipeline / emit DataEvent from a provider or capability adapter; never return provider-private types from an adapter.
 * Never write database query code outside `internal/store` (domain `*Store` facades in package `store`; `postgres` is connection-only).
@@ -77,5 +85,6 @@ go tool task skills           # Regenerate docs/skills from cmd/composer
 * Cursor Cloud / environments without systemd: read [docs/developer-guide/cursor-cloud.md](docs/developer-guide/cursor-cloud.md) first.
 * Default agent loop (optional `@` skill): [`.cursor/skills/flowbot-dev-loop/SKILL.md`](.cursor/skills/flowbot-dev-loop/SKILL.md)
 * Nested package guides: nearest `AGENTS.md` under `internal/` / `pkg/` / `cmd/`
-* pkg vs internal boundaries (waves L1–L4): [docs/architecture/pkg-boundaries.md](docs/architecture/pkg-boundaries.md)
-* Architecture gate (`pkg` must not import `internal`): `internal/server/pkg_deps_test.go`
+* Documentation standard (one home per fact): [docs/AGENTS.md](docs/AGENTS.md)
+* Agent Notes: [.agents/notes/README.md](.agents/notes/README.md)
+* Testing policy: [docs/testing/README.md](docs/testing/README.md)

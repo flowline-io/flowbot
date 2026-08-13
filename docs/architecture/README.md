@@ -49,14 +49,9 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
                      Discovery Engine (labels + runtime probes)
 ```
 
-### Key Design Rules
+### Standing orders (do not restate)
 
-- Modules never import providers directly — use `capability.Invoke()`
-- Providers never emit DataEvents, call Hub, or call Pipeline
-- Standard pagination: limit + opaque cursor (provider internals hidden)
-- Durable events: DataEvent → PostgreSQL data_events → Redis Stream → Pipeline
-- All Hub lifecycle operations are audited
-- AuthContext spans REST, CLI, Chat, Webhook, Cron, Pipeline, Workflow
+Root [AGENTS.md](../../AGENTS.md). Pagination: [pkg/capability/AGENTS.md](../../pkg/capability/AGENTS.md). pkg vs internal: [pkg-boundaries.md](pkg-boundaries.md). Auth call paths: [pkg/auth/AGENTS.md](../../pkg/auth/AGENTS.md). Hub lifecycle audit: [internal/server/AGENTS.md](../../internal/server/AGENTS.md).
 
 ### Data Flows
 

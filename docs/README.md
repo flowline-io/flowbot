@@ -8,11 +8,12 @@ Flowbot is a Homelab Data Hub & Capability Orchestration Center — it discovers
 - [User Guide](./user-guide/) — Core concepts: pipelines, workflows, templates, notifications
 - [Reference](./reference/) — API specs, configuration schema, database tables
 - [API](./api/) — OpenAPI 3.0 specification and HTTP request examples
+- [Documentation standard](./AGENTS.md) — One home per fact; where standing orders, maps, and rationale live
 - [Architecture](./architecture/) — System architecture diagrams (PlantUML)
 - [Agent Engine](./agent/) — Multi-turn LLM agent loop (`pkg/agent/`) and Cloud Agent sandbox image
 - [Life](./life/) — Solo gamified productivity (`modules/life`, `pkg/life`)
 - [Developer Guide](./developer-guide/) — Deployment, tracing, recovery, conformance testing
-- [Testing](./testing/) — Table-driven standard, BDD acceptance testing with Ginkgo
+- [Testing](./testing/) — Policy, table-driven unit tests, BDD acceptance testing with Ginkgo
 - [Skills](./skills/) — AI assistant skills for CLI-invokable capabilities
 - [Examples](./examples/) — Workflow and pipeline configuration examples
 - [Website](./website/) — Public-facing documentation site

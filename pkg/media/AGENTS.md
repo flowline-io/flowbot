@@ -1,6 +1,6 @@
 # Media Package
 
-Media upload/download handlers, handler registry, signed URLs, and file metadata access via injected store.
+Media upload/download handlers, handler registry, signed URLs, and file metadata access via injected store. Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md).
 
 ## Entry points
 
@@ -9,7 +9,7 @@ Media upload/download handlers, handler registry, signed URLs, and file metadata
 
 ## Boundaries
 
-- Never import `internal/store` — use injected `FileMetaStore`; register handlers with `media.RegisterHandler` / `UseHandler`
+- Use injected `FileMetaStore`; register handlers with `media.RegisterHandler` / `UseHandler` ([pkg-boundaries.md](../../docs/architecture/pkg-boundaries.md))
 - File metadata APIs take `*types.FileDef` only; no `*gen.*`
 - Wire `SetFileMetaStore` from `internal/server` at process start
 

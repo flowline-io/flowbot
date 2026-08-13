@@ -1,11 +1,11 @@
 # Chatagent (Product Orchestration)
 
-Binds `pkg/agent` to REST (`/chatagent/*`), Web (`/service/web/agents/*`), platform sinks, store, and scheduled tasks. Must not become a second agent engine.
+Binds `pkg/agent` to REST (`/chatagent/*`), Web (`/service/web/agents/*`), platform sinks, store, and scheduled tasks. Must not become a second agent engine. Repo-wide standing orders: root [AGENTS.md](../../../AGENTS.md).
 
 ## Boundaries
 
 - **Allowed**: `pkg/agent/*`, `internal/store/*`, views via handlers. Product tools: `tools/clip`, `tools/notify`, `tools/gateway`.
-- **Forbidden**: `internal/store` inside `pkg/agent`; store types in engine APIs.
+- **Forbidden**: `internal/store` inside `pkg/agent`; store types in engine APIs ([pkg-boundaries.md](../../../docs/architecture/pkg-boundaries.md)).
 
 ## Entry points
 
@@ -21,13 +21,17 @@ Hot-path files: `service.go` (Run), `service_state.go`, `run_io.go` (`withRunIO`
 
 `StreamAPIRun` → `RunAPI` → `Service.Run`: prepare → lock → harness → hooks/permission/confirm (wired at harness build; ask via `withRunIO`) → stream → deliver → cleanup (abort path). Inject publisher/confirm via `withRunIO`; do not look up from session maps in hooks.
 
+SSE / streaming write rules: [server AGENTS.md](../AGENTS.md). The chatagent SSE framing and event protocol is a settled seam ([deps policy](../../../.agents/notes/implemented/process/2026-08-13-dependencies-over-hand-rolling.md)).
+
 Protocol changes: update `docs/agent/chatagent-feature-checklist.md` + tests first. Keep HTTP handlers thin.
 
 ## Testing
+
+Which layer: [docs/testing/README.md](../../../docs/testing/README.md). This package owns **product policy** transcripts (permission / DCG).
 
 ```bash
 go test ./internal/server/chatagent -count=1
 go test ./internal/server/chatagent/eval -count=1
 ```
 
-Policy outcome fixtures (permission / DCG) live under `eval/testdata/safety/`. BDD coverage for deny/allow env reads is in `tests/specs/agent_spec_test.go` (`Agent Eval Policy`).
+Policy outcome fixtures live under `eval/testdata/safety/`. BDD coverage for deny/allow env reads is in `tests/specs/agent_spec_test.go` (`Agent Eval Policy`).

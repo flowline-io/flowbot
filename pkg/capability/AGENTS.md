@@ -1,6 +1,6 @@
 # Capability Guide
 
-Decouples modules from providers. Provider-backed caps live in `pkg/capability/<provider>/`, register via `capability.Register(Spec)`.
+Decouples modules from providers. Provider-backed caps live in `pkg/capability/<provider>/`, register via `capability.Register(Spec)`. Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md).
 
 ## Entry points
 
@@ -16,8 +16,6 @@ capability.Invoke(ctx, hub.CapCore, core.OpNotifySend, map[string]any{...})
 
 ## Boundaries
 
-- Modules never import `pkg/providers/*` — use `capability.Invoke`
-- Adapters never call hub/pipeline/emit DataEvent
 - CapType == provider ID for provider-backed caps
 - **Exceptions** (CapType ≠ single provider ID):
   - `devops` (`hub.CapDevops`) aggregates beszel/uptimekuma/traefik/grafana/wakapi/dozzle/netalertx
@@ -25,8 +23,8 @@ capability.Invoke(ctx, hub.CapCore, core.OpNotifySend, map[string]any{...})
   - `functions` (`hub.CapFunctions`) named FaaS invoke/get/health
   - `life` (`hub.CapLife`) solo Life gamification AI
   - `gateway` (`hub.CapGateway`) local CLI gateway workers
-- Domain event names stay stable; set `DataEvent.Capability` to provider ID
+- Domain event names are a recorded consumer contract (pipelines, webhooks). They stay stable under the 0.x no-shim stance. Set `DataEvent.Capability` to provider ID.
 - Pagination: limit + opaque cursor; hide provider pagination internals in the adapter
 - New caps: follow `pkg/capability/example/`
-- `pkg/capability/core` must not import `internal/store` — inject `Persister` / `KVStore` / `Runner` / `ExecProvider` from `internal/server`
+- `pkg/capability/core` injects `Persister` / `KVStore` / `Runner` / `ExecProvider` from `internal/server` ([pkg-boundaries.md](../../docs/architecture/pkg-boundaries.md))
 - `pkg/exec` must not import `pkg/capability`

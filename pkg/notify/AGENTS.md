@@ -1,6 +1,6 @@
 # Notify Guide
 
-Multi-channel notification gateway: rules → templates → channel `Notifyer` dispatch.
+Multi-channel notification gateway: rules → templates → channel `Notifyer` dispatch. Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md).
 
 Call path: callers → `notify.GatewaySend()` (or `pkg/capability/core` `notify_send`) → rules/template engines → registered providers (`slack`, `ntfy`, `pushover`, `messagepusher`, `inapp`).
 
@@ -11,7 +11,7 @@ When `channels` includes successful `inapp` delivery, other channels are recorde
 - Core: `notify.go` (`Register`, `Send`, `GatewaySend`), `types.go` (`Notifyer`), `presence.go`, `escalate.go`, `defaults.go` (`SeedInappChannel`, `DefaultInboxChannels`)
 - Engines: `template/`, `rules/` (templates/rules load from PostgreSQL, not YAML)
 - Channels: `pkg/notify/<name>/provider.go`; wire via `fx.Invoke` in `internal/server/notify.go`
-- Persistence: inject `NotifyRecords` / `NotifyConfigStore` / `NotifyUserConfig` via `SetNotify*` (`WireNotifyStores` in `internal/server/notify_store.go`); never import `internal/store`
+- Persistence: inject `NotifyRecords` / `NotifyConfigStore` / `NotifyUserConfig` via `SetNotify*` (`WireNotifyStores` in `internal/server/notify_store.go`) ([pkg-boundaries.md](../../docs/architecture/pkg-boundaries.md))
 - System channel: `inapp` (seeded, not deletable)
 
 ```go
@@ -34,17 +34,15 @@ Conventions: `resty.dev/v3`; wrap errors with protocol prefix; credentials only 
 
 ## Non-obvious rules
 
-- Never import `pkg/providers/*` from a notify provider
-- Never emit DataEvent / call hub/pipeline from `Send()`
-- Never block event handlers — `Send()` stays non-blocking
+- Channel packages follow the same provider-client and orchestration split as modules and adapters (root [AGENTS.md](../../AGENTS.md)). `Send()` is request-response, not SSE.
 - Distinguish connection vs downstream API errors (do not map all to 500)
 - DND/throttle rules for external noise should match external channel names; `channel: *` also mutes Inbox
 - Deferred enqueue does not increment throttle counters; flush does
 
 ## Testing
 
+Package tests: `httptest` fakes in `provider_test.go`. Product behavior: owning spec `tests/specs/notify_spec_test.go` ([docs/testing/README.md](../../docs/testing/README.md)).
+
 ```bash
 go test ./pkg/notify/...
 ```
-
-BDD: `tests/specs/notify_spec_test.go`.

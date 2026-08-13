@@ -1,6 +1,6 @@
 # Agent Guide
 
-Core agent engine (Observe-Think-Act, tools, sessions, hooks). LLM via `pkg/agent/llm` (`llms.Model` only).
+Core agent engine (Observe-Think-Act, tools, sessions, hooks). LLM via `pkg/agent/llm` (`llms.Model` only). Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md).
 
 Full docs: [docs/agent/](../../docs/agent/README.md). Reference tool: `tools/echo/`.
 
@@ -48,11 +48,13 @@ External callers may keep importing `pkg/agent` for types (`AgentMessage`, `NewA
 - **Modules**: prefer `pkg/agent/llm` for single-shot LLM. Web may import already-wired packages (`permission`; tests: `model`/`msg`/`session`); do not import other `pkg/agent` packages from modules until wired.
 - Distinct from `pkg/types/agent.go` (instruct) and YAML `chat_agent` config.
 - JSON/JSONL: `sonic`. Metrics: `metrics.Agent()` — low-cardinality labels (`status`, `model`, `tool`, `level`); never `session_id`.
-- LLM retry only before first stream delta (`ErrStreamStarted`). Tool expected failures → `ToolResultMessage{IsError: true}` + `FormatToolError`.
+- LLM retry only before first stream delta (`ErrStreamStarted`). This retry policy is a settled seam ([deps policy](../../.agents/notes/implemented/process/2026-08-13-dependencies-over-hand-rolling.md)); do not replace it with a generic backoff library unless a new Agent Note beats this rationale. Tool expected failures → `ToolResultMessage{IsError: true}` + `FormatToolError`.
 - Result pattern: `env` / `ctxmgr` / JSONL parse return `result.Result[T,E]`; harness/session public APIs use Go `error`. Hook cancel: `hooks.ErrRunCancelled`.
 - Harness bridges hooks via `hooks.BridgeConfig` only when `HasLoopHandlers()` (not Observe-only).
 
 ## Testing
+
+Which layer: [docs/testing/README.md](../../docs/testing/README.md). Engine eval fixtures live under `eval/testdata/`. Product policy: [chatagent AGENTS.md](../../internal/server/chatagent/AGENTS.md).
 
 ```bash
 go test ./pkg/agent/...
@@ -62,6 +64,6 @@ go tool task agent:eval:live  # capability path (L1/L2/L3 Total + appendix pass^
 go tool task agent:eval:harness # harness reliability path via pkg/agent/harness
 ```
 
-Eval notes: extend `Expectation`/`Score` (required/forbidden tools, outcome asserts); keep `ExpectedTools` order soft unless `StrictToolOrder`. Scorecard Total = 0.2*L1+0.5*L2+0.3*L3 (judge quality is appendix-only). Case YAML may set `tier` / `metrics`. Do not import `internal/server/chatagent` from this package. Product policy evals live in `internal/server/chatagent/eval`. See [docs/agent/README.md](../../docs/agent/README.md#agent-evaluation).
+Eval notes: extend `Expectation`/`Score` (required/forbidden tools, outcome asserts); keep `ExpectedTools` order soft unless `StrictToolOrder`. Scorecard Total = 0.2*L1+0.5*L2+0.3*L3 (judge quality is appendix-only). Case YAML may set `tier` / `metrics`. Do not import `internal/server/chatagent` from this package. See [docs/agent/README.md](../../docs/agent/README.md#agent-evaluation).
 
 Path-only moves of product tools (`clip`/`notify` → `internal/server/chatagent/tools/`) keep existing package unit tests; no BDD update is required when behavior is unchanged.

@@ -25,10 +25,7 @@ Flowbot uses Ginkgo v2 + Gomega for Behavior-Driven Development (BDD) at the int
 
 ## When BDD is required
 
-* **Required:** new modules; changes that alter cross-boundary behavior (HTTP APIs, events, auth, pipelines) visible outside a single package.
-* **Not required:** pure library refactors covered by unit tests; docs / AGENTS / comment-only edits.
-* **Without Docker:** `go tool task test:specs` needs Docker/testcontainers. Run unit tests (`go tool task test`) and explicitly state that BDD specs were skipped — do not claim specs passed.
-* Repo-wide policy summary: root [AGENTS.md](../../AGENTS.md) Testing policy.
+Which layer to test, including the Docker skip rule: [README.md](./README.md). This file is the Ginkgo infrastructure and conventions.
 
 ## Directory Structure
 
@@ -187,7 +184,7 @@ Ginkgo specs use three node types to build a descriptive hierarchy:
 | --------- | ----------------------------------------------------------- | ------------------------------- |
 | Container | `Describe`, `Context`, `When`                               | Organize specs hierarchically   |
 | Setup     | `BeforeEach`, `AfterEach`, `JustBeforeEach`, `DeferCleanup` | Set up and tear down spec state |
-| Subject   | `It`, `Specify`                                             | Make assertions about behavior  |
+| Subject   | `It`, `Specify`                                             | Name the observable outcome, not that the system is "correct" |
 
 ### Basic Pattern
 
@@ -403,7 +400,7 @@ The BDD step in `.github/workflows/testing.yml`:
 
 ## Rules
 
-1. **New modules must include BDD specs** in `tests/specs/<name>_spec_test.go`.
+1. **New module specs** live in `tests/specs/<name>_spec_test.go`. When BDD is required is [README.md](./README.md).
 2. **Existing unit tests are never migrated** to Ginkgo. The testify table-driven pattern is the standard for unit tests.
 3. **Use Labels** on every `Describe` container to enable targeted test execution.
 4. **BeforeEach for setup, It for assertions**. Never assert in container nodes.

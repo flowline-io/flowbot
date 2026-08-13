@@ -1,6 +1,6 @@
 # Server Package
 
-HTTP server (Fiber v3) with fx DI, routing, and protocol handlers.
+HTTP server (Fiber v3) with fx DI, routing, and protocol handlers. Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md).
 
 ## Entry points
 
@@ -19,11 +19,12 @@ Look at the package directory for the full file set; prefer hot-path names above
 
 ## Non-obvious rules
 
-- Never block in handlers — long work in goroutines
+- Request-response HTTP handlers must not block; move long work off the handler goroutine.
+- SSE / streaming handlers write for the connection lifetime. Do not detach the stream onto a goroutine that outlives the client writer. Chatagent SSE: [chatagent/AGENTS.md](chatagent/AGENTS.md).
 - Map `types.Err*` in `error.go`; use `protocol.NewFailedResponse` / `NewSuccessResponse`
 - Validate inputs before processing
 - Events: DataEvent → PostgreSQL `data_events` (+ event outbox) → Redis Stream → pipeline handler → `pipeline_runs`
-- Use `http.NoBody` instead of `nil` in `http.NewRequest` calls
+- Hub lifecycle operations (start / stop / restart / pull / update) write audit via `writeLifecycleAudit` in `hub.go`. Do not add an unaudited lifecycle path.
 
 ## Routing
 
@@ -32,9 +33,10 @@ Look at the package directory for the full file set; prefer hot-path names above
 
 ## Testing
 
+Which layer: [docs/testing/README.md](../../docs/testing/README.md).
+
 ```bash
 go test ./internal/server/...
 ```
 
-Architecture gate (`pkg` must not import `internal`): `pkg_deps_test.go`.
-
+pkg vs internal gate: [pkg-boundaries.md](../../docs/architecture/pkg-boundaries.md) (`pkg_deps_test.go`).

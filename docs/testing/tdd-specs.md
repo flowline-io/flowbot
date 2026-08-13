@@ -4,10 +4,7 @@ All unit tests follow Test-Driven Development with testify table-driven patterns
 
 ## When unit tests are required
 
-* Library / pure logic / behavior changes in Go packages: write or update table-driven unit tests (this doc).
-* New modules or cross-boundary HTTP/event behavior: also add or update BDD specs — see [bdd-specs.md](./bdd-specs.md).
-* Docs-only, AGENTS.md, or comment-only edits: unit tests are not required.
-* Repo-wide policy summary: root [AGENTS.md](../../AGENTS.md) Testing policy.
+Which layer to test: [README.md](./README.md). This file is the unit-test workflow and structure.
 
 ## TDD Workflow
 
@@ -256,7 +253,7 @@ This maximizes concurrency. Tests run in `t.Parallel()` are paused until the par
 | `Test<Function>`            | `TestValidateDAG`            | When only one category, with subtests |
 | `Test<Struct>_<Method>`     | `TestRenderContext_Render`   | Methods on types                      |
 
-Table entry names use descriptive `snake_case`:
+Table entry names use descriptive `snake_case` and name the behavior, not correctness (`works` / `correct` are not names):
 
 ```go
 {name: "happy path with valid data"}

@@ -1,6 +1,6 @@
 # Store Layer
 
-Ent + PostgreSQL. Domain query APIs are concrete `*Store` types in package `store`; `postgres` only owns connection lifecycle.
+Ent + PostgreSQL. Domain query APIs are concrete `*Store` types in package `store`; `postgres` only owns connection lifecycle. Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md).
 
 ## Entry points
 
@@ -16,12 +16,11 @@ Ent + PostgreSQL. Domain query APIs are concrete `*Store` types in package `stor
 
 - Put ORM/query code on domain `*Store` structs that hold `*gen.Client` (pattern: `LifeStore`, `ChatStore`). Do **not** add business CRUD to `Adapter` or `postgres/adapter.go`.
 - `PlatformUser` CRUD currently lives on `UserStore` for historical naming; prefer new platform-user APIs on `UserStore` unless doing a deliberate split.
-- Call sites use `XxxStoreFromDB()` or `NewXxxStore(client)` — not `store.Database.<BusinessMethod>`.
+- Call sites (including `internal/modules/web`) use `XxxStoreFromDB()` or `NewXxxStore(client)` — not `store.Database.<BusinessMethod>`.
 - `store.Database` / `Adapter` is connection-only: `Open` / `Close` / `IsOpen` / `Ping` / `Stats` / `GetName` / `GetDB` / `GetClient`.
 - Prefer `GetClient()` and `XxxStoreFromDB()` over `GetDB().(*Client)`.
 - Single-store atomic ops may still use internal `BeginTx` / `WithTx` on the domain store.
 - Cross-domain transactions: caller opens `client.Tx`, then `NewXxxStore(tx.Client())` for each domain.
-- Never write DB queries in modules/handlers — use store package APIs.
 - Do not own media handler registry — that lives in `pkg/media`; server injects `FileStore` into media.
 - Migrations: Ent `Schema.Create()` on startup (`store.Migrate()`); no manual SQL migrations.
 

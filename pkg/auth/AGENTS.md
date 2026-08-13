@@ -6,7 +6,9 @@ AuthContext and scopes for Flowbot call paths.
 
 `pkg/auth` subjects are `user` / `token` / `cron` / `pipeline` / `workflow` / `agent`.
 
-REST / CLI / Chat are call paths, not subject types.
+## Call paths
+
+AuthContext spans REST, CLI, Chat, Webhook, Cron, Pipeline, and Workflow. REST / CLI / Chat / Webhook are call paths, not subject types. Cron / Pipeline / Workflow appear as both a subject and a call path.
 
 ## Entry points
 

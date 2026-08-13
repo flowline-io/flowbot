@@ -64,6 +64,8 @@ Known `templ.Raw` call sites (all require pre-sanitized HTML):
 
 ### Testing
 
+Policy (which layer, behavior vs correctness, assembled example): [docs/testing/README.md](../testing/README.md).
+
 ```bash
 go tool task test            # All unit tests
 go tool task test:short      # Short mode (skip integration)

@@ -1,6 +1,6 @@
 # Module Guide
 
-Interaction entry points: command, form, webhook, webservice, cron, page, event. Not provider clients.
+Interaction entry points: command, form, webhook, webservice, cron, page, event. Not provider clients. Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md).
 
 ## Entry points
 
@@ -16,11 +16,9 @@ modules/<name>/
 
 ## Boundaries
 
-- Do not import `pkg/providers/*` — use `capability.Invoke`
 - Provider wiring belongs in `pkg/capability/<provider>/adapter.go`
 - Routes: `/service/{module}/*` for module business APIs; hub **management** APIs under `/hub/*` — never put hub management under `/service/hub/*` (hub module business routes may still live under `/service/hub`)
-- Cross-service orchestration in Pipeline, not cron/event handlers
 
 ## Testing
 
-Table-driven unit tests; BDD under `tests/specs/`.
+Which layer: [docs/testing/README.md](../../docs/testing/README.md). Owning BDD specs live under `tests/specs/`.

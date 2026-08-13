@@ -1,6 +1,6 @@
 # Types Package
 
-Shared types: rulesets, message payloads, protocol, KV, models.
+Shared types: rulesets, message payloads, protocol, KV, models. Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md). pkg vs internal: [pkg-boundaries.md](../../docs/architecture/pkg-boundaries.md).
 
 ## Entry points
 
@@ -16,7 +16,6 @@ Look at the package directory for the full file list.
 - Prefer `KV` over raw `map[string]any` for structured access (`map[string]any` OK in `capability.Invoke` params / protocol / generated code)
 - Never define new message types outside this package
 - New message types must implement `MsgPayload.Convert()`
-- Never import `internal/*` (including `ent/schema`)
 - Instruct*, FormState, PipelineState, WorkflowRunState, ResourceRef/Edge, PipelineNamePattern/ValidatePipelineName and other shared domain enums/types owned here; store schemas type-alias when needed
 - UI/transport DTOs stay under `model/` (including pipeline/workflow run rows and ResourceLink); do not leak ORM entities into this package
 

@@ -1,6 +1,6 @@
 # Providers Guide
 
-Third-party API/OAuth clients. Configure under `flowbot.yaml` → `providers.<name>`.
+Third-party API/OAuth clients. Configure under `flowbot.yaml` → `providers.<name>`. Repo-wide standing orders: root [AGENTS.md](../../AGENTS.md).
 
 ## Entry points
 
@@ -13,10 +13,9 @@ Third-party API/OAuth clients. Configure under `flowbot.yaml` → `providers.<na
 - OAuth production providers export `Register()` and wire via `fx.Invoke` in `internal/server/providers.go` (github, slack, dropbox). `example` shows OAuth methods but does **not** export `Register()`
 - Token/API-key providers skip OAuth `Register` / fx wiring
 - Never hardcode credentials; respect rate limits; use context timeouts
-- Never call hub / pipeline / emit DataEvent from inside a provider — orchestration stays outside this package
-- Never import `internal/store` or `ent/gen` — persist OAuth tokens via injected `OAuthTokenStore` (`SetOAuthTokenStore` from `internal/server`)
+- Persist OAuth tokens via injected `OAuthTokenStore` (`SetOAuthTokenStore` from `internal/server`) ([pkg-boundaries.md](../../docs/architecture/pkg-boundaries.md))
 - `GetOrRefreshToken` must not touch `gen.OAuth`; mapping belongs in the server adapter
 
 ## Testing
 
-Mock with `httptest`; separate auth flows from API calls.
+Package tests mock with `httptest`; separate auth flows from API calls. Layers: [docs/testing/README.md](../../docs/testing/README.md).

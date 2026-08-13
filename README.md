@@ -280,7 +280,7 @@ Full template: [`docs/reference/config.yaml`](docs/reference/config.yaml). Field
 - [Deployment](docs/developer-guide/deployment.md)
 - [Agent Engine](docs/agent/README.md)
 - [Developer Guide](docs/developer-guide/README.md)
-- [Testing](docs/testing/tdd-specs.md)
+- [Testing](docs/testing/README.md)
 
 ## License
 
