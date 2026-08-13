@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -401,6 +402,37 @@ func TestTruncateChatAgentSessionPreview(t *testing.T) {
 			assert.Equal(t, tt.want, TruncateChatAgentSessionPreview(tt.text, tt.limit))
 		})
 	}
+}
+
+func TestChatAgentOneLinePreview(t *testing.T) {
+	tests := []struct {
+		name string
+		text string
+		want string
+	}{
+		{name: "empty", text: "  ", want: ""},
+		{name: "first line only", text: "hello\nworld", want: "hello"},
+		{name: "truncates long first line", text: strings.Repeat("a", 80), want: strings.Repeat("a", 71) + "…"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, ChatAgentOneLinePreview(tt.text))
+		})
+	}
+}
+
+func TestChatAgentToolPreview(t *testing.T) {
+	assert.Equal(t, "from text", ChatAgentToolPreview(model.AgentChatMessage{
+		Text:       "from text\nrest",
+		ToolStdout: "from stdout",
+	}))
+	assert.Equal(t, "from stdout", ChatAgentToolPreview(model.AgentChatMessage{
+		ToolStdout: "from stdout\nmore",
+	}))
+	assert.Equal(t, "from stdout", ChatAgentToolPreview(model.AgentChatMessage{
+		Text:       "   \n  ",
+		ToolStdout: "from stdout",
+	}))
 }
 
 func TestGroupAgentSessionsByDay(t *testing.T) {

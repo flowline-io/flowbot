@@ -28,18 +28,18 @@
     return 500;
   }
 
-  var markdownBubbleClass =
-    'chat-bubble bg-base-100 border border-base-300 chatagent-markdown markdown-body text-sm max-w-[92%]';
+  var markdownBodyClass =
+    'chatagent-assistant-body chatagent-markdown markdown-body text-sm';
   ns.createStreamingMarkdownRenderer = function (
     threadRoot,
     getBodyEl,
     options,
   ) {
     options = options || {};
-    var renderedClass = options.renderedClass || markdownBubbleClass;
+    var renderedClass = options.renderedClass || markdownBodyClass;
     var plainClass =
       options.plainClass ||
-      markdownBubbleClass.replace(
+      markdownBodyClass.replace(
         ' chatagent-markdown markdown-body',
         ' whitespace-pre-wrap',
       );

@@ -151,7 +151,7 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 			@ChatAgentTodosPanel(todos)
 		}
 		<div class="chatagent-messages-wrap relative flex-1 min-h-0 flex flex-col">
-			<div id="chatagent-messages" class="flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4" data-testid="chatagent-messages">
+			<div id="chatagent-messages" class="flex-1 min-h-0 px-1 pr-1 pb-4" data-testid="chatagent-messages">
 				if pending != nil {
 					<div class="chatagent-run-waiting text-sm text-base-content/60 px-1 py-2" data-testid="chatagent-run-waiting">
 						Waiting for tool approval. The rest of this turn appears after it finishes.

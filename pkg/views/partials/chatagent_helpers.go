@@ -63,7 +63,10 @@ func chatAgentSessionDisplayState(item model.AgentSession) string {
 	}
 }
 
-const chatAgentSessionPreviewLimit = 96
+const (
+	chatAgentSessionPreviewLimit = 96
+	chatAgentOneLinePreviewLimit = 72
+)
 
 // ChatAgentSessionTitle returns the display title for a session list row.
 func ChatAgentSessionTitle(item model.AgentSession) string {
@@ -93,6 +96,26 @@ func TruncateChatAgentSessionPreview(text string, limit int) string {
 		return "…"
 	}
 	return string(runes[:limit-1]) + "…"
+}
+
+// ChatAgentOneLinePreview returns the first line of text, truncated for a thinking/tool summary.
+func ChatAgentOneLinePreview(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	if i := strings.IndexAny(text, "\n\r"); i >= 0 {
+		text = strings.TrimSpace(text[:i])
+	}
+	return TruncateChatAgentSessionPreview(text, chatAgentOneLinePreviewLimit)
+}
+
+// ChatAgentToolPreview is the collapsed tool summary snippet (Text, else stdout).
+func ChatAgentToolPreview(row model.AgentChatMessage) string {
+	if p := ChatAgentOneLinePreview(row.Text); p != "" {
+		return p
+	}
+	return ChatAgentOneLinePreview(row.ToolStdout)
 }
 
 // ChatAgentSessionActivityLabel returns a human-readable runtime activity label.

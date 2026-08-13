@@ -12,11 +12,12 @@ import (
 func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		msg       model.AgentChatMessage
-		streaming bool
-		wantCopy  bool
-		wantMD    string
+		name         string
+		msg          model.AgentChatMessage
+		streaming    bool
+		wantCopyMD   bool
+		wantUserCopy bool
+		wantMD       string
 	}{
 		{
 			name: "assistant with html offers copy markdown",
@@ -26,8 +27,8 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 				Text: "## Hello\n\n- one",
 				HTML: "<h2>Hello</h2><ul><li>one</li></ul>",
 			},
-			wantCopy: true,
-			wantMD:   "## Hello\n\n- one",
+			wantCopyMD: true,
+			wantMD:     "## Hello\n\n- one",
 		},
 		{
 			name: "assistant plain text offers copy markdown",
@@ -36,20 +37,21 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 				Kind: "assistant",
 				Text: "plain reply",
 			},
-			wantCopy: true,
-			wantMD:   "plain reply",
+			wantCopyMD: true,
+			wantMD:     "plain reply",
 		},
 		{
-			name: "user message has no copy button",
+			name: "user message offers plain-text copy",
 			msg: model.AgentChatMessage{
 				Role: "user",
 				Kind: "user",
 				Text: "hello",
 			},
-			wantCopy: false,
+			wantUserCopy: true,
+			wantMD:       "hello",
 		},
 		{
-			name: "user image attachment renders preview",
+			name: "user image attachment renders preview and copy",
 			msg: model.AgentChatMessage{
 				Role: "user",
 				Kind: "user",
@@ -63,7 +65,8 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 					},
 				},
 			},
-			wantCopy: false,
+			wantUserCopy: true,
+			wantMD:       "What is this",
 		},
 		{
 			name: "streaming assistant hides copy button",
@@ -74,7 +77,6 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 				HTML: "<p>partial</p>",
 			},
 			streaming: true,
-			wantCopy:  false,
 		},
 		{
 			name: "empty assistant text has no copy button",
@@ -83,7 +85,6 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 				Kind: "assistant",
 				HTML: "<p></p>",
 			},
-			wantCopy: false,
 		},
 	}
 	for _, tt := range tests {
@@ -94,38 +95,161 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}
-			html := buf.String()
-			hasCopy := strings.Contains(html, `data-testid="chatagent-copy-md"`)
-			if hasCopy != tt.wantCopy {
-				t.Fatalf("copy button present=%v want=%v\nhtml=%s", hasCopy, tt.wantCopy, html)
-			}
-			if tt.name == "user image attachment renders preview" {
-				if !strings.Contains(html, `data-testid="chatagent-message-attach-img"`) {
-					t.Fatalf("want image preview\nhtml=%s", html)
-				}
-				if !strings.Contains(html, `src="/service/web/agents/s1/media/img-1"`) {
-					t.Fatalf("want preview src\nhtml=%s", html)
-				}
-			}
-			if !tt.wantCopy {
-				return
-			}
-			if !strings.Contains(html, `data-clip-copy`) {
-				t.Fatalf("want data-clip-copy on copy button\nhtml=%s", html)
-			}
-			if !strings.Contains(html, `aria-label="Copy markdown"`) {
-				t.Fatalf("want icon button aria-label\nhtml=%s", html)
-			}
-			if !strings.Contains(html, `chatagent-message-meta`) {
-				t.Fatalf("want meta row inside bubble\nhtml=%s", html)
-			}
-			if !strings.Contains(html, "<svg") {
-				t.Fatalf("want copy icon svg\nhtml=%s", html)
-			}
-			if !strings.Contains(html, tt.wantMD) {
-				t.Fatalf("want markdown %q in data-clip-markdown\nhtml=%s", tt.wantMD, html)
-			}
+			assertChatAgentCopyHTML(t, buf.String(), tt.name, tt.wantCopyMD, tt.wantUserCopy, tt.wantMD)
 		})
+	}
+}
+
+func assertChatAgentCopyHTML(t *testing.T, html, name string, wantCopyMD, wantUserCopy bool, wantMD string) {
+	t.Helper()
+	hasCopyMD := strings.Contains(html, `data-testid="chatagent-copy-md"`)
+	if hasCopyMD != wantCopyMD {
+		t.Fatalf("copy markdown present=%v want=%v\nhtml=%s", hasCopyMD, wantCopyMD, html)
+	}
+	hasUserCopy := strings.Contains(html, `data-testid="chatagent-copy-user"`)
+	if hasUserCopy != wantUserCopy {
+		t.Fatalf("user copy present=%v want=%v\nhtml=%s", hasUserCopy, wantUserCopy, html)
+	}
+	if name == "user image attachment renders preview and copy" {
+		assertChatAgentUserImagePreview(t, html)
+	}
+	if !wantCopyMD && !wantUserCopy {
+		return
+	}
+	assertChatAgentCopyPayload(t, html, wantCopyMD, wantUserCopy, wantMD)
+}
+
+func assertChatAgentUserImagePreview(t *testing.T, html string) {
+	t.Helper()
+	if !strings.Contains(html, `data-testid="chatagent-message-attach-img"`) {
+		t.Fatalf("want image preview\nhtml=%s", html)
+	}
+	if !strings.Contains(html, `src="/service/web/agents/s1/media/img-1"`) {
+		t.Fatalf("want preview src\nhtml=%s", html)
+	}
+}
+
+func assertChatAgentCopyPayload(t *testing.T, html string, wantCopyMD, wantUserCopy bool, wantMD string) {
+	t.Helper()
+	if !strings.Contains(html, `data-clip-copy`) {
+		t.Fatalf("want data-clip-copy on copy button\nhtml=%s", html)
+	}
+	if wantCopyMD {
+		assertChatAgentMarkdownCopyAttrs(t, html)
+	}
+	if wantUserCopy {
+		assertChatAgentUserCopyAttrs(t, html)
+	}
+	if !strings.Contains(html, "<svg") {
+		t.Fatalf("want copy icon svg\nhtml=%s", html)
+	}
+	if !strings.Contains(html, wantMD) {
+		t.Fatalf("want copy payload %q\nhtml=%s", wantMD, html)
+	}
+}
+
+func assertChatAgentMarkdownCopyAttrs(t *testing.T, html string) {
+	t.Helper()
+	if !strings.Contains(html, `aria-label="Copy markdown"`) {
+		t.Fatalf("want icon button aria-label\nhtml=%s", html)
+	}
+	if !strings.Contains(html, `chatagent-message-meta`) {
+		t.Fatalf("want meta row under assistant body\nhtml=%s", html)
+	}
+	if !strings.Contains(html, `data-clip-markdown`) {
+		t.Fatalf("want data-clip-markdown on assistant copy\nhtml=%s", html)
+	}
+}
+
+func assertChatAgentUserCopyAttrs(t *testing.T, html string) {
+	t.Helper()
+	if strings.Contains(html, `data-clip-markdown`) {
+		t.Fatalf("user copy must use data-clip-text, not data-clip-markdown\nhtml=%s", html)
+	}
+	if !strings.Contains(html, `data-clip-text`) {
+		t.Fatalf("want data-clip-text on user copy\nhtml=%s", html)
+	}
+}
+
+func TestChatAgentUserBubbleChrome(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	row := model.AgentChatMessage{Role: "user", Kind: "user", Text: "hi", TurnDurationMs: 900}
+	if err := ChatAgentMessage(row, false).Render(context.Background(), &buf); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	if !strings.Contains(html, "chatagent-user-bubble") {
+		t.Fatalf("want user bubble class\nhtml=%s", html)
+	}
+	if strings.Contains(html, "chat-bubble") || strings.Contains(html, "bg-primary") {
+		t.Fatalf("user must not use daisyUI primary bubble\nhtml=%s", html)
+	}
+	if strings.Contains(html, `data-testid="chatagent-message-duration"`) {
+		t.Fatalf("user must not show turn duration\nhtml=%s", html)
+	}
+}
+
+func TestChatAgentAssistantProseChrome(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	row := model.AgentChatMessage{
+		Role: "assistant", Kind: "assistant", Text: "done", HTML: "<p>done</p>",
+		TurnDurationMs: 400,
+	}
+	if err := ChatAgentMessage(row, false).Render(context.Background(), &buf); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	if !strings.Contains(html, "chatagent-assistant-body") {
+		t.Fatalf("want assistant body class\nhtml=%s", html)
+	}
+	if strings.Contains(html, "chat-bubble") {
+		t.Fatalf("assistant must not use chat-bubble\nhtml=%s", html)
+	}
+	bodyClassIdx := strings.Index(html, `class="chatagent-assistant-body`)
+	metaTestIdx := strings.Index(html, `data-testid="chatagent-message-meta"`)
+	if bodyClassIdx < 0 || metaTestIdx < 0 || metaTestIdx < bodyClassIdx {
+		t.Fatalf("want meta after assistant body\nhtml=%s", html)
+	}
+	bodyTagStart := strings.LastIndex(html[:bodyClassIdx+1], "<div")
+	metaTagStart := strings.LastIndex(html[:metaTestIdx+1], "<div")
+	if bodyTagStart < 0 || metaTagStart < 0 || metaTagStart <= bodyTagStart {
+		t.Fatalf("want distinct body and meta tags\nhtml=%s", html)
+	}
+	between := html[bodyTagStart:metaTagStart]
+	opens := strings.Count(between, "<div")
+	closes := strings.Count(between, "</div>")
+	if opens != closes {
+		t.Fatalf("meta must be a sibling of the assistant body, not a child (opens=%d closes=%d)\nhtml=%s", opens, closes, html)
+	}
+}
+
+func TestChatAgentThinkingPreviewFirstLine(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	row := model.AgentChatMessage{
+		Kind: "thinking",
+		Text: "The user asks how many dirs.\nMore reasoning.",
+	}
+	if err := ChatAgentMessage(row, false).Render(context.Background(), &buf); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	if !strings.Contains(html, "chatagent-step-label") {
+		t.Fatalf("want Think label\nhtml=%s", html)
+	}
+	previewStart := strings.Index(html, `data-testid="chatagent-step-preview"`)
+	bodyStart := strings.Index(html, `data-testid="chatagent-message-body"`)
+	if previewStart < 0 || bodyStart < 0 {
+		t.Fatalf("want preview and body\nhtml=%s", html)
+	}
+	previewHTML := html[previewStart:bodyStart]
+	if !strings.Contains(previewHTML, "The user asks how many dirs.") {
+		t.Fatalf("want first-line preview\npreview=%s", previewHTML)
+	}
+	if strings.Contains(previewHTML, "More reasoning.") {
+		t.Fatalf("preview must be first line only\npreview=%s", previewHTML)
 	}
 }
 
@@ -198,23 +322,48 @@ func TestChatAgentToolMessageCollapse(t *testing.T) {
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}
-			html := buf.String()
-			if !strings.Contains(html, "chatagent-tool") {
-				t.Fatalf("want chatagent-tool details\nhtml=%s", html)
-			}
-			if !strings.Contains(html, "<details") {
-				t.Fatalf("want details element\nhtml=%s", html)
-			}
-			if !strings.Contains(html, "<summary") {
-				t.Fatalf("want summary header\nhtml=%s", html)
-			}
-			hasOpen := strings.Contains(html, "<details open") ||
-				strings.Contains(html, " open ") ||
-				strings.Contains(html, " open>")
-			if hasOpen != tt.wantOpen {
-				t.Fatalf("open attr present=%v want=%v\nhtml=%s", hasOpen, tt.wantOpen, html)
-			}
+			assertChatAgentToolCollapseHTML(t, buf.String(), tt.msg, tt.wantOpen)
 		})
+	}
+}
+
+func htmlHasOpenDetails(html string) bool {
+	return strings.Contains(html, "<details open") ||
+		strings.Contains(html, " open ") ||
+		strings.Contains(html, " open>")
+}
+
+func assertChatAgentToolCollapseHTML(t *testing.T, html string, msg model.AgentChatMessage, wantOpen bool) {
+	t.Helper()
+	if !strings.Contains(html, "chatagent-tool") {
+		t.Fatalf("want chatagent-tool details\nhtml=%s", html)
+	}
+	if !strings.Contains(html, "<details") {
+		t.Fatalf("want details element\nhtml=%s", html)
+	}
+	if !strings.Contains(html, "<summary") {
+		t.Fatalf("want summary header\nhtml=%s", html)
+	}
+	hasOpen := htmlHasOpenDetails(html)
+	if hasOpen != wantOpen {
+		t.Fatalf("open attr present=%v want=%v\nhtml=%s", hasOpen, wantOpen, html)
+	}
+	if strings.Contains(html, "chat-bubble") || strings.Contains(html, "flowbot-chip") {
+		t.Fatalf("tool must be a one-line summary, not a bubble/chip\nhtml=%s", html)
+	}
+	assertChatAgentToolStatusHidden(t, html, msg)
+}
+
+func assertChatAgentToolStatusHidden(t *testing.T, html string, msg model.AgentChatMessage) {
+	t.Helper()
+	if msg.ToolStdout != "" && !strings.Contains(html, `data-testid="chatagent-step-preview"`) {
+		t.Fatalf("want stdout preview in summary\nhtml=%s", html)
+	}
+	if strings.Contains(html, "chatagent-step-status") || strings.Contains(html, `data-testid="chatagent-tool-status"`) {
+		t.Fatalf("tool status must not appear in the collapsed one-liner\nhtml=%s", html)
+	}
+	if msg.ToolStatus != "" && !strings.Contains(html, `data-tool-status="`+msg.ToolStatus+`"`) {
+		t.Fatalf("want data-tool-status on details\nhtml=%s", html)
 	}
 }
 
@@ -261,6 +410,9 @@ func TestChatAgentThinkingDefaultsCollapsed(t *testing.T) {
 			}
 			if strings.Contains(html, "<details open") || strings.Contains(html, " open>") {
 				t.Fatalf("thinking must default collapsed\nhtml=%s", html)
+			}
+			if !strings.Contains(html, "chatagent-step-label") {
+				t.Fatalf("want Think label class\nhtml=%s", html)
 			}
 		})
 	}

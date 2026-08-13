@@ -1109,6 +1109,36 @@ body:has(.chatagent-page) > main {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.chatagent-page #chatagent-messages > .chat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+}
+
+.chatagent-page #chatagent-messages > .chat.chat-end {
+  align-items: flex-end;
+}
+
+.chatagent-page #chatagent-messages > .chat.chat-start {
+  align-items: stretch;
+}
+
+.chatagent-page #chatagent-messages > .chat[data-role='user'] {
+  margin-top: 0.85rem;
+}
+
+.chatagent-page #chatagent-messages > .chat[data-role='assistant'] {
+  margin-top: 0.75rem;
+}
+
+.chatagent-page #chatagent-messages > :first-child {
+  margin-top: 0;
 }
 
 .chatagent-page .chatagent-messages-wrap {
@@ -1308,43 +1338,39 @@ body:has(.chatagent-page) > main {
 
 .chatagent-page .chatagent-tool {
   display: block;
-  padding: 0.75rem 1rem;
-}
-
-.chatagent-page .chatagent-tool-summary {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  list-style: none;
-}
-
-.chatagent-page .chatagent-tool-summary::-webkit-details-marker {
-  display: none;
-}
-
-.chatagent-page .chatagent-tool-summary::before {
-  content: '▸';
-  flex-shrink: 0;
-  font-size: 0.65rem;
-  line-height: 1;
-  color: color-mix(
-    in oklch,
-    var(--color-base-content, #24292f) 45%,
-    transparent
-  );
-  transition: transform 0.15s ease;
-}
-
-.chatagent-page .chatagent-tool[open] > .chatagent-tool-summary::before {
-  transform: rotate(90deg);
-}
-
-.chatagent-page .chatagent-tool-summary > .flex {
-  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
 }
 
 .chatagent-page .chatagent-tool-body {
-  margin-top: 0.25rem;
+  margin-top: 0.1rem;
+  padding-left: 1.35rem;
+}
+
+.chatagent-page .chatagent-tool-output {
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow: auto;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: transparent;
+  border-radius: 0;
+  color: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 62%,
+    transparent
+  );
+}
+
+.chatagent-page .chatagent-tool-stderr {
+  max-height: 8rem;
+  background: transparent;
+  color: color-mix(in oklch, var(--color-error, #dc2626) 78%, transparent);
 }
 
 .chatagent-page .chatagent-input-bar {
@@ -1951,65 +1977,110 @@ body:has(.chatagent-page) > main {
   color: var(--color-error, #dc2626);
 }
 
-/* Thinking block */
+/* Thinking / tool process lines */
 .chatagent-page .chatagent-thinking {
   display: block;
-  max-width: 92%;
-  margin-top: 0.25rem;
-  margin-bottom: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   overflow: visible;
 }
 
-.chatagent-page .chatagent-thinking-summary {
+.chatagent-page .chatagent-step-summary {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.25rem;
-  margin-bottom: 0.25rem;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.1rem 0;
+  margin: 0;
   list-style: none;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 48%,
+    transparent
+  );
 }
 
-.chatagent-page .chatagent-thinking-summary::before {
-  content: '▸';
-  display: inline-block;
-  font-size: 0.65rem;
-  line-height: 1;
-  transition: transform 0.15s ease;
+.chatagent-page .chatagent-step-summary::marker {
+  content: '';
 }
 
-.chatagent-page .chatagent-thinking[open] .chatagent-thinking-summary::before {
-  transform: rotate(90deg);
-}
-
-.chatagent-page .chatagent-thinking-summary::-webkit-details-marker {
+.chatagent-page .chatagent-step-summary::-webkit-details-marker {
   display: none;
 }
 
-.chatagent-page .chatagent-thinking[open] .chatagent-thinking-summary {
-  margin-bottom: 0.5rem;
+.chatagent-page .chatagent-step-summary::before {
+  content: '';
+  flex-shrink: 0;
+  width: 0.45rem;
+  height: 0.45rem;
+  background: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 42%,
+    transparent
+  );
+  clip-path: polygon(15% 30%, 85% 30%, 50% 78%);
+  opacity: 0;
+}
+
+.chatagent-page .chatagent-step[open] > .chatagent-step-summary::before {
+  opacity: 1;
+}
+
+.chatagent-page .chatagent-step-summary:hover {
+  color: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 72%,
+    transparent
+  );
+}
+
+.chatagent-page .chatagent-step-icon {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.chatagent-page .chatagent-step-label {
+  flex-shrink: 0;
+  font-weight: 500;
+  color: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 72%,
+    transparent
+  );
+}
+
+.chatagent-page .chatagent-step-dot {
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.chatagent-page .chatagent-step-preview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatagent-page .chatagent-step-summary > .chatagent-duration {
+  margin-left: auto;
+  padding-left: 0.75rem;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  color: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 38%,
+    transparent
+  );
 }
 
 .chatagent-page .chatagent-duration {
   font-variant-numeric: tabular-nums;
-}
-
-.chatagent-page .chatagent-turn-marker {
-  width: 100%;
-  max-width: 92%;
-  margin-top: 0.25rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid
-    color-mix(in oklch, var(--color-base-300, #d0d7de) 60%, transparent);
-  font-size: 0.75rem;
-  line-height: 1.25rem;
-  color: color-mix(
-    in oklch,
-    var(--color-base-content, #24292f) 40%,
-    transparent
-  );
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
 }
 
 .chatagent-page .chatagent-run-duration {
@@ -2017,17 +2088,17 @@ body:has(.chatagent-page) > main {
 }
 
 .chatagent-page .chatagent-thinking-body {
-  background-color: var(--color-base-100, #ffffff);
+  background-color: transparent;
   color: color-mix(
     in oklch,
-    var(--color-base-content, #24292f) 82%,
+    var(--color-base-content, #24292f) 62%,
     transparent
   );
-  border: 1px solid var(--color-base-300, #d0d7de);
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.8125rem;
-  line-height: 1.65;
+  border: 0;
+  border-radius: 0;
+  padding: 0.1rem 0 0.15rem 1.35rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
   max-width: 100%;
   overflow: visible;
   max-height: none;
@@ -2049,7 +2120,7 @@ body:has(.chatagent-page) > main {
   );
   --md-canvas-default: var(--color-base-100, #ffffff);
   --md-canvas-subtle: var(--color-base-200, #f6f8fa);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
 }
 
 .chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body p,
@@ -2072,11 +2143,41 @@ body:has(.chatagent-page) > main {
   padding-bottom: 0;
 }
 
-/* Assistant message bubble: solid surface on chat background */
+.chatagent-page .chatagent-user-bubble {
+  max-width: 92%;
+  padding: 0.4rem 0.75rem;
+  background-color: var(--color-base-200, #f6f8fa);
+  color: var(--color-base-content, inherit);
+  border-radius: var(--flowbot-radius-box, 0.5rem);
+}
+
+.chatagent-page .chatagent-assistant-body {
+  width: 100%;
+  max-width: 100%;
+  background-color: transparent;
+  color: var(--color-base-content, inherit);
+}
+
+.chatagent-page .chatagent-copy-user {
+  opacity: 0.4;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  min-height: 1.25rem;
+  padding: 0;
+  align-self: flex-end;
+}
+
+.chatagent-page .chatagent-copy-user:hover,
+.chatagent-page .chatagent-copy-user[data-copied='true'] {
+  opacity: 1;
+}
+
+/* Assistant message body: no bubble surface */
 .chatagent-page
   [data-testid='chatagent-message-assistant']
   [data-testid='chatagent-message-body'] {
-  background-color: var(--color-base-100, #ffffff);
+  background-color: transparent;
   color: var(--color-base-content, inherit);
 }
 
@@ -2115,10 +2216,9 @@ body:has(.chatagent-page) > main {
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid
-    color-mix(in oklab, var(--color-base-300, #d1d5db) 60%, transparent);
+  margin-top: 0.35rem;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .chatagent-page .chatagent-message-meta .chatagent-duration,

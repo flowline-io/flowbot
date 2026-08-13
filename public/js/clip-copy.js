@@ -66,7 +66,10 @@
       }
       event.preventDefault();
       event.stopPropagation();
-      var md = btn.getAttribute('data-clip-markdown') || '';
+      var md =
+        btn.getAttribute('data-clip-text') ||
+        btn.getAttribute('data-clip-markdown') ||
+        '';
       copyText(md)
         .then(function () {
           showCopyFeedback(btn, 'Copied', true);

@@ -4,8 +4,131 @@
   var ns = (window.FlowbotChatAgent = window.FlowbotChatAgent || {});
 
   var thinkingBodyClass =
-    'chatagent-thinking-body chatagent-markdown markdown-body text-sm max-w-[92%]';
-  var thinkingPlainClass = 'chatagent-thinking-body text-sm max-w-[92%]';
+    'chatagent-thinking-body chatagent-markdown markdown-body text-sm';
+  var thinkingPlainClass = 'chatagent-thinking-body text-sm';
+  var assistantBodyClass =
+    'chatagent-assistant-body chatagent-markdown markdown-body text-sm';
+  var assistantPlainClass =
+    'chatagent-assistant-body whitespace-pre-wrap text-sm';
+  var copyMarkdownIconSVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3 h-3" aria-hidden="true"><path d="M5 6.5A1.5 1.5 0 0 1 6.5 5h6A1.5 1.5 0 0 1 14 6.5v6a1.5 1.5 0 0 1-1.5 1.5h-6A1.5 1.5 0 0 1 5 12.5v-6Z"></path><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11V6.5a3 3 0 0 1 3-3H11A1.5 1.5 0 0 0 9.5 2h-6Z"></path></svg>';
+  var thinkIconSVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" class="chatagent-step-icon" aria-hidden="true"><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1"></circle><circle cx="8" cy="8" r="1.15" fill="currentColor"></circle></svg>';
+  var toolIconSVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" class="chatagent-step-icon" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9" rx="1.25" stroke="currentColor" stroke-width="1"></rect><path d="M6.25 8h3.5M8 6.25v3.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"></path></svg>';
+
+  function oneLinePreview(text, limit) {
+    limit = limit || 72;
+    text = String(text || '').replace(/^\s+|\s+$/g, '');
+    var nl = text.search(/[\n\r]/);
+    if (nl >= 0) {
+      text = text.slice(0, nl).replace(/^\s+|\s+$/g, '');
+    }
+    text = text.replace(/\s+/g, ' ');
+    if (!text) {
+      return '';
+    }
+    var chars = Array.from(text);
+    if (chars.length <= limit) {
+      return text;
+    }
+    if (limit === 1) {
+      return '…';
+    }
+    return chars.slice(0, limit - 1).join('') + '…';
+  }
+
+  function setStepPreview(el, text) {
+    if (!el) {
+      return;
+    }
+    var preview = oneLinePreview(text);
+    el.textContent = preview;
+    el.hidden = !preview;
+    var dot = el.previousElementSibling;
+    if (dot && dot.classList.contains('chatagent-step-dot')) {
+      dot.hidden = !preview;
+    }
+  }
+
+  function chatAgentToolPreview(text, stdout) {
+    var preview = oneLinePreview(text);
+    if (preview) {
+      return preview;
+    }
+    return oneLinePreview(stdout);
+  }
+
+  function createStepSummary(opts) {
+    var summary = document.createElement('summary');
+    summary.className = opts.summaryClass;
+    summary.innerHTML = opts.iconHTML;
+
+    var label = document.createElement('span');
+    label.className = opts.labelClass || 'chatagent-step-label';
+    if (opts.labelTestId) {
+      label.setAttribute('data-testid', opts.labelTestId);
+    }
+    label.textContent = opts.label || '';
+    summary.appendChild(label);
+
+    var previewDot = document.createElement('span');
+    previewDot.className = 'chatagent-step-dot';
+    previewDot.setAttribute('aria-hidden', 'true');
+    previewDot.textContent = '·';
+    previewDot.hidden = true;
+    summary.appendChild(previewDot);
+
+    var previewEl = document.createElement('span');
+    previewEl.className = 'chatagent-step-preview';
+    previewEl.setAttribute('data-testid', 'chatagent-step-preview');
+    previewEl.hidden = true;
+    summary.appendChild(previewEl);
+
+    var durationEl = document.createElement('span');
+    durationEl.className =
+      opts.durationClass || 'chatagent-duration text-xs text-base-content/50';
+    durationEl.setAttribute('data-testid', 'chatagent-duration');
+    summary.appendChild(durationEl);
+
+    return {
+      summary: summary,
+      previewEl: previewEl,
+      durationEl: durationEl,
+    };
+  }
+
+  function createCopyButton(opts) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-ghost btn-xs btn-square ' + opts.cssClass;
+    btn.title = opts.title;
+    btn.setAttribute('aria-label', opts.title);
+    btn.setAttribute('data-testid', opts.testId);
+    btn.setAttribute('data-clip-copy', '');
+    if (opts.plainText) {
+      btn.setAttribute('data-clip-text', opts.text || '');
+    } else {
+      btn.setAttribute('data-clip-markdown', opts.text || '');
+    }
+    btn.innerHTML = copyMarkdownIconSVG;
+    return btn;
+  }
+
+  function setToolStatus(card, status) {
+    if (!card) {
+      return;
+    }
+    card.status = status || '';
+    if (!card.details) {
+      return;
+    }
+    if (card.status) {
+      card.details.setAttribute('data-tool-status', card.status);
+    } else {
+      card.details.removeAttribute('data-tool-status');
+    }
+  }
   function isImageAttachment(item) {
     if (!item) {
       return false;
@@ -31,8 +154,7 @@
     wrap.setAttribute('data-testid', 'chatagent-message-user');
 
     var body = document.createElement('div');
-    body.className =
-      'chat-bubble bg-primary text-primary-content whitespace-pre-wrap text-sm max-w-[92%]';
+    body.className = 'chatagent-user-bubble whitespace-pre-wrap text-sm';
     body.setAttribute('data-testid', 'chatagent-message-body');
 
     var atts = Array.isArray(attachments) ? attachments : [];
@@ -86,6 +208,17 @@
     }
 
     wrap.appendChild(body);
+    if (text) {
+      wrap.appendChild(
+        createCopyButton({
+          cssClass: 'chatagent-copy-user',
+          title: 'Copy',
+          testId: 'chatagent-copy-user',
+          text: text,
+          plainText: true,
+        }),
+      );
+    }
     container.appendChild(wrap);
     if (ns.stickMessagesToBottom) {
       ns.stickMessagesToBottom(container);
@@ -104,8 +237,7 @@
     wrap.setAttribute('data-testid', 'chatagent-message-assistant');
 
     var body = document.createElement('div');
-    body.className =
-      'chat-bubble bg-base-100 border border-base-300 whitespace-pre-wrap text-sm max-w-[92%]';
+    body.className = assistantPlainClass;
     body.setAttribute('data-testid', 'chatagent-message-body');
     body.textContent = text;
     wrap.appendChild(body);
@@ -114,16 +246,19 @@
     return body;
   }
 
-  var copyMarkdownIconSVG =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3 h-3" aria-hidden="true"><path d="M5 6.5A1.5 1.5 0 0 1 6.5 5h6A1.5 1.5 0 0 1 14 6.5v6a1.5 1.5 0 0 1-1.5 1.5h-6A1.5 1.5 0 0 1 5 12.5v-6Z"></path><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11V6.5a3 3 0 0 1 3-3H11A1.5 1.5 0 0 0 9.5 2h-6Z"></path></svg>';
-
   function ensureMessageMeta(bodyEl) {
-    var meta = bodyEl.querySelector('[data-testid="chatagent-message-meta"]');
+    var wrap = bodyEl && bodyEl.parentElement;
+    if (!wrap) {
+      return null;
+    }
+    var meta = wrap.querySelector(
+      ':scope > [data-testid="chatagent-message-meta"]',
+    );
     if (!meta) {
       meta = document.createElement('div');
       meta.className = 'chatagent-message-meta';
       meta.setAttribute('data-testid', 'chatagent-message-meta');
-      bodyEl.appendChild(meta);
+      wrap.appendChild(meta);
     }
     return meta;
   }
@@ -133,16 +268,17 @@
       return;
     }
     var meta = ensureMessageMeta(bodyEl);
+    if (!meta) {
+      return;
+    }
     var btn = meta.querySelector('[data-testid="chatagent-copy-md"]');
     if (!btn) {
-      btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'btn btn-ghost btn-xs btn-square chatagent-copy-md';
-      btn.title = 'Copy markdown';
-      btn.setAttribute('aria-label', 'Copy markdown');
-      btn.setAttribute('data-testid', 'chatagent-copy-md');
-      btn.setAttribute('data-clip-copy', '');
-      btn.innerHTML = copyMarkdownIconSVG;
+      btn = createCopyButton({
+        cssClass: 'chatagent-copy-md',
+        title: 'Copy markdown',
+        testId: 'chatagent-copy-md',
+        text: markdown,
+      });
       meta.appendChild(btn);
     }
     btn.setAttribute('data-clip-markdown', markdown);
@@ -150,24 +286,25 @@
 
   function appendThinkingBlock(container) {
     var details = document.createElement('details');
-    details.className = 'chatagent-thinking opacity-90';
+    details.className = 'chatagent-thinking chatagent-step';
     details.setAttribute('data-role', 'thinking');
     details.setAttribute('data-testid', 'chatagent-message-thinking');
     details.open = false;
 
-    var summary = document.createElement('summary');
-    summary.className =
-      'chatagent-thinking-summary cursor-pointer text-xs text-base-content/50 select-none';
-    summary.appendChild(document.createTextNode('Thinking'));
-
-    var durationEl = document.createElement('span');
-    durationEl.className = 'chatagent-duration text-base-content/40';
-    durationEl.setAttribute('data-testid', 'chatagent-duration');
-    summary.appendChild(durationEl);
+    var step = createStepSummary({
+      summaryClass:
+        'chatagent-thinking-summary chatagent-step-summary cursor-pointer text-xs text-base-content/50 select-none',
+      iconHTML: thinkIconSVG,
+      label: 'Think',
+      durationClass: 'chatagent-duration text-base-content/40',
+    });
+    var summary = step.summary;
+    var previewEl = step.previewEl;
+    var durationEl = step.durationEl;
     details.appendChild(summary);
 
     var body = document.createElement('div');
-    body.className = 'chatagent-thinking-body mt-2';
+    body.className = 'chatagent-thinking-body';
     body.setAttribute('data-testid', 'chatagent-message-body');
     details.appendChild(body);
     container.appendChild(details);
@@ -175,20 +312,23 @@
 
     var startedAt = Date.now();
     var timer = setInterval(function () {
-      durationEl.textContent =
-        ' · ' + ns.formatDuration(Date.now() - startedAt);
+      durationEl.textContent = ns.formatDuration(Date.now() - startedAt);
     }, 100);
 
     return {
       body: body,
+      preview: previewEl,
       stopTimer: function () {
         clearInterval(timer);
       },
       setDuration: function (ms) {
         clearInterval(timer);
         if (ms > 0) {
-          durationEl.textContent = ' · ' + ns.formatDuration(ms);
+          durationEl.textContent = ns.formatDuration(ms);
         }
+      },
+      setPreview: function (text) {
+        setStepPreview(previewEl, text);
       },
     };
   }
@@ -207,48 +347,31 @@
       wrap.setAttribute('data-testid', 'chatagent-message-tool');
 
       var details = document.createElement('details');
-      details.className =
-        'chatagent-tool chat-bubble bg-base-200 border border-base-300 max-w-[92%] text-sm';
+      details.className = 'chatagent-tool chatagent-step';
       details.setAttribute('data-testid', 'chatagent-tool-details');
       details.open = false;
 
-      var summary = document.createElement('summary');
-      summary.className =
-        'chatagent-tool-summary cursor-pointer select-none list-none';
-
-      var header = document.createElement('div');
-      header.className = 'flex items-center gap-2 flex-wrap';
-
-      var badge = document.createElement('span');
-      badge.className = 'badge badge-sm badge-outline font-mono';
-      badge.setAttribute('data-testid', 'chatagent-tool-name');
-      badge.textContent = ev.name || 'tool';
-
-      var status = document.createElement('span');
-      status.className = 'text-xs text-base-content/60';
-      status.setAttribute('data-testid', 'chatagent-tool-status');
-      status.textContent = ev.status || 'running';
-
-      var duration = document.createElement('span');
-      duration.className = 'chatagent-duration text-xs text-base-content/50';
-      duration.setAttribute('data-testid', 'chatagent-duration');
-
-      header.appendChild(badge);
-      header.appendChild(status);
-      header.appendChild(duration);
-      summary.appendChild(header);
+      var step = createStepSummary({
+        summaryClass:
+          'chatagent-tool-summary chatagent-step-summary cursor-pointer select-none list-none',
+        iconHTML: toolIconSVG,
+        label: ev.name || 'tool',
+        labelClass: 'chatagent-step-label font-mono',
+        labelTestId: 'chatagent-tool-name',
+      });
+      var summary = step.summary;
+      var previewEl = step.previewEl;
+      var duration = step.durationEl;
 
       var body = document.createElement('div');
       body.className = 'chatagent-tool-body';
 
       var stdout = document.createElement('pre');
-      stdout.className =
-        'mt-2 text-xs whitespace-pre-wrap overflow-x-auto max-h-56 bg-base-300/40 rounded p-2 font-mono hidden';
+      stdout.className = 'chatagent-tool-output hidden';
       stdout.setAttribute('data-testid', 'chatagent-tool-stdout');
 
       var stderr = document.createElement('pre');
-      stderr.className =
-        'mt-2 text-xs whitespace-pre-wrap overflow-x-auto max-h-32 bg-error/10 text-error rounded p-2 font-mono hidden';
+      stderr.className = 'chatagent-tool-output chatagent-tool-stderr hidden';
       stderr.setAttribute('data-testid', 'chatagent-tool-stderr');
 
       body.appendChild(stdout);
@@ -261,45 +384,50 @@
       card = {
         wrap: wrap,
         details: details,
-        status: status,
+        status: '',
         duration: duration,
+        preview: previewEl,
         stdout: stdout,
         stderr: stderr,
         startedAt: Date.now(),
         timer: setInterval(function () {
-          if (card.status.textContent === 'running' && card.startedAt) {
-            card.duration.textContent =
-              '· ' + ns.formatDuration(Date.now() - card.startedAt);
+          if (card.status === 'running' && card.startedAt) {
+            card.duration.textContent = ns.formatDuration(
+              Date.now() - card.startedAt,
+            );
           }
         }, 100),
       };
+      setToolStatus(card, ev.status || 'running');
       cards[key] = card;
     }
 
     if (ev.status) {
-      card.status.textContent = ev.status;
+      setToolStatus(card, ev.status);
     }
     if (ev.duration_ms > 0) {
       if (card.timer) {
         clearInterval(card.timer);
         card.timer = null;
       }
-      card.duration.textContent = '· ' + ns.formatDuration(ev.duration_ms);
-    } else if (card.status.textContent === 'running' && card.startedAt) {
-      card.duration.textContent =
-        '· ' + ns.formatDuration(Date.now() - card.startedAt);
+      card.duration.textContent = ns.formatDuration(ev.duration_ms);
+    } else if (card.status === 'running' && card.startedAt) {
+      card.duration.textContent = ns.formatDuration(
+        Date.now() - card.startedAt,
+      );
     } else if (
-      card.status.textContent === 'completed' ||
-      card.status.textContent === 'error' ||
-      card.status.textContent === 'needs_approval'
+      card.status === 'completed' ||
+      card.status === 'error' ||
+      card.status === 'needs_approval'
     ) {
       if (card.timer) {
         clearInterval(card.timer);
         card.timer = null;
       }
       if (!card.duration.textContent && card.startedAt) {
-        card.duration.textContent =
-          '· ' + ns.formatDuration(Date.now() - card.startedAt);
+        card.duration.textContent = ns.formatDuration(
+          Date.now() - card.startedAt,
+        );
       }
     }
     if (ev.stdout) {
@@ -310,7 +438,9 @@
       card.stderr.textContent = (card.stderr.textContent || '') + ev.stderr;
       card.stderr.classList.remove('hidden');
     }
-    if (card.details && ns.toolCardShouldExpand(card.status.textContent)) {
+    var preview = chatAgentToolPreview(ev.text, card.stdout.textContent);
+    setStepPreview(card.preview, preview);
+    if (card.details && ns.toolCardShouldExpand(card.status)) {
       card.details.open = true;
     }
     ns.scrollMessages(container);
@@ -323,8 +453,8 @@
       if (!card || !card.details) {
         return;
       }
-      if ((card.status.textContent || '') === 'running') {
-        card.status.textContent = 'needs_approval';
+      if (card.status === 'running') {
+        setToolStatus(card, 'needs_approval');
         card.details.open = true;
       }
     });
@@ -337,24 +467,6 @@
       return;
     }
     container.appendChild(node);
-  }
-
-  function appendTurnMarker(container, step, durationMs, anchorBody) {
-    var wrap = document.createElement('div');
-    wrap.className = 'chat chat-start';
-    wrap.setAttribute('data-role', 'turn-marker');
-    wrap.setAttribute('data-testid', 'chatagent-turn-marker');
-
-    var marker = document.createElement('div');
-    marker.className = 'chatagent-turn-marker';
-    var label = 'Step ' + (step || 1);
-    if (durationMs > 0) {
-      label += ' · ' + ns.formatDuration(durationMs);
-    }
-    marker.textContent = label;
-    wrap.appendChild(marker);
-    insertStreamNode(container, wrap, anchorBody);
-    ns.scrollMessages(container);
   }
 
   function showRunDuration(messagesEl, durationMs) {
@@ -381,6 +493,9 @@
       return;
     }
     var meta = ensureMessageMeta(bodyEl);
+    if (!meta) {
+      return;
+    }
     var existing = meta.querySelector(
       '[data-testid="chatagent-message-duration"]',
     );
@@ -492,6 +607,8 @@
         return assistantBody;
       },
       {
+        renderedClass: assistantBodyClass,
+        plainClass: assistantPlainClass,
         onAfterRender: function () {
           syncAssistantDuration();
         },
@@ -603,6 +720,9 @@
               return;
             }
             thinkingText += ev.text || '';
+            if (thinkingState.setPreview) {
+              thinkingState.setPreview(thinkingText);
+            }
             thinkingRenderer.update(thinkingText);
             return;
           }
@@ -618,12 +738,6 @@
               lastTurnDurationMs = ev.duration_ms;
               syncAssistantDuration();
             }
-            appendTurnMarker(
-              messagesEl,
-              ev.step,
-              ev.duration_ms || 0,
-              assistantBody,
-            );
             return;
           }
           if (ev.type === 'delta') {
@@ -633,6 +747,7 @@
             }
             if (!assistantBody) {
               assistantBody = appendAssistantMessage(messagesEl, '', true);
+              syncAssistantDuration();
             }
             assistantText += chunk;
             mdRenderer.update(assistantText);

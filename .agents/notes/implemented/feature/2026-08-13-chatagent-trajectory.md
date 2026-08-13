@@ -33,7 +33,7 @@ The first UI is a role log, a Duration gantt (Input = assemble, Model = thinking
 - Messages SSE `turn_trace` frames carry that full section text (tens of KB). v1 does not stub the frame and refetch.
 - Export and A-05 inspect include `turn_trace` entries without a dedicated inspect UI.
 - `h.Prompt` failure after append leaves an orphan snapshot; the next user message parents to it.
-- Chat bubbles and `GET …/messages` stay unchanged.
+- Trajectory IA, `GET …/trajectory`, and the messages payload stay unchanged. Chat feed chrome is owned by [chatagent-chat-feed-style](2026-08-13-chatagent-chat-feed-style.md).
 
 ## Verification
 
