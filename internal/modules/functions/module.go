@@ -77,7 +77,11 @@ func (moduleHandler) Webservice(app *fiber.App) {
 }
 
 // InitForE2E initializes the functions module handler for e2e testing.
+// Subsequent calls are no-ops so Ginkgo BeforeEach can run once per spec.
 func InitForE2E(configData json.RawMessage) error {
+	if handler.initialized {
+		return nil
+	}
 	return handler.Init(configData)
 }
 
