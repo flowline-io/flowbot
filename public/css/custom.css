@@ -1962,6 +1962,41 @@ body:has(.chatagent-page) > main {
   font-variant-numeric: tabular-nums;
 }
 
+.chatagent-page .chatagent-context-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chatagent-page .chatagent-context-skills-summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.chatagent-page .chatagent-context-skills-summary::marker {
+  content: '';
+}
+
+.chatagent-page .chatagent-context-skills-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chatagent-page .chatagent-context-skills-caret {
+  width: 0;
+  height: 0;
+  border-top: 0.28rem solid transparent;
+  border-bottom: 0.28rem solid transparent;
+  border-left: 0.36rem solid
+    color-mix(in oklab, var(--color-base-content, #111) 45%, transparent);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chatagent-page .chatagent-context-skills[open] .chatagent-context-skills-caret {
+  transform: rotate(90deg);
+}
+
 .chatagent-page .chatagent-context-skill-row {
   padding-left: 16px;
   font-size: 0.75rem;

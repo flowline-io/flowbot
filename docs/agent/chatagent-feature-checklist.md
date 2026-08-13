@@ -62,7 +62,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-03 | Chat page hydrate history | `GET /service/web/agents/:id` | Closed session | agents page |
 | W-04 | Send message / cancel / confirm | Web posts under `/agents/:id/…` | Approval once/always/reject; reopen page replays pending confirm; `run_complete` reloads history; empty text OK when attachments present | chat BDD helpers; unit confirm; pending SSR |
 | W-04a | Composer media (upload + paste image) | Two-step: upload media then send with `file_id`s | MIME allowlist; max 8; modality Reject / missing `public_base_url` surfaced in UI | `chatagent-chat.js` + media unit/HTTP tests |
-| W-05 | Context ring + popover | `GET …/context` + JS | Token window zero | `agents_page_spec_test.go` context It |
+| W-05 | Context ring + popover | `GET …/context` + JS | Token window zero; Skills list collapsed until opened | `agents_page_spec_test.go` context It |
 | W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert; tool/thinking collapse; codeblock chrome; jump-to-bottom | chat BDD stream done; `chatagent_message_test.go` |
 | W-10 | Trajectory view | Chat \| Trajectory on the thread; `GET …/trajectory`; Duration gantt + Preview/Raw inspector | `?view=trajectory`; composer stays; no SYSTEM/CONTEXT without `turn_trace`; `thread.js` forwards `turn_trace` SSE | `agents_page_spec_test.go`, `chatagent_message_test.go`, `agents_webservice_test.go` |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |

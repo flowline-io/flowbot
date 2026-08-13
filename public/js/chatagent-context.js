@@ -110,7 +110,7 @@
     }
   }
 
-  function renderContextUsage(popover, report) {
+  function renderContextUsage(popover, report, opts) {
     if (!popover || !report) {
       return;
     }
@@ -141,6 +141,14 @@
       barEl.appendChild(seg);
     });
 
+    var skillsOpen = false;
+    if (opts && opts.preserveSkillsOpen) {
+      var existingSkills = legendEl.querySelector(
+        '[data-testid="chatagent-context-skills"]',
+      );
+      skillsOpen = !!(existingSkills && existingSkills.open);
+    }
+
     legendEl.textContent = '';
     CONTEXT_BAR_ORDER.forEach(function (id) {
       if (id === 'free_space') {
@@ -150,8 +158,24 @@
       if (!cat) {
         return;
       }
-      var row = document.createElement('div');
-      row.className = 'chatagent-context-legend-row';
+      var hasSkills =
+        id === 'skills' && report.skills && report.skills.length > 0;
+      var rowParent = legendEl;
+      var row;
+      if (hasSkills) {
+        var details = document.createElement('details');
+        details.className = 'chatagent-context-skills';
+        details.setAttribute('data-testid', 'chatagent-context-skills');
+        details.open = skillsOpen;
+        legendEl.appendChild(details);
+        rowParent = details;
+        row = document.createElement('summary');
+        row.className =
+          'chatagent-context-legend-row chatagent-context-skills-summary';
+      } else {
+        row = document.createElement('div');
+        row.className = 'chatagent-context-legend-row';
+      }
 
       var labelWrap = document.createElement('div');
       labelWrap.className = 'chatagent-context-legend-label';
@@ -164,6 +188,12 @@
       label.textContent = CONTEXT_CATEGORY_LABELS[id] || cat.label || id;
 
       labelWrap.appendChild(swatch);
+      if (hasSkills) {
+        var caret = document.createElement('span');
+        caret.className = 'chatagent-context-skills-caret';
+        caret.setAttribute('aria-hidden', 'true');
+        labelWrap.appendChild(caret);
+      }
       labelWrap.appendChild(label);
 
       var tokens = document.createElement('span');
@@ -172,13 +202,14 @@
 
       row.appendChild(labelWrap);
       row.appendChild(tokens);
-      legendEl.appendChild(row);
+      rowParent.appendChild(row);
 
-      if (id === 'skills' && report.skills && report.skills.length > 0) {
+      if (hasSkills) {
         report.skills.forEach(function (skill) {
           var skillRow = document.createElement('div');
           skillRow.className =
             'chatagent-context-legend-row chatagent-context-skill-row';
+          skillRow.setAttribute('data-testid', 'chatagent-context-skill-row');
 
           var skillLabelWrap = document.createElement('div');
           skillLabelWrap.className = 'chatagent-context-legend-label';
@@ -193,7 +224,7 @@
 
           skillRow.appendChild(skillLabelWrap);
           skillRow.appendChild(skillTokens);
-          legendEl.appendChild(skillRow);
+          rowParent.appendChild(skillRow);
         });
       }
     });
@@ -250,7 +281,7 @@
       cachedReport = report;
       updateContextRing(ringWrap, report.total_percent || 0);
       if (open) {
-        renderContextUsage(popover, report);
+        renderContextUsage(popover, report, { preserveSkillsOpen: true });
       }
     }
 
@@ -275,7 +306,7 @@
           showPopoverError('');
           applyReport(report);
           if (forceRender && open) {
-            renderContextUsage(popover, report);
+            renderContextUsage(popover, report, { preserveSkillsOpen: true });
           }
           return report;
         })
