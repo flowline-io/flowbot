@@ -79,7 +79,7 @@ require (
 	golang.org/x/term v0.45.0
 	golang.org/x/tools v0.48.0
 	google.golang.org/grpc v1.83.0
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	miniflux.app/v2 v2.3.3
 	modernc.org/sqlite v1.56.0
