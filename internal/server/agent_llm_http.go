@@ -98,7 +98,7 @@ func writeAgentLLMStreamResult(
 ) {
 	if text := result.Content; text != "" {
 		if !writeAgentLLMStreamChunk(w, openAIStreamChunk(completionID, modelName, created, &openAIChatMsg{
-			Content: openAIContent{Text: text},
+			Content: &openAIContent{Text: text},
 		}, nil)) {
 			return
 		}
@@ -109,7 +109,7 @@ func writeAgentLLMStreamResult(
 		if !writeAgentLLMStreamChunk(w, openAIStreamChunk(completionID, modelName, created, delta, &finish)) {
 			return
 		}
-	} else if !writeAgentLLMStreamChunk(w, openAIStreamChunk(completionID, modelName, created, &openAIChatMsg{}, &finish)) {
+	} else if !writeAgentLLMStreamChunk(w, openAIStreamChunk(completionID, modelName, created, &openAIChatMsg{Content: &openAIContent{}}, &finish)) {
 		return
 	}
 	writeAgentLLMDONE(w)
@@ -117,7 +117,7 @@ func writeAgentLLMStreamResult(
 
 func writeAgentLLMStreamError(w *bufio.Writer, completionID, modelName string, created int64) {
 	stop := "stop"
-	_ = writeAgentLLMStreamChunk(w, openAIStreamChunk(completionID, modelName, created, &openAIChatMsg{}, &stop))
+	_ = writeAgentLLMStreamChunk(w, openAIStreamChunk(completionID, modelName, created, &openAIChatMsg{Content: &openAIContent{}}, &stop))
 	writeAgentLLMDONE(w)
 }
 

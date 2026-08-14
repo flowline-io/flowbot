@@ -379,7 +379,10 @@ func classifyCase(diff *CompareDiff, name string, baseMap, candMap map[string]bo
 }
 
 // FormatCompareMarkdown renders a compare diff as Markdown.
-func FormatCompareMarkdown(diff CompareDiff) string {
+func FormatCompareMarkdown(diff *CompareDiff) string {
+	if diff == nil {
+		return ""
+	}
 	var b strings.Builder
 	_, _ = b.WriteString("# Eval compare\n\n")
 	_, _ = fmt.Fprintf(&b, "- baseline: %s\n", diff.BaselineSuite)

@@ -550,7 +550,7 @@ func runCompare(baselinePath, candidatePath, outPath string) error {
 		return fmt.Errorf("candidate: %w", err)
 	}
 	diff := eval.CompareReports(baseline, candidate)
-	md := eval.FormatCompareMarkdown(diff)
+	md := eval.FormatCompareMarkdown(&diff)
 	_, _ = fmt.Fprint(os.Stdout, md)
 	if outPath != "" {
 		if err := os.MkdirAll(filepath.Dir(outPath), 0o750); err != nil {

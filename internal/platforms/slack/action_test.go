@@ -283,10 +283,8 @@ func TestSendMessageInputValidation(t *testing.T) {
 				if tt.wantCode != "" && resp.RetCode != tt.wantCode {
 					t.Errorf("expected retcode %s, got %s", tt.wantCode, resp.RetCode)
 				}
-			} else {
-				if resp.Status != protocol.Success {
-					t.Errorf("expected Success, got %s (%s)", resp.Status, resp.Message)
-				}
+			} else if resp.Status != protocol.Success {
+				t.Errorf("expected Success, got %s (%s)", resp.Status, resp.Message)
 			}
 		})
 	}

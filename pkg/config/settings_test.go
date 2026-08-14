@@ -55,7 +55,7 @@ func TestSettingsCatalog_redactsAndDescribes(t *testing.T) {
 		Log: Log{Level: "info"},
 	}
 
-	groups := SettingsCatalog(cfg)
+	groups := SettingsCatalog(&cfg)
 	byPath := indexSettingsByPath(groups)
 
 	listen, ok := byPath["listen"]
@@ -86,7 +86,7 @@ func TestSettingsCatalog_redactsAndDescribes(t *testing.T) {
 
 func TestSettingsCatalog_zeroValuesAndNilPointer(t *testing.T) {
 	t.Parallel()
-	groups := SettingsCatalog(Type{})
+	groups := SettingsCatalog(&Type{})
 	byPath := indexSettingsByPath(groups)
 
 	listen, ok := byPath["listen"]
@@ -119,7 +119,7 @@ func TestSettingsCatalog_structSliceAndScalarSlice(t *testing.T) {
 			ProfileTypes: []string{"cpu", "alloc_objects"},
 		},
 	}
-	groups := SettingsCatalog(cfg)
+	groups := SettingsCatalog(&cfg)
 	byPath := indexSettingsByPath(groups)
 
 	provider, ok := byPath["models[0].provider"]
@@ -139,7 +139,7 @@ func TestSettingsCatalog_structSliceAndScalarSlice(t *testing.T) {
 	assert.Equal(t, `["cpu","alloc_objects"]`, types.Value)
 
 	emptyCfg := Type{Models: nil}
-	emptyGroups := SettingsCatalog(emptyCfg)
+	emptyGroups := SettingsCatalog(&emptyCfg)
 	emptyByPath := indexSettingsByPath(emptyGroups)
 	models, ok := emptyByPath["models"]
 	require.True(t, ok)
@@ -156,7 +156,7 @@ func TestSettingsCatalog_dynamicMapAndAny(t *testing.T) {
 		},
 		Vendors: nil,
 	}
-	groups := SettingsCatalog(cfg)
+	groups := SettingsCatalog(&cfg)
 	byPath := indexSettingsByPath(groups)
 
 	key, ok := byPath["modules.demo.api_key"]
@@ -185,7 +185,7 @@ func TestSettingsCatalog_modulesSliceRedactsNestedPassword(t *testing.T) {
 			},
 		},
 	}
-	groups := SettingsCatalog(cfg)
+	groups := SettingsCatalog(&cfg)
 	byPath := indexSettingsByPath(groups)
 
 	_, collapsed := byPath["modules"]
@@ -211,7 +211,7 @@ func TestSettingsCatalog_durationAndGroups(t *testing.T) {
 	cfg := Type{
 		Redis: Redis{DialTimeout: 5 * time.Second},
 	}
-	groups := SettingsCatalog(cfg)
+	groups := SettingsCatalog(&cfg)
 	require.NotEmpty(t, groups)
 
 	var foundListen, foundRedis bool
@@ -263,7 +263,7 @@ func TestSettingsCatalog_includesStore(t *testing.T) {
 	t.Parallel()
 	cfg := Type{}
 	cfg.Normalize()
-	groups := SettingsCatalog(cfg)
+	groups := SettingsCatalog(&cfg)
 	byPath := indexSettingsByPath(groups)
 	_, ok := byPath["store.use_adapter"]
 	require.True(t, ok, "store fields must appear; paths=%v", pathsOf(byPath))

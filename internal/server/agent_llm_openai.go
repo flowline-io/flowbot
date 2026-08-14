@@ -23,7 +23,7 @@ type openAIChatRequest struct {
 
 type openAIChatMsg struct {
 	Role       string           `json:"role"`
-	Content    openAIContent    `json:"content"`
+	Content    *openAIContent   `json:"content"`
 	Name       string           `json:"name,omitempty"`
 	ToolCallID string           `json:"tool_call_id,omitempty"`
 	ToolCalls  []openAIToolCall `json:"tool_calls,omitempty"`
@@ -65,7 +65,10 @@ func (c *openAIContent) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (c openAIContent) MarshalJSON() ([]byte, error) {
+func (c *openAIContent) MarshalJSON() ([]byte, error) {
+	if c == nil {
+		return []byte("null"), nil
+	}
 	return sonic.Marshal(c.Text)
 }
 
@@ -123,7 +126,10 @@ type openAIErrorDetail struct {
 	Type    string `json:"type"`
 }
 
-func (c openAIContent) string() string {
+func (c *openAIContent) string() string {
+	if c == nil {
+		return ""
+	}
 	return c.Text
 }
 
@@ -210,7 +216,7 @@ func openAIResponseFromResult(id, modelName string, created int64, result agentl
 	finish := openAIFinishReason(result)
 	msg := &openAIChatMsg{
 		Role:    "assistant",
-		Content: openAIContent{Text: result.Content},
+		Content: &openAIContent{Text: result.Content},
 	}
 	if len(result.ToolCalls) > 0 {
 		msg.ToolCalls = llmToolCallsToOpenAI(result.ToolCalls)

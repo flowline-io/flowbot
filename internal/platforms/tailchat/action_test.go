@@ -35,7 +35,7 @@ func TestClientAuth(t *testing.T) {
 			name: "successful auth",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path != "/api/openapi/bot/login" {
-					http.Error(w, "not found", 404)
+					http.Error(w, "not found", http.StatusNotFound)
 					return
 				}
 				w.Header().Set("Content-Type", "application/json")
@@ -93,11 +93,11 @@ func TestClientSendMessage(t *testing.T) {
 			name: "successful send",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path != "/api/chat/message/sendMessage" {
-					http.Error(w, "not found", 404)
+					http.Error(w, "not found", http.StatusNotFound)
 					return
 				}
 				if r.Header.Get("X-Token") != "token-abc" {
-					http.Error(w, "unauthorized", 401)
+					http.Error(w, "unauthorized", http.StatusUnauthorized)
 					return
 				}
 				w.WriteHeader(http.StatusOK)
@@ -121,7 +121,7 @@ func TestClientSendMessage(t *testing.T) {
 			name: "send with network error",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				// Close connection to simulate error - just send 404
-				http.Error(w, "not found", 404)
+				http.Error(w, "not found", http.StatusNotFound)
 			},
 			data:    SendMessageData{ConverseId: "C789", Content: "msg"},
 			wantErr: true,

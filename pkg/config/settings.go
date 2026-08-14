@@ -47,7 +47,11 @@ type SettingGroup struct {
 var indexSegmentPattern = regexp.MustCompile(`\[\d+]`)
 
 // SettingsCatalog builds redacted, schema-complete setting groups from cfg.
-func SettingsCatalog(cfg Type) []SettingGroup {
+func SettingsCatalog(cfg *Type) []SettingGroup {
+	var zero Type
+	if cfg == nil {
+		cfg = &zero
+	}
 	var entries []SettingEntry
 	walkValue(reflect.ValueOf(cfg), reflect.TypeFor[Type](), "", false, &entries)
 

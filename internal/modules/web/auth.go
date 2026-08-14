@@ -52,7 +52,7 @@ type BruteForceConfig struct {
 
 // bruteForceEnabled reports whether login brute-force protection is active.
 // Defaults to true when enabled is omitted.
-func (b BruteForceConfig) bruteForceEnabled() bool {
+func (b *BruteForceConfig) bruteForceEnabled() bool {
 	if b.Enabled == nil {
 		return true
 	}

@@ -27,11 +27,11 @@ import (
 
 func TestOpenAIMessagesToLLM(t *testing.T) {
 	sys, msgs, err := openAIMessagesToLLM([]openAIChatMsg{
-		{Role: "system", Content: openAIContent{Text: "be helpful"}},
-		{Role: "user", Content: openAIContent{Text: "hi"}},
+		{Role: "system", Content: &openAIContent{Text: "be helpful"}},
+		{Role: "user", Content: &openAIContent{Text: "hi"}},
 		{
 			Role:    "assistant",
-			Content: openAIContent{Text: "calling"},
+			Content: &openAIContent{Text: "calling"},
 			ToolCalls: []openAIToolCall{{
 				ID:   "call_1",
 				Type: "function",
@@ -41,7 +41,7 @@ func TestOpenAIMessagesToLLM(t *testing.T) {
 				},
 			}},
 		},
-		{Role: "tool", ToolCallID: "call_1", Name: "read_file", Content: openAIContent{Text: "ok"}},
+		{Role: "tool", ToolCallID: "call_1", Name: "read_file", Content: &openAIContent{Text: "ok"}},
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "be helpful", sys)
@@ -59,9 +59,13 @@ func TestOpenAIContentUnmarshal(t *testing.T) {
 	require.NoError(t, sonic.Unmarshal([]byte(`[{"type":"text","text":"a"},{"type":"text","text":"b"}]`), &c))
 	assert.Equal(t, "ab", c.Text)
 
-	raw, err := sonic.Marshal(openAIContent{Text: "out"})
+	raw, err := sonic.Marshal(&openAIContent{Text: "out"})
 	require.NoError(t, err)
 	assert.JSONEq(t, `"out"`, string(raw))
+
+	msgRaw, err := sonic.Marshal(openAIChatMsg{Role: "assistant", Content: &openAIContent{Text: "out"}})
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"role":"assistant","content":"out"}`, string(msgRaw))
 }
 
 func TestOpenAIResponseFromResult_ToolCalls(t *testing.T) {
@@ -164,6 +168,7 @@ func TestAgentLLMChatCompletions_AuthAndModelOverride(t *testing.T) {
 		assert.Equal(t, "forced-model", out.Model)
 		require.Len(t, out.Choices, 1)
 		require.NotNil(t, out.Choices[0].Message)
+		require.NotNil(t, out.Choices[0].Message.Content)
 		assert.Equal(t, "hello-from-proxy", out.Choices[0].Message.Content.Text)
 		assert.Equal(t, 1, fake.Calls())
 	})

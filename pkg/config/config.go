@@ -144,8 +144,8 @@ type Profiling struct {
 
 const (
 	defaultMediaMaxSize     int64 = 104857600 // 100 MiB
-	defaultMediaGcPeriod          = 60
-	defaultMediaGcBlockSize       = 100
+	defaultMediaGcPeriod    int   = 60
+	defaultMediaGcBlockSize int   = 100
 )
 
 // Large file handler config.
