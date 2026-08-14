@@ -214,6 +214,20 @@ func (s *FunctionStore) ListPublishedDefinitions(ctx context.Context) ([]*gen.Fu
 	return rows, nil
 }
 
+// ListAllDefinitions returns all function definitions ordered by name.
+func (s *FunctionStore) ListAllDefinitions(ctx context.Context) ([]*gen.FunctionDefinition, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	rows, err := s.client.FunctionDefinition.Query().
+		Order(gen.Asc(functiondefinition.FieldName)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list all function definitions: %w", err)
+	}
+	return rows, nil
+}
+
 // GetPublishedVersion returns a published version snapshot by function name and version number.
 func (s *FunctionStore) GetPublishedVersion(ctx context.Context, name string, version int) (*gen.FunctionDefinitionVersion, error) {
 	if s == nil || s.client == nil {

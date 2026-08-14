@@ -75,6 +75,22 @@ func (a FunctionCatalogAdapter) ListPublished(ctx context.Context) ([]*model.Fun
 	return out, nil
 }
 
+// ListAll implements functions.Catalog.
+func (a FunctionCatalogAdapter) ListAll(ctx context.Context) ([]*model.FunctionDefinition, error) {
+	rows, err := a.S.ListAllDefinitions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.FunctionDefinition, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		out = append(out, mapFunctionDefinitionDTO(row))
+	}
+	return out, nil
+}
+
 // GetVersion implements functions.Catalog.
 func (a FunctionCatalogAdapter) GetVersion(ctx context.Context, name string, version int) (*model.FunctionDefinitionVersion, error) {
 	row, err := a.S.GetPublishedVersion(ctx, name, version)

@@ -15,6 +15,7 @@ type Catalog interface {
 	Publish(ctx context.Context, name string, version int) (*model.FunctionDefinition, error)
 	Delete(ctx context.Context, name string) (int64, error)
 	ListPublished(ctx context.Context) ([]*model.FunctionDefinition, error)
+	ListAll(ctx context.Context) ([]*model.FunctionDefinition, error)
 	GetVersion(ctx context.Context, name string, version int) (*model.FunctionDefinitionVersion, error)
 	GetLatestPublished(ctx context.Context, name string) (*model.FunctionDefinitionVersion, error)
 	CreateRun(ctx context.Context, name string, version int, idempotencyKey *string) (*model.FunctionRun, error)

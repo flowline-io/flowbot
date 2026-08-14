@@ -2,6 +2,8 @@ package functions
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
@@ -12,9 +14,11 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
+	"github.com/flowline-io/flowbot/pkg/config"
 	pkgexec "github.com/flowline-io/flowbot/pkg/exec"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/goccy/go-yaml"
 )
 
 // ApplyResult is returned after applying a function directory or bundle.
@@ -30,6 +34,31 @@ type ListInfo struct {
 	Name    string `json:"name"`
 	Version int    `json:"version"`
 	Status  string `json:"status"`
+}
+
+// ListAllInfo is a function summary for management list UIs (draft + published).
+type ListAllInfo struct {
+	Name                  string `json:"name"`
+	Status                string `json:"status"`
+	Version               int    `json:"version"`
+	PublishedVersion      *int   `json:"published_version,omitempty"`
+	HasUnpublishedChanges bool   `json:"has_unpublished_changes"`
+}
+
+// DraftView is a redacted draft snapshot for the management editor.
+type DraftView struct {
+	Name                  string            `json:"name"`
+	Status                string            `json:"status"`
+	Version               int               `json:"version"`
+	Entrypoint            string            `json:"entrypoint"`
+	Source                string            `json:"source"`
+	Env                   map[string]string `json:"env,omitempty"`
+	Token                 string            `json:"token"`
+	TokenSet              bool              `json:"token_set"`
+	HMACSecret            string            `json:"hmac_secret"`
+	HMACSet               bool              `json:"hmac_set"`
+	PublishedVersion      *int              `json:"published_version,omitempty"`
+	HasUnpublishedChanges bool              `json:"has_unpublished_changes"`
 }
 
 // ExportBundle is a published function snapshot including secrets.
@@ -102,6 +131,181 @@ func (s *Service) SetChecker(c dcg.Checker) {
 // Ready reports whether the service has a catalog and exec provider configured.
 func (s *Service) Ready() bool {
 	return s != nil && s.catalog != nil && s.execProvider != nil
+}
+
+// Create creates a draft-only function with a generated HTTP token and stub source.
+func (s *Service) Create(ctx context.Context, name, entrypoint, createdBy string) (*DraftView, error) {
+	if s == nil || s.catalog == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+	}
+	name = strings.TrimSpace(name)
+	if err := ValidateName(name); err != nil {
+		return nil, types.WrapError(types.ErrInvalidArgument, "invalid function name", err)
+	}
+	entrypoint = filepath.Base(strings.TrimSpace(entrypoint))
+	if !isAllowedEntrypoint(entrypoint) {
+		return nil, types.Errorf(types.ErrInvalidArgument, "entrypoint must be main.py, main.sh, or main.go")
+	}
+	token, err := randomToken()
+	if err != nil {
+		return nil, types.WrapError(types.ErrInternal, "generate function token", err)
+	}
+	meta := &Metadata{
+		Name: name,
+		HTTP: HTTPConfig{Auth: HTTPAuth{Token: token}},
+		Env:  map[string]string{},
+	}
+	metaYAML, err := marshalMetadataYAML(meta)
+	if err != nil {
+		return nil, err
+	}
+	source := stubSource(entrypoint)
+	if err := s.catalog.Create(ctx, name, metaYAML, entrypoint, source, strings.TrimSpace(createdBy)); err != nil {
+		return nil, err
+	}
+	return s.GetDraft(ctx, name)
+}
+
+// ListAll returns draft and published function summaries for management UIs.
+func (s *Service) ListAll(ctx context.Context) ([]ListAllInfo, error) {
+	if s == nil || s.catalog == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+	}
+	defs, err := s.catalog.ListAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]ListAllInfo, 0, len(defs))
+	for _, def := range defs {
+		if def == nil {
+			continue
+		}
+		info := ListAllInfo{
+			Name:                  def.Name,
+			Status:                def.Status,
+			Version:               def.Version,
+			HasUnpublishedChanges: hasUnpublishedChanges(def),
+		}
+		if ver, verr := s.catalog.GetLatestPublished(ctx, def.Name); verr == nil && ver != nil {
+			v := ver.Version
+			info.PublishedVersion = &v
+		} else if verr != nil && !errors.Is(verr, types.ErrNotFound) {
+			return nil, verr
+		}
+		items = append(items, info)
+	}
+	return items, nil
+}
+
+// GetDraft returns a redacted draft for the management editor.
+func (s *Service) GetDraft(ctx context.Context, name string) (*DraftView, error) {
+	if s == nil || s.catalog == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+	}
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "function name is required")
+	}
+	def, err := s.catalog.GetByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return s.draftViewFromDef(ctx, def)
+}
+
+// SaveDraft merges secrets, validates, and updates draft with optimistic locking.
+func (s *Service) SaveDraft(ctx context.Context, name, metadata, entrypoint, source string, expectedVersion int) (*DraftView, error) {
+	if s == nil || s.catalog == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+	}
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "function name is required")
+	}
+	def, err := s.catalog.GetByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	if def.Version != expectedVersion {
+		return nil, types.ErrConflict
+	}
+	mergedMeta, err := mergeDraftMetadata(def.MetadataDraft, metadata)
+	if err != nil {
+		return nil, err
+	}
+	if mergedMeta.Name != name {
+		return nil, types.Errorf(types.ErrInvalidArgument, "metadata name must match function name %q", name)
+	}
+	metaYAML, err := marshalMetadataYAML(mergedMeta)
+	if err != nil {
+		return nil, err
+	}
+	entrypoint = filepath.Base(strings.TrimSpace(entrypoint))
+	if !isAllowedEntrypoint(entrypoint) {
+		return nil, types.Errorf(types.ErrInvalidArgument, "entrypoint must be main.py, main.sh, or main.go")
+	}
+	if strings.TrimSpace(source) == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "source is required")
+	}
+	if len(source) > MaxSourceBytes {
+		return nil, types.Errorf(types.ErrInvalidArgument, "source exceeds %d bytes", MaxSourceBytes)
+	}
+	updated, err := s.catalog.UpdateDraft(ctx, name, metaYAML, entrypoint, source, expectedVersion)
+	if err != nil {
+		return nil, err
+	}
+	return s.draftViewFromDef(ctx, updated)
+}
+
+// LatestPublishedVersion returns the version number of the latest published snapshot.
+func (s *Service) LatestPublishedVersion(ctx context.Context, name string) (int, error) {
+	ver, _, err := s.publishedVersion(ctx, name, nil)
+	if err != nil {
+		return 0, err
+	}
+	return ver.Version, nil
+}
+
+// Publish publishes the current draft with optimistic locking.
+func (s *Service) Publish(ctx context.Context, name string, expectedVersion int) (*ApplyResult, error) {
+	if s == nil || s.catalog == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+	}
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "function name is required")
+	}
+	def, err := s.catalog.GetByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	if def.Version != expectedVersion {
+		return nil, types.ErrConflict
+	}
+	if _, err := ParseMetadataYAML(def.MetadataDraft); err != nil {
+		return nil, err
+	}
+	entrypoint := filepath.Base(strings.TrimSpace(def.EntrypointDraft))
+	if !isAllowedEntrypoint(entrypoint) {
+		return nil, types.Errorf(types.ErrInvalidArgument, "entrypoint must be main.py, main.sh, or main.go")
+	}
+	if strings.TrimSpace(def.SourceDraft) == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "source is required")
+	}
+	published, err := s.catalog.Publish(ctx, name, expectedVersion)
+	if err != nil {
+		return nil, err
+	}
+	ver, err := s.catalog.GetLatestPublished(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return &ApplyResult{
+		Name:    published.Name,
+		ID:      published.ID,
+		Version: ver.Version,
+		Status:  published.Status,
+	}, nil
 }
 
 // ApplyDir loads a function directory, writes draft, and publishes immediately.
@@ -488,9 +692,27 @@ func (s *Service) executeRun(ctx context.Context, ver *model.FunctionDefinitionV
 	}
 	res, err := pkgexec.RunEntrypoint(ctx, cfg, ver.Entrypoint, ver.Source, stdin, nil)
 	if err != nil {
-		return nil, types.WrapError(types.ErrInternal, "run entrypoint", err)
+		return nil, classifyEntrypointError(err)
 	}
 	return parseEntrypointResult(res)
+}
+
+func classifyEntrypointError(err error) error {
+	if err == nil {
+		return nil
+	}
+	msg := err.Error()
+	if sandboxDaemonUnavailable(msg) {
+		return types.Errorf(types.ErrUnavailable, "function sandbox is unavailable (Docker is not running)")
+	}
+	return types.WrapError(types.ErrInternal, "run entrypoint", err)
+}
+
+func sandboxDaemonUnavailable(msg string) bool {
+	return strings.Contains(msg, "docker API") ||
+		strings.Contains(msg, "docker.sock") ||
+		strings.Contains(msg, "Docker daemon") ||
+		strings.Contains(msg, "pipe/docker_engine")
 }
 
 func (s *Service) guardSource(ctx context.Context, ver *model.FunctionDefinitionVersion) error {
@@ -680,5 +902,119 @@ func releaseSlot(ch chan struct{}) {
 	select {
 	case <-ch:
 	default:
+	}
+}
+
+func (s *Service) draftViewFromDef(ctx context.Context, def *model.FunctionDefinition) (*DraftView, error) {
+	if def == nil {
+		return nil, types.ErrNotFound
+	}
+	meta, err := ParseMetadataYAML(def.MetadataDraft)
+	if err != nil {
+		return nil, err
+	}
+	view := &DraftView{
+		Name:                  def.Name,
+		Status:                def.Status,
+		Version:               def.Version,
+		Entrypoint:            def.EntrypointDraft,
+		Source:                def.SourceDraft,
+		Env:                   meta.Env,
+		TokenSet:              meta.HTTP.Auth.Token != "",
+		HMACSet:               meta.HTTP.Auth.HMACSecret != "",
+		HasUnpublishedChanges: hasUnpublishedChanges(def),
+	}
+	if view.TokenSet {
+		view.Token = config.MaskedSecret
+	}
+	if view.HMACSet {
+		view.HMACSecret = config.MaskedSecret
+	}
+	if ver, verr := s.catalog.GetLatestPublished(ctx, def.Name); verr == nil && ver != nil {
+		v := ver.Version
+		view.PublishedVersion = &v
+	} else if verr != nil && !errors.Is(verr, types.ErrNotFound) {
+		return nil, verr
+	}
+	return view, nil
+}
+
+func hasUnpublishedChanges(def *model.FunctionDefinition) bool {
+	if def == nil || def.MetadataPublished == nil || def.EntrypointPublished == nil || def.SourcePublished == nil {
+		return false
+	}
+	return def.MetadataDraft != *def.MetadataPublished ||
+		def.EntrypointDraft != *def.EntrypointPublished ||
+		def.SourceDraft != *def.SourcePublished
+}
+
+func mergeDraftMetadata(existingYAML, incomingYAML string) (*Metadata, error) {
+	existing, err := ParseMetadataYAML(existingYAML)
+	if err != nil {
+		return nil, types.WrapError(types.ErrInternal, "parse existing draft metadata", err)
+	}
+	incoming, err := parseMetadataYAMLLoose(incomingYAML)
+	if err != nil {
+		return nil, err
+	}
+	name := strings.TrimSpace(incoming.Name)
+	if name == "" {
+		name = existing.Name
+	}
+	incoming.Name = name
+	incoming.HTTP.Auth.Token = mergeSecret(existing.HTTP.Auth.Token, incoming.HTTP.Auth.Token)
+	incoming.HTTP.Auth.HMACSecret = mergeSecret(existing.HTTP.Auth.HMACSecret, incoming.HTTP.Auth.HMACSecret)
+	if err := ValidateMetadata(incoming); err != nil {
+		return nil, err
+	}
+	return incoming, nil
+}
+
+func parseMetadataYAMLLoose(data string) (*Metadata, error) {
+	var meta Metadata
+	if err := yaml.Unmarshal([]byte(data), &meta); err != nil {
+		return nil, types.WrapError(types.ErrInvalidArgument, "invalid metadata YAML", err)
+	}
+	return &meta, nil
+}
+
+func mergeSecret(existing, incoming string) string {
+	incoming = strings.TrimSpace(incoming)
+	if incoming == "" || incoming == config.MaskedSecret {
+		return existing
+	}
+	return incoming
+}
+
+func marshalMetadataYAML(meta *Metadata) (string, error) {
+	if meta == nil {
+		return "", types.Errorf(types.ErrInvalidArgument, "metadata is required")
+	}
+	if err := ValidateMetadata(meta); err != nil {
+		return "", err
+	}
+	b, err := yaml.Marshal(meta)
+	if err != nil {
+		return "", types.WrapError(types.ErrInternal, "marshal metadata YAML", err)
+	}
+	return string(b), nil
+}
+
+func randomToken() (string, error) {
+	var b [24]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b[:]), nil
+}
+
+func stubSource(entrypoint string) string {
+	switch filepath.Base(entrypoint) {
+	case "main.sh":
+		return "echo '{}'\n"
+	case "main.go":
+		return "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"{}\")\n}\n"
+	default:
+		return "print(\"{}\")\n"
 	}
 }

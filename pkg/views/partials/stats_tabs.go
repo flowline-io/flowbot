@@ -35,6 +35,11 @@ func WorkflowStatsURL(name string, days int, groupBy string) string {
 	return buildRunStatsURL("workflows", name, days, groupBy)
 }
 
+// FunctionStatsURL builds an HTMX URL for function stats with days + groupBy tabs.
+func FunctionStatsURL(name string, days int, groupBy string) string {
+	return buildRunStatsURL("functions", name, days, groupBy)
+}
+
 func buildRunStatsURL(kind, name string, days int, groupBy string) string {
 	u := "/service/web/" + kind + "/stats"
 	if name != "" {

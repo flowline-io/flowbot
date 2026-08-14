@@ -67,6 +67,9 @@ func (*callCatalog) Delete(context.Context, string) (int64, error) { return 0, n
 func (*callCatalog) ListPublished(context.Context) ([]*model.FunctionDefinition, error) {
 	return nil, nil
 }
+func (*callCatalog) ListAll(context.Context) ([]*model.FunctionDefinition, error) {
+	return nil, nil
+}
 func (c *callCatalog) GetVersion(_ context.Context, name string, version int) (*model.FunctionDefinitionVersion, error) {
 	ver, ok := c.vers[name]
 	if !ok || ver.Version != version {

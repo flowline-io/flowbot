@@ -2,6 +2,7 @@ package functions_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -45,6 +46,94 @@ func TestParseStdoutJSON(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestCreateListAllDraftPublish(t *testing.T) {
+	t.Parallel()
+	cat := newFakeCatalog()
+	svc := functions.NewService(cat, &fakeExecProvider{stdout: `{}`})
+	svc.SetChecker(dcg.AllowAllChecker{})
+
+	draft, err := svc.Create(context.Background(), "ui-fn", "main.py", "tester")
+	require.NoError(t, err)
+	require.NotNil(t, draft)
+	assert.Equal(t, "ui-fn", draft.Name)
+	assert.Equal(t, string(types.FunctionDefinitionDraft), draft.Status)
+	assert.True(t, draft.TokenSet)
+	assert.Equal(t, "••••••••", draft.Token)
+	assert.NotEmpty(t, draft.Source)
+	assert.Nil(t, draft.PublishedVersion)
+
+	all, err := svc.ListAll(context.Background())
+	require.NoError(t, err)
+	require.Len(t, all, 1)
+	assert.Equal(t, "ui-fn", all[0].Name)
+	assert.Equal(t, string(types.FunctionDefinitionDraft), all[0].Status)
+	assert.Nil(t, all[0].PublishedVersion)
+
+	pubOnly, err := svc.List(context.Background())
+	require.NoError(t, err)
+	assert.Empty(t, pubOnly)
+
+	meta := "name: ui-fn\nhttp:\n  auth:\n    token: " + "••••••••" + "\nenv:\n  mode: test\n"
+	saved, err := svc.SaveDraft(context.Background(), "ui-fn", meta, "main.py", "print('{\"ok\":true}')\n", draft.Version)
+	require.NoError(t, err)
+	assert.Equal(t, draft.Version+1, saved.Version)
+	assert.Equal(t, "test", saved.Env["mode"])
+	assert.True(t, saved.TokenSet)
+
+	_, err = svc.SaveDraft(context.Background(), "ui-fn", meta, "main.py", "print(1)\n", draft.Version)
+	require.ErrorIs(t, err, types.ErrConflict)
+
+	published, err := svc.Publish(context.Background(), "ui-fn", saved.Version)
+	require.NoError(t, err)
+	assert.Equal(t, string(types.FunctionDefinitionPublished), published.Status)
+	require.NotNil(t, published.Version)
+
+	after, err := svc.GetDraft(context.Background(), "ui-fn")
+	require.NoError(t, err)
+	require.NotNil(t, after.PublishedVersion)
+	assert.False(t, after.HasUnpublishedChanges)
+
+	metaDirty := "name: ui-fn\nhttp:\n  auth:\n    token: " + "••••••••" + "\nenv:\n  mode: dirty\n"
+	dirty, err := svc.SaveDraft(context.Background(), "ui-fn", metaDirty, "main.py", after.Source, after.Version)
+	require.NoError(t, err)
+	assert.True(t, dirty.HasUnpublishedChanges)
+
+	ver := *after.PublishedVersion
+	got, err := svc.Invoke(context.Background(), functions.InvokeRequest{
+		Name:    "ui-fn",
+		Version: &ver,
+		Event:   map[string]any{},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, ver, got.Version)
+}
+
+func TestSaveDraftSecretRotateAndClear(t *testing.T) {
+	t.Parallel()
+	cat := newFakeCatalog()
+	svc := functions.NewService(cat, &fakeExecProvider{})
+
+	draft, err := svc.Create(context.Background(), "sec-fn", "main.sh", "tester")
+	require.NoError(t, err)
+
+	rotated := "name: sec-fn\nhttp:\n  auth:\n    token: brand-new-token\n"
+	saved, err := svc.SaveDraft(context.Background(), "sec-fn", rotated, "main.sh", draft.Source, draft.Version)
+	require.NoError(t, err)
+	assert.True(t, saved.TokenSet)
+
+	raw, err := cat.GetByName(context.Background(), "sec-fn")
+	require.NoError(t, err)
+	assert.Contains(t, raw.MetadataDraft, "brand-new-token")
+	assert.NotContains(t, raw.MetadataDraft, "••••••••")
+
+	cleared := "name: sec-fn\nhttp:\n  auth:\n    token: \"\"\n"
+	_, err = svc.SaveDraft(context.Background(), "sec-fn", cleared, "main.sh", draft.Source, saved.Version)
+	require.NoError(t, err) // empty keeps previous when previously set
+	raw, err = cat.GetByName(context.Background(), "sec-fn")
+	require.NoError(t, err)
+	assert.Contains(t, raw.MetadataDraft, "brand-new-token")
 }
 
 func TestApplyDirValidation(t *testing.T) {
@@ -101,6 +190,24 @@ func TestApplyDirValidation(t *testing.T) {
 			assert.Equal(t, 1, res.Version)
 		})
 	}
+}
+
+func TestInvokeSandboxUnavailable(t *testing.T) {
+	t.Parallel()
+	cat := newFakeCatalog()
+	seedPublished(t, cat, "no-docker", "main.py", "print(1)\n")
+	svc := functions.NewService(cat, &dockerDownExecProvider{})
+	svc.SetChecker(dcg.AllowAllChecker{})
+	ver := 1
+	_, err := svc.Invoke(context.Background(), functions.InvokeRequest{
+		Name:    "no-docker",
+		Version: &ver,
+		Event:   map[string]any{},
+	})
+	require.Error(t, err)
+	require.ErrorIs(t, err, types.ErrUnavailable)
+	assert.Contains(t, err.Error(), "Docker is not running")
+	assert.NotContains(t, err.Error(), "docker.sock")
 }
 
 func TestInvokeRequireVersionAndSaturation(t *testing.T) {
@@ -355,6 +462,7 @@ func (c *fakeCatalog) UpdateDraft(_ context.Context, name, metadata, entrypoint,
 	def.MetadataDraft = metadata
 	def.EntrypointDraft = entrypoint
 	def.SourceDraft = source
+	def.Version = version + 1
 	cp := *def
 	return &cp, nil
 }
@@ -411,6 +519,17 @@ func (c *fakeCatalog) ListPublished(_ context.Context) ([]*model.FunctionDefinit
 			cp := *def
 			out = append(out, &cp)
 		}
+	}
+	return out, nil
+}
+
+func (c *fakeCatalog) ListAll(_ context.Context) ([]*model.FunctionDefinition, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	out := make([]*model.FunctionDefinition, 0, len(c.defs))
+	for _, def := range c.defs {
+		cp := *def
+		out = append(out, &cp)
 	}
 	return out, nil
 }
@@ -512,6 +631,21 @@ func (c *fakeCatalog) ListRuns(_ context.Context, name string) ([]*model.Functio
 
 func nameVersionKey(name string, version int) string {
 	return name + "@" + strconv.Itoa(version)
+}
+
+type dockerDownExecProvider struct{}
+
+func (dockerDownExecProvider) ExecConfig(_ context.Context) (pkgexec.Config, error) {
+	return pkgexec.Config{Env: dockerDownEnv{}}, nil
+}
+
+type dockerDownEnv struct {
+	env.OSExecutionEnv
+}
+
+func (dockerDownEnv) Exec(_ context.Context, _ env.ExecOptions) result.Result[env.Capture, result.ExecutionError] {
+	cause := errors.New("failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory")
+	return result.Err[env.Capture, result.ExecutionError](result.NewExecutionError("spawn_error", cause.Error(), cause))
 }
 
 type fakeExecProvider struct {

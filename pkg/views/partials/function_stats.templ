@@ -1,0 +1,101 @@
+package partials
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+templ FunctionStats(name string, stats *types.FunctionStats, tabs StatsTabState) {
+	<div id="function-stats-container" data-testid="function-stats-container">
+		if name == "" {
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4" data-testid="function-stats-summary">
+				<div class="border border-base-300 rounded-box px-4 py-3">
+					<div class="text-xs text-base-content/55">Total Functions</div>
+					<div class="text-2xl font-semibold text-primary mt-1">{ fmt.Sprint(stats.Summary.TotalFunctions) }</div>
+				</div>
+				<div class="border border-base-300 rounded-box px-4 py-3">
+					<div class="text-xs text-base-content/55">Successful Runs</div>
+					<div class="text-2xl font-semibold text-success mt-1">{ fmt.Sprint(stats.Summary.SuccessfulRuns) }</div>
+				</div>
+				<div class="border border-base-300 rounded-box px-4 py-3">
+					<div class="text-xs text-base-content/55">Failed Runs</div>
+					<div class="text-2xl font-semibold text-error mt-1">{ fmt.Sprint(stats.Summary.FailedRuns) }</div>
+				</div>
+			</div>
+		}
+		<div class="flex items-center gap-3 mb-4 flex-wrap">
+			<div class="join" data-testid="time-range-tabs">
+				<button type="button"
+					class={ statsRangeBtnClass(tabs.RangeDays, 30) }
+					hx-get={ FunctionStatsURL(name, 30, tabs.GroupBy) }
+					hx-target="#function-stats-container"
+					hx-swap="outerHTML"
+					data-testid="btn-range-30d">30d</button>
+				<button type="button"
+					class={ statsRangeBtnClass(tabs.RangeDays, 90) }
+					hx-get={ FunctionStatsURL(name, 90, tabs.GroupBy) }
+					hx-target="#function-stats-container"
+					hx-swap="outerHTML"
+					data-testid="btn-range-90d">90d</button>
+				<button type="button"
+					class={ statsRangeBtnClass(tabs.RangeDays, 0) }
+					hx-get={ FunctionStatsURL(name, 0, tabs.GroupBy) }
+					hx-target="#function-stats-container"
+					hx-swap="outerHTML"
+					data-testid="btn-range-all">All</button>
+			</div>
+			<div class="join" data-testid="groupby-tabs">
+				<button type="button"
+					class={ statsGroupByBtnClass(tabs.GroupBy, "day") }
+					hx-get={ FunctionStatsURL(name, tabs.RangeDays, "day") }
+					hx-target="#function-stats-container"
+					hx-swap="outerHTML"
+					data-testid="btn-groupby-day">day</button>
+				<button type="button"
+					class={ statsGroupByBtnClass(tabs.GroupBy, "week") }
+					hx-get={ FunctionStatsURL(name, tabs.RangeDays, "week") }
+					hx-target="#function-stats-container"
+					hx-swap="outerHTML"
+					data-testid="btn-groupby-week">week</button>
+				<button type="button"
+					class={ statsGroupByBtnClass(tabs.GroupBy, "month") }
+					hx-get={ FunctionStatsURL(name, tabs.RangeDays, "month") }
+					hx-target="#function-stats-container"
+					hx-swap="outerHTML"
+					data-testid="btn-groupby-month">month</button>
+			</div>
+		</div>
+
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+			<div class="lg:col-span-2 flowbot-surface" data-testid="chart-success-rate">
+				<div class="p-4">
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">Success Rate Trend</h3>
+					<div class="relative w-full" style="height:256px">
+						<canvas id="function-chart-success-rate"
+							data-stats={ toJSON(stats) }
+							data-chart-type="line"></canvas>
+					</div>
+				</div>
+			</div>
+			<div class="flowbot-surface" data-testid="chart-duration">
+				<div class="p-4">
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">Duration Distribution</h3>
+					<div class="relative w-full" style="height:256px">
+						<canvas id="function-chart-duration"
+							data-chart-type="bar"></canvas>
+					</div>
+				</div>
+			</div>
+			<div class="flowbot-surface" data-testid="chart-version">
+				<div class="p-4">
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">Published Versions</h3>
+					<div class="relative w-full" style="height:256px">
+						<canvas id="function-chart-version"
+							data-chart-type="doughnut"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}

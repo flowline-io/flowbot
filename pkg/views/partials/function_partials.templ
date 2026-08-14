@@ -1,0 +1,50 @@
+package partials
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ FunctionRunsTable(runs []*model.FunctionRun) {
+	if len(runs) == 0 {
+		<div class="text-center py-8 text-base-content/50" data-testid="function-runs-empty">No runs yet.</div>
+	} else {
+		<div class="flowbot-surface" data-testid="function-runs-table">
+			<div class="overflow-x-auto">
+				<table class="table table-sm w-full">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Version</th>
+							<th>Status</th>
+							<th>Duration</th>
+							<th>Error</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, run := range runs {
+							if run != nil {
+								<tr data-testid={ fmt.Sprintf("function-run-%d", run.ID) }>
+									<td class="tabular-nums">{ fmt.Sprintf("%d", run.ID) }</td>
+									<td class="tabular-nums">{ fmt.Sprintf("v%d", run.Version) }</td>
+									<td>
+										if run.Status == "succeeded" {
+											<span class="flowbot-chip flowbot-chip-success">{ run.Status }</span>
+										} else if run.Status == "failed" {
+											<span class="flowbot-chip flowbot-chip-error">{ run.Status }</span>
+										} else {
+											<span class="flowbot-chip flowbot-chip-muted">{ run.Status }</span>
+										}
+									</td>
+									<td class="tabular-nums">{ FormatFunctionRunDuration(run.DurationMs) }</td>
+									<td class="text-sm text-error max-w-xs truncate">{ run.Error }</td>
+								</tr>
+							}
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+}

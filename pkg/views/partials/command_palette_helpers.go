@@ -33,6 +33,7 @@ func CommandPaletteNavPages() []CommandPaletteNavPage {
 		{"Permissions", "Agent", "/service/web/chatagent-permissions"},
 		{"Pipelines", "Automate", "/service/web/pipelines"},
 		{"Workflows", "Automate", "/service/web/workflows"},
+		{"Functions", "Automate", "/service/web/functions"},
 		{"Events", "Automate", "/service/web/events"},
 		{"Relations", "Automate", "/service/web/relations"},
 		{"Apps", "Integrate", "/service/web/hub"},

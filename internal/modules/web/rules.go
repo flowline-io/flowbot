@@ -16,6 +16,7 @@ var allWebserviceRules = [][]webservice.Rule{
 	aboutWebserviceRules,
 	hubWebserviceRules,
 	pipelineWebserviceRules,
+	functionWebserviceRules,
 	viewWebserviceRules,
 	eventWebserviceRules,
 	relationsWebserviceRules,
