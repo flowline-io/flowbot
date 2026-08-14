@@ -47,7 +47,7 @@ networks: { proxy: {} }`)
 		{
 			name: "skips directories without compose files",
 			setup: func(t *testing.T, appsDir string) []string {
-				require.NoError(t, os.MkdirAll(filepath.Join(appsDir, "empty-dir"), 0o755))
+				require.NoError(t, os.MkdirAll(filepath.Join(appsDir, "empty-dir"), 0o750))
 				writeComposeApp(t, appsDir, "karakeep")
 				return []string{"karakeep"}
 			},
@@ -59,7 +59,7 @@ networks: { proxy: {} }`)
 			t.Parallel()
 			root := t.TempDir()
 			appsDir := filepath.Join(root, "apps")
-			require.NoError(t, os.MkdirAll(appsDir, 0o755))
+			require.NoError(t, os.MkdirAll(appsDir, 0o750))
 
 			expected := tt.setup(t, appsDir)
 
@@ -134,7 +134,7 @@ func TestScannerRejectsSymlinkEscape(t *testing.T) {
 			root := t.TempDir()
 			appsDir := filepath.Join(root, "apps")
 			targetDir := filepath.Join(root, tt.linkDest)
-			require.NoError(t, os.MkdirAll(appsDir, 0o755))
+			require.NoError(t, os.MkdirAll(appsDir, 0o750))
 			writeComposeApp(t, root, tt.linkDest)
 
 			link := filepath.Join(appsDir, tt.linkName)
@@ -154,12 +154,12 @@ func TestScannerRejectsSymlinkEscape(t *testing.T) {
 
 func writeComposeApp(t *testing.T, appsDir, name string) {
 	t.Helper()
-	require.NoError(t, os.MkdirAll(filepath.Join(appsDir, name), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(appsDir, name), 0o750))
 	require.NoError(t, os.WriteFile(filepath.Join(appsDir, name, "docker-compose.yaml"), []byte(`services: { app: { image: example/app:latest } }`), 0o644))
 }
 
 func writeComposeAppWithContent(t *testing.T, appsDir, name, content string) {
 	t.Helper()
-	require.NoError(t, os.MkdirAll(filepath.Join(appsDir, name), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(appsDir, name), 0o750))
 	require.NoError(t, os.WriteFile(filepath.Join(appsDir, name, "docker-compose.yaml"), []byte(content), 0o644))
 }

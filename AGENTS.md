@@ -51,6 +51,7 @@ Until 1.0, prefer the correct foundation over compatibility shims. Domain event 
 * Never hardcode provider names in pipeline / workflow definitions.
 * Never return 500/400 for all errors; never leak provider raw errors or pagination internals to the HTTP layer.
 * Use `http.NoBody` instead of `nil` in `http.NewRequest` calls.
+* Never create directories with mode greater than 0750 unless a documented exception needs broader access. [policy](.agents/notes/implemented/process/2026-08-14-directory-create-mode-0750.md)
 
 ## References
 

@@ -84,7 +84,7 @@ func TestLocalSourceArtifactSuccess(t *testing.T) {
 			t.Parallel()
 			dir := t.TempDir()
 			pluginDir := filepath.Join(dir, "demo-plugin")
-			require.NoError(t, os.MkdirAll(pluginDir, 0o755))
+			require.NoError(t, os.MkdirAll(pluginDir, 0o750))
 			require.NoError(t, os.WriteFile(filepath.Join(pluginDir, tt.filename), tt.content, 0o644))
 
 			src := NewLocalSource(dir)

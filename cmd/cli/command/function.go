@@ -142,7 +142,7 @@ func functionExportCommand() *cobra.Command {
 				return fmt.Errorf("export function: %w", err)
 			}
 			if strings.TrimSpace(outDir) != "" {
-				if err := os.MkdirAll(outDir, 0o755); err != nil {
+				if err := os.MkdirAll(outDir, 0o750); err != nil {
 					return fmt.Errorf("create output dir: %w", err)
 				}
 				if err := os.WriteFile(filepath.Join(outDir, "metadata.yaml"), []byte(bundle.Metadata), 0o644); err != nil {

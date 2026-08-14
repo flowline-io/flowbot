@@ -230,7 +230,7 @@ func restorePatchBackups(ctx context.Context, execEnv env.ExecutionEnv, backups 
 		switch item.Kind {
 		case patchAdd:
 			if backup.Existed {
-				_ = execEnv.MkdirAll(ctx, filepath.Dir(backup.Abs), 0o755)
+				_ = execEnv.MkdirAll(ctx, filepath.Dir(backup.Abs), 0o750)
 				_ = execEnv.WriteFile(ctx, backup.Abs, backup.Content, 0o644)
 			} else {
 				_ = execEnv.Remove(ctx, item.Abs)
@@ -239,7 +239,7 @@ func restorePatchBackups(ctx context.Context, execEnv env.ExecutionEnv, backups 
 			if !backup.Existed {
 				continue
 			}
-			_ = execEnv.MkdirAll(ctx, filepath.Dir(backup.Abs), 0o755)
+			_ = execEnv.MkdirAll(ctx, filepath.Dir(backup.Abs), 0o750)
 			_ = execEnv.WriteFile(ctx, backup.Abs, backup.Content, 0o644)
 		}
 	}
@@ -249,7 +249,7 @@ func restorePatchBackups(ctx context.Context, execEnv env.ExecutionEnv, backups 
 func applyOnePlanned(ctx context.Context, id, toolName string, execEnv env.ExecutionEnv, item plannedPatch) (string, *msg.ToolResultMessage) {
 	switch item.Kind {
 	case patchAdd, patchUpdate:
-		if mkdirResult := execEnv.MkdirAll(ctx, filepath.Dir(item.Abs), 0o755); !mkdirResult.IsOk() {
+		if mkdirResult := execEnv.MkdirAll(ctx, filepath.Dir(item.Abs), 0o750); !mkdirResult.IsOk() {
 			res := toolError(id, toolName, fmt.Sprintf("mkdir: %s", env.FormatFileError(mkdirResult.ErrorValue())))
 			return "", &res
 		}

@@ -77,7 +77,7 @@ func TestOSExecutionEnvReadDir(t *testing.T) {
 				t.Helper()
 				dir := t.TempDir()
 				require.NoError(t, os.WriteFile(filepath.Join(dir, "a.txt"), []byte("a"), 0o644))
-				require.NoError(t, os.Mkdir(filepath.Join(dir, "sub"), 0o755))
+				require.NoError(t, os.Mkdir(filepath.Join(dir, "sub"), 0o750))
 				return dir
 			},
 			wantOk:  true,
@@ -243,7 +243,7 @@ func TestOSExecutionEnvRejectsPathEscape(t *testing.T) {
 	})
 	t.Run("mkdir rejects relative escape", func(t *testing.T) {
 		t.Parallel()
-		got := execEnv.MkdirAll(ctx, filepath.Join("..", "outside-dir"), 0o755)
+		got := execEnv.MkdirAll(ctx, filepath.Join("..", "outside-dir"), 0o750)
 		require.False(t, got.IsOk())
 		assert.Equal(t, "path_escape", got.ErrorValue().Code())
 	})

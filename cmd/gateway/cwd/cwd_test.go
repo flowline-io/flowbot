@@ -20,7 +20,7 @@ func TestResolveDefaultAndAllowlist(t *testing.T) {
 	require.Equal(t, absRoot, got)
 
 	sub := filepath.Join(root, "proj")
-	require.NoError(t, os.MkdirAll(sub, 0o755))
+	require.NoError(t, os.MkdirAll(sub, 0o750))
 	got, err = cwd.Resolve(sub, root, []string{root})
 	require.NoError(t, err)
 	absSub, err := filepath.Abs(sub)

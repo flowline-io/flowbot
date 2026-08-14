@@ -137,9 +137,10 @@ tasks:
     desc: Run Go security checker
     cmds:
       # Exclude generated code and high-noise false positives (credential-like names,
-      # intentional unsafe, detached contexts, exec/file loaders, permission modes).
+      # intentional unsafe, detached contexts, exec/file loaders, file chmod/write modes).
+      # Directory create mode is G301 (enabled; 0750 ceiling).
       # Path exclusions in .gosec.json silence Fiber response-writer / test helper errors.
-      - go tool gosec -conf=.gosec.json -exclude-generated -exclude=G101,G103,G118,G122,G124,G204,G301,G302,G304,G306,G703 ./...
+      - go tool gosec -conf=.gosec.json -exclude-generated -exclude=G101,G103,G118,G122,G124,G204,G302,G304,G306,G703 ./...
 
   # Test tasks
   test:

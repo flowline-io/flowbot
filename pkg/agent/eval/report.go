@@ -97,7 +97,7 @@ func NewReport(suite string, cases []CaseResult) EvalReport {
 
 // WriteReportJSON writes the report as indented JSON to path.
 func WriteReportJSON(path string, report EvalReport) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		return err
 	}
 	data, err := sonic.MarshalIndent(report, "", "  ")
@@ -109,7 +109,7 @@ func WriteReportJSON(path string, report EvalReport) error {
 
 // WriteReportMarkdown writes a capability-oriented Markdown summary next to JSON reports.
 func WriteReportMarkdown(path string, report EvalReport) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		return err
 	}
 	return os.WriteFile(path, []byte(formatReportMarkdown(report)), 0o644)
@@ -442,7 +442,7 @@ func ExportTaskDraft(caseResult CaseResult, prompt string) TaskDraft {
 
 // WriteTaskDraftYAML writes a task draft YAML file under dir.
 func WriteTaskDraftYAML(dir string, draft TaskDraft) (string, error) {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return "", err
 	}
 	path := filepath.Join(dir, sanitizeFileName(draft.Name)+".yaml")

@@ -15,7 +15,7 @@ import (
 func TestListDirTool_Execute(t *testing.T) {
 	root := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(root, "a.txt"), []byte("a"), 0o644))
-	require.NoError(t, os.Mkdir(filepath.Join(root, "sub"), 0o755))
+	require.NoError(t, os.Mkdir(filepath.Join(root, "sub"), 0o750))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "sub", "b.txt"), []byte("b"), 0o644))
 
 	tool := coding.ListDirTool{Workspace: coding.Workspace{Root: root}}
@@ -44,7 +44,7 @@ func TestListDirTool_Execute(t *testing.T) {
 
 func TestGlobFilesTool_Execute(t *testing.T) {
 	root := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(root, "pkg", "x"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "pkg", "x"), 0o750))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "pkg", "x", "a.go"), []byte("package x"), 0o644))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "readme.md"), []byte("#"), 0o644))
 

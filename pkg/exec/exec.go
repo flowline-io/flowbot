@@ -136,7 +136,7 @@ func RunCode(ctx context.Context, cfg Config, language, code, filename, workdir 
 	}
 	execEnv := cfg.executionEnv()
 	scriptPath := filepath.Join(dir, ".flowbot-run", filepath.Base(filename))
-	if mkdirResult := execEnv.MkdirAll(ctx, filepath.Dir(scriptPath), 0o755); !mkdirResult.IsOk() {
+	if mkdirResult := execEnv.MkdirAll(ctx, filepath.Dir(scriptPath), 0o750); !mkdirResult.IsOk() {
 		return Result{}, fmt.Errorf("mkdir: %s", env.FormatFileError(mkdirResult.ErrorValue()))
 	}
 	if writeResult := execEnv.WriteFile(ctx, scriptPath, []byte(code), 0o644); !writeResult.IsOk() {

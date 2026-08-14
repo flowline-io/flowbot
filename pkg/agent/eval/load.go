@@ -250,7 +250,7 @@ func writeFixtures(root string, fixtures []caseFixture) error {
 			return fmt.Errorf("invalid fixture path %q", f.Path)
 		}
 		full := filepath.Join(root, rel)
-		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(full), 0o750); err != nil {
 			return err
 		}
 		if err := os.WriteFile(full, []byte(f.Content), 0o644); err != nil {

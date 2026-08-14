@@ -38,7 +38,7 @@ func (s *WorkspaceSandbox) Prepare(parent, caseName string) (string, error) {
 		return "", fmt.Errorf("eval: sandbox case name required")
 	}
 	root := filepath.Join(parent, caseName)
-	if err := os.MkdirAll(root, 0o755); err != nil {
+	if err := os.MkdirAll(root, 0o750); err != nil {
 		return "", err
 	}
 	s.root = root
@@ -56,7 +56,7 @@ func (s *WorkspaceSandbox) Reset(root string, fixtures []WorkspaceFixture) error
 	if err := os.RemoveAll(root); err != nil {
 		return fmt.Errorf("eval: reset workspace: %w", err)
 	}
-	if err := os.MkdirAll(root, 0o755); err != nil {
+	if err := os.MkdirAll(root, 0o750); err != nil {
 		return err
 	}
 	s.root = root

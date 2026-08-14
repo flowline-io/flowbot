@@ -76,7 +76,7 @@ func WriteDetailHTML(path string, report EvalReport) error {
 		sc := ScorecardFromReport(report)
 		report.Scorecard = &sc
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		return err
 	}
 	data := detailPageData(report)
@@ -89,7 +89,7 @@ func WriteDetailHTML(path string, report EvalReport) error {
 
 // WriteOverviewHTML writes a multi-run trend overview HTML page to path.
 func WriteOverviewHTML(path string, reports []ReportFile) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		return err
 	}
 	var b strings.Builder

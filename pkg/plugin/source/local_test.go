@@ -33,7 +33,7 @@ func TestLocalSourceDiscover(t *testing.T) {
 			setup: func(t *testing.T) string {
 				dir := t.TempDir()
 				pluginDir := filepath.Join(dir, "my-plugin")
-				_ = os.MkdirAll(pluginDir, 0755)
+				_ = os.MkdirAll(pluginDir, 0o750)
 				_ = os.WriteFile(filepath.Join(pluginDir, "plugin.yaml"), []byte("name: my-plugin\nversion: \"1.0\"\nruntime: grpc\ngrpc:\n  binary: ./server\n"), 0644)
 				return dir
 			},

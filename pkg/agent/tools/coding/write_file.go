@@ -66,7 +66,7 @@ func (t WriteFileTool) Execute(ctx context.Context, id string, args map[string]a
 	resolved := resolvedResult.Value()
 	execEnv := t.executionEnv()
 
-	if mkdirResult := execEnv.MkdirAll(ctx, filepath.Dir(resolved), 0o755); !mkdirResult.IsOk() {
+	if mkdirResult := execEnv.MkdirAll(ctx, filepath.Dir(resolved), 0o750); !mkdirResult.IsOk() {
 		return toolError(id, t.Name(), fmt.Sprintf("mkdir: %s", env.FormatFileError(mkdirResult.ErrorValue()))), nil
 	}
 	if writeResult := execEnv.WriteFile(ctx, resolved, []byte(content), 0o644); !writeResult.IsOk() {

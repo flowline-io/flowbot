@@ -159,7 +159,7 @@ func TestEnvHostFilesystem(t *testing.T) {
 			name: "mkdir and remove",
 			run: func(t *testing.T, e *sandbox.Env, dir string) {
 				sub := filepath.Join(dir, "sub")
-				require.True(t, e.MkdirAll(context.Background(), sub, 0o755).IsOk())
+				require.True(t, e.MkdirAll(context.Background(), sub, 0o750).IsOk())
 				file := filepath.Join(sub, "f.txt")
 				require.NoError(t, os.WriteFile(file, []byte("x"), 0o644))
 				require.True(t, e.Remove(context.Background(), file).IsOk())

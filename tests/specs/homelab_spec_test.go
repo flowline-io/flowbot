@@ -26,7 +26,7 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 			appsDir, err = os.MkdirTemp("", "flowbot-homelab-spec*")
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(os.MkdirAll(filepath.Join(appsDir, "archivebox"), 0o755)).To(Succeed())
+			Expect(os.MkdirAll(filepath.Join(appsDir, "archivebox"), 0o750)).To(Succeed())
 			Expect(os.WriteFile(filepath.Join(appsDir, "archivebox", "docker-compose.yaml"), []byte(`services:
   web:
     image: archivebox/archivebox:latest
@@ -39,7 +39,7 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
       flowbot.endpoint.health: /health
 `), 0o644)).To(Succeed())
 
-			Expect(os.MkdirAll(filepath.Join(appsDir, "karakeep"), 0o755)).To(Succeed())
+			Expect(os.MkdirAll(filepath.Join(appsDir, "karakeep"), 0o750)).To(Succeed())
 			Expect(os.WriteFile(filepath.Join(appsDir, "karakeep", "compose.yaml"), []byte(`services:
   app:
     image: ghcr.io/karakeep/karakeep:latest

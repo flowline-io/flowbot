@@ -105,7 +105,7 @@ func LoadProgress(workspaceRoot string) (ProgressArtifact, error) {
 // SaveProgress writes the progress artifact under the workspace.
 func SaveProgress(workspaceRoot string, p ProgressArtifact) error {
 	path := ProgressFilePath(workspaceRoot)
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		return err
 	}
 	return os.WriteFile(path, []byte(FormatProgressMarkdown(p)), 0o644)
