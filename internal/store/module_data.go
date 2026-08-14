@@ -264,7 +264,7 @@ func (s *ModuleDataStore) ListConfigs(ctx context.Context, opts ListConfigOption
 	return result, nil
 }
 
-// OAuthhSet  set OAuth credentials.
+// OAuthSet stores OAuth credentials.
 func (s *ModuleDataStore) OAuthSet(ctx context.Context, oauthModel gen.OAuth) error {
 	existing, err := s.client.OAuth.Query().
 		Where(
@@ -332,7 +332,7 @@ func (s *ModuleDataStore) OAuthSet(ctx context.Context, oauthModel gen.OAuth) er
 	return nil
 }
 
-// OAuthhGet  get OAuth credentials.
+// OAuthGet returns OAuth credentials for uid, topic, and type.
 func (s *ModuleDataStore) OAuthGet(ctx context.Context, uid types.Uid, topic, t string) (gen.OAuth, error) {
 	o, err := s.client.OAuth.Query().
 		Where(oauth.UID(uid.String()), oauth.Topic(topic), oauth.Type(t)).
@@ -346,7 +346,7 @@ func (s *ModuleDataStore) OAuthGet(ctx context.Context, uid types.Uid, topic, t 
 	return *o, nil
 }
 
-// OAuthhGetAvailable  get available OAuth credentials.
+// OAuthGetAvailable lists OAuth credentials of the given type.
 func (s *ModuleDataStore) OAuthGetAvailable(ctx context.Context, t string) ([]gen.OAuth, error) {
 	oauths, err := s.client.OAuth.Query().Where(oauth.Type(t)).All(ctx)
 	if err != nil {

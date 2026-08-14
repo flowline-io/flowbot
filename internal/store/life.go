@@ -33,7 +33,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// Life lore outbox event type (payload["type"]).
+// LifeLoreRequestedType is the Life lore outbox event type (payload["type"]).
 const LifeLoreRequestedType = "life.inventory.lore_requested"
 
 // LifeStore persists Life domain entities.

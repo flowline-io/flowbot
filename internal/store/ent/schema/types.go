@@ -146,7 +146,7 @@ func (j UrlState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
 
-// Instruct* types are owned by pkg/types; aliases keep existing schema.Instruct* call sites.
+// InstructState is owned by pkg/types; this alias keeps existing schema.InstructState call sites.
 type InstructState = types.InstructState
 
 const (
@@ -156,12 +156,14 @@ const (
 	InstructCancel       = types.InstructCancel
 )
 
+// InstructObject is owned by pkg/types; this alias keeps existing schema.InstructObject call sites.
 type InstructObject = types.InstructObject
 
 const (
 	InstructObjectAgent = types.InstructObjectAgent
 )
 
+// InstructPriority is owned by pkg/types; this alias keeps existing schema.InstructPriority call sites.
 type InstructPriority = types.InstructPriority
 
 const (
@@ -170,7 +172,7 @@ const (
 	InstructPriorityLow     = types.InstructPriorityLow
 )
 
-// Pipeline* / WorkflowRun* states are owned by pkg/types; aliases keep schema.* call sites.
+// PipelineState is owned by pkg/types; this alias keeps existing schema.PipelineState call sites.
 type PipelineState = types.PipelineState
 
 const (

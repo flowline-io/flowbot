@@ -267,7 +267,7 @@ func (s *FunctionStore) GetLatestPublished(ctx context.Context, name string) (*g
 }
 
 // CreateRun inserts a new function run. Empty idempotencyKey is stored as NULL so empty keys do not collide.
-func (s *FunctionStore) CreateRun(ctx context.Context, functionName string, version int, status string, idempotencyKey string) (*gen.FunctionRun, error) {
+func (s *FunctionStore) CreateRun(ctx context.Context, functionName string, version int, status, idempotencyKey string) (*gen.FunctionRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
