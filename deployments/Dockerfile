@@ -54,4 +54,4 @@ LABEL org.opencontainers.image.title="flowbot" \
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=6 \
   CMD wget -qO- http://127.0.0.1:6060/livez || exit 1
 
-ENTRYPOINT exec /opt/app/flowbot
+ENTRYPOINT ["/opt/app/flowbot"]
