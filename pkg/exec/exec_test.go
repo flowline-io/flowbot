@@ -89,6 +89,7 @@ func TestRunEntrypoint(t *testing.T) {
 				assert.Contains(t, fake.last.Env, "GOPROXY=off")
 				assert.Contains(t, fake.last.Env, "GOSUMDB=off")
 				assert.Contains(t, fake.last.Env, "GOTELEMETRY=off")
+				assert.Contains(t, fake.last.Env, "GOTOOLCHAIN=local")
 				assert.Contains(t, fake.last.Env, "CGO_ENABLED=0")
 				assert.True(t, hasEnvPrefix(fake.last.Env, "GOCACHE="+filepath.Join(root, ".gocache")))
 				assert.True(t, hasEnvPrefix(fake.last.Env, "GOPATH="+filepath.Join(root, ".gopath")))

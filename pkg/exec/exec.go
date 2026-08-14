@@ -239,6 +239,7 @@ func mergeGoEnv(workspace string, extra []string) []string {
 		"GOPROXY=off",
 		"GOSUMDB=off",
 		"GOTELEMETRY=off",
+		"GOTOOLCHAIN=local",
 		"CGO_ENABLED=0",
 		"GOCACHE=" + filepath.Join(workspace, ".gocache"),
 		"GOPATH=" + filepath.Join(workspace, ".gopath"),

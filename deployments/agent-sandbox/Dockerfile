@@ -57,7 +57,9 @@ ARG VCS_REF=unknown
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
-    PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    GOROOT=/usr/local/go \
+    GOTOOLCHAIN=local
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -123,6 +125,15 @@ LABEL org.opencontainers.image.title="flowbot-agent-sandbox" \
       org.opencontainers.image.licenses="GPL-3.0"
 
 USER agent
+
+# FaaS runs `go run main.go` with Network=none and GOPROXY=off (stdlib only).
+# GOTOOLCHAIN=local keeps the bundled compiler from attempting a toolchain download.
+RUN mkdir -p /tmp/faas-go-smoke \
+    && printf '%s\n' 'module flowbotfn' '' 'go 1.26' > /tmp/faas-go-smoke/go.mod \
+    && printf '%s\n' 'package main' '' 'import "fmt"' '' 'func main() { fmt.Println("{}") }' > /tmp/faas-go-smoke/main.go \
+    && cd /tmp/faas-go-smoke \
+    && GOPROXY=off GOSUMDB=off CGO_ENABLED=0 go run main.go \
+    && rm -rf /tmp/faas-go-smoke
 
 FROM base AS playwright
 
