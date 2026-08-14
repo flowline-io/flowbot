@@ -21,9 +21,9 @@ func skipIfWindows(t *testing.T) {
 	}
 }
 
-// mockReexec creates a simple exec.Cmd for testing without re-executing the binary
-// It returns a bash command that will unpack REEXEC_ prefixed environment variables
-// before executing the actual script, simulating what reexecRun() does in production
+// mockReexec creates a simple exec.Cmd for testing without re-executing the binary.
+// It unpacks REEXEC_ prefixed environment variables before running the interpreter,
+// simulating what reexecRun() does in production.
 func mockReexec(args ...string) *exec.Cmd {
 	var cmdArgs []string
 	for i := 0; i < len(args); i++ {
@@ -48,16 +48,13 @@ for entry in $(env); do
     export "$key"="$value"
   fi
 done
-exec bash -c "$(cat "$2")"
+exec "$@"
 `
 
-	if len(cmdArgs) >= 3 && cmdArgs[0] == "bash" && cmdArgs[1] == "-c" {
-		return exec.Command("bash", "-c", wrapperScript, "bash", "-c", cmdArgs[2])
+	if len(cmdArgs) == 0 {
+		return exec.Command("bash", "-c", "")
 	}
-	if len(cmdArgs) >= 2 {
-		return exec.Command(cmdArgs[0], cmdArgs[1:]...)
-	}
-	return exec.Command("bash", "-c", "")
+	return exec.Command("bash", append([]string{"-c", wrapperScript, "bash"}, cmdArgs...)...)
 }
 
 func TestShellRuntimeRunResult(t *testing.T) {

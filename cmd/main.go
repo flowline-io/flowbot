@@ -10,7 +10,6 @@ import (
 	// Importing automaxprocs automatically adjusts GOMAXPROCS.
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
 )
 
 // @title						Flowbot API
@@ -28,9 +27,7 @@ import (
 func main() {
 	fx.New(
 		server.Modules,
-		fx.WithLogger(func() fxevent.Logger {
-			return flog.NewFxLogger()
-		}),
+		fx.WithLogger(flog.NewFxLogger),
 		fx.StopTimeout(30*time.Second),
 	).Run()
 }

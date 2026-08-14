@@ -6,7 +6,7 @@ import (
 	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha1"
+	"crypto/sha1" // #nosec G505 -- HMAC-SHA1 is the RFC 6238 TOTP default; authenticator apps expect it
 	"crypto/sha256"
 	"encoding/base32"
 	"encoding/base64"

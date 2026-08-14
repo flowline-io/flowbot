@@ -48,7 +48,8 @@ type Config struct {
 
 func NewShellRuntime(cfg Config) *Runtime {
 	if len(cfg.CMD) == 0 {
-		cfg.CMD = []string{"bash", "-c"}
+		// Interpreter that takes a script path (read permission only; no +x).
+		cfg.CMD = []string{"bash"}
 	}
 	if cfg.Rexec == nil {
 		cfg.Rexec = reexec.Command
@@ -214,19 +215,17 @@ func (r *Runtime) buildShellCommand(workdir string, t *types.Task) ([]string, []
 
 	entrypointPath := fmt.Sprintf("%s/entrypoint", workdir)
 	tmpPath := entrypointPath + ".tmp"
-	if err := os.WriteFile(tmpPath, []byte(t.Run), 0700); err != nil {
+	// 0600: interpreter reads the script by path; execute bits are not required.
+	if err := os.WriteFile(tmpPath, []byte(t.Run), 0o600); err != nil {
 		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
 	}
 	if err := os.Rename(tmpPath, entrypointPath); err != nil {
 		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
 	}
-	if err := os.Chmod(entrypointPath, 0o500); err != nil {
-		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
-	}
 
 	args := make([]string, len(r.shell)+1)
 	copy(args, r.shell)
-	args[len(r.shell)] = fmt.Sprintf("%s/entrypoint", workdir)
+	args[len(r.shell)] = entrypointPath
 	args = append([]string{"shell", "-uid", r.uid, "-gid", r.gid}, args...)
 	return args, env, nil
 }
