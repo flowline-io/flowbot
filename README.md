@@ -41,19 +41,19 @@ A typical homelab runs dozens of apps under `/home/<user>/homelab/apps/`. Each h
         v                                capability.Invoke()
 +-------------------+                            |
 |       Hub         |                            v
-| /hub/apps         |                  +--------------------+
-| /hub/capabilities |                  | Capability Layer   |
-| /hub/health       |                  | pkg/capability/*   |
-+-------------------+                  | karakeep.Service   |
-                                       | miniflux.Service   |
-                                       | …                  |
-                                       +---------+----------+
+| /hub/apps         |                  +---------------------+
+| /hub/capabilities |                  | Capability Layer    |
+| /hub/health       |                  | pkg/capability/*    |
++-------------------+                  | karakeep.Service    |
+                                       | miniflux.Service    |
+                                       | …                   |
+                                       +---------+-----------+
                                                  | adapter
                                                  v
-                                       +-----------------------+
-                                       |  Provider Layer       |
-                                       |  pkg/providers/*      |
-                                       +-----------------------+
+                                       +---------------------+
+                                       |  Provider Layer     |
+                                       |  pkg/providers/*    |
+                                       +---------------------+
 ```
 
 Layers (top → bottom): Platform adapters → HTTP gateway (Fiber) → modules / pipeline / workflow / agent → `capability.Invoke` → providers → PostgreSQL + Redis.
