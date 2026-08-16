@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Flowbot runtime",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/flowline-io/flowbot.git",
+      "revision": "8e726326df9edd334c85646582f2e81d9c062f57"
+    },
+    "views": [
+      {
+        "id": "invoke-path",
+        "label": "Primary invoke path",
+        "focus": ["operators", "gateway", "capability", "providers", "homelab"],
+        "note": "Operators reach capability.Invoke through the Fiber gateway; providers call Homelab apps."
+      },
+      {
+        "id": "trust-boundary",
+        "label": "Auth and ownership",
+        "focus": ["auth", "gateway", "capability", "providers"],
+        "note": "Tokens are checked at the gateway. Modules call Capability only, never pkg/providers."
+      },
+      {
+        "id": "durable-events",
+        "label": "Durable events",
+        "focus": ["gateway", "postgres", "redis"],
+        "note": "DataEvent is written to PostgreSQL first, then published on the Redis Stream outbox."
+      }
+    ]
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [40, 56],
+    "cols": 5,
+    "gapX": 156,
+    "gapY": 120,
+    "cellW": 140,
+    "cellH": 64
+  },
+  "components": [
+    {
+      "id": "operators",
+      "type": "external",
+      "label": "Operators",
+      "sublabel": "Web UI · REST · CLI",
+      "row": 1,
+      "col": 0
+    },
+    {
+      "id": "auth",
+      "type": "security",
+      "label": "Auth",
+      "sublabel": "AuthContext",
+      "tag": "X-AccessToken",
+      "row": 0,
+      "col": 1,
+      "sources": [
+        { "path": "pkg/route/route.go", "line": 151, "label": "Authorize" },
+        { "path": "pkg/auth/context.go", "label": "AuthContext" }
+      ]
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "HTTP gateway",
+      "sublabel": "Fiber v3 · modules",
+      "tag": ":6060",
+      "row": 1,
+      "col": 1,
+      "sources": [
+        { "path": "cmd/main.go", "label": "server entry" },
+        { "path": "internal/server/router.go", "line": 38, "label": "handleRoutes" },
+        { "path": "internal/modules/fx.go", "line": 22, "label": "module register" }
+      ]
+    },
+    {
+      "id": "capability",
+      "type": "backend",
+      "label": "Capability",
+      "sublabel": "pkg/capability",
+      "tag": "Invoke",
+      "row": 1,
+      "col": 2,
+      "sources": [
+        { "path": "pkg/capability/invoke.go", "line": 218, "label": "Invoke" }
+      ]
+    },
+    {
+      "id": "providers",
+      "type": "backend",
+      "label": "Provider",
+      "sublabel": "pkg/providers",
+      "row": 1,
+      "col": 3,
+      "sources": [
+        { "path": "pkg/providers/providers.go", "label": "client registry" }
+      ]
+    },
+    {
+      "id": "homelab",
+      "type": "external",
+      "label": "Homelab apps",
+      "sublabel": "karakeep · gitea · …",
+      "row": 1,
+      "col": 4
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "data_events",
+      "row": 2,
+      "col": 1,
+      "sources": [
+        { "path": "internal/store/ent/schema/data_event.go", "label": "data_events" },
+        { "path": "internal/store/ent/schema/event_outbox.go", "label": "event_outbox" }
+      ]
+    },
+    {
+      "id": "redis",
+      "type": "messagebus",
+      "label": "Redis",
+      "sublabel": "Stream outbox",
+      "row": 2,
+      "col": 2,
+      "sources": [
+        { "path": "pkg/event/pubsub.go", "line": 40, "label": "Redis Stream" },
+        { "path": "internal/server/pipeline.go", "line": 372, "label": "persistAndPublish" }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Flowbot runtime · cmd/main.go",
+      "wraps": ["auth", "gateway", "capability", "providers"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Auth boundary",
+      "wraps": ["auth", "gateway"]
+    },
+    {
+      "kind": "region",
+      "label": "Operator data plane",
+      "wraps": ["postgres", "redis"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "operators-to-gateway",
+      "from": "operators",
+      "to": "gateway",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gateway-to-capability",
+      "from": "gateway",
+      "to": "capability",
+      "label": "capability.Invoke",
+      "variant": "emphasis"
+    },
+    {
+      "id": "capability-to-providers",
+      "from": "capability",
+      "to": "providers",
+      "label": "adapter",
+      "variant": "emphasis"
+    },
+    {
+      "id": "providers-to-homelab",
+      "from": "providers",
+      "to": "homelab",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "auth-to-gateway",
+      "from": "auth",
+      "to": "gateway",
+      "label": "verify token",
+      "variant": "security",
+      "labelAt": [396, 130]
+    },
+    {
+      "id": "gateway-to-postgres",
+      "from": "gateway",
+      "to": "postgres",
+      "label": "persist",
+      "labelAt": [396, 314]
+    },
+    {
+      "id": "postgres-to-redis",
+      "from": "postgres",
+      "to": "redis",
+      "label": "outbox",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Primary path",
+      "items": [
+        "Web UI, REST, CLI, and wired Slack / Tailchat all enter Fiber :6060",
+        "Modules reach a provider through capability.Invoke, then call Homelab APIs"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Ownership and trust",
+      "items": [
+        "Gateway, modules, Capability, and Provider share the cmd/main.go process",
+        "pkg must not import internal; modules must not call pkg/providers directly"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Durability and orchestration",
+      "items": [
+        "DataEvent is written to data_events and event_outbox, then published on Redis Stream",
+        "Pipeline / Workflow / Agent consume events and Invoke again; those details stay off the edges"
+      ]
+    }
+  ]
+}

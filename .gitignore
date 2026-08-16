@@ -28,6 +28,8 @@ pipelines.yaml
 gosec-report.json
 gateway.yaml
 agent.yaml
+.agents/skills/
+skills-lock.json
 
 # Data & Database
 *.sqlite3
