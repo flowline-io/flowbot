@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
+	agentsandbox "github.com/flowline-io/flowbot/pkg/agent/sandbox"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
@@ -228,13 +229,14 @@ func harnessConfigHash(workspace coding.Workspace) (string, error) {
 			compaction.ReservedTokens(),
 			compaction.KeepRecentBudget(),
 		),
-		fmt.Sprintf("sandbox=%t:%s:%s:%s:%s:%s",
+		fmt.Sprintf("sandbox=%t:%s:%s:%s:%s:%s:%s",
 			sandbox.Enabled,
 			strings.TrimSpace(sandbox.Image),
 			strings.TrimSpace(sandbox.Network),
 			strings.TrimSpace(sandbox.Memory),
 			strings.TrimSpace(sandbox.ServerURL),
 			sandboxAccessTokenFingerprint(sandbox.AccessToken),
+			agentsandbox.ResolvedCLIBinary(sandbox.CLIPath),
 		),
 		promptConfigHash(workspace.Root),
 	}

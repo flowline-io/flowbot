@@ -130,7 +130,7 @@ jobs:
           IMAGE="ghcr.io/flowline-io/flowbot-agent-sandbox:${{ steps.smoketag.outputs.value }}"
           docker pull "$IMAGE"
           docker run --rm "$IMAGE" bash -lc \
-            'git --version && go version && test "$(go env GOTOOLCHAIN)" = local && node --version && python3 --version && flowbot version && dcg --version && test -f /etc/dcg/config.toml'
+            'git --version && go version && test "$(go env GOTOOLCHAIN)" = local && node --version && python3 --version && dcg --version && test -f /etc/dcg/config.toml'
           docker run --rm --network=none -w /tmp "$IMAGE" bash -lc \
             'printf "%s\n" "module flowbotfn" "" "go 1.26" > go.mod && printf "%s\n" "package main" "" "import \"fmt\"" "" "func main() { fmt.Println(\"{}\") }" > main.go && GOPROXY=off GOSUMDB=off CGO_ENABLED=0 go run main.go'
           if [[ "${{ matrix.target }}" == "playwright" ]]; then

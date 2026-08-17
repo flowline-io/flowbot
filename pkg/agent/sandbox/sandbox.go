@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/containerd/errdefs"
@@ -29,6 +30,8 @@ const (
 	defaultCreateWait       = 2 * time.Minute
 	maxLoggedCommandLen     = 200
 	containerCLIConfigPath  = "/home/agent/.config/flowbot"
+	containerCLIBinaryPath  = "/usr/local/bin/flowbot"
+	siblingCLIBinaryName    = "flowbot-cli_linux_amd64"
 	envFlowbotServerURL     = "FLOWBOT_SERVER_URL"
 	envFlowbotToken         = "FLOWBOT_TOKEN"
 	hostDockerInternal      = "host.docker.internal"
@@ -49,6 +52,17 @@ const (
 	cliConfigDirOwnerOnly       = 0700
 )
 
+var missingCLIBinaryWarn sync.Once
+
+// executableDir is the server binary directory; tests override it for sibling-CLI resolution.
+var executableDir = func() (string, error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Dir(exe), nil
+}
+
 // Config configures Docker sandbox execution.
 type Config struct {
 	// Image is the container image used for Exec.
@@ -63,6 +77,10 @@ type Config struct {
 	ServerURL string
 	// AccessToken is the Hub access token injected for the flowbot CLI inside the container.
 	AccessToken string
+	// CLIPath is an optional configured host path to a linux/amd64 flowbot CLI binary.
+	// Absolute paths are used as-is; relative paths are resolved beside the server executable.
+	// When empty, New looks for flowbot-cli_linux_amd64 beside the server executable.
+	CLIPath string
 }
 
 // ConfigFromChatAgent builds sandbox Config from chat agent settings.
@@ -78,6 +96,7 @@ func ConfigFromChatAgent(cfg config.ChatAgentSandboxConfig, workspace string) Co
 		Workspace:   strings.TrimSpace(workspace),
 		ServerURL:   strings.TrimSpace(cfg.ServerURL),
 		AccessToken: strings.TrimSpace(cfg.AccessToken),
+		CLIPath:     strings.TrimSpace(cfg.CLIPath),
 	}
 }
 
@@ -104,13 +123,16 @@ type RunOptions struct {
 	// CLIConfigDir is a host directory bind-mounted read-only at containerCLIConfigPath.
 	// When empty and AccessToken is set, DockerRunner materializes a temporary directory.
 	CLIConfigDir string
+	// CLIBinary is a host path bind-mounted read-only at containerCLIBinaryPath.
+	CLIBinary string
 }
 
 // Env implements env.ExecutionEnv with host filesystem ops and sandboxed Exec.
 type Env struct {
-	cfg    Config
-	host   env.ExecutionEnv
-	runner Runner
+	cfg       Config
+	cliBinary string
+	host      env.ExecutionEnv
+	runner    Runner
 }
 
 // New creates a sandbox ExecutionEnv. Host FS ops use env.Default when host is nil.
@@ -121,13 +143,65 @@ func New(cfg Config, host env.ExecutionEnv, runner Runner) *Env {
 	if runner == nil {
 		runner = DockerRunner{}
 	}
+	cliBinary := ResolvedCLIBinary(cfg.CLIPath)
 	creds := "none"
 	if cfg.AccessToken != "" {
 		creds = "injected"
 	}
-	flog.Info("[sandbox] env ready workspace=%s image=%s network=%s memory=%s cli_creds=%s",
-		cfg.Workspace, cfg.Image, cfg.Network, cfg.Memory, creds)
-	return &Env{cfg: cfg, host: host, runner: runner}
+	cliBin := "none"
+	if cliBinary != "" {
+		cliBin = "injected"
+	}
+	flog.Info("[sandbox] env ready workspace=%s image=%s network=%s memory=%s cli_creds=%s cli_bin=%s",
+		cfg.Workspace, cfg.Image, cfg.Network, cfg.Memory, creds, cliBin)
+	return &Env{cfg: cfg, cliBinary: cliBinary, host: host, runner: runner}
+}
+
+// ResolvedCLIBinary returns an absolute host path to a regular file usable as the sandbox flowbot CLI.
+// configured is chat_agent.sandbox.cli_path (may be empty). Missing or invalid paths warn once and return empty.
+func ResolvedCLIBinary(configured string) string {
+	path, err := candidateCLIPath(configured)
+	if err != nil {
+		warnMissingCLI("%s", err.Error())
+		return ""
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		warnMissingCLI("resolve path %s: %s", path, err.Error())
+		return ""
+	}
+	info, err := os.Stat(abs)
+	if err != nil {
+		warnMissingCLI("%s unavailable (%s); shell/code still work without flowbot", abs, err.Error())
+		return ""
+	}
+	if info.IsDir() {
+		warnMissingCLI("%s is a directory", abs)
+		return ""
+	}
+	return abs
+}
+
+func candidateCLIPath(configured string) (string, error) {
+	path := strings.TrimSpace(configured)
+	dir, err := executableDir()
+	if err != nil {
+		return "", fmt.Errorf("resolve server executable: %w", err)
+	}
+	if path == "" {
+		return filepath.Join(dir, siblingCLIBinaryName), nil
+	}
+	if filepath.IsAbs(path) {
+		return path, nil
+	}
+	return filepath.Join(dir, path), nil
+}
+
+func warnMissingCLI(format string, args ...any) {
+	msg := fmt.Sprintf(format, args...)
+	missingCLIBinaryWarn.Do(func() {
+		flog.Warn("[sandbox] flowbot CLI not injected: %s", msg)
+	})
 }
 
 // ReadFile reads from the host filesystem.
@@ -174,6 +248,7 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 		AccessToken: e.cfg.AccessToken,
 		Env:         append([]string(nil), opts.Env...),
 		Stdin:       append([]byte(nil), opts.Stdin...),
+		CLIBinary:   e.cliBinary,
 	}
 	if ferr := e.applyStdinRedirect(ctx, opts, &runOpts); ferr != nil {
 		return result.Err[env.Capture, result.ExecutionError](*ferr)
@@ -353,6 +428,10 @@ func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
 	if opts.CLIConfigDir != "" {
 		hostConfig.Binds = append(hostConfig.Binds,
 			fmt.Sprintf("%s:%s:ro", opts.CLIConfigDir, containerCLIConfigPath))
+	}
+	if opts.CLIBinary != "" {
+		hostConfig.Binds = append(hostConfig.Binds,
+			fmt.Sprintf("%s:%s:ro", opts.CLIBinary, containerCLIBinaryPath))
 	}
 	if opts.Network != "" {
 		hostConfig.NetworkMode = container.NetworkMode(opts.Network)

@@ -162,9 +162,11 @@ chat_agent:
     image: ghcr.io/flowline-io/flowbot-agent-sandbox:latest
     # network: none
     # memory: 512m
-    # Flowbot CLI credentials injected into sandbox containers (not baked into the image).
+    # Flowbot CLI credentials and binary are injected into sandbox containers (not baked into the image).
     # server_url: "http://host.docker.internal:6060"  # URL reachable from inside the container
     # access_token: ""  # dedicated Hub access token; empty skips credential injection
+    # cli_path: ""  # host path to linux/amd64 flowbot CLI; absolute as-is, relative beside server binary; empty uses flowbot-cli_linux_amd64 beside server
+
   # web_search:
   #   api_key: ""  # SerpApi key (https://serpapi.com/search-api); required for web_search
 

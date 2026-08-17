@@ -6,6 +6,7 @@ COPY . .
 
 RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot -ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=`date -u '+%Y-%m-%dT%H:%M:%SZ'` -X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags --always`" github.com/flowline-io/flowbot/cmd
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot-cli_linux_amd64 -ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=`date -u '+%Y-%m-%dT%H:%M:%SZ'` -X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags --always`" github.com/flowline-io/flowbot/cmd/cli
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o composer -ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=`date -u '+%Y-%m-%dT%H:%M:%SZ'` -X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags --always`" github.com/flowline-io/flowbot/cmd/composer
 
 # Destructive Command Guard (dcg) for Always-on chat-agent run_terminal / run_code checks.
@@ -31,12 +32,13 @@ RUN apk add --no-cache \
 WORKDIR /opt/app
 
 COPY --from=builder /opt/app/flowbot .
+COPY --from=builder /opt/app/flowbot-cli_linux_amd64 .
 COPY --from=builder /opt/app/composer /usr/local/bin/composer
 COPY --from=builder /opt/app/public ./public
 COPY --from=dcg-builder /out/dcg /usr/local/bin/dcg
 COPY pkg/agent/dcg/config.toml /etc/dcg/config.toml
 
-RUN chmod +x flowbot
+RUN chmod +x flowbot flowbot-cli_linux_amd64
 
 ARG VERSION=dev
 ARG BUILD_DATE=unknown

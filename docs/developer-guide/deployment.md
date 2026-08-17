@@ -8,6 +8,7 @@ All binaries are built using [Task](https://taskfile.dev):
 task build           # Main server (bin/flowbot)
 task build:composer  # Composer CLI (bin/composer)
 task build:cli       # Admin CLI (bin/flowbot-cli)
+task build:cli:linux # linux/amd64 CLI for sandbox inject (bin/flowbot-cli_linux_amd64)
 task build:all       # All binaries
 ```
 
@@ -19,6 +20,9 @@ task build:all       # All binaries
 task build
 ./bin/flowbot                      # Start server
 ./bin/flowbot-cli -- server-url http://localhost:6060  # Admin CLI
+# For chatagent Docker sandbox skill→CLI: place linux CLI beside the server binary, e.g.
+#   task build:cli:linux && copy bin/flowbot-cli_linux_amd64 next to bin/flowbot
+# or set chat_agent.sandbox.cli_path.
 ```
 
 ### 2. Docker Deployment
@@ -28,7 +32,7 @@ docker build -f deployments/Dockerfile -t flowbot .
 docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 ```
 
-The server image installs `dcg` on `PATH` (`/usr/local/bin/dcg`, linux musl amd64, SHA256-verified) and ships [`pkg/agent/dcg/config.toml`](../../pkg/agent/dcg/config.toml) at `/etc/dcg/config.toml` for Always-on chat-agent `run_terminal` / `run_code` guards. Flowbot still materializes the embedded config at runtime; the image file is for operational parity.
+The server image installs `dcg` on `PATH` (`/usr/local/bin/dcg`, linux musl amd64, SHA256-verified) and ships [`pkg/agent/dcg/config.toml`](../../pkg/agent/dcg/config.toml) at `/etc/dcg/config.toml` for Always-on chat-agent `run_terminal` / `run_code` guards. Flowbot still materializes the embedded config at runtime; the image file is for operational parity. The image also ships `flowbot-cli_linux_amd64` beside the server binary so chatagent sandbox can bind-mount it into ephemeral containers (see [Agent Sandbox](../agent/agent-sandbox.md)).
 
 For the Cloud Agent ephemeral sandbox image (`flowbot-agent-sandbox`), see [Agent Sandbox](../agent/agent-sandbox.md).
 

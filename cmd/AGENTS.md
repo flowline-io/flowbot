@@ -14,6 +14,7 @@ Binaries:
 
 ```bash
 go tool task build:cli           # → bin/flowbot-cli
+go tool task build:cli:linux     # → bin/flowbot-cli_linux_amd64 (sandbox inject)
 go tool task build:composer      # → bin/composer
 go tool task build:gateway       # → bin/flowbot-gateway
 go tool task build:agent         # → bin/flowbot-agent

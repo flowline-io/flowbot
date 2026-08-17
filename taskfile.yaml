@@ -36,6 +36,11 @@ tasks:
     cmds:
       - go build -v -o bin/flowbot-cli ./cmd/cli
 
+  build:cli:linux:
+    desc: Build linux/amd64 flowbot CLI for sandbox inject (bin/flowbot-cli_linux_amd64)
+    cmds:
+      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -o bin/flowbot-cli_linux_amd64 ./cmd/cli
+
   build:gateway:
     desc: Build local CLI gateway sidecar
     cmds:

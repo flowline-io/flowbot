@@ -90,6 +90,7 @@ func TestBuildHostConfig(t *testing.T) {
 		wantBinds      int
 		wantExtraHosts bool
 		wantCLIBind    bool
+		wantCLIBinBind bool
 	}{
 		{name: "binds workspace", opts: RunOptions{Workspace: "/host/ws"}, wantBinds: 1},
 		{name: "sets network mode", opts: RunOptions{Workspace: "/host/ws", Network: "bridge"}, wantBinds: 1},
@@ -104,6 +105,26 @@ func TestBuildHostConfig(t *testing.T) {
 			wantBinds:      2,
 			wantExtraHosts: true,
 			wantCLIBind:    true,
+		},
+		{
+			name: "cli binary bind",
+			opts: RunOptions{
+				Workspace: "/host/ws",
+				CLIBinary: "/opt/app/flowbot-cli_linux_amd64",
+			},
+			wantBinds:      2,
+			wantCLIBinBind: true,
+		},
+		{
+			name: "cli config and binary binds",
+			opts: RunOptions{
+				Workspace:    "/host/ws",
+				CLIConfigDir: "/tmp/cli-cfg",
+				CLIBinary:    "/opt/app/flowbot-cli_linux_amd64",
+			},
+			wantBinds:      3,
+			wantCLIBind:    true,
+			wantCLIBinBind: true,
 		},
 		{
 			name: "no host gateway for other urls",
@@ -132,10 +153,76 @@ func TestBuildHostConfig(t *testing.T) {
 				assert.Empty(t, hc.ExtraHosts)
 			}
 			if tt.wantCLIBind {
-				assert.Contains(t, hc.Binds[1], containerCLIConfigPath+":ro")
+				found := false
+				for _, b := range hc.Binds {
+					if strings.Contains(b, containerCLIConfigPath+":ro") {
+						found = true
+						break
+					}
+				}
+				assert.True(t, found, "expected CLI config bind")
+			}
+			if tt.wantCLIBinBind {
+				found := false
+				for _, b := range hc.Binds {
+					if strings.Contains(b, containerCLIBinaryPath+":ro") {
+						found = true
+						break
+					}
+				}
+				assert.True(t, found, "expected CLI binary bind")
 			}
 		})
 	}
+}
+
+func TestResolveCLIBinary(t *testing.T) {
+	t.Parallel()
+
+	t.Run("configured absolute path", func(t *testing.T) {
+		t.Parallel()
+		dir := t.TempDir()
+		path := filepath.Join(dir, "flowbot-cli_linux_amd64")
+		require.NoError(t, os.WriteFile(path, []byte("x"), 0o755))
+		got := ResolvedCLIBinary(path)
+		abs, err := filepath.Abs(path)
+		require.NoError(t, err)
+		assert.Equal(t, abs, got)
+	})
+
+	t.Run("sibling of executable", func(t *testing.T) {
+		t.Parallel()
+		dir := t.TempDir()
+		path := filepath.Join(dir, siblingCLIBinaryName)
+		require.NoError(t, os.WriteFile(path, []byte("x"), 0o755))
+		prev := executableDir
+		executableDir = func() (string, error) { return dir, nil }
+		t.Cleanup(func() { executableDir = prev })
+		got := ResolvedCLIBinary("")
+		abs, err := filepath.Abs(path)
+		require.NoError(t, err)
+		assert.Equal(t, abs, got)
+	})
+
+	t.Run("relative path beside executable", func(t *testing.T) {
+		t.Parallel()
+		dir := t.TempDir()
+		path := filepath.Join(dir, "custom-cli")
+		require.NoError(t, os.WriteFile(path, []byte("x"), 0o755))
+		prev := executableDir
+		executableDir = func() (string, error) { return dir, nil }
+		t.Cleanup(func() { executableDir = prev })
+		got := ResolvedCLIBinary("custom-cli")
+		abs, err := filepath.Abs(path)
+		require.NoError(t, err)
+		assert.Equal(t, abs, got)
+	})
+
+	t.Run("missing configured path", func(t *testing.T) {
+		t.Parallel()
+		got := ResolvedCLIBinary(filepath.Join(t.TempDir(), "nope"))
+		assert.Empty(t, got)
+	})
 }
 
 func TestMaterializeCLIConfig(t *testing.T) {
