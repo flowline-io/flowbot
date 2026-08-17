@@ -177,10 +177,10 @@ func TestBuildHostConfig(t *testing.T) {
 }
 
 func TestResolveCLIBinary(t *testing.T) {
-	t.Parallel()
+	// Serial: sibling/relative cases override package-level executableDir.
+	// Parallel would race with other tests that call ResolvedCLIBinary via New.
 
 	t.Run("configured absolute path", func(t *testing.T) {
-		t.Parallel()
 		dir := t.TempDir()
 		path := filepath.Join(dir, "flowbot-cli_linux_amd64")
 		require.NoError(t, os.WriteFile(path, []byte("x"), 0o755))
@@ -191,7 +191,6 @@ func TestResolveCLIBinary(t *testing.T) {
 	})
 
 	t.Run("sibling of executable", func(t *testing.T) {
-		t.Parallel()
 		dir := t.TempDir()
 		path := filepath.Join(dir, siblingCLIBinaryName)
 		require.NoError(t, os.WriteFile(path, []byte("x"), 0o755))
@@ -205,7 +204,6 @@ func TestResolveCLIBinary(t *testing.T) {
 	})
 
 	t.Run("relative path beside executable", func(t *testing.T) {
-		t.Parallel()
 		dir := t.TempDir()
 		path := filepath.Join(dir, "custom-cli")
 		require.NoError(t, os.WriteFile(path, []byte("x"), 0o755))
@@ -219,7 +217,6 @@ func TestResolveCLIBinary(t *testing.T) {
 	})
 
 	t.Run("missing configured path", func(t *testing.T) {
-		t.Parallel()
 		got := ResolvedCLIBinary(filepath.Join(t.TempDir(), "nope"))
 		assert.Empty(t, got)
 	})

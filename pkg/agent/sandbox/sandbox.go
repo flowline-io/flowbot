@@ -184,15 +184,15 @@ func ResolvedCLIBinary(configured string) string {
 
 func candidateCLIPath(configured string) (string, error) {
 	path := strings.TrimSpace(configured)
+	if path != "" && filepath.IsAbs(path) {
+		return path, nil
+	}
 	dir, err := executableDir()
 	if err != nil {
 		return "", fmt.Errorf("resolve server executable: %w", err)
 	}
 	if path == "" {
 		return filepath.Join(dir, siblingCLIBinaryName), nil
-	}
-	if filepath.IsAbs(path) {
-		return path, nil
 	}
 	return filepath.Join(dir, path), nil
 }
