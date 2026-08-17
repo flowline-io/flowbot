@@ -18,6 +18,7 @@ type createSessionBody struct {
 	Model         string `json:"model"`
 	ThinkingLevel string `json:"thinking_level"`
 	ApprovalMode  string `json:"approval_mode"`
+	Workspace     string `json:"workspace"`
 }
 
 func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
@@ -34,9 +35,16 @@ func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 		}
 	}
+	if _, err := chatagent.ValidateWorkspaceRel(body.Workspace); err != nil {
+		return chatAgentError(c, err)
+	}
 	sessionID := types.Id()
 	if err := chatagent.CreateSession(c.Context(), rc.UID, sessionID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if err := chatagent.ApplyCreateWorkspace(c.Context(), sessionID, body.Workspace); err != nil {
+		chatagent.AbortCreatedSession(c.Context(), sessionID)
+		return chatAgentError(c, err)
 	}
 	if body.Model != "" || body.ThinkingLevel != "" || body.ApprovalMode != "" {
 		s := chatagent.SessionSettings{
@@ -45,6 +53,7 @@ func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
 			ApprovalMode:  body.ApprovalMode,
 		}
 		if err := chatagent.SetSessionSettings(c.Context(), sessionID, s); err != nil {
+			chatagent.AbortCreatedSession(c.Context(), sessionID)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 	}
@@ -147,7 +156,7 @@ func (h *chatAgentHTTP) contextUsage(c fiber.Ctx) error {
 	}
 	report, err := chatagent.BuildContextUsageReport(c.Context(), sessionID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return chatAgentError(c, err)
 	}
 	return c.JSON(report)
 }
@@ -195,6 +204,9 @@ func (h *chatAgentHTTP) putSessionSettings(c fiber.Ctx) error {
 		return chatAgentError(c, err)
 	}
 	var body chatagent.SessionSettings
+	if err := chatagent.RejectSettingsWorkspaceField(c.Body()); err != nil {
+		return chatAgentError(c, err)
+	}
 	if err := sonic.Unmarshal(c.Body(), &body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 	}

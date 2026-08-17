@@ -69,9 +69,10 @@ func TestRegisterHooksDCGBeforePermission(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			reg := hooks.NewRegistry()
 			RegisterHooks(reg, ChatHookDeps{
-				SessionID: "dcg-hook-test",
-				DCG:       tt.checker,
-				Service:   NewService(),
+				SessionID:     "dcg-hook-test",
+				DCG:           tt.checker,
+				Service:       NewService(),
+				WorkspaceRoot: t.TempDir(),
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},

@@ -417,6 +417,19 @@ func chatAgentSessionSettingsLabel(session model.AgentSession, defaultModel stri
 	}
 }
 
+// chatAgentWorkspaceDisplay returns the session workspace label (subdir name or config root basename).
+func chatAgentWorkspaceDisplay(rel, rootLabel string) string {
+	rel = strings.TrimSpace(rel)
+	if rel != "" {
+		return rel
+	}
+	rootLabel = strings.TrimSpace(rootLabel)
+	if rootLabel == "" {
+		return "workspace"
+	}
+	return rootLabel
+}
+
 // chatAgentThinkingLabel returns a human-readable thinking level label.
 func chatAgentThinkingLabel(level string) string {
 	switch strings.ToLower(strings.TrimSpace(level)) {

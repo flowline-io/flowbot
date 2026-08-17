@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -40,8 +42,10 @@ func TestChatAgentHTTPDisabled(t *testing.T) {
 func TestChatAgentHTTPCreateSession(t *testing.T) {
 	origCfg := config.App
 	setupSQLiteTestDB(t)
+	wsRoot := t.TempDir()
+	require.NoError(t, os.Mkdir(filepath.Join(wsRoot, "proj"), 0o750))
 	config.App = config.Type{
-		ChatAgent: config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()},
+		ChatAgent: config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: wsRoot},
 		Models: []config.Model{
 			{Provider: "openai", ApiKey: "k", ModelNames: []string{"gpt-test", "gpt-alt"}},
 		},
@@ -80,6 +84,21 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 			wantStatus: fiber.StatusCreated,
 		},
 		{
+			name:       "stores workspace relative path",
+			body:       `{"workspace":"proj"}`,
+			wantStatus: fiber.StatusCreated,
+		},
+		{
+			name:       "rejects nested workspace",
+			body:       `{"workspace":"a/b"}`,
+			wantStatus: fiber.StatusBadRequest,
+		},
+		{
+			name:       "rejects missing workspace dir",
+			body:       `{"workspace":"gone"}`,
+			wantStatus: fiber.StatusBadRequest,
+		},
+		{
 			name:       "rejects unknown model",
 			body:       `{"model":"nope","thinking_level":"default"}`,
 			wantStatus: fiber.StatusBadRequest,
@@ -87,6 +106,12 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			active := int(schema.ChatSessionActive)
+			before, countErr := store.ChatStoreFromDB().CountChatSessions(context.Background(), store.ListChatSessionsOptions{
+				UID:   "user-1",
+				State: &active,
+			})
+			require.NoError(t, countErr)
 			var req *http.Request
 			if tt.body == "" {
 				req = httptest.NewRequest("POST", "/chatagent/sessions", http.NoBody)
@@ -98,6 +123,12 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			if tt.wantStatus != fiber.StatusCreated {
+				after, countErr := store.ChatStoreFromDB().CountChatSessions(context.Background(), store.ListChatSessionsOptions{
+					UID:   "user-1",
+					State: &active,
+				})
+				require.NoError(t, countErr)
+				assert.Equal(t, before, after)
 				return
 			}
 			raw, err := io.ReadAll(resp.Body)
@@ -105,6 +136,11 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 			var parsed map[string]string
 			require.NoError(t, sonic.Unmarshal(raw, &parsed))
 			require.NotEmpty(t, parsed["session_id"])
+			if tt.body == `{"workspace":"proj"}` {
+				sess := getTestChatSession(t, parsed["session_id"])
+				assert.Equal(t, "proj", sess.Workspace)
+				return
+			}
 			if tt.wantModel == "" && tt.wantLevel == "" {
 				return
 			}
@@ -170,6 +206,12 @@ func TestChatAgentHTTPSessionSettings(t *testing.T) {
 			body:       `{"model":"gpt-alt","thinking_level":"turbo"}`,
 			wantStatus: fiber.StatusBadRequest,
 		},
+		{
+			name:       "put workspace rejected",
+			method:     http.MethodPut,
+			body:       `{"workspace":"foo"}`,
+			wantStatus: fiber.StatusBadRequest,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -213,6 +255,26 @@ func TestChatAgentHTTPListMessages(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/chatagent/sessions/sess-1/messages", http.NoBody)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+}
+
+func TestChatAgentHTTPListMessagesMissingWorkspace(t *testing.T) {
+	setupChatAgentHTTPTest(t, &gen.ChatSession{
+		Flag: "sess-gone", UID: "user-1", State: int(schema.ChatSessionActive), Workspace: "gone",
+	})
+	h := newChatAgentHTTP(ChatAgentService())
+	app := fiber.New()
+	app.Get("/chatagent/sessions/:id/messages", func(c fiber.Ctx) error {
+		c.Locals("route:ctx", &route.RequestContext{
+			UID:    types.Uid("user-1"),
+			Scopes: []string{auth.ScopeChatAgentChat},
+		})
+		return h.listMessages(c)
+	})
+
+	req := httptest.NewRequest("GET", "/chatagent/sessions/sess-gone/messages", http.NoBody)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)

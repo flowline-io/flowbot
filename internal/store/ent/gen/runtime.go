@@ -740,28 +740,32 @@ func init() {
 	chatsessionDescThinkingLevel := chatsessionFields[7].Descriptor()
 	// chatsession.DefaultThinkingLevel holds the default value on creation for the thinking_level field.
 	chatsession.DefaultThinkingLevel = chatsessionDescThinkingLevel.Default.(string)
+	// chatsessionDescWorkspace is the schema descriptor for workspace field.
+	chatsessionDescWorkspace := chatsessionFields[8].Descriptor()
+	// chatsession.DefaultWorkspace holds the default value on creation for the workspace field.
+	chatsession.DefaultWorkspace = chatsessionDescWorkspace.Default.(string)
 	// chatsessionDescTitle is the schema descriptor for title field.
-	chatsessionDescTitle := chatsessionFields[8].Descriptor()
+	chatsessionDescTitle := chatsessionFields[9].Descriptor()
 	// chatsession.DefaultTitle holds the default value on creation for the title field.
 	chatsession.DefaultTitle = chatsessionDescTitle.Default.(string)
 	// chatsessionDescPreview is the schema descriptor for preview field.
-	chatsessionDescPreview := chatsessionFields[9].Descriptor()
+	chatsessionDescPreview := chatsessionFields[10].Descriptor()
 	// chatsession.DefaultPreview holds the default value on creation for the preview field.
 	chatsession.DefaultPreview = chatsessionDescPreview.Default.(string)
 	// chatsessionDescPinned is the schema descriptor for pinned field.
-	chatsessionDescPinned := chatsessionFields[10].Descriptor()
+	chatsessionDescPinned := chatsessionFields[11].Descriptor()
 	// chatsession.DefaultPinned holds the default value on creation for the pinned field.
 	chatsession.DefaultPinned = chatsessionDescPinned.Default.(bool)
 	// chatsessionDescArchived is the schema descriptor for archived field.
-	chatsessionDescArchived := chatsessionFields[11].Descriptor()
+	chatsessionDescArchived := chatsessionFields[12].Descriptor()
 	// chatsession.DefaultArchived holds the default value on creation for the archived field.
 	chatsession.DefaultArchived = chatsessionDescArchived.Default.(bool)
 	// chatsessionDescCreatedAt is the schema descriptor for created_at field.
-	chatsessionDescCreatedAt := chatsessionFields[12].Descriptor()
+	chatsessionDescCreatedAt := chatsessionFields[13].Descriptor()
 	// chatsession.DefaultCreatedAt holds the default value on creation for the created_at field.
 	chatsession.DefaultCreatedAt = chatsessionDescCreatedAt.Default.(func() time.Time)
 	// chatsessionDescUpdatedAt is the schema descriptor for updated_at field.
-	chatsessionDescUpdatedAt := chatsessionFields[13].Descriptor()
+	chatsessionDescUpdatedAt := chatsessionFields[14].Descriptor()
 	// chatsession.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	chatsession.DefaultUpdatedAt = chatsessionDescUpdatedAt.Default.(func() time.Time)
 	// chatsession.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

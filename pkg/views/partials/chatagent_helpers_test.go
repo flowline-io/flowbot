@@ -363,6 +363,13 @@ func TestChatAgentSessionSettingsLabel(t *testing.T) {
 	}
 }
 
+func TestChatAgentWorkspaceDisplay(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "proj", chatAgentWorkspaceDisplay("proj", "chat-workspace"))
+	assert.Equal(t, "chat-workspace", chatAgentWorkspaceDisplay("", "chat-workspace"))
+	assert.Equal(t, "workspace", chatAgentWorkspaceDisplay("", ""))
+}
+
 func TestClassifyHistoryMessage(t *testing.T) {
 	tests := []struct {
 		name      string

@@ -7,6 +7,12 @@ type SelectableModelOption struct {
 	Multimodal bool
 }
 
+// WorkspaceOption is one first-level workspace directory for the composer picker.
+type WorkspaceOption struct {
+	Value string
+	Label string
+}
+
 // ChatAgentEndpoints carries configurable HTTP paths for chat agent UI components.
 type ChatAgentEndpoints struct {
 	CreateURL          string
@@ -38,6 +44,10 @@ type ChatAgentEndpoints struct {
 	DefaultModel string
 	// DefaultApprovalMode is the effective user/YAML approval mode for new sessions.
 	DefaultApprovalMode string
+	// WorkspaceOptions is the composer picker list (config root plus first-level dirs).
+	WorkspaceOptions []WorkspaceOption
+	// WorkspaceRootLabel is filepath.Base of chat_agent.workspace for empty-rel display.
+	WorkspaceRootLabel string
 }
 
 // ChatAgentPendingConfirm is a tool approval still waiting on the active run.

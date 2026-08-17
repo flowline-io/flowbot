@@ -30,10 +30,13 @@ import (
 func withChatAgentEnabled(t *testing.T, fn func()) {
 	t.Helper()
 	orig := pkgconfig.App.ChatAgent.ChatModel
+	origWS := pkgconfig.App.ChatAgent.Workspace
 	pkgconfig.App.ChatAgent.ChatModel = "test-model"
+	pkgconfig.App.ChatAgent.Workspace = t.TempDir()
 	ensureChatAgentService()
 	t.Cleanup(func() {
 		pkgconfig.App.ChatAgent.ChatModel = orig
+		pkgconfig.App.ChatAgent.Workspace = origWS
 	})
 	fn()
 }
@@ -128,6 +131,7 @@ func TestAgentsPageAuthenticated(t *testing.T) {
 					assert.Contains(t, text, `contenteditable="true"`)
 					assert.Contains(t, text, "chatagent-slash.js")
 					assert.Contains(t, text, `data-testid="chatagent-composer-input"`)
+					assert.Contains(t, text, `data-testid="chatagent-composer-workspace"`)
 				}
 			})
 		})
@@ -500,12 +504,17 @@ func TestAgentsCreateSession(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			orig := pkgconfig.App.ChatAgent.ChatModel
+			origWS := pkgconfig.App.ChatAgent.Workspace
 			if tt.enabled {
 				pkgconfig.App.ChatAgent.ChatModel = "test-model"
+				pkgconfig.App.ChatAgent.Workspace = t.TempDir()
 			} else {
 				pkgconfig.App.ChatAgent.ChatModel = ""
 			}
-			t.Cleanup(func() { pkgconfig.App.ChatAgent.ChatModel = orig })
+			t.Cleanup(func() {
+				pkgconfig.App.ChatAgent.ChatModel = orig
+				pkgconfig.App.ChatAgent.Workspace = origWS
+			})
 
 			ts := &testStore{}
 			app := setupAuthenticatedApp(t, ts)
@@ -527,6 +536,119 @@ func TestAgentsCreateSession(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAgentsCreateSessionWorkspace(t *testing.T) {
+	orig := pkgconfig.App.ChatAgent.ChatModel
+	origWS := pkgconfig.App.ChatAgent.Workspace
+	root := t.TempDir()
+	require.NoError(t, os.Mkdir(filepath.Join(root, "proj"), 0o750))
+	pkgconfig.App.ChatAgent.ChatModel = "test-model"
+	pkgconfig.App.ChatAgent.Workspace = root
+	t.Cleanup(func() {
+		pkgconfig.App.ChatAgent.ChatModel = orig
+		pkgconfig.App.ChatAgent.Workspace = origWS
+	})
+
+	ts := &testStore{}
+	app := setupAuthenticatedApp(t, ts)
+
+	req := httptest.NewRequest(http.MethodPost, "/service/web/agents", strings.NewReader(`{"workspace":"proj"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Cookie", "accessToken=test-token")
+	AttachCSRFForTest(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	var parsed map[string]string
+	require.NoError(t, sonic.Unmarshal(body, &parsed))
+	sess, err := store.ChatStoreFromDB().GetChatSession(context.Background(), parsed["session_id"])
+	require.NoError(t, err)
+	assert.Equal(t, "proj", sess.Workspace)
+
+	put := httptest.NewRequest(http.MethodPut, "/service/web/agents/"+parsed["session_id"]+"/settings", strings.NewReader(`{"workspace":"proj"}`))
+	put.Header.Set("Content-Type", "application/json")
+	put.Header.Set("Cookie", "accessToken=test-token")
+	AttachCSRFForTest(put)
+	putResp, err := app.Test(put)
+	require.NoError(t, err)
+	defer putResp.Body.Close()
+	assert.Equal(t, http.StatusBadRequest, putResp.StatusCode)
+}
+
+func TestAgentsCreateSessionWorkspaceRejected(t *testing.T) {
+	orig := pkgconfig.App.ChatAgent.ChatModel
+	origWS := pkgconfig.App.ChatAgent.Workspace
+	root := t.TempDir()
+	pkgconfig.App.ChatAgent.ChatModel = "test-model"
+	pkgconfig.App.ChatAgent.Workspace = root
+	t.Cleanup(func() {
+		pkgconfig.App.ChatAgent.ChatModel = orig
+		pkgconfig.App.ChatAgent.Workspace = origWS
+	})
+
+	ts := &testStore{}
+	app := setupAuthenticatedApp(t, ts)
+	active := int(schema.ChatSessionActive)
+	countActive := func() int {
+		t.Helper()
+		n, err := store.ChatStoreFromDB().CountChatSessions(context.Background(), store.ListChatSessionsOptions{
+			State: &active,
+		})
+		require.NoError(t, err)
+		return n
+	}
+	before := countActive()
+
+	tests := []struct {
+		name string
+		body string
+	}{
+		{name: "nested path", body: `{"workspace":"a/b"}`},
+		{name: "missing directory", body: `{"workspace":"gone"}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/service/web/agents", strings.NewReader(tt.body))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+			assert.Equal(t, before, countActive())
+		})
+	}
+}
+
+func TestAgentChatPageMissingWorkspaceStillLoads(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		sessionID := "sess-ws-gone"
+		ts := &testStore{chatSessionsByFlag: map[string]*gen.ChatSession{
+			sessionID: {
+				Flag: sessionID, Title: "Gone workspace", UID: "testuser",
+				State: int(schema.ChatSessionActive), Workspace: "gone",
+				UpdatedAt: now, CreatedAt: now,
+			},
+		}}
+		app := setupAuthenticatedApp(t, ts)
+
+		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/"+sessionID, http.NoBody)
+		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "chatagent-thread")
+	})
 }
 
 func withChatAgentContextConfig(t *testing.T) {

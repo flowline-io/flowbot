@@ -78,10 +78,11 @@ func TestScheduledRunPermissionOverlay(t *testing.T) {
 
 			reg := hooks.NewRegistry()
 			RegisterHooks(reg, ChatHookDeps{
-				SessionID: sessionID,
-				UID:       types.Uid("user-1"),
-				Kind:      tt.kind,
-				Service:   svc,
+				SessionID:     sessionID,
+				UID:           types.Uid("user-1"),
+				Kind:          tt.kind,
+				Service:       svc,
+				WorkspaceRoot: root,
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},

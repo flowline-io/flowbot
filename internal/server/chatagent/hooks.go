@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/loopdetect"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -27,6 +26,8 @@ type ChatHookDeps struct {
 	UID         types.Uid
 	SessionMode string
 	Kind        RunKind
+	// WorkspaceRoot is the absolute effective workspace for this run (session subdirectory or config root).
+	WorkspaceRoot string
 	// Service owns hot-path session state (permission sessions). Required for permission grants.
 	Service *Service
 	// Publisher is the SSE publisher when known at harness build time.
@@ -62,9 +63,9 @@ func RegisterHooks(reg *hooks.Registry, deps ChatHookDeps) {
 	registerLoopDetectHooks(reg, deps)
 	registerDCGHook(reg, deps)
 	registerPermissionHook(reg, deps)
-	registerPathSensors(reg)
+	registerPathSensors(reg, deps.WorkspaceRoot)
 	registerLintSensor(reg)
-	registerProgressHooks(reg)
+	registerProgressHooks(reg, deps.WorkspaceRoot)
 
 	hooks.Observe(reg, func(ctx context.Context, event hooks.ObservationEvent) error {
 		switch event.Type {
@@ -166,7 +167,7 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 		}
 		switch mode {
 		case approval.ModeOff:
-			return handleOffApproval(ctx, uid, event)
+			return handleOffApproval(ctx, deps, uid, event)
 		case approval.ModeAuto:
 			return handleAutoApproval(ctx, deps, uid, event)
 		default:
@@ -190,7 +191,7 @@ func handleManualPermission(
 		cfg = permission.Merge(cfg, permission.ScheduledRunOverlay())
 	}
 	evaluator := permission.NewEvaluator(cfg)
-	workspaceRoot := config.App.ChatAgent.Workspace
+	workspaceRoot := deps.WorkspaceRoot
 	externalPath := detectExternalPath(event, workspaceRoot)
 
 	if deps.Service == nil {
@@ -208,8 +209,8 @@ func handleManualPermission(
 	return evaluatePermissionResult(ctx, deps, event, result, sessionState)
 }
 
-func handleOffApproval(ctx context.Context, uid types.Uid, event hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
-	block, _, err := evaluateDenyOnlyGate(ctx, uid, event)
+func handleOffApproval(ctx context.Context, deps ChatHookDeps, uid types.Uid, event hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
+	block, _, err := evaluateDenyOnlyGate(ctx, uid, event, deps.WorkspaceRoot)
 	return block, err
 }
 
@@ -219,7 +220,7 @@ func handleAutoApproval(
 	uid types.Uid,
 	event hooks.ToolCallEvent,
 ) (*hooks.ToolCallResult, error) {
-	block, req, err := evaluateDenyOnlyGate(ctx, uid, event)
+	block, req, err := evaluateDenyOnlyGate(ctx, uid, event, deps.WorkspaceRoot)
 	if err != nil || block != nil {
 		return block, err
 	}
@@ -280,13 +281,13 @@ func evaluateDenyOnlyGate(
 	ctx context.Context,
 	uid types.Uid,
 	event hooks.ToolCallEvent,
+	workspaceRoot string,
 ) (*hooks.ToolCallResult, permission.Request, error) {
 	cfg, err := LoadUserPermissions(ctx, uid)
 	if err != nil {
 		return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, permission.Request{}, nil
 	}
 	evaluator := permission.NewEvaluator(cfg)
-	workspaceRoot := config.App.ChatAgent.Workspace
 	req := permission.Request{
 		Tool:          event.ToolCall.Name,
 		Args:          event.Args,

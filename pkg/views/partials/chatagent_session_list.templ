@@ -47,6 +47,11 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 						!chatAgentModelMultimodal(endpoints.SelectableModels, endpoints.DefaultModel),
 						disabled,
 					)
+					@ChatAgentWorkspaceSelect(
+						"chatagent-composer-workspace",
+						endpoints.WorkspaceOptions,
+						disabled,
+					)
 					@ChatAgentSettingsCluster(
 						"chatagent-composer-model",
 						"chatagent-composer-thinking",

@@ -16,7 +16,8 @@ import (
 )
 
 // registerPathSensors adds PostToolUse workspace path verification for coding tools.
-func registerPathSensors(reg *hooks.Registry) {
+func registerPathSensors(reg *hooks.Registry, workspaceRoot string) {
+	workspaceRoot = strings.TrimSpace(workspaceRoot)
 	hooks.OnToolResult(reg, func(_ context.Context, event hooks.ToolResultEvent) (*hooks.ToolResultResult, error) {
 		switch event.ToolCall.Name {
 		case "write_file", "read_file", "run_code", "list_dir", "glob_files", "grep_files", "apply_patch":
@@ -26,7 +27,6 @@ func registerPathSensors(reg *hooks.Registry) {
 		if event.Result.IsError {
 			return nil, nil
 		}
-		workspaceRoot := strings.TrimSpace(config.App.ChatAgent.Workspace)
 		if workspaceRoot == "" {
 			return nil, nil
 		}
@@ -49,7 +49,7 @@ func pathSensorError(toolName, pathArg string) *hooks.ToolResultResult {
 	text := tool.FormatToolError(
 		"path_escape",
 		fmt.Sprintf("tool %s path %q is outside the workspace", toolName, pathArg),
-		"use a relative path inside the configured chat_agent.workspace",
+		"use a relative path inside the session workspace",
 	)
 	isErr := true
 	return &hooks.ToolResultResult{

@@ -57,7 +57,11 @@ func TestRegisterHooksLintSensor(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			config.App.ChatAgent.Sensors.LintOnWrite = tt.lintOnWrite
 			reg := hooks.NewRegistry()
-			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{SessionID: "lint-test", Service: chatagent.NewService()})
+			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
+				SessionID:     "lint-test",
+				Service:       chatagent.NewService(),
+				WorkspaceRoot: config.App.ChatAgent.Workspace,
+			})
 			cfg := hooks.BridgeConfig(context.Background(), reg, msg.Config{})
 			require.NotNil(t, cfg.AfterToolCall)
 			result, err := cfg.AfterToolCall(msg.AfterToolContext{
@@ -107,7 +111,10 @@ func TestRegisterHooksPathSensor(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			reg := hooks.NewRegistry()
-			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{SessionID: "s1"})
+			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
+				SessionID:     "s1",
+				WorkspaceRoot: config.App.ChatAgent.Workspace,
+			})
 			cfg := hooks.BridgeConfig(context.Background(), reg, msg.Config{})
 			require.NotNil(t, cfg.AfterToolCall)
 			result, err := cfg.AfterToolCall(msg.AfterToolContext{
@@ -125,6 +132,10 @@ func TestRegisterHooksPathSensor(t *testing.T) {
 			require.NotNil(t, result)
 			require.NotNil(t, result.IsError)
 			assert.True(t, *result.IsError)
+			require.NotEmpty(t, result.Parts)
+			part, ok := result.Parts[0].(msg.TextPart)
+			require.True(t, ok)
+			assert.Contains(t, part.Text, "session workspace")
 		})
 	}
 }

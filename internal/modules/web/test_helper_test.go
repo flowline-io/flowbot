@@ -732,6 +732,7 @@ func syncTestChatSession(t *testing.T, client *gen.Client, sess *gen.ChatSession
 		SetMode(row.Mode).
 		SetModel(row.Model).
 		SetThinkingLevel(row.ThinkingLevel).
+		SetWorkspace(row.Workspace).
 		SetTitle(row.Title).
 		SetPreview(row.Preview).
 		SetPinned(row.Pinned).

@@ -7,6 +7,7 @@
   var COMPOSER_MODEL_KEY = 'flowbot-chatagent-composer:model';
   var COMPOSER_THINKING_KEY = 'flowbot-chatagent-composer:thinking';
   var COMPOSER_APPROVAL_KEY = 'flowbot-chatagent-composer:approval';
+  var COMPOSER_WORKSPACE_KEY = 'flowbot-chatagent-composer:workspace';
   var MAX_ATTACHMENTS = 8;
 
   function pendingKey(sessionID) {
@@ -395,6 +396,7 @@
     var modelSel = root.querySelector('#chatagent-composer-model');
     var thinkingSel = root.querySelector('#chatagent-composer-thinking');
     var approvalSel = root.querySelector('#chatagent-composer-approval');
+    var workspaceSel = root.querySelector('#chatagent-composer-workspace');
     var errorEl = root.querySelector('#chatagent-composer-error');
     var settingsEl = root.querySelector('[data-testid="chatagent-settings"]');
     if (!createURL || !detailTemplate || !input || !startBtn) {
@@ -437,6 +439,18 @@
         lsSet(COMPOSER_APPROVAL_KEY, approvalSel.value);
       });
     }
+    if (workspaceSel) {
+      var savedWorkspace = lsGet(COMPOSER_WORKSPACE_KEY);
+      if (savedWorkspace !== null && savedWorkspace !== undefined) {
+        workspaceSel.value = savedWorkspace;
+        if (workspaceSel.value !== savedWorkspace) {
+          workspaceSel.selectedIndex = 0;
+        }
+      }
+      workspaceSel.addEventListener('change', function () {
+        lsSet(COMPOSER_WORKSPACE_KEY, workspaceSel.value);
+      });
+    }
 
     var queue = createAttachmentQueue({
       pendingEl: root.querySelector('#chatagent-composer-pending'),
@@ -467,6 +481,7 @@
           thinkingSel && thinkingSel.value ? thinkingSel.value : 'default',
         approval_mode:
           approvalSel && approvalSel.value ? approvalSel.value : 'manual',
+        workspace: workspaceSel ? workspaceSel.value : '',
       };
       var localAtts = queue.list.slice();
 

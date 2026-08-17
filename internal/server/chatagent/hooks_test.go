@@ -77,7 +77,7 @@ func TestRegisterHooksObservesEvents(t *testing.T) {
 				calls.Add(1)
 				return nil
 			})
-			RegisterHooks(reg, ChatHookDeps{SessionID: "sess-1"})
+			RegisterHooks(reg, ChatHookDeps{SessionID: "sess-1", WorkspaceRoot: t.TempDir()})
 			reg.EmitObservation(context.Background(), tt.event, nil)
 			assert.Equal(t, tt.wantCalls, calls.Load())
 		})

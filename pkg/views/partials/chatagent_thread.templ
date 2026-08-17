@@ -46,6 +46,9 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 					<p id="chatagent-session-model-label" class="text-xs text-base-content/50 mt-0.5 truncate" data-testid="chatagent-session-model-label">
 						{ chatAgentSessionSettingsLabel(session, endpoints.DefaultModel) }
 					</p>
+					<p class="text-xs text-base-content/50 mt-0.5 truncate" data-testid="chatagent-thread-workspace">
+						Workspace: { chatAgentWorkspaceDisplay(session.Workspace, endpoints.WorkspaceRootLabel) }
+					</p>
 					if endpoints.TrajectoryURL != "" {
 						<div class="chatagent-view-toggle mt-2 flex gap-1" data-testid="chatagent-view-toggle" role="tablist" aria-label="Session view">
 							<button

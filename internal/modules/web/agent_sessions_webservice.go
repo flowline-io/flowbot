@@ -213,6 +213,7 @@ func mapAgentSession(row *gen.ChatSession) model.AgentSession {
 		State:         chatSessionStateLabel(row.State),
 		Model:         row.Model,
 		ThinkingLevel: row.ThinkingLevel,
+		Workspace:     row.Workspace,
 		Preview:       row.Preview,
 		Pinned:        row.Pinned,
 		Archived:      row.Archived,

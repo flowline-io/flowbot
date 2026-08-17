@@ -31,6 +31,8 @@ type ChatSession struct {
 	Model string `json:"model,omitempty"`
 	// ThinkingLevel holds the value of the "thinking_level" field.
 	ThinkingLevel string `json:"thinking_level,omitempty"`
+	// Workspace holds the value of the "workspace" field.
+	Workspace string `json:"workspace,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Preview holds the value of the "preview" field.
@@ -55,7 +57,7 @@ func (*ChatSession) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case chatsession.FieldID, chatsession.FieldState:
 			values[i] = new(sql.NullInt64)
-		case chatsession.FieldFlag, chatsession.FieldUID, chatsession.FieldLeafID, chatsession.FieldMode, chatsession.FieldModel, chatsession.FieldThinkingLevel, chatsession.FieldTitle, chatsession.FieldPreview:
+		case chatsession.FieldFlag, chatsession.FieldUID, chatsession.FieldLeafID, chatsession.FieldMode, chatsession.FieldModel, chatsession.FieldThinkingLevel, chatsession.FieldWorkspace, chatsession.FieldTitle, chatsession.FieldPreview:
 			values[i] = new(sql.NullString)
 		case chatsession.FieldCreatedAt, chatsession.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -121,6 +123,12 @@ func (_m *ChatSession) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field thinking_level", values[i])
 			} else if value.Valid {
 				_m.ThinkingLevel = value.String
+			}
+		case chatsession.FieldWorkspace:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field workspace", values[i])
+			} else if value.Valid {
+				_m.Workspace = value.String
 			}
 		case chatsession.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -214,6 +222,9 @@ func (_m *ChatSession) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("thinking_level=")
 	builder.WriteString(_m.ThinkingLevel)
+	builder.WriteString(", ")
+	builder.WriteString("workspace=")
+	builder.WriteString(_m.Workspace)
 	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(_m.Title)

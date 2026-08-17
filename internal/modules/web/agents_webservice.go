@@ -82,6 +82,8 @@ func agentsEndpointsWithFilter(filter string, uid types.Uid, pendingCount int) p
 		SelectableModels:     selectableModelOptions(),
 		DefaultModel:         pkgconfig.ChatAgentChatModel(),
 		DefaultApprovalMode:  webApprovalDefault(uid),
+		WorkspaceOptions:     workspaceOptions(),
+		WorkspaceRootLabel:   chatagent.ConfigWorkspaceRootLabel(),
 	}
 }
 
@@ -133,6 +135,7 @@ func agentChatEndpoints(sessionID string, uid types.Uid) partials.ChatAgentEndpo
 		SelectableModels:    selectableModelOptions(),
 		DefaultModel:        pkgconfig.ChatAgentChatModel(),
 		DefaultApprovalMode: webApprovalDefault(uid),
+		WorkspaceRootLabel:  chatagent.ConfigWorkspaceRootLabel(),
 	}
 }
 
@@ -156,6 +159,15 @@ func selectableModelOptions() []partials.SelectableModelOption {
 	opts := make([]partials.SelectableModelOption, len(models))
 	for i, m := range models {
 		opts[i] = partials.SelectableModelOption{ID: m.ID, Name: m.Name, Multimodal: m.Multimodal}
+	}
+	return opts
+}
+
+func workspaceOptions() []partials.WorkspaceOption {
+	choices := chatagent.ListWorkspaceChoices()
+	opts := make([]partials.WorkspaceOption, len(choices))
+	for i, c := range choices {
+		opts[i] = partials.WorkspaceOption{Value: c.Value, Label: c.Label}
 	}
 	return opts
 }
@@ -249,15 +261,23 @@ func agentsCreate(ctx fiber.Ctx) error {
 		Model         string `json:"model"`
 		ThinkingLevel string `json:"thinking_level"`
 		ApprovalMode  string `json:"approval_mode"`
+		Workspace     string `json:"workspace"`
 	}
 	if len(ctx.Body()) > 0 {
 		if err := sonic.Unmarshal(ctx.Body(), &body); err != nil {
 			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 		}
 	}
+	if _, err := chatagent.ValidateWorkspaceRel(body.Workspace); err != nil {
+		return chatAgentSettingsJSONError(ctx, err)
+	}
 	sessionID := types.Id()
 	if err := chatagent.CreateSession(ctx.Context(), uid, sessionID); err != nil {
 		return types.Errorf(types.ErrInternal, "create session: %v", err)
+	}
+	if err := chatagent.ApplyCreateWorkspace(ctx.Context(), sessionID, body.Workspace); err != nil {
+		chatagent.AbortCreatedSession(ctx.Context(), sessionID)
+		return chatAgentSettingsJSONError(ctx, err)
 	}
 	if body.Model != "" || body.ThinkingLevel != "" || body.ApprovalMode != "" {
 		s := chatagent.SessionSettings{
@@ -266,6 +286,7 @@ func agentsCreate(ctx fiber.Ctx) error {
 			ApprovalMode:  body.ApprovalMode,
 		}
 		if err := chatagent.SetSessionSettings(ctx.Context(), sessionID, s); err != nil {
+			chatagent.AbortCreatedSession(ctx.Context(), sessionID)
 			return chatAgentSettingsJSONError(ctx, err)
 		}
 	}
@@ -314,6 +335,9 @@ func agentChatPutSettings(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "put settings: %v", err)
 	}
 	var body chatagent.SessionSettings
+	if err := chatagent.RejectSettingsWorkspaceField(ctx.Body()); err != nil {
+		return chatAgentSettingsJSONError(ctx, err)
+	}
 	if err := sonic.Unmarshal(ctx.Body(), &body); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 	}
@@ -703,7 +727,7 @@ func agentChatContext(ctx fiber.Ctx) error {
 	}
 	report, err := chatagent.BuildContextUsageReport(ctx.Context(), sessionID)
 	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return chatAgentSettingsJSONError(ctx, err)
 	}
 	return ctx.JSON(report)
 }

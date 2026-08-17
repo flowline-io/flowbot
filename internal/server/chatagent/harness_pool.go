@@ -132,7 +132,7 @@ func applySessionMode(ctx context.Context, h *harness.Harness, req RunRequest) (
 	})
 	h.SetActiveTools(activeSubagentTools(scopedTools, req.Skills))
 
-	workspace, err := WorkspaceFromConfig()
+	workspace, err := WorkspaceForSession(ctx, req.SessionID)
 	if err != nil {
 		return promptTrace{}, err
 	}
@@ -160,7 +160,7 @@ type builtHarness struct {
 }
 
 func (s *Service) refreshPooledHarness(ctx context.Context, req RunRequest, entry *pooledHarness, textLen int) (*pooledHarness, error) {
-	workspace, err := WorkspaceFromConfig()
+	workspace, err := WorkspaceForSession(ctx, req.SessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +256,7 @@ func sandboxAccessTokenFingerprint(token string) string {
 }
 
 func (s *Service) buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHarness, error) {
-	workspace, err := WorkspaceFromConfig()
+	workspace, err := WorkspaceForSession(ctx, req.SessionID)
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] workspace config session=%s: %w", req.SessionID, err))
 		return nil, err
@@ -325,13 +325,14 @@ func (s *Service) buildRunHarness(ctx context.Context, req RunRequest, textLen i
 	}
 	hookRegistry := hooks.NewRegistry()
 	RegisterHooks(hookRegistry, ChatHookDeps{
-		SessionID:   req.SessionID,
-		UID:         uid,
-		SessionMode: LoadSessionMode(ctx, req.SessionID),
-		Kind:        kind,
-		Service:     s,
-		Publisher:   publisher,
-		Confirm:     confirm,
+		SessionID:     req.SessionID,
+		UID:           uid,
+		SessionMode:   LoadSessionMode(ctx, req.SessionID),
+		Kind:          kind,
+		WorkspaceRoot: workspace.Root,
+		Service:       s,
+		Publisher:     publisher,
+		Confirm:       confirm,
 	})
 
 	configHash, err := harnessConfigHash(workspace)

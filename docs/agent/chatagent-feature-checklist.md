@@ -34,8 +34,8 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | ID | Behavior | Entry | Edge cases | Tests |
 | -- | -------- | ----- | ---------- | ----- |
 | R-01 | Agent info | `GET /chatagent/info` | Disabled → 503 | `chatagent_http_test.go`, BDD chat HTTP |
-| R-02 | List / create / close sessions | `GET\|POST /chatagent/sessions`, `DELETE …/:id` | Closed → not found for owner ops | unit + `chat_agent_chat_spec_test.go` |
-| R-03 | List messages / plans / todos | `GET …/messages`, `GET …/plans`, `GET …/todos` | Empty history; user rows may include `attachments[]` | unit HTTP tests |
+| R-02 | List / create / close sessions | `GET\|POST /chatagent/sessions`, `DELETE …/:id` | Closed → not found for owner ops; create body `workspace` (empty = config root, one first-level subdir); nested / hidden / missing dir → 400 and no leftover active session | unit + `chat_agent_chat_spec_test.go` |
+| R-03 | List messages / plans / todos | `GET …/messages`, `GET …/plans`, `GET …/todos` | Empty history; user rows may include `attachments[]`; missing session workspace dir still lists history | unit HTTP tests |
 | R-03a | Session trajectory | `GET …/trajectory` | Old sessions omit SYSTEM/CONTEXT when no `turn_trace`; owner 404/403 same as messages | `trajectory_test.go`, `chatagent_http_test.go` |
 | R-04 | Send message (full SSE stream) | `POST …/messages` JSON `{text, attachments?}` | Empty text **and** no attachments → 400; run in flight 409; max 8 attachments; MIME allowlist; model missing modality → 400; `turn_trace` is primary-channel only (not `/events`) | `chat_agent_chat_spec_test.go`, multimodal unit tests, `protocol_test.go` |
 | R-04a | Upload session media | `POST …/media` multipart | Strict MIME allowlist; binds `(session_id, owner)`; requires media public base when FS signing needed | media upload tests |
@@ -46,27 +46,27 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | R-08 | Clear session permission grants | `DELETE …/permission-grants` | | permission session tests |
 | R-09 | Permissions get/put/delete | `GET\|PUT\|DELETE /chatagent/permissions` | Invalid config | HTTP + permission tests |
 | R-09a | Approval mode get/put/delete | `GET\|PUT\|DELETE /chatagent/approval` | Invalid mode | approval store/API + hook mode matrix |
-| R-10 | Context usage / compact | `GET …/context`, `POST …/compact` | Compaction no-op | context_usage tests, agents page context |
+| R-10 | Context usage / compact | `GET …/context`, `POST …/compact` | Compaction no-op; missing session workspace dir → 400 (no fallback to config root) | context_usage tests, agents page context |
 | R-11 | Export session | `GET …/export` | | export tests |
 | R-12 | Resolve resource URI | `GET /chatagent/resources` | `plan://`, `file://` | `chat_agent_spec_test.go` resources It |
 | R-13 | Scheduled tasks CRUD + runs | `/chatagent/scheduled-tasks…` | One-shot complete; cancel | `scheduled_api_test.go`, `chat_agent_scheduled_task_spec_test.go` |
-| R-14 | Session model / thinking settings | `GET\|PUT …/settings`; create body `model` / `thinking_level`; `AgentInfo.selectable_models` | Unknown model / invalid level → 400; empty fields → runtime yaml/`default` | `settings_test.go`, `chatagent_http_test.go` |
+| R-14 | Session model / thinking settings | `GET\|PUT …/settings`; create body `model` / `thinking_level` / `workspace`; `AgentInfo.selectable_models` | Unknown model / invalid level → 400; empty fields → runtime yaml/`default`; PUT `workspace` → 400 (immutable after create) | `settings_test.go`, `chatagent_http_test.go` |
 
 ## 3. Web chat UI (`/service/web/agents/*`)
 
 | ID | Behavior | Entry | Edge cases | Tests |
 | -- | -------- | ----- | ---------- | ----- |
-| W-01 | Agents home: composer + session list | `GET /service/web/agents` | Unauthenticated → login | `agents_page_spec_test.go` |
+| W-01 | Agents home: composer + session list | `GET /service/web/agents` | Unauthenticated → login; composer workspace options SSR from config root + first-level non-hidden subdirs | `agents_page_spec_test.go` |
 | W-01a | Session list: auto title, last-message preview, day groups, pin/archive, status filters | `GET /service/web/agents/list?filter=`; `POST\|DELETE …/:id/pin\|archive` | Default hides archived; running / needs_approval from runtime gates | `agents_webservice_test.go`, helpers/day-group unit tests |
-| W-02 | Create session (+ optional pending prompt) | `POST /service/web/agents` | `?prompt=` / sessionStorage pending key | agents page + JS pending prompt |
-| W-03 | Chat page hydrate history | `GET /service/web/agents/:id` | Closed session | agents page |
+| W-02 | Create session (+ optional pending prompt) | `POST /service/web/agents` | `?prompt=` / sessionStorage pending key; create body `workspace` (empty = config root); nested / hidden / missing dir → 400 and no leftover active session | agents page + JS pending prompt; `agents_webservice_test.go` |
+| W-03 | Chat page hydrate history | `GET /service/web/agents/:id` | Closed session; missing session workspace dir still renders history | agents page |
 | W-04 | Send message / cancel / confirm | Web posts under `/agents/:id/…` | Approval once/always/reject; reopen page replays pending confirm; `run_complete` reloads history; empty text OK when attachments present | chat BDD helpers; unit confirm; pending SSR |
 | W-04a | Composer media (upload + paste image) | Two-step: upload media then send with `file_id`s | MIME allowlist; max 8; modality Reject / missing `public_base_url` surfaced in UI | `chatagent-chat.js` + media unit/HTTP tests |
 | W-05 | Context ring + popover | `GET …/context` + JS | Token window zero; Skills list collapsed until opened | `agents_page_spec_test.go` context It |
 | W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert; tool/thinking collapse; codeblock chrome; jump-to-bottom | chat BDD stream done; `chatagent_message_test.go` |
 | W-10 | Trajectory view | Chat \| Trajectory on the thread; `GET …/trajectory`; Duration gantt + Preview/Raw inspector | `?view=trajectory`; composer stays; no SYSTEM/CONTEXT without `turn_trace`; `thread.js` forwards `turn_trace` SSE | `agents_page_spec_test.go`, `chatagent_message_test.go`, `agents_webservice_test.go` |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
-| W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model | agents page + `chatagent-chat.js` |
+| W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model; workspace picker is create-time only (thread shows read-only label; PUT `workspace` → 400) | agents page + `chatagent-chat.js` |
 | W-09 | Approval flow UX | Nav/Home pending-approval badge; docked session approval bar; Allow once / Always allow matching copy | Badge count from runtime gates; always button only when pattern suggested; auto-mode escalate hides Always | `session_activity_test.go`, helpers/home/message unit tests; `GET /service/web/approval-badge` |
 | W-09d | Auto approval mode | Permissions page mode selector; flagged tools reviewed by aux LLM; deny circuit breaker | Autonomous ignores auto; reviewer fail → escalate | `pkg/agent/approval`, `approval_hook_test.go` |
 | W-09e | Tool loop detection | `chat_agent.loop_detection`; generic/no-progress/ping-pong warn→block via `doom_loop`; global + post-compaction Terminate | Blocked calls not recorded; overflow-retry compaction arms post-compaction only | `pkg/agent/loopdetect`, `loopdetect_hook_test.go` |
@@ -100,7 +100,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | O-01 | Interactive `Service.Run` / `RunAPI` | `service.go` | Session lock; harness pool reuse | `service_test.go`, BDD |
 | O-02 | Plan mode blocks writes until confirm/normal | mode + permission hooks | Return to normal allows write | `chat_agent_spec_test.go` plan It |
 | O-03 | Confirm gate (once / always / reject) | `confirm.go` | Pattern suggest | confirm tests + BDD |
-| O-04 | Harness pool TTL / config hash refresh | `harness_pool.go` | Evict on close/abort | harness-related tests |
+| O-04 | Harness pool TTL / config hash refresh | `harness_pool.go` | Evict on close/abort; missing session workspace dir hard-fails harness create (no fallback to config root) | harness-related tests |
 | O-05 | Session title generation | `title.go` | LLM disabled for tests; media-only turns use `[image]`/`[audio]`/`[video]` placeholders | `title_test.go`, BDD title wait helpers |
 | O-05a | Multimodal user turns | `RunRequest.Attachments` → `MediaPart` (file_id); provider-aware URL or Binary hydrate | Session-scoped ownership; re-sign/hydrate per run; tool-model strip media parts | transform + service multimodal tests |
 | O-06 | Manual + automatic compaction | `CompactSession`, ctxmgr | | compaction / context tests |
@@ -139,7 +139,7 @@ Use after each vertical slice and before freeze sign-off.
 13. Title: first user message eventually updates session title (or test-disabled path).
 14. REST smoke: `POST /chatagent/sessions/:id/messages` SSE reaches `done`; `GET …/events` receives hub events when a run publishes.
 15. Multimodal: upload an image via `POST …/media`, send with attachments (optional empty text) on a vision-capable model; history shows attachment; audio/video on unmarked models returns 400.
-16. Trajectory: open a session, switch Chat | Trajectory (`?view=trajectory`); after a turn, SYSTEM/CONTEXT match the injection; Duration gantt shows Input/Model/Tools; inspector Preview/Raw on a row.
+17. Workspace: create a session from a first-level subdirectory on the composer picker; thread shows a read-only workspace label; changing it via settings is rejected. Delete that subdirectory and confirm history still loads while a new run fails.
 
 ---
 

@@ -98,13 +98,14 @@ func TestAutoApprovalHook(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			reg := hooks.NewRegistry()
 			deps := ChatHookDeps{
-				SessionID:    "auto-hook-test",
-				UID:          uid,
-				Service:      NewService(),
-				DCG:          dcg.AllowAllChecker{},
-				Reviewer:     tt.reviewer,
-				ApprovalMode: approval.ModeAuto,
-				Breaker:      approval.NewBreaker(3),
+				SessionID:     "auto-hook-test",
+				UID:           uid,
+				Service:       NewService(),
+				DCG:           dcg.AllowAllChecker{},
+				Reviewer:      tt.reviewer,
+				ApprovalMode:  approval.ModeAuto,
+				Breaker:       approval.NewBreaker(3),
+				WorkspaceRoot: config.App.ChatAgent.Workspace,
 			}
 			if tt.confirm {
 				pub := NewChannelPublisher(8)
@@ -145,13 +146,14 @@ func TestAutoApprovalBreakerLatches(t *testing.T) {
 	reg := hooks.NewRegistry()
 	breaker := approval.NewBreaker(2)
 	deps := ChatHookDeps{
-		SessionID:    "breaker-test",
-		UID:          types.Uid("u1"),
-		Service:      NewService(),
-		DCG:          dcg.AllowAllChecker{},
-		Reviewer:     fixedReviewer{result: approval.ReviewResult{Verdict: approval.VerdictDeny, Reason: "no"}},
-		ApprovalMode: approval.ModeAuto,
-		Breaker:      breaker,
+		SessionID:     "breaker-test",
+		UID:           types.Uid("u1"),
+		Service:       NewService(),
+		DCG:           dcg.AllowAllChecker{},
+		Reviewer:      fixedReviewer{result: approval.ReviewResult{Verdict: approval.VerdictDeny, Reason: "no"}},
+		ApprovalMode:  approval.ModeAuto,
+		Breaker:       breaker,
+		WorkspaceRoot: config.App.ChatAgent.Workspace,
 	}
 	RegisterHooks(reg, deps)
 	event := hooks.ToolCallEvent{
@@ -177,13 +179,14 @@ func TestAutoApprovalBreakerIgnoresEscalateWithoutGate(t *testing.T) {
 	reg := hooks.NewRegistry()
 	breaker := approval.NewBreaker(2)
 	deps := ChatHookDeps{
-		SessionID:    "breaker-escalate",
-		UID:          types.Uid("u1"),
-		Service:      NewService(),
-		DCG:          dcg.AllowAllChecker{},
-		Reviewer:     fixedReviewer{err: assert.AnError},
-		ApprovalMode: approval.ModeAuto,
-		Breaker:      breaker,
+		SessionID:     "breaker-escalate",
+		UID:           types.Uid("u1"),
+		Service:       NewService(),
+		DCG:           dcg.AllowAllChecker{},
+		Reviewer:      fixedReviewer{err: assert.AnError},
+		ApprovalMode:  approval.ModeAuto,
+		Breaker:       breaker,
+		WorkspaceRoot: config.App.ChatAgent.Workspace,
 	}
 	RegisterHooks(reg, deps)
 	event := hooks.ToolCallEvent{
@@ -204,11 +207,12 @@ func TestOffApprovalDeniesEnv(t *testing.T) {
 	setupApprovalHookTest(t)
 	reg := hooks.NewRegistry()
 	RegisterHooks(reg, ChatHookDeps{
-		SessionID:    "off-test",
-		UID:          types.Uid("u1"),
-		Service:      NewService(),
-		DCG:          dcg.AllowAllChecker{},
-		ApprovalMode: approval.ModeOff,
+		SessionID:     "off-test",
+		UID:           types.Uid("u1"),
+		Service:       NewService(),
+		DCG:           dcg.AllowAllChecker{},
+		ApprovalMode:  approval.ModeOff,
+		WorkspaceRoot: config.App.ChatAgent.Workspace,
 	})
 	result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 		ToolCall: msg.ToolCallPart{Name: permission.ToolReadFile},
@@ -224,13 +228,14 @@ func TestAutonomousIgnoresAutoMode(t *testing.T) {
 	setupApprovalHookTest(t)
 	reg := hooks.NewRegistry()
 	RegisterHooks(reg, ChatHookDeps{
-		SessionID:    "auto-sched",
-		UID:          types.Uid("u1"),
-		Service:      NewService(),
-		Kind:         RunKindScheduled,
-		DCG:          dcg.AllowAllChecker{},
-		Reviewer:     fixedReviewer{result: approval.ReviewResult{Verdict: approval.VerdictApprove}},
-		ApprovalMode: approval.ModeAuto,
+		SessionID:     "auto-sched",
+		UID:           types.Uid("u1"),
+		Service:       NewService(),
+		Kind:          RunKindScheduled,
+		DCG:           dcg.AllowAllChecker{},
+		Reviewer:      fixedReviewer{result: approval.ReviewResult{Verdict: approval.VerdictApprove}},
+		ApprovalMode:  approval.ModeAuto,
+		WorkspaceRoot: config.App.ChatAgent.Workspace,
 	})
 	result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 		ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
@@ -257,11 +262,12 @@ func TestPlatformRunUsesResolvedApprovalMode(t *testing.T) {
 		t.Helper()
 		reg := hooks.NewRegistry()
 		RegisterHooks(reg, ChatHookDeps{
-			SessionID: sessionID,
-			UID:       uid,
-			Service:   NewService(),
-			Kind:      RunKindInteractive,
-			DCG:       dcg.AllowAllChecker{},
+			SessionID:     sessionID,
+			UID:           uid,
+			Service:       NewService(),
+			Kind:          RunKindInteractive,
+			DCG:           dcg.AllowAllChecker{},
+			WorkspaceRoot: config.App.ChatAgent.Workspace,
 			// No ApprovalMode, no Confirm — same as runChatAgent / Slack.
 		})
 		result, err := reg.EmitToolCall(ctx, hooks.ToolCallEvent{

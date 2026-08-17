@@ -25,6 +25,8 @@ func (ChatSession) Fields() []ent.Field {
 		field.String("mode").Default(string(ChatSessionModeNormal)),
 		field.String("model").Default(""),
 		field.String("thinking_level").Default(""),
+		// Workspace is a path relative to chat_agent.workspace (empty = config root).
+		field.String("workspace").Default(""),
 		field.String("title").Default(""),
 		field.String("preview").Default(""),
 		field.Bool("pinned").Default(false),

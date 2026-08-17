@@ -48,7 +48,8 @@ func (s *ChatStore) CreateChatSession(ctx context.Context, session *gen.ChatSess
 		SetFlag(session.Flag).
 		SetUID(session.UID).
 		SetLeafID(session.LeafID).
-		SetState(session.State)
+		SetState(session.State).
+		SetWorkspace(session.Workspace)
 	if !session.CreatedAt.IsZero() {
 		builder = builder.SetCreatedAt(session.CreatedAt)
 	}
@@ -187,6 +188,22 @@ func (s *ChatStore) UpdateChatSessionSettings(ctx context.Context, flag, modelNa
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: update chat session settings: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+// UpdateChatSessionWorkspace sets the session workspace relative path (create-time only).
+func (s *ChatStore) UpdateChatSessionWorkspace(ctx context.Context, flag, workspace string) error {
+	n, err := s.client.ChatSession.Update().
+		Where(chatsession.FlagEQ(flag)).
+		SetWorkspace(workspace).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat session workspace: %w", err)
 	}
 	if n == 0 {
 		return types.ErrNotFound

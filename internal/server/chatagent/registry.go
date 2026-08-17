@@ -1,12 +1,6 @@
 package chatagent
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
-
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
 	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
 	agentnotify "github.com/flowline-io/flowbot/internal/server/chatagent/tools/notify"
@@ -160,39 +154,9 @@ func omitToolNames(names []string, drop ...string) []string {
 	return out
 }
 
-// WorkspaceFromConfig resolves workspace settings from application config.
+// WorkspaceFromConfig resolves workspace settings from application config (config root).
 func WorkspaceFromConfig() (coding.Workspace, error) {
-	cfg := config.App.ChatAgent
-	root := strings.TrimSpace(cfg.Workspace)
-	if root == "" {
-		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace is required")
-	}
-	abs, err := filepath.Abs(root)
-	if err != nil {
-		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace: %w", err)
-	}
-	info, err := os.Stat(abs)
-	if err != nil {
-		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace: %w", err)
-	}
-	if !info.IsDir() {
-		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace is not a directory")
-	}
-
-	timeout := cfg.ShellTimeout
-	if timeout <= 0 {
-		timeout = 60 * time.Second
-	}
-	maxOutput := cfg.MaxToolOutput
-	if maxOutput <= 0 {
-		maxOutput = 8192
-	}
-	return coding.Workspace{
-		Root:            abs,
-		Timeout:         timeout,
-		MaxOutput:       maxOutput,
-		WebSearchAPIKey: strings.TrimSpace(cfg.WebSearch.APIKey),
-	}, nil
+	return ResolveWorkspace("")
 }
 
 func executionEnvForWorkspace(ws coding.Workspace) env.ExecutionEnv {

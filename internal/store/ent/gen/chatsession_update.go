@@ -133,6 +133,20 @@ func (_u *ChatSessionUpdate) SetNillableThinkingLevel(v *string) *ChatSessionUpd
 	return _u
 }
 
+// SetWorkspace sets the "workspace" field.
+func (_u *ChatSessionUpdate) SetWorkspace(v string) *ChatSessionUpdate {
+	_u.mutation.SetWorkspace(v)
+	return _u
+}
+
+// SetNillableWorkspace sets the "workspace" field if the given value is not nil.
+func (_u *ChatSessionUpdate) SetNillableWorkspace(v *string) *ChatSessionUpdate {
+	if v != nil {
+		_u.SetWorkspace(*v)
+	}
+	return _u
+}
+
 // SetTitle sets the "title" field.
 func (_u *ChatSessionUpdate) SetTitle(v string) *ChatSessionUpdate {
 	_u.mutation.SetTitle(v)
@@ -287,6 +301,9 @@ func (_u *ChatSessionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.ThinkingLevel(); ok {
 		_spec.SetField(chatsession.FieldThinkingLevel, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Workspace(); ok {
+		_spec.SetField(chatsession.FieldWorkspace, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
 	}
@@ -423,6 +440,20 @@ func (_u *ChatSessionUpdateOne) SetThinkingLevel(v string) *ChatSessionUpdateOne
 func (_u *ChatSessionUpdateOne) SetNillableThinkingLevel(v *string) *ChatSessionUpdateOne {
 	if v != nil {
 		_u.SetThinkingLevel(*v)
+	}
+	return _u
+}
+
+// SetWorkspace sets the "workspace" field.
+func (_u *ChatSessionUpdateOne) SetWorkspace(v string) *ChatSessionUpdateOne {
+	_u.mutation.SetWorkspace(v)
+	return _u
+}
+
+// SetNillableWorkspace sets the "workspace" field if the given value is not nil.
+func (_u *ChatSessionUpdateOne) SetNillableWorkspace(v *string) *ChatSessionUpdateOne {
+	if v != nil {
+		_u.SetWorkspace(*v)
 	}
 	return _u
 }
@@ -610,6 +641,9 @@ func (_u *ChatSessionUpdateOne) sqlSave(ctx context.Context) (_node *ChatSession
 	}
 	if value, ok := _u.mutation.ThinkingLevel(); ok {
 		_spec.SetField(chatsession.FieldThinkingLevel, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Workspace(); ok {
+		_spec.SetField(chatsession.FieldWorkspace, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)

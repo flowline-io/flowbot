@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -45,10 +46,11 @@ func TestChatAgentPermissionHookAskWithoutGateBlocks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			reg := hooks.NewRegistry()
 			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
-				SessionID: "sess-1",
-				UID:       types.Uid("user-1"),
-				DCG:       dcg.AllowAllChecker{},
-				Service:   ChatAgentService(),
+				SessionID:     "sess-1",
+				UID:           types.Uid("user-1"),
+				DCG:           dcg.AllowAllChecker{},
+				Service:       ChatAgentService(),
+				WorkspaceRoot: config.App.ChatAgent.Workspace,
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},
@@ -88,12 +90,13 @@ func TestChatAgentPermissionHookAlwaysGrantUsesSuggestedPattern(t *testing.T) {
 
 	reg := hooks.NewRegistry()
 	chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
-		SessionID: "sess-1",
-		UID:       types.Uid("user-1"),
-		DCG:       dcg.AllowAllChecker{},
-		Service:   ChatAgentService(),
-		Publisher: pub,
-		Confirm:   gate,
+		SessionID:     "sess-1",
+		UID:           types.Uid("user-1"),
+		DCG:           dcg.AllowAllChecker{},
+		Service:       ChatAgentService(),
+		Publisher:     pub,
+		Confirm:       gate,
+		WorkspaceRoot: config.App.ChatAgent.Workspace,
 	})
 
 	done := make(chan *hooks.ToolCallResult, 1)

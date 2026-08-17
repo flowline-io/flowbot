@@ -62,6 +62,23 @@ templ ChatAgentSettingsCluster(
 	</div>
 }
 
+// ChatAgentWorkspaceSelect renders the composer workspace directory picker.
+templ ChatAgentWorkspaceSelect(id string, options []WorkspaceOption, disabled bool) {
+	if len(options) > 0 {
+		<select
+			id={ id }
+			class="chatagent-settings-select"
+			disabled?={ disabled }
+			data-testid={ id }
+			aria-label="Workspace">
+			for _, opt := range options {
+				<option value={ opt.Value }>{ opt.Label }</option>
+			}
+		</select>
+		<span class="chatagent-settings-sep" aria-hidden="true">·</span>
+	}
+}
+
 // ChatAgentAttachButton renders the circle-plus control used to attach media.
 templ ChatAgentAttachButton(id string, hidden bool, disabled bool) {
 	<button

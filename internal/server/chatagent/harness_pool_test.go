@@ -2,11 +2,14 @@ package chatagent
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -99,4 +102,27 @@ func TestApplySessionModeUpdatesTools(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, h.Agent())
+}
+
+func TestGetOrCreateHarnessMissingWorkspace(t *testing.T) {
+	LockAppConfigForTest(t)
+	t.Cleanup(DisableSessionTitleLLMForTest())
+	setupEphemeralRunTestDB(t)
+	setupEphemeralRunFakeModel(t, "harness reply")
+
+	root := config.App.ChatAgent.Workspace
+	sub := filepath.Join(root, "proj")
+	require.NoError(t, os.Mkdir(sub, 0o750))
+
+	ctx := context.Background()
+	sessionID := "sess-ws-gone"
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
+		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive), Workspace: "proj",
+	}))
+	require.NoError(t, os.RemoveAll(sub))
+
+	svc := NewService()
+	t.Cleanup(func() { svc.ResetHarnessPoolForTest() })
+	_, _, err := svc.getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "hi"}, 2)
+	require.Error(t, err)
 }

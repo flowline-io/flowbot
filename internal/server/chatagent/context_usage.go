@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/bytedance/sonic"
 
@@ -53,7 +54,13 @@ func EstimateTextTokens(text string) int {
 
 // BuildContextUsageReport assembles a context budget breakdown for Chat Agent clients.
 func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsageReport, error) {
-	workspace, err := WorkspaceFromConfig()
+	var workspace coding.Workspace
+	var err error
+	if strings.TrimSpace(sessionID) == "" {
+		workspace, err = WorkspaceFromConfig()
+	} else {
+		workspace, err = WorkspaceForSession(ctx, sessionID)
+	}
 	if err != nil {
 		return ContextUsageReport{}, err
 	}

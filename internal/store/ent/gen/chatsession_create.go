@@ -104,6 +104,20 @@ func (_c *ChatSessionCreate) SetNillableThinkingLevel(v *string) *ChatSessionCre
 	return _c
 }
 
+// SetWorkspace sets the "workspace" field.
+func (_c *ChatSessionCreate) SetWorkspace(v string) *ChatSessionCreate {
+	_c.mutation.SetWorkspace(v)
+	return _c
+}
+
+// SetNillableWorkspace sets the "workspace" field if the given value is not nil.
+func (_c *ChatSessionCreate) SetNillableWorkspace(v *string) *ChatSessionCreate {
+	if v != nil {
+		_c.SetWorkspace(*v)
+	}
+	return _c
+}
+
 // SetTitle sets the "title" field.
 func (_c *ChatSessionCreate) SetTitle(v string) *ChatSessionCreate {
 	_c.mutation.SetTitle(v)
@@ -249,6 +263,10 @@ func (_c *ChatSessionCreate) defaults() {
 		v := chatsession.DefaultThinkingLevel
 		_c.mutation.SetThinkingLevel(v)
 	}
+	if _, ok := _c.mutation.Workspace(); !ok {
+		v := chatsession.DefaultWorkspace
+		_c.mutation.SetWorkspace(v)
+	}
 	if _, ok := _c.mutation.Title(); !ok {
 		v := chatsession.DefaultTitle
 		_c.mutation.SetTitle(v)
@@ -307,6 +325,9 @@ func (_c *ChatSessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.ThinkingLevel(); !ok {
 		return &ValidationError{Name: "thinking_level", err: errors.New(`gen: missing required field "ChatSession.thinking_level"`)}
+	}
+	if _, ok := _c.mutation.Workspace(); !ok {
+		return &ValidationError{Name: "workspace", err: errors.New(`gen: missing required field "ChatSession.workspace"`)}
 	}
 	if _, ok := _c.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`gen: missing required field "ChatSession.title"`)}
@@ -386,6 +407,10 @@ func (_c *ChatSessionCreate) createSpec() (*ChatSession, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ThinkingLevel(); ok {
 		_spec.SetField(chatsession.FieldThinkingLevel, field.TypeString, value)
 		_node.ThinkingLevel = value
+	}
+	if value, ok := _c.mutation.Workspace(); ok {
+		_spec.SetField(chatsession.FieldWorkspace, field.TypeString, value)
+		_node.Workspace = value
 	}
 	if value, ok := _c.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
@@ -550,6 +575,18 @@ func (u *ChatSessionUpsert) SetThinkingLevel(v string) *ChatSessionUpsert {
 // UpdateThinkingLevel sets the "thinking_level" field to the value that was provided on create.
 func (u *ChatSessionUpsert) UpdateThinkingLevel() *ChatSessionUpsert {
 	u.SetExcluded(chatsession.FieldThinkingLevel)
+	return u
+}
+
+// SetWorkspace sets the "workspace" field.
+func (u *ChatSessionUpsert) SetWorkspace(v string) *ChatSessionUpsert {
+	u.Set(chatsession.FieldWorkspace, v)
+	return u
+}
+
+// UpdateWorkspace sets the "workspace" field to the value that was provided on create.
+func (u *ChatSessionUpsert) UpdateWorkspace() *ChatSessionUpsert {
+	u.SetExcluded(chatsession.FieldWorkspace)
 	return u
 }
 
@@ -766,6 +803,20 @@ func (u *ChatSessionUpsertOne) SetThinkingLevel(v string) *ChatSessionUpsertOne 
 func (u *ChatSessionUpsertOne) UpdateThinkingLevel() *ChatSessionUpsertOne {
 	return u.Update(func(s *ChatSessionUpsert) {
 		s.UpdateThinkingLevel()
+	})
+}
+
+// SetWorkspace sets the "workspace" field.
+func (u *ChatSessionUpsertOne) SetWorkspace(v string) *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetWorkspace(v)
+	})
+}
+
+// UpdateWorkspace sets the "workspace" field to the value that was provided on create.
+func (u *ChatSessionUpsertOne) UpdateWorkspace() *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateWorkspace()
 	})
 }
 
@@ -1158,6 +1209,20 @@ func (u *ChatSessionUpsertBulk) SetThinkingLevel(v string) *ChatSessionUpsertBul
 func (u *ChatSessionUpsertBulk) UpdateThinkingLevel() *ChatSessionUpsertBulk {
 	return u.Update(func(s *ChatSessionUpsert) {
 		s.UpdateThinkingLevel()
+	})
+}
+
+// SetWorkspace sets the "workspace" field.
+func (u *ChatSessionUpsertBulk) SetWorkspace(v string) *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetWorkspace(v)
+	})
+}
+
+// UpdateWorkspace sets the "workspace" field to the value that was provided on create.
+func (u *ChatSessionUpsertBulk) UpdateWorkspace() *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateWorkspace()
 	})
 }
 

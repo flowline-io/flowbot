@@ -37,12 +37,13 @@ func TestLoopDetectHookTerminate(t *testing.T) {
 
 	reg := hooks.NewRegistry()
 	RegisterHooks(reg, ChatHookDeps{
-		SessionID:    "loop-terminate",
-		UID:          uid,
-		Service:      NewService(),
-		DCG:          dcg.AllowAllChecker{},
-		LoopDetector: detector,
-		ApprovalMode: approval.ModeOff,
+		SessionID:     "loop-terminate",
+		UID:           uid,
+		Service:       NewService(),
+		DCG:           dcg.AllowAllChecker{},
+		LoopDetector:  detector,
+		ApprovalMode:  approval.ModeOff,
+		WorkspaceRoot: t.TempDir(),
 	})
 
 	result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
@@ -71,12 +72,13 @@ func TestLoopDetectHookWarnDoesNotBlock(t *testing.T) {
 
 	reg := hooks.NewRegistry()
 	RegisterHooks(reg, ChatHookDeps{
-		SessionID:    "loop-warn",
-		UID:          uid,
-		Service:      NewService(),
-		DCG:          dcg.AllowAllChecker{},
-		LoopDetector: detector,
-		ApprovalMode: approval.ModeOff,
+		SessionID:     "loop-warn",
+		UID:           uid,
+		Service:       NewService(),
+		DCG:           dcg.AllowAllChecker{},
+		LoopDetector:  detector,
+		ApprovalMode:  approval.ModeOff,
+		WorkspaceRoot: t.TempDir(),
 	})
 
 	result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
@@ -104,12 +106,13 @@ func TestLoopDetectHookCriticalAskWithoutGate(t *testing.T) {
 
 	reg := hooks.NewRegistry()
 	RegisterHooks(reg, ChatHookDeps{
-		SessionID:    "loop-ask",
-		UID:          uid,
-		Service:      NewService(),
-		DCG:          dcg.AllowAllChecker{},
-		LoopDetector: detector,
-		ApprovalMode: approval.ModeManual,
+		SessionID:     "loop-ask",
+		UID:           uid,
+		Service:       NewService(),
+		DCG:           dcg.AllowAllChecker{},
+		LoopDetector:  detector,
+		ApprovalMode:  approval.ModeManual,
+		WorkspaceRoot: t.TempDir(),
 	})
 
 	result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
@@ -138,12 +141,13 @@ func TestLoopDetectHookPostCompaction(t *testing.T) {
 
 	reg := hooks.NewRegistry()
 	RegisterHooks(reg, ChatHookDeps{
-		SessionID:    "loop-compact",
-		UID:          uid,
-		Service:      NewService(),
-		DCG:          dcg.AllowAllChecker{},
-		LoopDetector: detector,
-		ApprovalMode: approval.ModeOff,
+		SessionID:     "loop-compact",
+		UID:           uid,
+		Service:       NewService(),
+		DCG:           dcg.AllowAllChecker{},
+		LoopDetector:  detector,
+		ApprovalMode:  approval.ModeOff,
+		WorkspaceRoot: t.TempDir(),
 	})
 
 	reg.EmitObservation(context.Background(), hooks.ObservationEvent{

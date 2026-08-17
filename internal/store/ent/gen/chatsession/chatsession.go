@@ -27,6 +27,8 @@ const (
 	FieldModel = "model"
 	// FieldThinkingLevel holds the string denoting the thinking_level field in the database.
 	FieldThinkingLevel = "thinking_level"
+	// FieldWorkspace holds the string denoting the workspace field in the database.
+	FieldWorkspace = "workspace"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
 	// FieldPreview holds the string denoting the preview field in the database.
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldMode,
 	FieldModel,
 	FieldThinkingLevel,
+	FieldWorkspace,
 	FieldTitle,
 	FieldPreview,
 	FieldPinned,
@@ -86,6 +89,8 @@ var (
 	DefaultModel string
 	// DefaultThinkingLevel holds the default value on creation for the "thinking_level" field.
 	DefaultThinkingLevel string
+	// DefaultWorkspace holds the default value on creation for the "workspace" field.
+	DefaultWorkspace string
 	// DefaultTitle holds the default value on creation for the "title" field.
 	DefaultTitle string
 	// DefaultPreview holds the default value on creation for the "preview" field.
@@ -143,6 +148,11 @@ func ByModel(opts ...sql.OrderTermOption) OrderOption {
 // ByThinkingLevel orders the results by the thinking_level field.
 func ByThinkingLevel(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldThinkingLevel, opts...).ToFunc()
+}
+
+// ByWorkspace orders the results by the workspace field.
+func ByWorkspace(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorkspace, opts...).ToFunc()
 }
 
 // ByTitle orders the results by the title field.

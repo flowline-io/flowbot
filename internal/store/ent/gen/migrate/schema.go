@@ -514,6 +514,7 @@ var (
 		{Name: "mode", Type: field.TypeString, Default: "normal"},
 		{Name: "model", Type: field.TypeString, Default: ""},
 		{Name: "thinking_level", Type: field.TypeString, Default: ""},
+		{Name: "workspace", Type: field.TypeString, Default: ""},
 		{Name: "title", Type: field.TypeString, Default: ""},
 		{Name: "preview", Type: field.TypeString, Default: ""},
 		{Name: "pinned", Type: field.TypeBool, Default: false},
@@ -535,12 +536,12 @@ var (
 			{
 				Name:    "chatsession_uid_archived",
 				Unique:  false,
-				Columns: []*schema.Column{ChatSessionsColumns[2], ChatSessionsColumns[11]},
+				Columns: []*schema.Column{ChatSessionsColumns[2], ChatSessionsColumns[12]},
 			},
 			{
 				Name:    "chatsession_uid_pinned",
 				Unique:  false,
-				Columns: []*schema.Column{ChatSessionsColumns[2], ChatSessionsColumns[10]},
+				Columns: []*schema.Column{ChatSessionsColumns[2], ChatSessionsColumns[11]},
 			},
 		},
 	}

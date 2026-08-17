@@ -89,6 +89,11 @@ func ThinkingLevel(v string) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldEQ(FieldThinkingLevel, v))
 }
 
+// Workspace applies equality check predicate on the "workspace" field. It's identical to WorkspaceEQ.
+func Workspace(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldWorkspace, v))
+}
+
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldEQ(FieldTitle, v))
@@ -547,6 +552,71 @@ func ThinkingLevelEqualFold(v string) predicate.ChatSession {
 // ThinkingLevelContainsFold applies the ContainsFold predicate on the "thinking_level" field.
 func ThinkingLevelContainsFold(v string) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldContainsFold(FieldThinkingLevel, v))
+}
+
+// WorkspaceEQ applies the EQ predicate on the "workspace" field.
+func WorkspaceEQ(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldWorkspace, v))
+}
+
+// WorkspaceNEQ applies the NEQ predicate on the "workspace" field.
+func WorkspaceNEQ(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNEQ(FieldWorkspace, v))
+}
+
+// WorkspaceIn applies the In predicate on the "workspace" field.
+func WorkspaceIn(vs ...string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldIn(FieldWorkspace, vs...))
+}
+
+// WorkspaceNotIn applies the NotIn predicate on the "workspace" field.
+func WorkspaceNotIn(vs ...string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNotIn(FieldWorkspace, vs...))
+}
+
+// WorkspaceGT applies the GT predicate on the "workspace" field.
+func WorkspaceGT(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldGT(FieldWorkspace, v))
+}
+
+// WorkspaceGTE applies the GTE predicate on the "workspace" field.
+func WorkspaceGTE(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldGTE(FieldWorkspace, v))
+}
+
+// WorkspaceLT applies the LT predicate on the "workspace" field.
+func WorkspaceLT(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldLT(FieldWorkspace, v))
+}
+
+// WorkspaceLTE applies the LTE predicate on the "workspace" field.
+func WorkspaceLTE(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldLTE(FieldWorkspace, v))
+}
+
+// WorkspaceContains applies the Contains predicate on the "workspace" field.
+func WorkspaceContains(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldContains(FieldWorkspace, v))
+}
+
+// WorkspaceHasPrefix applies the HasPrefix predicate on the "workspace" field.
+func WorkspaceHasPrefix(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldHasPrefix(FieldWorkspace, v))
+}
+
+// WorkspaceHasSuffix applies the HasSuffix predicate on the "workspace" field.
+func WorkspaceHasSuffix(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldHasSuffix(FieldWorkspace, v))
+}
+
+// WorkspaceEqualFold applies the EqualFold predicate on the "workspace" field.
+func WorkspaceEqualFold(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEqualFold(FieldWorkspace, v))
+}
+
+// WorkspaceContainsFold applies the ContainsFold predicate on the "workspace" field.
+func WorkspaceContainsFold(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldContainsFold(FieldWorkspace, v))
 }
 
 // TitleEQ applies the EQ predicate on the "title" field.

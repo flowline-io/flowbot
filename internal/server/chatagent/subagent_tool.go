@@ -129,11 +129,12 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 
 	hookRegistry := hooks.NewRegistry()
 	RegisterHooks(hookRegistry, ChatHookDeps{
-		SessionID:   t.deps.SessionID,
-		UID:         t.deps.UID,
-		SessionMode: LoadSessionMode(ctx, t.deps.SessionID),
-		Kind:        t.deps.Kind,
-		Service:     t.deps.Service,
+		SessionID:     t.deps.SessionID,
+		UID:           t.deps.UID,
+		SessionMode:   LoadSessionMode(ctx, t.deps.SessionID),
+		Kind:          t.deps.Kind,
+		WorkspaceRoot: t.workspace.Root,
+		Service:       t.deps.Service,
 	})
 	cfg = hooks.BridgeConfig(ctx, hookRegistry, cfg)
 

@@ -59,14 +59,6 @@ func TestBuildContextUsageReport(t *testing.T) {
 			wantMinTotal:   100,
 		},
 		{
-			name:           "unknown session id skips message tokens",
-			sessionID:      "missing-session",
-			wantModel:      "test-model",
-			wantWindow:     100000,
-			wantCategories: []string{"system_prompt", "system_tools", "skills", "messages", "free_space", "autocompact_buffer"},
-			wantMinTotal:   100,
-		},
-		{
 			name:           "reports compaction reserve",
 			sessionID:      "",
 			wantModel:      "test-model",
@@ -103,6 +95,11 @@ func TestBuildContextUsageReport(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("unknown session id does not fall back to config root", func(t *testing.T) {
+		_, err := chatagent.BuildContextUsageReport(context.Background(), "missing-session")
+		require.Error(t, err)
+	})
 }
 
 func TestBuildContextUsageReportDualModel(t *testing.T) {

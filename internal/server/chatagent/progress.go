@@ -10,7 +10,6 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
@@ -183,8 +182,8 @@ func DeriveProgressFromMessages(messages []msg.AgentMessage) ProgressArtifact {
 }
 
 // registerProgressHooks maintains and injects the workspace progress artifact.
-func registerProgressHooks(reg *hooks.Registry) {
-	workspaceRoot := strings.TrimSpace(config.App.ChatAgent.Workspace)
+func registerProgressHooks(reg *hooks.Registry, workspaceRoot string) {
+	workspaceRoot = strings.TrimSpace(workspaceRoot)
 	if workspaceRoot == "" {
 		return
 	}

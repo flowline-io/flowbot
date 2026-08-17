@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/auth"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/gofiber/fiber/v3"
@@ -51,11 +52,12 @@ func TestPlanModePermissionHook(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			reg := hooks.NewRegistry()
 			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
-				SessionID:   "sess-plan",
-				UID:         types.Uid("user-1"),
-				SessionMode: chatagent.ModePlan,
-				DCG:         dcg.AllowAllChecker{},
-				Service:     ChatAgentService(),
+				SessionID:     "sess-plan",
+				UID:           types.Uid("user-1"),
+				SessionMode:   chatagent.ModePlan,
+				DCG:           dcg.AllowAllChecker{},
+				Service:       ChatAgentService(),
+				WorkspaceRoot: config.App.ChatAgent.Workspace,
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},

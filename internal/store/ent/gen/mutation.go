@@ -14165,6 +14165,7 @@ type ChatSessionMutation struct {
 	mode           *string
 	model          *string
 	thinking_level *string
+	workspace      *string
 	title          *string
 	preview        *string
 	pinned         *bool
@@ -14553,6 +14554,42 @@ func (m *ChatSessionMutation) ResetThinkingLevel() {
 	m.thinking_level = nil
 }
 
+// SetWorkspace sets the "workspace" field.
+func (m *ChatSessionMutation) SetWorkspace(s string) {
+	m.workspace = &s
+}
+
+// Workspace returns the value of the "workspace" field in the mutation.
+func (m *ChatSessionMutation) Workspace() (r string, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspace returns the old "workspace" field's value of the ChatSession entity.
+// If the ChatSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatSessionMutation) OldWorkspace(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspace is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspace requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspace: %w", err)
+	}
+	return oldValue.Workspace, nil
+}
+
+// ResetWorkspace resets all changes to the "workspace" field.
+func (m *ChatSessionMutation) ResetWorkspace() {
+	m.workspace = nil
+}
+
 // SetTitle sets the "title" field.
 func (m *ChatSessionMutation) SetTitle(s string) {
 	m.title = &s
@@ -14803,7 +14840,7 @@ func (m *ChatSessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ChatSessionMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.flag != nil {
 		fields = append(fields, chatsession.FieldFlag)
 	}
@@ -14824,6 +14861,9 @@ func (m *ChatSessionMutation) Fields() []string {
 	}
 	if m.thinking_level != nil {
 		fields = append(fields, chatsession.FieldThinkingLevel)
+	}
+	if m.workspace != nil {
+		fields = append(fields, chatsession.FieldWorkspace)
 	}
 	if m.title != nil {
 		fields = append(fields, chatsession.FieldTitle)
@@ -14865,6 +14905,8 @@ func (m *ChatSessionMutation) Field(name string) (ent.Value, bool) {
 		return m.Model()
 	case chatsession.FieldThinkingLevel:
 		return m.ThinkingLevel()
+	case chatsession.FieldWorkspace:
+		return m.Workspace()
 	case chatsession.FieldTitle:
 		return m.Title()
 	case chatsession.FieldPreview:
@@ -14900,6 +14942,8 @@ func (m *ChatSessionMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldModel(ctx)
 	case chatsession.FieldThinkingLevel:
 		return m.OldThinkingLevel(ctx)
+	case chatsession.FieldWorkspace:
+		return m.OldWorkspace(ctx)
 	case chatsession.FieldTitle:
 		return m.OldTitle(ctx)
 	case chatsession.FieldPreview:
@@ -14969,6 +15013,13 @@ func (m *ChatSessionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetThinkingLevel(v)
+		return nil
+	case chatsession.FieldWorkspace:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspace(v)
 		return nil
 	case chatsession.FieldTitle:
 		v, ok := value.(string)
@@ -15096,6 +15147,9 @@ func (m *ChatSessionMutation) ResetField(name string) error {
 		return nil
 	case chatsession.FieldThinkingLevel:
 		m.ResetThinkingLevel()
+		return nil
+	case chatsession.FieldWorkspace:
+		m.ResetWorkspace()
 		return nil
 	case chatsession.FieldTitle:
 		m.ResetTitle()

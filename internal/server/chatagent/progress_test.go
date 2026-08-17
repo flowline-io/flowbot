@@ -183,7 +183,10 @@ func TestRegisterHooksProgressInject(t *testing.T) {
 			root := t.TempDir()
 			config.App.ChatAgent.Workspace = root
 			reg := hooks.NewRegistry()
-			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{SessionID: "progress-test"})
+			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
+				SessionID:     "progress-test",
+				WorkspaceRoot: root,
+			})
 			out, err := reg.EmitContext(context.Background(), tt.messages)
 			require.NoError(t, err)
 			if tt.wantInjected {

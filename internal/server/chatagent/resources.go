@@ -13,7 +13,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -110,7 +109,7 @@ func (s *Service) resolveFileResource(ctx context.Context, sessionID, uri, relPa
 	if err := s.checkFileReadPermission(ctx, sessionID, relPath); err != nil {
 		return ResourceContent{}, err
 	}
-	ws, err := WorkspaceFromConfig()
+	ws, err := WorkspaceForSession(ctx, sessionID)
 	if err != nil {
 		return ResourceContent{}, err
 	}
@@ -167,8 +166,11 @@ func (s *Service) checkFileReadPermission(ctx context.Context, sessionID, relPat
 	if err != nil {
 		return err
 	}
-	workspaceRoot := config.App.ChatAgent.Workspace
-	ws := coding.Workspace{Root: workspaceRoot}
+	ws, err := WorkspaceForSession(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+	workspaceRoot := ws.Root
 	externalPath := !ws.ResolvePath(relPath).IsOk()
 	evaluator := permission.NewEvaluator(cfg)
 	sessionState := s.permissionSessions.GetPermissionSession(ctx, sessionID)
