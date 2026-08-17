@@ -22,4 +22,4 @@ A broken GitHub blob/tree href to a path that is not in the commit still fails, 
 
 ## Verification
 
-`.github/workflows/pages.yml` lychee args include the github.io remap and the blob/tree remap, and the workflow path filter includes the workflow file so a remap-only change still runs the job. The blob/tree targets linked from entry HTML exist in the workspace.
+`.github/workflows/pages.yml` `Verify internal links` passes the github.io remap and the blob/tree remap to `lychee`. How lychee is installed is in [pages-lychee-binary-install](2026-08-17-pages-lychee-binary-install.md). The blob/tree targets linked from entry HTML exist in the workspace.

@@ -33,20 +33,54 @@ jobs:
       - name: Build website docs
         run: go run ./cmd/composer webdoc
 
+      - name: Install lychee
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LYCHEE_TAG: lychee-v0.24.2
+        run: |
+          set -euo pipefail
+          case "$(uname -m)" in
+            x86_64) asset=lychee-x86_64-unknown-linux-gnu.tar.gz ;;
+            aarch64|arm64) asset=lychee-aarch64-unknown-linux-gnu.tar.gz ;;
+            *) echo "unsupported arch $(uname -m)" >&2; exit 1 ;;
+          esac
+          tmp=$(mktemp -d)
+          trap 'rm -rf "$tmp"' EXIT
+          for attempt in 1 2 3 4 5; do
+            if gh release download "$LYCHEE_TAG" --repo lycheeverse/lychee --pattern "$asset" --dir "$tmp"; then
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "failed to download $asset after 5 attempts" >&2
+              exit 1
+            fi
+            sleep $((attempt * 15))
+          done
+          tar -xzf "$tmp/$asset" -C "$tmp"
+          bin=$(find "$tmp" -type f -name lychee -print -quit)
+          if [ -z "$bin" ]; then
+            echo "lychee binary not found in $asset" >&2
+            tar -tzf "$tmp/$asset" >&2
+            exit 1
+          fi
+          mkdir -p "$HOME/.local/bin"
+          install -m 0755 "$bin" "$HOME/.local/bin/lychee"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/lychee" --version
+
       - name: Verify internal links
-        uses: lycheeverse/lychee-action@v2
-        with:
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
           # Canonical/og:url tags point at production Pages. Remap them to the
           # just-built tree so new pages are not 404 before this job deploys.
           # GitHub blob/tree HTML is rate-limited (503) and not covered by the
           # GitHub API client; remap source links to the checkout instead.
-          args: >-
-            --no-progress
-            --exclude "http://localhost:6060"
-            --remap "^https://flowline-io\.github\.io file://${{ github.workspace }}/docs/website"
-            --remap "^https://github\.com/flowline-io/flowbot/(?:blob|tree)/master file://${{ github.workspace }}"
+          lychee --no-progress \
+            --exclude "http://localhost:6060" \
+            --remap "^https://flowline-io\.github\.io file://${GITHUB_WORKSPACE}/docs/website" \
+            --remap "^https://github\.com/flowline-io/flowbot/(?:blob|tree)/master file://${GITHUB_WORKSPACE}" \
             "docs/website/**/*.html"
-          fail: true
 
       - name: Verify HTML syntax
         run: npx --yes htmlhint "docs/website/*.html"
