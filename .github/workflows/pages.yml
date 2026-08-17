@@ -7,6 +7,7 @@ on:
     paths:
       - 'docs/**'
       - 'cmd/composer/action/webdoc/**'
+      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:
@@ -37,10 +38,13 @@ jobs:
         with:
           # Canonical/og:url tags point at production Pages. Remap them to the
           # just-built tree so new pages are not 404 before this job deploys.
+          # GitHub blob/tree HTML is rate-limited (503) and not covered by the
+          # GitHub API client; remap source links to the checkout instead.
           args: >-
             --no-progress
             --exclude "http://localhost:6060"
             --remap "^https://flowline-io\.github\.io file://${{ github.workspace }}/docs/website"
+            --remap "^https://github\.com/flowline-io/flowbot/(?:blob|tree)/master file://${{ github.workspace }}"
             "docs/website/**/*.html"
           fail: true
 
