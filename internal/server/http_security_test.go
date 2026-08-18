@@ -98,8 +98,9 @@ func TestSecurityHeadersMiddleware_HSTS(t *testing.T) {
 			config.App.Modules = tt.modules
 
 			app := fiber.New()
-			app.Use(securityHeadersMiddleware)
+			mountSecurityMiddleware(app)
 			app.Get("/probe", func(c fiber.Ctx) error { return c.SendString("ok") })
+			app.Get("/swagger/index.html", func(c fiber.Ctx) error { return c.SendString("ok") })
 
 			req := httptest.NewRequest(http.MethodGet, "/probe", http.NoBody)
 			resp, err := app.Test(req)
@@ -108,14 +109,77 @@ func TestSecurityHeadersMiddleware_HSTS(t *testing.T) {
 
 			hsts := resp.Header.Get(fiber.HeaderStrictTransportSecurity)
 			if tt.wantHSTS {
-				assert.Contains(t, hsts, "max-age=")
+				assert.Equal(t, hstsHeaderValue, hsts)
 			} else {
 				assert.Empty(t, hsts)
 			}
 			assert.Equal(t, "nosniff", resp.Header.Get(fiber.HeaderXContentTypeOptions))
 			assert.Equal(t, "DENY", resp.Header.Get(fiber.HeaderXFrameOptions))
+			assert.Equal(t, "no-referrer", resp.Header.Get(fiber.HeaderReferrerPolicy))
+			assert.Equal(t, "camera=(), microphone=(), geolocation=()", resp.Header.Get(fiber.HeaderPermissionsPolicy))
+			assert.Equal(t, "unsafe-none", resp.Header.Get("Cross-Origin-Embedder-Policy"))
+			assert.Equal(t, "cross-origin", resp.Header.Get(fiber.HeaderCrossOriginResourcePolicy))
 			csp := resp.Header.Get("Content-Security-Policy")
 			assert.Contains(t, csp, "img-src 'self' data: blob:")
+			assert.NotContains(t, csp, "'unsafe-eval'")
+
+			swagReq := httptest.NewRequest(http.MethodGet, "/swagger/index.html", http.NoBody)
+			swagResp, err := app.Test(swagReq)
+			require.NoError(t, err)
+			defer swagResp.Body.Close()
+			assert.Empty(t, swagResp.Header.Get("Content-Security-Policy"))
+		})
+	}
+}
+
+func TestHelmetEmitsHSTSWhenSecure(t *testing.T) {
+	tests := []struct {
+		name     string
+		proto    string
+		overlay  bool
+		wantHSTS bool
+	}{
+		{name: "HTTP without overlay omits HSTS", proto: "http", overlay: false, wantHSTS: false},
+		{name: "HTTPS without overlay sets Helmet HSTS without preload", proto: "https", overlay: false, wantHSTS: true},
+		{name: "HTTPS with overlay sets HSTS without preload", proto: "https", overlay: true, wantHSTS: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prevHTTP := config.App.HTTP
+			prevModules := config.App.Modules
+			t.Cleanup(func() {
+				config.App.HTTP = prevHTTP
+				config.App.Modules = prevModules
+			})
+			config.App.HTTP.TLSBehindProxy = tt.overlay
+			config.App.Modules = []map[string]any{
+				{"name": "web", "auth": map[string]any{"cookie_secure": false}},
+			}
+
+			app := fiber.New(fiber.Config{
+				TrustProxy: true,
+				TrustProxyConfig: fiber.TrustProxyConfig{
+					Proxies: []string{"0.0.0.0"},
+				},
+			})
+			mountSecurityMiddleware(app)
+			app.Get("/probe", func(c fiber.Ctx) error { return c.SendString("ok") })
+
+			req := httptest.NewRequest(http.MethodGet, "/probe", http.NoBody)
+			if tt.proto == "https" {
+				req.Header.Set(fiber.HeaderXForwardedProto, "https")
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			hsts := resp.Header.Get(fiber.HeaderStrictTransportSecurity)
+			if tt.wantHSTS {
+				assert.Equal(t, hstsHeaderValue, hsts)
+				assert.NotContains(t, hsts, "preload")
+			} else {
+				assert.Empty(t, hsts)
+			}
 		})
 	}
 }
@@ -201,6 +265,62 @@ func TestCORSAllowOriginsWhitelist(t *testing.T) {
 			} else {
 				assert.NotEqual(t, "true", creds)
 			}
+		})
+	}
+}
+
+func TestHTTPServerSecurityConfig(t *testing.T) {
+	tests := []struct {
+		name      string
+		proxies   []string
+		wantTrust bool
+	}{
+		{name: "IP validation on without trusted proxies", proxies: nil, wantTrust: false},
+		{name: "IP validation on with loopback proxy", proxies: []string{"127.0.0.1"}, wantTrust: true},
+		{name: "IP validation on with CIDR proxy", proxies: []string{"10.0.0.0/8"}, wantTrust: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := config.App.HTTP
+			t.Cleanup(func() { config.App.HTTP = prev })
+			config.App.HTTP.TrustedProxies = tt.proxies
+			app := newHTTPServer()
+			t.Cleanup(func() { _ = app.Shutdown() })
+			assert.True(t, app.Config().EnableIPValidation)
+			assert.Equal(t, tt.wantTrust, app.Config().TrustProxy)
+		})
+	}
+}
+
+func TestCORSAllowsCSRFHeader(t *testing.T) {
+	tests := []struct {
+		name         string
+		allowOrigins []string
+		origin       string
+	}{
+		{name: "explicit origin includes CSRF header", allowOrigins: []string{"https://app.example"}, origin: "https://app.example"},
+		{name: "star origin includes CSRF header", allowOrigins: []string{"*"}, origin: "https://any.example"},
+		{name: "second origin includes CSRF header", allowOrigins: []string{"https://app.example", "https://other.example"}, origin: "https://other.example"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := config.App.HTTP
+			t.Cleanup(func() { config.App.HTTP = prev })
+			config.App.HTTP = config.HTTPConfig{
+				CORS: config.HTTPCORSConfig{AllowOrigins: tt.allowOrigins},
+			}
+			app := newHTTPServer()
+			t.Cleanup(func() { _ = app.Shutdown() })
+			app.Get("/cors-probe", func(c fiber.Ctx) error { return c.SendString("ok") })
+
+			req := httptest.NewRequest(http.MethodOptions, "/cors-probe", http.NoBody)
+			req.Header.Set("Origin", tt.origin)
+			req.Header.Set("Access-Control-Request-Method", http.MethodPost)
+			req.Header.Set("Access-Control-Request-Headers", "X-Csrf-Token")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Contains(t, resp.Header.Get(fiber.HeaderAccessControlAllowHeaders), "X-Csrf-Token")
 		})
 	}
 }

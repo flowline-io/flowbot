@@ -1,47 +1,109 @@
 package web
 
 import (
-	"crypto/rand"
-	"crypto/subtle"
-	"encoding/base64"
+	"context"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/extractors"
+	"github.com/gofiber/fiber/v3/middleware/csrf"
 
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
 const (
-	csrfCookieName = "csrfToken"
-	csrfHeaderName = "X-CSRF-Token"
-	csrfFormField  = "csrf_token"
-	csrfTokenBytes = 32
-	csrfMinLen     = 16
+	csrfCookieNameLocal = "csrf_"
+	csrfCookieNameHost  = "__Host-csrf_"
+	csrfHeaderName      = csrf.HeaderName
+	csrfFormField       = "csrf_token"
+	csrfIdleTimeout     = 30 * time.Minute
+	testCSRFToken       = "flowbot-test-csrf-token-32bytes!"
 )
 
-// testCSRFToken is a fixed double-submit token used by AttachCSRFForTest.
-const testCSRFToken = "flowbot-test-csrf-token-32bytes!"
+var (
+	// Fiber CSRF stores this placeholder; validation uses the key.
+	csrfDummyValue     = []byte{'+'}
+	csrfTokenStore     *csrfMemoryStore
+	csrfTokenStoreOnce sync.Once
+)
 
-// generateCSRFToken returns a URL-safe random CSRF token.
-func generateCSRFToken() (string, error) {
-	b := make([]byte, csrfTokenBytes)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
+func csrfStore() *csrfMemoryStore {
+	csrfTokenStoreOnce.Do(func() {
+		csrfTokenStore = newCSRFMemoryStore()
+	})
+	return csrfTokenStore
 }
 
-// csrfTokensEqual reports whether a and b are non-empty and equal in constant time.
-func csrfTokensEqual(a, b string) bool {
-	if a == "" || b == "" {
+func csrfCookieName() string {
+	return csrfCookieNameFor(authConfig())
+}
+
+// HTTPS uses the __Host- prefix so browsers refuse the cookie on plaintext HTTP.
+func csrfCookieNameFor(cfg AuthConfig) string {
+	if cfg.cookieSecureEnabled() {
+		return csrfCookieNameHost
+	}
+	return csrfCookieNameLocal
+}
+
+func newCSRFMiddleware() fiber.Handler {
+	secure := authConfig().cookieSecureEnabled()
+	return csrf.New(csrf.Config{
+		CookieName:        csrfCookieNameFor(authConfig()),
+		CookiePath:        "/",
+		CookieSecure:      secure,
+		CookieHTTPOnly:    false,
+		CookieSameSite:    "Lax",
+		CookieSessionOnly: true,
+		IdleTimeout:       csrfIdleTimeout,
+		Storage:           csrfStore(),
+		Extractor: extractors.Chain(
+			extractors.FromHeader(csrfHeaderName),
+			extractors.FromForm(csrfFormField),
+		),
+		Next: csrfSkip,
+	})
+}
+
+// Login and setup POST always check CSRF. Other unauthenticated mutations skip
+// so authenticateWeb can redirect.
+func csrfSkip(ctx fiber.Ctx) bool {
+	path := string(ctx.Request().URI().Path())
+	if !strings.HasPrefix(path, "/service/web") {
+		return true
+	}
+	if csrfExemptMethod(ctx.Method()) {
 		return false
 	}
-	if len(a) != len(b) {
+	hasSession := ctx.Cookies(webauth.CookieAccessToken) != "" || ctx.Cookies(webauth.CookiePending) != ""
+	isAuthPost := ctx.Method() == http.MethodPost && isWebAuthMutationPath(path)
+	return !hasSession && !isAuthPost
+}
+
+func csrfExemptMethod(method string) bool {
+	switch strings.ToUpper(method) {
+	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace:
+		return true
+	default:
 		return false
 	}
-	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
+}
+
+func isWebAuthMutationPath(path string) bool {
+	switch {
+	case strings.HasSuffix(path, "/login"),
+		strings.HasSuffix(path, "/login/2fa"),
+		strings.HasSuffix(path, "/setup"),
+		strings.HasSuffix(path, "/setup/2fa"),
+		strings.HasSuffix(path, "/setup/backup-codes/ack"):
+		return true
+	default:
+		return false
+	}
 }
 
 // requestIsHTTPS reports whether the request arrived over TLS (or a TLS-terminating proxy).
@@ -69,127 +131,49 @@ func requestPublicOrigin(ctx fiber.Ctx) string {
 	return scheme + "://" + host
 }
 
-// csrfCookieSecure decides the Secure flag for the CSRF cookie.
-// CSRF must be readable by JS on local HTTP; only set Secure when the request is
-// actually HTTPS (or forwarded as such) and cookie_secure is enabled.
-func csrfCookieSecure(ctx fiber.Ctx) bool {
-	return authConfig().cookieSecureEnabled() && requestIsHTTPS(ctx)
-}
-
-// setCSRFCookie writes the non-HttpOnly csrfToken cookie (readable by JS for double-submit).
-func setCSRFCookie(ctx fiber.Ctx, token string) {
-	ctx.Cookie(&fiber.Cookie{
-		Name:     csrfCookieName,
-		Value:    token,
-		HTTPOnly: false,
-		SameSite: "Lax",
-		Secure:   csrfCookieSecure(ctx),
-		Path:     "/",
-		MaxAge:   86400,
-	})
-}
-
-// ensureCSRFCookie returns the CSRF token for this request, issuing a new cookie when needed.
 func ensureCSRFCookie(ctx fiber.Ctx) (string, error) {
-	existing := ctx.Cookies(csrfCookieName)
-	if len(existing) >= csrfMinLen {
-		return existing, nil
+	token := csrf.TokenFromContext(ctx)
+	if token == "" {
+		return "", fiber.NewError(fiber.StatusInternalServerError, "csrf token error")
 	}
-	token, err := generateCSRFToken()
-	if err != nil {
-		return "", err
-	}
-	setCSRFCookie(ctx, token)
 	return token, nil
 }
 
-// readCSRFSubmission returns the CSRF token from header or form field.
-func readCSRFSubmission(ctx fiber.Ctx) string {
-	if h := ctx.Get(csrfHeaderName); h != "" {
-		return h
-	}
-	return ctx.FormValue(csrfFormField)
-}
-
-// csrfExemptMethod reports whether the HTTP method does not require CSRF validation.
-func csrfExemptMethod(method string) bool {
-	switch strings.ToUpper(method) {
-	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace:
-		return true
-	default:
-		return false
-	}
-}
-
-// csrfMiddleware issues CSRF cookies on safe requests and validates double-submit on mutations
-// under /service/web. Static assets are not covered by this mount path.
-// Unauthenticated non-login mutations skip CSRF so authenticateWeb can redirect to login;
-// cookie sessions and login POST always require a matching token.
-func csrfMiddleware(ctx fiber.Ctx) error {
-	path := string(ctx.Request().URI().Path())
-	if !strings.HasPrefix(path, "/service/web") {
-		return ctx.Next()
-	}
-	if csrfExemptMethod(ctx.Method()) {
-		if _, err := ensureCSRFCookie(ctx); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, "csrf token error")
-		}
-		return ctx.Next()
-	}
-	hasSession := ctx.Cookies(webauth.CookieAccessToken) != "" || ctx.Cookies(webauth.CookiePending) != ""
-	isAuthPost := ctx.Method() == http.MethodPost && isWebAuthMutationPath(path)
-	if !hasSession && !isAuthPost {
-		return ctx.Next()
-	}
-	cookieTok := ctx.Cookies(csrfCookieName)
-	submitTok := readCSRFSubmission(ctx)
-	if !csrfTokensEqual(cookieTok, submitTok) {
-		return fiber.NewError(fiber.StatusForbidden, "invalid CSRF token")
-	}
-	return ctx.Next()
-}
-
-func isWebAuthMutationPath(path string) bool {
-	switch {
-	case strings.HasSuffix(path, "/login"),
-		strings.HasSuffix(path, "/login/2fa"),
-		strings.HasSuffix(path, "/setup"),
-		strings.HasSuffix(path, "/setup/2fa"),
-		strings.HasSuffix(path, "/setup/backup-codes/ack"),
-		strings.HasSuffix(path, "/account/password"),
-		strings.HasSuffix(path, "/account/backup-codes"):
-		return true
-	default:
-		return false
-	}
-}
-
-// csrfTokenJSON returns the current CSRF token as JSON and ensures the cookie is set.
-// Used by the browser when document.cookie cannot read a prior Secure cookie on HTTP.
+// Used when document.cookie cannot read a prior Secure cookie on HTTP.
 func csrfTokenJSON(ctx fiber.Ctx) error {
 	token, err := ensureCSRFCookie(ctx)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "csrf token error")
+		return err
 	}
-	setCSRFCookie(ctx, token)
 	ctx.Set("Cache-Control", "no-store")
 	return ctx.JSON(fiber.Map{"token": token})
 }
 
-// AttachCSRFForTest sets a fixed CSRF cookie and matching X-CSRF-Token header on req.
+// AttachCSRFForTest sets a fixed CSRF cookie and matching X-Csrf-Token header on req.
 // Use for unit and BDD tests that perform state-changing /service/web requests.
-// Safe to call after Header.Set("Cookie", ...) — appends csrfToken to the Cookie header.
+// Safe to call after Header.Set("Cookie", ...) — appends the CSRF cookie when missing.
 func AttachCSRFForTest(req *http.Request) {
 	if req == nil {
 		return
 	}
+	seedCSRFToken(testCSRFToken)
 	existing := req.Header.Get("Cookie")
-	if existing == "" {
-		req.AddCookie(&http.Cookie{Name: csrfCookieName, Value: testCSRFToken})
-	} else if !strings.Contains(existing, csrfCookieName+"=") {
-		req.Header.Set("Cookie", existing+"; "+csrfCookieName+"="+testCSRFToken)
+	for _, name := range []string{csrfCookieNameLocal, csrfCookieNameHost} {
+		if existing == "" {
+			req.AddCookie(&http.Cookie{Name: name, Value: testCSRFToken})
+			existing = req.Header.Get("Cookie")
+			continue
+		}
+		if !strings.Contains(existing, name+"=") {
+			req.Header.Set("Cookie", existing+"; "+name+"="+testCSRFToken)
+			existing = req.Header.Get("Cookie")
+		}
 	}
 	req.Header.Set(csrfHeaderName, testCSRFToken)
+}
+
+func seedCSRFToken(token string) {
+	csrfStore().put(token, csrfDummyValue, csrfIdleTimeout)
 }
 
 // addWebAuth attaches the standard test accessToken cookie and CSRF double-submit pair.
@@ -197,3 +181,81 @@ func addWebAuth(req *http.Request) {
 	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 	AttachCSRFForTest(req)
 }
+
+type csrfMemItem struct {
+	val []byte
+	exp time.Time
+}
+
+type csrfMemoryStore struct {
+	mu    sync.Mutex
+	items map[string]csrfMemItem
+}
+
+func newCSRFMemoryStore() *csrfMemoryStore {
+	return &csrfMemoryStore{items: make(map[string]csrfMemItem)}
+}
+
+func (s *csrfMemoryStore) Get(key string) ([]byte, error) {
+	return s.GetWithContext(context.Background(), key)
+}
+
+func (s *csrfMemoryStore) GetWithContext(_ context.Context, key string) ([]byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	item, ok := s.items[key]
+	if !ok {
+		return nil, nil
+	}
+	if !item.exp.IsZero() && time.Now().After(item.exp) {
+		delete(s.items, key)
+		return nil, nil
+	}
+	return item.val, nil
+}
+
+func (s *csrfMemoryStore) Set(key string, val []byte, exp time.Duration) error {
+	return s.SetWithContext(context.Background(), key, val, exp)
+}
+
+func (s *csrfMemoryStore) SetWithContext(_ context.Context, key string, val []byte, exp time.Duration) error {
+	s.put(key, val, exp)
+	return nil
+}
+
+func (s *csrfMemoryStore) put(key string, val []byte, exp time.Duration) {
+	if key == "" || len(val) == 0 {
+		return
+	}
+	item := csrfMemItem{val: append([]byte(nil), val...)}
+	if exp > 0 {
+		item.exp = time.Now().Add(exp)
+	}
+	s.mu.Lock()
+	s.items[key] = item
+	s.mu.Unlock()
+}
+
+func (s *csrfMemoryStore) Delete(key string) error {
+	return s.DeleteWithContext(context.Background(), key)
+}
+
+func (s *csrfMemoryStore) DeleteWithContext(_ context.Context, key string) error {
+	s.mu.Lock()
+	delete(s.items, key)
+	s.mu.Unlock()
+	return nil
+}
+
+func (s *csrfMemoryStore) Reset() error {
+	return s.ResetWithContext(context.Background())
+}
+
+func (s *csrfMemoryStore) ResetWithContext(_ context.Context) error {
+	s.mu.Lock()
+	s.items = make(map[string]csrfMemItem)
+	s.mu.Unlock()
+	return nil
+}
+
+func (*csrfMemoryStore) Close() error { return nil }

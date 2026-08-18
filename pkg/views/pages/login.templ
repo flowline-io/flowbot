@@ -10,7 +10,7 @@ templ LoginPage(nextURL string, errorMsg string, csrfToken string) {
 
 // LoginForm renders the login form without the base layout.
 // Used for HTMX responses where only the form fragment should be swapped.
-// csrfToken is embedded so login works even when JS cannot attach X-CSRF-Token
+// csrfToken is embedded so login works even when JS cannot attach X-Csrf-Token
 // (common behind Cloudflare Rocket Loader / WAF).
 templ LoginForm(nextURL string, errorMsg string, csrfToken string) {
 	<form hx-post="/service/web/login"

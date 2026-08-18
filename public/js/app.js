@@ -67,7 +67,7 @@ document.addEventListener('showToast', function (evt) {
   showToast(d.message || '', d.type || 'info');
 });
 
-// CSRF double-submit: cookie csrfToken + X-CSRF-Token header / form field.
+// CSRF double-submit: cookie csrf_ or __Host-csrf_ + X-Csrf-Token header / form field.
 window.flowbotCSRFCache = window.flowbotCSRFCache || '';
 
 function flowbotGetCookie(name) {
@@ -83,7 +83,12 @@ function flowbotGetCookie(name) {
 }
 
 function flowbotCSRFToken() {
-  return flowbotGetCookie('csrfToken') || window.flowbotCSRFCache || '';
+  return (
+    flowbotGetCookie('__Host-csrf_') ||
+    flowbotGetCookie('csrf_') ||
+    window.flowbotCSRFCache ||
+    ''
+  );
 }
 
 function flowbotRefreshCSRF() {
@@ -114,7 +119,7 @@ function flowbotCSRFHeaders(extra) {
   }
   var tok = flowbotCSRFToken();
   if (tok) {
-    headers['X-CSRF-Token'] = tok;
+    headers['X-Csrf-Token'] = tok;
   }
   return headers;
 }
@@ -157,7 +162,7 @@ document.addEventListener('htmx:configRequest', function (evt) {
     }
   }
   if (tok) {
-    evt.detail.headers['X-CSRF-Token'] = tok;
+    evt.detail.headers['X-Csrf-Token'] = tok;
   }
 });
 

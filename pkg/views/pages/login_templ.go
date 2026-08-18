@@ -59,7 +59,7 @@ func LoginPage(nextURL string, errorMsg string, csrfToken string) templ.Componen
 
 // LoginForm renders the login form without the base layout.
 // Used for HTMX responses where only the form fragment should be swapped.
-// csrfToken is embedded so login works even when JS cannot attach X-CSRF-Token
+// csrfToken is embedded so login works even when JS cannot attach X-Csrf-Token
 // (common behind Cloudflare Rocket Loader / WAF).
 func LoginForm(nextURL string, errorMsg string, csrfToken string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {

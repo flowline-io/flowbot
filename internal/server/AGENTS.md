@@ -22,6 +22,7 @@ Look at the package directory for the full file set; prefer hot-path names above
 - Request-response HTTP handlers must not block; move long work off the handler goroutine.
 - SSE / streaming handlers write for the connection lifetime. Do not detach the stream onto a goroutine that outlives the client writer. Chatagent SSE: [chatagent/AGENTS.md](chatagent/AGENTS.md).
 - Map `types.Err*` in `error.go`; use `protocol.NewFailedResponse` / `NewSuccessResponse`
+- HTTP security stack (Helmet → CORS → CSRF): [.agents/notes/implemented/architecture/2026-08-18-fiber-security-middleware-stack.md](../../.agents/notes/implemented/architecture/2026-08-18-fiber-security-middleware-stack.md)
 - Validate inputs before processing
 - Events: DataEvent → PostgreSQL `data_events` (+ event outbox) → Redis Stream → pipeline handler → `pipeline_runs`
 - Hub lifecycle operations (start / stop / restart / pull / update) write audit via `writeLifecycleAudit` in `hub.go`. Do not add an unaudited lifecycle path.

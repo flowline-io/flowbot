@@ -1,7 +1,6 @@
 package web
 
 import (
-	"crypto/subtle"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,64 +12,28 @@ import (
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 )
 
-func TestGenerateCSRFToken(t *testing.T) {
+func TestCSRFCookieName(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name   string
+		secure *bool
+		want   string
 	}{
-		{name: "produces non-empty token"},
-		{name: "produces unique tokens"},
-		{name: "token is url-safe length"},
+		{name: "HTTPS uses host prefix", secure: boolPtr(true), want: csrfCookieNameHost},
+		{name: "local HTTP uses csrf_", secure: boolPtr(false), want: csrfCookieNameLocal},
+		{name: "omitted cookie_secure defaults to host prefix", secure: nil, want: csrfCookieNameHost},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tok, err := generateCSRFToken()
-			if err != nil {
-				t.Fatalf("generateCSRFToken: %v", err)
-			}
-			if tok == "" {
-				t.Fatal("want non-empty token")
-			}
-			if len(tok) < 32 {
-				t.Fatalf("want token length >= 32, got %d", len(tok))
-			}
-			tok2, err := generateCSRFToken()
-			if err != nil {
-				t.Fatalf("generateCSRFToken second: %v", err)
-			}
-			if tt.name == "produces unique tokens" && tok == tok2 {
-				t.Fatal("want distinct tokens")
+			if got := csrfCookieNameFor(AuthConfig{CookieSecure: tt.secure}); got != tt.want {
+				t.Fatalf("csrfCookieNameFor()=%q want %q", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestCSRFTokensEqual(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name  string
-		a, b  string
-		equal bool
-	}{
-		{name: "matching tokens", a: "abc", b: "abc", equal: true},
-		{name: "mismatched tokens", a: "abc", b: "xyz", equal: false},
-		{name: "empty both", a: "", b: "", equal: false},
-		{name: "empty left", a: "", b: "abc", equal: false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got := csrfTokensEqual(tt.a, tt.b)
-			if got != tt.equal {
-				t.Fatalf("csrfTokensEqual(%q,%q)=%v want %v", tt.a, tt.b, got, tt.equal)
-			}
-			if tt.equal && subtle.ConstantTimeCompare([]byte(tt.a), []byte(tt.b)) != 1 {
-				t.Fatal("expected constant-time match for equal case")
-			}
-		})
-	}
-}
+func boolPtr(v bool) *bool { return &v }
 
 func TestCSRFMiddleware(t *testing.T) {
 	tests := []struct {
@@ -87,7 +50,7 @@ func TestCSRFMiddleware(t *testing.T) {
 			name:       "GET does not require CSRF",
 			method:     http.MethodGet,
 			path:       "/service/web/home",
-			wantStatus: http.StatusSeeOther, // unauthenticated redirect
+			wantStatus: http.StatusSeeOther,
 		},
 		{
 			name:       "unauthenticated logout skips CSRF",
@@ -132,7 +95,26 @@ func TestCSRFMiddleware(t *testing.T) {
 			path:       "/service/web/login",
 			cookie:     "form-token-value-32chars-bbbbbb",
 			formToken:  "form-token-value-32chars-bbbbbb",
-			wantStatus: http.StatusOK, // invalid creds still render form
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "unauthenticated account password skips CSRF",
+			method:     http.MethodPost,
+			path:       "/service/web/account/password",
+			wantStatus: http.StatusSeeOther,
+		},
+		{
+			name:       "unauthenticated backup-codes skips CSRF",
+			method:     http.MethodPost,
+			path:       "/service/web/account/backup-codes",
+			wantStatus: http.StatusSeeOther,
+		},
+		{
+			name:       "session account password without CSRF rejected",
+			method:     http.MethodPost,
+			path:       "/service/web/account/password",
+			session:    true,
+			wantStatus: http.StatusForbidden,
 		},
 	}
 	for _, tt := range tests {
@@ -153,7 +135,8 @@ func TestCSRFMiddleware(t *testing.T) {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			}
 			if tt.cookie != "" {
-				req.AddCookie(&http.Cookie{Name: csrfCookieName, Value: tt.cookie})
+				seedCSRFToken(tt.cookie)
+				req.AddCookie(&http.Cookie{Name: csrfCookieName(), Value: tt.cookie})
 			}
 			if tt.header != "" {
 				req.Header.Set(csrfHeaderName, tt.header)
@@ -174,39 +157,102 @@ func TestEnsureCSRFCookieSetsCookie(t *testing.T) {
 	tests := []struct {
 		name          string
 		existing      string
+		seedStore     bool
 		wantSetCookie bool
+		wantSameValue bool
 	}{
 		{name: "sets cookie when missing", existing: "", wantSetCookie: true},
-		{name: "keeps existing cookie", existing: "existing-csrf-token-value-xxxxx", wantSetCookie: false},
-		{name: "rejects short existing and rotates", existing: "short", wantSetCookie: true},
+		{name: "reuses stored cookie value", existing: "existing-csrf-token-value-xxxxx", seedStore: true, wantSetCookie: true, wantSameValue: true},
+		{name: "rotates unknown existing cookie", existing: "short", wantSetCookie: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			req := httptest.NewRequest(http.MethodGet, "/service/web/login", http.NoBody)
 			if tt.existing != "" {
-				req.AddCookie(&http.Cookie{Name: csrfCookieName, Value: tt.existing})
+				if tt.seedStore {
+					seedCSRFToken(tt.existing)
+				}
+				req.AddCookie(&http.Cookie{Name: csrfCookieName(), Value: tt.existing})
 			}
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
 			}
 			defer resp.Body.Close()
-			found := false
+			found := ""
 			for _, c := range resp.Cookies() {
-				if c.Name != csrfCookieName {
-					continue
-				}
-				found = true
-				if len(c.Value) < 16 {
-					t.Fatalf("cookie value too short: %q", c.Value)
+				if c.Name == csrfCookieName() {
+					found = c.Value
 				}
 			}
-			if tt.wantSetCookie && !found && tt.existing == "" {
-				t.Fatal("want Set-Cookie for csrfToken")
+			if tt.wantSetCookie && found == "" {
+				t.Fatal("want Set-Cookie for CSRF token")
 			}
-			if tt.wantSetCookie && tt.existing == "short" && !found {
-				t.Fatal("want rotated csrf cookie for short token")
+			if tt.wantSameValue && found != tt.existing {
+				t.Fatalf("cookie=%q want %q", found, tt.existing)
+			}
+			if tt.existing == "short" && found != "" && found == tt.existing {
+				t.Fatal("want rotated csrf cookie for unknown token")
+			}
+		})
+	}
+}
+
+func TestCSRFCookieFlags(t *testing.T) {
+	tests := []struct {
+		name       string
+		secure     bool
+		wantName   string
+		wantSecure bool
+	}{
+		{name: "local HTTP cookie is csrf_ without Secure", secure: false, wantName: csrfCookieNameLocal, wantSecure: false},
+		{name: "HTTPS cookie is __Host-csrf_ with Secure", secure: true, wantName: csrfCookieNameHost, wantSecure: true},
+		{name: "session cookie omits Max-Age", secure: false, wantName: csrfCookieNameLocal, wantSecure: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lockWebTestGlobals(t)
+			secure := tt.secure
+			handler = moduleHandler{authConfig: AuthConfig{CookieSecure: &secure}}
+			config = configType{Enabled: true, Auth: AuthConfig{CookieSecure: &secure}}
+
+			app := fiber.New()
+			app.Use("/service/web", newCSRFMiddleware())
+			app.Get("/service/web/login", func(c fiber.Ctx) error {
+				return c.SendString("ok")
+			})
+			req := httptest.NewRequest(http.MethodGet, "/service/web/login", http.NoBody)
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			var found *http.Cookie
+			for _, c := range resp.Cookies() {
+				if c.Name == tt.wantName {
+					found = c
+					break
+				}
+			}
+			if found == nil {
+				t.Fatalf("want Set-Cookie %q", tt.wantName)
+			}
+			if found.Secure != tt.wantSecure {
+				t.Fatalf("Secure=%v want %v", found.Secure, tt.wantSecure)
+			}
+			if found.HttpOnly {
+				t.Fatal("HttpOnly must be false so JS can read the token")
+			}
+			if found.Path != "/" {
+				t.Fatalf("Path=%q want /", found.Path)
+			}
+			if found.SameSite != http.SameSiteLaxMode {
+				t.Fatalf("SameSite=%v want Lax", found.SameSite)
+			}
+			if found.MaxAge != 0 {
+				t.Fatalf("MaxAge=%d want 0 (session)", found.MaxAge)
 			}
 		})
 	}
@@ -229,7 +275,10 @@ func TestAttachCSRFForTest(t *testing.T) {
 			if tt.name == "idempotent second call" {
 				AttachCSRFForTest(req)
 			}
-			c, err := req.Cookie(csrfCookieName)
+			c, err := req.Cookie(csrfCookieNameLocal)
+			if err != nil {
+				c, err = req.Cookie(csrfCookieNameHost)
+			}
 			if err != nil || c.Value == "" {
 				t.Fatalf("cookie: %v value=%q", err, c)
 			}

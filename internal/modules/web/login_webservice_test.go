@@ -258,12 +258,13 @@ func TestLoginSubmitBackfillsMissingUser(t *testing.T) {
 
 func TestContinueLoginAfterPasswordOKEnsureUserFails(t *testing.T) {
 	app, _, _ := setupTestAppWithDB(t)
-	app.Post("/_test/continue-login", func(c fiber.Ctx) error {
+	app.Post("/service/web/_test/continue-login", func(c fiber.Ctx) error {
 		return continueLoginAfterPasswordOK(c, store.NewWebAccountStore(nil), &gen.WebAccount{
 			UID: "user-admin", Username: "admin", TotpEnabled: true,
 		}, "")
 	})
-	req := httptest.NewRequest(http.MethodPost, "/_test/continue-login", http.NoBody)
+	req := httptest.NewRequest(http.MethodPost, "/service/web/_test/continue-login", http.NoBody)
+	addWebAuth(req)
 	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 	require.NoError(t, err)
 	require.NotNil(t, resp)

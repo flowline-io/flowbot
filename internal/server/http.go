@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/favicon"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
+	"github.com/gofiber/fiber/v3/middleware/helmet"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
@@ -36,6 +37,10 @@ const (
 	minHTTPWriteTimeout = 90 * time.Second
 	// httpWriteTimeoutSlack covers Done flush / title work after the agent turn budget.
 	httpWriteTimeoutSlack = time.Minute
+	// hstsMaxAge is Fiber helmet's recommended minimum (6 months); 2 years matches the
+	// official security-stack example.
+	hstsMaxAge            = 63072000
+	contentSecurityPolicy = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'"
 )
 
 // httpWriteTimeout returns the Fiber WriteTimeout covering long-lived chatagent SSE streams.
@@ -52,8 +57,9 @@ func httpWriteTimeout() time.Duration {
 }
 
 var (
-	sharedApp   *fiber.App
-	sharedAppMu sync.RWMutex
+	sharedApp       *fiber.App
+	sharedAppMu     sync.RWMutex
+	hstsHeaderValue = fmt.Sprintf("max-age=%d; includeSubDomains", hstsMaxAge)
 )
 
 // sharedAppPtr returns the current shared Fiber app instance.
@@ -86,6 +92,7 @@ func newHTTPServer() *fiber.App {
 		TrustProxyConfig: fiber.TrustProxyConfig{
 			Proxies: trustedProxies,
 		},
+		EnableIPValidation: true,
 
 		// validator
 		StructValidator: &structValidator{validate: validator.New()},
@@ -138,6 +145,7 @@ func newHTTPServer() *fiber.App {
 	app.Use(requestid.New())
 	// trace
 	app.Use(tracepkg.FiberMiddleware())
+	mountSecurityMiddleware(app)
 	// cors — empty allow_origins does not reflect any Origin (same-origin Web UI).
 	// AllowOriginsFunc reads config.App live; AllowCredentials is fixed at startup
 	// (Fiber Config is static), so CORS credential mode changes need a process restart.
@@ -153,6 +161,7 @@ func newHTTPServer() *fiber.App {
 			fiber.HeaderAuthorization,
 			"X-AccessToken",
 			"X-Request-ID",
+			"X-Csrf-Token",
 		},
 		AllowCredentials: corsAllowCredentials(config.App.HTTP.CORS.AllowOrigins),
 	}))
@@ -181,9 +190,6 @@ func newHTTPServer() *fiber.App {
 			return utils.Contains(skipPaths, c.Path())
 		},
 	}))
-	// security headers
-	app.Use(securityHeadersMiddleware)
-
 	// static asset caching
 	app.Use(staticCacheMiddleware)
 
@@ -268,18 +274,44 @@ func shouldSkipRateLimit(c fiber.Ctx) bool {
 	return utils.Contains(skipPaths, c.Path())
 }
 
-// securityHeadersMiddleware adds security-related HTTP response headers.
-//
-// CSP: scripts are self + unsafe-inline (legacy onclick / remaining attribute handlers);
-// no 'unsafe-eval' after Tailwind prebuild + Alpine CSP. Prefer removing unsafe-inline next.
-func securityHeadersMiddleware(c fiber.Ctx) error {
-	c.Set(fiber.HeaderXContentTypeOptions, "nosniff")
-	c.Set(fiber.HeaderXFrameOptions, "DENY")
-	if config.App.ShouldSendHSTS() {
-		c.Set(fiber.HeaderStrictTransportSecurity, "max-age=31536000; includeSubDomains")
+func mountSecurityMiddleware(app *fiber.App) {
+	app.Use(helmet.New(helmetSecurityConfig()))
+	app.Use(hstsOverlayMiddleware)
+	app.Use(swaggerCSPStripMiddleware)
+}
+
+func helmetSecurityConfig() helmet.Config {
+	return helmet.Config{
+		XSSProtection:             "0",
+		ContentTypeNosniff:        "nosniff",
+		XFrameOptions:             "DENY",
+		HSTSMaxAge:                hstsMaxAge,
+		ReferrerPolicy:            "no-referrer",
+		PermissionPolicy:          "camera=(), microphone=(), geolocation=()",
+		ContentSecurityPolicy:     contentSecurityPolicy,
+		CrossOriginEmbedderPolicy: "unsafe-none",
+		CrossOriginOpenerPolicy:   "same-origin",
+		CrossOriginResourcePolicy: "cross-origin",
+		OriginAgentCluster:        "?1",
+		XDNSPrefetchControl:       "off",
+		XDownloadOptions:          "noopen",
+		XPermittedCrossDomain:     "none",
 	}
-	if !strings.HasPrefix(c.Path(), "/swagger/") {
-		c.Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'")
+}
+
+// hstsOverlayMiddleware sets HSTS when config says the deployment is HTTPS even if
+// Fiber did not see a TLS connection (TLS-terminating reverse proxy).
+func hstsOverlayMiddleware(c fiber.Ctx) error {
+	if config.App.ShouldSendHSTS() && c.GetRespHeader(fiber.HeaderStrictTransportSecurity) == "" {
+		c.Set(fiber.HeaderStrictTransportSecurity, hstsHeaderValue)
+	}
+	return c.Next()
+}
+
+// swaggerCSPStripMiddleware drops CSP on /swagger/ so the UI can load its own assets.
+func swaggerCSPStripMiddleware(c fiber.Ctx) error {
+	if strings.HasPrefix(c.Path(), "/swagger/") {
+		c.Response().Header.Del(fiber.HeaderContentSecurityPolicy)
 	}
 	return c.Next()
 }
