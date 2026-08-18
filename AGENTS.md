@@ -1,6 +1,6 @@
 # Flowbot
 
-Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQL, Redis.
+Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.6+, PostgreSQL, Redis.
 
 ## Pre-release stance: foundation over blast radius
 

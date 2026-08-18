@@ -1,12 +1,12 @@
 package syncx_test
 
 import (
+	"slices"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/exp/slices"
 
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
 )

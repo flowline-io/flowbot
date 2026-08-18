@@ -1,10 +1,9 @@
 package types // import "https://github.com/runabol/tork"
 
 import (
+	"maps"
 	"slices"
 	"time"
-
-	"golang.org/x/exp/maps"
 )
 
 // TaskState State defines the list of states that a

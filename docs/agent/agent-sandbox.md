@@ -36,7 +36,7 @@ Versions are pinned in [`deployments/agent-sandbox/Dockerfile`](../../deployment
 | Base OS | Ubuntu 24.04 | Required for Playwright and browser/computer-use tooling |
 | git | distro package | Required for Cloud Agent clone workflows |
 | sudo | NOPASSWD for `agent` | Privileged setup steps when orchestrator needs them |
-| Go | 1.26.5 (official tarball) | Matches [`go.mod`](../../go.mod). `GOROOT=/usr/local/go`, `GOTOOLCHAIN=local` (no auto toolchain download). Used by Cloud Agents and by named FaaS (`go run main.go`, stdlib-only, `Network=none`) |
+| Go | 1.26.6 (official tarball) | Matches [`go.mod`](../../go.mod). `GOROOT=/usr/local/go`, `GOTOOLCHAIN=local` (no auto toolchain download). Used by Cloud Agents and by named FaaS (`go run main.go`, stdlib-only, `Network=none`) |
 | Node.js | 22.x LTS (NodeSource) | Matches CI `node-version: lts/*` |
 | oxfmt / oxlint | npm global | Matches Flowbot JS lint/format tooling |
 | Python | 3.x (distro) | `python` symlinked to `python3`; pip and venv included |
@@ -167,7 +167,7 @@ Cloud Agent orchestrators should reference a pinned semver tag in production, fo
 
 ### Named FaaS (`go run main.go`)
 
-Functions invoke the sandbox with `Network=none` and no Flowbot CLI credentials. Go entrypoints write a minimal `go.mod` (`module flowbotfn` / `go 1.26`) and run `go run main.go` with `GOPROXY=off`, `GOSUMDB=off`, `GOTOOLCHAIN=local`, and `CGO_ENABLED=0` (stdlib only; no module download). The image pins `GOTOOLCHAIN=local` so the bundled Go 1.26.5 compiler cannot attempt a toolchain fetch when the proxy is off.
+Functions invoke the sandbox with `Network=none` and no Flowbot CLI credentials. Go entrypoints write a minimal `go.mod` (`module flowbotfn` / `go 1.26`) and run `go run main.go` with `GOPROXY=off`, `GOSUMDB=off`, `GOTOOLCHAIN=local`, and `CGO_ENABLED=0` (stdlib only; no module download). The image pins `GOTOOLCHAIN=local` so the bundled Go 1.26.6 compiler cannot attempt a toolchain fetch when the proxy is off.
 
 ### Chat agent CLI injection (`chat_agent.sandbox`)
 

@@ -144,7 +144,7 @@ Composable task DAGs in YAML. Each task uses an action prefix:
 
 ### Requirements
 
-- Go 1.26.5+
+- Go 1.26.6+
 - PostgreSQL + Redis
 - [Task](https://taskfile.dev) runner (`go tool task`)
 - Docker (for BDD specs / workflow docker steps)

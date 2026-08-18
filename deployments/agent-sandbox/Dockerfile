@@ -2,7 +2,7 @@
 # Do not COPY project sources; the orchestrator mounts /workspace at runtime.
 # The flowbot CLI is not baked in; chatagent sandbox injects flowbot-cli_linux_amd64 at runtime.
 
-ARG GO_VERSION=1.26.5
+ARG GO_VERSION=1.26.6
 ARG NODE_MAJOR=22
 ARG DCG_VERSION=v0.6.7
 
