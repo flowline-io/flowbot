@@ -41,4 +41,4 @@ The first UI is a role log, a Duration gantt (Input = assemble, Model = thinking
 - `pkg/agent/ctxmgr`: cut point and `GetContextUsage` ignore `turn_trace`.
 - `internal/server/chatagent`: pipeline skips persist; interactive persist + SSE `turn_trace`; `GET …/trajectory` assembles rows; `IsObserverStreamEvent` excludes `turn_trace`.
 - Web: Chat | Trajectory toggle; `?view=trajectory`; `public/js/chatagent-trajectory.js`.
-- Checklist: [docs/agent/chatagent-feature-checklist.md](../../../docs/agent/chatagent-feature-checklist.md) R-03a / W-10 / O-13.
+- Checklist: [docs/agent/chatagent-feature-checklist.md](../../../../docs/agent/chatagent-feature-checklist.md) R-03a / W-10 / O-13.

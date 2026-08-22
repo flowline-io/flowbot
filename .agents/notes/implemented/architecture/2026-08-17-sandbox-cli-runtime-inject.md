@@ -12,7 +12,7 @@ Keep the skill → CLI contract. Do not bake the `flowbot` CLI into `flowbot-age
 
 Ship `flowbot-cli_linux_amd64` beside the Flowbot server binary (server image: `/opt/app/`). At runtime, `pkg/agent/sandbox` injects that binary (or `chat_agent.sandbox.cli_path`) into ephemeral containers. Missing CLI warns once and degrades: shell/code tools still run without `flowbot`. Host-native `task build:cli` is unchanged; `task build:cli:linux` builds the inject artifact.
 
-Contract details: [Agent Sandbox — Chat agent CLI injection](../../../docs/agent/agent-sandbox.md#chat-agent-cli-injection-chat_agentsandbox).
+Contract details: [Agent Sandbox — Chat agent CLI injection](../../../../docs/agent/agent-sandbox.md#chat-agent-cli-injection-chat_agentsandbox).
 
 ## Alternatives considered
 
@@ -30,5 +30,5 @@ Contract details: [Agent Sandbox — Chat agent CLI injection](../../../docs/age
 ## Verification
 
 - `go test ./pkg/agent/sandbox/...` covers resolve, bind mounts, and missing-CLI degrade.
-- [`docs/agent/agent-sandbox.md`](../../../docs/agent/agent-sandbox.md) and [`deployments/Dockerfile`](../../../deployments/Dockerfile) / [`deployments/agent-sandbox/Dockerfile`](../../../deployments/agent-sandbox/Dockerfile) document and implement inject vs bake.
+- [`docs/agent/agent-sandbox.md`](../../../../docs/agent/agent-sandbox.md) and [`deployments/Dockerfile`](../../../../deployments/Dockerfile) / [`deployments/agent-sandbox/Dockerfile`](../../../../deployments/agent-sandbox/Dockerfile) document and implement inject vs bake.
 - Sandbox CI smoke checks toolchain without requiring `flowbot version` in the image.

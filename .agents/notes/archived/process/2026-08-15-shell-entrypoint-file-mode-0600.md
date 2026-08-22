@@ -1,6 +1,7 @@
 # Agent Note: Shell entrypoint file mode 0600
 
 Status: implemented
+Archived: 2026-08-22
 
 ## Problem
 

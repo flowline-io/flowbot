@@ -24,7 +24,7 @@
 ### Changed
 
 - Directory creation defaults to mode `0750` or less (gosec G301); documented sandbox exception only. See [.agents/notes/implemented/process/2026-08-14-directory-create-mode-0750.md](.agents/notes/implemented/process/2026-08-14-directory-create-mode-0750.md).
-- Agent sandbox shell entrypoint files use mode `0600` (no execute bit; run via interpreter). See [.agents/notes/implemented/process/2026-08-15-shell-entrypoint-file-mode-0600.md](.agents/notes/implemented/process/2026-08-15-shell-entrypoint-file-mode-0600.md).
+- Agent sandbox shell entrypoint files use mode `0600` (no execute bit; run via interpreter). See [.agents/notes/archived/process/2026-08-15-shell-entrypoint-file-mode-0600.md](.agents/notes/archived/process/2026-08-15-shell-entrypoint-file-mode-0600.md).
 - Decouple `pkg` from `internal` store bindings; pipeline engine uses a run-store adapter.
 - Chat agent max steps raised; platform registration handles sole web-account cases.
 - Gateway default-action handling and main error paths tightened.

@@ -1,6 +1,7 @@
 # Agent Note: Install lychee as a release binary in Pages CI
 
 Status: implemented
+Archived: 2026-08-22
 
 ## Problem
 

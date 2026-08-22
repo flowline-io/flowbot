@@ -1,6 +1,7 @@
 # Agent Note: Remap GitHub source links in Pages lychee
 
 Status: implemented
+Archived: 2026-08-22
 
 ## Problem
 

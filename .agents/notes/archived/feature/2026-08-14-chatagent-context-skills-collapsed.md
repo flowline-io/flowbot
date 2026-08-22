@@ -1,6 +1,7 @@
 # Agent Note: Context Usage Skills collapsed by default
 
 Status: implemented
+Archived: 2026-08-22
 
 ## Problem
 
@@ -23,5 +24,5 @@ When the report has at least one skill, Skills is a closed `<details>` row. Open
 
 ## Verification
 
-- W-05: Skills list collapsed until opened ([chatagent-feature-checklist](../../../docs/agent/chatagent-feature-checklist.md)).
+- W-05: Skills list collapsed until opened ([chatagent-feature-checklist](../../../../docs/agent/chatagent-feature-checklist.md)).
 - Web: open the context ring on `/service/web/agents/:id`; Skills shows a caret and no skill names until expanded.

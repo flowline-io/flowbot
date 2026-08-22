@@ -1,6 +1,7 @@
 # Agent Note: Sandbox executableDir test race
 
 Status: implemented
+Archived: 2026-08-22
 
 ## Problem
 

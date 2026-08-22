@@ -6,6 +6,15 @@ An **Agent Note** is the RFC for a decision that affects this codebase — the *
 
 Path: `{lifecycle}/{class}/yyyy-mm-dd-topic-title.md`. The date is when the topic was first proposed.
 
+```
+.agents/notes/
+├── README.md
+├── proposed/{class}/     # not yet built (may be empty)
+├── implemented/{class}/  # shipped decisions
+├── rejected/{class}/     # declined (may be empty)
+└── archived/{class}/     # frozen history
+```
+
 Lifecycle (the file moves as status changes):
 
 - **`proposed/`** — not yet built, or only partly.

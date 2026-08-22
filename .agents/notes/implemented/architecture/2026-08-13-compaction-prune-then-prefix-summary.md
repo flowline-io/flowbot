@@ -54,4 +54,4 @@ Branch summarization (`MoveTo`) uses the same trailing-instruction call shape bu
 - `pkg/agent/ctxmgr`: prune rewrites oversized tool results and is idempotent; `EnsureWithinBudget` skips the LLM when prune relieves pressure; `RunCompaction` sanitizes then forwards conversation system, tools, thinking, converted messages, and a trailing instruction; `CompactAndReload` reports prune vs summary progress via `Changed()`.
 - `pkg/agent/llm`: `CompleteWithTools` always passes `WithTools` and attaches thinking plus prior-turn reasoning; `FakeModel` records the last messages, tools, and context.
 - `pkg/agent/harness`: overflow retries after prune-only progress; no retry when compaction does not change the surface; disabled compaction still returns the original overflow error.
-- Owning map: [docs/agent/architecture.md](../../../docs/agent/architecture.md) Context Management.
+- Owning map: [docs/agent/architecture.md](../../../../docs/agent/architecture.md) Context Management.
