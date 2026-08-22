@@ -30,14 +30,14 @@ func SessionBadge(username string, expiresLabel string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a href=\"/service/web/life\" class=\"btn btn-ghost btn-sm gap-1 max-w-[11rem]\" data-testid=\"session-badge\" aria-label=\"Open Life\"><span class=\"hidden sm:flex flex-col items-end leading-tight min-w-0\"><span class=\"text-xs font-medium text-base-content truncate max-w-[9rem]\" data-testid=\"session-username\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a href=\"/service/web/life\" class=\"flowbot-nav-user-session\" data-testid=\"session-badge\" aria-label=\"Open Life\"><span class=\"flowbot-nav-user-avatar\" aria-hidden=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-3.5 h-3.5\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"></path><circle cx=\"12\" cy=\"7\" r=\"4\"></circle></svg></span> <span class=\"flowbot-nav-user-meta\"><span class=\"flowbot-nav-user-name\" data-testid=\"session-username\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/session_badge.templ`, Line: 12, Col: 118}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/session_badge.templ`, Line: 15, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -48,14 +48,14 @@ func SessionBadge(username string, expiresLabel string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if expiresLabel != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span class=\"text-[10px] text-base-content/50\" data-testid=\"session-expires\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span class=\"flowbot-nav-user-expires\" data-testid=\"session-expires\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(expiresLabel)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/session_badge.templ`, Line: 14, Col: 95}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/session_badge.templ`, Line: 17, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -66,7 +66,7 @@ func SessionBadge(username string, expiresLabel string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4 shrink-0 sm:hidden\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"></path><circle cx=\"12\" cy=\"7\" r=\"4\"></circle></svg></a>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span></a>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

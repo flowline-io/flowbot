@@ -24,31 +24,45 @@ func uniqueCapTypes(apps []homelab.App) []string {
 templ HomelabGrid(apps []homelab.App, scannedAt string) {
 	<div id="homelab-registry" x-data="homelabRegistry"
 		data-testid="homelab-registry">
-		<div class="flex items-end gap-2 mb-4 flex-wrap">
-			<div class="form-control flex-1 min-w-48">
-				<input type="search" class="input input-bordered input-sm"
-					placeholder="Search apps..."
-					x-model="search"
-					data-testid="homelab-search"/>
+		<div class="flowbot-surface flowbot-homelab-toolbar">
+			<div class="flowbot-homelab-toolbar-main">
+				<label class="flowbot-homelab-toolbar-search">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" class="flowbot-homelab-toolbar-search-icon" aria-hidden="true">
+						<circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5"></circle>
+						<path d="M9.5 9.5 13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+					</svg>
+					<input
+						type="search"
+						class="flowbot-homelab-toolbar-search-input"
+						placeholder="Search apps..."
+						x-model="search"
+						aria-label="Search apps"
+						data-testid="homelab-search"/>
+				</label>
+				<select
+					class="select select-bordered select-sm flowbot-homelab-toolbar-select"
+					x-model="filterCapability"
+					data-testid="homelab-capability-filter">
+					<option value="">All Capabilities</option>
+					for _, capType := range uniqueCapTypes(apps) {
+						<option value={ capType }>{ capType }</option>
+					}
+				</select>
+				<div class="flowbot-homelab-toolbar-actions">
+					<button
+						type="button"
+						hx-post="/service/web/homelab/rescan"
+						class="btn btn-sm btn-ghost flowbot-homelab-toolbar-btn"
+						data-testid="homelab-rescan">
+						<span class="loading loading-spinner loading-xs htmx-indicator mr-1"></span>
+						Rescan
+					</button>
+					if scannedAt != "" {
+						<span class="flowbot-homelab-toolbar-meta"
+							data-testid="homelab-scanned-at">Last scan: { scannedAt }</span>
+					}
+				</div>
 			</div>
-			<select class="select select-bordered select-sm"
-				x-model="filterCapability"
-				data-testid="homelab-capability-filter">
-				<option value="">All Capabilities</option>
-				for _, capType := range uniqueCapTypes(apps) {
-					<option value={ capType }>{ capType }</option>
-				}
-			</select>
-			<button hx-post="/service/web/homelab/rescan"
-				class="btn btn-sm btn-outline"
-				data-testid="homelab-rescan">
-				<span class="loading loading-spinner loading-xs htmx-indicator mr-1"></span>
-				Rescan
-			</button>
-			if scannedAt != "" {
-				<span class="text-xs text-base-content/50"
-					data-testid="homelab-scanned-at">Last scan: { scannedAt }</span>
-			}
 		</div>
 		if len(apps) == 0 {
 			@EmptyStateCTA(

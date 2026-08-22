@@ -21,6 +21,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 ## Non-obvious rules
 
 - New routes: add `*_webservice.go` + append to `allWebserviceRules` in `rules.go`.
+- Dangerous UI actions (delete, revoke, logout, stop, disable, …): confirmation modal required — [web-ui.mdc § Dangerous actions](../../../.cursor/rules/web-ui.mdc).
 - Set `c.Type("html")` before HTML; HTMX endpoints must not return JSON by mistake.
 - Complex JS in `public/js/`; vendored deps only (no CDN).
 - Markdown → `utils.MarkdownToSafeHTML` before `templ.Raw`.

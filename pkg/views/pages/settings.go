@@ -22,7 +22,7 @@ const (
 	SettingsValueCode SettingsValueKind = "code"
 )
 
-// SettingsRow is one display row on the Runtime Settings page.
+// SettingsRow is one display row on the Settings page.
 type SettingsRow struct {
 	Path        string
 	Value       string

@@ -50,7 +50,7 @@ func AboutPage(data AboutData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"flowbot-surface max-w-xl\" data-testid=\"about-info\"><div class=\"card-body\"><dl class=\"grid grid-cols-[8rem_1fr] gap-x-4 gap-y-3 text-sm m-0\"><dt class=\"text-base-content/55 m-0\">Version</dt><dd class=\"m-0 font-mono\" data-testid=\"about-version\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"flowbot-surface w-fit\" data-testid=\"about-info\"><div class=\"card-body\"><dl class=\"grid grid-cols-[8rem_auto] gap-x-4 gap-y-3 text-sm m-0\"><dt class=\"text-base-content/55 m-0\">Version</dt><dd class=\"m-0 font-mono\" data-testid=\"about-version\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -4,16 +4,18 @@ package partials
 templ SessionBadge(username string, expiresLabel string) {
 	<a
 		href="/service/web/life"
-		class="btn btn-ghost btn-sm gap-1 max-w-[11rem]"
+		class="flowbot-nav-user-session"
 		data-testid="session-badge"
 		aria-label="Open Life"
 	>
-		<span class="hidden sm:flex flex-col items-end leading-tight min-w-0">
-			<span class="text-xs font-medium text-base-content truncate max-w-[9rem]" data-testid="session-username">{ username }</span>
+		<span class="flowbot-nav-user-avatar" aria-hidden="true">
+			<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+		</span>
+		<span class="flowbot-nav-user-meta">
+			<span class="flowbot-nav-user-name" data-testid="session-username">{ username }</span>
 			if expiresLabel != "" {
-				<span class="text-[10px] text-base-content/50" data-testid="session-expires">{ expiresLabel }</span>
+				<span class="flowbot-nav-user-expires" data-testid="session-expires">{ expiresLabel }</span>
 			}
 		</span>
-		<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
 	</a>
 }

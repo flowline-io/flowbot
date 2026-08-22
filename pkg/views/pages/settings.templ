@@ -6,9 +6,9 @@ import (
 )
 
 templ SettingsPage(data SettingsPageData) {
-	@layout.Base("Runtime Settings — Flowbot") {
+	@layout.Base("Settings — Flowbot") {
 		@partials.TableFilterScripts()
-		@partials.PageHeader("Runtime Settings", "Read-only view of the effective flowbot.yaml configuration for this process. Secrets are redacted.")
+		@partials.PageHeader("Settings", "Read-only view of the effective flowbot.yaml configuration for this process. Secrets are redacted.")
 		<div class="flowbot-settings" x-data="tableFilter" data-testid="settings-page">
 			<div class="flowbot-surface flowbot-settings-toolbar">
 				@partials.TableFilterBar("Search by key, value, or description…", "settings-table-filter")

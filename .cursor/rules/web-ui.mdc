@@ -43,10 +43,29 @@ CSS: DaisyUI via `public/css/app.css`; tokens/chips in `custom.css`; Alpine at `
 ## HTMX
 
 - Redirect: `HX-Redirect` + `200`. Form errors: `renderFormError` → `#form-error` slot. Action-only: `toastError` / `setShowToast` — do not Retarget list/table swaps by default.
-- OOB cleanup: `hx-swap-oob="delete"`. Destructive confirm: `data-confirm*` + `confirm.js` preferred over bare `hx-confirm`.
+- OOB cleanup: `hx-swap-oob="delete"`. **Dangerous actions: confirmation required** — see below.
 - Dual-channel (`app.js`): HTML/`HX-Retarget` swap inline (no toast); network/timeout/non-HTML toast; `401` → login with `next`.
 - Silent failures (CSRF warm-up, cancel races): mark `intentionally silent` in a short comment.
 - Success toasts: specific copy (`Config saved`), not generic OK.
+
+## Dangerous actions (confirmation required)
+
+Any control that **destroys, revokes, stops, disables, logs out, or otherwise cannot be trivially undone** must show the shared confirm modal before the request runs. No bare `hx-post` / `hx-delete` / form submit for these.
+
+**Use** `data-confirm*` on the trigger + `confirm.js` (loaded in `layout.Base`; modal via `partials.ConfirmModal`). Do **not** use `hx-confirm` or browser `confirm()`.
+
+| Attribute | Required | Example |
+|-----------|----------|---------|
+| `data-confirm` | yes | `"Delete this pipeline? Associated run records will also be removed."` |
+| `data-confirm-title` | yes | `"Delete Pipeline"` |
+| `data-confirm-btn` | yes | `"Delete"` / `"Revoke"` / `"Logout"` |
+| `data-confirm-class` | yes | `btn-error` (delete/revoke/logout/stop) or `btn-warning` (pause/disable) |
+
+**Applies to:** delete, revoke, logout, stop/restart apps, disable skills/triggers/pipelines, regenerate secrets/backup codes, dismiss-with-impact, and any irreversible bulk action.
+
+**Alpine / programmatic:** call `window.showConfirmModal({ title, message, confirmText, confirmClass, onConfirm })` — same copy standards as `data-confirm*`.
+
+**Examples:** `partials/token_row.templ`, `partials/pipeline_list.templ`, `layout/base.templ` (logout).
 
 ## Alpine (pipeline editor)
 

@@ -25,11 +25,11 @@ func TestSettingsPage(t *testing.T) {
 			wantStatus: http.StatusSeeOther,
 		},
 		{
-			name:       "renders runtime settings catalog",
+			name:       "renders settings catalog",
 			cookie:     "valid-test-token",
 			wantStatus: http.StatusOK,
 			wantContains: []string{
-				"Runtime Settings",
+				"Settings",
 				`data-testid="settings-page"`,
 				`data-testid="settings-table-filter"`,
 				"postgres.dsn",

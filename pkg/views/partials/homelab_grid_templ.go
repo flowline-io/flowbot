@@ -50,7 +50,7 @@ func HomelabGrid(apps []homelab.App, scannedAt string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"homelab-registry\" x-data=\"homelabRegistry\" data-testid=\"homelab-registry\"><div class=\"flex items-end gap-2 mb-4 flex-wrap\"><div class=\"form-control flex-1 min-w-48\"><input type=\"search\" class=\"input input-bordered input-sm\" placeholder=\"Search apps...\" x-model=\"search\" data-testid=\"homelab-search\"></div><select class=\"select select-bordered select-sm\" x-model=\"filterCapability\" data-testid=\"homelab-capability-filter\"><option value=\"\">All Capabilities</option> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"homelab-registry\" x-data=\"homelabRegistry\" data-testid=\"homelab-registry\"><div class=\"flowbot-surface flowbot-homelab-toolbar\"><div class=\"flowbot-homelab-toolbar-main\"><label class=\"flowbot-homelab-toolbar-search\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" fill=\"none\" class=\"flowbot-homelab-toolbar-search-icon\" aria-hidden=\"true\"><circle cx=\"6.5\" cy=\"6.5\" r=\"4\" stroke=\"currentColor\" stroke-width=\"1.5\"></circle> <path d=\"M9.5 9.5 13 13\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"></path></svg> <input type=\"search\" class=\"flowbot-homelab-toolbar-search-input\" placeholder=\"Search apps...\" x-model=\"search\" aria-label=\"Search apps\" data-testid=\"homelab-search\"></label> <select class=\"select select-bordered select-sm flowbot-homelab-toolbar-select\" x-model=\"filterCapability\" data-testid=\"homelab-capability-filter\"><option value=\"\">All Capabilities</option> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -62,7 +62,7 @@ func HomelabGrid(apps []homelab.App, scannedAt string) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(capType)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/homelab_grid.templ`, Line: 39, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/homelab_grid.templ`, Line: 48, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 			if templ_7745c5c3_Err != nil {
@@ -75,7 +75,7 @@ func HomelabGrid(apps []homelab.App, scannedAt string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(capType)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/homelab_grid.templ`, Line: 39, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/homelab_grid.templ`, Line: 48, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -86,19 +86,19 @@ func HomelabGrid(apps []homelab.App, scannedAt string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</select> <button hx-post=\"/service/web/homelab/rescan\" class=\"btn btn-sm btn-outline\" data-testid=\"homelab-rescan\"><span class=\"loading loading-spinner loading-xs htmx-indicator mr-1\"></span> Rescan</button> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</select><div class=\"flowbot-homelab-toolbar-actions\"><button type=\"button\" hx-post=\"/service/web/homelab/rescan\" class=\"btn btn-sm btn-ghost flowbot-homelab-toolbar-btn\" data-testid=\"homelab-rescan\"><span class=\"loading loading-spinner loading-xs htmx-indicator mr-1\"></span> Rescan</button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if scannedAt != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span class=\"text-xs text-base-content/50\" data-testid=\"homelab-scanned-at\">Last scan: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span class=\"flowbot-homelab-toolbar-meta\" data-testid=\"homelab-scanned-at\">Last scan: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(scannedAt)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/homelab_grid.templ`, Line: 50, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/homelab_grid.templ`, Line: 62, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -109,7 +109,7 @@ func HomelabGrid(apps []homelab.App, scannedAt string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
