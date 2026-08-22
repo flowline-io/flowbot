@@ -79,6 +79,7 @@ func TestNotificationsTableWithAuthOnlyListAdapter(t *testing.T) {
 		{name: "list unread group", path: "/service/web/notifications/list?group=unread", wantStatus: http.StatusOK, wantBody: "notifications-table"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})

@@ -28,6 +28,7 @@ func TestHomePageAuth(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -63,6 +64,7 @@ func TestHomeDashboardPartial(t *testing.T) {
 		{name: "authenticated omits quick links from dashboard partial", cookie: "valid-test-token", wantStatus: http.StatusOK, wantNotContains: "home-quick-links"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -99,6 +101,7 @@ func TestSessionBadge(t *testing.T) {
 		{name: "authenticated shows testuser", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "testuser"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -130,6 +133,7 @@ func TestApprovalBadge(t *testing.T) {
 		{name: "authenticated omits warning chip when idle", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: `data-testid="approval-count-badge-empty"`},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -193,6 +197,7 @@ func TestHomeTokenUsage(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			if tt.cookie != "" {

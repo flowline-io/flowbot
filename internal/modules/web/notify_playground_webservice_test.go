@@ -62,6 +62,7 @@ func TestValidatePlaygroundRequest(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			notifytmpl.ResetForTest()
 			if tt.templates != nil {
@@ -87,6 +88,7 @@ func TestParsePlaygroundPriority(t *testing.T) {
 		{name: "default normal", raw: "", want: notifypkg.Normal},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, parsePlaygroundPriority(tt.raw))
@@ -106,6 +108,7 @@ func TestPlaygroundHistoryTemplateID(t *testing.T) {
 		{name: "empty mode treated as template", req: playgroundRequest{TemplateID: "x"}, want: "x"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, playgroundHistoryTemplateID(tt.req))
@@ -125,6 +128,7 @@ func TestNotifyPlaygroundFormUnauthenticated(t *testing.T) {
 		{name: "send requires auth", path: "/service/web/notifications/playground/send", method: http.MethodPost, wantStatus: http.StatusSeeOther},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -177,6 +181,7 @@ func TestNotifyPlaygroundPreviewValidation(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp(t)
 			defer func() {
@@ -238,6 +243,7 @@ func TestNotifyPlaygroundSamplePayload(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() {

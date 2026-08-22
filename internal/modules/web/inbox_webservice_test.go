@@ -21,6 +21,7 @@ func TestSafeInboxRedirectURL(t *testing.T) {
 		{name: "empty", raw: "", wantOK: false},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got, ok := safeInboxRedirectURL(tt.raw)
 			assert.Equal(t, tt.wantOK, ok)

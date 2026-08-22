@@ -22,6 +22,7 @@ func TestHomelabRegistryPage(t *testing.T) {
 		{name: "page has correct title", wantStatus: http.StatusOK, wantContains: "Registry — Flowbot"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
@@ -58,6 +59,7 @@ func TestHomelabRegistryDetailPageNotFound(t *testing.T) {
 		{name: "non-registered app returns 404", appName: "random-name", wantStatus: http.StatusNotFound},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -83,6 +85,7 @@ func TestHomelabRegistryUnauthenticated(t *testing.T) {
 		{name: "authenticated pages render with valid token", method: http.MethodGet, path: "/service/web/homelab"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -134,6 +137,7 @@ func TestHomelabRegistryRescan(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			oldRunRescan := homelab.LoadRunRescan()
 			homelab.SetRunRescan(func() error { return nil })
@@ -170,6 +174,7 @@ func TestHomelabRegistryPageShowsRuntimeStatus(t *testing.T) {
 		{name: "unknown shows unknown not error label", status: homelab.AppStatusUnknown, wantContains: ">unknown<"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			clearAppStatusCache()
 			app, _ := setupTestApp(t)

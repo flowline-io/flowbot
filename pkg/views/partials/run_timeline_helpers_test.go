@@ -62,6 +62,7 @@ func TestBuildRunWaterfall(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := buildRunWaterfall(tt.steps, base.Add(10*time.Second))
@@ -101,6 +102,7 @@ func TestPipelineStepErrorSummary(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, PipelineStepErrorSummary(tt.steps))
@@ -122,6 +124,7 @@ func TestPipelineStepHasDetailAndOpen(t *testing.T) {
 		{name: "failed status alone", step: model.PipelineStepRun{Status: 4}, hasDetail: true, open: true},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.hasDetail, pipelineStepHasDetail(tt.step))
@@ -150,6 +153,7 @@ func TestTruncateErrorSummary(t *testing.T) {
 	tests[2].want = string(long[:160]) + "…"
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, TruncateErrorSummary(tt.input))
@@ -172,6 +176,7 @@ func TestWaterfallBarClass(t *testing.T) {
 		{name: "pipeline cancel muted", fn: PipelineWaterfallBarClass, status: 3, want: "run-waterfall-bar run-waterfall-bar-muted"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, tt.fn(tt.status))

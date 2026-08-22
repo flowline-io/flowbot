@@ -343,6 +343,7 @@ func TestChatSessionStateLabel(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, chatSessionStateLabel(tt.state))
 		})
@@ -360,6 +361,7 @@ func TestAgentSessionsPageUnauthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -407,6 +409,7 @@ func TestAgentSessionsListAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{chatSessions: tt.sessions}
 			app := setupAuthenticatedApp(t, ts)
@@ -484,6 +487,7 @@ func TestAgentSessionsListLoadMoreAppendsRows(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
@@ -550,6 +554,7 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				chatSessionsByFlag: tt.sessions,
@@ -612,6 +617,7 @@ func TestAgentSessionEntryPayloadAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{chatSessionEntries: tt.entries}
 			app := setupAuthenticatedApp(t, ts)
@@ -707,6 +713,7 @@ func TestListWebTestChatSessions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			page, cursor := listWebTestChatSessions(tt.sessions, tt.opts)

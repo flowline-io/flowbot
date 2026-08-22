@@ -39,6 +39,7 @@ func TestChatAgentDetailURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, ChatAgentDetailURL(tt.template, tt.id))
 		})
@@ -56,6 +57,7 @@ func TestChatAgentPendingPromptKey(t *testing.T) {
 		{name: "special chars preserved", sessionID: "s-1/x", want: "flowbot-chatagent-pending:s-1/x"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, ChatAgentPendingPromptKey(tt.sessionID))
 		})
@@ -73,6 +75,7 @@ func TestChatAgentSessionTitle(t *testing.T) {
 		{name: "untitled when empty", item: model.AgentSession{}, want: "Untitled session"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, ChatAgentSessionTitle(tt.item))
 		})
@@ -93,6 +96,7 @@ func TestFormatChatAgentRelativeTime(t *testing.T) {
 		{name: "weeks ago", at: now.Add(-14 * 24 * time.Hour), want: "2w"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, chatAgentRelativeTimeSince(tt.at, now))
 		})
@@ -112,6 +116,7 @@ func TestChatAgentSessionBadgeClass(t *testing.T) {
 		{name: "unknown", state: "Unknown", want: "agents-session-badge-unknown"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Contains(t, chatAgentSessionBadgeClass(tt.state), tt.want)
 		})
@@ -143,6 +148,7 @@ func TestChatAgentSessionListURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, ChatAgentSessionListURL(tt.endpoints, tt.cursor))
 		})
@@ -162,6 +168,7 @@ func TestFormatChatAgentMessageHTML(t *testing.T) {
 		{name: "assistant strips script", role: "assistant", text: `<script>alert(1)</script>`, want: ""},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := FormatChatAgentMessageHTML(tt.role, tt.text)
 			if tt.want == "" {
@@ -197,6 +204,7 @@ func TestEnhanceChatAgentMarkdownHTML(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := enhanceChatAgentMarkdownHTML(tt.html)
 			if tt.wantSame {
@@ -226,6 +234,7 @@ func TestChatAgentToolCardExpanded(t *testing.T) {
 		{name: "Needs Approval expands case insensitive", status: "Needs_Approval", want: true},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, ChatAgentToolCardExpanded(tt.status))
@@ -269,6 +278,7 @@ func TestRenderChatAgentMarkdownHTML(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := RenderChatAgentMarkdownHTML(tt.text)
 			if tt.wantEmpty {
@@ -298,6 +308,7 @@ func TestParseToolSummaryLine(t *testing.T) {
 		{name: "invalid with spaces in name", text: "run terminal()", wantOK: false},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			name, args, ok := ParseToolSummaryLine(tt.text)
 			assert.Equal(t, tt.wantOK, ok)
@@ -324,6 +335,7 @@ func TestFormatChatAgentDuration(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, ChatAgentDurationLabel(tt.ms))
@@ -358,6 +370,7 @@ func TestChatAgentSessionSettingsLabel(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, chatAgentSessionSettingsLabel(tt.session, tt.defaultModel))
@@ -384,6 +397,7 @@ func TestClassifyHistoryMessage(t *testing.T) {
 		{name: "assistant prose", role: "assistant", text: "Here is the result.", wantKinds: []string{"assistant"}},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := ClassifyHistoryMessage(tt.role, tt.text, time.Time{})
 			kinds := make([]string, 0, len(got))
@@ -407,6 +421,7 @@ func TestTruncateChatAgentSessionPreview(t *testing.T) {
 		{name: "truncates long text with ellipsis", text: "abcdefghijklmnopqrstuvwxyz0123456789", limit: 10, want: "abcdefghi…"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, TruncateChatAgentSessionPreview(tt.text, tt.limit))
 		})
@@ -424,6 +439,7 @@ func TestChatAgentOneLinePreview(t *testing.T) {
 		{name: "truncates long first line", text: strings.Repeat("a", 80), want: strings.Repeat("a", 71) + "…"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, ChatAgentOneLinePreview(tt.text))
 		})
@@ -487,6 +503,7 @@ func TestGroupAgentSessionsByDay(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			groups := GroupAgentSessionsForList(context.Background(), tt.items, now)
 			keys := make([]string, 0, len(groups))
@@ -524,6 +541,7 @@ func TestChatAgentSessionActivityLabel(t *testing.T) {
 		{name: "empty", activity: "", want: ""},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, ChatAgentSessionActivityLabel(tt.activity))
 		})
@@ -569,6 +587,7 @@ func TestChatAgentApprovalActionCopy(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctx := i18n.DefaultContext()
@@ -594,6 +613,7 @@ func TestFormatPendingApprovalBadgeText(t *testing.T) {
 		{name: "caps at 99 plus", count: 100, want: "99+"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, FormatPendingApprovalBadgeText(tt.count))
@@ -620,6 +640,7 @@ func TestChatAgentModelMultimodal(t *testing.T) {
 		{name: "no models", models: nil, selected: "vision", want: false},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, chatAgentModelMultimodal(tt.models, tt.selected))

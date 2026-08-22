@@ -71,6 +71,7 @@ func TestBuildPipelineListEntries(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := BuildPipelineListEntries(tt.defs, tt.lastRunAt)
 			require.Len(t, got, tt.wantCount)
@@ -155,6 +156,7 @@ steps: []
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			steps, triggers := PipelineListSummaryFromYAML(tt.yaml)
@@ -178,6 +180,7 @@ func TestPipelineTriggerLetter(t *testing.T) {
 		{name: "unknown", typ: "other", want: "?"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, PipelineTriggerLetter(tt.typ))
@@ -198,6 +201,7 @@ func TestPipelineLastRunOrDash(t *testing.T) {
 		{name: "formatted", value: &ts, want: "2026-07-18 14:22"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, PipelineLastRunOrDash(tt.value))
@@ -230,6 +234,7 @@ func TestPipelineWebPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, PipelineWebPath(tt.in))
@@ -258,6 +263,7 @@ func TestPipelineIsPublished(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, PipelineIsPublished(tt.def))
 		})

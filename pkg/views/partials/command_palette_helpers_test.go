@@ -28,6 +28,7 @@ func TestCommandPaletteNavPages(t *testing.T) {
 		{name: "includes settings", wantHref: "/service/web/settings", wantTitle: "Settings"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			pages := CommandPaletteNavPages(i18n.DefaultContext())
@@ -57,6 +58,7 @@ func TestCommandPalettePagesJSON(t *testing.T) {
 		{name: "is a JSON array", wantSubstr: `[{`},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := CommandPalettePagesJSON(i18n.DefaultContext())

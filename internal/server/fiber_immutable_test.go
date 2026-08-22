@@ -39,6 +39,7 @@ func TestCloneProtectsSessionIDFromBufferReuse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			buf := []byte(tt.sessionID)
+			// #nosec G103 -- deliberate aliasing to reproduce Fiber path-param buffer reuse.
 			shared := unsafe.String(unsafe.SliceData(buf), len(buf))
 			cloned := strings.Clone(shared)
 

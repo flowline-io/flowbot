@@ -84,6 +84,7 @@ func TestValidateAuthConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.skipRace && raceDetectorEnabled {
 				t.Skip("full weak-password bcrypt probe skipped under -race")
@@ -116,6 +117,7 @@ func TestRejectWeakPasswordHash(t *testing.T) {
 		{name: "strong password accepted", hash: strongHash},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			err := rejectWeakPasswordHash(tt.hash)

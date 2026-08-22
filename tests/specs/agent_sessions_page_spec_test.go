@@ -222,7 +222,8 @@ var _ = Describe("Agent Sessions UI", Label("module", "web"), func() {
 
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			body := ReadBody(resp)
-			Expect(string(body)).To(ContainSubstring("Agent Sessions"))
+			Expect(string(body)).To(ContainSubstring(`data-testid="agent-sessions-table"`))
+			Expect(string(body)).To(ContainSubstring(`data-testid="page-header"`))
 			Expect(string(body)).To(ContainSubstring(sessionID))
 		})
 

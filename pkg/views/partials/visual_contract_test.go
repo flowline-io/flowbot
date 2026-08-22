@@ -43,6 +43,7 @@ func TestPageHeader(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -111,6 +112,7 @@ func TestOpsConsoleSurfacesAvoidLegacyCardShell(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if strings.Contains(tt.html, "card bg-base-100 shadow-sm") {
@@ -191,6 +193,7 @@ func TestPipelineListUsesChipsNotBadges(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			html := renderTempl(t, partials.PipelineListTable(context.Background(), tt.entries))

@@ -174,6 +174,7 @@ func TestValidateAgentSubagentForm(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c := testWebFiberCtx(t)
 			errs := validateAgentSubagentForm(c, tt.item, tt.isNew)
@@ -199,6 +200,7 @@ func TestParseAgentSubagentMultiValues(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := parseAgentSubagentMultiValues(tt.raw)
 			assert.Equal(t, tt.want, got)
@@ -218,6 +220,7 @@ func TestParseAgentSubagentSkills(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := parseAgentSubagentMultiValues(tt.raw)
 			assert.Equal(t, tt.want, got)
@@ -274,6 +277,7 @@ func TestAgentSubagentTasksTableAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{agentSubagentTasks: tt.tasks}
 			app := setupAuthenticatedApp(t, ts)
@@ -345,6 +349,7 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentSubagents: map[string]*gen.AgentSubagent{
@@ -410,6 +415,7 @@ func TestAgentSubagentDeleteAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentSubagents: map[string]*gen.AgentSubagent{
@@ -447,6 +453,7 @@ func TestAgentSubagentCreateInvalidatesPromptCache(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			chatagent.ResetPromptCacheForTest()
 			before := chatagent.PromptCacheVersion()

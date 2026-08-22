@@ -25,6 +25,7 @@ func TestHomeQuickLinks(t *testing.T) {
 		{3, "Health", "/service/web/healthz", "home-link-healthz"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.title, links[tt.idx].Title)

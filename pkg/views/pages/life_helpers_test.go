@@ -212,6 +212,7 @@ func TestLifeSkillTreeBranchOpen(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, pages.LifeSkillTreeBranchOpen(tt.node))
@@ -236,6 +237,7 @@ func TestLifeBuildPageInfo(t *testing.T) {
 		{name: "default per page", page: 1, perPage: 0, total: 11, wantPage: 1, wantPages: 2, wantNext: true},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := pages.LifeBuildPageInfo(tt.page, tt.perPage, tt.total)
@@ -351,6 +353,7 @@ func TestLifeGroupGoals(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := pages.LifeGroupGoals(tt.in)

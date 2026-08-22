@@ -41,6 +41,7 @@ func TestEmptyStateCTA(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -99,6 +100,7 @@ func TestEmptyStateHXCTA(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -153,6 +155,7 @@ func TestEmptyStateOnClickCTA(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -214,6 +217,7 @@ func TestWriteTableEmptyOOB(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -246,6 +250,7 @@ func TestFormError(t *testing.T) {
 		{name: "alert role", message: "err", want: `role="alert"`},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -271,6 +276,7 @@ func TestPanelSkeleton(t *testing.T) {
 		{name: "spinner", want: "loading-spinner"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -296,6 +302,7 @@ func TestHtmxIndicator(t *testing.T) {
 		{name: "aria hidden", want: `aria-hidden="true"`},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer

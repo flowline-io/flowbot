@@ -18,6 +18,7 @@ func TestAgentKnowledgeListURL(t *testing.T) {
 		{name: "trims whitespace", q: "  ops  ", want: "/service/web/agent-knowledge/list?q=ops"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, agentKnowledgeListURL(tt.q))
@@ -37,6 +38,7 @@ func TestAgentKnowledgeSummaryPreview(t *testing.T) {
 		{name: "exact sixty runes", summary: repeatRune('a', 60), want: repeatRune('a', 60)},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, agentKnowledgeSummaryPreview(tt.summary))

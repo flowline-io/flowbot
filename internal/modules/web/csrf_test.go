@@ -24,6 +24,7 @@ func TestCSRFCookieName(t *testing.T) {
 		{name: "omitted cookie_secure defaults to host prefix", secure: nil, want: csrfCookieNameHost},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := csrfCookieNameFor(AuthConfig{CookieSecure: tt.secure}); got != tt.want {
@@ -119,6 +120,7 @@ func TestCSRFMiddleware(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 
@@ -167,6 +169,7 @@ func TestEnsureCSRFCookieSetsCookie(t *testing.T) {
 		{name: "rotates unknown existing cookie", existing: "short", wantSetCookie: true},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			req := httptest.NewRequest(http.MethodGet, "/service/web/login", http.NoBody)
@@ -212,6 +215,7 @@ func TestCSRFCookieFlags(t *testing.T) {
 		{name: "session cookie omits Max-Age", secure: false, wantName: csrfCookieNameLocal, wantSecure: false},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			lockWebTestGlobals(t)
 			secure := tt.secure
@@ -269,6 +273,7 @@ func TestAttachCSRFForTest(t *testing.T) {
 		{name: "token non-empty"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			req := httptest.NewRequest(http.MethodPost, "/service/web/logout", http.NoBody)
@@ -306,6 +311,7 @@ func TestRequestPublicOrigin(t *testing.T) {
 		{name: "https from forwarded proto", configURL: "", host: "bot.example", proto: "https", wantOrigin: "https://bot.example"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			prev := pkgconfig.App.Flowbot.URL
 			pkgconfig.App.Flowbot.URL = tt.configURL

@@ -88,7 +88,7 @@ func (v *Dropbox) completeAuth(code string) (*TokenResponse, error) {
 		v.accessToken = result.AccessToken
 		return &result, nil
 	}
-	return nil, fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
+	return nil, fmt.Errorf("%d, %s", resp.StatusCode(), string(resp.Bytes()))
 }
 
 func (v *Dropbox) GetAccessToken(ctx fiber.Ctx) (*providers.OAuthToken, error) {
@@ -134,7 +134,7 @@ func (v *Dropbox) RefreshAccessToken(ctx context.Context, refreshToken string) (
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("dropbox refresh token: %d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
+		return nil, fmt.Errorf("dropbox refresh token: %d, %s", resp.StatusCode(), string(resp.Bytes()))
 	}
 
 	var result TokenResponse
@@ -184,5 +184,5 @@ func (v *Dropbox) Upload(path string, content io.Reader) error {
 	if resp.StatusCode() == http.StatusOK {
 		return nil
 	}
-	return fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
+	return fmt.Errorf("%d, %s", resp.StatusCode(), string(resp.Bytes()))
 }

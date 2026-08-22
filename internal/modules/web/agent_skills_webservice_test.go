@@ -201,6 +201,7 @@ func TestValidateAgentSkillForm(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			errs := validateAgentSkillForm(tt.item, tt.isNew)
 			if tt.wantKey == "" {
@@ -225,6 +226,7 @@ func TestMapAgentSkillUniqueError(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			errs := mapAgentSkillUniqueError(tt.err)
 			if tt.wantKey == "" {
@@ -249,6 +251,7 @@ func TestAgentSkillsPageUnauthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -332,6 +335,7 @@ func TestAgentSkillCreateAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentSkills: map[string]*gen.AgentSkill{
@@ -378,6 +382,7 @@ func TestAgentSkillCreateInvalidatesPromptCache(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			chatagent.ResetPromptCacheForTest()
 			before := chatagent.PromptCacheVersion()
@@ -450,6 +455,7 @@ func TestAgentSkillUpdateAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentSkills: map[string]*gen.AgentSkill{
@@ -504,6 +510,7 @@ func TestAgentSkillDeleteAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentSkills: map[string]*gen.AgentSkill{
@@ -582,6 +589,7 @@ func TestAgentSkillSetEnabledAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentSkills: map[string]*gen.AgentSkill{
@@ -674,6 +682,7 @@ func TestAgentSkillsImportAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{agentSkills: map[string]*gen.AgentSkill{}}
 			app := setupAuthenticatedApp(t, ts)
@@ -769,6 +778,7 @@ func TestValidateAgentSkillFileForm(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			errs := validateAgentSkillFileForm(tt.item, tt.isNew)
 			if tt.wantKey == "" {
@@ -806,6 +816,7 @@ func TestAgentSkillFileCreateAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentSkills: map[string]*gen.AgentSkill{
@@ -856,6 +867,7 @@ func TestAgentSkillFileDeleteAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentSkills: map[string]*gen.AgentSkill{

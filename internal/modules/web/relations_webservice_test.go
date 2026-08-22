@@ -38,6 +38,7 @@ func TestRelationsPage(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			req := httptest.NewRequest(http.MethodGet, "/service/web/relations", http.NoBody)
@@ -115,6 +116,7 @@ func TestRelationsTree(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var app *fiber.App
 			if tt.seedFn != nil {
@@ -195,6 +197,7 @@ func TestRelationsSearch(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var app *fiber.App
 			if tt.seedFn != nil {
@@ -245,6 +248,7 @@ func TestRelationsDetail(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			req := httptest.NewRequest(http.MethodGet, "/service/web/relations/detail?"+tt.query, http.NoBody)

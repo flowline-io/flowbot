@@ -27,6 +27,7 @@ func TestHubAppsPage(t *testing.T) {
 		{name: "page has correct title", wantStatus: http.StatusOK, wantContains: "Apps — Flowbot"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
@@ -63,6 +64,7 @@ func TestHubAppsList(t *testing.T) {
 		{name: "empty state shown when no apps", wantStatus: http.StatusOK, wantContains: "No apps discovered"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
@@ -100,6 +102,7 @@ func TestHubAppDetailPageNotFound(t *testing.T) {
 		{name: "non-registered app returns 404", appName: "random-name", wantStatus: http.StatusNotFound, wantContent: i18n.T(i18n.DefaultContext(), "error.hub.app_not_found")},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -128,6 +131,7 @@ func TestHubAppActionNotFound(t *testing.T) {
 		{name: "restart returns 404 for unknown app", action: "restart"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -153,6 +157,7 @@ func TestHubAppLogsSSENotFound(t *testing.T) {
 		{name: "valid app name but not registered", appName: "testapp", wantStatus: http.StatusNotFound},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -178,6 +183,7 @@ func TestHubAppsUnauthenticated(t *testing.T) {
 		{name: "authenticated pages render with valid token", method: http.MethodGet, path: "/service/web/hub"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -209,6 +215,7 @@ func TestHubCapabilitiesPage(t *testing.T) {
 		{name: "shows empty state when no capabilities", wantStatus: http.StatusOK, wantContains: "No capabilities registered"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -238,6 +245,7 @@ func TestHubCapabilitiesGrid(t *testing.T) {
 		{name: "accepts type query param", wantStatus: http.StatusOK, wantContains: "capability-grid"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -283,6 +291,7 @@ func TestHubCapabilitiesGridFiltered(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			oldDefault := hub.Default
 			hub.Default = hub.NewRegistry()
@@ -334,6 +343,7 @@ func TestHubCapabilitiesUnauthenticated(t *testing.T) {
 		{name: "authenticated capabilities page renders OK", method: http.MethodGet, path: "/service/web/capabilities"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -385,6 +395,7 @@ func TestHubLifecycleAction_PermissionDenied(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
@@ -448,6 +459,7 @@ func TestHubLifecycleAction_SuccessToast(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
@@ -566,6 +578,7 @@ func TestEnrichAppStatuses(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			clearAppStatusCache()
 			prev := homelab.DefaultRuntime
@@ -612,6 +625,7 @@ func TestEnrichAppStatusesCache(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			clearAppStatusCache()
 			apps := []homelab.App{{Name: "cached-app", Status: homelab.AppStatusUnknown}}
@@ -645,6 +659,7 @@ func TestHubAppsListShowsRuntimeStatus(t *testing.T) {
 		{name: "unknown shows unknown not error", status: homelab.AppStatusUnknown, wantContains: ">unknown<"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			clearAppStatusCache()
 			app, _ := setupTestApp(t)

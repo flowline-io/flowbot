@@ -53,6 +53,7 @@ func TestAgentsPageUnauthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { handler = moduleHandler{}; config = configType{} }()
@@ -108,6 +109,7 @@ func TestAgentsPageAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				ensureChatAgentServiceForTest()
@@ -329,6 +331,7 @@ func TestAgentsPinAndArchiveRefreshList(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				ts := &testStore{
@@ -437,6 +440,7 @@ func TestAgentsCloseSession(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				ts := &testStore{chatSessionsByFlag: tt.sessions}
@@ -503,6 +507,7 @@ func TestAgentsCreateSession(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			orig := pkgconfig.App.ChatAgent.ChatModel
 			origWS := pkgconfig.App.ChatAgent.Workspace
@@ -613,6 +618,7 @@ func TestAgentsCreateSessionWorkspaceRejected(t *testing.T) {
 		{name: "missing directory", body: `{"workspace":"gone"}`},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/agents", strings.NewReader(tt.body))
 			req.Header.Set("Content-Type", "application/json")
@@ -715,6 +721,7 @@ func TestAgentChatContext(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				withChatAgentContextConfig(t)
@@ -828,6 +835,7 @@ func TestAgentChatPageOwner(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				ts := &testStore{chatSessionsByFlag: tt.sessions}
@@ -863,6 +871,7 @@ func TestAgentChatSendMessageValidation(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				sessionID := "sess-msg"
@@ -923,6 +932,7 @@ func TestAgentRenderMarkdown(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				app := setupAuthenticatedApp(t, &testStore{})
@@ -953,6 +963,7 @@ func TestAgentsWebserviceStaticRoutesBeforeParam(t *testing.T) {
 		{name: "create is collection", path: "/agents"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			paramIdx := -1
 			staticIdx := -1
@@ -1001,6 +1012,7 @@ func TestAgentChatPageKeepsSessionIDOutOfRenderMarkdownPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				ts := &testStore{chatSessionsByFlag: map[string]*gen.ChatSession{
@@ -1045,6 +1057,7 @@ func TestMapChatMessages(t *testing.T) {
 		{name: "empty input", in: nil, want: 0},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			out := mapChatMessages("sess-map", tt.in)
 			assert.Len(t, out, tt.want)
@@ -1078,6 +1091,7 @@ func TestChatAgentMediaPreviewURL(t *testing.T) {
 		{name: "trims spaces", sessionID: " sess ", fileID: " f1 ", want: "/service/web/agents/sess/media/f1"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, chatAgentMediaPreviewURL(tt.sessionID, tt.fileID))
@@ -1139,6 +1153,7 @@ func TestAgentChatConfirmNotFound(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
 				sessionID := "sess-confirm"
@@ -1231,6 +1246,7 @@ func TestAgentsSkillsList(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ensureChatAgentServiceForTest()
 			ts := &testStore{agentSkills: tt.skills}

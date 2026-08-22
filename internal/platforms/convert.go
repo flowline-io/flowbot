@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 var msgConverters = map[reflect.Type]func(types.MsgPayload) protocol.Message{
@@ -352,7 +351,7 @@ func formatFieldValue(v any) string {
 		if err != nil {
 			return fmt.Sprintf("%v", t)
 		}
-		return utils.BytesToString(b)
+		return string(b)
 	default:
 		rv := reflect.ValueOf(v)
 		if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array || rv.Kind() == reflect.Map || rv.Kind() == reflect.Struct {
@@ -360,7 +359,7 @@ func formatFieldValue(v any) string {
 			if err != nil {
 				return fmt.Sprintf("%v", v)
 			}
-			return utils.BytesToString(b)
+			return string(b)
 		}
 		return fmt.Sprintf("%v", v)
 	}

@@ -27,6 +27,7 @@ func TestWorkflowWebPath(t *testing.T) {
 		{name: "unicode", in: "café", want: "/service/web/workflows/caf%C3%A9"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, WorkflowWebPath(tt.in))
@@ -69,6 +70,7 @@ func TestBuildWorkflowListEntries(t *testing.T) {
 		{name: "two defs", defs: []model.Workflow{{Name: "a"}, {Name: "b", Pipeline: []string{"x", "y"}}}, want: 2},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := BuildWorkflowListEntries(i18n.DefaultContext(), tt.defs, tt.triggers, tt.lastRunAt)
@@ -112,6 +114,7 @@ func TestWorkflowTriggerSummaries(t *testing.T) {
 		{name: "manual", rows: []model.WorkflowTrigger{{Type: "manual", Enabled: false}}, wantLen: 1, wantLabel: "Manual", wantLetter: "M"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := WorkflowTriggerSummaries(i18n.DefaultContext(), tt.rows)
@@ -158,6 +161,7 @@ func TestWorkflowWebhookURLPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, WorkflowWebhookURLPath(tt.tr))
@@ -179,6 +183,7 @@ func TestWorkflowWebhookURL(t *testing.T) {
 		{name: "absolute", tr: tr, origin: "https://bot.example/", want: "https://bot.example/webhook/workflow/hooks/a?token=t"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, WorkflowWebhookURL(tt.tr, tt.origin))
@@ -228,6 +233,7 @@ func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -263,6 +269,7 @@ func TestWorkflowRunStatusHelpers(t *testing.T) {
 		{name: "unknown", status: int(types.WorkflowRunStateUnknown), wantClass: "flowbot-chip flowbot-chip-muted", wantText: "Unknown"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.wantClass, WorkflowRunStatusClass(tt.status))
@@ -284,6 +291,7 @@ func TestWorkflowInputDefaultString(t *testing.T) {
 		{name: "number", def: types.WorkflowInputDef{Default: 3}, want: "3"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, WorkflowInputDefaultString(tt.def))
@@ -306,6 +314,7 @@ func TestWorkflowInputTypeHelpers(t *testing.T) {
 		{name: "string", typ: types.WorkflowInputTypeString},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.wantBool, WorkflowInputIsBoolean(tt.typ))
@@ -384,6 +393,7 @@ func TestBuildWorkflowDAGView(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := BuildWorkflowDAGView(tt.tasks, tt.pipeline, tt.maxConcurrency)
@@ -448,6 +458,7 @@ func TestWorkflowDAGConnectorStyle(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, workflowDAGConnectorStyle(tt.from, tt.to))
@@ -477,6 +488,7 @@ func TestWorkflowDAGNodeIndex(t *testing.T) {
 		{name: "out of range", li: 9, ni: 0, want: 0},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, WorkflowDAGNodeIndex(view, tt.li, tt.ni))

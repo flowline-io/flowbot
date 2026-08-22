@@ -20,6 +20,7 @@ func TestFormatClipListTime(t *testing.T) {
 		{name: "non-utc converted", t: ts.In(time.FixedZone("CST", 8*3600)), want: "2026-07-17 11:00 UTC"},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, formatClipListTime(tt.t))

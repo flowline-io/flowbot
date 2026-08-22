@@ -32,6 +32,7 @@ func TestEnabledStatusIcon(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, EnabledStatusIcon(i18n.DefaultContext(), tt.enabled))
@@ -63,6 +64,7 @@ func TestSessionStateStatusIcon(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, SessionStateStatusIcon(i18n.DefaultContext(), tt.state))
@@ -104,6 +106,7 @@ func TestScheduledTaskStateStatusIcon(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, ScheduledTaskStateStatusIcon(i18n.DefaultContext(), tt.state))
@@ -135,6 +138,7 @@ func TestScheduledTaskRunStateStatusIcon(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, ScheduledTaskRunStateStatusIcon(i18n.DefaultContext(), tt.state))
@@ -166,6 +170,7 @@ func TestPipelineRuntimeStatusIcon(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, PipelineRuntimeStatusIcon(i18n.DefaultContext(), tt.enabled))

@@ -138,6 +138,7 @@ func TestLoginRateLimiterAllow(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			store := newMockRateLimitStore()
 			if tt.setup != nil {
@@ -180,6 +181,7 @@ func TestLoginRateLimiterAllowDelayCalculation(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			store := newMockRateLimitStore()
 			store.setAttempts("10.0.0.1", tt.attempts)
@@ -231,6 +233,7 @@ func TestLoginRateLimiterRecordFailure(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			store := newMockRateLimitStore()
 			if tt.setup != nil {
@@ -280,6 +283,7 @@ func TestLoginRateLimiterRecordSuccess(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			store := newMockRateLimitStore()
 			if tt.setup != nil {

@@ -44,6 +44,7 @@ func TestEventPayloadDetail_highlightAndCopy(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			if err := EventPayloadDetail(tt.payload).Render(context.Background(), &buf); err != nil {
@@ -95,6 +96,7 @@ func TestDataEventsTable_expandTarget(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			err := DataEventsTable(context.Background(), nil, nil, tt.events, PageInfo{}, nil).Render(context.Background(), &buf)

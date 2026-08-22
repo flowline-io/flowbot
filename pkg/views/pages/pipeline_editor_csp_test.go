@@ -29,6 +29,7 @@ func TestPipelineEditorPageCSPSafeExpressions(t *testing.T) {
 	}
 	html := buf.String()
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if strings.Contains(html, tt.bad) {
@@ -95,6 +96,7 @@ func TestPipelineEditorWebhookURLCopyMarkup(t *testing.T) {
 		{name: "copy curl example", want: `data-testid="btn-copy-webhook-curl"`},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if !strings.Contains(html, tt.want) {

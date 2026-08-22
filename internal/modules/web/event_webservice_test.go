@@ -39,6 +39,7 @@ func TestHasWebhookData(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, hasWebhookData(tt.event))
 		})
@@ -93,6 +94,7 @@ func TestParseEventFilterParams(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app := fiber.New()
 			c := app.AcquireCtx(&fasthttp.RequestCtx{})

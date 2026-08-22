@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
-	"unsafe"
 
 	"github.com/google/uuid"
 )
@@ -47,7 +46,7 @@ func IsUrl(text string) bool {
 
 func SHA256(txt string) string {
 	h := sha256.New()
-	_, _ = h.Write(StringToBytes(txt))
+	_, _ = h.Write([]byte(txt))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
@@ -58,19 +57,4 @@ func NewUUID() string {
 
 func ValidImageContentType(ct string) bool {
 	return strings.HasPrefix(ct, "image/")
-}
-
-// BytesToString converts byte slice to string without allocation.
-func BytesToString(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-// StringToBytes converts string to byte slice without allocation.
-func StringToBytes(s string) []byte {
-	return *(*[]byte)(unsafe.Pointer(
-		&struct {
-			string
-			Cap int
-		}{s, len(s)},
-	))
 }

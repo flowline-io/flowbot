@@ -43,6 +43,7 @@ func TestAgentResourcePreviewLoadFull(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -94,6 +95,7 @@ func TestAgentResourcePreviewURLFull(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := string(partials.AgentResourcePreviewURL("s1", tt.uri, tt.full))
