@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -626,6 +627,40 @@ func TestAgentSessionEntryPayloadAuthenticated(t *testing.T) {
 			assert.Contains(t, string(body), tt.wantBody)
 		})
 	}
+}
+
+func TestAgentSessionEventsMissingSession(t *testing.T) {
+	app := setupAuthenticatedApp(t, &testStore{chatSessionsByFlag: map[string]*gen.ChatSession{}})
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/agent-sessions/missing/events", http.NoBody)
+	req.Header.Set("Cookie", "accessToken=test-token")
+	AttachCSRFForTest(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestAgentSessionConfirmOpsViewNonOwner(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		ts := &testStore{chatSessionsByFlag: map[string]*gen.ChatSession{
+			"sess-other": {Flag: "sess-other", UID: "someone-else", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+		}}
+		app := setupAuthenticatedApp(t, ts)
+
+		req := httptest.NewRequest(http.MethodPost, "/service/web/agent-sessions/sess-other/confirm", strings.NewReader(`{"id":"missing-confirm"}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		assert.NotEqual(t, http.StatusForbidden, resp.StatusCode)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
 }
 
 func TestListWebTestChatSessions(t *testing.T) {

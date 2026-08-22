@@ -263,12 +263,9 @@ func agentSessionConfirm(ctx fiber.Ctx) error {
 		return err
 	}
 	sessionID := strings.Clone(ctx.Params("id"))
-	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+	if err := ensureWebSessionExists(ctx, sessionID); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return ctx.Status(http.StatusNotFound).SendString("session not found")
-		}
-		if errors.Is(err, types.ErrForbidden) {
-			return ctx.Status(http.StatusForbidden).SendString("forbidden")
 		}
 		return types.Errorf(types.ErrInternal, "confirm: %v", err)
 	}
@@ -318,12 +315,9 @@ func agentSessionEvents(ctx fiber.Ctx) error {
 		return err
 	}
 	sessionID := strings.Clone(ctx.Params("id"))
-	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+	if err := ensureWebSessionExists(ctx, sessionID); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return ctx.Status(http.StatusNotFound).SendString("session not found")
-		}
-		if errors.Is(err, types.ErrForbidden) {
-			return ctx.Status(http.StatusForbidden).SendString("forbidden")
 		}
 		return types.Errorf(types.ErrInternal, "events: %v", err)
 	}

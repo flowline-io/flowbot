@@ -199,6 +199,17 @@ func webUID(ctx fiber.Ctx) (types.Uid, error) {
 	return rc.UID, nil
 }
 
+func ensureWebSessionExists(ctx fiber.Ctx, sessionID string) error {
+	_, err := store.ChatStoreFromDB().GetChatSession(ctx.Context(), sessionID)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return types.ErrNotFound
+		}
+		return err
+	}
+	return nil
+}
+
 func ensureWebSessionOwner(ctx fiber.Ctx, sessionID string) error {
 	uid, err := webUID(ctx)
 	if err != nil {
