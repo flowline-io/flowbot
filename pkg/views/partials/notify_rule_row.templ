@@ -25,16 +25,16 @@ templ NotifyRuleRow(ctx context.Context, item model.NotifyRule, templateIDs []st
 				{ item.Name }
 			</button>
 			if item.Action == "aggregate" && item.ParamsJSON != "" && !hasTemplateForRule(item, templateIDs) {
-				<span class="tooltip" data-tip="Template not found" data-testid="rule-stale-template">&#9888;</span>
+				<span class="tooltip" data-tip={ i18n.T(ctx, "notify.rule.template_not_found") } data-testid="rule-stale-template">&#9888;</span>
 			}
 			<div class="text-xs text-base-content/50 font-mono mt-0.5">{ item.RuleID }</div>
 			<div x-show="expanded" x-cloak class="mt-2 text-xs">
 				if item.Condition != "" {
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Condition</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "common.condition") }</div>
 					<pre class="bg-base-300 rounded p-2 font-mono whitespace-pre-wrap overflow-x-auto mb-2">{ item.Condition }</pre>
 				}
 				if item.ParamsJSON != "" {
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Params</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "common.params") }</div>
 					<pre class="bg-base-300 rounded p-2 font-mono whitespace-pre-wrap overflow-x-auto">{ item.ParamsJSON }</pre>
 				}
 			</div>
@@ -48,14 +48,14 @@ templ NotifyRuleRow(ctx context.Context, item model.NotifyRule, templateIDs []st
 		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.EventPattern, 30) }</td>
 		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.ChannelPattern, 30) }</td>
 		<td class="text-center">
-			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
+			@StatusIcon(EnabledStatusIcon(ctx, item.Enabled), "")
 		</td>
 		<td>
 			<div class="flex gap-1">
 				<button hx-get={ notifyRuleEditURL(item) }
 					data-testid="rule-edit"
 					class="btn btn-ghost btn-xs text-primary">
-					Edit
+					{ i18n.T(ctx, "common.edit") }
 				</button>
 				<button hx-delete={ notifyRuleDeleteURL(item) }
 					data-confirm={ i18n.T(ctx, "confirm.delete_rule.message") }
@@ -64,7 +64,7 @@ templ NotifyRuleRow(ctx context.Context, item model.NotifyRule, templateIDs []st
 					data-confirm-class="btn-error"
 					data-testid="rule-delete"
 					class="btn btn-ghost btn-xs text-error">
-					Delete
+					{ i18n.T(ctx, "common.delete") }
 					@HtmxIndicator()
 				</button>
 			</div>

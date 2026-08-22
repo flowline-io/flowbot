@@ -1,5 +1,7 @@
 package partials
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 // TableFilterBar renders a client-side search field bound to Alpine tableFilter.search.
 templ TableFilterBar(placeholder string, testID string) {
 	<div class="flowbot-table-filter">
@@ -21,7 +23,7 @@ templ TableFilterBar(placeholder string, testID string) {
 				x-show="search"
 				x-cloak
 				x-on:click="clearSearch()"
-				aria-label="Clear search"
+				aria-label={ i18n.T(ctx, "common.clear_search") }
 				data-testid={ testID + "-clear" }>
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" class="w-3.5 h-3.5" aria-hidden="true">
 					<path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>

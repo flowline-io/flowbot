@@ -65,13 +65,13 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 	}
 	sessionID := ctx.Params("id")
 	if sessionID == "" {
-		return ctx.Status(http.StatusBadRequest).SendString("session id required")
+		return ctx.Status(http.StatusBadRequest).SendString(webMsg(ctx, "error.agents.session_id_required"))
 	}
 
 	row, err := store.ChatStoreFromDB().GetChatSession(ctx.Context(), sessionID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return ctx.Status(http.StatusNotFound).SendString("session not found")
+			return ctx.Status(http.StatusNotFound).SendString(webMsg(ctx, "error.agents.session_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "get chat session: %v", err)
 	}
@@ -265,7 +265,7 @@ func agentSessionConfirm(ctx fiber.Ctx) error {
 	sessionID := strings.Clone(ctx.Params("id"))
 	if err := ensureWebSessionExists(ctx, sessionID); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return ctx.Status(http.StatusNotFound).SendString("session not found")
+			return ctx.Status(http.StatusNotFound).SendString(webMsg(ctx, "error.agents.session_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "confirm: %v", err)
 	}
@@ -276,7 +276,7 @@ func agentSessionConfirm(ctx fiber.Ctx) error {
 		Pattern  string `json:"pattern"`
 	}
 	if err := sonic.Unmarshal(ctx.Body(), &body); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": webMsg(ctx, "error.validation.invalid_json")})
 	}
 	reason := chatagent.ConfirmReasonDenied
 	if body.Approved {
@@ -296,16 +296,16 @@ func agentSessionConfirm(ctx fiber.Ctx) error {
 	}
 	ok, err := svc.ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
 	if errors.Is(err, chatagent.ErrConfirmNotFound) {
-		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": webMsg(ctx, "error.agents.confirm_not_found")})
 	}
 	if errors.Is(err, chatagent.ErrConfirmResolved) {
-		return ctx.Status(http.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusConflict).JSON(fiber.Map{"error": webMsg(ctx, "error.agents.confirm_resolved")})
 	}
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "confirm: %v", err)
 	}
 	if !ok {
-		return ctx.Status(http.StatusConflict).JSON(fiber.Map{"error": "confirm not applied"})
+		return ctx.Status(http.StatusConflict).JSON(fiber.Map{"error": webMsg(ctx, "error.agents.confirm_not_applied")})
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
@@ -317,7 +317,7 @@ func agentSessionEvents(ctx fiber.Ctx) error {
 	sessionID := strings.Clone(ctx.Params("id"))
 	if err := ensureWebSessionExists(ctx, sessionID); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return ctx.Status(http.StatusNotFound).SendString("session not found")
+			return ctx.Status(http.StatusNotFound).SendString(webMsg(ctx, "error.agents.session_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "events: %v", err)
 	}

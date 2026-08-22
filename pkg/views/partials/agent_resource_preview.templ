@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -8,7 +9,7 @@ templ AgentSessionPlansCard(sessionID string, plans []model.AgentPlan) {
 	if len(plans) > 0 {
 		<div class="flowbot-surface mb-6" data-testid="agent-session-plans">
 			<div class="card-body">
-				<h2 class="text-lg font-semibold tracking-tight m-0">Plans</h2>
+				<h2 class="text-lg font-semibold tracking-tight m-0">{ i18n.T(ctx, "agent.session.plans") }</h2>
 				<ul class="space-y-2">
 					for _, plan := range plans {
 						<li>
@@ -38,7 +39,7 @@ templ AgentResourcePreview(title, bodyHTML string, truncated bool, fullURL strin
 		<div class="p-4 prose prose-sm max-w-none">
 			<h3 class="text-base font-semibold">{ title }</h3>
 			if truncated {
-				<p class="text-warning text-sm">Content truncated for preview.</p>
+				<p class="text-warning text-sm">{ i18n.T(ctx, "agent.resource.truncated") }</p>
 				if fullURL != "" {
 					<button
 						type="button"
@@ -47,7 +48,7 @@ templ AgentResourcePreview(title, bodyHTML string, truncated bool, fullURL strin
 						hx-get={ templ.URL(fullURL) }
 						hx-target="closest [data-testid='agent-resource-preview']"
 						hx-swap="outerHTML">
-						Load full
+						{ i18n.T(ctx, "agent.resource.load_full") }
 						@HtmxIndicator()
 					</button>
 				}

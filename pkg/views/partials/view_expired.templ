@@ -1,8 +1,10 @@
 package partials
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 templ ViewExpiredPage() {
 	<div class="text-center py-16" data-testid="view-expired">
-		<p class="text-base-content/30 text-lg">Page not found or expired.</p>
-		<a href="/service/web/home" class="mt-4 inline-block link link-hover text-primary text-sm">Return to home</a>
+		<p class="text-base-content/30 text-lg">{ i18n.T(ctx, "view.expired.not_found") }</p>
+		<a href="/service/web/home" class="mt-4 inline-block link link-hover text-primary text-sm">{ i18n.T(ctx, "view.expired.return_home") }</a>
 	</div>
 }

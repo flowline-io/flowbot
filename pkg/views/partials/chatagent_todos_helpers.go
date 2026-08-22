@@ -1,10 +1,11 @@
 package partials
 
 import (
-	"fmt"
+	"context"
 	"strconv"
 	"strings"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -13,13 +14,13 @@ func chatAgentTodosPanelClass(count int) string {
 	return "chatagent-todos-panel flowbot-surface shrink-0 mx-1 mb-3"
 }
 
-func chatAgentTodosCountLabel(todos []model.AgentTodo) string {
+func chatAgentTodosCountLabel(ctx context.Context, todos []model.AgentTodo) string {
 	if len(todos) == 0 {
-		return "0 items"
+		return i18n.T(ctx, "client.chatagent.todos.count_zero")
 	}
 	done, total := chatAgentTodosProgress(todos)
 	if done == total {
-		return fmt.Sprintf("%d/%d done", done, total)
+		return i18n.TData(ctx, "client.chatagent.todos.count_done", map[string]any{"Done": done, "Total": total})
 	}
 	active := 0
 	for _, item := range todos {
@@ -31,9 +32,9 @@ func chatAgentTodosCountLabel(todos []model.AgentTodo) string {
 		}
 	}
 	if active <= 0 {
-		return fmt.Sprintf("%d/%d done", done, total)
+		return i18n.TData(ctx, "client.chatagent.todos.count_done", map[string]any{"Done": done, "Total": total})
 	}
-	return fmt.Sprintf("%d active · %d/%d", active, done, total)
+	return i18n.TData(ctx, "client.chatagent.todos.count_active", map[string]any{"Active": active, "Done": done, "Total": total})
 }
 
 func chatAgentTodosProgressWidth(todos []model.AgentTodo) string {
@@ -64,17 +65,17 @@ func chatAgentTodosProgress(todos []model.AgentTodo) (done, total int) {
 	return done, total
 }
 
-func chatAgentTodoSummaryCountLabel(summary model.AgentTodoSummary) string {
+func chatAgentTodoSummaryCountLabel(ctx context.Context, summary model.AgentTodoSummary) string {
 	if summary.Total == 0 {
-		return "0 items"
+		return i18n.T(ctx, "client.chatagent.todos.count_zero")
 	}
 	if summary.Done == summary.Total {
-		return fmt.Sprintf("%d/%d done", summary.Done, summary.Total)
+		return i18n.TData(ctx, "client.chatagent.todos.count_done", map[string]any{"Done": summary.Done, "Total": summary.Total})
 	}
 	if summary.Active <= 0 {
-		return fmt.Sprintf("%d/%d done", summary.Done, summary.Total)
+		return i18n.TData(ctx, "client.chatagent.todos.count_done", map[string]any{"Done": summary.Done, "Total": summary.Total})
 	}
-	return fmt.Sprintf("%d active · %d/%d", summary.Active, summary.Done, summary.Total)
+	return i18n.TData(ctx, "client.chatagent.todos.count_active", map[string]any{"Active": summary.Active, "Done": summary.Done, "Total": summary.Total})
 }
 
 func chatAgentTodoSummaryProgressWidth(summary model.AgentTodoSummary) string {
@@ -93,16 +94,16 @@ func chatAgentTodoSummaryProgressPercentLabel(summary model.AgentTodoSummary) st
 	return strconv.Itoa(pct) + "%"
 }
 
-func chatAgentSessionTodoLineLabel(summary model.AgentTodoSummary) string {
+func chatAgentSessionTodoLineLabel(ctx context.Context, summary model.AgentTodoSummary) string {
 	if summary.Total == 0 {
 		return ""
 	}
 	if summary.Done == summary.Total {
-		return fmt.Sprintf("%d/%d done", summary.Done, summary.Total)
+		return i18n.TData(ctx, "client.chatagent.todos.count_done", map[string]any{"Done": summary.Done, "Total": summary.Total})
 	}
 	parts := []string{
 		chatAgentTodoSummaryProgressPercentLabel(summary),
-		chatAgentTodoSummaryCountLabel(summary),
+		chatAgentTodoSummaryCountLabel(ctx, summary),
 	}
 	if summary.InProgress != "" {
 		parts = append(parts, summary.InProgress)

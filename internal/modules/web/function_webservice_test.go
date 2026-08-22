@@ -22,6 +22,7 @@ import (
 	capfunctions "github.com/flowline-io/flowbot/pkg/capability/functions"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	pkgexec "github.com/flowline-io/flowbot/pkg/exec"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	pkgfunctions "github.com/flowline-io/flowbot/pkg/functions"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
@@ -260,7 +261,7 @@ func TestFunctionWebTrySandboxUnavailable(t *testing.T) {
 	raw, err := io.ReadAll(tryResp.Body)
 	require.NoError(t, err)
 	assert.Contains(t, string(raw), "UNAVAILABLE")
-	assert.Contains(t, string(raw), "Docker is not running")
+	assert.Contains(t, string(raw), i18n.T(i18n.DefaultContext(), "error.function.unavailable"))
 	assert.NotContains(t, string(raw), "docker.sock")
 }
 

@@ -61,27 +61,27 @@ func agentScheduledTaskDetailPage(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := webRequireChatAgentEnabled(); err != nil {
-		return ctx.Status(http.StatusServiceUnavailable).SendString("chat agent is not enabled")
+		return ctx.Status(http.StatusServiceUnavailable).SendString(webMsg(ctx, "error.agents.not_enabled"))
 	}
 	uid, err := webUID(ctx)
 	if err != nil {
-		return ctx.Status(http.StatusUnauthorized).SendString("unauthorized")
+		return ctx.Status(http.StatusUnauthorized).SendString(webMsg(ctx, "error.agents.unauthorized"))
 	}
 	taskID := ctx.Params("id")
 	if taskID == "" {
-		return ctx.Status(http.StatusBadRequest).SendString("task id required")
+		return ctx.Status(http.StatusBadRequest).SendString(webMsg(ctx, "error.agents.task_id_required"))
 	}
 	task, err := chatagent.GetScheduledTaskForUID(ctx.Context(), uid, taskID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return ctx.Status(http.StatusNotFound).SendString("scheduled task not found")
+			return ctx.Status(http.StatusNotFound).SendString(webMsg(ctx, "error.agents.scheduled_task_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "get scheduled task: %v", err)
 	}
 	runs, err := chatagent.ListScheduledTaskRuns(ctx.Context(), uid, taskID, 20)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return ctx.Status(http.StatusNotFound).SendString("scheduled task not found")
+			return ctx.Status(http.StatusNotFound).SendString(webMsg(ctx, "error.agents.scheduled_task_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "list scheduled task runs: %v", err)
 	}
@@ -102,11 +102,11 @@ func agentScheduledTaskSetState(ctx fiber.Ctx) error {
 	}
 	uid, err := webUID(ctx)
 	if err != nil {
-		return ctx.Status(http.StatusUnauthorized).SendString("unauthorized")
+		return ctx.Status(http.StatusUnauthorized).SendString(webMsg(ctx, "error.agents.unauthorized"))
 	}
 	taskID := ctx.Params("id")
 	if taskID == "" {
-		return ctx.Status(http.StatusBadRequest).SendString("task id required")
+		return ctx.Status(http.StatusBadRequest).SendString(webMsg(ctx, "error.agents.task_id_required"))
 	}
 	state := strings.TrimSpace(ctx.FormValue("state"))
 	if state == "" {
@@ -116,7 +116,7 @@ func agentScheduledTaskSetState(ctx fiber.Ctx) error {
 	task, err := chatagent.SetScheduledTaskStateForUID(ctx.Context(), uid, taskID, state)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return ctx.Status(http.StatusNotFound).SendString("scheduled task not found")
+			return ctx.Status(http.StatusNotFound).SendString(webMsg(ctx, "error.agents.scheduled_task_not_found"))
 		}
 		if errors.Is(err, types.ErrInvalidArgument) {
 			ctx.Status(http.StatusBadRequest)

@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -38,7 +40,7 @@ type WorkflowListEntry struct {
 // BuildWorkflowListEntries maps store rows to list entries.
 // triggers may be nil; when provided they are grouped by workflow_id.
 // lastRunAt maps workflow name to the latest run started_at; missing keys mean never run.
-func BuildWorkflowListEntries(defs []model.Workflow, triggers []model.WorkflowTrigger, lastRunAt map[string]time.Time) []WorkflowListEntry {
+func BuildWorkflowListEntries(ctx context.Context, defs []model.Workflow, triggers []model.WorkflowTrigger, lastRunAt map[string]time.Time) []WorkflowListEntry {
 	byWF := make(map[int64][]model.WorkflowTrigger)
 	for _, tr := range triggers {
 		byWF[tr.WorkflowID] = append(byWF[tr.WorkflowID], tr)
@@ -54,7 +56,7 @@ func BuildWorkflowListEntries(defs []model.Workflow, triggers []model.WorkflowTr
 			Name:      def.Name,
 			Describe:  def.Describe,
 			Enabled:   def.Enabled,
-			Triggers:  WorkflowTriggerSummaries(byWF[def.ID]),
+			Triggers:  WorkflowTriggerSummaries(ctx, byWF[def.ID]),
 			TaskCount: len(def.Pipeline),
 			LastRunAt: last,
 		})
@@ -63,7 +65,7 @@ func BuildWorkflowListEntries(defs []model.Workflow, triggers []model.WorkflowTr
 }
 
 // WorkflowTriggerSummaries converts stored workflow triggers into list badge summaries.
-func WorkflowTriggerSummaries(rows []model.WorkflowTrigger) []PipelineTriggerSummary {
+func WorkflowTriggerSummaries(ctx context.Context, rows []model.WorkflowTrigger) []PipelineTriggerSummary {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -71,7 +73,7 @@ func WorkflowTriggerSummaries(rows []model.WorkflowTrigger) []PipelineTriggerSum
 	for _, tr := range rows {
 		out = append(out, PipelineTriggerSummary{
 			Type:    tr.Type,
-			Label:   workflowTriggerLabel(tr),
+			Label:   WorkflowTriggerLabel(ctx, tr),
 			Enabled: tr.Enabled,
 			Letter:  PipelineTriggerLetter(tr.Type),
 		})
@@ -79,28 +81,29 @@ func WorkflowTriggerSummaries(rows []model.WorkflowTrigger) []PipelineTriggerSum
 	return out
 }
 
-func workflowTriggerLabel(tr model.WorkflowTrigger) string {
+// WorkflowTriggerLabel returns a localized trigger summary for list badges and tooltips.
+func WorkflowTriggerLabel(ctx context.Context, tr model.WorkflowTrigger) string {
 	switch tr.Type {
 	case "manual":
-		return "Manual"
+		return i18n.T(ctx, "workflow.trigger.manual")
 	case "cron":
 		spec := workflowRuleString(tr.Rule, "cron")
 		if spec == "" {
 			spec = workflowRuleString(tr.Rule, "expression")
 		}
 		if spec == "" {
-			return "Cron"
+			return i18n.T(ctx, "workflow.trigger.cron_plain")
 		}
-		return "Cron: " + spec
+		return i18n.TData(ctx, "workflow.trigger.cron", map[string]any{"Spec": spec})
 	case "webhook":
 		path := workflowRuleString(tr.Rule, "path")
 		if path == "" {
-			return "Webhook"
+			return i18n.T(ctx, "workflow.trigger.webhook_plain")
 		}
-		return "Webhook: " + path
+		return i18n.TData(ctx, "workflow.trigger.webhook", map[string]any{"Path": path})
 	default:
 		if tr.Type == "" {
-			return "Trigger"
+			return i18n.T(ctx, "workflow.trigger.generic")
 		}
 		return tr.Type
 	}
@@ -180,22 +183,27 @@ func WorkflowRunStatusClass(status int) string {
 }
 
 // WorkflowRunStatusText returns a short label for a workflow run status.
-func WorkflowRunStatusText(status int) string {
-	if c, ok := workflowRunStatusMeta[types.WorkflowRunState(status)]; ok {
-		return c.text
+func WorkflowRunStatusText(ctx context.Context, status int) string {
+	switch types.WorkflowRunState(status) {
+	case types.WorkflowRunDone:
+		return i18n.T(ctx, "workflow.run_status.done")
+	case types.WorkflowRunFailed:
+		return i18n.T(ctx, "workflow.run_status.failed")
+	case types.WorkflowRunRunning:
+		return i18n.T(ctx, "workflow.run_status.running")
+	default:
+		return i18n.T(ctx, "workflow.run_status.unknown")
 	}
-	return "Unknown"
 }
 
 type workflowRunStatusInfo struct {
 	class string
-	text  string
 }
 
 var workflowRunStatusMeta = map[types.WorkflowRunState]workflowRunStatusInfo{
-	types.WorkflowRunDone:    {class: "flowbot-chip flowbot-chip-success", text: "Done"},
-	types.WorkflowRunFailed:  {class: "flowbot-chip flowbot-chip-error", text: "Failed"},
-	types.WorkflowRunRunning: {class: "flowbot-chip flowbot-chip-warning", text: "Running"},
+	types.WorkflowRunDone:    {class: "flowbot-chip flowbot-chip-success"},
+	types.WorkflowRunFailed:  {class: "flowbot-chip flowbot-chip-error"},
+	types.WorkflowRunRunning: {class: "flowbot-chip flowbot-chip-warning"},
 }
 
 // WorkflowRunDuration formats the elapsed time for a workflow run.

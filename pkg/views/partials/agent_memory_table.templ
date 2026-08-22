@@ -12,17 +12,17 @@ templ AgentMemoryTable(ctx context.Context, items []model.AgentMemoryFact, scope
 		<table class="table table-sm">
 			<thead>
 				<tr>
-					<th>Key</th>
-					<th>Value</th>
-					<th>Pinned</th>
-					<th>Updated</th>
+					<th>{ i18n.T(ctx, "agent.memory.key") }</th>
+					<th>{ i18n.T(ctx, "agent.memory.value") }</th>
+					<th>{ i18n.T(ctx, "agent.memory.pinned") }</th>
+					<th>{ i18n.T(ctx, "table.col.updated") }</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody>
 				if len(items) == 0 {
 					<tr>
-						<td colspan="5" class="text-base-content/60">No facts in scope { scope }. Create facts with memory_set.</td>
+						<td colspan="5" class="text-base-content/60">{ i18n.TData(ctx, "agent.memory.empty_scope", map[string]any{"Scope": scope}) }</td>
 					</tr>
 				} else {
 					for _, item := range items {
@@ -44,11 +44,11 @@ templ AgentMemoryTable(ctx context.Context, items []model.AgentMemoryFact, scope
 												checked
 											}
 										/>
-										<span class="label-text text-sm">Pinned</span>
+										<span class="label-text text-sm">{ i18n.T(ctx, "agent.memory.pinned") }</span>
 									</label>
 									<div class="flex gap-2">
 										<button type="submit" class="btn btn-primary btn-xs" data-testid={ "agent-memory-save-" + item.Key }>
-											Save
+											{ i18n.T(ctx, "common.save") }
 											@HtmxIndicator()
 										</button>
 									</div>
@@ -66,7 +66,7 @@ templ AgentMemoryTable(ctx context.Context, items []model.AgentMemoryFact, scope
 									<input type="hidden" name="scope" value={ scope }/>
 									<input type="hidden" name="key" value={ item.Key }/>
 									<button type="submit" class="btn btn-ghost btn-xs text-error" data-testid={ "agent-memory-delete-" + item.Key }>
-										Delete
+										{ i18n.T(ctx, "common.delete") }
 										@HtmxIndicator()
 									</button>
 								</form>

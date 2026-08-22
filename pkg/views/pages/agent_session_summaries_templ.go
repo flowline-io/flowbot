@@ -119,7 +119,7 @@ func AgentSessionSummariesPage(ctx context.Context, items []model.AgentSessionSu
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.AgentSessionSummariesTable(items, q).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.AgentSessionSummariesTable(ctx, items, q).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

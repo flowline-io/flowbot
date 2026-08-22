@@ -78,7 +78,7 @@ templ PipelineListTable(ctx context.Context, entries []PipelineListEntry) {
 							<td class="text-center tabular-nums text-sm" data-testid={ "pipeline-steps-" + entry.Name }>{ fmt.Sprintf("%d", entry.StepCount) }</td>
 							<td class="text-center">
 								if entry.Status == "published" {
-									@StatusIcon(PipelineRuntimeStatusIcon(entry.Enabled), "pipeline-runtime-"+entry.Name)
+									@StatusIcon(PipelineRuntimeStatusIcon(ctx, entry.Enabled), "pipeline-runtime-"+entry.Name)
 								} else {
 									<span class="text-base-content/30 text-xs">—</span>
 								}

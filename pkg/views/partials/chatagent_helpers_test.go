@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -570,11 +571,12 @@ func TestChatAgentApprovalActionCopy(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.wantOnce, ChatAgentApproveOnceLabel())
-			assert.Equal(t, tt.wantOnceHint, ChatAgentApproveOnceHint())
-			assert.Equal(t, tt.wantAlways, ChatAgentApproveAlwaysLabel())
-			assert.Equal(t, tt.wantAlwaysHint, ChatAgentApproveAlwaysHint(tt.suggestedPattern))
-			assert.Equal(t, tt.wantDeny, ChatAgentApproveDenyLabel())
+			ctx := i18n.DefaultContext()
+			assert.Equal(t, tt.wantOnce, ChatAgentApproveOnceLabel(ctx))
+			assert.Equal(t, tt.wantOnceHint, ChatAgentApproveOnceHint(ctx))
+			assert.Equal(t, tt.wantAlways, ChatAgentApproveAlwaysLabel(ctx))
+			assert.Equal(t, tt.wantAlwaysHint, ChatAgentApproveAlwaysHint(ctx, tt.suggestedPattern))
+			assert.Equal(t, tt.wantDeny, ChatAgentApproveDenyLabel(ctx))
 		})
 	}
 }

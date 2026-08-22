@@ -128,7 +128,7 @@ templ ChatAgentSessionRow(ctx context.Context, item model.AgentSession, endpoint
 						<span class="agents-session-todos-progress" aria-hidden="true">
 							<span class="agents-session-todos-progress-fill" style={ "width: " + chatAgentTodoSummaryProgressWidth(*item.TodoSummary) }></span>
 						</span>
-						<span class="agents-session-todos-line" data-testid="chatagent-session-todos-line">{ chatAgentSessionTodoLineLabel(*item.TodoSummary) }</span>
+						<span class="agents-session-todos-line" data-testid="chatagent-session-todos-line">{ chatAgentSessionTodoLineLabel(ctx, *item.TodoSummary) }</span>
 					</div>
 				}
 			</div>

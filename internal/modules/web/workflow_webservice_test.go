@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
 	pkgworkflow "github.com/flowline-io/flowbot/pkg/workflow"
 )
@@ -175,7 +176,7 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 			path:         "/service/web/workflows/web-demo/runs/999999/steps",
 			withCookie:   true,
 			wantStatus:   http.StatusNotFound,
-			wantContains: []string{"run not found"},
+			wantContains: []string{i18n.T(i18n.DefaultContext(), "error.workflow.run_not_found")},
 		},
 		{
 			name:        "run now missing required input",
@@ -186,7 +187,7 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 			withCookie:  true,
 			wantStatus:  http.StatusUnprocessableEntity,
 			wantContains: []string{
-				"required input",
+				i18n.T(i18n.DefaultContext(), "error.validation"),
 			},
 		},
 		{
@@ -478,13 +479,13 @@ func TestWorkflowRunSteps(t *testing.T) {
 			name:         "rejects run from other workflow name",
 			path:         "/service/web/workflows/other-wf/runs/" + strconv.FormatInt(run.ID, 10) + "/steps",
 			wantStatus:   http.StatusNotFound,
-			wantContains: []string{"run not found"},
+			wantContains: []string{i18n.T(i18n.DefaultContext(), "error.workflow.run_not_found")},
 		},
 		{
 			name:         "invalid run id",
 			path:         "/service/web/workflows/steps-wf/runs/abc/steps",
 			wantStatus:   http.StatusBadRequest,
-			wantContains: []string{"invalid run ID"},
+			wantContains: []string{i18n.T(i18n.DefaultContext(), "error.workflow.invalid_run_id")},
 		},
 	}
 	for _, tt := range tests {

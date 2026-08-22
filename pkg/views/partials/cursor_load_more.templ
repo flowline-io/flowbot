@@ -1,5 +1,7 @@
 package partials
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 // CursorLoadMore renders a cursor-based Load more control.
 // When nextCursor is set, the button appends into rowsTarget via hx-swap beforeend.
 // When oob is true and nextCursor is empty, the control is removed via hx-swap-oob delete.
@@ -13,7 +15,7 @@ templ CursorLoadMore(id string, listURL string, rowsTarget string, nextCursor st
 					hx-target={ rowsTarget }
 					hx-swap="beforeend"
 					data-testid={ id }>
-					Load more
+					{ i18n.T(ctx, "common.load_more") }
 					@HtmxIndicator()
 				</button>
 			</div>
@@ -25,7 +27,7 @@ templ CursorLoadMore(id string, listURL string, rowsTarget string, nextCursor st
 					hx-target={ rowsTarget }
 					hx-swap="beforeend"
 					data-testid={ id }>
-					Load more
+					{ i18n.T(ctx, "common.load_more") }
 					@HtmxIndicator()
 				</button>
 			</div>

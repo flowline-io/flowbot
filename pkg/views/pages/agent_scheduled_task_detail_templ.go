@@ -371,7 +371,7 @@ func AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentScheduled
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.AgentScheduledTaskRunsTable(runs).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.AgentScheduledTaskRunsTable(ctx, runs).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -4379,7 +4379,7 @@ other = "Created:"
 [agent.session.updated]
 other = "Updated:"
 
-[agent.session.entries]
+["agent.session.entries"]
 other = "Entries"
 
 # --- agent memory modal ---
@@ -4407,6 +4407,270 @@ other = "Close memory facts"
 
 [agent.memory.saving]
 other = "Saving…"
+
+[agent.memory.empty_scope]
+other = "No facts in scope {{.Scope}}. Create facts with memory_set."
+
+[agent.session.no_payload]
+other = "No payload."
+
+[agent.session.plans]
+other = "Plans"
+
+[agent.session.entries.empty_title]
+other = "No entries yet"
+
+[agent.session.entries.empty_detail]
+other = "Messages and tool calls appear as the session runs."
+
+[agent.session.entries.empty_cta]
+other = "Open Agents"
+
+[agent.scheduled.recent_runs]
+other = "Recent Runs"
+
+[agent.scheduled.runs.empty_title]
+other = "No runs yet"
+
+[agent.scheduled.runs.empty_detail]
+other = "Runs appear after the task executes."
+
+[agent.session_summaries.empty]
+other = "No session summaries"
+
+[agent.resource.truncated]
+other = "Content truncated for preview."
+
+[agent.resource.load_full]
+other = "Load full"
+
+[agent.subagent.status.running]
+other = "Running"
+
+[agent.subagent.status.completed]
+other = "Completed"
+
+[agent.subagent.status.failed]
+other = "Failed"
+
+[pipeline.runs.empty_title]
+other = "No runs recorded yet"
+
+[pipeline.runs.empty_detail]
+other = "Trigger or manually run this pipeline to see history here."
+
+[pipeline.runs.live]
+other = "Live"
+
+[pipeline.runs.no_step_runs]
+other = "No step runs recorded for this run."
+
+[pipeline.runs.step_runs]
+other = "Step Runs"
+
+[pipeline.runs.input_empty]
+other = "Input: (empty)"
+
+[pipeline.runs.output_empty]
+other = "Output: (empty)"
+
+[function.runs.empty]
+other = "No runs yet."
+
+[config.form.uid_placeholder]
+other = "uid"
+
+[config.form.topic_placeholder]
+other = "topic"
+
+[config.form.key_placeholder]
+other = "key"
+
+[config.form.value_placeholder]
+other = "{\"key\": \"value\"}"
+
+[token.form.uid_placeholder]
+other = "user:name"
+
+[token.form.expires_7d]
+other = "7 days"
+
+[token.form.expires_30d]
+other = "30 days"
+
+[token.form.expires_90d]
+other = "90 days"
+
+[token.form.expires_1y]
+other = "1 year"
+
+[token.form.scopes_hint]
+other = "Select at least one scope (required)"
+
+[view.expired.not_found]
+other = "Page not found or expired."
+
+[view.expired.return_home]
+other = "Return to home"
+
+[view.form.no_fields]
+other = "No fields to display."
+
+[view.pipeline.no_steps]
+other = "No step run data available."
+
+[view.pipeline.render_failed]
+other = "Unable to render pipeline run data."
+
+[event.payload.copy_aria]
+other = "Copy payload"
+
+[webhook.headers]
+other = "Request Headers"
+
+[webhook.body]
+other = "Request Body"
+
+[webhook.copy_headers_aria]
+other = "Copy headers"
+
+[webhook.copy_body_aria]
+other = "Copy body"
+
+[webhook.body_truncated]
+other = "Body truncated to 64KB"
+
+[session.open_life]
+other = "Open Life"
+
+[notify.rule.template_not_found]
+other = "Template not found"
+
+[chatagent.approval.pending_kicker]
+other = "Pending tool approval"
+
+[chatagent.approval.allow_once]
+other = "Allow once"
+
+[chatagent.approval.allow_once_hint]
+other = "This tool call only"
+
+[chatagent.approval.always_allow_matching]
+other = "Always allow matching"
+
+[chatagent.approval.always_allow_hint]
+other = "Remember this pattern for future matching calls"
+
+[chatagent.approval.always_allow_hint_pattern]
+other = "Remember for future matching calls: {{.Pattern}}"
+
+[chatagent.approval.deny]
+other = "Deny"
+
+[chatagent.approval.badge_title]
+other = "{{.Count}} session(s) awaiting tool approval"
+
+[chatagent.approval.badge_aria]
+other = "{{.Count}} sessions awaiting tool approval"
+
+[chatagent.approval.meta_permission]
+other = "permission: {{.Permission}}"
+
+[chatagent.approval.meta_pattern]
+other = "pattern: {{.Pattern}}"
+
+[chatagent.settings.model_aria]
+other = "Model"
+
+[chatagent.settings.thinking_aria]
+other = "Thinking level"
+
+[chatagent.settings.approval_aria]
+other = "Approval mode"
+
+[chatagent.settings.workspace_aria]
+other = "Workspace"
+
+[chatagent.settings.thinking.default]
+other = "Default"
+
+[chatagent.settings.thinking.off]
+other = "Off"
+
+[chatagent.settings.thinking.low]
+other = "Low"
+
+[chatagent.settings.thinking.medium]
+other = "Medium"
+
+[chatagent.settings.thinking.high]
+other = "High"
+
+[chatagent.settings.approval.manual]
+other = "Manual"
+
+[chatagent.settings.approval.auto]
+other = "Auto"
+
+[chatagent.settings.approval.off]
+other = "Off"
+
+[chatagent.attach_aria]
+other = "Attach media"
+
+[chatagent.copy_md_aria]
+other = "Copy markdown"
+
+[chatagent.copy_aria]
+other = "Copy"
+
+[common.payload]
+other = "Payload"
+
+[common.details]
+other = "Details"
+
+[common.prompt]
+other = "Prompt"
+
+[common.params]
+other = "Params"
+
+[common.error]
+other = "Error"
+
+[common.clear_search]
+other = "Clear search"
+
+[table.col.step]
+other = "Step"
+
+[table.col.capability]
+other = "Capability"
+
+[table.col.operation]
+other = "Operation"
+
+[table.col.entry_id]
+other = "Entry ID"
+
+[table.col.parent_id]
+other = "Parent ID"
+
+[table.col.finished]
+other = "Finished"
+
+[table.col.reply]
+other = "Reply"
+
+[table.col.run_session]
+other = "Run Session"
+
+[table.col.depth]
+other = "Depth"
+
+[table.col.version]
+other = "Version"
 
 [chatagent.close_sessions_aria]
 other = "Close sessions"
@@ -5074,3 +5338,251 @@ other = "Loot drop! {{.Item}} — +{{.Exp}} EXP, +{{.Gold}} gold"
 
 [toast.life.quest_complete_achievement]
 other = "{{.Message}} · Achievement: {{.Names}}"
+
+# --- i18n helpers / webservices (2026-08-22) ---
+
+[common.disabled]
+other = "Disabled"
+
+[workflow.run_status.done]
+other = "Done"
+
+[workflow.run_status.failed]
+other = "Failed"
+
+[workflow.run_status.running]
+other = "Running"
+
+[workflow.run_status.unknown]
+other = "Unknown"
+
+[workflow.trigger.manual]
+other = "Manual"
+
+[workflow.trigger.cron]
+other = "Cron: {{.Spec}}"
+
+[workflow.trigger.cron_plain]
+other = "Cron"
+
+[workflow.trigger.webhook]
+other = "Webhook: {{.Path}}"
+
+[workflow.trigger.webhook_plain]
+other = "Webhook"
+
+[workflow.trigger.generic]
+other = "Trigger"
+
+[workflow.invalid_run_id]
+other = "Invalid run ID"
+
+[workflow.run_not_found]
+other = "Run not found"
+
+[status.session.active]
+other = "Active"
+
+[status.session.closed]
+other = "Closed"
+
+[status.scheduled_task.active]
+other = "active"
+
+[status.scheduled_task.paused]
+other = "paused"
+
+[status.scheduled_task.completed]
+other = "completed"
+
+[status.scheduled_task.failed]
+other = "failed"
+
+[status.scheduled_task.cancelled]
+other = "cancelled"
+
+[status.scheduled_task.missed]
+other = "missed"
+
+[status.scheduled_task_run.completed]
+other = "completed"
+
+[status.scheduled_task_run.running]
+other = "running"
+
+[status.scheduled_task_run.failed]
+other = "failed"
+
+[status.pipeline.active]
+other = "Active"
+
+[status.pipeline.paused]
+other = "Paused"
+
+[error.inbox.mark_read_failed]
+other = "Failed to mark as read"
+
+[error.agents.session_id_required]
+other = "Session ID is required"
+
+[error.agents.session_not_found]
+other = "Session not found"
+
+[error.agents.not_enabled]
+other = "Chat agent is not enabled"
+
+[error.agents.forbidden]
+other = "Forbidden"
+
+[error.agents.unauthorized]
+other = "Unauthorized"
+
+[error.agents.task_id_required]
+other = "Task ID is required"
+
+[error.agents.scheduled_task_not_found]
+other = "Scheduled task not found"
+
+[error.agents.confirm_not_found]
+other = "Confirm request not found"
+
+[error.agents.confirm_resolved]
+other = "Confirm request already resolved"
+
+[error.agents.confirm_not_applied]
+other = "Confirm not applied"
+
+[error.agents.file_required]
+other = "File is required"
+
+[error.agents.empty_text]
+other = "Text is required"
+
+[error.validation.invalid_condition]
+other = "Invalid condition expression"
+
+[error.pipeline.invalid_run_id]
+other = "Invalid run ID"
+
+[error.pipeline.redis_unavailable]
+other = "Redis is not available"
+
+[error.pipeline.run_not_found]
+other = "Run not found"
+
+[error.pipeline.load_run_failed]
+other = "Failed to load run"
+
+[error.pipeline.load_steps_failed]
+other = "Failed to load steps"
+
+[error.pipeline.yaml_validation_failed]
+other = "YAML validation failed"
+
+[error.pipeline.parse_yaml_failed]
+other = "Failed to parse pipeline YAML"
+
+[error.function.unavailable]
+other = "Function service is unavailable"
+
+[error.function.invoke_failed]
+other = "Function invoke failed"
+
+[error.function.publish_failed]
+other = "Publish failed"
+
+[error.function.publish_before_try]
+other = "Publish a version before trying"
+
+[error.hub.app_not_found]
+other = "App not found"
+
+[error.hub.logs_not_available]
+other = "Logs not available"
+
+[error.hub.logs_failed]
+other = "Failed to load logs"
+
+[error.homelab.app_not_found]
+other = "App not found"
+
+[error.clip.missing_slug]
+other = "Missing slug"
+
+[error.clip.load_failed]
+other = "Failed to load clip"
+
+[error.view.missing_token]
+other = "Missing token"
+
+[error.view.load_failed]
+other = "Failed to load page"
+
+[error.view.invalid_json]
+other = "Invalid JSON"
+
+[error.view.type_required]
+other = "Type is required"
+
+[error.view.create_failed]
+other = "Failed to create page"
+
+[error.view.delete_failed]
+other = "Failed to delete page"
+
+[error.view.page_not_found]
+other = "Page not found"
+
+[error.token_usage.invalid_request]
+other = "Invalid token usage request"
+
+[toast.notify_settings.default_channel_failed]
+other = "Failed to update default channel"
+
+[toast.notify_settings.channel_not_found]
+other = "Channel not found"
+
+[toast.notify_settings.channel_must_be_enabled]
+other = "Default channel must be enabled"
+
+[toast.notify_settings.default_template_failed]
+other = "Failed to update default template"
+
+[toast.life.goal_not_found]
+other = "Goal not found"
+
+[toast.life.quest_not_found]
+other = "Quest not found"
+
+[toast.life.evidence_required]
+other = "Evidence is required"
+
+[toast.life.reward_not_found]
+other = "Reward not found"
+
+[toast.life.occurrence_not_found]
+other = "Occurrence not found"
+
+[toast.life.action_not_found]
+other = "Action not found"
+
+[toast.life.parent_not_found]
+other = "Parent not found"
+
+[toast.life.inventory_not_found]
+other = "Inventory not found"
+
+[toast.life.equipment_missing]
+other = "Equipment missing"
+
+[toast.life.adjudication_not_found]
+other = "Adjudication not found"
+
+[toast.life.goal_title_required]
+other = "Goal title is required"
+
+[toast.life.title_required]
+other = "Title is required"
+
+[toast.life.reward_name_required]
+other = "Reward name is required"

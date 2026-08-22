@@ -14,7 +14,7 @@ templ AgentSubagentRow(ctx context.Context, item model.AgentSubagent) {
 		<td class="text-base-content/70 max-w-xs truncate" data-label={ i18n.T(ctx, "table.col.description") }>{ agentSubagentDescriptionPreview(item.Description) }</td>
 		<td class="text-base-content/70 font-mono text-sm" data-label={ i18n.T(ctx, "table.col.model") }>{ agentSubagentModelLabel(item.Model) }</td>
 		<td class="text-center" data-label={ i18n.T(ctx, "table.col.enabled") }>
-			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
+			@StatusIcon(EnabledStatusIcon(ctx, item.Enabled), "")
 		</td>
 		<td class="text-base-content/50" data-label={ i18n.T(ctx, "table.col.updated") }>{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
 		<td data-label={ i18n.T(ctx, "table.col.actions") }>

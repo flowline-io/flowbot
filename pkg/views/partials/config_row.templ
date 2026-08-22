@@ -22,7 +22,7 @@ templ ConfigRow(ctx context.Context, item model.ConfigItem) {
 				<button hx-get={ configEditURL(item) }
 					data-testid="config-edit"
 					class="btn btn-ghost btn-xs text-primary">
-					Edit
+					{ i18n.T(ctx, "common.edit") }
 				</button>
 				<button hx-delete={ configKeyURL(item) }
 					data-confirm={ i18n.T(ctx, "confirm.delete_config.message") }
@@ -31,7 +31,7 @@ templ ConfigRow(ctx context.Context, item model.ConfigItem) {
 					data-confirm-class="btn-error"
 					data-testid="config-delete"
 					class="btn btn-ghost btn-xs text-error">
-					Delete
+					{ i18n.T(ctx, "common.delete") }
 					@HtmxIndicator()
 				</button>
 			</div>

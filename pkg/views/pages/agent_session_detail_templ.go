@@ -343,7 +343,7 @@ func AgentSessionDetailPage(ctx context.Context, session model.AgentSession, ent
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.AgentSessionEntriesTable(entries).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.AgentSessionEntriesTable(ctx, entries).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -1,5 +1,7 @@
 package partials
 
+import "context"
+
 // StatusGlyph identifies which SVG shape a status icon renders.
 type StatusGlyph string
 
@@ -33,59 +35,59 @@ type StatusIconSpec struct {
 }
 
 // EnabledStatusIcon maps an enabled flag to icon styling.
-func EnabledStatusIcon(enabled bool) StatusIconSpec {
+func EnabledStatusIcon(ctx context.Context, enabled bool) StatusIconSpec {
 	if enabled {
-		return StatusIconSpec{Label: enabledText(enabled), ToneClass: "text-success", Glyph: StatusGlyphCheck}
+		return StatusIconSpec{Label: enabledText(ctx, enabled), ToneClass: "text-success", Glyph: StatusGlyphCheck}
 	}
-	return StatusIconSpec{Label: enabledText(enabled), ToneClass: "text-base-content/40", Glyph: StatusGlyphX}
+	return StatusIconSpec{Label: enabledText(ctx, enabled), ToneClass: "text-base-content/40", Glyph: StatusGlyphX}
 }
 
 // SessionStateStatusIcon maps an agent session display state to icon styling.
-func SessionStateStatusIcon(state string) StatusIconSpec {
+func SessionStateStatusIcon(ctx context.Context, state string) StatusIconSpec {
 	switch state {
 	case "Active":
-		return StatusIconSpec{Label: state, ToneClass: "text-success", Glyph: StatusGlyphCheck}
+		return StatusIconSpec{Label: sessionStateLabel(ctx, state), ToneClass: "text-success", Glyph: StatusGlyphCheck}
 	case "Closed":
-		return StatusIconSpec{Label: state, ToneClass: "text-base-content/40", Glyph: StatusGlyphStop}
+		return StatusIconSpec{Label: sessionStateLabel(ctx, state), ToneClass: "text-base-content/40", Glyph: StatusGlyphStop}
 	default:
 		return StatusIconSpec{Label: state, ToneClass: "text-warning", Glyph: StatusGlyphAlert}
 	}
 }
 
 // ScheduledTaskStateStatusIcon maps a scheduled task lifecycle state to icon styling.
-func ScheduledTaskStateStatusIcon(state string) StatusIconSpec {
+func ScheduledTaskStateStatusIcon(ctx context.Context, state string) StatusIconSpec {
 	switch state {
 	case "active":
-		return StatusIconSpec{Label: state, ToneClass: "text-success", Glyph: StatusGlyphPlay}
+		return StatusIconSpec{Label: scheduledTaskStateLabel(ctx, state), ToneClass: "text-success", Glyph: StatusGlyphPlay}
 	case "paused":
-		return StatusIconSpec{Label: state, ToneClass: "text-warning", Glyph: StatusGlyphPause}
+		return StatusIconSpec{Label: scheduledTaskStateLabel(ctx, state), ToneClass: "text-warning", Glyph: StatusGlyphPause}
 	case "completed":
-		return StatusIconSpec{Label: state, ToneClass: "text-info", Glyph: StatusGlyphCheck}
+		return StatusIconSpec{Label: scheduledTaskStateLabel(ctx, state), ToneClass: "text-info", Glyph: StatusGlyphCheck}
 	case "failed", "cancelled", "missed":
-		return StatusIconSpec{Label: state, ToneClass: "text-error", Glyph: StatusGlyphX}
+		return StatusIconSpec{Label: scheduledTaskStateLabel(ctx, state), ToneClass: "text-error", Glyph: StatusGlyphX}
 	default:
-		return StatusIconSpec{Label: state, ToneClass: "text-base-content/40", Glyph: StatusGlyphMinus}
+		return StatusIconSpec{Label: scheduledTaskStateLabel(ctx, state), ToneClass: "text-base-content/40", Glyph: StatusGlyphMinus}
 	}
 }
 
 // ScheduledTaskRunStateStatusIcon maps a scheduled task run state to icon styling.
-func ScheduledTaskRunStateStatusIcon(state string) StatusIconSpec {
+func ScheduledTaskRunStateStatusIcon(ctx context.Context, state string) StatusIconSpec {
 	switch state {
 	case "completed":
-		return StatusIconSpec{Label: state, ToneClass: "text-success", Glyph: StatusGlyphCheck}
+		return StatusIconSpec{Label: scheduledTaskRunStateLabel(ctx, state), ToneClass: "text-success", Glyph: StatusGlyphCheck}
 	case "running":
-		return StatusIconSpec{Label: state, ToneClass: "text-warning", Glyph: StatusGlyphPlay}
+		return StatusIconSpec{Label: scheduledTaskRunStateLabel(ctx, state), ToneClass: "text-warning", Glyph: StatusGlyphPlay}
 	case "failed":
-		return StatusIconSpec{Label: state, ToneClass: "text-error", Glyph: StatusGlyphX}
+		return StatusIconSpec{Label: scheduledTaskRunStateLabel(ctx, state), ToneClass: "text-error", Glyph: StatusGlyphX}
 	default:
-		return StatusIconSpec{Label: state, ToneClass: "text-base-content/40", Glyph: StatusGlyphMinus}
+		return StatusIconSpec{Label: scheduledTaskRunStateLabel(ctx, state), ToneClass: "text-base-content/40", Glyph: StatusGlyphMinus}
 	}
 }
 
 // PipelineRuntimeStatusIcon maps a published pipeline enabled flag to Active/Paused icon styling.
-func PipelineRuntimeStatusIcon(enabled bool) StatusIconSpec {
+func PipelineRuntimeStatusIcon(ctx context.Context, enabled bool) StatusIconSpec {
 	if enabled {
-		return StatusIconSpec{Label: "Active", ToneClass: "text-success", Glyph: StatusGlyphPlay}
+		return StatusIconSpec{Label: pipelineRuntimeLabel(ctx, true), ToneClass: "text-success", Glyph: StatusGlyphPlay}
 	}
-	return StatusIconSpec{Label: "Paused", ToneClass: "text-warning", Glyph: StatusGlyphPause}
+	return StatusIconSpec{Label: pipelineRuntimeLabel(ctx, false), ToneClass: "text-warning", Glyph: StatusGlyphPause}
 }

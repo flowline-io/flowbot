@@ -19,20 +19,20 @@ import (
 func clipPage(ctx fiber.Ctx) error {
 	slug := ctx.Params("slug")
 	if slug == "" {
-		return ctx.Status(http.StatusBadRequest).SendString("missing slug")
+		return ctx.Status(http.StatusBadRequest).SendString(webMsg(ctx, "error.clip.missing_slug"))
 	}
 
 	authed := isAuthenticated(ctx)
 
 	if store.Database == nil || store.Database.GetClient() == nil {
-		return ctx.Status(http.StatusInternalServerError).SendString("store not available")
+		return ctx.Status(http.StatusInternalServerError).SendString(webMsg(ctx, "empty.store_unavailable"))
 	}
 	clipStore := store.ClipStoreFromDB()
 
 	row, err := clipStore.GetClipBySlug(context.Background(), slug)
 	if err != nil {
 		flog.Error(fmt.Errorf("clipPage: GetClipBySlug: %w", err))
-		return ctx.Status(http.StatusInternalServerError).SendString("failed to load clip")
+		return ctx.Status(http.StatusInternalServerError).SendString(webMsg(ctx, "error.clip.load_failed"))
 	}
 
 	loginURL := "/service/web/login?next=" + url.QueryEscape("/c/"+slug)

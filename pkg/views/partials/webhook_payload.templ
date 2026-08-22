@@ -1,17 +1,19 @@
 package partials
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 templ WebhookPayloadDetail(headersJSON, bodyJSON string, bodyTruncated bool) {
 	<div class="p-3 space-y-3" data-testid="webhook-payload-detail">
 		<div>
 			<div class="flex items-center justify-between gap-2 mb-1">
-				<span class="text-sm font-semibold">Request Headers</span>
+				<span class="text-sm font-semibold">{ i18n.T(ctx, "webhook.headers") }</span>
 				<button type="button"
 					class="btn btn-ghost btn-xs"
-					title="Copy headers"
-					aria-label="Copy headers"
+					title={ i18n.T(ctx, "webhook.copy_headers_aria") }
+					aria-label={ i18n.T(ctx, "webhook.copy_headers_aria") }
 					data-testid="webhook-headers-copy"
 					data-clip-copy
-					data-clip-markdown={ PrettyJSON(headersJSON) }>Copy</button>
+					data-clip-markdown={ PrettyJSON(headersJSON) }>{ i18n.T(ctx, "common.copy") }</button>
 			</div>
 			<pre class="flowbot-json bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-48"
 				data-testid="webhook-headers-json">
@@ -20,14 +22,14 @@ templ WebhookPayloadDetail(headersJSON, bodyJSON string, bodyTruncated bool) {
 		</div>
 		<div>
 			<div class="flex items-center justify-between gap-2 mb-1">
-				<span class="text-sm font-semibold">Request Body</span>
+				<span class="text-sm font-semibold">{ i18n.T(ctx, "webhook.body") }</span>
 				<button type="button"
 					class="btn btn-ghost btn-xs"
-					title="Copy body"
-					aria-label="Copy body"
+					title={ i18n.T(ctx, "webhook.copy_body_aria") }
+					aria-label={ i18n.T(ctx, "webhook.copy_body_aria") }
 					data-testid="webhook-body-copy"
 					data-clip-copy
-					data-clip-markdown={ PrettyJSON(bodyJSON) }>Copy</button>
+					data-clip-markdown={ PrettyJSON(bodyJSON) }>{ i18n.T(ctx, "common.copy") }</button>
 			</div>
 			<pre class="flowbot-json bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96"
 				data-testid="webhook-body-json">
@@ -35,7 +37,7 @@ templ WebhookPayloadDetail(headersJSON, bodyJSON string, bodyTruncated bool) {
 			</pre>
 		</div>
 		if bodyTruncated {
-			<div class="text-xs text-warning mt-1">Body truncated to 64KB</div>
+			<div class="text-xs text-warning mt-1">{ i18n.T(ctx, "webhook.body_truncated") }</div>
 		}
 	</div>
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -70,7 +71,7 @@ func TestBuildWorkflowListEntries(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := BuildWorkflowListEntries(tt.defs, tt.triggers, tt.lastRunAt)
+			got := BuildWorkflowListEntries(i18n.DefaultContext(), tt.defs, tt.triggers, tt.lastRunAt)
 			require.Len(t, got, tt.want)
 			if tt.want == 1 && tt.wantTriggers == nil && tt.wantLastRun == nil {
 				assert.Equal(t, "a", got[0].Name)
@@ -113,7 +114,7 @@ func TestWorkflowTriggerSummaries(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := WorkflowTriggerSummaries(tt.rows)
+			got := WorkflowTriggerSummaries(i18n.DefaultContext(), tt.rows)
 			require.Len(t, got, tt.wantLen)
 			if tt.wantLen == 0 {
 				return
@@ -265,7 +266,7 @@ func TestWorkflowRunStatusHelpers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.wantClass, WorkflowRunStatusClass(tt.status))
-			assert.Equal(t, tt.wantText, WorkflowRunStatusText(tt.status))
+			assert.Equal(t, tt.wantText, WorkflowRunStatusText(i18n.DefaultContext(), tt.status))
 		})
 	}
 }

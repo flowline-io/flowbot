@@ -219,47 +219,47 @@ func ChatAgentToolCardExpanded(status string) bool {
 }
 
 // chatAgentPendingConfirmMeta formats permission / pattern metadata for the approval panel.
-func chatAgentPendingConfirmMeta(pending *ChatAgentPendingConfirm) string {
+func chatAgentPendingConfirmMeta(ctx context.Context, pending *ChatAgentPendingConfirm) string {
 	if pending == nil {
 		return ""
 	}
 	parts := make([]string, 0, 2)
 	if p := strings.TrimSpace(pending.Permission); p != "" {
-		parts = append(parts, "permission: "+p)
+		parts = append(parts, i18n.TData(ctx, "chatagent.approval.meta_permission", map[string]any{"Permission": p}))
 	}
 	if p := strings.TrimSpace(pending.Pattern); p != "" {
-		parts = append(parts, "pattern: "+p)
+		parts = append(parts, i18n.TData(ctx, "chatagent.approval.meta_pattern", map[string]any{"Pattern": p}))
 	}
 	return strings.Join(parts, " · ")
 }
 
 // ChatAgentApproveOnceLabel is the primary one-shot approval button text.
-func ChatAgentApproveOnceLabel() string {
-	return "Allow once"
+func ChatAgentApproveOnceLabel(ctx context.Context) string {
+	return i18n.T(ctx, "chatagent.approval.allow_once")
 }
 
 // ChatAgentApproveOnceHint explains that once applies only to this tool call.
-func ChatAgentApproveOnceHint() string {
-	return "This tool call only"
+func ChatAgentApproveOnceHint(ctx context.Context) string {
+	return i18n.T(ctx, "chatagent.approval.allow_once_hint")
 }
 
 // ChatAgentApproveAlwaysLabel is the remember-pattern approval button text.
-func ChatAgentApproveAlwaysLabel() string {
-	return "Always allow matching"
+func ChatAgentApproveAlwaysLabel(ctx context.Context) string {
+	return i18n.T(ctx, "chatagent.approval.always_allow_matching")
 }
 
 // ChatAgentApproveAlwaysHint explains that always remembers the suggested pattern for future matching calls.
-func ChatAgentApproveAlwaysHint(suggestedPattern string) string {
+func ChatAgentApproveAlwaysHint(ctx context.Context, suggestedPattern string) string {
 	pattern := strings.TrimSpace(suggestedPattern)
 	if pattern == "" {
-		return "Remember this pattern for future matching calls"
+		return i18n.T(ctx, "chatagent.approval.always_allow_hint")
 	}
-	return "Remember for future matching calls: " + pattern
+	return i18n.TData(ctx, "chatagent.approval.always_allow_hint_pattern", map[string]any{"Pattern": pattern})
 }
 
 // ChatAgentApproveDenyLabel is the reject button text.
-func ChatAgentApproveDenyLabel() string {
-	return "Deny"
+func ChatAgentApproveDenyLabel(ctx context.Context) string {
+	return i18n.T(ctx, "chatagent.approval.deny")
 }
 
 // FormatPendingApprovalBadgeText formats a compact count for nav / home badges.

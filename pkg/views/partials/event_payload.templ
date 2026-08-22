@@ -1,16 +1,18 @@
 package partials
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 templ EventPayloadDetail(payloadJSON string) {
 	<div class="p-3" data-testid="event-payload-detail">
 		<div class="flex items-center justify-between gap-2 mb-1">
-			<span class="text-sm font-semibold">Payload</span>
+			<span class="text-sm font-semibold">{ i18n.T(ctx, "common.payload") }</span>
 			<button type="button"
 				class="btn btn-ghost btn-xs"
-				title="Copy payload"
-				aria-label="Copy payload"
+				title={ i18n.T(ctx, "event.payload.copy_aria") }
+				aria-label={ i18n.T(ctx, "event.payload.copy_aria") }
 				data-testid="event-payload-copy"
 				data-clip-copy
-				data-clip-markdown={ PrettyJSON(payloadJSON) }>Copy</button>
+				data-clip-markdown={ PrettyJSON(payloadJSON) }>{ i18n.T(ctx, "common.copy") }</button>
 		</div>
 		<pre class="flowbot-json bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96"
 			data-testid="event-payload-json">

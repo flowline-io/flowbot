@@ -1,21 +1,23 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ PipelineRunsTable(name string, runs []model.PipelineRun) {
+templ PipelineRunsTable(ctx context.Context, name string, runs []model.PipelineRun) {
 	if len(runs) == 0 {
 		<div class="py-12" data-testid="runs-empty">
 			@EmptyStateCTA(
-				"No runs recorded yet",
-				"Trigger or manually run this pipeline to see history here.",
+				i18n.T(ctx, "pipeline.runs.empty_title"),
+				i18n.T(ctx, "pipeline.runs.empty_detail"),
 				"",
 				"",
 			)
@@ -27,11 +29,11 @@ templ PipelineRunsTable(name string, runs []model.PipelineRun) {
 				<thead>
 					<tr>
 						<th class="w-8"></th>
-						<th>Run ID</th>
-						<th>Event</th>
-						<th>Status</th>
-						<th>Started</th>
-						<th>Duration</th>
+						<th>{ i18n.T(ctx, "table.col.run_id") }</th>
+						<th>{ i18n.T(ctx, "table.col.event") }</th>
+						<th>{ i18n.T(ctx, "table.col.status") }</th>
+						<th>{ i18n.T(ctx, "table.col.started") }</th>
+						<th>{ i18n.T(ctx, "table.col.duration") }</th>
 					</tr>
 				</thead>
 				for _, r := range runs {
@@ -50,11 +52,11 @@ templ PipelineRunsTable(name string, runs []model.PipelineRun) {
 							<td class="font-mono text-xs text-base-content/70">{ fmt.Sprint(r.ID) }</td>
 							<td class="text-base-content/70">{ r.EventID }</td>
 							<td>
-								<span class={ runsStatusClass(int(r.Status)) }>{ runsStatusText(int(r.Status)) }</span>
+								<span class={ runsStatusClass(int(r.Status)) }>{ runsStatusText(ctx, int(r.Status)) }</span>
 								if r.Status == 1 {
 									<a href={ templ.URL("/service/web/pipelines/" + name + "/runs/" + fmt.Sprintf("%d", r.ID) + "/live") }
 									   class="btn btn-xs btn-info ml-2" data-testid="live-link">
-										Live
+										{ i18n.T(ctx, "pipeline.runs.live") }
 									</a>
 								}
 							</td>
@@ -72,14 +74,14 @@ templ PipelineRunsTable(name string, runs []model.PipelineRun) {
 	}
 }
 
-templ PipelineStepRunsDetail(steps []model.PipelineStepRun) {
+templ PipelineStepRunsDetail(ctx context.Context, steps []model.PipelineStepRun) {
 	if len(steps) == 0 {
-		<div class="text-sm text-base-content/30 py-3 text-center">No step runs recorded for this run.</div>
+		<div class="text-sm text-base-content/30 py-3 text-center">{ i18n.T(ctx, "pipeline.runs.no_step_runs") }</div>
 	} else {
 		<div class="px-4 py-3 min-w-0 max-w-full" data-testid="step-runs-detail">
 			if errs := PipelineStepErrorSummary(steps); len(errs) > 0 {
 				<div class="mb-3 rounded border border-error/30 bg-error/5 px-3 py-2" data-testid="run-error-summary">
-					<div class="text-xs font-medium text-error mb-1">Errors</div>
+					<div class="text-xs font-medium text-error mb-1">{ i18n.T(ctx, "common.errors") }</div>
 					<ul class="space-y-1">
 						for _, e := range errs {
 							<li class="text-xs">
@@ -92,7 +94,7 @@ templ PipelineStepRunsDetail(steps []model.PipelineStepRun) {
 			}
 			if bars := PipelineStepWaterfall(steps); len(bars) > 0 {
 				<div class="mb-3" data-testid="run-waterfall">
-					<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Duration</div>
+					<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">{ i18n.T(ctx, "common.duration") }</div>
 					<div class="run-waterfall space-y-1">
 						for _, bar := range bars {
 							<div class="run-waterfall-row">
@@ -105,17 +107,17 @@ templ PipelineStepRunsDetail(steps []model.PipelineStepRun) {
 					</div>
 				</div>
 			}
-			<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Step Runs</div>
+			<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">{ i18n.T(ctx, "pipeline.runs.step_runs") }</div>
 			<table class="table table-xs w-full">
 				<thead>
 					<tr>
 						<th class="w-8"></th>
-						<th>Step</th>
-						<th>Capability</th>
-						<th>Operation</th>
-						<th>Status</th>
-						<th>Attempt</th>
-						<th>Duration</th>
+						<th>{ i18n.T(ctx, "table.col.step") }</th>
+						<th>{ i18n.T(ctx, "table.col.capability") }</th>
+						<th>{ i18n.T(ctx, "table.col.operation") }</th>
+						<th>{ i18n.T(ctx, "table.col.status") }</th>
+						<th>{ i18n.T(ctx, "common.attempt") }</th>
+						<th>{ i18n.T(ctx, "common.duration") }</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -127,7 +129,7 @@ templ PipelineStepRunsDetail(steps []model.PipelineStepRun) {
 								<td class="text-base-content/50">{ s.Capability }</td>
 								<td class="text-base-content/50">{ s.Operation }</td>
 								<td>
-									<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(int(s.Status)) }</span>
+									<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(ctx, int(s.Status)) }</span>
 								</td>
 								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
 								<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
@@ -145,7 +147,7 @@ templ PipelineStepRunsDetail(steps []model.PipelineStepRun) {
 								<td class="text-base-content/50">{ s.Capability }</td>
 								<td class="text-base-content/50">{ s.Operation }</td>
 								<td>
-									<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(int(s.Status)) }</span>
+									<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(ctx, int(s.Status)) }</span>
 								</td>
 								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
 								<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
@@ -155,7 +157,7 @@ templ PipelineStepRunsDetail(steps []model.PipelineStepRun) {
 									<div class="min-w-0 max-w-full space-y-1 py-1">
 										if s.Error != "" {
 											<div class="mb-1" data-testid={ "step-error-" + s.StepName }>
-												<div class="text-xs font-mono text-error/80 mb-1">Error</div>
+												<div class="text-xs font-mono text-error/80 mb-1">{ i18n.T(ctx, "common.error") }</div>
 												<div class="run-json-preview">
 													<pre class="text-error">{ s.Error }</pre>
 												</div>
@@ -163,23 +165,23 @@ templ PipelineStepRunsDetail(steps []model.PipelineStepRun) {
 										}
 										if len(s.Params) > 0 {
 											<details class="mb-1 min-w-0" open>
-												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Input</summary>
+												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">{ i18n.T(ctx, "common.input") }</summary>
 												<div class="run-json-preview" data-testid="step-input-json">
 													<pre>{ sprintJSON(s.Params) }</pre>
 												</div>
 											</details>
 										} else {
-											<div class="text-xs text-base-content/20 italic py-1">Input: (empty)</div>
+											<div class="text-xs text-base-content/20 italic py-1">{ i18n.T(ctx, "pipeline.runs.input_empty") }</div>
 										}
 										if len(s.Result) > 0 {
 											<details class="min-w-0" open>
-												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Output</summary>
+												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">{ i18n.T(ctx, "common.output") }</summary>
 												<div class="run-json-preview" data-testid="step-output-json">
 													<pre>{ sprintJSON(s.Result) }</pre>
 												</div>
 											</details>
 										} else {
-											<div class="text-xs text-base-content/20 italic py-1">Output: (empty)</div>
+											<div class="text-xs text-base-content/20 italic py-1">{ i18n.T(ctx, "pipeline.runs.output_empty") }</div>
 										}
 									</div>
 								</td>
@@ -205,18 +207,18 @@ func runsStatusClass(status int) string {
 	}
 }
 
-func runsStatusText(status int) string {
+func runsStatusText(ctx context.Context, status int) string {
 	switch status {
 	case 2:
-		return "Success"
+		return i18n.T(ctx, "events.run_status.success")
 	case 4:
-		return "Failed"
+		return i18n.T(ctx, "events.run_status.failed")
 	case 3:
-		return "Cancelled"
+		return i18n.T(ctx, "events.run_status.cancelled")
 	case 1:
-		return "Running"
+		return i18n.T(ctx, "events.run_status.running")
 	default:
-		return "Started"
+		return i18n.T(ctx, "events.run_status.started")
 	}
 }
 

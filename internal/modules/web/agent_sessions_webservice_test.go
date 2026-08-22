@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -534,7 +535,7 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 			path:       "/service/web/agent-sessions/missing",
 			sessions:   map[string]*gen.ChatSession{},
 			wantStatus: http.StatusNotFound,
-			wantBody:   "session not found",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.session_not_found"),
 		},
 		{
 			name: "detail shows empty entries message",

@@ -1,12 +1,14 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -81,14 +83,14 @@ func agentSubagentTaskDescriptionPreview(description string) string {
 	return description[:57] + "..."
 }
 
-func agentSubagentTaskStatusLabel(status string) string {
+func agentSubagentTaskStatusLabel(ctx context.Context, status string) string {
 	switch strings.TrimSpace(status) {
 	case "running":
-		return "Running"
+		return i18n.T(ctx, "agent.subagent.status.running")
 	case "completed":
-		return "Completed"
+		return i18n.T(ctx, "agent.subagent.status.completed")
 	case "failed":
-		return "Failed"
+		return i18n.T(ctx, "agent.subagent.status.failed")
 	default:
 		return status
 	}

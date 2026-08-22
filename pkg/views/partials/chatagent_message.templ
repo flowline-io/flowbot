@@ -1,6 +1,9 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
 
 templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
 	if msg.Kind == "tool" || msg.Role == "tool" {
@@ -9,7 +12,7 @@ templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
 		<details class="chatagent-thinking chatagent-step" data-role="thinking" data-testid="chatagent-message-thinking">
 			<summary class="chatagent-thinking-summary chatagent-step-summary cursor-pointer text-xs text-base-content/50 select-none">
 				@chatAgentThinkIcon()
-				<span class="chatagent-step-label">Think</span>
+				<span class="chatagent-step-label">{ i18n.T(ctx, "client.chatagent.think_label") }</span>
 				if preview := ChatAgentOneLinePreview(msg.Text); preview != "" {
 					<span class="chatagent-step-dot" aria-hidden="true">·</span>
 					<span class="chatagent-step-preview" data-testid="chatagent-step-preview">{ preview }</span>
@@ -101,13 +104,13 @@ templ ChatAgentAssistantMeta(msg model.AgentChatMessage, showCopy bool) {
 templ ChatAgentDurationFooter(msg model.AgentChatMessage) {
 	<div class="chatagent-duration text-xs text-base-content/50" data-testid="chatagent-message-duration">
 		if msg.TurnDurationMs > 0 {
-			<span>Turn { ChatAgentDurationLabel(msg.TurnDurationMs) }</span>
+			<span>{ i18n.TData(ctx, "client.chatagent.turn_duration", map[string]any{"Duration": ChatAgentDurationLabel(msg.TurnDurationMs)}) }</span>
 		}
 		if msg.TurnDurationMs > 0 && msg.RunDurationMs > 0 {
 			<span> · </span>
 		}
 		if msg.RunDurationMs > 0 {
-			<span>Total { ChatAgentDurationLabel(msg.RunDurationMs) }</span>
+			<span>{ i18n.TData(ctx, "client.chatagent.total_duration", map[string]any{"Duration": ChatAgentDurationLabel(msg.RunDurationMs)}) }</span>
 		}
 	</div>
 }
@@ -118,8 +121,8 @@ templ ChatAgentCopyButton(payload string, asMarkdown bool) {
 		<button
 			type="button"
 			class="btn btn-ghost btn-xs btn-square chatagent-copy-md"
-			title="Copy markdown"
-			aria-label="Copy markdown"
+			title={ i18n.T(ctx, "chatagent.copy_md_aria") }
+			aria-label={ i18n.T(ctx, "chatagent.copy_md_aria") }
 			data-testid="chatagent-copy-md"
 			data-clip-copy
 			data-clip-markdown={ payload }
@@ -130,8 +133,8 @@ templ ChatAgentCopyButton(payload string, asMarkdown bool) {
 		<button
 			type="button"
 			class="btn btn-ghost btn-xs btn-square chatagent-copy-user"
-			title="Copy"
-			aria-label="Copy"
+			title={ i18n.T(ctx, "chatagent.copy_aria") }
+			aria-label={ i18n.T(ctx, "chatagent.copy_aria") }
 			data-testid="chatagent-copy-user"
 			data-clip-copy
 			data-clip-text={ payload }

@@ -1,5 +1,7 @@
 package partials
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 // ChatAgentSettingsCluster renders compact model, thinking, and approval selects for the
 // bottom-left corner of the agents composer and thread input dialogs.
 templ ChatAgentSettingsCluster(
@@ -23,7 +25,7 @@ templ ChatAgentSettingsCluster(
 				disabled?={ disabled }
 				data-session-model={ selectedModel }
 				data-testid={ modelID }
-				aria-label="Model">
+				aria-label={ i18n.T(ctx, "chatagent.settings.model_aria") }>
 				for _, m := range models {
 					if selectedModel != "" && m.ID == selectedModel {
 						<option value={ m.ID } data-multimodal={ chatAgentMultimodalAttr(m.Multimodal) } selected>{ m.Name }</option>
@@ -40,12 +42,12 @@ templ ChatAgentSettingsCluster(
 			disabled?={ disabled }
 			data-session-thinking={ selectedThinking }
 			data-testid={ thinkingID }
-			aria-label="Thinking level">
-			@chatAgentThinkingOption("default", "Default", selectedThinking)
-			@chatAgentThinkingOption("off", "Off", selectedThinking)
-			@chatAgentThinkingOption("low", "Low", selectedThinking)
-			@chatAgentThinkingOption("medium", "Medium", selectedThinking)
-			@chatAgentThinkingOption("high", "High", selectedThinking)
+			aria-label={ i18n.T(ctx, "chatagent.settings.thinking_aria") }>
+			@chatAgentThinkingOption("default", i18n.T(ctx, "chatagent.settings.thinking.default"), selectedThinking)
+			@chatAgentThinkingOption("off", i18n.T(ctx, "chatagent.settings.thinking.off"), selectedThinking)
+			@chatAgentThinkingOption("low", i18n.T(ctx, "chatagent.settings.thinking.low"), selectedThinking)
+			@chatAgentThinkingOption("medium", i18n.T(ctx, "chatagent.settings.thinking.medium"), selectedThinking)
+			@chatAgentThinkingOption("high", i18n.T(ctx, "chatagent.settings.thinking.high"), selectedThinking)
 		</select>
 		<span class="chatagent-settings-sep" aria-hidden="true">·</span>
 		<select
@@ -54,10 +56,10 @@ templ ChatAgentSettingsCluster(
 			disabled?={ disabled }
 			data-session-approval={ selectedApproval }
 			data-testid={ approvalID }
-			aria-label="Approval mode">
-			@chatAgentApprovalOption("manual", "Manual", selectedApproval)
-			@chatAgentApprovalOption("auto", "Auto", selectedApproval)
-			@chatAgentApprovalOption("off", "Off", selectedApproval)
+			aria-label={ i18n.T(ctx, "chatagent.settings.approval_aria") }>
+			@chatAgentApprovalOption("manual", i18n.T(ctx, "chatagent.settings.approval.manual"), selectedApproval)
+			@chatAgentApprovalOption("auto", i18n.T(ctx, "chatagent.settings.approval.auto"), selectedApproval)
+			@chatAgentApprovalOption("off", i18n.T(ctx, "chatagent.settings.approval.off"), selectedApproval)
 		</select>
 	</div>
 }
@@ -70,7 +72,7 @@ templ ChatAgentWorkspaceSelect(id string, options []WorkspaceOption, disabled bo
 			class="chatagent-settings-select"
 			disabled?={ disabled }
 			data-testid={ id }
-			aria-label="Workspace">
+			aria-label={ i18n.T(ctx, "chatagent.settings.workspace_aria") }>
 			for _, opt := range options {
 				<option value={ opt.Value }>{ opt.Label }</option>
 			}
@@ -88,8 +90,8 @@ templ ChatAgentAttachButton(id string, hidden bool, disabled bool) {
 		hidden?={ hidden }
 		disabled?={ disabled }
 		data-testid={ id }
-		title="Attach media"
-		aria-label="Attach media">
+		title={ i18n.T(ctx, "chatagent.attach_aria") }
+		aria-label={ i18n.T(ctx, "chatagent.attach_aria") }>
 		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" class="chatagent-attach-icon" aria-hidden="true">
 			<circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.5"></circle>
 			<path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M10 6.75v6.5M6.75 10h6.5"></path>

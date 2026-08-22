@@ -131,7 +131,7 @@ func PipelineRunsPage(ctx context.Context, name string, runs []model.PipelineRun
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.PipelineRunsTable(name, runs).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PipelineRunsTable(ctx, name, runs).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

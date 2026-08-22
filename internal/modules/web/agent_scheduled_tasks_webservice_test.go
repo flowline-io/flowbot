@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -296,7 +297,7 @@ func TestAgentScheduledTaskDetailAuthenticated(t *testing.T) {
 			path:       "/service/web/agent-scheduled-tasks/missing",
 			tasks:      map[string]*gen.ChatScheduledTask{},
 			wantStatus: http.StatusNotFound,
-			wantBody:   "scheduled task not found",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.scheduled_task_not_found"),
 		},
 		{
 			name: "detail shows empty runs message",
@@ -379,7 +380,7 @@ func TestAgentScheduledTaskSetStateAuthenticated(t *testing.T) {
 			body:       "state=paused",
 			tasks:      map[string]*gen.ChatScheduledTask{},
 			wantStatus: http.StatusNotFound,
-			wantBody:   "scheduled task not found",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.scheduled_task_not_found"),
 		},
 	}
 

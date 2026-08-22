@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -33,7 +34,7 @@ func TestChatAgentSessionTodoLineLabel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, chatAgentSessionTodoLineLabel(tt.summary))
+			assert.Equal(t, tt.want, chatAgentSessionTodoLineLabel(i18n.DefaultContext(), tt.summary))
 		})
 	}
 }

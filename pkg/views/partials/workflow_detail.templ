@@ -46,7 +46,7 @@ templ WorkflowRunsTable(ctx context.Context, name string, runs []model.WorkflowR
 								<td class="text-base-content/70 text-sm">{ r.TriggerType }</td>
 								<td>
 									<span class={ WorkflowRunStatusClass(r.Status) } data-testid={ "workflow-run-status-" + fmt.Sprint(r.ID) }>
-										{ WorkflowRunStatusText(r.Status) }
+										{ WorkflowRunStatusText(ctx, r.Status) }
 									</span>
 								</td>
 								<td class="text-base-content/50 text-xs">{ r.StartedAt.Format("2006-01-02 15:04:05") }</td>
@@ -125,7 +125,7 @@ templ WorkflowStepRunsDetail(ctx context.Context, steps []model.WorkflowStepRun)
 								<td class="font-mono text-xs text-base-content/50">{ s.Action }</td>
 								<td class="text-base-content/50">{ s.ActionType }</td>
 								<td>
-									<span class={ WorkflowRunStatusClass(s.Status) }>{ WorkflowRunStatusText(s.Status) }</span>
+									<span class={ WorkflowRunStatusClass(s.Status) }>{ WorkflowRunStatusText(ctx, s.Status) }</span>
 								</td>
 								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
 								<td class="text-base-content/50">{ WorkflowStepRunDuration(s) }</td>
@@ -143,7 +143,7 @@ templ WorkflowStepRunsDetail(ctx context.Context, steps []model.WorkflowStepRun)
 								<td class="font-mono text-xs text-base-content/50">{ s.Action }</td>
 								<td class="text-base-content/50">{ s.ActionType }</td>
 								<td>
-									<span class={ WorkflowRunStatusClass(s.Status) }>{ WorkflowRunStatusText(s.Status) }</span>
+									<span class={ WorkflowRunStatusClass(s.Status) }>{ WorkflowRunStatusText(ctx, s.Status) }</span>
 								</td>
 								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
 								<td class="text-base-content/50">{ WorkflowStepRunDuration(s) }</td>
@@ -386,7 +386,7 @@ templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers [
 							<tr data-testid={ "workflow-trigger-" + fmt.Sprint(tr.ID) }>
 								<td class="font-medium">{ tr.Type }</td>
 								<td class="text-center">
-									@StatusIcon(EnabledStatusIcon(tr.Enabled), "workflow-trigger-enabled-"+fmt.Sprint(tr.ID))
+									@StatusIcon(EnabledStatusIcon(ctx, tr.Enabled), "workflow-trigger-enabled-"+fmt.Sprint(tr.ID))
 								</td>
 								<td class="max-w-xl">
 									if webhookURL := WorkflowWebhookURL(tr, publicOrigin); webhookURL != "" {

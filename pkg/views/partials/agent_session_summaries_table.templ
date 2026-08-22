@@ -1,23 +1,28 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ AgentSessionSummariesTable(items []model.AgentSessionSummary, q string) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSessionSummariesTable(ctx context.Context, items []model.AgentSessionSummary, q string) {
 	<div id="agent-session-summaries-table" class="overflow-x-auto" data-testid="agent-session-summaries-table">
 		<table class="table table-sm">
 			<thead>
 				<tr>
-					<th>Session</th>
-					<th>Title</th>
-					<th>Status</th>
-					<th>Summary</th>
+					<th>{ i18n.T(ctx, "table.col.session") }</th>
+					<th>{ i18n.T(ctx, "table.col.title") }</th>
+					<th>{ i18n.T(ctx, "table.col.status") }</th>
+					<th>{ i18n.T(ctx, "common.summary") }</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody>
 				if len(items) == 0 {
 					<tr>
-						<td colspan="5" class="text-base-content/60">No session summaries</td>
+						<td colspan="5" class="text-base-content/60">{ i18n.T(ctx, "agent.session_summaries.empty") }</td>
 					</tr>
 				} else {
 					for _, item := range items {
@@ -37,7 +42,7 @@ templ AgentSessionSummariesTable(items []model.AgentSessionSummary, q string) {
 										hx-target="#agent-session-summaries-table"
 										hx-swap="outerHTML"
 										data-testid="agent-session-summary-retry">
-										Retry
+										{ i18n.T(ctx, "common.retry") }
 									</button>
 								}
 							</td>

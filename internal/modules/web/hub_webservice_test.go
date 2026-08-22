@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 )
 
 func TestHubAppsPage(t *testing.T) {
@@ -94,9 +95,9 @@ func TestHubAppDetailPageNotFound(t *testing.T) {
 		wantStatus  int
 		wantContent string
 	}{
-		{name: "non-existent app returns 404", appName: "nonexistent", wantStatus: http.StatusNotFound, wantContent: "app not found"},
-		{name: "unknown app name returns 404", appName: "missing-app", wantStatus: http.StatusNotFound, wantContent: "app not found"},
-		{name: "non-registered app returns 404", appName: "random-name", wantStatus: http.StatusNotFound, wantContent: "app not found"},
+		{name: "non-existent app returns 404", appName: "nonexistent", wantStatus: http.StatusNotFound, wantContent: i18n.T(i18n.DefaultContext(), "error.hub.app_not_found")},
+		{name: "unknown app name returns 404", appName: "missing-app", wantStatus: http.StatusNotFound, wantContent: i18n.T(i18n.DefaultContext(), "error.hub.app_not_found")},
+		{name: "non-registered app returns 404", appName: "random-name", wantStatus: http.StatusNotFound, wantContent: i18n.T(i18n.DefaultContext(), "error.hub.app_not_found")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

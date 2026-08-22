@@ -266,9 +266,9 @@ func WorkflowRunsTable(ctx context.Context, name string, runs []model.WorkflowRu
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var18 string
-				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(WorkflowRunStatusText(r.Status))
+				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(WorkflowRunStatusText(ctx, r.Status))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/workflow_detail.templ`, Line: 49, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/workflow_detail.templ`, Line: 49, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -759,9 +759,9 @@ func WorkflowStepRunsDetail(ctx context.Context, steps []model.WorkflowStepRun) 
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var50 string
-					templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(WorkflowRunStatusText(s.Status))
+					templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(WorkflowRunStatusText(ctx, s.Status))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/workflow_detail.templ`, Line: 128, Col: 91}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/workflow_detail.templ`, Line: 128, Col: 96}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 					if templ_7745c5c3_Err != nil {
@@ -899,9 +899,9 @@ func WorkflowStepRunsDetail(ctx context.Context, steps []model.WorkflowStepRun) 
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var61 string
-					templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(WorkflowRunStatusText(s.Status))
+					templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(WorkflowRunStatusText(ctx, s.Status))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/workflow_detail.templ`, Line: 146, Col: 91}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/workflow_detail.templ`, Line: 146, Col: 96}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 					if templ_7745c5c3_Err != nil {
@@ -2041,7 +2041,7 @@ func WorkflowTriggersTable(ctx context.Context, workflowName string, triggers []
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = StatusIcon(EnabledStatusIcon(tr.Enabled), "workflow-trigger-enabled-"+fmt.Sprint(tr.ID)).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = StatusIcon(EnabledStatusIcon(ctx, tr.Enabled), "workflow-trigger-enabled-"+fmt.Sprint(tr.ID)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

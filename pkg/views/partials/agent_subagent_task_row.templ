@@ -1,15 +1,20 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ AgentSubagentTaskRow(item model.AgentSubagentTask) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSubagentTaskRow(ctx context.Context, item model.AgentSubagentTask) {
 	<tr id={ agentSubagentTaskRowID(item) } class="hover">
 		<td class="text-base-content/70 font-mono text-sm">{ item.ID }</td>
 		<td class="text-base-content font-medium">{ item.SubagentName }</td>
 		<td class="text-base-content/70 max-w-xs truncate">{ agentSubagentTaskDescriptionPreview(item.Description) }</td>
 		<td class="text-base-content/50 font-mono text-xs max-w-[8rem] truncate">{ item.SessionID }</td>
 		<td>
-			<span class={ agentSubagentTaskStatusBadgeClass(item.Status) }>{ agentSubagentTaskStatusLabel(item.Status) }</span>
+			<span class={ agentSubagentTaskStatusBadgeClass(item.Status) }>{ agentSubagentTaskStatusLabel(ctx, item.Status) }</span>
 		</td>
 		<td class="text-base-content/50">{ item.StartedAt.Format("2006-01-02 15:04") }</td>
 		<td class="text-base-content/50">{ agentSubagentTaskDuration(item) }</td>
@@ -19,51 +24,51 @@ templ AgentSubagentTaskRow(item model.AgentSubagentTask) {
 				hx-swap="innerHTML"
 				data-testid="agent-subagent-task-detail"
 				class="btn btn-ghost btn-xs text-primary">
-				Details
+				{ i18n.T(ctx, "common.details") }
 			</button>
 		</td>
 	</tr>
 	<tr id={ agentSubagentTaskDetailID(item) }></tr>
 }
 
-templ AgentSubagentTaskDetail(item model.AgentSubagentTask) {
+templ AgentSubagentTaskDetail(ctx context.Context, item model.AgentSubagentTask) {
 	<td colspan="8" class="bg-base-200/50">
 		<div class="p-4 space-y-4">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 				<div>
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Subagent</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "table.col.subagent") }</div>
 					<div class="font-medium">{ item.SubagentName }</div>
 				</div>
 				<div>
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Status</div>
-					<span class={ agentSubagentTaskStatusBadgeClass(item.Status) }>{ agentSubagentTaskStatusLabel(item.Status) }</span>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "table.col.status") }</div>
+					<span class={ agentSubagentTaskStatusBadgeClass(item.Status) }>{ agentSubagentTaskStatusLabel(ctx, item.Status) }</span>
 				</div>
 				<div>
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Session</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "table.col.session") }</div>
 					<div class="font-mono text-xs break-all">{ item.SessionID }</div>
 				</div>
 				<div>
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Depth</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "table.col.depth") }</div>
 					<div>{ item.Depth }</div>
 				</div>
 			</div>
 			<div>
-				<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Description</div>
+				<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "table.col.description") }</div>
 				<div class="text-sm">{ item.Description }</div>
 			</div>
 			<div>
-				<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Prompt</div>
+				<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "common.prompt") }</div>
 				<pre class="textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto">{ item.Prompt }</pre>
 			</div>
 			if item.Result != "" {
 				<div>
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Result</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "common.result") }</div>
 					<pre class="textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto">{ item.Result }</pre>
 				</div>
 			}
 			if item.ErrorText != "" {
 				<div>
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Error</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "table.col.error") }</div>
 					<pre class="textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap text-error max-h-48 overflow-y-auto">{ item.ErrorText }</pre>
 				</div>
 			}

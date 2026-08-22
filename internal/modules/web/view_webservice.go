@@ -32,18 +32,18 @@ func viewPage(ctx fiber.Ctx) error {
 
 	token := ctx.Params("token")
 	if token == "" {
-		return ctx.Status(http.StatusBadRequest).SendString("missing token")
+		return ctx.Status(http.StatusBadRequest).SendString(webMsg(ctx, "error.view.missing_token"))
 	}
 
 	if store.Database == nil || store.Database.GetClient() == nil {
-		return ctx.Status(http.StatusInternalServerError).SendString("store not available")
+		return ctx.Status(http.StatusInternalServerError).SendString(webMsg(ctx, "empty.store_unavailable"))
 	}
 	pageDataStore := store.NewPageDataStore(store.Database.GetClient())
 
 	pageData, err := pageDataStore.GetPageDataByToken(context.Background(), token)
 	if err != nil {
 		flog.Error(fmt.Errorf("viewPage: get page_data: %w", err))
-		return ctx.Status(http.StatusInternalServerError).SendString("failed to load page")
+		return ctx.Status(http.StatusInternalServerError).SendString(webMsg(ctx, "error.view.load_failed"))
 	}
 	if pageData == nil {
 		ctx.Type("html")
@@ -104,17 +104,17 @@ func createView(ctx fiber.Ctx) error {
 
 	var req createRequest
 	if err := sonic.Unmarshal(ctx.Body(), &req); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(types.KV{"error": "invalid JSON: " + err.Error()})
+		return ctx.Status(http.StatusBadRequest).JSON(types.KV{"error": webMsg(ctx, "error.view.invalid_json")})
 	}
 	if req.Type == "" {
-		return ctx.Status(http.StatusBadRequest).JSON(types.KV{"error": "type is required"})
+		return ctx.Status(http.StatusBadRequest).JSON(types.KV{"error": webMsg(ctx, "error.view.type_required")})
 	}
 	if req.Data == nil {
 		req.Data = types.KV{}
 	}
 
 	if store.Database == nil || store.Database.GetClient() == nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": "store not available"})
+		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": webMsg(ctx, "empty.store_unavailable")})
 	}
 	pageDataStore := store.NewPageDataStore(store.Database.GetClient())
 
@@ -128,7 +128,7 @@ func createView(ctx fiber.Ctx) error {
 
 	if err := pageDataStore.CreatePageData(context.Background(), token, req.Type, req.Title, req.Data, createdBy, req.ExpiresAt); err != nil {
 		flog.Error(fmt.Errorf("createView: CreatePageData: %w", err))
-		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": "failed to create page"})
+		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": webMsg(ctx, "error.view.create_failed")})
 	}
 
 	return ctx.Status(http.StatusCreated).JSON(types.KV{
@@ -145,21 +145,21 @@ func deleteView(ctx fiber.Ctx) error {
 
 	token := ctx.Params("token")
 	if token == "" {
-		return ctx.Status(http.StatusBadRequest).JSON(types.KV{"error": "missing token"})
+		return ctx.Status(http.StatusBadRequest).JSON(types.KV{"error": webMsg(ctx, "error.view.missing_token")})
 	}
 
 	if store.Database == nil || store.Database.GetClient() == nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": "store not available"})
+		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": webMsg(ctx, "empty.store_unavailable")})
 	}
 	pageDataStore := store.NewPageDataStore(store.Database.GetClient())
 
 	affected, err := pageDataStore.DeletePageData(context.Background(), token)
 	if err != nil {
 		flog.Error(fmt.Errorf("deleteView: DeletePageData: %w", err))
-		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": "failed to delete page"})
+		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": webMsg(ctx, "error.view.delete_failed")})
 	}
 	if affected == 0 {
-		return ctx.Status(http.StatusNotFound).JSON(types.KV{"error": "page not found"})
+		return ctx.Status(http.StatusNotFound).JSON(types.KV{"error": webMsg(ctx, "error.view.page_not_found")})
 	}
 
 	return ctx.SendStatus(http.StatusNoContent)

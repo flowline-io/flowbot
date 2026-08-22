@@ -147,7 +147,7 @@ func loadWorkflowListEntries(ctx context.Context) ([]partials.WorkflowListEntry,
 	if err != nil {
 		return nil, err
 	}
-	entries := partials.BuildWorkflowListEntries(mapWorkflows(defs), mapWorkflowTriggers(triggers), lastRuns)
+	entries := partials.BuildWorkflowListEntries(ctx, mapWorkflows(defs), mapWorkflowTriggers(triggers), lastRuns)
 	since := time.Now().Add(-7 * 24 * time.Hour)
 	stats, err := s.RunLatencyStatsByNames(ctx, names, since)
 	if err != nil {
@@ -212,7 +212,7 @@ func workflowDetailPage(c fiber.Ctx) error {
 	dto, err := s.GetDefinitionByName(c.Context(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return c.Status(http.StatusNotFound).SendString("workflow not found")
+			return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.workflow_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
 	}
@@ -331,7 +331,7 @@ func workflowRunsPage(c fiber.Ctx) error {
 	}
 	if _, err := s.GetDefinitionByName(c.Context(), name); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return c.Status(http.StatusNotFound).SendString("workflow not found")
+			return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.workflow_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
 	}
@@ -375,7 +375,7 @@ func workflowRunSteps(c fiber.Ctx) error {
 	}
 	runID, err := strconv.ParseInt(c.Params("runID"), 10, 64)
 	if err != nil || runID <= 0 {
-		return c.Status(http.StatusBadRequest).SendString("invalid run ID")
+		return c.Status(http.StatusBadRequest).SendString(webMsg(c, "error.workflow.invalid_run_id"))
 	}
 	rs := getWorkflowRunStore()
 	if rs == nil {
@@ -384,12 +384,12 @@ func workflowRunSteps(c fiber.Ctx) error {
 	run, err := rs.GetRun(c.Context(), runID)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return c.Status(http.StatusNotFound).SendString("run not found")
+			return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.workflow.run_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "get workflow run: %v", err)
 	}
 	if run == nil || run.WorkflowName != name {
-		return c.Status(http.StatusNotFound).SendString("run not found")
+		return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.workflow.run_not_found"))
 	}
 	steps, err := rs.GetStepRunsByRunID(c.Context(), runID)
 	if err != nil {
@@ -424,18 +424,14 @@ func workflowRunNow(c fiber.Ctx) error {
 	input, err := parseWorkflowRunInputs(c, meta.Inputs)
 	if err != nil {
 		c.Status(fiber.StatusUnprocessableEntity)
-		return renderFormError(c, "#form-error", err.Error())
+		return renderFormErrorKey(c, "#form-error", "error.validation")
 	}
 	input = pkgworkflow.ApplyInputDefaults(meta.Inputs, input)
 	runID, err := svc.StartRunAsync(c.Context(), name, "manual", input)
 	if err != nil {
 		if errors.Is(err, types.ErrInvalidArgument) {
 			c.Status(fiber.StatusUnprocessableEntity)
-			msg := err.Error()
-			if cause := errors.Unwrap(err); cause != nil {
-				msg = cause.Error()
-			}
-			return renderFormError(c, "#form-error", msg)
+			return renderFormErrorKey(c, "#form-error", "error.validation")
 		}
 		if errors.Is(err, types.ErrNotFound) {
 			c.Status(http.StatusNotFound)

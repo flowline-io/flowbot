@@ -1,20 +1,23 @@
 package partials
 
 import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ AgentSessionEntriesTable(entries []model.AgentSessionEntry) {
+templ AgentSessionEntriesTable(ctx context.Context, entries []model.AgentSessionEntry) {
 	<div class="flowbot-surface" id="agent-session-entries-table" data-testid="agent-session-entries-table">
 		<div class="overflow-x-auto">
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs text-base-content/55">Time</th>
-					<th class="text-xs text-base-content/55">Entry ID</th>
-					<th class="text-xs text-base-content/55">Type</th>
-					<th class="text-xs text-base-content/55">Parent ID</th>
-					<th class="text-xs text-base-content/55">Payload</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.time") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.entry_id") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.type") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.parent_id") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.payload") }</th>
 				</tr>
 				</thead>
 				<tbody>
@@ -25,10 +28,10 @@ templ AgentSessionEntriesTable(entries []model.AgentSessionEntry) {
 					<tr>
 						<td colspan="5" class="p-0">
 							@EmptyStateCTA(
-								"No entries yet",
-								"Messages and tool calls appear as the session runs.",
+								i18n.T(ctx, "agent.session.entries.empty_title"),
+								i18n.T(ctx, "agent.session.entries.empty_detail"),
 								"/service/web/agents",
-								"Open Agents",
+								i18n.T(ctx, "agent.session.entries.empty_cta"),
 							)
 						</td>
 					</tr>

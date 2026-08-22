@@ -17,14 +17,14 @@ templ NotifyTemplateRow(ctx context.Context, item model.NotifyTemplate) {
 		<td class="text-base-content/70">{ fmt.Sprintf("%d", notifyTemplateOverrideCount(item)) }</td>
 		<td class="text-center">
 			if item.IsDefault {
-				<span class="flowbot-chip flowbot-chip-primary" data-testid="template-default-badge">Default</span>
+				<span class="flowbot-chip flowbot-chip-primary" data-testid="template-default-badge">{ i18n.T(ctx, "common.default") }</span>
 			} else {
 				<button hx-post={ notifyTemplateDefaultURL(item) }
 					hx-target="#notify-templates-table"
 					hx-swap="outerHTML"
 					data-testid="template-set-default"
 					class="btn btn-ghost btn-xs text-primary">
-					Set default
+					{ i18n.T(ctx, "common.set_default") }
 				</button>
 			}
 		</td>
@@ -33,7 +33,7 @@ templ NotifyTemplateRow(ctx context.Context, item model.NotifyTemplate) {
 				<button hx-get={ notifyTemplateEditURL(item) }
 					data-testid="template-edit"
 					class="btn btn-ghost btn-xs text-primary">
-					Edit
+					{ i18n.T(ctx, "common.edit") }
 				</button>
 				<button hx-delete={ notifyTemplateDeleteURL(item) }
 					data-confirm={ i18n.T(ctx, "confirm.delete_template.message") }
@@ -42,7 +42,7 @@ templ NotifyTemplateRow(ctx context.Context, item model.NotifyTemplate) {
 					data-confirm-class="btn-error"
 					data-testid="template-delete"
 					class="btn btn-ghost btn-xs text-error">
-					Delete
+					{ i18n.T(ctx, "common.delete") }
 					@HtmxIndicator()
 				</button>
 			</div>

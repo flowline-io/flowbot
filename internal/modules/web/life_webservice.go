@@ -82,9 +82,29 @@ func lifeUserError(c fiber.Ctx, err error) string {
 	if errors.Is(err, types.ErrNotFound) ||
 		errors.Is(err, types.ErrInvalidArgument) ||
 		errors.Is(err, types.ErrConflict) {
+		if key, ok := lifeUserErrorKeys[rest]; ok {
+			return webMsg(c, key)
+		}
 		return rest
 	}
 	return webMsg(c, "toast.life.action_failed")
+}
+
+var lifeUserErrorKeys = map[string]string{
+	"goal not found":                      "toast.life.goal_not_found",
+	"quest not found":                     "toast.life.quest_not_found",
+	"evidence content required":           "toast.life.evidence_required",
+	"evidence required before adjudication": "toast.life.evidence_required",
+	"reward not found":                    "toast.life.reward_not_found",
+	"occurrence not found":                "toast.life.occurrence_not_found",
+	"action not found":                    "toast.life.action_not_found",
+	"parent not found":                    "toast.life.parent_not_found",
+	"inventory not found":                 "toast.life.inventory_not_found",
+	"equipment missing":                   "toast.life.equipment_missing",
+	"adjudication not found":              "toast.life.adjudication_not_found",
+	"goal title required":                 "toast.life.goal_title_required",
+	"title required":                      "toast.life.title_required",
+	"reward name required":                "toast.life.reward_name_required",
 }
 
 func lifeUID(ctx fiber.Ctx) (string, error) {

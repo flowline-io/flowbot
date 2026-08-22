@@ -27,6 +27,6 @@ templ AgentSessionSummariesPage(ctx context.Context, items []model.AgentSessionS
 				</button>
 			</form>
 		}
-		@partials.AgentSessionSummariesTable(items, q)
+		@partials.AgentSessionSummariesTable(ctx, items, q)
 	}
 }

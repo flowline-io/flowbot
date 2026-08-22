@@ -36,7 +36,7 @@ func homelabRegistryDetailPage(c fiber.Ctx) error {
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
-		return c.Status(http.StatusNotFound).SendString("app not found")
+		return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.homelab.app_not_found"))
 	}
 	status, err := homelab.DefaultRuntime.Status(c.Context(), app)
 	if err != nil {

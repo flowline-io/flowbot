@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
@@ -267,7 +269,14 @@ func notifyChannelSetDefault(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := store.NotifyConfigStoreFromDB().SetDefaultNotifyChannel(ctx.Context(), id); err != nil {
-		return toastError(ctx, err.Error())
+		switch {
+		case errors.Is(err, types.ErrNotFound):
+			return toastErrorKey(ctx, "toast.notify_settings.channel_not_found")
+		case errors.Is(err, types.ErrInvalidArgument):
+			return toastErrorKey(ctx, "toast.notify_settings.channel_must_be_enabled")
+		default:
+			return toastErrorKey(ctx, "toast.notify_settings.default_channel_failed")
+		}
 	}
 	channels, err := store.NotifyConfigStoreFromDB().ListNotifyChannels(ctx.Context(), store.ListNotifyChannelOptions{})
 	if err != nil {
@@ -418,7 +427,7 @@ func notifyTemplateSetDefault(ctx fiber.Ctx) error {
 		return toastErrorKey(ctx, "toast.notify_settings.template_summary_required")
 	}
 	if err := store.NotifyConfigStoreFromDB().SetDefaultNotifyTemplate(ctx.Context(), id); err != nil {
-		return toastError(ctx, err.Error())
+		return toastErrorKey(ctx, "toast.notify_settings.default_template_failed")
 	}
 	templates, err := store.NotifyConfigStoreFromDB().ListNotifyTemplates(ctx.Context(), store.ListNotifyTemplateOptions{})
 	if err != nil {
@@ -791,7 +800,7 @@ func validateRuleForm(c fiber.Ctx, rule model.NotifyRule) map[string]string {
 	}
 	if rule.Condition != "" {
 		if err := notifyrules.ValidateCondition(rule.Condition); err != nil {
-			errs["condition"] = err.Error()
+			errs["condition"] = webMsg(c, "error.validation.invalid_condition")
 		}
 	}
 	validateNotifyRuleParams(c, rule, &errs)

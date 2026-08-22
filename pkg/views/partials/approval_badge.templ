@@ -1,5 +1,7 @@
 package partials
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 // ApprovalCountBadge renders a compact count chip for pending tool approvals.
 // Empty when count is zero so HTMX can clear previous badges.
 templ ApprovalCountBadge(count int) {
@@ -7,8 +9,8 @@ templ ApprovalCountBadge(count int) {
 		<span
 			class="flowbot-chip flowbot-chip-warning ml-1 tabular-nums"
 			data-testid="approval-count-badge"
-			title={ text + " session(s) awaiting tool approval" }
-			aria-label={ text + " sessions awaiting tool approval" }>
+			title={ i18n.TData(ctx, "chatagent.approval.badge_title", map[string]any{"Count": count}) }
+			aria-label={ i18n.TData(ctx, "chatagent.approval.badge_aria", map[string]any{"Count": count}) }>
 			{ text }
 		</span>
 	} else {

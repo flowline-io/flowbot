@@ -2,11 +2,11 @@ package partials
 
 import (
 	"bytes"
-	"context"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -161,7 +161,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := PipelineStepRunsDetail(tt.steps).Render(context.Background(), &buf)
+			err := PipelineStepRunsDetail(i18n.DefaultContext(), tt.steps).Render(i18n.DefaultContext(), &buf)
 			if err != nil {
 				t.Fatalf("Render() error = %v", err)
 			}

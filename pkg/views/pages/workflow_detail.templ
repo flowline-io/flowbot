@@ -21,7 +21,7 @@ templ WorkflowDetailPage(ctx context.Context, meta *types.WorkflowMetadata, trig
 					data-testid="workflow-detail-runs-link">{ i18n.T(ctx, "common.runs") }</a>
 			}
 			<div class="flex flex-wrap items-center gap-2 text-sm" data-testid="workflow-meta">
-				@partials.StatusIcon(partials.EnabledStatusIcon(meta.Enabled), "workflow-detail-enabled")
+				@partials.StatusIcon(partials.EnabledStatusIcon(ctx, meta.Enabled), "workflow-detail-enabled")
 				if meta.Resumable {
 					<span class="flowbot-chip flowbot-chip-primary">{ i18n.T(ctx, "workflow.resumable") }</span>
 				}

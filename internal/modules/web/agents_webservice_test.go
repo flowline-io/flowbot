@@ -25,6 +25,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 )
 
 func withChatAgentEnabled(t *testing.T, fn func()) {
@@ -688,7 +689,7 @@ func TestAgentChatContext(t *testing.T) {
 				"sess-other": {Flag: "sess-other", UID: "someone-else", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
 			},
 			wantStatus: http.StatusForbidden,
-			wantBody:   "forbidden",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.forbidden"),
 		},
 		{
 			name: "owner receives context breakdown json",
@@ -815,14 +816,14 @@ func TestAgentChatPageOwner(t *testing.T) {
 				"sess-other": {Flag: "sess-other", UID: "someone-else", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
 			},
 			wantStatus: http.StatusForbidden,
-			wantBody:   "forbidden",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.forbidden"),
 		},
 		{
 			name:       "missing session not found",
 			path:       "/service/web/agents/missing",
 			sessions:   map[string]*gen.ChatSession{},
 			wantStatus: http.StatusNotFound,
-			wantBody:   "session not found",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.session_not_found"),
 		},
 	}
 
@@ -857,7 +858,7 @@ func TestAgentChatSendMessageValidation(t *testing.T) {
 		wantBody   string
 	}{
 		{name: "empty message rejected", body: `{"text":"   "}`, wantStatus: http.StatusBadRequest, wantBody: "empty message"},
-		{name: "invalid json rejected", body: `{`, wantStatus: http.StatusBadRequest, wantBody: "invalid json"},
+		{name: "invalid json rejected", body: `{`, wantStatus: http.StatusBadRequest, wantBody: i18n.T(i18n.DefaultContext(), "error.validation.invalid_json")},
 		{name: "in flight returns conflict", body: `{"text":"hi"}`, inFlight: true, wantStatus: http.StatusConflict, wantBody: "run already in progress"},
 	}
 
@@ -912,13 +913,13 @@ func TestAgentRenderMarkdown(t *testing.T) {
 			name:       "empty text rejected",
 			body:       `{"text":"   "}`,
 			wantStatus: http.StatusBadRequest,
-			wantBody:   "empty text",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.empty_text"),
 		},
 		{
 			name:       "invalid json rejected",
 			body:       `{`,
 			wantStatus: http.StatusBadRequest,
-			wantBody:   "invalid json",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.validation.invalid_json"),
 		},
 	}
 	for _, tt := range tests {
@@ -1114,7 +1115,7 @@ func TestAgentChatConfirmNotFound(t *testing.T) {
 				return `{"id":"stale-confirm","approved":true,"mode":"once"}`
 			},
 			wantStatus: http.StatusNotFound,
-			wantBody:   "confirm not found",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.confirm_not_found"),
 		},
 		{
 			name: "stale confirm id returns not found",
@@ -1123,7 +1124,7 @@ func TestAgentChatConfirmNotFound(t *testing.T) {
 			},
 			inFlight:   true,
 			wantStatus: http.StatusNotFound,
-			wantBody:   "confirm not found",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.confirm_not_found"),
 		},
 		{
 			name: "already resolved returns conflict",
@@ -1133,7 +1134,7 @@ func TestAgentChatConfirmNotFound(t *testing.T) {
 			inFlight:   true,
 			resolve:    true,
 			wantStatus: http.StatusConflict,
-			wantBody:   "confirm already resolved",
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.confirm_resolved"),
 		},
 	}
 

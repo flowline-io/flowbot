@@ -403,7 +403,7 @@ func PipelineListTable(ctx context.Context, entries []PipelineListEntry) templ.C
 					return templ_7745c5c3_Err
 				}
 				if entry.Status == "published" {
-					templ_7745c5c3_Err = StatusIcon(PipelineRuntimeStatusIcon(entry.Enabled), "pipeline-runtime-"+entry.Name).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = StatusIcon(PipelineRuntimeStatusIcon(ctx, entry.Enabled), "pipeline-runtime-"+entry.Name).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

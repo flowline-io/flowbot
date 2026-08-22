@@ -1,5 +1,7 @@
 package partials
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pending *ChatAgentPendingConfirm) {
 	<div
 		id="chatagent-approval-panel"
@@ -22,7 +24,7 @@ templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pen
 	>
 		<div class="chatagent-approval-body">
 			<div class="chatagent-approval-copy min-w-0 flex-1">
-				<p class="chatagent-approval-kicker m-0">Pending tool approval</p>
+				<p class="chatagent-approval-kicker m-0">{ i18n.T(ctx, "chatagent.approval.pending_kicker") }</p>
 				<p class="chatagent-approval-summary m-0" id="chatagent-approval-summary">
 					if pending != nil {
 						{ pending.Tool }: { pending.Summary }
@@ -30,7 +32,7 @@ templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pen
 				</p>
 				<p class="chatagent-approval-meta m-0" id="chatagent-approval-meta">
 					if pending != nil {
-						{ chatAgentPendingConfirmMeta(pending) }
+						{ chatAgentPendingConfirmMeta(ctx, pending) }
 					}
 				</p>
 			</div>
@@ -40,8 +42,8 @@ templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pen
 					class="chatagent-approval-choice chatagent-approval-choice-once"
 					data-mode="once"
 					data-testid="chatagent-approve-once">
-					<span class="chatagent-approval-choice-label">{ ChatAgentApproveOnceLabel() }</span>
-					<span class="chatagent-approval-choice-hint" data-testid="chatagent-approve-once-hint">{ ChatAgentApproveOnceHint() }</span>
+					<span class="chatagent-approval-choice-label">{ ChatAgentApproveOnceLabel(ctx) }</span>
+					<span class="chatagent-approval-choice-hint" data-testid="chatagent-approve-once-hint">{ ChatAgentApproveOnceHint(ctx) }</span>
 				</button>
 				<button
 					type="button"
@@ -50,9 +52,9 @@ templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pen
 					data-mode="always"
 					data-testid="chatagent-approve-always"
 					if pending != nil && pending.SuggestedPattern != "" {
-						title={ ChatAgentApproveAlwaysHint(pending.SuggestedPattern) }
+						title={ ChatAgentApproveAlwaysHint(ctx, pending.SuggestedPattern) }
 					}>
-					<span class="chatagent-approval-choice-label">{ ChatAgentApproveAlwaysLabel() }</span>
+					<span class="chatagent-approval-choice-label">{ ChatAgentApproveAlwaysLabel(ctx) }</span>
 					<span
 						class="chatagent-approval-choice-hint chatagent-approval-choice-hint-mono"
 						id="chatagent-approve-always-hint"
@@ -66,7 +68,7 @@ templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pen
 					type="button"
 					class="chatagent-approval-choice chatagent-approval-choice-deny"
 					data-mode="reject"
-					data-testid="chatagent-approve-deny">{ ChatAgentApproveDenyLabel() }</button>
+					data-testid="chatagent-approve-deny">{ ChatAgentApproveDenyLabel(ctx) }</button>
 			</div>
 		</div>
 	</div>

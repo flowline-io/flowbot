@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -174,11 +173,8 @@ func homeTokenUsage(c fiber.Ctx) error {
 	return partials.TokenUsage(stats).Render(c.Context(), c.Response().BodyWriter())
 }
 
-func invalidTokenUsageRequest(c fiber.Ctx, err error) error {
-	if errors.Is(err, types.ErrInvalidArgument) {
-		return c.Status(http.StatusBadRequest).SendString(err.Error())
-	}
-	return c.Status(http.StatusBadRequest).SendString(err.Error())
+func invalidTokenUsageRequest(c fiber.Ctx, _ error) error {
+	return c.Status(http.StatusBadRequest).SendString(webMsg(c, "error.token_usage.invalid_request"))
 }
 
 // sessionBadge renders a compact navbar identity fragment for the current web session.

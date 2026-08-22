@@ -17,7 +17,7 @@ templ ConfirmModal(ctx context.Context) {
 			</div>
 		</div>
 		<form method="dialog" class="modal-backdrop">
-			<button>close</button>
+			<button>{ i18n.T(ctx, "common.close") }</button>
 		</form>
 	</dialog>
 }

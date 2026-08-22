@@ -84,7 +84,7 @@ func hubAppDetailPage(c fiber.Ctx) error {
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
-		return c.Status(http.StatusNotFound).SendString("app not found")
+		return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.hub.app_not_found"))
 	}
 	status, err := homelab.DefaultRuntime.Status(c.Context(), app)
 	if err != nil {
@@ -103,7 +103,7 @@ func hubAppStatusPartial(c fiber.Ctx) error {
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
-		return c.Status(http.StatusNotFound).SendString("app not found")
+		return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.hub.app_not_found"))
 	}
 	status, err := homelab.DefaultRuntime.Status(c.Context(), app)
 	if err != nil {
@@ -121,7 +121,7 @@ func hubAppLogsSSE(c fiber.Ctx) error {
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
-		return c.Status(http.StatusNotFound).SendString("app not found")
+		return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.hub.app_not_found"))
 	}
 	tail := 100
 	if raw := c.Query("tail"); raw != "" {
@@ -132,9 +132,9 @@ func hubAppLogsSSE(c fiber.Ctx) error {
 	logs, err := homelab.DefaultRuntime.Logs(c.Context(), app, tail)
 	if err != nil {
 		if errors.Is(err, types.ErrNotImplemented) {
-			return c.Status(http.StatusNotImplemented).SendString("logs not available")
+			return c.Status(http.StatusNotImplemented).SendString(webMsg(c, "error.hub.logs_not_available"))
 		}
-		return c.Status(http.StatusInternalServerError).SendString(err.Error())
+		return c.Status(http.StatusInternalServerError).SendString(webMsg(c, "error.hub.logs_failed"))
 	}
 
 	c.Set("Content-Type", "text/event-stream")
@@ -192,7 +192,7 @@ func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.Ap
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
-		return c.Status(http.StatusNotFound).SendString("app not found")
+		return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.hub.app_not_found"))
 	}
 
 	scope := lifecycleScope(operation)

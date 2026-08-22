@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -11,7 +12,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 			<input type="text" name="uid" value={ item.UID }
 				data-testid="config-uid"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "uid") }
-				placeholder="uid"
+				placeholder={ i18n.T(ctx, "config.form.uid_placeholder") }
 				required maxlength="128"
 				if !isNew {
 					readonly="readonly"
@@ -23,7 +24,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 			<input type="text" name="topic" value={ item.Topic }
 				data-testid="config-topic"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "topic") }
-				placeholder="topic"
+				placeholder={ i18n.T(ctx, "config.form.topic_placeholder") }
 				required maxlength="128"
 				if !isNew {
 					readonly="readonly"
@@ -35,7 +36,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 			<input type="text" name="key" value={ item.Key }
 				data-testid="config-key"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "key") }
-				placeholder="key"
+				placeholder={ i18n.T(ctx, "config.form.key_placeholder") }
 				required maxlength="128"
 				if !isNew {
 					readonly="readonly"
@@ -47,7 +48,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 			<textarea name="value" rows="2"
 				data-testid="config-value"
 				class={ "textarea textarea-bordered textarea-sm w-full font-mono " + fieldError(errors, "value") }
-				placeholder='{"key": "value"}'>{ valueJSON(item.Value) }</textarea>
+				placeholder={ i18n.T(ctx, "config.form.value_placeholder") }>{ valueJSON(item.Value) }</textarea>
 			<div class="text-error text-xs">{ errors["value"] }</div>
 		</td>
 		<td></td>
@@ -64,7 +65,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 					hx-include="[name='uid'], [name='topic'], [name='key'], [name='value']"
 					data-testid="config-save"
 					class="btn btn-primary btn-sm">
-					Save
+					{ i18n.T(ctx, "common.save") }
 				</button>
 				<button type="button"
 					hx-get={ cancelURL(item, isNew) }
@@ -72,7 +73,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 					hx-swap="outerHTML"
 					data-testid="config-cancel"
 					class="btn btn-ghost btn-sm">
-					Cancel
+					{ i18n.T(ctx, "common.cancel") }
 				</button>
 			</div>
 		</td>

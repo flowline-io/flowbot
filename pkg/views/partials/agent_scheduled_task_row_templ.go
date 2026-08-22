@@ -129,7 +129,7 @@ func AgentScheduledTaskRow(ctx context.Context, item model.AgentScheduledTask) t
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = StatusIcon(ScheduledTaskStateStatusIcon(item.State), "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = StatusIcon(ScheduledTaskStateStatusIcon(ctx, item.State), "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,6 +1,9 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
 
 // ChatAgentTodosPanel renders the read-only session checklist above the chat thread.
 templ ChatAgentTodosPanel(todos []model.AgentTodo) {
@@ -12,8 +15,8 @@ templ ChatAgentTodosPanel(todos []model.AgentTodo) {
 			open
 		}>
 		<summary class="chatagent-todos-summary">
-			<span class="chatagent-todos-summary-label">Todos</span>
-			<span class="chatagent-todos-summary-meta" data-testid="chatagent-todos-count">{ chatAgentTodosCountLabel(todos) }</span>
+			<span class="chatagent-todos-summary-label">{ i18n.T(ctx, "client.chatagent.todos.label") }</span>
+			<span class="chatagent-todos-summary-meta" data-testid="chatagent-todos-count">{ chatAgentTodosCountLabel(ctx, todos) }</span>
 			if len(todos) > 0 {
 				<span class="chatagent-todos-progress-wrap">
 					<span class="chatagent-todos-progress" aria-hidden="true">
@@ -35,8 +38,8 @@ templ AgentSessionTodosCard(todos []model.AgentTodo) {
 		<div class="flowbot-surface mb-6 chatagent-todos-card" data-testid="agent-session-todos">
 			<div class="p-4">
 				<div class="chatagent-todos-card-header">
-					<h2 class="chatagent-todos-summary-label m-0">Todos</h2>
-					<span class="chatagent-todos-summary-meta">{ chatAgentTodosCountLabel(todos) }</span>
+					<h2 class="chatagent-todos-summary-label m-0">{ i18n.T(ctx, "client.chatagent.todos.label") }</h2>
+					<span class="chatagent-todos-summary-meta">{ chatAgentTodosCountLabel(ctx, todos) }</span>
 					<span class="chatagent-todos-progress-wrap">
 						<span class="chatagent-todos-progress" aria-hidden="true">
 							<span class="chatagent-todos-progress-fill" style={ "width: " + chatAgentTodosProgressWidth(todos) }></span>
@@ -54,7 +57,7 @@ templ AgentSessionTodosCard(todos []model.AgentTodo) {
 
 templ ChatAgentTodosList(todos []model.AgentTodo) {
 	if len(todos) == 0 {
-		<p class="chatagent-todos-empty">No todos yet.</p>
+		<p class="chatagent-todos-empty">{ i18n.T(ctx, "client.chatagent.todos.empty") }</p>
 	} else {
 		<ul class="chatagent-todos-list">
 			for _, item := range todos {

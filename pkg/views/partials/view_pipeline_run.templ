@@ -1,17 +1,18 @@
 package partials
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 templ ViewPipelineRunContent(steps any) {
 	<div class="flowbot-surface" data-testid="view-pipeline-run-content">
 		if steps == nil {
-			<div class="card-body text-sm text-base-content/30">No step run data available.</div>
+			<div class="card-body text-sm text-base-content/30">{ i18n.T(ctx, "view.pipeline.no_steps") }</div>
 		} else if stepList, ok := steps.([]model.PipelineStepRun); ok {
-			@PipelineStepRunsDetail(stepList)
+			@PipelineStepRunsDetail(ctx, stepList)
 		} else {
-			<div class="card-body text-sm text-base-content/30">Unable to render pipeline run data.</div>
+			<div class="card-body text-sm text-base-content/30">{ i18n.T(ctx, "view.pipeline.render_failed") }</div>
 		}
 	</div>
 }

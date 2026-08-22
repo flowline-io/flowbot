@@ -48,7 +48,7 @@ templ WorkflowListTable(ctx context.Context, entries []WorkflowListEntry) {
 								}
 							</td>
 							<td class="text-center">
-								@StatusIcon(EnabledStatusIcon(entry.Enabled), "workflow-enabled-"+entry.Name)
+								@StatusIcon(EnabledStatusIcon(ctx, entry.Enabled), "workflow-enabled-"+entry.Name)
 							</td>
 							<td>
 								if len(entry.Triggers) == 0 {

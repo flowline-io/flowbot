@@ -292,7 +292,7 @@ func agentSubagentTaskDetail(ctx fiber.Ctx) error {
 		return renderErrorKey(ctx, "error.load.subagent_task")
 	}
 	ctx.Type("html")
-	return partials.AgentSubagentTaskDetail(item).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSubagentTaskDetail(reqCtx, item).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func decodeAgentSubagentTaskID(ctx fiber.Ctx) (int64, error) {

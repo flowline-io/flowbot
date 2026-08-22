@@ -21,7 +21,7 @@ templ PipelineRunsPage(ctx context.Context, name string, runs []model.PipelineRu
 				@partials.PanelSkeleton(ctx)
 			</div>
 			<div id="pipeline-runs-container" data-testid="pipeline-runs-container">
-				@partials.PipelineRunsTable(name, runs)
+				@partials.PipelineRunsTable(ctx, name, runs)
 			</div>
 		</div>
 	}

@@ -1,11 +1,15 @@
 package partials
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
 
 templ ViewFormContent(fields []any) {
 	<div class="flowbot-surface" data-testid="view-form-content">
 		if len(fields) == 0 {
-			<div class="card-body text-sm text-base-content/30">No fields to display.</div>
+			<div class="card-body text-sm text-base-content/30">{ i18n.T(ctx, "view.form.no_fields") }</div>
 		} else {
 			<div class="divide-y divide-base-300">
 				for _, f := range fields {

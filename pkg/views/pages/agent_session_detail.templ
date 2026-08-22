@@ -67,7 +67,7 @@ templ AgentSessionDetailPage(ctx context.Context, session model.AgentSession, en
 		@partials.AgentSessionPlansCard(session.Flag, plans)
 		@partials.AgentSessionTodosCard(todos)
 		<h2 class="text-lg font-semibold mb-3">{ i18n.T(ctx, "agent.session.entries") }</h2>
-		@partials.AgentSessionEntriesTable(entries)
+		@partials.AgentSessionEntriesTable(ctx, entries)
 		@partials.ChatAgentApprovalScripts()
 	}
 }

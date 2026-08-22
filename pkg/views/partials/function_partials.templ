@@ -1,25 +1,27 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ FunctionRunsTable(runs []*model.FunctionRun) {
+templ FunctionRunsTable(ctx context.Context, runs []*model.FunctionRun) {
 	if len(runs) == 0 {
-		<div class="text-center py-8 text-base-content/50" data-testid="function-runs-empty">No runs yet.</div>
+		<div class="text-center py-8 text-base-content/50" data-testid="function-runs-empty">{ i18n.T(ctx, "function.runs.empty") }</div>
 	} else {
 		<div class="flowbot-surface" data-testid="function-runs-table">
 			<div class="overflow-x-auto">
 				<table class="table table-sm w-full">
 					<thead>
 						<tr>
-							<th>ID</th>
-							<th>Version</th>
-							<th>Status</th>
-							<th>Duration</th>
-							<th>Error</th>
+							<th>{ i18n.T(ctx, "table.col.id") }</th>
+							<th>{ i18n.T(ctx, "table.col.version") }</th>
+							<th>{ i18n.T(ctx, "table.col.status") }</th>
+							<th>{ i18n.T(ctx, "table.col.duration") }</th>
+							<th>{ i18n.T(ctx, "table.col.error") }</th>
 						</tr>
 					</thead>
 					<tbody>

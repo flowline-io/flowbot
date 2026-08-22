@@ -10,7 +10,7 @@ templ AgentScheduledTaskStatePanel(task model.AgentScheduledTask) {
 		<div>
 			<span class="text-base-content/50">{ i18n.T(ctx, "scheduled_task.state") }</span>
 			<span class="ml-1 inline-flex align-middle">
-				@StatusIcon(ScheduledTaskStateStatusIcon(task.State), "")
+				@StatusIcon(ScheduledTaskStateStatusIcon(ctx, task.State), "")
 			</span>
 		</div>
 		<form

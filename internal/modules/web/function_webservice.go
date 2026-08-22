@@ -138,7 +138,7 @@ func createFunction(c fiber.Ctx) error {
 	}
 	if err := pkgfunctions.ValidateName(name); err != nil {
 		c.Status(fiber.StatusUnprocessableEntity)
-		return renderFormError(c, "#form-error", err.Error())
+		return renderFormErrorKey(c, "#form-error", "error.validation")
 	}
 	if _, err := svc.Create(context.Background(), name, entrypoint, getUID(c)); err != nil {
 		if errors.Is(err, types.ErrAlreadyExists) {
@@ -147,7 +147,7 @@ func createFunction(c fiber.Ctx) error {
 		}
 		if errors.Is(err, types.ErrInvalidArgument) {
 			c.Status(fiber.StatusUnprocessableEntity)
-			return renderFormError(c, "#form-error", err.Error())
+			return renderFormErrorKey(c, "#form-error", "error.validation")
 		}
 		return types.WrapError(types.ErrInternal, "create function", err)
 	}
@@ -200,21 +200,21 @@ func saveFunctionDraft(c fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrConflict) {
 			return c.Status(409).JSON(fiber.Map{
-				"error": fiber.Map{"code": "CONFLICT", "message": "This draft was modified elsewhere. Please refresh the page."},
+				"error": fiber.Map{"code": "CONFLICT", "message": webMsg(c, "client.pipeline.draft_conflict")},
 			})
 		}
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{
-				"error": fiber.Map{"code": "NOT_FOUND", "message": "Function not found"},
+				"error": fiber.Map{"code": "NOT_FOUND", "message": webMsg(c, "toast.function.not_found")},
 			})
 		}
 		if errors.Is(err, types.ErrInvalidArgument) {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": err.Error()},
+				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.validation")},
 			})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": fiber.Map{"code": "INTERNAL", "message": "Save draft failed"},
+			"error": fiber.Map{"code": "INTERNAL", "message": webMsg(c, "client.function_editor.save_draft_failed")},
 		})
 	}
 	return c.JSON(fiber.Map{
@@ -244,21 +244,21 @@ func publishFunction(c fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrConflict) {
 			return c.Status(409).JSON(fiber.Map{
-				"error": fiber.Map{"code": "CONFLICT", "message": "This draft was modified elsewhere. Please refresh the page."},
+				"error": fiber.Map{"code": "CONFLICT", "message": webMsg(c, "client.pipeline.draft_conflict")},
 			})
 		}
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{
-				"error": fiber.Map{"code": "NOT_FOUND", "message": "Function not found"},
+				"error": fiber.Map{"code": "NOT_FOUND", "message": webMsg(c, "toast.function.not_found")},
 			})
 		}
 		if errors.Is(err, types.ErrInvalidArgument) {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": err.Error()},
+				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.validation")},
 			})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": fiber.Map{"code": "INTERNAL", "message": "Publish failed"},
+			"error": fiber.Map{"code": "INTERNAL", "message": webMsg(c, "error.function.publish_failed")},
 		})
 	}
 	draft, err := svc.GetDraft(context.Background(), name)
@@ -306,7 +306,7 @@ func functionRunsPartial(c fiber.Ctx) error {
 		return err
 	}
 	c.Type("html")
-	return partials.FunctionRunsTable(runs).Render(c.Context(), c.Response().BodyWriter())
+	return partials.FunctionRunsTable(c.Context(), runs).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func tryFunction(c fiber.Ctx) error {
@@ -328,7 +328,7 @@ func tryFunction(c fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": "Publish a version before trying"},
+				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.function.publish_before_try")},
 			})
 		}
 		return functionTryJSONError(c, err)
@@ -351,23 +351,23 @@ func functionTryJSONError(c fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, types.ErrUnavailable):
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"error": fiber.Map{"code": "UNAVAILABLE", "message": err.Error()},
+			"error": fiber.Map{"code": "UNAVAILABLE", "message": webMsg(c, "error.function.unavailable")},
 		})
 	case errors.Is(err, types.ErrInvalidArgument):
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": err.Error()},
+			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.validation")},
 		})
 	case errors.Is(err, types.ErrForbidden):
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": fiber.Map{"code": "FORBIDDEN", "message": err.Error()},
+			"error": fiber.Map{"code": "FORBIDDEN", "message": webMsg(c, "error.permission_denied")},
 		})
 	case errors.Is(err, types.ErrNotFound):
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": fiber.Map{"code": "NOT_FOUND", "message": "Function not found"},
+			"error": fiber.Map{"code": "NOT_FOUND", "message": webMsg(c, "toast.function.not_found")},
 		})
 	default:
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": fiber.Map{"code": "INTERNAL", "message": "Function invoke failed"},
+			"error": fiber.Map{"code": "INTERNAL", "message": webMsg(c, "error.function.invoke_failed")},
 		})
 	}
 }

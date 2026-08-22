@@ -48,7 +48,7 @@ func agentSessionSummariesTable(ctx fiber.Ctx) error {
 		return renderErrorKey(ctx, "error.load.session_summaries")
 	}
 	ctx.Type("html")
-	return partials.AgentSessionSummariesTable(items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.AgentSessionSummariesTable(ctx.Context(), items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSessionSummaryRetry(ctx fiber.Ctx) error {
@@ -69,7 +69,7 @@ func agentSessionSummaryRetry(ctx fiber.Ctx) error {
 		return toastErrorKey(ctx, "toast.session_summaries.refresh_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentSessionSummariesTable(items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.AgentSessionSummariesTable(ctx.Context(), items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func listAgentSessionSummaryModels(ctx context.Context, q string) ([]model.AgentSessionSummary, error) {

@@ -8,6 +8,8 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/flowline-io/flowbot/pkg/i18n"
+
 // ApprovalCountBadge renders a compact count chip for pending tool approvals.
 // Empty when count is zero so HTMX can clear previous badges.
 func ApprovalCountBadge(count int) templ.Component {
@@ -37,9 +39,9 @@ func ApprovalCountBadge(count int) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(text + " session(s) awaiting tool approval")
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.TData(ctx, "chatagent.approval.badge_title", map[string]any{"Count": count}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/approval_badge.templ`, Line: 10, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/approval_badge.templ`, Line: 12, Col: 92}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 			if templ_7745c5c3_Err != nil {
@@ -50,9 +52,9 @@ func ApprovalCountBadge(count int) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(text + " sessions awaiting tool approval")
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.TData(ctx, "chatagent.approval.badge_aria", map[string]any{"Count": count}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/approval_badge.templ`, Line: 11, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/approval_badge.templ`, Line: 13, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -65,7 +67,7 @@ func ApprovalCountBadge(count int) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/approval_badge.templ`, Line: 12, Col: 9}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/approval_badge.templ`, Line: 14, Col: 9}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

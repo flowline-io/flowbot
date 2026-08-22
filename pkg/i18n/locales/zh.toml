@@ -4379,7 +4379,7 @@ other = "创建："
 [agent.session.updated]
 other = "更新："
 
-[agent.session.entries]
+["agent.session.entries"]
 other = "条目"
 
 # --- agent memory modal ---
@@ -4407,6 +4407,270 @@ other = "关闭记忆事实"
 
 [agent.memory.saving]
 other = "保存中…"
+
+[agent.memory.empty_scope]
+other = "范围 {{.Scope}} 内暂无事实。使用 memory_set 工具创建。"
+
+[agent.session.no_payload]
+other = "无载荷。"
+
+[agent.session.plans]
+other = "计划"
+
+[agent.session.entries.empty_title]
+other = "暂无条目"
+
+[agent.session.entries.empty_detail]
+other = "会话运行时将显示消息与工具调用。"
+
+[agent.session.entries.empty_cta]
+other = "打开 Agents"
+
+[agent.scheduled.recent_runs]
+other = "最近运行"
+
+[agent.scheduled.runs.empty_title]
+other = "暂无运行"
+
+[agent.scheduled.runs.empty_detail]
+other = "任务执行后将显示运行记录。"
+
+[agent.session_summaries.empty]
+other = "暂无会话摘要"
+
+[agent.resource.truncated]
+other = "预览内容已截断。"
+
+[agent.resource.load_full]
+other = "加载完整内容"
+
+[agent.subagent.status.running]
+other = "运行中"
+
+[agent.subagent.status.completed]
+other = "已完成"
+
+[agent.subagent.status.failed]
+other = "失败"
+
+[pipeline.runs.empty_title]
+other = "暂无运行记录"
+
+[pipeline.runs.empty_detail]
+other = "触发或手动运行此 Pipeline 以查看历史。"
+
+[pipeline.runs.live]
+other = "实时"
+
+[pipeline.runs.no_step_runs]
+other = "此运行暂无步骤记录。"
+
+[pipeline.runs.step_runs]
+other = "步骤运行"
+
+[pipeline.runs.input_empty]
+other = "输入：（空）"
+
+[pipeline.runs.output_empty]
+other = "输出：（空）"
+
+[function.runs.empty]
+other = "暂无运行。"
+
+[config.form.uid_placeholder]
+other = "uid"
+
+[config.form.topic_placeholder]
+other = "topic"
+
+[config.form.key_placeholder]
+other = "key"
+
+[config.form.value_placeholder]
+other = "{\"key\": \"value\"}"
+
+[token.form.uid_placeholder]
+other = "user:name"
+
+[token.form.expires_7d]
+other = "7 天"
+
+[token.form.expires_30d]
+other = "30 天"
+
+[token.form.expires_90d]
+other = "90 天"
+
+[token.form.expires_1y]
+other = "1 年"
+
+[token.form.scopes_hint]
+other = "请至少选择一个 scope（必填）"
+
+[view.expired.not_found]
+other = "页面不存在或已过期。"
+
+[view.expired.return_home]
+other = "返回首页"
+
+[view.form.no_fields]
+other = "没有可显示的字段。"
+
+[view.pipeline.no_steps]
+other = "暂无步骤运行数据。"
+
+[view.pipeline.render_failed]
+other = "无法渲染 Pipeline 运行数据。"
+
+[event.payload.copy_aria]
+other = "复制载荷"
+
+[webhook.headers]
+other = "请求头"
+
+[webhook.body]
+other = "请求体"
+
+[webhook.copy_headers_aria]
+other = "复制请求头"
+
+[webhook.copy_body_aria]
+other = "复制请求体"
+
+[webhook.body_truncated]
+other = "请求体已截断至 64KB"
+
+[session.open_life]
+other = "打开 Life"
+
+[notify.rule.template_not_found]
+other = "未找到模板"
+
+[chatagent.approval.pending_kicker]
+other = "待审批工具"
+
+[chatagent.approval.allow_once]
+other = "仅允许一次"
+
+[chatagent.approval.allow_once_hint]
+other = "仅本次工具调用"
+
+[chatagent.approval.always_allow_matching]
+other = "始终允许匹配项"
+
+[chatagent.approval.always_allow_hint]
+other = "记住此模式以供后续匹配调用"
+
+[chatagent.approval.always_allow_hint_pattern]
+other = "记住以供后续匹配调用：{{.Pattern}}"
+
+[chatagent.approval.deny]
+other = "拒绝"
+
+[chatagent.approval.badge_title]
+other = "{{.Count}} 个会话等待工具审批"
+
+[chatagent.approval.badge_aria]
+other = "{{.Count}} 个会话等待工具审批"
+
+[chatagent.approval.meta_permission]
+other = "权限：{{.Permission}}"
+
+[chatagent.approval.meta_pattern]
+other = "模式：{{.Pattern}}"
+
+[chatagent.settings.model_aria]
+other = "模型"
+
+[chatagent.settings.thinking_aria]
+other = "思考级别"
+
+[chatagent.settings.approval_aria]
+other = "审批模式"
+
+[chatagent.settings.workspace_aria]
+other = "工作区"
+
+[chatagent.settings.thinking.default]
+other = "默认"
+
+[chatagent.settings.thinking.off]
+other = "关闭"
+
+[chatagent.settings.thinking.low]
+other = "低"
+
+[chatagent.settings.thinking.medium]
+other = "中"
+
+[chatagent.settings.thinking.high]
+other = "高"
+
+[chatagent.settings.approval.manual]
+other = "手动"
+
+[chatagent.settings.approval.auto]
+other = "自动"
+
+[chatagent.settings.approval.off]
+other = "关闭"
+
+[chatagent.attach_aria]
+other = "附加媒体"
+
+[chatagent.copy_md_aria]
+other = "复制 Markdown"
+
+[chatagent.copy_aria]
+other = "复制"
+
+[common.payload]
+other = "载荷"
+
+[common.details]
+other = "详情"
+
+[common.prompt]
+other = "提示词"
+
+[common.params]
+other = "参数"
+
+[common.error]
+other = "错误"
+
+[common.clear_search]
+other = "清除搜索"
+
+[table.col.step]
+other = "步骤"
+
+[table.col.capability]
+other = "能力"
+
+[table.col.operation]
+other = "操作"
+
+[table.col.entry_id]
+other = "条目 ID"
+
+[table.col.parent_id]
+other = "父 ID"
+
+[table.col.finished]
+other = "结束"
+
+[table.col.reply]
+other = "回复"
+
+[table.col.run_session]
+other = "运行会话"
+
+[table.col.depth]
+other = "深度"
+
+[table.col.version]
+other = "版本"
 
 [chatagent.close_sessions_aria]
 other = "关闭会话列表"
@@ -5077,3 +5341,251 @@ other = "掉落！{{.Item}} — +{{.Exp}} 经验，+{{.Gold}} 金币"
 
 [toast.life.quest_complete_achievement]
 other = "{{.Message}} · 成就：{{.Names}}"
+
+# --- i18n helpers / webservices (2026-08-22) ---
+
+[common.disabled]
+other = "已禁用"
+
+[workflow.run_status.done]
+other = "完成"
+
+[workflow.run_status.failed]
+other = "失败"
+
+[workflow.run_status.running]
+other = "运行中"
+
+[workflow.run_status.unknown]
+other = "未知"
+
+[workflow.trigger.manual]
+other = "手动"
+
+[workflow.trigger.cron]
+other = "Cron：{{.Spec}}"
+
+[workflow.trigger.cron_plain]
+other = "Cron"
+
+[workflow.trigger.webhook]
+other = "Webhook：{{.Path}}"
+
+[workflow.trigger.webhook_plain]
+other = "Webhook"
+
+[workflow.trigger.generic]
+other = "触发器"
+
+[workflow.invalid_run_id]
+other = "无效的运行 ID"
+
+[workflow.run_not_found]
+other = "未找到运行记录"
+
+[status.session.active]
+other = "活跃"
+
+[status.session.closed]
+other = "已关闭"
+
+[status.scheduled_task.active]
+other = "活跃"
+
+[status.scheduled_task.paused]
+other = "已暂停"
+
+[status.scheduled_task.completed]
+other = "已完成"
+
+[status.scheduled_task.failed]
+other = "失败"
+
+[status.scheduled_task.cancelled]
+other = "已取消"
+
+[status.scheduled_task.missed]
+other = "已错过"
+
+[status.scheduled_task_run.completed]
+other = "已完成"
+
+[status.scheduled_task_run.running]
+other = "运行中"
+
+[status.scheduled_task_run.failed]
+other = "失败"
+
+[status.pipeline.active]
+other = "活跃"
+
+[status.pipeline.paused]
+other = "已暂停"
+
+[error.inbox.mark_read_failed]
+other = "标记已读失败"
+
+[error.agents.session_id_required]
+other = "需要会话 ID"
+
+[error.agents.session_not_found]
+other = "未找到会话"
+
+[error.agents.not_enabled]
+other = "聊天代理未启用"
+
+[error.agents.forbidden]
+other = "禁止访问"
+
+[error.agents.unauthorized]
+other = "未授权"
+
+[error.agents.task_id_required]
+other = "需要任务 ID"
+
+[error.agents.scheduled_task_not_found]
+other = "未找到定时任务"
+
+[error.agents.confirm_not_found]
+other = "未找到确认请求"
+
+[error.agents.confirm_resolved]
+other = "确认请求已处理"
+
+[error.agents.confirm_not_applied]
+other = "确认未生效"
+
+[error.agents.file_required]
+other = "需要文件"
+
+[error.agents.empty_text]
+other = "需要文本内容"
+
+[error.validation.invalid_condition]
+other = "条件表达式无效"
+
+[error.pipeline.invalid_run_id]
+other = "无效的运行 ID"
+
+[error.pipeline.redis_unavailable]
+other = "Redis 不可用"
+
+[error.pipeline.run_not_found]
+other = "未找到运行记录"
+
+[error.pipeline.load_run_failed]
+other = "加载运行记录失败"
+
+[error.pipeline.load_steps_failed]
+other = "加载步骤失败"
+
+[error.pipeline.yaml_validation_failed]
+other = "YAML 验证失败"
+
+[error.pipeline.parse_yaml_failed]
+other = "解析流水线 YAML 失败"
+
+[error.function.unavailable]
+other = "函数服务不可用"
+
+[error.function.invoke_failed]
+other = "函数调用失败"
+
+[error.function.publish_failed]
+other = "发布失败"
+
+[error.function.publish_before_try]
+other = "请先发布一个版本再试"
+
+[error.hub.app_not_found]
+other = "未找到应用"
+
+[error.hub.logs_not_available]
+other = "日志不可用"
+
+[error.hub.logs_failed]
+other = "加载日志失败"
+
+[error.homelab.app_not_found]
+other = "未找到应用"
+
+[error.clip.missing_slug]
+other = "缺少 slug"
+
+[error.clip.load_failed]
+other = "加载 Clip 失败"
+
+[error.view.missing_token]
+other = "缺少 token"
+
+[error.view.load_failed]
+other = "加载页面失败"
+
+[error.view.invalid_json]
+other = "JSON 无效"
+
+[error.view.type_required]
+other = "需要类型"
+
+[error.view.create_failed]
+other = "创建页面失败"
+
+[error.view.delete_failed]
+other = "删除页面失败"
+
+[error.view.page_not_found]
+other = "未找到页面"
+
+[error.token_usage.invalid_request]
+other = "Token 用量请求无效"
+
+[toast.notify_settings.default_channel_failed]
+other = "更新默认通道失败"
+
+[toast.notify_settings.channel_not_found]
+other = "未找到通道"
+
+[toast.notify_settings.channel_must_be_enabled]
+other = "默认通道必须处于启用状态"
+
+[toast.notify_settings.default_template_failed]
+other = "更新默认模板失败"
+
+[toast.life.goal_not_found]
+other = "未找到目标"
+
+[toast.life.quest_not_found]
+other = "未找到任务"
+
+[toast.life.evidence_required]
+other = "需要证据"
+
+[toast.life.reward_not_found]
+other = "未找到奖励"
+
+[toast.life.occurrence_not_found]
+other = "未找到 occurrence"
+
+[toast.life.action_not_found]
+other = "未找到 action"
+
+[toast.life.parent_not_found]
+other = "未找到父节点"
+
+[toast.life.inventory_not_found]
+other = "未找到背包"
+
+[toast.life.equipment_missing]
+other = "缺少装备"
+
+[toast.life.adjudication_not_found]
+other = "未找到裁决"
+
+[toast.life.goal_title_required]
+other = "需要目标标题"
+
+[toast.life.title_required]
+other = "需要标题"
+
+[toast.life.reward_name_required]
+other = "需要奖励名称"

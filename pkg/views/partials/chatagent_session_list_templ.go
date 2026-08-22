@@ -512,9 +512,9 @@ func ChatAgentSessionRow(ctx context.Context, item model.AgentSession, endpoints
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var29 string
-			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(chatAgentSessionTodoLineLabel(*item.TodoSummary))
+			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(chatAgentSessionTodoLineLabel(ctx, *item.TodoSummary))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_session_list.templ`, Line: 131, Col: 139}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_session_list.templ`, Line: 131, Col: 144}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {

@@ -77,7 +77,7 @@ func inboxMarkRead(ctx fiber.Ctx) error {
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
 		ctx.Status(fiber.StatusBadRequest)
-		return ctx.SendString("Invalid ID")
+		return ctx.SendString(webMsg(ctx, "error.notification.invalid_id"))
 	}
 	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
@@ -91,7 +91,7 @@ func inboxMarkRead(ctx fiber.Ctx) error {
 	}
 	if rec.UID != uid {
 		ctx.Status(fiber.StatusForbidden)
-		return ctx.SendString("Not your notification")
+		return ctx.SendString(webMsg(ctx, "error.notification.not_yours"))
 	}
 	if err := ns.MarkRead(ctx.Context(), uid, id); err != nil {
 		setShowToastKey(ctx, "error", "toast.inbox.mark_read_failed")
@@ -111,21 +111,21 @@ func inboxOpen(ctx fiber.Ctx) error {
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
 		ctx.Status(fiber.StatusBadRequest)
-		return ctx.SendString("Invalid ID")
+		return ctx.SendString(webMsg(ctx, "error.notification.invalid_id"))
 	}
 	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Status(fiber.StatusServiceUnavailable)
-		return ctx.SendString("Store not available")
+		return ctx.SendString(webMsg(ctx, "empty.store_unavailable"))
 	}
 	rec, err := ns.GetRecord(ctx.Context(), id)
 	if err != nil || rec == nil || rec.UID != uid {
 		ctx.Status(fiber.StatusNotFound)
-		return ctx.SendString("Not found")
+		return ctx.SendString(webMsg(ctx, "empty.record_not_found"))
 	}
 	if err := ns.MarkRead(ctx.Context(), uid, id); err != nil {
 		ctx.Status(fiber.StatusInternalServerError)
-		return ctx.SendString("Failed to mark as read")
+		return ctx.SendString(webMsg(ctx, "error.inbox.mark_read_failed"))
 	}
 	target := "/service/web/inbox"
 	if rec.PayloadSnapshot != nil {

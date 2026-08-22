@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -801,14 +802,14 @@ func TestNotifyChannelSetDefault(t *testing.T) {
 			},
 			id:         "1",
 			wantStatus: http.StatusNoContent,
-			wantSub:    "must be enabled",
+			wantSub:    i18n.T(i18n.DefaultContext(), "toast.notify_settings.channel_must_be_enabled"),
 		},
 		{
 			name:       "missing channel",
 			channels:   map[int64]model.NotifyChannel{},
 			id:         "9",
 			wantStatus: http.StatusNoContent,
-			wantSub:    "not found",
+			wantSub:    i18n.T(i18n.DefaultContext(), "toast.notify_settings.channel_not_found"),
 		},
 	}
 	for _, tt := range tests {

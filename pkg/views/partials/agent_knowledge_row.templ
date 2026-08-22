@@ -19,7 +19,7 @@ templ AgentKnowledgeRow(ctx context.Context, item model.AgentKnowledge) {
 				<button hx-get={ agentKnowledgeEditURL(item) }
 					data-testid="agent-knowledge-edit"
 					class="btn btn-ghost btn-xs text-primary">
-					Edit
+					{ i18n.T(ctx, "common.edit") }
 				</button>
 				<button hx-delete={ agentKnowledgeURL(item) }
 					data-confirm={ i18n.T(ctx, "confirm.delete_knowledge.message") }
@@ -28,7 +28,7 @@ templ AgentKnowledgeRow(ctx context.Context, item model.AgentKnowledge) {
 					data-confirm-class="btn-error"
 					data-testid="agent-knowledge-delete"
 					class="btn btn-ghost btn-xs text-error">
-					Delete
+					{ i18n.T(ctx, "common.delete") }
 					@HtmxIndicator()
 				</button>
 			</div>

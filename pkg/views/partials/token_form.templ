@@ -1,6 +1,9 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/auth"
+import (
+	"github.com/flowline-io/flowbot/pkg/auth"
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
 
 templ TokenForm(errors map[string]string) {
 	<tr id="token-form-new" data-testid="token-form">
@@ -8,7 +11,7 @@ templ TokenForm(errors map[string]string) {
 			<input type="text" name="uid"
 				data-testid="token-form-uid"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "uid") }
-				placeholder="user:name"
+				placeholder={ i18n.T(ctx, "token.form.uid_placeholder") }
 				required maxlength="128"/>
 			<div class="text-error text-xs">{ errors["uid"] }</div>
 		</td>
@@ -18,16 +21,16 @@ templ TokenForm(errors map[string]string) {
 		<td>
 			<select name="expires" data-testid="token-form-expires"
 				class="select select-bordered select-sm w-full">
-				<option value="168h">7 days</option>
-				<option value="720h">30 days</option>
-				<option value="2160h">90 days</option>
-				<option value="8760h" selected>1 year</option>
+				<option value="168h">{ i18n.T(ctx, "token.form.expires_7d") }</option>
+				<option value="720h">{ i18n.T(ctx, "token.form.expires_30d") }</option>
+				<option value="2160h">{ i18n.T(ctx, "token.form.expires_90d") }</option>
+				<option value="8760h" selected>{ i18n.T(ctx, "token.form.expires_1y") }</option>
 			</select>
 			<div class="text-error text-xs">{ errors["expires"] }</div>
 		</td>
 		<td>
 			<div class="flex flex-col gap-0.5" data-testid="token-form-scopes" aria-required="true">
-				<span class="text-xs text-base-content/70">Select at least one scope (required)</span>
+				<span class="text-xs text-base-content/70">{ i18n.T(ctx, "token.form.scopes_hint") }</span>
 				for _, s := range auth.AllScopes() {
 					<label class="flex items-center gap-1 text-xs cursor-pointer">
 						<input type="checkbox" name="scopes" value={ s.Value }
@@ -48,7 +51,7 @@ templ TokenForm(errors map[string]string) {
 					hx-include="[name='uid'], [name='expires'], [name='scopes']"
 					data-testid="token-form-save"
 					class="btn btn-primary btn-sm">
-					Save
+					{ i18n.T(ctx, "common.save") }
 				</button>
 				<button type="button"
 					hx-get="/service/web/tokens/list"
@@ -56,7 +59,7 @@ templ TokenForm(errors map[string]string) {
 					hx-swap="outerHTML"
 					data-testid="token-form-cancel"
 					class="btn btn-ghost btn-sm">
-					Cancel
+					{ i18n.T(ctx, "common.cancel") }
 				</button>
 			</div>
 		</td>

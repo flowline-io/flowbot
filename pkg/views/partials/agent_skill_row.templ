@@ -13,7 +13,7 @@ templ AgentSkillRow(ctx context.Context, item model.AgentSkill) {
 		<td class="text-base-content font-medium">{ item.Name }</td>
 		<td class="text-base-content/70 max-w-xs truncate">{ agentSkillDescriptionPreview(item.Description) }</td>
 		<td class="text-center">
-			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
+			@StatusIcon(EnabledStatusIcon(ctx, item.Enabled), "")
 		</td>
 		<td class="text-base-content/50">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
 		<td>

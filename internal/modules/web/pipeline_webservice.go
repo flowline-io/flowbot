@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -126,7 +127,7 @@ func createPipeline(c fiber.Ctx) error {
 	description := c.FormValue("description")
 	if err := pipeline.ValidateName(name); err != nil {
 		c.Status(fiber.StatusUnprocessableEntity)
-		return renderFormError(c, "#form-error", err.Error())
+		return renderFormErrorKey(c, "#form-error", "error.validation")
 	}
 	s := getPipelineDefStore()
 	if err := s.CreateDefinition(context.Background(), name, description, getUID(c)); err != nil {
@@ -185,7 +186,7 @@ func renamePipeline(c fiber.Ctx) error {
 	newName := strings.TrimSpace(body.Name)
 	if err := pipeline.ValidateName(newName); err != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": err.Error()},
+			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.validation")},
 		})
 	}
 	s := getPipelineDefStore()
@@ -203,7 +204,7 @@ func renamePipeline(c fiber.Ctx) error {
 		}
 		if errors.Is(err, types.ErrInvalidArgument) {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": err.Error()},
+				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.validation")},
 			})
 		}
 		return types.Errorf(types.ErrInternal, "rename pipeline: %v", err)
@@ -243,7 +244,7 @@ func publishPipeline(c fiber.Ctx) error {
 	}
 	if _, err := pipeline.ParseEditorYAML(def.YamlDraft); err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": "YAML validation failed: " + err.Error()},
+			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.pipeline.yaml_validation_failed")},
 		})
 	}
 	// Backfill owner for pipelines created before created_by existed.
@@ -481,7 +482,7 @@ func testPipelineStep(c fiber.Ctx) error {
 	}
 	ed, err := pipeline.ParseEditorYAML(def.YamlDraft)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "error": "Failed to parse pipeline YAML: " + err.Error()})
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": webMsg(c, "error.pipeline.parse_yaml_failed")})
 	}
 
 	type stepResult struct {
@@ -547,7 +548,7 @@ func pipelineRunsTable(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineRunsTable(name, mapPipelineRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineRunsTable(c.Context(), name, mapPipelineRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func pipelineRunSteps(c fiber.Ctx) error {
@@ -561,7 +562,7 @@ func pipelineRunSteps(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get step runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineStepRunsDetail(mapPipelineStepRuns(steps)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineStepRunsDetail(c.Context(), mapPipelineStepRuns(steps)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // getCapabilities returns all registered capabilities with their operations
@@ -592,7 +593,7 @@ func watchPipelineRunLive(c fiber.Ctx) error {
 	runIDParam := c.Params("runID")
 	runID, err := strconv.ParseInt(runIDParam, 10, 64)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("invalid runID")
+		return c.Status(http.StatusBadRequest).SendString(webMsg(c, "error.pipeline.invalid_run_id"))
 	}
 	stream := pipeline.StreamName(runID)
 
@@ -603,7 +604,7 @@ func watchPipelineRunLive(c fiber.Ctx) error {
 	ctx := c.Context()
 	redisClient := rdb.Client
 	if redisClient == nil {
-		return c.Status(fiber.StatusServiceUnavailable).SendString("redis not available")
+		return c.Status(fiber.StatusServiceUnavailable).SendString(webMsg(c, "error.pipeline.redis_unavailable"))
 	}
 
 	return c.SendStreamWriter(func(w *bufio.Writer) {
@@ -680,25 +681,25 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 	runIDParam := c.Params("runID")
 	runID, err := strconv.ParseInt(runIDParam, 10, 64)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("invalid runID")
+		return c.Status(http.StatusBadRequest).SendString(webMsg(c, "error.pipeline.invalid_run_id"))
 	}
 
 	s := getPipelineDefStore()
 	if s == nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("store not available")
+		return c.Status(fiber.StatusInternalServerError).SendString(webMsg(c, "empty.store_unavailable"))
 	}
 
 	run, err := s.GetRunByID(context.Background(), runID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return c.Status(fiber.StatusNotFound).SendString("run not found")
+			return c.Status(fiber.StatusNotFound).SendString(webMsg(c, "error.pipeline.run_not_found"))
 		}
-		return c.Status(fiber.StatusInternalServerError).SendString("failed to load run")
+		return c.Status(fiber.StatusInternalServerError).SendString(webMsg(c, "error.pipeline.load_run_failed"))
 	}
 
 	steps, err := s.ListStepRunsByRunID(context.Background(), runID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("failed to load steps")
+		return c.Status(fiber.StatusInternalServerError).SendString(webMsg(c, "error.pipeline.load_steps_failed"))
 	}
 
 	initSteps := make([]pages.StepState, len(steps))

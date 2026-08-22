@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"slices"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -130,11 +132,11 @@ func actionBadgeClass(action string) string {
 	}
 }
 
-func enabledText(enabled bool) string {
+func enabledText(ctx context.Context, enabled bool) string {
 	if enabled {
-		return "Enabled"
+		return i18n.T(ctx, "common.enabled")
 	}
-	return "Disabled"
+	return i18n.T(ctx, "common.disabled")
 }
 
 func truncateString(s string, maxLen int) string {

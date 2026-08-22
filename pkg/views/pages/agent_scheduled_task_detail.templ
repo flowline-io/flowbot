@@ -65,6 +65,6 @@ templ AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentSchedule
 				</div>
 			</div>
 		</div>
-		@partials.AgentScheduledTaskRunsTable(runs)
+		@partials.AgentScheduledTaskRunsTable(ctx, runs)
 	}
 }

@@ -28,7 +28,7 @@ func clipsListPage(ctx fiber.Ctx) error {
 	items, err := loadClipListItems(ctx.Context())
 	if err != nil {
 		flog.Error(fmt.Errorf("clipsListPage: %w", err))
-		return ctx.Status(http.StatusInternalServerError).SendString("failed to load clips")
+		return ctx.Status(http.StatusInternalServerError).SendString(webMsg(ctx, "error.load.clips"))
 	}
 	ctx.Type("html")
 	return pages.ClipsPage(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())

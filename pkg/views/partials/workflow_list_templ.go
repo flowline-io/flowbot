@@ -243,7 +243,7 @@ func WorkflowListTable(ctx context.Context, entries []WorkflowListEntry) templ.C
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = StatusIcon(EnabledStatusIcon(entry.Enabled), "workflow-enabled-"+entry.Name).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = StatusIcon(EnabledStatusIcon(ctx, entry.Enabled), "workflow-enabled-"+entry.Name).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

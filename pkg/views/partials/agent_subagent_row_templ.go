@@ -170,7 +170,7 @@ func AgentSubagentRow(ctx context.Context, item model.AgentSubagent) templ.Compo
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = StatusIcon(EnabledStatusIcon(item.Enabled), "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = StatusIcon(EnabledStatusIcon(ctx, item.Enabled), "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

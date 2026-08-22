@@ -16,39 +16,39 @@ templ NotifyChannelRow(ctx context.Context, item model.NotifyChannel, highlighte
 			data-notify-highlight="1"
 		}
 	>
-		<td class="text-base-content font-medium" data-label="Name">{ item.Name }</td>
-		<td class="text-base-content/70" data-label="Protocol">
+		<td class="text-base-content font-medium" data-label={ i18n.T(ctx, "table.col.name") }>{ item.Name }</td>
+		<td class="text-base-content/70" data-label={ i18n.T(ctx, "common.protocol") }>
 			<span class="flowbot-chip flowbot-chip-muted">{ item.Protocol }</span>
 		</td>
-		<td class="text-base-content/50 font-mono text-xs max-w-xs truncate" data-label="URI">{ item.URI }</td>
-		<td class="text-center" data-label="Status">
-			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
+		<td class="text-base-content/50 font-mono text-xs max-w-xs truncate" data-label={ i18n.T(ctx, "common.uri") }>{ item.URI }</td>
+		<td class="text-center" data-label={ i18n.T(ctx, "table.col.status") }>
+			@StatusIcon(EnabledStatusIcon(ctx, item.Enabled), "")
 		</td>
-		<td class="text-center" data-label="Default">
+		<td class="text-center" data-label={ i18n.T(ctx, "common.default") }>
 			if item.IsDefault {
-				<span class="flowbot-chip flowbot-chip-primary" data-testid="channel-default-badge">Default</span>
+				<span class="flowbot-chip flowbot-chip-primary" data-testid="channel-default-badge">{ i18n.T(ctx, "common.default") }</span>
 			} else if item.Enabled {
 				<button hx-post={ notifyChannelDefaultURL(item) }
 					hx-target="#notify-channels-table"
 					hx-swap="outerHTML"
 					data-testid="channel-set-default"
 					class="btn btn-ghost btn-xs text-primary">
-					Set default
+					{ i18n.T(ctx, "common.set_default") }
 				</button>
 			}
 		</td>
-		<td data-label="Actions">
+		<td data-label={ i18n.T(ctx, "table.col.actions") }>
 			<div class="flex gap-1">
 				<button hx-get={ notifyChannelEditURL(item) }
 					data-testid="channel-edit"
 					class="btn btn-ghost btn-xs text-primary">
-					Edit
+					{ i18n.T(ctx, "common.edit") }
 				</button>
 				<button hx-post={ notifyChannelTestURL(item) }
 					hx-swap="none"
 					data-testid="channel-test"
 					class="btn btn-ghost btn-xs text-info">
-					Test
+					{ i18n.T(ctx, "common.test") }
 					@HtmxIndicator()
 				</button>
 				<button hx-delete={ notifyChannelDeleteURL(item) }
@@ -58,7 +58,7 @@ templ NotifyChannelRow(ctx context.Context, item model.NotifyChannel, highlighte
 					data-confirm-class="btn-error"
 					data-testid="channel-delete"
 					class="btn btn-ghost btn-xs text-error">
-					Delete
+					{ i18n.T(ctx, "common.delete") }
 					@HtmxIndicator()
 				</button>
 			</div>
