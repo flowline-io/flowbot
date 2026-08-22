@@ -44,7 +44,7 @@ func run() error {
 		return fmt.Errorf("write: %w", err)
 	}
 	_, _ = fmt.Printf("wrote %s (%d entries)\n", out, len(docs))
-	if err := writeSettingsDescLocale(docs); err != nil {
+	if err := writeSettingsDescLocale(dir, docs); err != nil {
 		return fmt.Errorf("settings i18n: %w", err)
 	}
 	return nil
@@ -255,8 +255,8 @@ func render(docs map[string]string) ([]byte, error) {
 	return formatted, nil
 }
 
-func writeSettingsDescLocale(docs map[string]string) error {
-	localePath := filepath.Join("..", "..", "i18n", "locales", "settings_desc.zh.toml")
+func writeSettingsDescLocale(dir string, docs map[string]string) error {
+	localePath := filepath.Join(dir, "..", "i18n", "locales", "settings_desc.zh.toml")
 	existing, err := loadSettingsDescTranslations(localePath)
 	if err != nil {
 		return err
