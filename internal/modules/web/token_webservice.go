@@ -36,7 +36,7 @@ func tokensPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list tokens: %v", err)
 	}
 	ctx.Type("html")
-	return pages.TokensPage(items).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.TokensPage(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func tokensList(ctx fiber.Ctx) error {
@@ -49,7 +49,7 @@ func tokensList(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to load tokens")
 	}
 	ctx.Type("html")
-	return partials.TokenTable(items).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.TokenTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func tokensNewForm(ctx fiber.Ctx) error {
@@ -58,7 +58,7 @@ func tokensNewForm(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="token-form-new" hx-swap-oob="delete"></tr><tr id="tokens-empty" hx-swap-oob="delete"></tr>`))
-	return partials.TokenForm(nil).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.TokenForm(nil).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func tokensCreate(ctx fiber.Ctx) error {
@@ -90,7 +90,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 	if len(errorsMsg) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.TokenForm(errorsMsg).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.TokenForm(errorsMsg).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	expiresDuration, err := time.ParseDuration(expiresVal)
@@ -98,7 +98,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 		errorsMsg["expires"] = "Invalid duration"
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.TokenForm(errorsMsg).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.TokenForm(errorsMsg).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	validScopes := make(map[string]bool)
@@ -114,7 +114,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 	if len(errorsMsg) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.TokenForm(errorsMsg).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.TokenForm(errorsMsg).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	token, err := store.ModuleDataStoreFromDB().CreateToken(
@@ -143,7 +143,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 		token, token,
 	)
 	ctx.Response().BodyWriter().Write([]byte(alert))
-	return partials.TokenRow(item).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.TokenRow(item).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func tokensRevoke(ctx fiber.Ctx) error {

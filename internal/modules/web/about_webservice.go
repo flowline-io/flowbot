@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"runtime"
 
 	"github.com/gofiber/fiber/v3"
@@ -29,5 +28,5 @@ func aboutPage(ctx fiber.Ctx) error {
 	}
 
 	ctx.Type("html")
-	return pages.AboutPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.AboutPage(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }

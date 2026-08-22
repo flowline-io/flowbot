@@ -9,12 +9,14 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"context"
+
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.AgentScheduledTaskRun) templ.Component {
+func AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentScheduledTask, runs []model.AgentScheduledTaskRun) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -109,7 +111,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(partials.AgentScheduledTaskKindLabel(task.ScheduleKind))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 28, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 30, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -122,7 +124,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(partials.AgentScheduledTaskScheduleSummary(task))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 32, Col: 83}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 34, Col: 83}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -140,7 +142,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 				var templ_7745c5c3_Var7 templ.SafeURL
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs("/service/web/agent-sessions/" + task.SourceSessionID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 37, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 39, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -153,7 +155,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(task.SourceSessionID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 37, Col: 142}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 39, Col: 142}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -176,7 +178,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(partials.AgentScheduledTaskTimeOrDash(task.NextRunAt))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 44, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 46, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -189,7 +191,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(partials.AgentScheduledTaskTimeOrDash(task.LastRunAt))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 48, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 50, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -202,7 +204,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(task.CreatedAt.Format("2006-01-02 15:04:05"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 52, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 54, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -215,7 +217,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(task.UpdatedAt.Format("2006-01-02 15:04:05"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 56, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 58, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -228,7 +230,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(task.Prompt)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 61, Col: 129}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_scheduled_task_detail.templ`, Line: 63, Col: 129}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -244,7 +246,7 @@ func AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.Ag
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(partials.AgentScheduledTaskPageTitle(task)).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, partials.AgentScheduledTaskPageTitle(task)).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

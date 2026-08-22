@@ -24,7 +24,7 @@ func lifeStatsPage(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	return pages.LifeStatsPage(pages.LifeStatsShellData{
 		PendingCount: len(pending),
-	}).Render(context.Background(), ctx.Response().BodyWriter())
+	}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifeStatsPanel(ctx fiber.Ctx) error {

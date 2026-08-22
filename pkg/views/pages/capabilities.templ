@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ CapabilitiesPage(descriptors []hub.Descriptor, types []string, providers []string) {
-	@layout.Base("Capabilities — Flowbot") {
+templ CapabilitiesPage(ctx context.Context, descriptors []hub.Descriptor, types []string, providers []string) {
+	@layout.Base(ctx, "Capabilities — Flowbot") {
 		@partials.PageHeader("Capabilities", "") {
 		}
 		<div class="flex items-center gap-3 mb-4">

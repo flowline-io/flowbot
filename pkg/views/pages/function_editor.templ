@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"context"
+	
 	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/views/layout"
@@ -8,8 +10,8 @@ import (
 	"github.com/flowline-io/flowbot/version"
 )
 
-templ FunctionEditorPage(draft partials.FunctionDraftData) {
-	@layout.Base("Function · " + draft.Name) {
+templ FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) {
+	@layout.Base(ctx, "Function · " + draft.Name) {
 		@partials.FunctionStatsScripts()
 		<script src={ "/static/js/function-editor.js?v=" + version.Buildtags }></script>
 		<div

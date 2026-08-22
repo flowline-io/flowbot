@@ -66,7 +66,7 @@ func functionListPage(c fiber.Ctx) error {
 		return types.WrapError(types.ErrInternal, "list functions", err)
 	}
 	c.Type("html")
-	return pages.FunctionListPage(partials.BuildFunctionListEntries(items)).Render(context.Background(), c.Response().BodyWriter())
+	return pages.FunctionListPage(c.Context(), partials.BuildFunctionListEntries(items)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func functionListTable(c fiber.Ctx) error {
@@ -79,7 +79,7 @@ func functionListTable(c fiber.Ctx) error {
 		return types.WrapError(types.ErrInternal, "list functions", err)
 	}
 	c.Type("html")
-	return partials.FunctionListTable(partials.BuildFunctionListEntries(items)).Render(context.Background(), c.Response().BodyWriter())
+	return partials.FunctionListTable(partials.BuildFunctionListEntries(items)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func functionStats(c fiber.Ctx) error {
@@ -124,7 +124,7 @@ func functionStats(c fiber.Ctx) error {
 		return c.JSON(stats)
 	}
 	c.Type("html")
-	return partials.FunctionStats(name, stats, tabs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.FunctionStats(name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func createFunction(c fiber.Ctx) error {
@@ -176,7 +176,7 @@ func functionEditorPage(c fiber.Ctx) error {
 	if draft.PublishedVersion != nil {
 		data.CallVersionURL = partials.FunctionCallVersionURL(draft.Name, *draft.PublishedVersion, origin)
 	}
-	return pages.FunctionEditorPage(data).Render(context.Background(), c.Response().BodyWriter())
+	return pages.FunctionEditorPage(c.Context(), data).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func saveFunctionDraft(c fiber.Ctx) error {
@@ -307,7 +307,7 @@ func functionRunsPartial(c fiber.Ctx) error {
 		return err
 	}
 	c.Type("html")
-	return partials.FunctionRunsTable(runs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.FunctionRunsTable(runs).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func tryFunction(c fiber.Ctx) error {

@@ -1,12 +1,14 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AboutPage(data AboutData) {
-	@layout.Base("About — Flowbot") {
+templ AboutPage(ctx context.Context, data AboutData) {
+	@layout.Base(ctx, "About — Flowbot") {
 		@partials.PageHeader("About", "Version and build information for this instance.")
 		<div class="flowbot-surface w-fit" data-testid="about-info">
 			<div class="card-body">

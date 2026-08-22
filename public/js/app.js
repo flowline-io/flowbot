@@ -1,6 +1,59 @@
+// Client i18n strings injected by layout via #flowbot-i18n.
+function flowbotI18n(key, fallback) {
+  var el = document.getElementById('flowbot-i18n');
+  if (!el || !el.textContent) {
+    return fallback || key;
+  }
+  try {
+    var dict = JSON.parse(el.textContent);
+    if (dict && dict[key]) {
+      return dict[key];
+    }
+  } catch {
+    /* ignore parse failures */
+  }
+  return fallback || key;
+}
+
 // Alpine.js shared data stores and utilities
 document.addEventListener('alpine:init', () => {
   Alpine.store('toasts', []);
+
+  Alpine.data('langPicker', () => ({
+    lang: 'en',
+    setLang(code) {
+      var body = 'lang=' + encodeURIComponent(code);
+      fetch('/service/web/locale', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: flowbotCSRFHeaders({
+          'Content-Type': 'application/x-www-form-urlencoded',
+        }),
+        body: body,
+      })
+        .then(function (resp) {
+          if (!resp.ok) {
+            throw new Error('locale switch failed: ' + resp.status);
+          }
+          window.location.reload();
+        })
+        .catch(function () {
+          showToast(
+            flowbotI18n(
+              'error.request_failed',
+              'Request failed. Please try again.',
+            ),
+            'error',
+          );
+        });
+    },
+    init() {
+      this.lang = flowbotGetCookie('flowbot-lang') || 'en';
+      if (this.lang !== 'en' && this.lang !== 'zh') {
+        this.lang = 'en';
+      }
+    },
+  }));
 
   Alpine.data('themePicker', () => ({
     theme: 'light',
@@ -331,11 +384,11 @@ document.addEventListener('htmx:responseError', function (evt) {
 });
 
 document.addEventListener('htmx:sendError', function () {
-  showToast('Network error. Check your connection and try again.', 'error');
+  showToast(flowbotI18n('error.network', 'Network error. Check your connection and try again.'), 'error');
 });
 
 document.addEventListener('htmx:timeout', function () {
-  showToast('Request timed out. Please try again.', 'error');
+  showToast(flowbotI18n('error.timeout', 'Request timed out. Please try again.'), 'error');
 });
 
 // Preserve scroll position for containers marked data-preserve-scroll across HTMX swaps.
@@ -393,24 +446,24 @@ function flowbotHTMXErrorMessage(status, body) {
     return body;
   }
   if (status === 403) {
-    return 'Permission denied. You do not have access to perform this action.';
+    return flowbotI18n('error.permission_denied', 'Permission denied. You do not have access to perform this action.');
   }
   if (status === 400 || status === 422) {
-    return 'Validation error. Check your input and try again.';
+    return flowbotI18n('error.validation', 'Validation error. Check your input and try again.');
   }
   if (status === 404) {
-    return 'Not found. The requested resource no longer exists.';
+    return flowbotI18n('error.not_found', 'Not found. The requested resource no longer exists.');
   }
   if (status === 408 || status === 504) {
-    return 'Request timed out. Please try again.';
+    return flowbotI18n('error.timeout', 'Request timed out. Please try again.');
   }
   if (status >= 500) {
-    return 'Server error (' + status + '). Please try again.';
+    return flowbotI18n('error.server', 'Server error') + ' (' + status + '). ' + flowbotI18n('error.try_again', 'Please try again.');
   }
   if (status) {
-    return 'Request failed (' + status + '). Please try again.';
+    return flowbotI18n('error.request_failed', 'Request failed') + ' (' + status + '). ' + flowbotI18n('error.try_again', 'Please try again.');
   }
-  return 'Request failed. Please try again.';
+  return flowbotI18n('error.request_failed', 'Request failed') + '. ' + flowbotI18n('error.try_again', 'Please try again.');
 }
 
 // Global top progress: do NOT put hx-indicator on <body> — that replaces the

@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/csrf"
 
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
@@ -179,6 +180,7 @@ func seedCSRFToken(token string) {
 // addWebAuth attaches the standard test accessToken cookie and CSRF double-submit pair.
 func addWebAuth(req *http.Request) {
 	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	AttachLocaleForTest(req, i18n.CookieEN)
 	AttachCSRFForTest(req)
 }
 

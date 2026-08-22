@@ -46,7 +46,7 @@ func agentSubagentsPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list agent subagents: %v", err)
 	}
 	ctx.Type("html")
-	return pages.AgentSubagentsPage(items).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.AgentSubagentsPage(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSubagentsTable(ctx fiber.Ctx) error {

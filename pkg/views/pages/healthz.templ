@@ -1,12 +1,14 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ HealthzPage(data partials.HealthzData) {
-	@layout.Base("Health — Flowbot") {
+templ HealthzPage(ctx context.Context, data partials.HealthzData) {
+	@layout.Base(ctx, "Health — Flowbot") {
 		@partials.PageHeader("System Health", "Infrastructure status for this instance.") {
 			<span class="text-sm text-base-content/50">
 				Auto-refreshes every 30s

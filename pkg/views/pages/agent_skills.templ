@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentSkillsPage(items []model.AgentSkill) {
-	@layout.Base("Agent Skills — Flowbot") {
+templ AgentSkillsPage(ctx context.Context, items []model.AgentSkill) {
+	@layout.Base(ctx, "Agent Skills — Flowbot") {
 		@partials.PageHeader("Agent Skills", "") {
 			<button hx-get="/service/web/agent-skills/list"
 				hx-target="#agent-skills-table"

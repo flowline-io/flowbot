@@ -1,12 +1,14 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ WorkflowListPage(entries []partials.WorkflowListEntry) {
-	@layout.Base("Workflows") {
+templ WorkflowListPage(ctx context.Context, entries []partials.WorkflowListEntry) {
+	@layout.Base(ctx, "Workflows") {
 		@partials.WorkflowStatsScripts()
 		<div class="max-w-6xl mx-auto">
 			@partials.PageHeader("Workflows", "") {

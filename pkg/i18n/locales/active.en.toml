@@ -1,0 +1,314 @@
+[_meta.lang]
+other = "en"
+
+[nav.inbox]
+other = "Inbox"
+
+[nav.group.agent]
+other = "Agent"
+
+[nav.agents]
+other = "Agents"
+
+[nav.skills]
+other = "Skills"
+
+[nav.knowledge]
+other = "Knowledge"
+
+[nav.subagents]
+other = "Subagents"
+
+[nav.scheduled_tasks]
+other = "Scheduled Tasks"
+
+[nav.sessions]
+other = "Sessions"
+
+[nav.permissions]
+other = "Permissions"
+
+[nav.group.automate]
+other = "Automate"
+
+[nav.pipelines]
+other = "Pipelines"
+
+[nav.workflows]
+other = "Workflows"
+
+[nav.functions]
+other = "Functions"
+
+[nav.events]
+other = "Events"
+
+[nav.relations]
+other = "Relations"
+
+[nav.group.integrate]
+other = "Integrate"
+
+[nav.apps]
+other = "Apps"
+
+[nav.registry]
+other = "Registry"
+
+[nav.capabilities]
+other = "Capabilities"
+
+[nav.clips]
+other = "Clips"
+
+[nav.notifications]
+other = "Notifications"
+
+[nav.group.system]
+other = "System"
+
+[nav.health]
+other = "Health"
+
+[nav.tokens]
+other = "Tokens"
+
+[nav.configs]
+other = "Configs"
+
+[nav.settings]
+other = "Settings"
+
+[nav.account]
+other = "Account"
+
+[nav.about]
+other = "About"
+
+[nav.group.user]
+other = "User"
+
+[nav.life]
+other = "Life"
+
+[nav.stats]
+other = "Stats"
+
+[nav.character]
+other = "Character"
+
+[nav.quests]
+other = "Quests"
+
+[nav.inventory]
+other = "Inventory"
+
+[nav.achievements]
+other = "Achievements"
+
+[nav.rewards]
+other = "Rewards"
+
+[nav.home]
+other = "Home"
+
+[nav.memory_facts]
+other = "Memory Facts"
+
+[nav.session_summaries]
+other = "Session Summaries"
+
+[nav.home_subtitle]
+other = "Dashboard"
+
+[common.search]
+other = "Search"
+
+[common.open_command_palette]
+other = "Open command palette"
+
+[common.search_hint]
+other = "Search (Ctrl/Cmd+K)"
+
+[common.open_nav_menu]
+other = "Open navigation menu"
+
+[common.flowbot_home]
+other = "Flowbot home"
+
+[common.logout]
+other = "Logout"
+
+[common.logout_confirm]
+other = "Sign out of this session?"
+
+[common.logout_title]
+other = "Logout"
+
+[common.cancel]
+other = "Cancel"
+
+[common.confirm]
+other = "Confirm"
+
+[confirm.default_title]
+other = "Confirm Action"
+
+[common.toggle_theme]
+other = "Toggle light/dark"
+
+[common.pick_theme]
+other = "Pick theme"
+
+[common.theme_light]
+other = "Light"
+
+[common.theme_dark]
+other = "Dark"
+
+[common.theme_advanced]
+other = "Advanced"
+
+[common.theme_cupcake]
+other = "Cupcake"
+
+[common.theme_synthwave]
+other = "Synthwave"
+
+[common.theme_cyberpunk]
+other = "Cyberpunk"
+
+[common.theme_forest]
+other = "Forest"
+
+[common.theme_dracula]
+other = "Dracula"
+
+[common.theme_nord]
+other = "Nord"
+
+[common.lang_en]
+other = "EN"
+
+[common.lang_zh]
+other = "中文"
+
+[common.switch_language]
+other = "Switch language"
+
+[auth.tagline]
+other = "Homelab data hub & orchestration"
+
+[auth.sign_in]
+other = "Sign in"
+
+[auth.username]
+other = "Username"
+
+[auth.password]
+other = "Password"
+
+[auth.login]
+other = "Login"
+
+[auth.two_factor]
+other = "Two-factor authentication"
+
+[auth.two_factor_hint]
+other = "Enter the 6-digit code from your authenticator app."
+
+[auth.verification_code]
+other = "Verification code"
+
+[auth.use_backup_code]
+other = "Use a backup code"
+
+[auth.backup_code]
+other = "Backup code"
+
+[auth.use_authenticator]
+other = "Use authenticator code"
+
+[auth.verify]
+other = "Verify"
+
+[auth.create_admin]
+other = "Create admin account"
+
+[auth.setup_hint]
+other = "First-time setup. You will bind TOTP next."
+
+[auth.continue]
+other = "Continue"
+
+[auth.enable_authenticator]
+other = "Enable authenticator"
+
+[auth.enable_authenticator_hint]
+other = "Scan the QR code with your authenticator app, then enter a code to confirm."
+
+[auth.enter_secret_manually]
+other = "Or enter secret manually"
+
+[auth.confirm_and_continue]
+other = "Confirm and continue"
+
+[auth.save_backup_codes]
+other = "Save backup codes"
+
+[auth.backup_codes_hint]
+other = "Store these one-time codes somewhere safe. They will not be shown again."
+
+[auth.continue_to_flowbot]
+other = "Continue to Flowbot"
+
+[auth.confirm_backup_saved]
+other = "Confirm backup codes saved"
+
+[auth.confirm_backup_saved_hint]
+other = "Backup codes were already shown. Continue only after you stored them somewhere safe."
+
+[auth.invalid_credentials]
+other = "Invalid username or password"
+
+[auth.account_locked]
+other = "Account temporarily locked. Please try again later."
+
+[auth.too_many_attempts]
+other = "Too many failed attempts. Account temporarily locked. Please try again later."
+
+[auth.internal_error]
+other = "Internal error"
+
+[auth.username_required]
+other = "Username is required"
+
+[auth.create_account_failed]
+other = "Could not create account"
+
+[auth.invalid_totp]
+other = "Invalid verification code"
+
+[error.network]
+other = "Network error. Check your connection and try again."
+
+[error.timeout]
+other = "Request timed out. Please try again."
+
+[error.permission_denied]
+other = "Permission denied. You do not have access to perform this action."
+
+[error.validation]
+other = "Validation error. Check your input and try again."
+
+[error.not_found]
+other = "Not found. The requested resource no longer exists."
+
+[error.server]
+other = "Server error"
+
+[error.request_failed]
+other = "Request failed"
+
+[error.try_again]
+other = "Please try again."

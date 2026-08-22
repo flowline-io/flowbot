@@ -25,7 +25,7 @@ func homelabRegistryPage(c fiber.Ctx) error {
 	apps, updatedAts := loadAppsWithUpdatedAts(c.Context())
 	scannedAt := latestScannedAt(updatedAts)
 	c.Type("html")
-	return pages.HomelabPage(apps, scannedAt).Render(c.Context(), c.Response().BodyWriter())
+	return pages.HomelabPage(c.Context(), apps, scannedAt).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // homelabRegistryDetailPage renders the detail page for a single homelab app.
@@ -49,7 +49,7 @@ func homelabRegistryDetailPage(c fiber.Ctx) error {
 		scannedAt = ts
 	}
 	c.Type("html")
-	return pages.HomelabDetailPage(app, status, version, scannedAt).Render(c.Context(), c.Response().BodyWriter())
+	return pages.HomelabDetailPage(c.Context(), app, status, version, scannedAt).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // homelabRegistryRescan triggers a full homelab scan + probe cycle.

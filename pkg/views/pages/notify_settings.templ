@@ -2,6 +2,8 @@
 package pages
 
 import (
+	"context"
+	
 	"net/url"
 
 	"github.com/flowline-io/flowbot/pkg/views/layout"
@@ -11,8 +13,8 @@ import (
 // NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
 // activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
 // focusChannel / focusRuleID deep-link highlight a row after jumping from History.
-templ NotifySettingsPage(activeTab, focusChannel, focusRuleID string) {
-	@layout.Base("Notifications — Flowbot") {
+templ NotifySettingsPage(ctx context.Context, activeTab, focusChannel, focusRuleID string) {
+	@layout.Base(ctx, "Notifications — Flowbot") {
 		@partials.PageHeader("Notifications", "") {
 		}
 

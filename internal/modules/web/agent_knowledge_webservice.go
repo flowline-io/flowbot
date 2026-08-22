@@ -43,7 +43,7 @@ func agentKnowledgePage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list agent knowledge: %v", err)
 	}
 	ctx.Type("html")
-	return pages.AgentKnowledgePage(items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.AgentKnowledgePage(ctx.Context(), items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentKnowledgeTable(ctx fiber.Ctx) error {

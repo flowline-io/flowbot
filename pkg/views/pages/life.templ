@@ -9,7 +9,7 @@ import (
 )
 
 templ LifeDashboardPage(data LifeCharacterData) {
-	@layout.Base("Life — Flowbot") {
+	@layout.Base(ctx, "Life — Flowbot") {
 		@partials.LifeRadarScripts()
 		@lifeModuleShell("life", data.PendingCount) {
 			<div class="life-dashboard" data-testid="life-dashboard">
@@ -56,7 +56,7 @@ templ LifeDashboardPage(data LifeCharacterData) {
 }
 
 templ LifeCharacterPage(data LifeCharacterData) {
-	@layout.Base("Character — Life") {
+	@layout.Base(ctx, "Character — Life") {
 		@lifeModuleShell("character", data.PendingCount) {
 			<div class="life-identity" data-testid="life-character">
 				<div class="life-identity-title">
@@ -88,7 +88,7 @@ templ LifeCharacterPage(data LifeCharacterData) {
 }
 
 templ LifeGoalsPage(data LifeGoalsData) {
-	@layout.Base("Goals — Life") {
+	@layout.Base(ctx, "Goals — Life") {
 		@lifeModuleShell("goals", data.PendingCount) {
 			<div class="life-shell" data-testid="life-goals-page">
 				<header class="life-shell-header">
@@ -252,7 +252,7 @@ templ lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) {
 }
 
 templ LifePlanPage(data LifePlanData) {
-	@layout.Base("Plan — Life") {
+	@layout.Base(ctx, "Plan — Life") {
 		@lifeModuleShell("plan", data.PendingCount) {
 			<div class="life-shell" data-testid="life-plan-page">
 				<header class="life-shell-header">
@@ -336,7 +336,7 @@ templ LifePlanPage(data LifePlanData) {
 }
 
 templ LifeSkillsPage(data LifeSkillTreeData) {
-	@layout.Base("Skills — Life") {
+	@layout.Base(ctx, "Skills — Life") {
 		@lifeModuleShell("skills", data.PendingCount) {
 			<div class="life-shell" data-testid="life-skills-page">
 				<header class="life-shell-header">
@@ -755,7 +755,7 @@ templ lifeListPager(info LifePageInfo, testID string) {
 }
 
 templ LifeQuestsPage(data LifeQuestsData) {
-	@layout.Base("Quests — Life") {
+	@layout.Base(ctx, "Quests — Life") {
 		@lifeModuleShell("quests", data.PendingCount) {
 			<div class="life-shell" data-testid="life-quests-page">
 				<header class="life-shell-header">
@@ -1164,7 +1164,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 }
 
 templ LifeInventoryPage(data LifeInventoryData) {
-	@layout.Base("Inventory — Life") {
+	@layout.Base(ctx, "Inventory — Life") {
 		@lifeModuleShell("inventory", data.PendingCount) {
 			<div class="life-shell" data-testid="life-inventory-page">
 				<header class="life-shell-header">
@@ -1295,7 +1295,7 @@ templ LifeInventoryPage(data LifeInventoryData) {
 }
 
 templ LifeAchievementsPage(data LifeAchievementsData) {
-	@layout.Base("Achievements — Life") {
+	@layout.Base(ctx, "Achievements — Life") {
 		@lifeModuleShell("achievements", data.PendingCount) {
 			<div class="life-shell" data-testid="life-achievements-page">
 				<header class="life-shell-header">
@@ -1359,7 +1359,7 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 }
 
 templ LifeRewardsPage(data LifeRewardsData) {
-	@layout.Base("Rewards — Life") {
+	@layout.Base(ctx, "Rewards — Life") {
 		@lifeModuleShell("rewards", data.PendingCount) {
 			<div class="life-shell" data-testid="life-rewards-page">
 				<header class="life-shell-header">
@@ -1635,7 +1635,7 @@ templ LifeRewardsPage(data LifeRewardsData) {
 }
 
 templ LifeStatsPage(data LifeStatsShellData) {
-	@layout.Base("Stats — Life") {
+	@layout.Base(ctx, "Stats — Life") {
 		@partials.LifeStatsScripts()
 		@lifeModuleShell("stats", data.PendingCount) {
 			<div class="life-shell" data-testid="life-stats-page">

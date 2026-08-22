@@ -1,6 +1,7 @@
 package pages_test
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"bytes"
 	"context"
 	"strings"
@@ -31,7 +32,7 @@ func TestPipelineRunLivePageCSPSafeExpressions(t *testing.T) {
 			{Name: "step-1", Status: "running"},
 		},
 	}
-	if err := pages.PipelineRunLivePage(params).Render(context.Background(), &buf); err != nil {
+	if err := pages.PipelineRunLivePage(i18n.DefaultContext(), params).Render(context.Background(), &buf); err != nil {
 		t.Fatalf("render: %v", err)
 	}
 	html := buf.String()

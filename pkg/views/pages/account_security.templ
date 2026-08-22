@@ -1,14 +1,16 @@
 package pages
 
 import (
+	"context"
+	
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AccountSecurityPage(username string, totpEnabled bool, backupRemaining int, flash string, errorMsg string, csrfToken string) {
-	@layout.Base("Account security — Flowbot") {
+templ AccountSecurityPage(ctx context.Context, username string, totpEnabled bool, backupRemaining int, flash string, errorMsg string, csrfToken string) {
+	@layout.Base(ctx, "Account security — Flowbot") {
 		@partials.PageHeader("Account security", "Password and backup codes for web login.")
 		<div class="max-w-xl space-y-6" data-testid="account-security-page">
 			if flash != "" {
@@ -113,8 +115,8 @@ templ AccountSecurityPage(username string, totpEnabled bool, backupRemaining int
 	}
 }
 
-templ RegeneratedBackupCodesPage(codes []string) {
-	@layout.Base("Backup codes — Flowbot") {
+templ RegeneratedBackupCodesPage(ctx context.Context, codes []string) {
+	@layout.Base(ctx, "Backup codes — Flowbot") {
 		@partials.PageHeader("New backup codes", "Store these one-time codes somewhere safe. They will not be shown again.")
 		<div class="max-w-xl space-y-6" data-testid="regen-backup-codes-page">
 			<div class="flowbot-surface">

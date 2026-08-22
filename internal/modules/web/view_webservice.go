@@ -47,13 +47,13 @@ func viewPage(ctx fiber.Ctx) error {
 	}
 	if pageData == nil {
 		ctx.Type("html")
-		return pages.ViewPage("Not Found", partials.ViewExpiredPage(), false).Render(context.Background(), ctx.Response().BodyWriter())
+		return pages.ViewPage(ctx.Context(), "Not Found", partials.ViewExpiredPage(), false).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	expired := pageData.ExpiresAt != nil && pageData.ExpiresAt.Before(time.Now())
 	if expired {
 		ctx.Type("html")
-		return pages.ViewPage(pageData.Title, partials.ViewExpiredPage(), true).Render(context.Background(), ctx.Response().BodyWriter())
+		return pages.ViewPage(ctx.Context(), pageData.Title, partials.ViewExpiredPage(), true).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	dataKV := types.KV(pageData.Data)
@@ -66,12 +66,12 @@ func viewPage(ctx fiber.Ctx) error {
 	if !ok {
 		flog.Error(fmt.Errorf("viewPage: unknown type %q", pageData.Type))
 		ctx.Type("html")
-		return pages.ViewPage(pageData.Title, partials.ViewExpiredPage(), false).Render(context.Background(), ctx.Response().BodyWriter())
+		return pages.ViewPage(ctx.Context(), pageData.Title, partials.ViewExpiredPage(), false).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	body := fn(dataKV)
 	ctx.Type("html")
-	return pages.ViewPage(pageData.Title, body, expired).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.ViewPage(ctx.Context(), pageData.Title, body, expired).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // preFetchPipelineData fetches step runs for a pipeline_run view and injects them into data.

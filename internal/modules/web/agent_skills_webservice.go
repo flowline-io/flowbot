@@ -57,7 +57,7 @@ func agentSkillsPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list agent skills: %v", err)
 	}
 	ctx.Type("html")
-	return pages.AgentSkillsPage(items).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.AgentSkillsPage(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSkillsImport(ctx fiber.Ctx) error {

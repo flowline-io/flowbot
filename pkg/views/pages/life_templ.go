@@ -185,7 +185,7 @@ func LifeDashboardPage(data LifeCharacterData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Life — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Life — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -298,7 +298,7 @@ func LifeCharacterPage(data LifeCharacterData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Character — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Character — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -530,7 +530,7 @@ func LifeGoalsPage(data LifeGoalsData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Goals — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Goals — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1073,7 +1073,7 @@ func LifePlanPage(data LifePlanData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Plan — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var42), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Plan — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var42), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1433,7 +1433,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Skills — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var49), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Skills — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var49), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -4614,7 +4614,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Quests — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var158), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Quests — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var158), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -5202,7 +5202,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Inventory — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var244), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Inventory — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var244), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -5454,7 +5454,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Achievements — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var277), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Achievements — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var277), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -6274,7 +6274,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Rewards — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var290), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Rewards — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var290), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -6355,7 +6355,7 @@ func LifeStatsPage(data LifeStatsShellData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Stats — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var333), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Stats — Life").Render(templ.WithChildren(ctx, templ_7745c5c3_Var333), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

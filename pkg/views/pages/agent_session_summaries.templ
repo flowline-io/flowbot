@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentSessionSummariesPage(items []model.AgentSessionSummary, q string) {
-	@layout.Base("Session Summaries — Flowbot") {
+templ AgentSessionSummariesPage(ctx context.Context, items []model.AgentSessionSummary, q string) {
+	@layout.Base(ctx, "Session Summaries — Flowbot") {
 		@partials.PageHeader("Session Summaries", "Archive-generated summaries searchable via search_session_summaries") {
 			<form class="inline-flex items-center gap-2 m-0"
 				hx-get="/service/web/agent-session-summaries/list"

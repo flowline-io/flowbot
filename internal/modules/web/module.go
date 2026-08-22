@@ -164,6 +164,7 @@ func warnResidualYAMLAuth() {
 func (moduleHandler) Webservice(app *fiber.App) {
 	app.Get("/static/*", static.New("", static.Config{FS: webassets.SubFS}))
 	app.Get("/c/:slug", clipPage)
+	app.Use("/service/web", localeMiddleware())
 	app.Use("/service/web", newCSRFMiddleware())
 	for _, rules := range allWebserviceRules {
 		module.Webservice(app, Name, rules)

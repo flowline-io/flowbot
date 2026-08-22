@@ -39,6 +39,7 @@ CSS: DaisyUI via `public/css/app.css`; tokens/chips in `custom.css`; Alpine at `
 - `data-testid="kebab-case"` on interactive elements.
 - Never edit generated `*_templ.go`; regenerate after `.templ` changes (`go tool templ generate`).
 - No multi-line inline CSS; no `<script>` in partials; no unsanitized `templ.Raw` (use `utils.MarkdownToSafeHTML`); use `templ.URL()` for dynamic paths.
+- User-visible strings: [web AGENTS.md § i18n](../../internal/modules/web/AGENTS.md).
 
 ## HTMX
 

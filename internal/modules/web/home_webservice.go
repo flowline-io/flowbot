@@ -32,7 +32,7 @@ func homePage(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	// Dashboard is cheap (short pings + store counts); SSR avoids HTMX skeleton flash.
-	return pages.HomePage(buildHomeDashboard(ctx.Context())).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.HomePage(ctx.Context(), buildHomeDashboard(ctx.Context())).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func homeDashboardPartial(ctx fiber.Ctx) error {
@@ -41,7 +41,7 @@ func homeDashboardPartial(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	d := buildHomeDashboard(ctx.Context())
-	return partials.HomeDashboardBlock(d).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.HomeDashboardBlock(d).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // buildHomeDashboard assembles summary stats and an optional setup checklist for Home.
@@ -170,7 +170,7 @@ func homeTokenUsage(c fiber.Ctx) error {
 		return c.JSON(stats)
 	}
 	c.Type("html")
-	return partials.TokenUsage(stats).Render(context.Background(), c.Response().BodyWriter())
+	return partials.TokenUsage(stats).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func invalidTokenUsageRequest(c fiber.Ctx, err error) error {
@@ -205,7 +205,7 @@ func sessionBadge(ctx fiber.Ctx) error {
 		}
 	}
 	ctx.Type("html")
-	return partials.SessionBadge(username, expires).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.SessionBadge(username, expires).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // approvalBadge renders a compact navbar/home count for sessions awaiting tool approval.
@@ -218,5 +218,5 @@ func approvalBadge(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return partials.ApprovalCountBadge(count).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.ApprovalCountBadge(count).Render(ctx.Context(), ctx.Response().BodyWriter())
 }

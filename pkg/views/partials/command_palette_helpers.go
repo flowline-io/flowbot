@@ -1,9 +1,12 @@
 package partials
 
 import (
+	"context"
 	"strings"
 
 	"github.com/bytedance/sonic"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 )
 
 // CommandPaletteNavPage is one static jump target for the global command palette.
@@ -16,36 +19,36 @@ type CommandPaletteNavPage struct {
 }
 
 // CommandPaletteNavPages returns static jump targets aligned with the navbar.
-func CommandPaletteNavPages() []CommandPaletteNavPage {
+func CommandPaletteNavPages(ctx context.Context) []CommandPaletteNavPage {
 	type page struct {
-		title, subtitle, href string
+		titleKey, subtitleKey, href string
 	}
 	catalog := []page{
-		{"Home", "Dashboard", "/service/web/home"},
-		{"Agents", "Agent", "/service/web/agents"},
-		{"Skills", "Agent", "/service/web/agent-skills"},
-		{"Knowledge", "Agent", "/service/web/agent-knowledge"},
-		{"Memory Facts", "Agent", "/service/web/agent-memory"},
-		{"Session Summaries", "Agent", "/service/web/agent-session-summaries"},
-		{"Subagents", "Agent", "/service/web/agent-subagents"},
-		{"Scheduled Tasks", "Agent", "/service/web/agent-scheduled-tasks"},
-		{"Sessions", "Agent", "/service/web/agent-sessions"},
-		{"Permissions", "Agent", "/service/web/chatagent-permissions"},
-		{"Pipelines", "Automate", "/service/web/pipelines"},
-		{"Workflows", "Automate", "/service/web/workflows"},
-		{"Functions", "Automate", "/service/web/functions"},
-		{"Events", "Automate", "/service/web/events"},
-		{"Relations", "Automate", "/service/web/relations"},
-		{"Apps", "Integrate", "/service/web/hub"},
-		{"Registry", "Integrate", "/service/web/homelab"},
-		{"Capabilities", "Integrate", "/service/web/capabilities"},
-		{"Clips", "Integrate", "/service/web/clips"},
-		{"Notifications", "Integrate", "/service/web/notifications"},
-		{"Health", "System", "/service/web/healthz"},
-		{"Tokens", "System", "/service/web/tokens"},
-		{"Configs", "System", "/service/web/configs"},
-		{"Settings", "System", "/service/web/settings"},
-		{"About", "System", "/service/web/about"},
+		{"nav.home", "nav.home_subtitle", "/service/web/home"},
+		{"nav.agents", "nav.group.agent", "/service/web/agents"},
+		{"nav.skills", "nav.group.agent", "/service/web/agent-skills"},
+		{"nav.knowledge", "nav.group.agent", "/service/web/agent-knowledge"},
+		{"nav.memory_facts", "nav.group.agent", "/service/web/agent-memory"},
+		{"nav.session_summaries", "nav.group.agent", "/service/web/agent-session-summaries"},
+		{"nav.subagents", "nav.group.agent", "/service/web/agent-subagents"},
+		{"nav.scheduled_tasks", "nav.group.agent", "/service/web/agent-scheduled-tasks"},
+		{"nav.sessions", "nav.group.agent", "/service/web/agent-sessions"},
+		{"nav.permissions", "nav.group.agent", "/service/web/chatagent-permissions"},
+		{"nav.pipelines", "nav.group.automate", "/service/web/pipelines"},
+		{"nav.workflows", "nav.group.automate", "/service/web/workflows"},
+		{"nav.functions", "nav.group.automate", "/service/web/functions"},
+		{"nav.events", "nav.group.automate", "/service/web/events"},
+		{"nav.relations", "nav.group.automate", "/service/web/relations"},
+		{"nav.apps", "nav.group.integrate", "/service/web/hub"},
+		{"nav.registry", "nav.group.integrate", "/service/web/homelab"},
+		{"nav.capabilities", "nav.group.integrate", "/service/web/capabilities"},
+		{"nav.clips", "nav.group.integrate", "/service/web/clips"},
+		{"nav.notifications", "nav.group.integrate", "/service/web/notifications"},
+		{"nav.health", "nav.group.system", "/service/web/healthz"},
+		{"nav.tokens", "nav.group.system", "/service/web/tokens"},
+		{"nav.configs", "nav.group.system", "/service/web/configs"},
+		{"nav.settings", "nav.group.system", "/service/web/settings"},
+		{"nav.about", "nav.group.system", "/service/web/about"},
 	}
 	out := make([]CommandPaletteNavPage, 0, len(catalog))
 	for _, p := range catalog {
@@ -53,8 +56,8 @@ func CommandPaletteNavPages() []CommandPaletteNavPage {
 		id = strings.ReplaceAll(id, "/", "-")
 		out = append(out, CommandPaletteNavPage{
 			ID:       "page:" + id,
-			Title:    p.title,
-			Subtitle: p.subtitle,
+			Title:    i18n.T(ctx, p.titleKey),
+			Subtitle: i18n.T(ctx, p.subtitleKey),
 			Href:     p.href,
 			Group:    "pages",
 		})
@@ -63,8 +66,8 @@ func CommandPaletteNavPages() []CommandPaletteNavPage {
 }
 
 // CommandPalettePagesJSON returns nav page jump targets as JSON for the command palette script.
-func CommandPalettePagesJSON() string {
-	b, err := sonic.MarshalString(CommandPaletteNavPages())
+func CommandPalettePagesJSON(ctx context.Context) string {
+	b, err := sonic.MarshalString(CommandPaletteNavPages(ctx))
 	if err != nil {
 		return "[]"
 	}

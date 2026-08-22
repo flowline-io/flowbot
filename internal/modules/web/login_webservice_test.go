@@ -19,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/webauth"
@@ -109,6 +110,23 @@ func TestLoginPage(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLoginPageChinese(t *testing.T) {
+	t.Parallel()
+	app, _, client := setupTestAppWithDB(t)
+	seedWebAccount(t, client, "admin", "flowbot-dev-pass", true)
+	req := httptest.NewRequest(http.MethodGet, "/service/web/login", http.NoBody)
+	AttachLocaleForTest(req, i18n.CookieZH)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	html := string(body)
+	require.Contains(t, html, `lang="zh-Hans"`)
+	require.Contains(t, html, "登录")
 }
 
 func assertPendingCookie(t *testing.T, resp *http.Response, wantSet bool) {

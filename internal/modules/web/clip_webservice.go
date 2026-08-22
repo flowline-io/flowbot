@@ -48,7 +48,7 @@ func clipPage(ctx fiber.Ctx) error {
 		data.Description = "This clip does not exist or was removed."
 		ctx.Type("html")
 		ctx.Status(http.StatusNotFound)
-		return pages.ClipPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+		return pages.ClipPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	data.Title = row.Title
@@ -67,5 +67,5 @@ func clipPage(ctx fiber.Ctx) error {
 	}
 
 	ctx.Type("html")
-	return pages.ClipPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.ClipPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }

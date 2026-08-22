@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ HomelabPage(apps []homelab.App, scannedAt string) {
-	@layout.Base("Registry — Flowbot") {
+templ HomelabPage(ctx context.Context, apps []homelab.App, scannedAt string) {
+	@layout.Base(ctx, "Registry — Flowbot") {
 		@partials.HomelabRegistryScripts()
 		@partials.PageHeader("Homelab Registry", "") {
 		}

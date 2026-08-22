@@ -1,10 +1,15 @@
 package pages
 
-import "github.com/flowline-io/flowbot/pkg/views/layout"
+import (
+	"context"
 
-templ LoginPage(nextURL string, errorMsg string, csrfToken string) {
-	@layout.Auth("Flowbot — Login") {
-		@LoginForm(nextURL, errorMsg, csrfToken)
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+)
+
+templ LoginPage(ctx context.Context, nextURL string, errorMsg string, csrfToken string) {
+	@layout.Auth(ctx, "Flowbot — Login") {
+		@LoginForm(ctx, nextURL, errorMsg, csrfToken)
 	}
 }
 
@@ -12,25 +17,25 @@ templ LoginPage(nextURL string, errorMsg string, csrfToken string) {
 // Used for HTMX responses where only the form fragment should be swapped.
 // csrfToken is embedded so login works even when JS cannot attach X-Csrf-Token
 // (common behind Cloudflare Rocket Loader / WAF).
-templ LoginForm(nextURL string, errorMsg string, csrfToken string) {
+templ LoginForm(ctx context.Context, nextURL string, errorMsg string, csrfToken string) {
 	<form hx-post="/service/web/login"
 		hx-target="this"
 		hx-swap="outerHTML"
 		data-testid="login-form"
 		class="w-full max-w-sm border-t border-base-300 pt-6">
-		<h1 class="text-lg font-semibold text-base-content mb-5 tracking-tight">Sign in</h1>
+		<h1 class="text-lg font-semibold text-base-content mb-5 tracking-tight">{ i18n.T(ctx, "auth.sign_in") }</h1>
 		<input type="hidden" name="next" value={ nextURL }/>
 		<input type="hidden" name="csrf_token" value={ csrfToken } data-testid="login-csrf"/>
 		<div id="form-error" data-testid="form-error-slot"></div>
 		<div class="mb-4">
-			<label for="username" class="block text-sm font-medium mb-1.5">Username</label>
+			<label for="username" class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.username") }</label>
 			<input type="text" id="username" name="username" autocomplete="username"
 				required maxlength="128"
 				data-testid="login-username"
 				class="input input-bordered w-full"/>
 		</div>
 		<div class="mb-5">
-			<label for="password" class="block text-sm font-medium mb-1.5">Password</label>
+			<label for="password" class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.password") }</label>
 			<input type="password" id="password" name="password" autocomplete="current-password"
 				required maxlength="256"
 				data-testid="login-password"
@@ -42,7 +47,7 @@ templ LoginForm(nextURL string, errorMsg string, csrfToken string) {
 		<button type="submit"
 			data-testid="login-submit"
 			class="btn btn-primary w-full">
-			Login
+			{ i18n.T(ctx, "auth.login") }
 		</button>
 	</form>
 }

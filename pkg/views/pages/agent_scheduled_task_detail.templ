@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.AgentScheduledTaskRun) {
-	@layout.Base(partials.AgentScheduledTaskPageTitle(task)) {
+templ AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentScheduledTask, runs []model.AgentScheduledTaskRun) {
+	@layout.Base(ctx, partials.AgentScheduledTaskPageTitle(task)) {
 		if task.Name != "" {
 			@partials.PageHeader(task.Name, task.TaskID) {
 				<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">← Back to Scheduled Tasks</a>

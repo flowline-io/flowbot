@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/a-h/templ"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -83,7 +84,20 @@ func TestBaseLayout(t *testing.T) {
 					`data-testid="command-palette-input"`,
 					`data-testid="nav-command-palette"`,
 					`command-palette.js`,
-					`data-testid="command-palette-pages"`,
+					`id="command-palette-pages"`,
+				})
+			},
+		},
+		{
+			name: "language switcher and i18n script",
+			body: templ.NopComponent,
+			check: func(t *testing.T, html string) {
+				t.Helper()
+				assertContainsAll(t, html, []string{
+					`id="flowbot-i18n"`,
+					`data-testid="lang-switcher"`,
+					`data-testid="lang-switch-en"`,
+					`data-testid="lang-switch-zh"`,
 				})
 			},
 		},
@@ -92,12 +106,35 @@ func TestBaseLayout(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := layout.Base("Events").Render(templ.WithChildren(context.Background(), tt.body), &buf)
+			ctx := i18n.DefaultContext()
+			err := layout.Base(ctx, "Events").Render(templ.WithChildren(ctx, tt.body), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}
 			tt.check(t, buf.String())
 		})
+	}
+}
+
+func TestBaseLayoutChinese(t *testing.T) {
+	t.Parallel()
+	ctx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
+	var buf bytes.Buffer
+	err := layout.Base(ctx, "Events").Render(templ.WithChildren(ctx, templ.NopComponent), &buf)
+	requireNoError(t, err)
+	html := buf.String()
+	if !strings.Contains(html, `lang="zh-Hans"`) {
+		t.Fatalf("want zh-Hans lang attribute")
+	}
+	if !strings.Contains(html, "收件箱") {
+		t.Fatalf("want Chinese inbox nav label")
+	}
+}
+
+func requireNoError(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("render: %v", err)
 	}
 }
 

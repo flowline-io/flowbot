@@ -2,10 +2,10 @@ package layout_test
 
 import (
 	"bytes"
-	"context"
 	"strings"
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 )
 
@@ -36,7 +36,8 @@ func TestAuthLayout(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := layout.Auth("Flowbot — Login").Render(context.Background(), &buf)
+			ctx := i18n.DefaultContext()
+			err := layout.Auth(ctx, "Flowbot — Login").Render(ctx, &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}

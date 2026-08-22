@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/version"
 )
@@ -26,8 +28,8 @@ type PipelineRunLiveParams struct {
 }
 
 // PipelineRunLivePage renders the live run dashboard.
-templ PipelineRunLivePage(p PipelineRunLiveParams) {
-	@layout.Base("Live: " + p.PipelineName) {
+templ PipelineRunLivePage(ctx context.Context, p PipelineRunLiveParams) {
+	@layout.Base(ctx, "Live: " + p.PipelineName) {
 		<script src={ "/static/js/pipeline-run-live.js?v=" + version.Buildtags }></script>
 		<div class="max-w-6xl mx-auto" x-data="pipelineRunLive" x-init="init()" data-testid="live-dashboard">
 			<!-- Header -->

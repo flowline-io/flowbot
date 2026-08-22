@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -11,8 +13,8 @@ type EventsPageParams struct {
 	PipelineNames []string
 }
 
-templ EventsPage(p EventsPageParams) {
-	@layout.Base("Events") {
+templ EventsPage(ctx context.Context, p EventsPageParams) {
+	@layout.Base(ctx, "Events") {
 		@partials.EventFilterScripts()
 		@partials.PageHeader("Events", "") {
 		}

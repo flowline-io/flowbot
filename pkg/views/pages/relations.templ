@@ -2,6 +2,8 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -12,8 +14,8 @@ type RelationsPageParams struct {
 	Since    string
 }
 
-templ RelationsPage(p RelationsPageParams) {
-	@layout.Base("Relations") {
+templ RelationsPage(ctx context.Context, p RelationsPageParams) {
+	@layout.Base(ctx, "Relations") {
 		@partials.PageHeader("Relations", "") {
 		}
 		<div class="flex flex-wrap items-center gap-3 mb-6">

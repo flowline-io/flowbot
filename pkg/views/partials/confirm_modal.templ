@@ -1,13 +1,19 @@
 package partials
 
-templ ConfirmModal() {
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ ConfirmModal(ctx context.Context) {
 	<dialog id="confirm-modal" class="modal" data-testid="confirm-modal">
 		<div class="modal-box">
 			<h3 id="confirm-modal-title" class="text-lg font-semibold tracking-tight"></h3>
 			<p id="confirm-modal-body" class="py-4"></p>
 			<div class="modal-action">
-				<button id="confirm-modal-cancel" class="btn btn-ghost" data-testid="confirm-modal-cancel">Cancel</button>
-				<button id="confirm-modal-confirm" class="btn btn-error" data-testid="confirm-modal-confirm">Confirm</button>
+				<button id="confirm-modal-cancel" class="btn btn-ghost" data-testid="confirm-modal-cancel">{ i18n.T(ctx, "common.cancel") }</button>
+				<button id="confirm-modal-confirm" class="btn btn-error" data-testid="confirm-modal-confirm">{ i18n.T(ctx, "common.confirm") }</button>
 			</div>
 		</div>
 		<form method="dialog" class="modal-backdrop">

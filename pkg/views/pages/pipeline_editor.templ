@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 	"github.com/flowline-io/flowbot/version"
 )
 
-templ PipelineEditorPage(name string) {
-	@layout.Base("Pipeline: " + name) {
+templ PipelineEditorPage(ctx context.Context, name string) {
+	@layout.Base(ctx, "Pipeline: " + name) {
 		<script src="/static/vendor/js-yaml.min.js"></script>
 		<script src="/static/vendor/diff.min.js"></script>
 		<script src={ "/static/js/pipeline-editor.js?v=" + version.Buildtags }></script>

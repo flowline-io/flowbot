@@ -39,7 +39,7 @@ func agentSessionsPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list agent sessions: %v", err)
 	}
 	ctx.Type("html")
-	return pages.AgentSessionsPage(items, nextCursor).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.AgentSessionsPage(ctx.Context(), items, nextCursor).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSessionsTable(ctx fiber.Ctx) error {
@@ -91,7 +91,7 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 	}
 
 	ctx.Type("html")
-	return pages.AgentSessionDetailPage(
+	return pages.AgentSessionDetailPage(ctx.Context(), 
 		mapAgentSession(row),
 		mapAgentSessionEntries(entries),
 		mapAgentPlans(plans),

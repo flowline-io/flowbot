@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -32,14 +33,13 @@ var loginWebserviceRules = []webservice.Rule{
 	webservice.Get("/setup/backup-codes", backupCodesPage, route.WithNotAuth()),
 	webservice.Post("/setup/backup-codes/ack", backupCodesAck, route.WithNotAuth()),
 	webservice.Post("/logout", logout, route.WithNotAuth()),
+	webservice.Post("/locale", localeSwitch, route.WithNotAuth()),
 	webservice.Get("/csrf-token", csrfTokenJSON, route.WithNotAuth()),
 }
 
-const (
-	msgAccountLocked         = "Account temporarily locked. Please try again later."
-	msgTooManyFailedAttempts = "Too many failed attempts. Account temporarily locked. Please try again later."
-	msgInvalidCredentials    = "Invalid username or password"
-)
+func webAuthMsg(c fiber.Ctx, id string) string {
+	return i18n.T(c.Context(), id)
+}
 
 func loginPage(ctx fiber.Ctx) error {
 	if isAuthenticated(ctx) {
@@ -67,7 +67,7 @@ func loginPage(ctx fiber.Ctx) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.LoginPage(next, "", csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LoginPage(ctx.Context(), next, "", csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func renderLoginForm(ctx fiber.Ctx, next, errorMsg string) error {
@@ -77,7 +77,7 @@ func renderLoginForm(ctx fiber.Ctx, next, errorMsg string) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.LoginForm(next, errorMsg, csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LoginForm(ctx.Context(), next, errorMsg, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func checkLoginRateLimit(ctx fiber.Ctx) string {
@@ -86,14 +86,14 @@ func checkLoginRateLimit(ctx fiber.Ctx) string {
 	}
 	delay, locked := loginLimiter.Allow(ctx.Context(), ctx.IP())
 	if locked {
-		return msgAccountLocked
+		return webAuthMsg(ctx, "auth.account_locked")
 	}
 	if delay > 0 {
 		timer := time.NewTimer(delay)
 		defer timer.Stop()
 		select {
 		case <-ctx.Context().Done():
-			return msgAccountLocked
+			return webAuthMsg(ctx, "auth.account_locked")
 		case <-timer.C:
 		}
 	}
@@ -102,13 +102,13 @@ func checkLoginRateLimit(ctx fiber.Ctx) string {
 
 func recordLoginFailure(ctx fiber.Ctx) string {
 	if loginLimiter == nil {
-		return msgInvalidCredentials
+		return webAuthMsg(ctx, "auth.invalid_credentials")
 	}
 	locked, _ := loginLimiter.RecordFailure(ctx.Context(), ctx.IP())
 	if locked {
-		return msgTooManyFailedAttempts
+		return webAuthMsg(ctx, "auth.too_many_attempts")
 	}
-	return msgInvalidCredentials
+	return webAuthMsg(ctx, "auth.invalid_credentials")
 }
 
 func loginSuccessCleanup(ctx fiber.Ctx) {
@@ -143,13 +143,13 @@ func loginSubmit(ctx fiber.Ctx) error {
 func continueLoginAfterPasswordOK(ctx fiber.Ctx, ws *store.WebAccountStore, account *gen.WebAccount, next string) error {
 	if err := ws.EnsureUser(context.Background(), account.UID, account.Username); err != nil {
 		flog.Error(fmt.Errorf("ensure user on login: %w", err))
-		return renderLoginForm(ctx, next, "Internal error")
+		return renderLoginForm(ctx, next, webAuthMsg(ctx, "auth.internal_error"))
 	}
 
 	if !account.TotpEnabled {
 		if err := issuePendingSession(ctx, webauth.KindPendingEnroll, account.UID, account.Username); err != nil {
 			flog.Error(fmt.Errorf("pending enroll session: %w", err))
-			return renderLoginForm(ctx, next, "Internal error")
+			return renderLoginForm(ctx, next, webAuthMsg(ctx, "auth.internal_error"))
 		}
 		ctx.Set("HX-Redirect", "/service/web/setup/2fa")
 		return nil
@@ -157,7 +157,7 @@ func continueLoginAfterPasswordOK(ctx fiber.Ctx, ws *store.WebAccountStore, acco
 
 	if err := issuePendingSession(ctx, webauth.KindPending2FA, account.UID, account.Username); err != nil {
 		flog.Error(fmt.Errorf("pending 2fa session: %w", err))
-		return renderLoginForm(ctx, next, "Internal error")
+		return renderLoginForm(ctx, next, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	dest := "/service/web/login/2fa"
 	if n := safeNext(next); n != "/service/web/home" {
@@ -178,7 +178,7 @@ func login2FAPage(ctx fiber.Ctx) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.Login2FAPage(ctx.Query("next", ""), "", csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.Login2FAPage(ctx.Context(), ctx.Query("next", ""), "", csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func renderLogin2FAForm(ctx fiber.Ctx, next, errorMsg string) error {
@@ -188,7 +188,7 @@ func renderLogin2FAForm(ctx fiber.Ctx, next, errorMsg string) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.Login2FAForm(next, errorMsg, csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.Login2FAForm(ctx.Context(), next, errorMsg, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func login2FASubmit(ctx fiber.Ctx) error {
@@ -215,13 +215,13 @@ func login2FASubmit(ctx fiber.Ctx) error {
 
 	ok, step, remaining, usedBackup, verr := verifySecondFactor(account, code)
 	if verr != nil {
-		return renderLogin2FAForm(ctx, next, "Internal error")
+		return renderLogin2FAForm(ctx, next, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	if !ok {
 		if totpLike {
 			return renderLogin2FAForm(ctx, next, recordTOTPFailure(ctx))
 		}
-		return renderLogin2FAForm(ctx, next, msgInvalidTOTP)
+		return renderLogin2FAForm(ctx, next, webAuthMsg(ctx, "auth.invalid_totp"))
 	}
 	return completeLogin2FA(ctx, account, next, step, remaining, usedBackup)
 }
@@ -231,11 +231,11 @@ func completeLogin2FA(ctx fiber.Ctx, account *gen.WebAccount, next string, step 
 	if usedBackup {
 		if err := ws.SetBackupCodeHashes(context.Background(), account.Username, remaining); err != nil {
 			flog.Error(fmt.Errorf("consume backup code: %w", err))
-			return renderLogin2FAForm(ctx, next, "Internal error")
+			return renderLogin2FAForm(ctx, next, webAuthMsg(ctx, "auth.internal_error"))
 		}
 	} else if err := ws.SetTOTPLastStep(context.Background(), account.Username, step); err != nil {
 		flog.Error(fmt.Errorf("set totp last step: %w", err))
-		return renderLogin2FAForm(ctx, next, "Internal error")
+		return renderLogin2FAForm(ctx, next, webAuthMsg(ctx, "auth.internal_error"))
 	}
 
 	totpSuccessCleanup(ctx)
@@ -243,7 +243,7 @@ func completeLogin2FA(ctx fiber.Ctx, account *gen.WebAccount, next string, step 
 	clearPendingSession(ctx)
 	if err := issueFullSession(ctx, account.UID, account.Username); err != nil {
 		flog.Error(fmt.Errorf("issue full session: %w", err))
-		return renderLogin2FAForm(ctx, next, "Internal error")
+		return renderLogin2FAForm(ctx, next, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	ctx.Set("HX-Redirect", safeNext(next))
 	return nil
@@ -283,7 +283,7 @@ func setupPage(ctx fiber.Ctx) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.SetupPage("", csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.SetupPage(ctx.Context(), "", csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func renderSetupForm(ctx fiber.Ctx, errorMsg string) error {
@@ -293,7 +293,7 @@ func renderSetupForm(ctx fiber.Ctx, errorMsg string) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.SetupForm(errorMsg, csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.SetupForm(ctx.Context(), errorMsg, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func setupSubmit(ctx fiber.Ctx) error {
@@ -308,11 +308,11 @@ func setupSubmit(ctx fiber.Ctx) error {
 		return renderSetupForm(ctx, err.Error())
 	}
 	if username == "" {
-		return renderSetupForm(ctx, "Username is required")
+		return renderSetupForm(ctx, webAuthMsg(ctx, "auth.username_required"))
 	}
 	hash, err := webauth.HashPassword(password)
 	if err != nil {
-		return renderSetupForm(ctx, "Internal error")
+		return renderSetupForm(ctx, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	account, err := ws.CreateFirstAccount(context.Background(), store.CreateAccountInput{
 		Username:     username,
@@ -323,11 +323,11 @@ func setupSubmit(ctx fiber.Ctx) error {
 			return ctx.Redirect().To("/service/web/login")
 		}
 		flog.Error(fmt.Errorf("setup create account: %w", err))
-		return renderSetupForm(ctx, "Could not create account")
+		return renderSetupForm(ctx, webAuthMsg(ctx, "auth.create_account_failed"))
 	}
 	if err := issuePendingSession(ctx, webauth.KindPendingEnroll, account.UID, account.Username); err != nil {
 		flog.Error(fmt.Errorf("setup pending enroll: %w", err))
-		return renderSetupForm(ctx, "Internal error")
+		return renderSetupForm(ctx, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	ctx.Set("HX-Redirect", "/service/web/setup/2fa")
 	return nil
@@ -377,7 +377,7 @@ func enroll2FAPage(ctx fiber.Ctx) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.Enroll2FAPage(secret, uri, "", csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.Enroll2FAPage(ctx.Context(), secret, uri, "", csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func enroll2FASubmit(ctx fiber.Ctx) error {
@@ -407,26 +407,26 @@ func enroll2FASubmit(ctx fiber.Ctx) error {
 
 	enc := getEncryptor()
 	if enc == nil {
-		return renderEnroll2FAError(ctx, pending, "Internal error")
+		return renderEnroll2FAError(ctx, pending, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	ct, nonce, err := enc.Encrypt([]byte(secret))
 	if err != nil {
-		return renderEnroll2FAError(ctx, pending, "Internal error")
+		return renderEnroll2FAError(ctx, pending, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	codes, hashes, err := enc.GenerateBackupCodes(webauth.BackupCodeCount)
 	if err != nil {
-		return renderEnroll2FAError(ctx, pending, "Internal error")
+		return renderEnroll2FAError(ctx, pending, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	ws := store.WebAccountStoreFromDB()
 	if err := ws.EnableTOTP(context.Background(), pending.Username, ct, nonce, hashes, step); err != nil {
 		flog.Error(fmt.Errorf("enable totp: %w", err))
-		return renderEnroll2FAError(ctx, pending, "Internal error")
+		return renderEnroll2FAError(ctx, pending, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	totpSuccessCleanup(ctx)
 	clearPendingSession(ctx)
 	if err := issuePendingSession(ctx, webauth.KindPendingBackupAck, pending.UID, pending.Username); err != nil {
 		flog.Error(fmt.Errorf("pending backup ack session: %w", err))
-		return renderEnroll2FAError(ctx, pending, "Internal error")
+		return renderEnroll2FAError(ctx, pending, webAuthMsg(ctx, "auth.internal_error"))
 	}
 	csrfTok, err := ensureCSRFCookie(ctx)
 	if err != nil {
@@ -434,7 +434,7 @@ func enroll2FASubmit(ctx fiber.Ctx) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.BackupCodesPage(codes, csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.BackupCodesPage(ctx.Context(), codes, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func renderEnroll2FAError(ctx fiber.Ctx, pending *pendingSession, msg string) error {
@@ -454,7 +454,7 @@ func renderEnroll2FAError(ctx fiber.Ctx, pending *pendingSession, msg string) er
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.Enroll2FAPage(secret, uri, msg, csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.Enroll2FAPage(ctx.Context(), secret, uri, msg, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func backupCodesPage(ctx fiber.Ctx) error {
@@ -468,7 +468,7 @@ func backupCodesPage(ctx fiber.Ctx) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.BackupCodesAckPage(csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.BackupCodesAckPage(ctx.Context(), csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func backupCodesAck(ctx fiber.Ctx) error {

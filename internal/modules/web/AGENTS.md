@@ -25,7 +25,20 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 - Set `c.Type("html")` before HTML; HTMX endpoints must not return JSON by mistake.
 - Complex JS in `public/js/`; vendored deps only (no CDN).
 - Markdown → `utils.MarkdownToSafeHTML` before `templ.Raw`.
-- E2E helpers: `InitForE2E()` / `MountForE2E()`; CSRF helpers `AttachCSRFForTest` / `addWebAuth`.
+- E2E helpers: `InitForE2E()` / `MountForE2E()`; CSRF helpers `AttachCSRFForTest` / `addWebAuth`; locale helper `AttachLocaleForTest` (defaults `flowbot-lang=en` via `addWebAuth`).
+
+## i18n
+
+- **Stack**: [`pkg/i18n`](../../../pkg/i18n/) (go-i18n/v2 + embed TOML). Templ/Go: `i18n.T(ctx, messageID)`. Client: `#flowbot-i18n` JSON in [`layout/base.templ`](../../../pkg/views/layout/base.templ) and [`layout/auth.templ`](../../../pkg/views/layout/auth.templ) + `flowbotI18n()` in [`public/js/app.js`](../../../public/js/app.js).
+- **Locale**: cookie `flowbot-lang` (`en` | `zh`) → localizer tags `en` / `zh-Hans`. **Do not** reuse `flowbot.language` (ChatAgent reply language only).
+- **Default**: missing/invalid cookie → `en`.
+- **Middleware order** (`module.go`): `localeMiddleware` → CSRF on `/service/web`.
+- **Switch**: `POST /service/web/locale` (unauthenticated OK); navbar + auth layouts use `partials.LangSwitcher`; reload after cookie write.
+- **Templ**: pass request `context.Context` into page/layout components that call `i18n.T`; `Render` must use `ctx.Context()` / `c.Context()` from Fiber — never `context.Background()` for HTML.
+- **JS**: user-visible strings via `flowbotI18n(key, enFallback)`; add keys to TOML + `ClientJSON` export list; no parallel translation tables in `public/js/`.
+- **ClientJSON**: marshal via `pkg/i18n.ClientMessages`; embed with `@templ.JSONScript("flowbot-i18n", i18n.ClientMessages(ctx))` in `partials.I18nScript` — inline `<script>` bodies do not interpolate Go expressions.
+- **Message IDs**: dotted keys — `nav.*`, `auth.*`, `common.*`, `error.*`, `confirm.*`; ship en/zh pairs.
+- **Phase**: shell + login flow are i18n'd; business `PageHeader` / handler toasts (except login/auth) remain English until Phase 2.
 
 ## Testing
 

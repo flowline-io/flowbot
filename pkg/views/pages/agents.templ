@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentsPage(items []model.AgentSession, nextCursor string, endpoints partials.ChatAgentEndpoints, chatEnabled bool) {
-	@layout.Base("Agents — Flowbot") {
+templ AgentsPage(ctx context.Context, items []model.AgentSession, nextCursor string, endpoints partials.ChatAgentEndpoints, chatEnabled bool) {
+	@layout.Base(ctx, "Agents — Flowbot") {
 		<div class="agents-home">
 			@partials.ChatAgentComposer(endpoints, "Ask Flowbot to research, automate, orchestrate", !chatEnabled)
 			if chatEnabled {
@@ -18,8 +20,8 @@ templ AgentsPage(items []model.AgentSession, nextCursor string, endpoints partia
 	}
 }
 
-templ AgentChatPage(session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints partials.ChatAgentEndpoints, pending *partials.ChatAgentPendingConfirm) {
-	@layout.Base("Agent Chat — Flowbot") {
+templ AgentChatPage(ctx context.Context, session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints partials.ChatAgentEndpoints, pending *partials.ChatAgentPendingConfirm) {
+	@layout.Base(ctx, "Agent Chat — Flowbot") {
 		<div class="chatagent-page flex flex-col flex-1 min-h-0 overflow-hidden">
 			@partials.ChatAgentThread(session, messages, todos, endpoints, pending)
 		</div>

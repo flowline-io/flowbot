@@ -43,7 +43,11 @@
     if (!m) return;
     titleEl.textContent = title;
     bodyEl.textContent = message;
-    confirmBtn.textContent = confirmText || 'Confirm';
+    confirmBtn.textContent =
+      confirmText ||
+      (typeof flowbotI18n === 'function'
+        ? flowbotI18n('common.confirm', 'Confirm')
+        : 'Confirm');
     confirmBtn.className = 'btn ' + (confirmClass || 'btn-error');
     currentCallback = onConfirm;
     currentCancelCallback = onCancel;
@@ -67,7 +71,10 @@
   // Expose global API for programmatic use (pipeline-editor.js, Alpine, etc.)
   window.showConfirmModal = function (opts) {
     openModal(
-      opts.title || 'Confirm',
+      opts.title ||
+        (typeof flowbotI18n === 'function'
+          ? flowbotI18n('confirm.default_title', 'Confirm Action')
+          : 'Confirm Action'),
       opts.message || '',
       opts.confirmText,
       opts.confirmClass,
@@ -89,8 +96,16 @@
       e.stopPropagation();
 
       var msg = el.getAttribute('data-confirm');
-      var title = el.getAttribute('data-confirm-title') || 'Confirm Action';
-      var btn = el.getAttribute('data-confirm-btn') || 'Confirm';
+      var title =
+        el.getAttribute('data-confirm-title') ||
+        (typeof flowbotI18n === 'function'
+          ? flowbotI18n('confirm.default_title', 'Confirm Action')
+          : 'Confirm Action');
+      var btn =
+        el.getAttribute('data-confirm-btn') ||
+        (typeof flowbotI18n === 'function'
+          ? flowbotI18n('common.confirm', 'Confirm')
+          : 'Confirm');
       var cls = el.getAttribute('data-confirm-class') || 'btn-error';
 
       openModal(title, msg, btn, cls, function () {

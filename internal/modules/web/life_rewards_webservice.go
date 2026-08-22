@@ -34,7 +34,7 @@ func lifeRewardsPage(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	return pages.LifeRewardsPage(mapLifeRewardsData(page, len(pending), redemptionsPage, inactivePage, archiveTab)).
-		Render(context.Background(), ctx.Response().BodyWriter())
+		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifeCreateReward(ctx fiber.Ctx) error {

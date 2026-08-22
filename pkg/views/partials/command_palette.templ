@@ -1,6 +1,8 @@
 package partials
 
-templ CommandPalette() {
+import "context"
+
+templ CommandPalette(ctx context.Context) {
 	<dialog id="command-palette" class="modal flowbot-command-palette" data-testid="command-palette">
 		<div class="flowbot-command-palette-panel modal-box">
 			<div class="flowbot-command-palette-header">
@@ -34,5 +36,5 @@ templ CommandPalette() {
 			<button type="submit" data-testid="command-palette-backdrop">close</button>
 		</form>
 	</dialog>
-	<script type="application/json" id="command-palette-pages" data-testid="command-palette-pages">{ templ.Raw(CommandPalettePagesJSON()) }</script>
+	@templ.JSONScript("command-palette-pages", CommandPaletteNavPages(ctx))
 }

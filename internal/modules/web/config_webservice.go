@@ -37,7 +37,7 @@ func configsPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list configs: %v", err)
 	}
 	ctx.Type("html")
-	return pages.ConfigsPage(items).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.ConfigsPage(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func listConfigs(ctx fiber.Ctx) error {
@@ -50,7 +50,7 @@ func listConfigs(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to load configs")
 	}
 	ctx.Type("html")
-	return partials.ConfigTable(items).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.ConfigTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func getConfig(ctx fiber.Ctx) error {
@@ -71,7 +71,7 @@ func getConfig(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to load config")
 	}
 	ctx.Type("html")
-	return partials.ConfigRow(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.ConfigRow(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func newConfigForm(ctx fiber.Ctx) error {
@@ -81,7 +81,7 @@ func newConfigForm(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	// Remove any existing new-config form row and empty state row
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="config-form-new" hx-swap-oob="delete"></tr><tr id="configs-empty" hx-swap-oob="delete"></tr>`))
-	return partials.ConfigForm(model.ConfigItem{}, true, nil).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.ConfigForm(model.ConfigItem{}, true, nil).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func createConfig(ctx fiber.Ctx) error {
@@ -109,7 +109,7 @@ func createConfig(ctx fiber.Ctx) error {
 	if len(errorsMsg) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.ConfigForm(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}, true, errorsMsg).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.ConfigForm(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}, true, errorsMsg).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	err := store.ModuleDataStoreFromDB().ConfigSet(context.Background(), types.Uid(uid), topic, key, value)
 	if err != nil {
@@ -119,7 +119,7 @@ func createConfig(ctx fiber.Ctx) error {
 	setShowToast(ctx, "success", "Config saved")
 	// Remove empty-state row now that a config exists
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="configs-empty" hx-swap-oob="delete"></tr>`))
-	return partials.ConfigRow(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.ConfigRow(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func editConfigForm(ctx fiber.Ctx) error {
@@ -140,7 +140,7 @@ func editConfigForm(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to load config")
 	}
 	ctx.Type("html")
-	return partials.ConfigForm(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}, false, nil).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.ConfigForm(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}, false, nil).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func updateConfig(ctx fiber.Ctx) error {
@@ -156,7 +156,7 @@ func updateConfig(ctx fiber.Ctx) error {
 	if valueRaw != "" && value == nil {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": "Invalid JSON"}).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": "Invalid JSON"}).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	err = store.ModuleDataStoreFromDB().ConfigSet(context.Background(), types.Uid(urlUID), urlTopic, urlKey, value)
 	if err != nil {
@@ -164,7 +164,7 @@ func updateConfig(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	setShowToast(ctx, "success", "Config saved")
-	return partials.ConfigRow(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.ConfigRow(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func deleteConfig(ctx fiber.Ctx) error {

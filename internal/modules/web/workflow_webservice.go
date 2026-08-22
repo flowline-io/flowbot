@@ -108,7 +108,7 @@ func workflowListPage(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list workflows: %v", err)
 	}
 	c.Type("html")
-	return pages.WorkflowListPage(entries).Render(c.Context(), c.Response().BodyWriter())
+	return pages.WorkflowListPage(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowListTable(c fiber.Ctx) error {
@@ -232,7 +232,7 @@ func workflowDetailPage(c fiber.Ctx) error {
 		runs = runs[:10]
 	}
 	c.Type("html")
-	return pages.WorkflowDetailPage(meta, mapWorkflowTriggers(dto.Triggers), mapWorkflowRuns(runs), string(yamlBytes), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
+	return pages.WorkflowDetailPage(c.Context(), meta, mapWorkflowTriggers(dto.Triggers), mapWorkflowRuns(runs), string(yamlBytes), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func setWorkflowEnabled(c fiber.Ctx) error {
@@ -340,7 +340,7 @@ func workflowRunsPage(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list workflow runs: %v", err)
 	}
 	c.Type("html")
-	return pages.WorkflowRunsPage(name, mapWorkflowRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
+	return pages.WorkflowRunsPage(c.Context(), name, mapWorkflowRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunsTable(c fiber.Ctx) error {

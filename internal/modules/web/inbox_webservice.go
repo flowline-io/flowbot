@@ -31,7 +31,7 @@ func inboxPage(ctx fiber.Ctx) error {
 		filter = "unread"
 	}
 	ctx.Type("html")
-	return pages.InboxPage(filter).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.InboxPage(ctx.Context(), filter).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func inboxList(ctx fiber.Ctx) error {

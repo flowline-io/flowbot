@@ -1,11 +1,16 @@
 // Package layout provides the global HTML skeleton for all pages.
 package layout
 
-import "github.com/flowline-io/flowbot/pkg/views/partials"
+import (
+	"context"
 
-templ Base(title string) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ Base(ctx context.Context, title string) {
 	<!DOCTYPE html>
-	<html lang="en" data-theme="light">
+	<html lang={ i18n.LangTag(ctx) } data-theme="light">
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -17,6 +22,7 @@ templ Base(title string) {
 		<link href="/static/css/chatagent-markdown.css" rel="stylesheet"/>
 		<link href="/static/vendor/katex/katex.min.css" rel="stylesheet"/>
 		<script src="/static/vendor/htmx.min.js"></script>
+		@partials.I18nScript(ctx)
 		<script src="/static/js/app.js"></script>
 		<script src="/static/js/confirm.js" defer></script>
 	</head>
@@ -25,13 +31,13 @@ templ Base(title string) {
 		<nav class="navbar bg-base-100 px-2 sm:px-4 border-b border-base-300">
 			<div class="navbar-start min-w-0 gap-0">
 				<div class="dropdown lg:hidden">
-					<div tabindex="0" role="button" data-testid="nav-mobile-menu" class="btn btn-ghost btn-square" aria-label="Open navigation menu">
+					<div tabindex="0" role="button" data-testid="nav-mobile-menu" class="btn btn-ghost btn-square" aria-label={ i18n.T(ctx, "common.open_nav_menu") }>
 						<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 					</div>
 					<ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box z-[100] mt-3 w-72 max-h-[calc(100dvh-5rem)] overflow-y-auto p-2 border border-base-300">
 						<li>
 							<a href="/service/web/inbox" class="justify-between" data-testid="nav-mobile-inbox">
-								Inbox
+								{ i18n.T(ctx, "nav.inbox") }
 								<span
 									hx-get="/service/web/inbox-badge"
 									hx-trigger="load, every 20s"
@@ -39,10 +45,10 @@ templ Base(title string) {
 									data-testid="nav-mobile-inbox-badge"></span>
 							</a>
 						</li>
-						<li class="menu-title">Agent</li>
+						<li class="menu-title">{ i18n.T(ctx, "nav.group.agent") }</li>
 						<li>
 							<a href="/service/web/agents" class="justify-between">
-								Agents
+								{ i18n.T(ctx, "nav.agents") }
 								<span
 									hx-get="/service/web/approval-badge"
 									hx-trigger="load, every 20s"
@@ -50,42 +56,42 @@ templ Base(title string) {
 									data-testid="nav-mobile-agents-approval-badge"></span>
 							</a>
 						</li>
-						<li><a href="/service/web/agent-skills">Skills</a></li>
-						<li><a href="/service/web/agent-knowledge">Knowledge</a></li>
-						<li><a href="/service/web/agent-subagents">Subagents</a></li>
-						<li><a href="/service/web/agent-scheduled-tasks">Scheduled Tasks</a></li>
-						<li><a href="/service/web/agent-sessions">Sessions</a></li>
-						<li><a href="/service/web/chatagent-permissions">Permissions</a></li>
-						<li class="menu-title">Automate</li>
-						<li><a href="/service/web/pipelines">Pipelines</a></li>
-						<li><a href="/service/web/workflows">Workflows</a></li>
-						<li><a href="/service/web/functions">Functions</a></li>
-						<li><a href="/service/web/events">Events</a></li>
-						<li><a href="/service/web/relations">Relations</a></li>
-						<li class="menu-title">Integrate</li>
-						<li><a href="/service/web/hub">Apps</a></li>
-						<li><a href="/service/web/homelab">Registry</a></li>
-						<li><a href="/service/web/capabilities">Capabilities</a></li>
-						<li><a href="/service/web/clips">Clips</a></li>
-						<li><a href="/service/web/notifications">Notifications</a></li>
-						<li class="menu-title">System</li>
-						<li><a href="/service/web/healthz">Health</a></li>
-						<li><a href="/service/web/tokens">Tokens</a></li>
-						<li><a href="/service/web/configs">Configs</a></li>
-						<li><a href="/service/web/settings">Settings</a></li>
-						<li><a href="/service/web/account" data-testid="nav-mobile-account">Account</a></li>
-						<li><a href="/service/web/about">About</a></li>
-						<li class="menu-title">User</li>
-						<li><a href="/service/web/life" data-testid="nav-mobile-life">Life</a></li>
-						<li><a href="/service/web/life/stats" data-testid="nav-mobile-life-stats">Stats</a></li>
-						<li><a href="/service/web/life/character" data-testid="nav-mobile-life-character">Character</a></li>
-						<li><a href="/service/web/life/quests" data-testid="nav-mobile-life-quests">Quests</a></li>
-						<li><a href="/service/web/life/inventory" data-testid="nav-mobile-life-inventory">Inventory</a></li>
-						<li><a href="/service/web/life/achievements" data-testid="nav-mobile-life-achievements">Achievements</a></li>
-						<li><a href="/service/web/life/rewards" data-testid="nav-mobile-life-rewards">Rewards</a></li>
+						<li><a href="/service/web/agent-skills">{ i18n.T(ctx, "nav.skills") }</a></li>
+						<li><a href="/service/web/agent-knowledge">{ i18n.T(ctx, "nav.knowledge") }</a></li>
+						<li><a href="/service/web/agent-subagents">{ i18n.T(ctx, "nav.subagents") }</a></li>
+						<li><a href="/service/web/agent-scheduled-tasks">{ i18n.T(ctx, "nav.scheduled_tasks") }</a></li>
+						<li><a href="/service/web/agent-sessions">{ i18n.T(ctx, "nav.sessions") }</a></li>
+						<li><a href="/service/web/chatagent-permissions">{ i18n.T(ctx, "nav.permissions") }</a></li>
+						<li class="menu-title">{ i18n.T(ctx, "nav.group.automate") }</li>
+						<li><a href="/service/web/pipelines">{ i18n.T(ctx, "nav.pipelines") }</a></li>
+						<li><a href="/service/web/workflows">{ i18n.T(ctx, "nav.workflows") }</a></li>
+						<li><a href="/service/web/functions">{ i18n.T(ctx, "nav.functions") }</a></li>
+						<li><a href="/service/web/events">{ i18n.T(ctx, "nav.events") }</a></li>
+						<li><a href="/service/web/relations">{ i18n.T(ctx, "nav.relations") }</a></li>
+						<li class="menu-title">{ i18n.T(ctx, "nav.group.integrate") }</li>
+						<li><a href="/service/web/hub">{ i18n.T(ctx, "nav.apps") }</a></li>
+						<li><a href="/service/web/homelab">{ i18n.T(ctx, "nav.registry") }</a></li>
+						<li><a href="/service/web/capabilities">{ i18n.T(ctx, "nav.capabilities") }</a></li>
+						<li><a href="/service/web/clips">{ i18n.T(ctx, "nav.clips") }</a></li>
+						<li><a href="/service/web/notifications">{ i18n.T(ctx, "nav.notifications") }</a></li>
+						<li class="menu-title">{ i18n.T(ctx, "nav.group.system") }</li>
+						<li><a href="/service/web/healthz">{ i18n.T(ctx, "nav.health") }</a></li>
+						<li><a href="/service/web/tokens">{ i18n.T(ctx, "nav.tokens") }</a></li>
+						<li><a href="/service/web/configs">{ i18n.T(ctx, "nav.configs") }</a></li>
+						<li><a href="/service/web/settings">{ i18n.T(ctx, "nav.settings") }</a></li>
+						<li><a href="/service/web/account" data-testid="nav-mobile-account">{ i18n.T(ctx, "nav.account") }</a></li>
+						<li><a href="/service/web/about">{ i18n.T(ctx, "nav.about") }</a></li>
+						<li class="menu-title">{ i18n.T(ctx, "nav.group.user") }</li>
+						<li><a href="/service/web/life" data-testid="nav-mobile-life">{ i18n.T(ctx, "nav.life") }</a></li>
+						<li><a href="/service/web/life/stats" data-testid="nav-mobile-life-stats">{ i18n.T(ctx, "nav.stats") }</a></li>
+						<li><a href="/service/web/life/character" data-testid="nav-mobile-life-character">{ i18n.T(ctx, "nav.character") }</a></li>
+						<li><a href="/service/web/life/quests" data-testid="nav-mobile-life-quests">{ i18n.T(ctx, "nav.quests") }</a></li>
+						<li><a href="/service/web/life/inventory" data-testid="nav-mobile-life-inventory">{ i18n.T(ctx, "nav.inventory") }</a></li>
+						<li><a href="/service/web/life/achievements" data-testid="nav-mobile-life-achievements">{ i18n.T(ctx, "nav.achievements") }</a></li>
+						<li><a href="/service/web/life/rewards" data-testid="nav-mobile-life-rewards">{ i18n.T(ctx, "nav.rewards") }</a></li>
 					</ul>
 				</div>
-				<a href="/service/web/home" class="btn btn-ghost text-lg sm:text-xl normal-case px-2 truncate gap-2" aria-label="Flowbot home">
+				<a href="/service/web/home" class="btn btn-ghost text-lg sm:text-xl normal-case px-2 truncate gap-2" aria-label={ i18n.T(ctx, "common.flowbot_home") }>
 					@partials.BrandMark("w-6 h-6 shrink-0 text-primary")
 					<span class="font-semibold tracking-tight">Flowbot</span>
 				</a>
@@ -96,17 +102,17 @@ templ Base(title string) {
 					id="nav-command-palette"
 					data-testid="nav-command-palette"
 					class="btn btn-ghost btn-sm gap-1.5"
-					aria-label="Open command palette"
-					title="Search (Ctrl/Cmd+K)"
+					aria-label={ i18n.T(ctx, "common.open_command_palette") }
+					title={ i18n.T(ctx, "common.search_hint") }
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-					<span class="hidden md:inline text-base-content/60 font-normal">Search</span>
+					<span class="hidden md:inline text-base-content/60 font-normal">{ i18n.T(ctx, "common.search") }</span>
 					<kbd class="kbd kbd-sm hidden lg:inline-flex text-base-content/50" data-testid="nav-command-palette-hint">Ctrl K</kbd>
 				</button>
 				<div class="hidden lg:flex items-center gap-1">
-					<a href="/service/web/inbox" data-testid="nav-inbox" class="btn btn-ghost btn-sm gap-1" aria-label="Inbox">
+					<a href="/service/web/inbox" data-testid="nav-inbox" class="btn btn-ghost btn-sm gap-1" aria-label={ i18n.T(ctx, "nav.inbox") }>
 						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-						<span class="hidden xl:inline">Inbox</span>
+						<span class="hidden xl:inline">{ i18n.T(ctx, "nav.inbox") }</span>
 						<span
 							hx-get="/service/web/inbox-badge"
 							hx-trigger="load, every 20s"
@@ -115,7 +121,7 @@ templ Base(title string) {
 					</a>
 					<div class="dropdown dropdown-hover">
 						<div tabindex="0" role="button" data-testid="nav-group-operate" class="btn btn-ghost btn-sm gap-1">
-							Agent
+							{ i18n.T(ctx, "nav.group.agent") }
 							<span
 								hx-get="/service/web/approval-badge"
 								hx-trigger="load, every 20s"
@@ -125,7 +131,7 @@ templ Base(title string) {
 						<ul tabindex="0" class="dropdown-content menu p-2 shadow-sm border border-base-300 bg-base-100 rounded-box w-44 z-50">
 							<li>
 								<a href="/service/web/agents" data-testid="nav-agents" class="justify-between">
-									Agents
+									{ i18n.T(ctx, "nav.agents") }
 									<span
 										hx-get="/service/web/approval-badge"
 										hx-trigger="load, every 20s"
@@ -133,43 +139,43 @@ templ Base(title string) {
 										data-testid="nav-agents-approval-badge"></span>
 								</a>
 							</li>
-							<li><a href="/service/web/agent-skills" data-testid="nav-agent-skills">Skills</a></li>
-							<li><a href="/service/web/agent-knowledge" data-testid="nav-agent-knowledge">Knowledge</a></li>
-							<li><a href="/service/web/agent-subagents" data-testid="nav-agent-subagents">Subagents</a></li>
-							<li><a href="/service/web/agent-scheduled-tasks" data-testid="nav-agent-scheduled-tasks">Scheduled Tasks</a></li>
-							<li><a href="/service/web/agent-sessions" data-testid="nav-agent-sessions">Sessions</a></li>
-							<li><a href="/service/web/chatagent-permissions" data-testid="nav-chatagent-permissions">Permissions</a></li>
+							<li><a href="/service/web/agent-skills" data-testid="nav-agent-skills">{ i18n.T(ctx, "nav.skills") }</a></li>
+							<li><a href="/service/web/agent-knowledge" data-testid="nav-agent-knowledge">{ i18n.T(ctx, "nav.knowledge") }</a></li>
+							<li><a href="/service/web/agent-subagents" data-testid="nav-agent-subagents">{ i18n.T(ctx, "nav.subagents") }</a></li>
+							<li><a href="/service/web/agent-scheduled-tasks" data-testid="nav-agent-scheduled-tasks">{ i18n.T(ctx, "nav.scheduled_tasks") }</a></li>
+							<li><a href="/service/web/agent-sessions" data-testid="nav-agent-sessions">{ i18n.T(ctx, "nav.sessions") }</a></li>
+							<li><a href="/service/web/chatagent-permissions" data-testid="nav-chatagent-permissions">{ i18n.T(ctx, "nav.permissions") }</a></li>
 						</ul>
 					</div>
 					<div class="dropdown dropdown-hover">
-						<div tabindex="0" role="button" data-testid="nav-group-automate" class="btn btn-ghost btn-sm">Automate</div>
+						<div tabindex="0" role="button" data-testid="nav-group-automate" class="btn btn-ghost btn-sm">{ i18n.T(ctx, "nav.group.automate") }</div>
 						<ul tabindex="0" class="dropdown-content menu p-2 shadow-sm border border-base-300 bg-base-100 rounded-box w-40 z-50">
-							<li><a href="/service/web/pipelines" data-testid="nav-pipelines">Pipelines</a></li>
-							<li><a href="/service/web/workflows" data-testid="nav-workflows">Workflows</a></li>
-							<li><a href="/service/web/functions" data-testid="nav-functions">Functions</a></li>
-							<li><a href="/service/web/events" data-testid="nav-events">Events</a></li>
-							<li><a href="/service/web/relations" data-testid="nav-relations">Relations</a></li>
+							<li><a href="/service/web/pipelines" data-testid="nav-pipelines">{ i18n.T(ctx, "nav.pipelines") }</a></li>
+							<li><a href="/service/web/workflows" data-testid="nav-workflows">{ i18n.T(ctx, "nav.workflows") }</a></li>
+							<li><a href="/service/web/functions" data-testid="nav-functions">{ i18n.T(ctx, "nav.functions") }</a></li>
+							<li><a href="/service/web/events" data-testid="nav-events">{ i18n.T(ctx, "nav.events") }</a></li>
+							<li><a href="/service/web/relations" data-testid="nav-relations">{ i18n.T(ctx, "nav.relations") }</a></li>
 						</ul>
 					</div>
 					<div class="dropdown dropdown-hover">
-						<div tabindex="0" role="button" data-testid="nav-group-integrate" class="btn btn-ghost btn-sm">Integrate</div>
+						<div tabindex="0" role="button" data-testid="nav-group-integrate" class="btn btn-ghost btn-sm">{ i18n.T(ctx, "nav.group.integrate") }</div>
 						<ul tabindex="0" class="dropdown-content menu p-2 shadow-sm border border-base-300 bg-base-100 rounded-box w-44 z-50">
-							<li><a href="/service/web/hub" data-testid="nav-hub">Apps</a></li>
-							<li><a href="/service/web/homelab" data-testid="nav-homelab">Registry</a></li>
-							<li><a href="/service/web/capabilities" data-testid="nav-capabilities">Capabilities</a></li>
-							<li><a href="/service/web/clips" data-testid="nav-clips">Clips</a></li>
-							<li><a href="/service/web/notifications" data-testid="nav-notifications">Notifications</a></li>
+							<li><a href="/service/web/hub" data-testid="nav-hub">{ i18n.T(ctx, "nav.apps") }</a></li>
+							<li><a href="/service/web/homelab" data-testid="nav-homelab">{ i18n.T(ctx, "nav.registry") }</a></li>
+							<li><a href="/service/web/capabilities" data-testid="nav-capabilities">{ i18n.T(ctx, "nav.capabilities") }</a></li>
+							<li><a href="/service/web/clips" data-testid="nav-clips">{ i18n.T(ctx, "nav.clips") }</a></li>
+							<li><a href="/service/web/notifications" data-testid="nav-notifications">{ i18n.T(ctx, "nav.notifications") }</a></li>
 						</ul>
 					</div>
 					<div class="dropdown dropdown-hover">
-						<div tabindex="0" role="button" data-testid="nav-group-system" class="btn btn-ghost btn-sm">System</div>
+						<div tabindex="0" role="button" data-testid="nav-group-system" class="btn btn-ghost btn-sm">{ i18n.T(ctx, "nav.group.system") }</div>
 						<ul tabindex="0" class="dropdown-content menu p-2 shadow-sm border border-base-300 bg-base-100 rounded-box w-40 z-50">
-							<li><a href="/service/web/healthz" data-testid="nav-healthz">Health</a></li>
-							<li><a href="/service/web/tokens" data-testid="nav-tokens">Tokens</a></li>
-							<li><a href="/service/web/configs" data-testid="nav-configs">Configs</a></li>
-							<li><a href="/service/web/settings" data-testid="nav-settings">Settings</a></li>
-							<li><a href="/service/web/account" data-testid="nav-account">Account</a></li>
-							<li><a href="/service/web/about" data-testid="nav-about">About</a></li>
+							<li><a href="/service/web/healthz" data-testid="nav-healthz">{ i18n.T(ctx, "nav.health") }</a></li>
+							<li><a href="/service/web/tokens" data-testid="nav-tokens">{ i18n.T(ctx, "nav.tokens") }</a></li>
+							<li><a href="/service/web/configs" data-testid="nav-configs">{ i18n.T(ctx, "nav.configs") }</a></li>
+							<li><a href="/service/web/settings" data-testid="nav-settings">{ i18n.T(ctx, "nav.settings") }</a></li>
+							<li><a href="/service/web/account" data-testid="nav-account">{ i18n.T(ctx, "nav.account") }</a></li>
+							<li><a href="/service/web/about" data-testid="nav-about">{ i18n.T(ctx, "nav.about") }</a></li>
 						</ul>
 					</div>
 				</div>
@@ -182,39 +188,40 @@ templ Base(title string) {
 						</span>
 					</div>
 					<div class="flowbot-nav-user-actions">
+						@partials.LangSwitcher(ctx)
 						<div x-data="themePicker" class="flex items-center" @keydown.escape="open = false">
-							<button type="button" @click="toggleLightDark()" class="flowbot-nav-user-btn" data-testid="theme-quick-toggle" aria-label="Toggle light/dark">
+							<button type="button" @click="toggleLightDark()" class="flowbot-nav-user-btn" data-testid="theme-quick-toggle" aria-label={ i18n.T(ctx, "common.toggle_theme") }>
 								<svg x-show="theme === 'light'" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
 								<svg x-show="theme !== 'light'" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
 							</button>
 							<div class="relative" @keydown.escape="open = false">
-								<button type="button" @click="open = !open" class="flowbot-nav-user-btn" data-testid="theme-picker" aria-label="Pick theme">
+								<button type="button" @click="open = !open" class="flowbot-nav-user-btn" data-testid="theme-picker" aria-label={ i18n.T(ctx, "common.pick_theme") }>
 									<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
 								</button>
 								<ul x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 top-full menu bg-base-100 rounded-box shadow-sm w-40 z-50 mt-1 p-1 border border-base-300">
-									<li><button type="button" @click="setTheme('light')" :class="theme === 'light' ? 'active' : ''">Light</button></li>
-									<li><button type="button" @click="setTheme('dark')" :class="theme === 'dark' ? 'active' : ''">Dark</button></li>
-									<li class="menu-title text-xs pt-2">Advanced</li>
-									<li><button type="button" @click="setTheme('cupcake')" :class="theme === 'cupcake' ? 'active' : ''">Cupcake</button></li>
-									<li><button type="button" @click="setTheme('synthwave')" :class="theme === 'synthwave' ? 'active' : ''">Synthwave</button></li>
-									<li><button type="button" @click="setTheme('cyberpunk')" :class="theme === 'cyberpunk' ? 'active' : ''">Cyberpunk</button></li>
-									<li><button type="button" @click="setTheme('forest')" :class="theme === 'forest' ? 'active' : ''">Forest</button></li>
-									<li><button type="button" @click="setTheme('dracula')" :class="theme === 'dracula' ? 'active' : ''">Dracula</button></li>
-									<li><button type="button" @click="setTheme('nord')" :class="theme === 'nord' ? 'active' : ''">Nord</button></li>
+									<li><button type="button" @click="setTheme('light')" :class="theme === 'light' ? 'active' : ''">{ i18n.T(ctx, "common.theme_light") }</button></li>
+									<li><button type="button" @click="setTheme('dark')" :class="theme === 'dark' ? 'active' : ''">{ i18n.T(ctx, "common.theme_dark") }</button></li>
+									<li class="menu-title text-xs pt-2">{ i18n.T(ctx, "common.theme_advanced") }</li>
+									<li><button type="button" @click="setTheme('cupcake')" :class="theme === 'cupcake' ? 'active' : ''">{ i18n.T(ctx, "common.theme_cupcake") }</button></li>
+									<li><button type="button" @click="setTheme('synthwave')" :class="theme === 'synthwave' ? 'active' : ''">{ i18n.T(ctx, "common.theme_synthwave") }</button></li>
+									<li><button type="button" @click="setTheme('cyberpunk')" :class="theme === 'cyberpunk' ? 'active' : ''">{ i18n.T(ctx, "common.theme_cyberpunk") }</button></li>
+									<li><button type="button" @click="setTheme('forest')" :class="theme === 'forest' ? 'active' : ''">{ i18n.T(ctx, "common.theme_forest") }</button></li>
+									<li><button type="button" @click="setTheme('dracula')" :class="theme === 'dracula' ? 'active' : ''">{ i18n.T(ctx, "common.theme_dracula") }</button></li>
+									<li><button type="button" @click="setTheme('nord')" :class="theme === 'nord' ? 'active' : ''">{ i18n.T(ctx, "common.theme_nord") }</button></li>
 								</ul>
 							</div>
 						</div>
 						<button
 							type="button"
 							hx-post="/service/web/logout"
-							data-confirm="Sign out of this session?"
-							data-confirm-title="Logout"
-							data-confirm-btn="Logout"
+							data-confirm={ i18n.T(ctx, "common.logout_confirm") }
+							data-confirm-title={ i18n.T(ctx, "common.logout_title") }
+							data-confirm-btn={ i18n.T(ctx, "common.logout") }
 							data-confirm-class="btn-error"
 							data-testid="nav-logout"
 							class="flowbot-nav-user-btn flowbot-nav-user-btn--danger"
-							aria-label="Logout"
-							title="Logout"
+							aria-label={ i18n.T(ctx, "common.logout") }
+							title={ i18n.T(ctx, "common.logout") }
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
 						</button>
@@ -226,8 +233,8 @@ templ Base(title string) {
 			{ children... }
 		</main>
 		<div id="toast-container" class="toast toast-end z-[9999]" data-testid="toast-container"></div>
-		@partials.ConfirmModal()
-		@partials.CommandPalette()
+		@partials.ConfirmModal(ctx)
+		@partials.CommandPalette(ctx)
 		<script src="/static/js/command-palette.js" defer></script>
 		// Alpine CSP build — no unsafe-eval. Page scripts register Alpine.data before this loads.
 		<script src="/static/vendor/alpine.csp.min.js" defer></script>

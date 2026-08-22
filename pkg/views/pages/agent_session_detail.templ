@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan, todos []model.AgentTodo, pending *partials.ChatAgentPendingConfirm) {
-	@layout.Base(partials.AgentSessionPageTitle(session)) {
+templ AgentSessionDetailPage(ctx context.Context, session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan, todos []model.AgentTodo, pending *partials.ChatAgentPendingConfirm) {
+	@layout.Base(ctx, partials.AgentSessionPageTitle(session)) {
 		if session.Title != "" {
 			@partials.PageHeader(session.Title, session.Flag) {
 				<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>

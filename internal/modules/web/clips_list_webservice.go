@@ -31,7 +31,7 @@ func clipsListPage(ctx fiber.Ctx) error {
 		return ctx.Status(http.StatusInternalServerError).SendString("failed to load clips")
 	}
 	ctx.Type("html")
-	return pages.ClipsPage(items).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.ClipsPage(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // clipsListPartial returns the clips table fragment for HTMX refresh.

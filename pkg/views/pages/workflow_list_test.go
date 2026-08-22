@@ -1,6 +1,7 @@
 package pages_test
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"bytes"
 	"context"
 	"strings"
@@ -37,7 +38,7 @@ func TestWorkflowListPageIncludesStatsScripts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := pages.WorkflowListPage([]partials.WorkflowListEntry{}).Render(context.Background(), &buf)
+			err := pages.WorkflowListPage(i18n.DefaultContext(), []partials.WorkflowListEntry{}).Render(context.Background(), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}
@@ -66,7 +67,7 @@ func TestWorkflowRunsPageIncludesStatsScripts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := pages.WorkflowRunsPage("demo", nil).Render(context.Background(), &buf)
+			err := pages.WorkflowRunsPage(i18n.DefaultContext(), "demo", nil).Render(context.Background(), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}

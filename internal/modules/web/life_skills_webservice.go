@@ -32,7 +32,7 @@ func lifeSkillsPage(ctx fiber.Ctx) error {
 	}
 	data := buildLifeSkillTreeData(tree, selected, len(pending))
 	ctx.Type("html")
-	return pages.LifeSkillsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifeSkillsPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func buildLifeSkillTreeData(tree *lifemod.SkillTreeView, selected string, pendingCount int) pages.LifeSkillTreeData {

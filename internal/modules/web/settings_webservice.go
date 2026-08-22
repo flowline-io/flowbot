@@ -1,8 +1,6 @@
 package web
 
 import (
-	"context"
-
 	"github.com/gofiber/fiber/v3"
 
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
@@ -22,5 +20,5 @@ func settingsPage(ctx fiber.Ctx) error {
 
 	data := pages.NewSettingsPageData(pkgconfig.SettingsCatalog(&pkgconfig.App))
 	ctx.Type("html")
-	return pages.SettingsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.SettingsPage(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }

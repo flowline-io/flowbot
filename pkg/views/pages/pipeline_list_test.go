@@ -1,6 +1,7 @@
 package pages_test
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"bytes"
 	"context"
 	"strings"
@@ -44,7 +45,7 @@ func TestPipelineListPageIncludesStatsScripts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := pages.PipelineListPage([]partials.PipelineListEntry{}).Render(context.Background(), &buf)
+			err := pages.PipelineListPage(i18n.DefaultContext(), []partials.PipelineListEntry{}).Render(context.Background(), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}
@@ -73,7 +74,7 @@ func TestPipelineRunsPageIncludesStatsScripts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := pages.PipelineRunsPage("demo", nil).Render(context.Background(), &buf)
+			err := pages.PipelineRunsPage(i18n.DefaultContext(), "demo", nil).Render(context.Background(), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}

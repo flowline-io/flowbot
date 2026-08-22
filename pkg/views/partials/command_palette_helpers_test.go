@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,7 +30,7 @@ func TestCommandPaletteNavPages(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			pages := CommandPaletteNavPages()
+			pages := CommandPaletteNavPages(i18n.DefaultContext())
 			require.NotEmpty(t, pages)
 			found := false
 			for _, p := range pages {
@@ -58,7 +59,7 @@ func TestCommandPalettePagesJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := CommandPalettePagesJSON()
+			got := CommandPalettePagesJSON(i18n.DefaultContext())
 			assert.Contains(t, got, tt.wantSubstr)
 		})
 	}

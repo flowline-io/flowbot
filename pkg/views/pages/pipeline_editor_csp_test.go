@@ -1,6 +1,7 @@
 package pages_test
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"bytes"
 	"context"
 	"strings"
@@ -23,7 +24,7 @@ func TestPipelineEditorPageCSPSafeExpressions(t *testing.T) {
 		{name: "no enabledTriggers method call in x-for", bad: "enabledTriggers()"},
 	}
 	var buf bytes.Buffer
-	if err := pages.PipelineEditorPage("demo").Render(context.Background(), &buf); err != nil {
+	if err := pages.PipelineEditorPage(i18n.DefaultContext(), "demo").Render(context.Background(), &buf); err != nil {
 		t.Fatalf("render: %v", err)
 	}
 	html := buf.String()
@@ -76,7 +77,7 @@ func TestPipelineEditorPageCSPSafeExpressions(t *testing.T) {
 func TestPipelineEditorWebhookURLCopyMarkup(t *testing.T) {
 	t.Parallel()
 	var buf bytes.Buffer
-	if err := pages.PipelineEditorPage("demo").Render(context.Background(), &buf); err != nil {
+	if err := pages.PipelineEditorPage(i18n.DefaultContext(), "demo").Render(context.Background(), &buf); err != nil {
 		t.Fatalf("render: %v", err)
 	}
 	html := buf.String()

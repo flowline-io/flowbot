@@ -60,14 +60,14 @@ func checkTOTPRateLimit(ctx fiber.Ctx) string {
 	}
 	delay, locked := totpLimiter.Allow(ctx.Context(), totpAttemptKey(ctx.IP()))
 	if locked {
-		return msgAccountLocked
+		return webAuthMsg(ctx, "auth.account_locked")
 	}
 	if delay > 0 {
 		timer := time.NewTimer(delay)
 		defer timer.Stop()
 		select {
 		case <-ctx.Context().Done():
-			return msgAccountLocked
+			return webAuthMsg(ctx, "auth.account_locked")
 		case <-timer.C:
 		}
 	}
@@ -76,13 +76,13 @@ func checkTOTPRateLimit(ctx fiber.Ctx) string {
 
 func recordTOTPFailure(ctx fiber.Ctx) string {
 	if totpLimiter == nil {
-		return msgInvalidTOTP
+		return webAuthMsg(ctx, "auth.invalid_totp")
 	}
 	locked, _ := totpLimiter.RecordFailure(ctx.Context(), totpAttemptKey(ctx.IP()))
 	if locked {
-		return msgTooManyFailedAttempts
+		return webAuthMsg(ctx, "auth.too_many_attempts")
 	}
-	return msgInvalidTOTP
+	return webAuthMsg(ctx, "auth.invalid_totp")
 }
 
 func totpSuccessCleanup(ctx fiber.Ctx) {
@@ -90,8 +90,6 @@ func totpSuccessCleanup(ctx fiber.Ctx) {
 		totpLimiter.RecordSuccess(ctx.Context(), totpAttemptKey(ctx.IP()))
 	}
 }
-
-const msgInvalidTOTP = "Invalid verification code"
 
 // pendingSession holds parsed pending auth cookie state.
 type pendingSession struct {

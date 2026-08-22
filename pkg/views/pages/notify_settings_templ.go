@@ -11,6 +11,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"context"
+
 	"net/url"
 
 	"github.com/flowline-io/flowbot/pkg/views/layout"
@@ -20,7 +22,7 @@ import (
 // NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
 // activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
 // focusChannel / focusRuleID deep-link highlight a row after jumping from History.
-func NotifySettingsPage(activeTab, focusChannel, focusRuleID string) templ.Component {
+func NotifySettingsPage(ctx context.Context, activeTab, focusChannel, focusRuleID string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -88,7 +90,7 @@ func NotifySettingsPage(activeTab, focusChannel, focusRuleID string) templ.Compo
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(notifyChannelsListURL(focusChannel)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/notify_settings.templ`, Line: 35, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/notify_settings.templ`, Line: 37, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 			if templ_7745c5c3_Err != nil {
@@ -137,7 +139,7 @@ func NotifySettingsPage(activeTab, focusChannel, focusRuleID string) templ.Compo
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(notifyRulesListURL(focusRuleID)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/notify_settings.templ`, Line: 79, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/notify_settings.templ`, Line: 81, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
@@ -193,7 +195,7 @@ func NotifySettingsPage(activeTab, focusChannel, focusRuleID string) templ.Compo
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Notifications — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Notifications — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

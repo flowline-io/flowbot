@@ -1,12 +1,14 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ HomePage(d partials.HomeDashboard) {
-	@layout.Base("Flowbot") {
+templ HomePage(ctx context.Context, d partials.HomeDashboard) {
+	@layout.Base(ctx, "Flowbot") {
 		@partials.TokenUsageScripts()
 		@partials.PageHeader("Home", "Operational overview for this Flowbot instance.") {
 		}

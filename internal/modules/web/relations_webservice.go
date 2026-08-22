@@ -34,7 +34,7 @@ func relationsPage(ctx fiber.Ctx) error {
 		return err
 	}
 	ctx.Type("html")
-	return pages.RelationsPage(pages.RelationsPageParams{}).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.RelationsPage(ctx.Context(), pages.RelationsPageParams{}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func relationsTree(ctx fiber.Ctx) error {

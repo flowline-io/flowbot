@@ -63,7 +63,7 @@ func hubAppsPage(c fiber.Ctx) error {
 	}
 	apps, updatedAts := loadAppsWithUpdatedAts(c.Context())
 	c.Type("html")
-	return pages.HubAppsPage(apps, updatedAts).Render(c.Context(), c.Response().BodyWriter())
+	return pages.HubAppsPage(c.Context(), apps, updatedAts).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // hubAppsList returns the table partial for HTMX auto-refresh.
@@ -92,7 +92,7 @@ func hubAppDetailPage(c fiber.Ctx) error {
 	}
 	perms := homelab.DefaultRegistry.Permissions()
 	c.Type("html")
-	return pages.HubAppDetailPage(app, status, perms).Render(c.Context(), c.Response().BodyWriter())
+	return pages.HubAppDetailPage(c.Context(), app, status, perms).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // hubAppStatusPartial returns the status badge partial for HTMX swaps after actions.
@@ -379,7 +379,7 @@ func hubCapabilitiesPage(c fiber.Ctx) error {
 	typeList := uniqueTypes(descriptors)
 	providerList := uniqueProviders(descriptors)
 	c.Type("html")
-	return pages.CapabilitiesPage(descriptors, typeList, providerList).Render(c.Context(), c.Response().BodyWriter())
+	return pages.CapabilitiesPage(c.Context(), descriptors, typeList, providerList).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // hubCapabilitiesGrid returns the filtered card grid partial for HTMX swaps.

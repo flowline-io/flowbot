@@ -1,27 +1,32 @@
 package pages
 
-import "github.com/flowline-io/flowbot/pkg/views/layout"
+import (
+	"context"
 
-templ Login2FAPage(nextURL string, errorMsg string, csrfToken string) {
-	@layout.Auth("Flowbot — Two-factor") {
-		@Login2FAForm(nextURL, errorMsg, csrfToken)
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+)
+
+templ Login2FAPage(ctx context.Context, nextURL string, errorMsg string, csrfToken string) {
+	@layout.Auth(ctx, "Flowbot — Two-factor") {
+		@Login2FAForm(ctx, nextURL, errorMsg, csrfToken)
 		<script src="/static/js/login-2fa.js"></script>
 	}
 }
 
-templ Login2FAForm(nextURL string, errorMsg string, csrfToken string) {
+templ Login2FAForm(ctx context.Context, nextURL string, errorMsg string, csrfToken string) {
 	<form hx-post="/service/web/login/2fa"
 		hx-target="this"
 		hx-swap="outerHTML"
 		data-testid="login-2fa-form"
 		class="w-full max-w-sm border-t border-base-300 pt-6">
-		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Two-factor authentication</h1>
-		<p class="text-sm text-base-content/60 mb-5">Enter the 6-digit code from your authenticator app.</p>
+		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.two_factor") }</h1>
+		<p class="text-sm text-base-content/60 mb-5">{ i18n.T(ctx, "auth.two_factor_hint") }</p>
 		<input type="hidden" name="next" value={ nextURL }/>
 		<input type="hidden" name="csrf_token" value={ csrfToken } data-testid="login-2fa-csrf"/>
 		<input type="hidden" name="code" value="" data-testid="login-2fa-code" data-login-2fa-value/>
 		<div class="mb-5" data-login-2fa-otp-panel>
-			<label class="block text-sm font-medium mb-1.5">Verification code</label>
+			<label class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.verification_code") }</label>
 			<div class="flex gap-2" role="group" aria-label="6-digit verification code" data-testid="login-2fa-otp" data-login-2fa-otp>
 				<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1"
 					data-login-2fa-digit class="input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0"/>
@@ -37,49 +42,49 @@ templ Login2FAForm(nextURL string, errorMsg string, csrfToken string) {
 					data-login-2fa-digit class="input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0"/>
 			</div>
 			<button type="button" class="btn btn-link btn-sm px-0 mt-3 h-auto min-h-0" data-testid="login-2fa-use-backup" data-login-2fa-show-backup>
-				Use a backup code
+				{ i18n.T(ctx, "auth.use_backup_code") }
 			</button>
 		</div>
 		<div class="mb-5 hidden" hidden data-login-2fa-backup-panel>
-			<label for="login-2fa-backup" class="block text-sm font-medium mb-1.5">Backup code</label>
+			<label for="login-2fa-backup" class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.backup_code") }</label>
 			<input type="text" id="login-2fa-backup" autocomplete="off" maxlength="16"
 				data-testid="login-2fa-backup-code" data-login-2fa-backup
 				class="input input-bordered w-full font-mono"/>
 			<button type="button" class="btn btn-link btn-sm px-0 mt-3 h-auto min-h-0" data-testid="login-2fa-use-otp" data-login-2fa-show-otp>
-				Use authenticator code
+				{ i18n.T(ctx, "auth.use_authenticator") }
 			</button>
 		</div>
 		if errorMsg != "" {
 			<p class="text-error text-sm mb-4" data-testid="login-2fa-error">{ errorMsg }</p>
 		}
-		<button type="submit" data-testid="login-2fa-submit" class="btn btn-primary w-full">Verify</button>
+		<button type="submit" data-testid="login-2fa-submit" class="btn btn-primary w-full">{ i18n.T(ctx, "auth.verify") }</button>
 	</form>
 }
 
-templ SetupPage(errorMsg string, csrfToken string) {
-	@layout.Auth("Flowbot — Setup") {
-		@SetupForm(errorMsg, csrfToken)
+templ SetupPage(ctx context.Context, errorMsg string, csrfToken string) {
+	@layout.Auth(ctx, "Flowbot — Setup") {
+		@SetupForm(ctx, errorMsg, csrfToken)
 	}
 }
 
-templ SetupForm(errorMsg string, csrfToken string) {
+templ SetupForm(ctx context.Context, errorMsg string, csrfToken string) {
 	<form hx-post="/service/web/setup"
 		hx-target="this"
 		hx-swap="outerHTML"
 		data-testid="setup-form"
 		class="w-full max-w-sm border-t border-base-300 pt-6">
-		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Create admin account</h1>
-		<p class="text-sm text-base-content/60 mb-5">First-time setup. You will bind TOTP next.</p>
+		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.create_admin") }</h1>
+		<p class="text-sm text-base-content/60 mb-5">{ i18n.T(ctx, "auth.setup_hint") }</p>
 		<input type="hidden" name="csrf_token" value={ csrfToken } data-testid="setup-csrf"/>
 		<div class="mb-4">
-			<label for="username" class="block text-sm font-medium mb-1.5">Username</label>
+			<label for="username" class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.username") }</label>
 			<input type="text" id="username" name="username" autocomplete="username"
 				required maxlength="128"
 				data-testid="setup-username"
 				class="input input-bordered w-full"/>
 		</div>
 		<div class="mb-5">
-			<label for="password" class="block text-sm font-medium mb-1.5">Password</label>
+			<label for="password" class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.password") }</label>
 			<input type="password" id="password" name="password" autocomplete="new-password"
 				required maxlength="256" minlength="12"
 				data-testid="setup-password"
@@ -88,29 +93,29 @@ templ SetupForm(errorMsg string, csrfToken string) {
 		if errorMsg != "" {
 			<p class="text-error text-sm mb-4" data-testid="setup-error">{ errorMsg }</p>
 		}
-		<button type="submit" data-testid="setup-submit" class="btn btn-primary w-full">Continue</button>
+		<button type="submit" data-testid="setup-submit" class="btn btn-primary w-full">{ i18n.T(ctx, "auth.continue") }</button>
 	</form>
 }
 
-templ Enroll2FAPage(secret string, otpauthURI string, errorMsg string, csrfToken string) {
-	@layout.Auth("Flowbot — Enable 2FA") {
+templ Enroll2FAPage(ctx context.Context, secret string, otpauthURI string, errorMsg string, csrfToken string) {
+	@layout.Auth(ctx, "Flowbot — Enable 2FA") {
 		<form hx-post="/service/web/setup/2fa"
 			hx-target="this"
 			hx-swap="outerHTML"
 			data-testid="enroll-2fa-form"
 			class="w-full max-w-sm border-t border-base-300 pt-6">
-			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Enable authenticator</h1>
-			<p class="text-sm text-base-content/60 mb-4">Scan the QR code with your authenticator app, then enter a code to confirm.</p>
+			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.enable_authenticator") }</h1>
+			<p class="text-sm text-base-content/60 mb-4">{ i18n.T(ctx, "auth.enable_authenticator_hint") }</p>
 			<input type="hidden" name="csrf_token" value={ csrfToken }/>
 			<div class="flex justify-center mb-4">
 				<div data-testid="enroll-2fa-qr" data-otpauth-uri={ otpauthURI } class="bg-white p-2 border border-base-300 inline-block min-h-[216px] min-w-[216px]"></div>
 			</div>
 			<div class="mb-4">
-				<label class="block text-sm font-medium mb-1.5">Or enter secret manually</label>
+				<label class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.enter_secret_manually") }</label>
 				<code class="block text-xs break-all bg-base-300/40 p-3 rounded" data-testid="enroll-2fa-secret">{ secret }</code>
 			</div>
 			<div class="mb-5">
-				<label for="code" class="block text-sm font-medium mb-1.5">Verification code</label>
+				<label for="code" class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.verification_code") }</label>
 				<input type="text" id="code" name="code" autocomplete="one-time-code" inputmode="numeric"
 					required maxlength="8"
 					data-testid="enroll-2fa-code"
@@ -119,18 +124,18 @@ templ Enroll2FAPage(secret string, otpauthURI string, errorMsg string, csrfToken
 			if errorMsg != "" {
 				<p class="text-error text-sm mb-4" data-testid="enroll-2fa-error">{ errorMsg }</p>
 			}
-			<button type="submit" data-testid="enroll-2fa-submit" class="btn btn-primary w-full">Confirm and continue</button>
+			<button type="submit" data-testid="enroll-2fa-submit" class="btn btn-primary w-full">{ i18n.T(ctx, "auth.confirm_and_continue") }</button>
 		</form>
 		<script src="/static/vendor/qrcode.min.js"></script>
 		<script src="/static/js/totp-enroll.js"></script>
 	}
 }
 
-templ BackupCodesPage(codes []string, csrfToken string) {
-	@layout.Auth("Flowbot — Backup codes") {
+templ BackupCodesPage(ctx context.Context, codes []string, csrfToken string) {
+	@layout.Auth(ctx, "Flowbot — Backup codes") {
 		<div class="w-full max-w-sm border-t border-base-300 pt-6" data-testid="backup-codes-page">
-			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Save backup codes</h1>
-			<p class="text-sm text-base-content/60 mb-4">Store these one-time codes somewhere safe. They will not be shown again.</p>
+			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.save_backup_codes") }</h1>
+			<p class="text-sm text-base-content/60 mb-4">{ i18n.T(ctx, "auth.backup_codes_hint") }</p>
 			<ul class="font-mono text-sm space-y-1 mb-6 bg-base-300/40 p-3 rounded" data-testid="backup-codes-list">
 				for _, c := range codes {
 					<li>{ c }</li>
@@ -140,22 +145,22 @@ templ BackupCodesPage(codes []string, csrfToken string) {
 				data-testid="backup-codes-ack-form"
 				class="w-full">
 				<input type="hidden" name="csrf_token" value={ csrfToken }/>
-				<button type="submit" class="btn btn-primary w-full" data-testid="backup-codes-continue">Continue to Flowbot</button>
+				<button type="submit" class="btn btn-primary w-full" data-testid="backup-codes-continue">{ i18n.T(ctx, "auth.continue_to_flowbot") }</button>
 			</form>
 		</div>
 	}
 }
 
-templ BackupCodesAckPage(csrfToken string) {
-	@layout.Auth("Flowbot — Backup codes") {
+templ BackupCodesAckPage(ctx context.Context, csrfToken string) {
+	@layout.Auth(ctx, "Flowbot — Backup codes") {
 		<div class="w-full max-w-sm border-t border-base-300 pt-6" data-testid="backup-codes-ack-page">
-			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Confirm backup codes saved</h1>
-			<p class="text-sm text-base-content/60 mb-6">Backup codes were already shown. Continue only after you stored them somewhere safe.</p>
+			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.confirm_backup_saved") }</h1>
+			<p class="text-sm text-base-content/60 mb-6">{ i18n.T(ctx, "auth.confirm_backup_saved_hint") }</p>
 			<form method="post" action="/service/web/setup/backup-codes/ack"
 				data-testid="backup-codes-ack-form"
 				class="w-full">
 				<input type="hidden" name="csrf_token" value={ csrfToken }/>
-				<button type="submit" class="btn btn-primary w-full" data-testid="backup-codes-continue">Continue to Flowbot</button>
+				<button type="submit" class="btn btn-primary w-full" data-testid="backup-codes-continue">{ i18n.T(ctx, "auth.continue_to_flowbot") }</button>
 			</form>
 		</div>
 	}

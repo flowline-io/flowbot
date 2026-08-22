@@ -1,0 +1,33 @@
+package partials
+
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ I18nScript(ctx context.Context) {
+	@templ.JSONScript("flowbot-i18n", i18n.ClientMessages(ctx))
+}
+
+templ LangSwitcher(ctx context.Context) {
+	<div x-data="langPicker" class="flex items-center text-xs" data-testid="lang-switcher">
+		<button
+			type="button"
+			@click="setLang('en')"
+			:class="lang === 'en' ? 'font-semibold text-base-content' : 'text-base-content/50'"
+			class="px-1.5 py-0.5 rounded hover:text-base-content"
+			data-testid="lang-switch-en"
+			aria-label={ i18n.T(ctx, "common.lang_en") }
+		>{ i18n.T(ctx, "common.lang_en") }</button>
+		<span class="text-base-content/30" aria-hidden="true">|</span>
+		<button
+			type="button"
+			@click="setLang('zh')"
+			:class="lang === 'zh' ? 'font-semibold text-base-content' : 'text-base-content/50'"
+			class="px-1.5 py-0.5 rounded hover:text-base-content"
+			data-testid="lang-switch-zh"
+			aria-label={ i18n.T(ctx, "common.lang_zh") }
+		>{ i18n.T(ctx, "common.lang_zh") }</button>
+	</div>
+}

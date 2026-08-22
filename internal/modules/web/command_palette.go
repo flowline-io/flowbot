@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"net/url"
 	"strings"
 
@@ -155,8 +156,8 @@ func commandPaletteMatch(needle string, fields ...string) bool {
 }
 
 // commandPaletteNavPages returns static jump targets aligned with the navbar.
-func commandPaletteNavPages() []commandPaletteItem {
-	nav := partials.CommandPaletteNavPages()
+func commandPaletteNavPages(ctx context.Context) []commandPaletteItem {
+	nav := partials.CommandPaletteNavPages(ctx)
 	out := make([]commandPaletteItem, 0, len(nav))
 	for _, p := range nav {
 		out = append(out, commandPaletteItem{

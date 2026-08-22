@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -182,7 +181,7 @@ func renderChatAgentPermissionsPage(
 		ApprovalServerDef: appconfig.ChatAgentApprovalModeDefault(),
 	}
 	ctx.Type("html")
-	return pages.ChatAgentPermissionsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.ChatAgentPermissionsPage(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func marshalUserPermissionsJSON(user permission.Config) (string, error) {

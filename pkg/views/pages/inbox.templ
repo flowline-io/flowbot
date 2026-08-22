@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 // InboxPage renders the user notification inbox.
-templ InboxPage(filter string) {
-	@layout.Base("Inbox — Flowbot") {
+templ InboxPage(ctx context.Context, filter string) {
+	@layout.Base(ctx, "Inbox — Flowbot") {
 		@partials.PageHeader("Inbox", "Messages delivered to the in-app channel") {
 		}
 		<div

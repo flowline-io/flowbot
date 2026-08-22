@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"strconv"
 	"testing"
 
@@ -138,7 +139,7 @@ func TestCommandPaletteNavPages(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			pages := commandPaletteNavPages()
+			pages := commandPaletteNavPages(context.Background())
 			require.NotEmpty(t, pages)
 			found := false
 			for _, p := range pages {

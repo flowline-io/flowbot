@@ -34,7 +34,7 @@ func agentSessionSummariesPage(ctx fiber.Ctx) error {
 		return types.WrapError(types.ErrInternal, "list session summaries", err)
 	}
 	ctx.Type("html")
-	return pages.AgentSessionSummariesPage(items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.AgentSessionSummariesPage(ctx.Context(), items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSessionSummariesTable(ctx fiber.Ctx) error {

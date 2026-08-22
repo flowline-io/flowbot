@@ -9,12 +9,14 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"context"
+
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-func AgentsPage(items []model.AgentSession, nextCursor string, endpoints partials.ChatAgentEndpoints, chatEnabled bool) templ.Component {
+func AgentsPage(ctx context.Context, items []model.AgentSession, nextCursor string, endpoints partials.ChatAgentEndpoints, chatEnabled bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -71,7 +73,7 @@ func AgentsPage(items []model.AgentSession, nextCursor string, endpoints partial
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Agents — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Agents — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -79,7 +81,7 @@ func AgentsPage(items []model.AgentSession, nextCursor string, endpoints partial
 	})
 }
 
-func AgentChatPage(session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints partials.ChatAgentEndpoints, pending *partials.ChatAgentPendingConfirm) templ.Component {
+func AgentChatPage(ctx context.Context, session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints partials.ChatAgentEndpoints, pending *partials.ChatAgentPendingConfirm) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -130,7 +132,7 @@ func AgentChatPage(session model.AgentSession, messages []model.AgentChatMessage
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Agent Chat — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Agent Chat — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -50,7 +50,7 @@ func notifySettingsPage(ctx fiber.Ctx) error {
 	}
 	tab := normalizeNotifySettingsTab(ctx.Query("tab"))
 	ctx.Type("html")
-	return pages.NotifySettingsPage(tab, ctx.Query("channel"), ctx.Query("rule_id")).
+	return pages.NotifySettingsPage(ctx.Context(), tab, ctx.Query("channel"), ctx.Query("rule_id")).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 

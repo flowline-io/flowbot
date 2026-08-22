@@ -2,12 +2,14 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ ClipsPage(items []partials.ClipListItem) {
-	@layout.Base("Clips — Flowbot") {
+templ ClipsPage(ctx context.Context, items []partials.ClipListItem) {
+	@layout.Base(ctx, "Clips — Flowbot") {
 		@partials.PageHeader("Clips", "") {
 		}
 		@partials.ClipsTable(items)

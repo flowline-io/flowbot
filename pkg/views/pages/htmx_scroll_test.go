@@ -1,6 +1,7 @@
 package pages_test
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"bytes"
 	"context"
 	"strings"
@@ -20,7 +21,7 @@ func TestWorkflowPollingPreservesScroll(t *testing.T) {
 			name: "workflow list panel polling uses show none and preserve scroll",
 			render: func() (string, error) {
 				var buf bytes.Buffer
-				err := pages.WorkflowListPage(nil).Render(context.Background(), &buf)
+				err := pages.WorkflowListPage(i18n.DefaultContext(), nil).Render(context.Background(), &buf)
 				return buf.String(), err
 			},
 			want: []string{
@@ -33,7 +34,7 @@ func TestWorkflowPollingPreservesScroll(t *testing.T) {
 			name: "workflow runs panel polling uses show none and preserve scroll",
 			render: func() (string, error) {
 				var buf bytes.Buffer
-				err := pages.WorkflowRunsPage("demo", nil).Render(context.Background(), &buf)
+				err := pages.WorkflowRunsPage(i18n.DefaultContext(), "demo", nil).Render(context.Background(), &buf)
 				return buf.String(), err
 			},
 			want: []string{

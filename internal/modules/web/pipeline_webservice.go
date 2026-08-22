@@ -74,7 +74,7 @@ func pipelineListPage(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
-	return pages.PipelineListPage(entries).Render(context.Background(), c.Response().BodyWriter())
+	return pages.PipelineListPage(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func pipelineListTable(c fiber.Ctx) error {
@@ -88,7 +88,7 @@ func pipelineListTable(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineListTable(entries).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // buildPipelineListEntries loads last-run timestamps and latency stats and builds pipeline list rows.
@@ -118,7 +118,7 @@ func pipelineEditorPage(c fiber.Ctx) error {
 		return err
 	}
 	c.Type("html")
-	return pages.PipelineEditorPage(name).Render(context.Background(), c.Response().BodyWriter())
+	return pages.PipelineEditorPage(c.Context(), name).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func createPipeline(c fiber.Ctx) error {
@@ -309,7 +309,7 @@ func setPipelineEnabled(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineListTable(entries).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func deletePipeline(c fiber.Ctx) error {
@@ -339,7 +339,7 @@ func deletePipeline(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineListTable(entries).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func getPipelineYaml(c fiber.Ctx) error {
@@ -533,7 +533,7 @@ func pipelineRunsPage(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return pages.PipelineRunsPage(name, mapPipelineRuns(runs)).Render(context.Background(), c.Response().BodyWriter())
+	return pages.PipelineRunsPage(c.Context(), name, mapPipelineRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func pipelineRunsTable(c fiber.Ctx) error {
@@ -547,7 +547,7 @@ func pipelineRunsTable(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineRunsTable(name, mapPipelineRuns(runs)).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineRunsTable(name, mapPipelineRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func pipelineRunSteps(c fiber.Ctx) error {
@@ -561,7 +561,7 @@ func pipelineRunSteps(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get step runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineStepRunsDetail(mapPipelineStepRuns(steps)).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineStepRunsDetail(mapPipelineStepRuns(steps)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // getCapabilities returns all registered capabilities with their operations
@@ -717,14 +717,14 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 	}
 
 	c.Type("html")
-	return pages.PipelineRunLivePage(pages.PipelineRunLiveParams{
+	return pages.PipelineRunLivePage(c.Context(), pages.PipelineRunLiveParams{
 		RunID:        runID,
 		PipelineName: pipelineName,
 		Trigger:      run.EventType,
 		TotalSteps:   len(steps),
 		RunStatus:    pipelineRunStatusLabel(run.Status),
 		Steps:        initSteps,
-	}).Render(context.Background(), c.Response().BodyWriter())
+	}).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func pipelineStats(c fiber.Ctx) error {
@@ -761,7 +761,7 @@ func pipelineStats(c fiber.Ctx) error {
 		return c.JSON(stats)
 	}
 	c.Type("html")
-	return partials.PipelineStats(name, stats, tabs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineStats(name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // stepRunStatusLabel converts an ent PipelineStepRun status int to a display string.

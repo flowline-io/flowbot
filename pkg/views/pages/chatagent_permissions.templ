@@ -1,10 +1,14 @@
 package pages
 
-import "github.com/flowline-io/flowbot/pkg/views/layout"
-import "github.com/flowline-io/flowbot/pkg/views/partials"
+import (
+	"context"
 
-templ ChatAgentPermissionsPage(data partials.PermissionFormPageData) {
-	@layout.Base("Chat Agent Permissions — Flowbot") {
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ ChatAgentPermissionsPage(ctx context.Context, data partials.PermissionFormPageData) {
+	@layout.Base(ctx, "Chat Agent Permissions — Flowbot") {
 		<script src="/static/js/chatagent-permissions.js"></script>
 		@partials.PageHeader("Chat Agent Permissions", "Edit OpenCode-style permission rules stored for your user account.") {
 			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm">← Back to Sessions</a>

@@ -47,7 +47,7 @@ func agentMemoryPage(ctx fiber.Ctx) error {
 		return types.WrapError(types.ErrInternal, "list memory facts", err)
 	}
 	ctx.Type("html")
-	return pages.AgentMemoryPage(items, scope).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.AgentMemoryPage(ctx.Context(), items, scope).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentMemoryTable(ctx fiber.Ctx) error {

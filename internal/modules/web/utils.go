@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"net/url"
 	"strconv"
 	"strings"
@@ -19,7 +18,7 @@ import (
 // Prefer renderFormError for form mutations or toastError for action-only failures.
 func renderError(ctx fiber.Ctx, msg string) error {
 	ctx.Type("html")
-	return partials.FormError(msg).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.FormError(msg).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // renderFormError writes a FormError fragment and sets HX-Retarget / HX-Reswap so HTMX

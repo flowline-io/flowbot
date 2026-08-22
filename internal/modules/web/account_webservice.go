@@ -45,8 +45,8 @@ func renderAccountSecurity(ctx fiber.Ctx, flash, errorMsg string) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.AccountSecurityPage(username, totpEnabled, backupRemaining, flash, errorMsg, csrfTok).
-		Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.AccountSecurityPage(ctx.Context(), username, totpEnabled, backupRemaining, flash, errorMsg, csrfTok).
+		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func accountChangePassword(ctx fiber.Ctx) error {
@@ -119,7 +119,7 @@ func accountRegenBackupCodes(ctx fiber.Ctx) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.RegeneratedBackupCodesPage(codes).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.RegeneratedBackupCodesPage(ctx.Context(), codes).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func accountUsername(rc *route.RequestContext) string {

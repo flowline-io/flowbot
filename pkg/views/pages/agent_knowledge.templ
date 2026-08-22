@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentKnowledgePage(items []model.AgentKnowledge, q string) {
-	@layout.Base("Agent Knowledge — Flowbot") {
+templ AgentKnowledgePage(ctx context.Context, items []model.AgentKnowledge, q string) {
+	@layout.Base(ctx, "Agent Knowledge — Flowbot") {
 		@partials.PageHeader("Agent Knowledge", "Markdown documents for search_knowledge / get_knowledge") {
 			<form class="inline-flex items-center gap-2 m-0"
 				hx-get="/service/web/agent-knowledge/list"

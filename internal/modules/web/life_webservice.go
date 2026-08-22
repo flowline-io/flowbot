@@ -277,7 +277,7 @@ func lifeDashboardPage(ctx fiber.Ctx) error {
 		return toastError(ctx, lifeUserError(err))
 	}
 	ctx.Type("html")
-	return pages.LifeDashboardPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifeDashboardPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifeCharacterPage(ctx fiber.Ctx) error {
@@ -293,7 +293,7 @@ func lifeCharacterPage(ctx fiber.Ctx) error {
 		return toastError(ctx, lifeUserError(err))
 	}
 	ctx.Type("html")
-	return pages.LifeCharacterPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifeCharacterPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifeGoalsPage(ctx fiber.Ctx) error {
@@ -309,7 +309,7 @@ func lifeGoalsPage(ctx fiber.Ctx) error {
 		return toastError(ctx, lifeUserError(err))
 	}
 	ctx.Type("html")
-	return pages.LifeGoalsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifeGoalsPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifePlanPage(ctx fiber.Ctx) error {
@@ -325,7 +325,7 @@ func lifePlanPage(ctx fiber.Ctx) error {
 		return toastError(ctx, lifeUserError(err))
 	}
 	ctx.Type("html")
-	return pages.LifePlanPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifePlanPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifeGoalsPageData(uid string) (pages.LifeGoalsData, error) {
@@ -468,7 +468,7 @@ func lifePreviewBreakdown(ctx fiber.Ctx) error {
 		Tree:        mapLifeBreakdownSuggestionRow(suggestion),
 	}
 	ctx.Type("html")
-	return pages.LifePlanPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifePlanPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifeImportBreakdown(ctx fiber.Ctx) error {
@@ -596,7 +596,7 @@ func lifeQuestsPage(ctx fiber.Ctx) error {
 	}
 	data := buildLifeQuestsData(char, pending, done, today, logs, completedPage, doneTotal, logsPage, logsTotal, historyTab)
 	ctx.Type("html")
-	return pages.LifeQuestsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifeQuestsPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func parsePositiveIntQuery(ctx fiber.Ctx, key string, fallback int) int {
@@ -1025,7 +1025,7 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 		Items:        backpackRows,
 		BackpackPage: pages.LifeWithBackpackPager(pages.LifeBuildPageInfo(backpackPage, pages.LifeDefaultListPerPage, page.Total)),
 		PendingCount: len(pending),
-	}).Render(context.Background(), ctx.Response().BodyWriter())
+	}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifeEquippedSlotFields(slots *gen.LifeEquippedSlots) map[int64]string {
@@ -1115,7 +1115,7 @@ func lifeAchievementsPage(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	return pages.LifeAchievementsPage(pages.LifeAchievementsData{
 		Items: rows, UnlockedCount: unlockedCount, PendingCount: len(pending),
-	}).Render(context.Background(), ctx.Response().BodyWriter())
+	}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func lifeEquipItem(ctx fiber.Ctx) error {

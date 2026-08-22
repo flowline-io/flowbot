@@ -9,6 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"context"
+
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -17,7 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.WorkflowTrigger, recentRuns []model.WorkflowRun, yamlText string, publicOrigin string) templ.Component {
+func WorkflowDetailPage(ctx context.Context, meta *types.WorkflowMetadata, triggers []model.WorkflowTrigger, recentRuns []model.WorkflowRun, yamlText string, publicOrigin string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -77,7 +79,7 @@ func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.WorkflowT
 				var templ_7745c5c3_Var4 templ.SafeURL
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(partials.WorkflowWebPath(meta.Name) + "/runs"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 18, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 20, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -114,7 +116,7 @@ func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.WorkflowT
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", meta.MaxConcurrency))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 28, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 30, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -159,7 +161,7 @@ func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.WorkflowT
 			var templ_7745c5c3_Var6 templ.SafeURL
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(partials.WorkflowWebPath(meta.Name) + "/runs"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 62, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 64, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -187,7 +189,7 @@ func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.WorkflowT
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Workflow: "+meta.Name).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Workflow: "+meta.Name).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -195,7 +197,7 @@ func WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.WorkflowT
 	})
 }
 
-func WorkflowRunsPage(name string, runs []model.WorkflowRun) templ.Component {
+func WorkflowRunsPage(ctx context.Context, name string, runs []model.WorkflowRun) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -255,7 +257,7 @@ func WorkflowRunsPage(name string, runs []model.WorkflowRun) templ.Component {
 				var templ_7745c5c3_Var10 templ.SafeURL
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(partials.WorkflowWebPath(name)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 91, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 93, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -268,7 +270,7 @@ func WorkflowRunsPage(name string, runs []model.WorkflowRun) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 93, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 95, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -291,7 +293,7 @@ func WorkflowRunsPage(name string, runs []model.WorkflowRun) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(partials.WorkflowStatsURL(name, 30, "day")))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 95, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 97, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 			if templ_7745c5c3_Err != nil {
@@ -312,7 +314,7 @@ func WorkflowRunsPage(name string, runs []model.WorkflowRun) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(partials.WorkflowWebPath(name) + "/runs/list"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 100, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/workflow_detail.templ`, Line: 102, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 			if templ_7745c5c3_Err != nil {
@@ -332,7 +334,7 @@ func WorkflowRunsPage(name string, runs []model.WorkflowRun) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Runs: "+name).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, "Runs: "+name).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

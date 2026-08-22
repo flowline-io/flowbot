@@ -1,12 +1,14 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ SettingsPage(data SettingsPageData) {
-	@layout.Base("Settings — Flowbot") {
+templ SettingsPage(ctx context.Context, data SettingsPageData) {
+	@layout.Base(ctx, "Settings — Flowbot") {
 		@partials.TableFilterScripts()
 		@partials.PageHeader("Settings", "Read-only view of the effective flowbot.yaml configuration for this process. Secrets are redacted.")
 		<div class="flowbot-settings" x-data="tableFilter" data-testid="settings-page">

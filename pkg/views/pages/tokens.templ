@@ -2,13 +2,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ TokensPage(items []model.TokenItem) {
-	@layout.Base("Tokens — Flowbot") {
+templ TokensPage(ctx context.Context, items []model.TokenItem) {
+	@layout.Base(ctx, "Tokens — Flowbot") {
 		@partials.TableFilterScripts()
 		@partials.PageHeader("Tokens", "") {
 			<button

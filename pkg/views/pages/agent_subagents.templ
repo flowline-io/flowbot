@@ -1,13 +1,15 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentSubagentsPage(items []model.AgentSubagent) {
-	@layout.Base("Agent Subagents — Flowbot") {
+templ AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) {
+	@layout.Base(ctx, "Agent Subagents — Flowbot") {
 		<div x-data="{ tab: 'subagents' }">
 			@partials.PageHeader("Agent Subagents", "") {
 				<div class="flex gap-2" x-show="tab === 'subagents'">

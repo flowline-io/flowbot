@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"context"
+	
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -9,8 +11,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.WorkflowTrigger, recentRuns []model.WorkflowRun, yamlText string, publicOrigin string) {
-	@layout.Base("Workflow: " + meta.Name) {
+templ WorkflowDetailPage(ctx context.Context, meta *types.WorkflowMetadata, triggers []model.WorkflowTrigger, recentRuns []model.WorkflowRun, yamlText string, publicOrigin string) {
+	@layout.Base(ctx, "Workflow: " + meta.Name) {
 		@partials.ClipCopyScripts()
 		<div class="max-w-4xl mx-auto space-y-6">
 			@partials.PageHeader(meta.Name, meta.Describe) {
@@ -82,8 +84,8 @@ templ WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []model.Workflow
 	}
 }
 
-templ WorkflowRunsPage(name string, runs []model.WorkflowRun) {
-	@layout.Base("Runs: " + name) {
+templ WorkflowRunsPage(ctx context.Context, name string, runs []model.WorkflowRun) {
+	@layout.Base(ctx, "Runs: " + name) {
 		@partials.WorkflowStatsScripts()
 		<div class="max-w-4xl mx-auto">
 			@partials.PageHeader("Run History", name) {

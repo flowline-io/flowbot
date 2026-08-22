@@ -1,12 +1,14 @@
 package pages
 
 import (
+	"context"
+	
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ FunctionListPage(entries []partials.FunctionListEntry) {
-	@layout.Base("Functions") {
+templ FunctionListPage(ctx context.Context, entries []partials.FunctionListEntry) {
+	@layout.Base(ctx, "Functions") {
 		@partials.FunctionStatsScripts()
 		<div class="max-w-6xl mx-auto">
 			@partials.PageHeader("Functions", "Named FaaS transforms managed as draft/publish.") {

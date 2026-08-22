@@ -213,7 +213,7 @@ func agentsPage(ctx fiber.Ctx) error {
 		}
 	}
 	ctx.Type("html")
-	return pages.AgentsPage(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount), enabled).
+	return pages.AgentsPage(ctx.Context(), items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount), enabled).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -400,7 +400,7 @@ func agentChatPage(ctx fiber.Ctx) error {
 	session.ApprovalMode = settings.ApprovalMode
 	uid := webRequestUID(ctx)
 	ctx.Type("html")
-	return pages.AgentChatPage(
+	return pages.AgentChatPage(ctx.Context(), 
 		session,
 		mapChatMessages(sessionID, messages),
 		todos,

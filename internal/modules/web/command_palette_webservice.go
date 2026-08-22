@@ -47,6 +47,6 @@ func commandPaletteSearch(ctx fiber.Ctx) error {
 	}
 
 	apps := homelab.DefaultRegistry.List()
-	results := buildCommandPaletteResults(ctx.Query("q"), commandPaletteNavPages(), pipelines, sessions, apps)
+	results := buildCommandPaletteResults(ctx.Query("q"), commandPaletteNavPages(ctx.Context()), pipelines, sessions, apps)
 	return ctx.Status(http.StatusOK).JSON(results)
 }

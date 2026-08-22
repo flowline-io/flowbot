@@ -36,7 +36,7 @@ func agentScheduledTasksPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list scheduled tasks: %v", err)
 	}
 	ctx.Type("html")
-	return pages.AgentScheduledTasksPage(items).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.AgentScheduledTasksPage(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentScheduledTasksTable(ctx fiber.Ctx) error {
@@ -86,7 +86,7 @@ func agentScheduledTaskDetailPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list scheduled task runs: %v", err)
 	}
 	ctx.Type("html")
-	return pages.AgentScheduledTaskDetailPage(
+	return pages.AgentScheduledTaskDetailPage(ctx.Context(), 
 		mapScheduledTask(*task),
 		mapScheduledTaskRuns(runs),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())

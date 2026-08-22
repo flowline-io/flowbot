@@ -142,7 +142,7 @@ func eventsPage(ctx fiber.Ctx) error {
 	}
 
 	ctx.Type("html")
-	return pages.EventsPage(pages.EventsPageParams{
+	return pages.EventsPage(ctx.Context(), pages.EventsPageParams{
 		Sources:       sources,
 		EventTypes:    eventTypes,
 		PipelineNames: pipelineNames,
