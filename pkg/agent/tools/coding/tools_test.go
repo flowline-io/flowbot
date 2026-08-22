@@ -189,13 +189,49 @@ func TestWebSearchTool_SerpAPI(t *testing.T) {
 	assert.Contains(t, text, "4599")
 }
 
-func TestWebSearchTool_MissingAPIKey(t *testing.T) {
+func TestWebSearchTool_FallsBackToDuckDuckGoWhenAPIKeyMissing(t *testing.T) {
 	t.Parallel()
-	tool := coding.WebSearchTool{}
-	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "price"}, nil)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "golang", r.URL.Query().Get("q"))
+		assert.Empty(t, r.URL.Query().Get("api_key"))
+		assert.Equal(t, "text/html", r.Header.Get("Accept"))
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = w.Write([]byte(`<html><body>
+<a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fgo.dev%2F">The Go Programming Language</a>
+<a class="result__snippet">An open-source programming language.</a>
+</body></html>`))
+	}))
+	defer server.Close()
+
+	tool := coding.WebSearchTool{HTTPClient: server.Client(), BaseURL: server.URL}
+	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "golang"}, nil)
 	require.NoError(t, err)
-	require.True(t, result.IsError)
-	assert.Contains(t, textFromResult(t, result), "api_key")
+	require.False(t, result.IsError)
+	text := textFromResult(t, result)
+	assert.Contains(t, text, "The Go Programming Language")
+	assert.Contains(t, text, "https://go.dev/")
+	assert.Contains(t, text, "open-source")
+}
+
+func TestWebSearchTool_DuckDuckGoCapsResults(t *testing.T) {
+	t.Parallel()
+	var page strings.Builder
+	_, _ = page.WriteString("<html><body>")
+	for range coding.MaxWebSearchResults + 2 {
+		_, _ = page.WriteString(`<a class="result__a" href="https://example.com/x">Hit title</a>`)
+	}
+	_, _ = page.WriteString("</body></html>")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(page.String()))
+	}))
+	defer server.Close()
+
+	tool := coding.WebSearchTool{HTTPClient: server.Client(), BaseURL: server.URL}
+	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "cap"}, nil)
+	require.NoError(t, err)
+	require.False(t, result.IsError)
+	assert.Equal(t, coding.MaxWebSearchResults, strings.Count(textFromResult(t, result), "Hit title"))
 }
 
 func TestRunCodeTool_Execute(t *testing.T) {

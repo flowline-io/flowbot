@@ -1,6 +1,7 @@
 package coding
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+	"golang.org/x/net/html"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
@@ -16,16 +18,18 @@ import (
 
 const (
 	serpAPISearchURL   = "https://serpapi.com/search"
+	duckDuckGoHTMLURL  = "https://html.duckduckgo.com/html/"
 	webSearchUserAgent = "Mozilla/5.0 (compatible; Flowbot/1.0; +https://github.com/flowline-io/flowbot)"
 )
 
-// WebSearchTool searches the web via the SerpApi Google Search API.
+// WebSearchTool searches the web via SerpApi when APIKey is set, otherwise the
+// keyless DuckDuckGo HTML endpoint.
 type WebSearchTool struct {
 	HTTPClient *http.Client
 	MaxOutput  int
-	// APIKey is the SerpApi private key (required).
+	// APIKey is the SerpApi private key. Empty selects the DuckDuckGo fallback.
 	APIKey string
-	// BaseURL overrides the SerpApi search endpoint for tests.
+	// BaseURL overrides the selected backend endpoint for tests.
 	BaseURL string
 }
 
@@ -69,9 +73,6 @@ func (t WebSearchTool) Execute(ctx context.Context, id string, args map[string]a
 			fmt.Sprintf("query exceeds %d bytes", MaxWebSearchQueryBytes),
 			"shorten the search query"), nil
 	}
-	if strings.TrimSpace(t.APIKey) == "" {
-		return toolError(id, t.Name(), "configure chat_agent.web_search.api_key (SerpApi) for web search"), nil
-	}
 	if onUpdate != nil {
 		_ = onUpdate("searching...")
 	}
@@ -105,7 +106,13 @@ func (t WebSearchTool) search(ctx context.Context, query string) ([]searchHit, s
 	if client == nil {
 		client = &http.Client{Timeout: DefaultHTTPTimeout}
 	}
+	if strings.TrimSpace(t.APIKey) != "" {
+		return t.searchSerpAPI(ctx, client, query)
+	}
+	return t.searchDuckDuckGo(ctx, client, query)
+}
 
+func (t WebSearchTool) searchSerpAPI(ctx context.Context, client *http.Client, query string) ([]searchHit, string) {
 	base := strings.TrimSpace(t.BaseURL)
 	if base == "" {
 		base = serpAPISearchURL
@@ -121,7 +128,7 @@ func (t WebSearchTool) search(ctx context.Context, query string) ([]searchHit, s
 	q.Set("output", "json")
 	endpoint.RawQuery = q.Encode()
 
-	body, errMsg := webSearchGET(ctx, client, endpoint.String())
+	body, errMsg := webSearchGET(ctx, client, endpoint.String(), "application/json")
 	if errMsg != "" {
 		return nil, errMsg
 	}
@@ -133,13 +140,43 @@ func (t WebSearchTool) search(ctx context.Context, query string) ([]searchHit, s
 	return hits, ""
 }
 
-func webSearchGET(ctx context.Context, client *http.Client, rawURL string) ([]byte, string) {
+func (t WebSearchTool) searchDuckDuckGo(ctx context.Context, client *http.Client, query string) ([]searchHit, string) {
+	base := strings.TrimSpace(t.BaseURL)
+	if base == "" {
+		base = duckDuckGoHTMLURL
+	}
+	endpoint, err := url.Parse(base)
+	if err != nil {
+		return nil, fmt.Sprintf("invalid duckduckgo base url: %v", err)
+	}
+	q := endpoint.Query()
+	q.Set("q", query)
+	endpoint.RawQuery = q.Encode()
+
+	body, errMsg := webSearchGET(ctx, client, endpoint.String(), "text/html")
+	if errMsg != "" {
+		return nil, errMsg
+	}
+
+	hits, err := parseDuckDuckGoHTML(body)
+	if err != nil {
+		return nil, err.Error()
+	}
+	if len(hits) > MaxWebSearchResults {
+		hits = hits[:MaxWebSearchResults]
+	}
+	return hits, ""
+}
+
+func webSearchGET(ctx context.Context, client *http.Client, rawURL, accept string) ([]byte, string) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, http.NoBody)
 	if err != nil {
 		return nil, err.Error()
 	}
 	req.Header.Set("User-Agent", webSearchUserAgent)
-	req.Header.Set("Accept", "application/json")
+	if accept != "" {
+		req.Header.Set("Accept", accept)
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Sprintf("search request: %v", err)
@@ -195,6 +232,89 @@ func parseSerpAPIResponse(body []byte) ([]searchHit, string) {
 		}
 	}
 	return hits, ""
+}
+
+// parseDuckDuckGoHTML extracts result links and snippets from the DuckDuckGo
+// HTML endpoint. Title/URL come from <a class="result__a">; the URL is wrapped in
+// a redirect carrying the real target in the uddg query param, which is decoded.
+// Snippets come from elements with class "result__snippet", matched by position.
+func parseDuckDuckGoHTML(body []byte) ([]searchHit, error) {
+	doc, err := html.Parse(bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("parse duckduckgo html: %w", err)
+	}
+	var hits []searchHit
+	var snippets []string
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" && htmlHasClass(n, "result__a") {
+			hits = append(hits, searchHit{Title: htmlNodeText(n), URL: unwrapDDGURL(htmlAttr(n, "href"))})
+		}
+		if n.Type == html.ElementNode && htmlHasClass(n, "result__snippet") {
+			snippets = append(snippets, htmlNodeText(n))
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(doc)
+	for i := range hits {
+		if i < len(snippets) {
+			hits[i].Snippet = snippets[i]
+		}
+	}
+	return hits, nil
+}
+
+// unwrapDDGURL turns a DuckDuckGo redirect href ("//duckduckgo.com/l/?uddg=...")
+// into the real target by decoding the uddg param. A non-redirect href is
+// returned as-is (with a scheme added when protocol-relative).
+func unwrapDDGURL(href string) string {
+	raw := href
+	if strings.HasPrefix(raw, "//") {
+		raw = "https:" + raw
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return href
+	}
+	if target := u.Query().Get("uddg"); target != "" {
+		return target
+	}
+	return raw
+}
+
+func htmlAttr(n *html.Node, name string) string {
+	for _, a := range n.Attr {
+		if a.Key == name {
+			return a.Val
+		}
+	}
+	return ""
+}
+
+func htmlHasClass(n *html.Node, class string) bool {
+	for _, f := range strings.Fields(htmlAttr(n, "class")) {
+		if f == class {
+			return true
+		}
+	}
+	return false
+}
+
+func htmlNodeText(n *html.Node) string {
+	var b strings.Builder
+	var walk func(*html.Node)
+	walk = func(x *html.Node) {
+		if x.Type == html.TextNode {
+			_, _ = b.WriteString(x.Data)
+		}
+		for c := x.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(n)
+	return strings.Join(strings.Fields(b.String()), " ")
 }
 
 func formatSearchHits(hits []searchHit) string {

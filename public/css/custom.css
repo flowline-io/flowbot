@@ -1202,7 +1202,11 @@ body:has(.chatagent-page) > main {
 }
 
 .chatagent-gantt-label {
-  color: color-mix(in oklch, var(--color-base-content, #24292f) 55%, transparent);
+  color: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 55%,
+    transparent
+  );
 }
 
 .chatagent-gantt-track {
@@ -1229,7 +1233,11 @@ body:has(.chatagent-page) > main {
 .chatagent-gantt-ms {
   text-align: right;
   font-variant-numeric: tabular-nums;
-  color: color-mix(in oklch, var(--color-base-content, #24292f) 55%, transparent);
+  color: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 55%,
+    transparent
+  );
 }
 
 .chatagent-trajectory-body {
@@ -1302,7 +1310,11 @@ body:has(.chatagent-page) > main {
   padding: 0.2rem 0.4rem;
   font-size: 0.75rem;
   cursor: pointer;
-  color: color-mix(in oklch, var(--color-base-content, #24292f) 55%, transparent);
+  color: color-mix(
+    in oklch,
+    var(--color-base-content, #24292f) 55%,
+    transparent
+  );
 }
 
 .chatagent-inspector-tab.is-active {
@@ -1993,7 +2005,9 @@ body:has(.chatagent-page) > main {
   flex-shrink: 0;
 }
 
-.chatagent-page .chatagent-context-skills[open] .chatagent-context-skills-caret {
+.chatagent-page
+  .chatagent-context-skills[open]
+  .chatagent-context-skills-caret {
   transform: rotate(90deg);
 }
 

@@ -168,7 +168,7 @@ chat_agent:
     # cli_path: ""  # host path to linux/amd64 flowbot CLI; absolute as-is, relative beside server binary; empty uses flowbot-cli_linux_amd64 beside server
 
   # web_search:
-  #   api_key: ""  # SerpApi key (https://serpapi.com/search-api); required for web_search
+  #   api_key: ""  # optional SerpApi key (https://serpapi.com/search-api); empty uses DuckDuckGo HTML fallback
 
 # CapCore runtime primitives (http_request, run_*, kv_*). Workspace falls back to chat_agent.workspace.
 core:

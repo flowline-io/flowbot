@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `web_search` falls back to keyless DuckDuckGo HTML search when `chat_agent.web_search.api_key` is unset.
+
 ## [0.99.0] - 2026-08-15
 
 ### Added

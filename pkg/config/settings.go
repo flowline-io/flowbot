@@ -225,7 +225,6 @@ func walkStructSchema(t reflect.Type, path string, asNotSet bool, out *[]Setting
 		return
 	}
 	for sf := range t.Fields() {
-		sf := sf
 		if sf.PkgPath != "" {
 			continue
 		}

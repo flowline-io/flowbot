@@ -3,7 +3,7 @@
     window.dispatchEvent(
       new CustomEvent('flowbot:toast', {
         detail: { type: 'success', message: 'Copied call URL' },
-      })
+      }),
     );
   }
 
@@ -30,12 +30,14 @@
       init() {
         var root = this.$el;
         this.name = root.getAttribute('data-function-name') || '';
-        this.version = parseInt(root.getAttribute('data-version') || '1', 10) || 1;
+        this.version =
+          parseInt(root.getAttribute('data-version') || '1', 10) || 1;
         this.status = root.getAttribute('data-status') || 'draft';
         this.entrypoint = root.getAttribute('data-entrypoint') || 'main.py';
         this.tokenSet = root.getAttribute('data-token-set') === 'true';
         this.hmacSet = root.getAttribute('data-hmac-set') === 'true';
-        this.hasUnpublishedChanges = root.getAttribute('data-has-unpublished') === 'true';
+        this.hasUnpublishedChanges =
+          root.getAttribute('data-has-unpublished') === 'true';
         var pub = root.getAttribute('data-published-version') || '';
         this.publishedVersion = pub ? parseInt(pub, 10) : null;
         var sourceEl = root.querySelector('[data-testid="input-source"]');
@@ -65,12 +67,18 @@
         var root = this.$el;
         if (!root) return;
         var baseEl = root.querySelector('[data-testid="function-call-url"]');
-        var verEl = root.querySelector('[data-testid="function-call-url-version"]');
-        var copyBtn = root.querySelector('[data-testid="btn-copy-call-url-version"]');
+        var verEl = root.querySelector(
+          '[data-testid="function-call-url-version"]',
+        );
+        var copyBtn = root.querySelector(
+          '[data-testid="btn-copy-call-url-version"]',
+        );
         if (!baseEl || !verEl || !this.publishedVersion) {
           return;
         }
-        var base = String(baseEl.textContent || '').trim().replace(/\/$/, '');
+        var base = String(baseEl.textContent || '')
+          .trim()
+          .replace(/\/$/, '');
         if (!base) {
           return;
         }
@@ -92,7 +100,10 @@
           return;
         }
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(toastCopied).catch(function () {});
+          navigator.clipboard
+            .writeText(text)
+            .then(toastCopied)
+            .catch(function () {});
           return;
         }
         var area = document.createElement('textarea');
@@ -139,7 +150,9 @@
         if (envPairs.length) {
           lines.push('env:');
           for (var j = 0; j < envPairs.length; j++) {
-            lines.push('  ' + envPairs[j].key + ': ' + JSON.stringify(envPairs[j].value));
+            lines.push(
+              '  ' + envPairs[j].key + ': ' + JSON.stringify(envPairs[j].value),
+            );
           }
         }
         return lines.join('\n') + '\n';
@@ -168,9 +181,13 @@
           });
           if (!resp.ok) {
             var msg =
-              (data.error && data.error.message) || data.message || 'Save draft failed';
+              (data.error && data.error.message) ||
+              data.message ||
+              'Save draft failed';
             window.dispatchEvent(
-              new CustomEvent('flowbot:toast', { detail: { type: 'error', message: msg } })
+              new CustomEvent('flowbot:toast', {
+                detail: { type: 'error', message: msg },
+              }),
             );
             if (resp.status === 409) {
               window.location.reload();
@@ -187,7 +204,7 @@
           window.dispatchEvent(
             new CustomEvent('flowbot:toast', {
               detail: { type: 'success', message: 'Draft saved' },
-            })
+            }),
           );
         } finally {
           this.busy = false;
@@ -216,9 +233,13 @@
           });
           if (!resp.ok) {
             var msg =
-              (data.error && data.error.message) || data.message || 'Publish failed';
+              (data.error && data.error.message) ||
+              data.message ||
+              'Publish failed';
             window.dispatchEvent(
-              new CustomEvent('flowbot:toast', { detail: { type: 'error', message: msg } })
+              new CustomEvent('flowbot:toast', {
+                detail: { type: 'error', message: msg },
+              }),
             );
             if (resp.status === 409) {
               window.location.reload();
@@ -234,7 +255,7 @@
           window.dispatchEvent(
             new CustomEvent('flowbot:toast', {
               detail: { type: 'success', message: 'Published' },
-            })
+            }),
           );
         } finally {
           this.busy = false;
@@ -267,7 +288,9 @@
           });
           if (!resp.ok) {
             this.tryResult =
-              (data.error && data.error.message) || data.message || 'Invoke failed';
+              (data.error && data.error.message) ||
+              data.message ||
+              'Invoke failed';
             return;
           }
           this.tryResult = JSON.stringify(data, null, 2);

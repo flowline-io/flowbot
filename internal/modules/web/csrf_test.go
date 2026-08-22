@@ -19,8 +19,8 @@ func TestCSRFCookieName(t *testing.T) {
 		secure *bool
 		want   string
 	}{
-		{name: "HTTPS uses host prefix", secure: boolPtr(true), want: csrfCookieNameHost},
-		{name: "local HTTP uses csrf_", secure: boolPtr(false), want: csrfCookieNameLocal},
+		{name: "HTTPS uses host prefix", secure: new(true), want: csrfCookieNameHost},
+		{name: "local HTTP uses csrf_", secure: new(false), want: csrfCookieNameLocal},
 		{name: "omitted cookie_secure defaults to host prefix", secure: nil, want: csrfCookieNameHost},
 	}
 	for _, tt := range tests {
@@ -33,7 +33,8 @@ func TestCSRFCookieName(t *testing.T) {
 	}
 }
 
-func boolPtr(v bool) *bool { return &v }
+//go:fix inline
+func boolPtr(v bool) *bool { return new(v) }
 
 func TestCSRFMiddleware(t *testing.T) {
 	tests := []struct {

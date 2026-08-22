@@ -653,9 +653,9 @@ type ChatAgentMediaConfig struct {
 	SignSecret string `json:"sign_secret" yaml:"sign_secret" mapstructure:"sign_secret" sensitive:"true"`
 }
 
-// ChatAgentWebSearchConfig configures the web_search tool via SerpApi.
+// ChatAgentWebSearchConfig configures the web_search tool.
 type ChatAgentWebSearchConfig struct {
-	// APIKey is the SerpApi private key (https://serpapi.com/search-api).
+	// APIKey is the SerpApi private key (https://serpapi.com/search-api). Empty uses the keyless DuckDuckGo HTML fallback.
 	APIKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key" sensitive:"true"`
 }
 

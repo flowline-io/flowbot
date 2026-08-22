@@ -19,7 +19,8 @@ type Workspace struct {
 	Timeout time.Duration
 	// MaxOutput truncates tool stdout/stderr beyond this byte count.
 	MaxOutput int
-	// WebSearchAPIKey is the SerpApi private key for the web_search tool.
+	// WebSearchAPIKey is the optional SerpApi private key for the web_search tool.
+	// Empty uses the DuckDuckGo HTML fallback.
 	WebSearchAPIKey string
 }
 

@@ -212,7 +212,8 @@
         item.classList.add('is-selected');
       }
       var chip = document.createElement('span');
-      chip.className = 'flowbot-chip chatagent-trajectory-chip is-' + (row.kind || row.role);
+      chip.className =
+        'flowbot-chip chatagent-trajectory-chip is-' + (row.kind || row.role);
       chip.textContent = (row.role || row.kind || '').toUpperCase();
       var body = document.createElement('span');
       body.className = 'chatagent-trajectory-row-text';
@@ -260,7 +261,9 @@
       title.textContent =
         (row.role || '').toUpperCase() +
         (row.turn ? ' Turn ' + row.turn : '') +
-        (row.kind === 'tool_call' && row.tool_name ? ' · ' + row.tool_name : '');
+        (row.kind === 'tool_call' && row.tool_name
+          ? ' · ' + row.tool_name
+          : '');
     }
     root.querySelectorAll('[data-inspector-tab]').forEach(function (btn) {
       btn.classList.toggle(
@@ -269,7 +272,11 @@
       );
     });
     if (st.inspectorTab === 'raw') {
-      body.textContent = JSON.stringify(row.raw != null ? row.raw : row, null, 2);
+      body.textContent = JSON.stringify(
+        row.raw != null ? row.raw : row,
+        null,
+        2,
+      );
     } else {
       body.textContent = row.text || '';
     }
@@ -311,7 +318,9 @@
         setView(root, btn.getAttribute('data-chatagent-view'), true);
       });
     });
-    var closeBtn = root.querySelector('[data-testid="chatagent-trajectory-inspector-close"]');
+    var closeBtn = root.querySelector(
+      '[data-testid="chatagent-trajectory-inspector-close"]',
+    );
     if (closeBtn) {
       closeBtn.addEventListener('click', function () {
         st.selectedId = '';
@@ -327,7 +336,9 @@
     });
     var initial = 'chat';
     try {
-      if (new URL(window.location.href).searchParams.get('view') === 'trajectory') {
+      if (
+        new URL(window.location.href).searchParams.get('view') === 'trajectory'
+      ) {
         initial = 'trajectory';
       }
     } catch {
@@ -337,8 +348,10 @@
   };
 
   document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('[data-chatagent-root="thread"]').forEach(function (root) {
-      ns.initTrajectoryView(root);
-    });
+    document
+      .querySelectorAll('[data-chatagent-root="thread"]')
+      .forEach(function (root) {
+        ns.initTrajectoryView(root);
+      });
   });
 })();

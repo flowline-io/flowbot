@@ -246,7 +246,7 @@ func TestExtractOperations(t *testing.T) {
 		checkFlag map[string]map[string]bool // cli path -> flag name -> required
 	}{
 		{
-			name: "nested path and optional args from kanban metadata",
+			name:  "nested path and optional args from kanban metadata",
 			build: command.KanbanCommand,
 			wantCLI: []string{
 				"flowbot kanban metadata get <task_id> [name]",
@@ -254,8 +254,8 @@ func TestExtractOperations(t *testing.T) {
 			},
 		},
 		{
-			name: "bookmark create marks url required",
-			build: command.BookmarkCommand,
+			name:    "bookmark create marks url required",
+			build:   command.BookmarkCommand,
 			wantCLI: []string{"flowbot bookmark create --url <url>"},
 			checkFlag: map[string]map[string]bool{
 				"flowbot bookmark create --url <url>": {"url": true},
