@@ -79,7 +79,7 @@ func functionListTable(c fiber.Ctx) error {
 		return types.WrapError(types.ErrInternal, "list functions", err)
 	}
 	c.Type("html")
-	return partials.FunctionListTable(partials.BuildFunctionListEntries(items)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.FunctionListTable(c.Context(), partials.BuildFunctionListEntries(items)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func functionStats(c fiber.Ctx) error {
@@ -285,7 +285,7 @@ func deleteFunction(c fiber.Ctx) error {
 	}
 	if err := svc.Delete(context.Background(), name); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(c, "Function not found")
+			return toastErrorKey(c, "toast.function.not_found")
 		}
 		return err
 	}

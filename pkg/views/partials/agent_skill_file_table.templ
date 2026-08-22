@@ -20,7 +20,7 @@ templ AgentSkillFileTable(skill model.AgentSkill, files []model.AgentSkillFile) 
 		} else {
 			<div class="flex flex-col gap-2" data-testid="agent-skill-files-list">
 				for _, file := range files {
-					@AgentSkillFileRow(skill, file)
+					@AgentSkillFileRow(ctx, skill, file)
 				}
 			</div>
 		}

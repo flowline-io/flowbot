@@ -19,7 +19,7 @@ templ ConfigTable(items []model.ConfigItem) {
 				</thead>
 				<tbody id="configs-rows">
 				for _, item := range items {
-					@ConfigRow(item)
+					@ConfigRow(ctx, item)
 				}
 				if len(items) == 0 {
 					<tr id="configs-empty">

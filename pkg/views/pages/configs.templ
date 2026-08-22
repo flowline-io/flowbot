@@ -10,8 +10,8 @@ import (
 )
 
 templ ConfigsPage(ctx context.Context, items []model.ConfigItem) {
-	@layout.Base(ctx, "Configs — Flowbot") {
-		@partials.PageHeader("Configs", "") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.configs")) {
+		@partials.PageHeader(ctx, "nav.configs", "") {
 			<button hx-get="/service/web/configs/list"
 				hx-target="#configs-table"
 				hx-swap="outerHTML"

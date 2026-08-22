@@ -77,7 +77,7 @@ func TokensPage(ctx context.Context, items []model.TokenItem) templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("Tokens", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "nav.tokens", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -85,13 +85,13 @@ func TokensPage(ctx context.Context, items []model.TokenItem) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.TokenTable(items).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.TokenTable(ctx, items).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Tokens — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.tokens")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

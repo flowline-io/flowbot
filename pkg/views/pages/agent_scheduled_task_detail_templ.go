@@ -68,7 +68,7 @@ func AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentScheduled
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = partials.PageHeader(task.Name, task.TaskID).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.PageHeaderLiteral(ctx, task.Name, task.TaskID).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -91,7 +91,7 @@ func AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentScheduled
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = partials.PageHeader(task.TaskID, "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.PageHeaderLiteral(ctx, task.TaskID, "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -246,7 +246,7 @@ func AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentScheduled
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, partials.AgentScheduledTaskPageTitle(task)).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleAgentScheduledTask(ctx, task)).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

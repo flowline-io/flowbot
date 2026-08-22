@@ -1,0 +1,2003 @@
+[_meta.lang]
+other = "en"
+
+[nav.inbox]
+other = "Inbox"
+
+[nav.group.agent]
+other = "Agent"
+
+[nav.agents]
+other = "Agents"
+
+[nav.skills]
+other = "Skills"
+
+[nav.knowledge]
+other = "Knowledge"
+
+[nav.subagents]
+other = "Subagents"
+
+[nav.scheduled_tasks]
+other = "Scheduled Tasks"
+
+[nav.sessions]
+other = "Sessions"
+
+[nav.permissions]
+other = "Permissions"
+
+[nav.group.automate]
+other = "Automate"
+
+[nav.pipelines]
+other = "Pipelines"
+
+[nav.workflows]
+other = "Workflows"
+
+[nav.functions]
+other = "Functions"
+
+[nav.events]
+other = "Events"
+
+[nav.relations]
+other = "Relations"
+
+[nav.group.integrate]
+other = "Integrate"
+
+[nav.apps]
+other = "Apps"
+
+[nav.registry]
+other = "Registry"
+
+[nav.capabilities]
+other = "Capabilities"
+
+[nav.clips]
+other = "Clips"
+
+[nav.notifications]
+other = "Notifications"
+
+[nav.group.system]
+other = "System"
+
+[nav.health]
+other = "Health"
+
+[nav.tokens]
+other = "Tokens"
+
+[nav.configs]
+other = "Configs"
+
+[nav.settings]
+other = "Settings"
+
+[nav.account]
+other = "Account"
+
+[nav.about]
+other = "About"
+
+[nav.group.user]
+other = "User"
+
+[nav.life]
+other = "Life"
+
+[nav.stats]
+other = "Stats"
+
+[nav.character]
+other = "Character"
+
+[nav.quests]
+other = "Quests"
+
+[nav.inventory]
+other = "Inventory"
+
+[nav.achievements]
+other = "Achievements"
+
+[nav.rewards]
+other = "Rewards"
+
+[nav.home]
+other = "Home"
+
+[nav.memory_facts]
+other = "Memory Facts"
+
+[nav.session_summaries]
+other = "Session Summaries"
+
+[nav.home_subtitle]
+other = "Dashboard"
+
+[common.search]
+other = "Search"
+
+[common.open_command_palette]
+other = "Open command palette"
+
+[common.search_hint]
+other = "Search (Ctrl/Cmd+K)"
+
+[common.open_nav_menu]
+other = "Open navigation menu"
+
+[common.flowbot_home]
+other = "Flowbot home"
+
+[common.logout]
+other = "Logout"
+
+[common.logout_confirm]
+other = "Sign out of this session?"
+
+[common.logout_title]
+other = "Logout"
+
+[common.cancel]
+other = "Cancel"
+
+[common.confirm]
+other = "Confirm"
+
+[confirm.default_title]
+other = "Confirm Action"
+
+[common.toggle_theme]
+other = "Toggle light/dark"
+
+[common.pick_theme]
+other = "Pick theme"
+
+[common.theme_light]
+other = "Light"
+
+[common.theme_dark]
+other = "Dark"
+
+[common.theme_advanced]
+other = "Advanced"
+
+[common.theme_cupcake]
+other = "Cupcake"
+
+[common.theme_synthwave]
+other = "Synthwave"
+
+[common.theme_cyberpunk]
+other = "Cyberpunk"
+
+[common.theme_forest]
+other = "Forest"
+
+[common.theme_dracula]
+other = "Dracula"
+
+[common.theme_nord]
+other = "Nord"
+
+[common.lang_en]
+other = "EN"
+
+[common.lang_zh]
+other = "中文"
+
+[common.switch_language]
+other = "Switch language"
+
+[auth.tagline]
+other = "Homelab data hub & orchestration"
+
+[auth.sign_in]
+other = "Sign in"
+
+[auth.username]
+other = "Username"
+
+[auth.password]
+other = "Password"
+
+[auth.login]
+other = "Login"
+
+[auth.two_factor]
+other = "Two-factor authentication"
+
+[auth.two_factor_hint]
+other = "Enter the 6-digit code from your authenticator app."
+
+[auth.verification_code]
+other = "Verification code"
+
+[auth.use_backup_code]
+other = "Use a backup code"
+
+[auth.backup_code]
+other = "Backup code"
+
+[auth.use_authenticator]
+other = "Use authenticator code"
+
+[auth.verify]
+other = "Verify"
+
+[auth.create_admin]
+other = "Create admin account"
+
+[auth.setup_hint]
+other = "First-time setup. You will bind TOTP next."
+
+[auth.continue]
+other = "Continue"
+
+[auth.enable_authenticator]
+other = "Enable authenticator"
+
+[auth.enable_authenticator_hint]
+other = "Scan the QR code with your authenticator app, then enter a code to confirm."
+
+[auth.enter_secret_manually]
+other = "Or enter secret manually"
+
+[auth.confirm_and_continue]
+other = "Confirm and continue"
+
+[auth.save_backup_codes]
+other = "Save backup codes"
+
+[auth.backup_codes_hint]
+other = "Store these one-time codes somewhere safe. They will not be shown again."
+
+[auth.continue_to_flowbot]
+other = "Continue to Flowbot"
+
+[auth.confirm_backup_saved]
+other = "Confirm backup codes saved"
+
+[auth.confirm_backup_saved_hint]
+other = "Backup codes were already shown. Continue only after you stored them somewhere safe."
+
+[auth.invalid_credentials]
+other = "Invalid username or password"
+
+[auth.account_locked]
+other = "Account temporarily locked. Please try again later."
+
+[auth.too_many_attempts]
+other = "Too many failed attempts. Account temporarily locked. Please try again later."
+
+[auth.internal_error]
+other = "Internal error"
+
+[auth.username_required]
+other = "Username is required"
+
+[auth.create_account_failed]
+other = "Could not create account"
+
+[auth.invalid_totp]
+other = "Invalid verification code"
+
+[error.network]
+other = "Network error. Check your connection and try again."
+
+[error.timeout]
+other = "Request timed out. Please try again."
+
+[error.permission_denied]
+other = "Permission denied. You do not have access to perform this action."
+
+# Quoted: leaf IDs that share a prefix with child IDs cannot use nested tables.
+["error.validation"]
+other = "Validation error. Check your input and try again."
+
+["error.not_found"]
+other = "Not found. The requested resource no longer exists."
+
+[error.server]
+other = "Server error"
+
+[error.request_failed]
+other = "Request failed"
+
+[error.try_again]
+other = "Please try again."
+
+# --- page.* ---
+
+[page.home.subtitle]
+other = "Operational overview for this Flowbot instance."
+
+[page.account_security.title]
+other = "Account security"
+
+[page.account_security.subtitle]
+other = "Password and backup codes for web login."
+
+[page.account_security.backup_title]
+other = "New backup codes"
+
+[page.account_security.backup_subtitle]
+other = "Store these one-time codes somewhere safe. They will not be shown again."
+
+[page.chatagent_permissions.title]
+other = "Chat Agent Permissions"
+
+[page.chatagent_permissions.subtitle]
+other = "Edit OpenCode-style permission rules stored for your user account."
+
+[page.agent_memory.subtitle]
+other = "Correct keyed facts written by memory_* tools (shared across interactive chats when scope is default)"
+
+[page.agent_knowledge.subtitle]
+other = "Markdown documents for search_knowledge / get_knowledge"
+
+[page.agent_session_summaries.subtitle]
+other = "Archive-generated summaries searchable via search_session_summaries"
+
+[page.function_list.subtitle]
+other = "Named FaaS transforms managed as draft/publish."
+
+[page.function_editor.subtitle]
+other = "Named function editor"
+
+[page.healthz.title]
+other = "System Health"
+
+[page.healthz.subtitle]
+other = "Infrastructure status for this instance."
+
+[page.about.subtitle]
+other = "Version and build information for this instance."
+
+[page.settings.subtitle]
+other = "Read-only view of the effective flowbot.yaml configuration for this process. Secrets are redacted."
+
+[page.inbox.title]
+other = "Inbox"
+
+[page.inbox.subtitle]
+other = "Messages delivered to the in-app channel"
+
+[page.homelab.title]
+other = "Homelab Registry"
+
+[page.run_history.title]
+other = "Run History"
+
+[page.agents.composer_placeholder]
+other = "Ask Flowbot to research, automate, orchestrate"
+
+# --- confirm.* ---
+
+[confirm.delete_pipeline.message]
+other = "Delete this pipeline? Associated run records will also be removed."
+
+[confirm.delete_pipeline.title]
+other = "Delete Pipeline"
+
+[confirm.delete_pipeline.btn]
+other = "Delete"
+
+[confirm.pause_pipeline.message]
+other = "Pause this pipeline? Triggers will stop firing until resumed."
+
+[confirm.pause_pipeline.title]
+other = "Pause Pipeline"
+
+[confirm.pause_pipeline.btn]
+other = "Pause"
+
+[confirm.delete_workflow.message]
+other = "Delete this workflow? Associated run records will also be removed."
+
+[confirm.delete_workflow.title]
+other = "Delete Workflow"
+
+[confirm.delete_workflow.btn]
+other = "Delete"
+
+[confirm.disable_workflow.message]
+other = "Disable this workflow? Cron and webhook triggers will stop until re-enabled."
+
+[confirm.disable_workflow.title]
+other = "Disable Workflow"
+
+[confirm.disable_workflow.btn]
+other = "Disable"
+
+[confirm.disable_trigger.message]
+other = "Disable this trigger? It will stop firing until re-enabled."
+
+[confirm.disable_trigger.title]
+other = "Disable Trigger"
+
+[confirm.disable_trigger.btn]
+other = "Disable"
+
+[confirm.disable_skill.message]
+other = "Disable this skill? It will be hidden from the agent prompt until re-enabled."
+
+[confirm.disable_skill.title]
+other = "Disable Skill"
+
+[confirm.disable_skill.btn]
+other = "Disable"
+
+[confirm.delete_skill.message]
+other = "Delete this skill?"
+
+[confirm.delete_skill.title]
+other = "Delete Skill"
+
+[confirm.delete_skill.btn]
+other = "Delete"
+
+[confirm.delete_skill_file.message]
+other = "Delete this file?"
+
+[confirm.delete_skill_file.title]
+other = "Delete Skill File"
+
+[confirm.delete_skill_file.btn]
+other = "Delete"
+
+[confirm.delete_knowledge.message]
+other = "Delete this knowledge document?"
+
+[confirm.delete_knowledge.title]
+other = "Delete Document"
+
+[confirm.delete_knowledge.btn]
+other = "Delete"
+
+[confirm.delete_subagent.message]
+other = "Delete this subagent?"
+
+[confirm.delete_subagent.title]
+other = "Delete Subagent"
+
+[confirm.delete_subagent.btn]
+other = "Delete"
+
+[confirm.delete_fact.message]
+other = "Delete fact {{.Key}}?"
+
+[confirm.delete_fact.title]
+other = "Delete Fact"
+
+[confirm.delete_fact.btn]
+other = "Delete"
+
+[confirm.delete_channel.message]
+other = "Delete this channel?"
+
+[confirm.delete_channel.title]
+other = "Delete Channel"
+
+[confirm.delete_channel.btn]
+other = "Delete"
+
+[confirm.delete_template.message]
+other = "Delete this template?"
+
+[confirm.delete_template.title]
+other = "Delete Template"
+
+[confirm.delete_template.btn]
+other = "Delete"
+
+[confirm.delete_rule.message]
+other = "Delete this rule?"
+
+[confirm.delete_rule.title]
+other = "Delete Rule"
+
+[confirm.delete_rule.btn]
+other = "Delete"
+
+[confirm.delete_function.message]
+other = "Delete function {{.Name}}?"
+
+[confirm.delete_function.title]
+other = "Delete Function"
+
+[confirm.delete_function.btn]
+other = "Delete"
+
+[confirm.delete_config.message]
+other = "Delete this config?"
+
+[confirm.delete_config.title]
+other = "Delete Config"
+
+[confirm.delete_config.btn]
+other = "Delete"
+
+[confirm.revoke_token.message]
+other = "Revoke this token? It will stop working immediately."
+
+[confirm.revoke_token.title]
+other = "Revoke Token"
+
+[confirm.revoke_token.btn]
+other = "Revoke"
+
+[confirm.regenerate_backup_codes.message]
+other = "This invalidates all existing backup codes. Continue?"
+
+[confirm.regenerate_backup_codes.title]
+other = "Regenerate backup codes"
+
+[confirm.regenerate_backup_codes.btn]
+other = "Regenerate"
+
+[confirm.stop_app.message]
+other = "Stop {{.App}}? This will shut down the application."
+
+[confirm.stop_app.title]
+other = "Stop App"
+
+[confirm.stop_app.btn]
+other = "Stop"
+
+[confirm.restart_app.message]
+other = "Restart {{.App}}? This will interrupt the running application."
+
+[confirm.restart_app.title]
+other = "Restart App"
+
+[confirm.restart_app.btn]
+other = "Restart"
+
+[confirm.delete_goal.message]
+other = "Delete this goal?"
+
+[confirm.delete_goal.title]
+other = "Delete Goal"
+
+[confirm.delete_goal.btn]
+other = "Delete"
+
+[confirm.dismiss_quest.message]
+other = "Dismiss this quest? No penalty."
+
+[confirm.dismiss_quest.title]
+other = "Dismiss Quest"
+
+[confirm.dismiss_quest.btn]
+other = "Dismiss"
+
+[confirm.deactivate_reward.message]
+other = "Deactivate this reward?"
+
+[confirm.deactivate_reward.title]
+other = "Deactivate Reward"
+
+[confirm.deactivate_reward.btn]
+other = "Deactivate"
+
+# --- toast.* ---
+
+[toast.config.saved]
+other = "Config saved"
+
+[toast.config.not_found]
+other = "Config not found"
+
+[toast.config.save_failed]
+other = "Could not save config. Please try again."
+
+[toast.config.delete_failed]
+other = "Failed to delete config"
+
+[toast.agent_skills.choose_zip]
+other = "Choose a zip archive of Agent Skills"
+
+[toast.agent_skills.zip_too_large]
+other = "Zip archive exceeds maximum size (5 MiB)"
+
+[toast.agent_skills.read_zip_failed]
+other = "Failed to read zip archive"
+
+[toast.agent_skills.import_failed]
+other = "Import failed: {{.Error}}"
+
+[toast.agent_skills.no_skill_md]
+other = "No SKILL.md found in zip archive"
+
+[toast.agent_skills.reload_failed]
+other = "Imported but failed to reload agent skills"
+
+[toast.agent_skills.imported_one]
+other = "Imported {{.Count}} skill"
+
+[toast.agent_skills.imported_many]
+other = "Imported {{.Count}} skills"
+
+[toast.agent_skills.create_failed]
+other = "Failed to create agent skill"
+
+[toast.agent_skills.update_failed]
+other = "Failed to update agent skill"
+
+[toast.agent_skills.load_failed]
+other = "Failed to load agent skill"
+
+[toast.agent_skills.invalid_enabled]
+other = "Invalid enabled value"
+
+[toast.agent_skills.not_found]
+other = "Agent skill not found"
+
+[toast.agent_skills.delete_failed]
+other = "Failed to delete agent skill"
+
+[toast.agent_memory.key_value_required]
+other = "Key and value are required"
+
+[toast.agent_memory.fact_not_found_create]
+other = "Fact not found; create facts with memory_set"
+
+[toast.agent_memory.save_failed]
+other = "Failed to save fact"
+
+[toast.agent_memory.key_required]
+other = "Key is required"
+
+[toast.agent_memory.fact_not_found]
+other = "Fact not found"
+
+[toast.agent_memory.delete_failed]
+other = "Failed to delete fact"
+
+[toast.agent_memory.refresh_failed]
+other = "Failed to refresh memory facts"
+
+[toast.agent_knowledge.create_failed]
+other = "Failed to create knowledge document"
+
+[toast.agent_knowledge.update_failed]
+other = "Failed to update knowledge document"
+
+[toast.agent_knowledge.load_failed]
+other = "Failed to load updated knowledge document"
+
+[toast.agent_knowledge.not_found]
+other = "Knowledge document not found"
+
+[toast.agent_knowledge.delete_failed]
+other = "Failed to delete knowledge document"
+
+[toast.agents.not_enabled]
+other = "Chat agent is not enabled"
+
+[toast.agents.session_not_found]
+other = "Session not found"
+
+[toast.agents.forbidden]
+other = "Forbidden"
+
+[toast.agents.pin_failed]
+other = "Failed to update pin"
+
+[toast.agents.refresh_sessions_failed]
+other = "Failed to refresh sessions"
+
+[toast.agents.archive_failed]
+other = "Failed to update archive"
+
+[toast.notify_settings.channel_saved]
+other = "Channel saved"
+
+[toast.notify_settings.system_channel_readonly]
+other = "System channel cannot be modified"
+
+[toast.notify_settings.system_channel_no_delete]
+other = "System channel cannot be deleted"
+
+[toast.notify_settings.channel_test_failed]
+other = "Channel test failed: {{.Error}}"
+
+[toast.notify_settings.channel_test_succeeded]
+other = "Channel test succeeded"
+
+[toast.notify_settings.default_channel_updated]
+other = "Default channel updated"
+
+[toast.notify_settings.template_saved]
+other = "Template saved"
+
+[toast.notify_settings.default_template_updated]
+other = "Default template updated"
+
+[toast.notify_settings.rule_saved]
+other = "Rule saved"
+
+[toast.notification.retry_only_failed]
+other = "Only failed notifications can be retried"
+
+[toast.notification.retry_failed]
+other = "Retry failed: {{.Error}}"
+
+[toast.notification.connectivity_retest_succeeded]
+other = "Connectivity retest succeeded"
+
+[toast.notification.notification_retried]
+other = "Notification retried"
+
+[toast.notification.mark_read_failed]
+other = "Failed to mark as read"
+
+[toast.session_summaries.session_id_required]
+other = "Session id is required"
+
+[toast.session_summaries.retry_failed]
+other = "Failed to retry summary"
+
+[toast.session_summaries.refresh_failed]
+other = "Failed to refresh summaries"
+
+[toast.workflow.run_started]
+other = "Workflow run #{{.RunID}} started"
+
+[toast.workflow.disabled]
+other = "Workflow disabled"
+
+[toast.workflow.enabled]
+other = "Workflow enabled"
+
+[toast.token.not_found]
+other = "Token not found"
+
+[toast.token.revoke_failed]
+other = "Failed to revoke token"
+
+[toast.function.not_found]
+other = "Function not found"
+
+[toast.inbox.mark_read_failed]
+other = "Failed to mark as read"
+
+[toast.life.evidence_recorded]
+other = "Evidence recorded for the quest."
+
+[toast.life.dm_suggested_ruling]
+other = "The dungeon master issued a suggested ruling."
+
+[toast.life.ruling_applied]
+other = "Suggested ruling applied."
+
+[toast.life.quest_rated]
+other = "Quest rated {{.Difficulty}} — ~{{.Chance}}% chance of {{.Tier}} loot"
+
+[toast.life.quest_complete]
+other = "+{{.Exp}} EXP, +{{.Gold}} gold (dice {{.Dice}})"
+
+[toast.life.quest_failed_tarnish]
+other = "Quest failed — equipped gear tarnished for 24h"
+
+[toast.life.quest_dismissed]
+other = "Quest dismissed."
+
+[toast.life.class_saved]
+other = "Class saved."
+
+[toast.life.reward_redeemed]
+other = "Reward redeemed."
+
+[toast.life.generic_error]
+other = "Something went wrong"
+
+[toast.life.action_failed]
+other = "Could not complete that action. Please try again."
+
+# --- life.* ---
+
+[life.brand]
+other = "Life"
+
+[life.nav.aria_label]
+other = "Life navigation"
+
+[life.nav.dashboard]
+other = "Life"
+
+[life.nav.quests]
+other = "Quests"
+
+[life.nav.rewards]
+other = "Rewards"
+
+[life.nav.skills]
+other = "Skills"
+
+[life.nav.inventory]
+other = "Inventory"
+
+[life.nav.goals]
+other = "Goals"
+
+[life.nav.plan]
+other = "Plan"
+
+[life.nav.stats]
+other = "Stats"
+
+[life.nav.character]
+other = "Character"
+
+[life.nav.achievements]
+other = "Achievements"
+
+[life.btn.save]
+other = "Save"
+
+[life.btn.cancel]
+other = "Cancel"
+
+[life.btn.delete]
+other = "Delete"
+
+[life.btn.create]
+other = "Create"
+
+[life.btn.pause]
+other = "Pause"
+
+[life.btn.resume]
+other = "Resume"
+
+[life.btn.equip]
+other = "Equip"
+
+[life.btn.unequip]
+other = "Unequip"
+
+[life.btn.redeem]
+other = "Redeem"
+
+[life.btn.deactivate]
+other = "Deactivate"
+
+[life.btn.confirm_habit]
+other = "Confirm habit"
+
+[life.btn.edit]
+other = "Edit"
+
+[life.btn.prev]
+other = "Prev"
+
+[life.btn.next]
+other = "Next"
+
+[life.btn.dismiss]
+other = "Dismiss"
+
+[life.btn.complete]
+other = "Complete"
+
+[life.btn.skip]
+other = "Skip"
+
+[life.btn.check_in]
+other = "Check in"
+
+[life.btn.add]
+other = "Add"
+
+[life.btn.restore]
+other = "Restore"
+
+[life.btn.preview_breakdown]
+other = "Preview AI breakdown"
+
+[life.btn.import_suggestion]
+other = "Import suggestion"
+
+[life.btn.fail]
+other = "Fail"
+
+[life.btn.submit]
+other = "Submit"
+
+[life.btn.refresh]
+other = "Refresh"
+
+[life.category.project]
+other = "Project"
+
+[life.category.area]
+other = "Area"
+
+[life.category.resource]
+other = "Resource"
+
+[life.category.no_area]
+other = "No area"
+
+[life.category.label]
+other = "Category"
+
+[life.category.area_label]
+other = "Area"
+
+[life.class.label]
+other = "Class"
+
+[life.class.architect]
+other = "Architect"
+
+[life.class.mage]
+other = "Mage"
+
+[life.class.warrior]
+other = "Warrior"
+
+[life.class.rogue]
+other = "Rogue"
+
+[life.page.goals.title]
+other = "Goals"
+
+[life.page.goals.subtitle]
+other = "PARA · Project, Area, Resource — the objectives that steer quests and buffs."
+
+[life.page.plan.title]
+other = "Plan Tree"
+
+[life.page.plan.subtitle]
+other = "Goal → Milestone → Project → Action · decompose with the Life DM, then confirm import."
+
+[life.page.skills.title]
+other = "Skill Tree"
+
+[life.page.skills.subtitle]
+other = "See which branches are actively trained and inspect the recent practice evidence behind each one."
+
+[life.page.quests.title]
+other = "Quests"
+
+[life.page.quests.subtitle]
+other = "Describe work; the Life DM rates difficulty and loot."
+
+[life.page.inventory.title]
+other = "Inventory"
+
+[life.page.inventory.subtitle]
+other = "Equip gear to gain attribute and ability bonuses."
+
+[life.page.achievements.title]
+other = "Achievements"
+
+[life.page.achievements.subtitle]
+other = "Memorial milestones from quest completions."
+
+[life.page.rewards.title]
+other = "Rewards"
+
+[life.page.rewards.subtitle]
+other = "Spend gold on real-life treats you define. Honor system — redeem when you claim it."
+
+[life.page.stats.title]
+other = "Stats"
+
+[life.page.stats.subtitle]
+other = "Last 30 days of activity, growth, quests, gold, and loot."
+
+[life.page.character.title]
+other = "Character"
+
+[life.empty.goals]
+other = "No goals yet — add one above."
+
+[life.empty.goal_group]
+other = "No projects or resources in this area yet."
+
+[life.empty.plan_nodes]
+other = "No plan nodes yet — preview an AI breakdown to start the tree."
+
+[life.empty.skills]
+other = "No tracked skills yet — complete quests or build action plans to grow the tree."
+
+[life.empty.skill_evidence]
+other = "Select a branch to inspect its recent practice evidence."
+
+[life.empty.skill_evidence_node]
+other = "No recent evidence linked to this branch yet."
+
+[life.empty.today_actions]
+other = "No pending action occurrences for today."
+
+[life.empty.today_habits]
+other = "No habits ready for check-in."
+
+[life.empty.quests_pending]
+other = "No pending quests. Write one above to begin."
+
+[life.empty.quest_evidence]
+other = "No evidence submitted yet."
+
+[life.empty.quest_completed]
+other = "Nothing completed yet."
+
+[life.empty.completions_log]
+other = "No completions logged yet."
+
+[life.empty.inventory_backpack]
+other = "Backpack empty — complete quests to earn loot."
+
+[life.empty.inventory_slot]
+other = "Empty"
+
+[life.empty.achievements]
+other = "No achievements seeded yet."
+
+[life.empty.rewards_active]
+other = "No rewards yet — add one above."
+
+[life.empty.redemptions]
+other = "No redemptions yet."
+
+[life.empty.rewards_inactive]
+other = "No deactivated rewards."
+
+[life.goal.ungrouped]
+other = "Ungrouped"
+
+[life.goal.title_placeholder]
+other = "Ship the book this year"
+
+[life.goal.create]
+other = "Create goal"
+
+[life.goal.title_label]
+other = "Goal title"
+
+[life.plan.breakdown_placeholder]
+other = "Ask AI to decompose a concrete goal"
+
+[life.plan.outcome_placeholder]
+other = "Optional outcome / constraints"
+
+[life.plan.ai_suggestion]
+other = "AI suggestion: {{.Title}}"
+
+[life.skills.growth_map]
+other = "Growth Map"
+
+[life.skills.growth_map_sub]
+other = "Expand branches to explore; active ones are highlighted by recent practice."
+
+[life.skills.practice_evidence]
+other = "Practice Evidence"
+
+[life.skills.practice_evidence_sub]
+other = "Click a node to inspect the recent quests, actions, and habits that keep it active."
+
+[life.skills.last_activity]
+other = "Last activity: {{.Label}}"
+
+[life.quest.prompt_placeholder]
+other = "e.g. Finish the API architecture diagram tonight"
+
+[life.quest.evidence_placeholder]
+other = "Describe what you shipped, learned, or produced."
+
+[life.quest.add_evidence]
+other = "Add evidence"
+
+[life.quest.request_ruling]
+other = "Request ruling"
+
+[life.quest.apply_ruling]
+other = "Apply ruling"
+
+[life.quest.what_will_you_do]
+other = "What will you do?"
+
+[life.quest.link_goal]
+other = "Link goal (optional)"
+
+[life.quest.link_goal_none]
+other = "None"
+
+[life.quest.composer_hint]
+other = "AI evaluates difficulty; server sets rewards and drop chance."
+
+[life.quest.today_actions]
+other = "Today actions"
+
+[life.quest.today_habits]
+other = "Today habits"
+
+[life.quest.pending]
+other = "Pending"
+
+[life.quest.completed]
+other = "Completed"
+
+[life.quest.completions_log]
+other = "Completions log"
+
+[life.quest.evidence]
+other = "Quest evidence"
+
+[life.quest.submit_evidence]
+other = "Submit evidence"
+
+[life.quest.evidence_type]
+other = "Evidence type"
+
+[life.quest.evidence_type_note]
+other = "note"
+
+[life.quest.evidence_type_link]
+other = "link"
+
+[life.quest.evidence_type_artifact]
+other = "artifact"
+
+[life.quest.source_url]
+other = "Source URL (optional)"
+
+[life.quest.open_source]
+other = "Open source"
+
+[life.quest.fear]
+other = "Fear {{.Value}}"
+
+[life.quest.drop_chance]
+other = "~{{.Percent}}% drop"
+
+[life.quest.suggested_exp]
+other = "Suggested +{{.Value}} EXP"
+
+[life.quest.suggested_gold]
+other = "Suggested +{{.Value}} gold"
+
+[life.reward.exp]
+other = "+{{.Value}} EXP"
+
+[life.reward.gold]
+other = "+{{.Value}} gold"
+
+[life.pager.page_of]
+other = "Page {{.Page}} of {{.Total}}"
+
+[life.dashboard.bonus]
+other = "Drop buff +{{.DropRate}}% · Gold ×{{.GoldMult}}"
+
+[life.meta.due]
+other = "Due {{.Label}}"
+
+[life.meta.done_today]
+other = "done today"
+
+[life.meta.dice]
+other = "dice {{.Value}}"
+
+[life.meta.drop]
+other = "drop"
+
+[life.inventory.equipped]
+other = "Equipped"
+
+[life.inventory.backpack]
+other = "Backpack"
+
+[life.inventory.equipped_badge]
+other = "Equipped"
+
+[life.inventory.tarnished]
+other = "Tarnished"
+
+[life.inventory.perk]
+other = "Perk {{.Text}}"
+
+[life.inventory.lore]
+other = "Lore {{.Status}}"
+
+[life.achievements.unlocked]
+other = "Unlocked"
+
+[life.achievements.locked]
+other = "Locked"
+
+[life.achievements.unlocked_at]
+other = "Unlocked {{.At}}"
+
+[life.achievements.retired]
+other = "Retired from catalog"
+
+[life.rewards.balance]
+other = "Balance"
+
+[life.rewards.balance_unit]
+other = "gold"
+
+[life.rewards.add_title]
+other = "Add reward"
+
+[life.rewards.add_sub]
+other = "Name it, price it, optional cooldown."
+
+[life.rewards.active_title]
+other = "Active"
+
+[life.rewards.active_sub]
+other = "Redeem when you take the treat."
+
+[life.rewards.price]
+other = "Price"
+
+[life.rewards.cooldown]
+other = "Cooldown h"
+
+[life.rewards.name_label]
+other = "Name"
+
+[life.rewards.name_placeholder]
+other = "Milk tea"
+
+[life.rewards.notes_placeholder]
+other = "Weekends only"
+
+[life.rewards.on_cooldown]
+other = "On cooldown"
+
+[life.rewards.cooldown_until]
+other = "Cooldown · until {{.Until}}"
+
+[life.rewards.cooldown_hours]
+other = "{{.Hours}}h cooldown"
+
+[life.rewards.notes]
+other = "Notes"
+
+[life.rewards.no_cooldown]
+other = "No cooldown"
+
+[life.rewards.need_more_gold]
+other = "Need more gold"
+
+[life.rewards.redemptions]
+other = "Redemptions"
+
+[life.rewards.inactive]
+other = "Inactive"
+
+[life.profile.level]
+other = "Level {{.Value}}"
+
+[life.profile.master_objective]
+other = "Master Objective"
+
+[life.profile.minor_objective]
+other = "Minor Objective"
+
+[life.profile.strength]
+other = "Strength"
+
+[life.profile.weaknesses]
+other = "Weaknesses"
+
+[life.profile.level_up]
+other = "Level UP:"
+
+[life.status.active]
+other = "Active"
+
+[life.status.paused]
+other = "Paused"
+
+# --- clip.* ---
+
+[clip.not_found.title]
+other = "Clip not found"
+
+[clip.not_found.meta]
+other = "This clip does not exist or was removed."
+
+[clip.gated_hint]
+other = "Sign in with your Flowbot account to view the full markdown."
+
+[clip.login_to_read]
+other = "Log in to read"
+
+[clip.copy_md]
+other = "Copy MD"
+
+[clip.copied]
+other = "Copied"
+
+[clip.copy_failed]
+other = "Copy failed"
+
+# --- client.* ---
+
+[client.pipeline.load_failed]
+other = "Failed to load pipeline"
+
+[client.pipeline.name_required]
+other = "Pipeline name is required"
+
+[client.pipeline.rename_failed]
+other = "Failed to rename pipeline"
+
+[client.pipeline.renamed]
+other = "Pipeline renamed"
+
+[client.pipeline.agent_options_failed]
+other = "Failed to load agent run options"
+
+[client.pipeline.capabilities_failed]
+other = "Failed to load capabilities"
+
+[client.pipeline.remove_trigger.title]
+other = "Remove Trigger"
+
+[client.pipeline.remove_trigger.message]
+other = "Remove this trigger from the pipeline?"
+
+[client.pipeline.delete_step.title]
+other = "Delete Step"
+
+[client.pipeline.delete_step.message]
+other = "Delete this step from the pipeline?"
+
+[client.pipeline.discard_changes.title]
+other = "Discard Changes"
+
+[client.pipeline.discard_changes.message]
+other = "You have unsaved changes. Discard them?"
+
+[client.pipeline.trigger_required]
+other = "At least one trigger must be enabled"
+
+[client.pipeline.step_required]
+other = "At least one step is required"
+
+[client.pipeline.event_type_required]
+other = "Event type is required"
+
+[client.pipeline.webhook_path_required]
+other = "Webhook path is required"
+
+[client.pipeline.auth_required]
+other = "At least one auth method is required"
+
+[client.pipeline.cron_required]
+other = "Cron expression is required"
+
+[client.pipeline.step_name_required]
+other = "Step name is required"
+
+[client.pipeline.capability_required]
+other = "Capability is required"
+
+[client.pipeline.operation_required]
+other = "Operation is required"
+
+[client.pipeline.draft_conflict]
+other = "This draft was modified elsewhere. Please refresh the page."
+
+[client.pipeline.draft_saved]
+other = "Draft saved"
+
+[client.pipeline.draft_saved_publish_hint]
+other = "Draft saved. Click Publish to update the live webhook."
+
+[client.pipeline.save_failed]
+other = "Save failed. Your changes are not saved yet."
+
+[client.pipeline.published]
+other = "Pipeline published"
+
+[client.pipeline.publish_failed]
+other = "Publish failed: {{.Error}}"
+
+[client.pipeline.copy_failed]
+other = "Failed to copy"
+
+[client.pipeline.webhook_url_copied]
+other = "Webhook URL copied"
+
+[client.pipeline.curl_copied]
+other = "curl example copied"
+
+[client.pipeline.test_failed]
+other = "Test failed: {{.Error}}"
+
+[client.pipeline.mock_payload_failed]
+other = "Failed to load mock payload"
+
+[client.pipeline.invalid_yaml]
+other = "Invalid YAML: not a pipeline definition"
+
+[client.pipeline.yaml_import_success]
+other = "YAML imported successfully"
+
+[client.pipeline.yaml_import_failed]
+other = "Import failed: {{.Error}}"
+
+[client.pipeline.versions_load_failed]
+other = "Failed to load versions"
+
+[client.pipeline.version_load_failed]
+other = "Failed to load version"
+
+[client.pipeline.diff_failed]
+other = "Failed to compare versions"
+
+[client.pipeline.move_blocked]
+other = "Cannot move: this step depends on data from a step at or above the target position."
+
+[client.chatagent.prompt_required]
+other = "Enter a prompt to start."
+
+[client.chatagent.session_create_failed]
+other = "Failed to create session"
+
+[client.chatagent.missing_session_id]
+other = "Missing session id"
+
+[client.chatagent.settings_save_failed]
+other = "Failed to save settings"
+
+[client.chatagent.close_session.title]
+other = "Close session"
+
+[client.chatagent.close_session.message]
+other = "Close this session? You will not be able to send more messages."
+
+[client.chatagent.close_session_failed]
+other = "Failed to close session"
+
+[client.chatagent.media_not_supported]
+other = "Selected model does not support media input"
+
+[client.chatagent.max_attachments]
+other = "At most 8 attachments per message"
+
+[client.chatagent.remove_attachment]
+other = "Remove attachment"
+
+[client.chatagent.copy_code]
+other = "Copy code"
+
+[client.chatagent.copy_md]
+other = "Copy markdown"
+
+[client.chatagent.thinking_prefix]
+other = "Thinking: {{.Level}}"
+
+[client.chatagent.model_default]
+other = "Default"
+
+[client.chatagent.model_medium]
+other = "Medium"
+
+[client.chatagent.start_agent]
+other = "Start agent"
+
+[client.chatagent.approve]
+other = "Approve"
+
+[client.chatagent.deny]
+other = "Deny"
+
+[client.chatagent.always_allow]
+other = "Always allow"
+
+[client.command_palette.empty]
+other = "No matching results"
+
+[client.command_palette.placeholder]
+other = "Search pages, pipelines, sessions…"
+
+[client.command_palette.recent]
+other = "Recent"
+
+[client.command_palette.pages]
+other = "Pages"
+
+[client.command_palette.pipelines]
+other = "Pipelines"
+
+[client.command_palette.sessions]
+other = "Sessions"
+
+[client.command_palette.homelab]
+other = "Homelab"
+
+[client.command_palette.search_failed]
+other = "Search failed. Please try again."
+
+[client.function_editor.copied_call_url]
+other = "Copied call URL"
+
+[client.function_editor.save_draft_failed]
+other = "Failed to save draft"
+
+[client.function_editor.publish_success]
+other = "Function published"
+
+[client.function_editor.publish_failed]
+other = "Publish failed: {{.Error}}"
+
+[client.function_editor.delete_failed]
+other = "Failed to delete function"
+
+[client.clip.copied]
+other = "Copied"
+
+[client.clip.copy_failed]
+other = "Copy failed"
+
+[client.stats.completions]
+other = "Completions"
+
+[client.stats.exp]
+other = "EXP"
+
+[client.stats.growth_exp]
+other = "EXP"
+
+[client.stats.quest_completed]
+other = "Completed"
+
+[client.stats.gold_in]
+other = "Gold in"
+
+[client.stats.gold_out]
+other = "Gold out"
+
+[client.stats.drops]
+other = "Drops"
+
+[client.stats.success_rate]
+other = "Success Rate"
+
+[client.stats.pipeline_runs]
+other = "Pipeline Runs"
+
+[client.stats.workflow_runs]
+other = "Workflow Runs"
+
+[client.stats.function_runs]
+other = "Function Runs"
+
+[client.pipeline_run.connected]
+other = "Live stream connected"
+
+[client.pipeline_run.reconnecting]
+other = "Reconnecting live stream…"
+
+[client.pipeline_run.failed]
+other = "Live failed"
+
+[client.pipeline_run.finished]
+other = "Live finished"
+
+[client.hub.logs.connected]
+other = "Log stream connected"
+
+[client.hub.logs.ended]
+other = "Log stream ended. Refresh the page to reconnect."
+
+[client.chatagent.context.system_prompt]
+other = "System prompt"
+
+[client.chatagent.context.system_tools]
+other = "Tool definitions"
+
+[client.chatagent.context.skills]
+other = "Skills"
+
+[client.chatagent.context.messages]
+other = "Conversation"
+
+[client.chatagent.context.autocompact_buffer]
+other = "Autocompact buffer"
+
+[client.chatagent.context.free_space]
+other = "Free space"
+
+[client.chatagent.context.load_failed]
+other = "Failed to load context usage"
+
+[client.chatagent.context.tokens_suffix]
+other = "Tokens"
+
+[client.chatagent.todos.empty]
+other = "No todos yet."
+
+[client.chatagent.todos.label]
+other = "Todos"
+
+[client.chatagent.slash.skills_aria]
+other = "Skills"
+
+[client.chatagent.slash.no_match]
+other = "No matching skills"
+
+[client.chatagent.slash.no_skills]
+other = "No skills available"
+
+[client.app.needs_approval]
+other = "Needs approval"
+
+# --- common.* (doc titles) ---
+
+[common.app_name]
+other = "Flowbot"
+
+[common.doc_title_flowbot]
+other = " — Flowbot"
+
+[common.doc_title_life]
+other = " — Life"
+
+[common.delete]
+other = "Delete"
+
+[common.open]
+other = "Open"
+
+[common.refresh]
+other = "Refresh"
+
+[common.create]
+other = "Create"
+
+# --- page.doc_title.* ---
+
+[page.doc_title.pipeline]
+other = "Pipeline: {{.Name}}"
+
+[page.doc_title.runs]
+other = "Runs: {{.Name}}"
+
+[page.doc_title.live]
+other = "Live: {{.Name}}"
+
+[page.doc_title.function]
+other = "Function · {{.Name}}"
+
+[page.doc_title.workflow]
+other = "Workflow: {{.Name}}"
+
+[page.doc_title.agent_chat]
+other = "Agent Chat"
+
+# --- clip meta ---
+
+[clip.default_title]
+other = "Clip"
+
+[clip.meta.words_only]
+other = "{{.Count}} words"
+
+[clip.meta.date_only]
+other = "{{.Date}}"
+
+[clip.meta.date_words]
+other = "{{.Date}} · {{.Count}} words"
+
+[clip.slug_label]
+other = "slug:"
+
+# --- life meta chips ---
+
+[life.meta.active_count]
+other = "{{.Count}} active"
+
+[life.meta.tracked_count]
+other = "{{.Count}} tracked"
+
+[life.meta.records_count]
+other = "{{.Count}} records"
+
+[life.meta.skills_count]
+other = "{{.Count}} skills"
+
+[life.meta.items_count]
+other = "{{.Count}} items"
+
+[life.meta.level_prefix]
+other = "LV{{.Value}}"
+
+[life.node_type.goal]
+other = "Goal"
+
+[life.node_type.milestone]
+other = "Milestone"
+
+[life.node_type.project]
+other = "Project"
+
+[life.node_type.action]
+other = "Action"
+
+[life.node_type.node]
+other = "Node"
+
+[life.task_type.todo]
+other = "Todo"
+
+[life.task_type.recurring]
+other = "Recurring"
+
+[life.task_type.habit_candidate]
+other = "Habit (pending)"
+
+[life.task_type.habit]
+other = "Habit"
+
+[life.task_type.checkpoint]
+other = "Checkpoint"
+
+# --- error.load.* / handler form ---
+
+[error.load.agent_skills_list]
+other = "Failed to load agent skills"
+
+[error.load.agent_skill_files]
+other = "Failed to load agent skill files"
+
+[error.create.agent_skill_file]
+other = "Failed to create agent skill file"
+
+[error.invalid.agent_skill_file_path]
+other = "Invalid agent skill file path"
+
+[error.not_found.agent_skill_file]
+other = "Agent skill file not found"
+
+[error.load.agent_skill_file]
+other = "Failed to load agent skill file"
+
+[error.update.agent_skill_file]
+other = "Failed to update agent skill file"
+
+[error.delete.agent_skill_file]
+other = "Failed to delete agent skill file"
+
+[error.load.agent_sessions]
+other = "Failed to load agent sessions"
+
+[error.load.configs]
+other = "Failed to load configs"
+
+[error.load.config]
+other = "Failed to load config"
+
+[error.load.tokens]
+other = "Failed to load tokens"
+
+[error.load.agent_knowledge]
+other = "Failed to load agent knowledge"
+
+[error.load.clips]
+other = "Failed to load clips"
+
+[error.load.memory_facts]
+other = "Failed to load memory facts"
+
+[error.load.session_summaries]
+other = "Failed to load session summaries"
+
+[error.load.agent_subagents]
+other = "Failed to load agent subagents"
+
+[error.load.subagent_form_options]
+other = "Failed to load subagent form options"
+
+[error.create.agent_subagent]
+other = "Failed to create agent subagent"
+
+[error.not_found.agent_subagent]
+other = "Agent subagent not found"
+
+[error.load.agent_subagent]
+other = "Failed to load agent subagent"
+
+[error.update.agent_subagent]
+other = "Failed to update agent subagent"
+
+[error.load.agent_subagent_updated]
+other = "Failed to load updated agent subagent"
+
+[error.delete.agent_subagent]
+other = "Failed to delete agent subagent"
+
+[error.load.subagent_tasks]
+other = "Failed to load subagent tasks"
+
+[error.not_found.subagent_task]
+other = "Subagent task not found"
+
+[error.load.subagent_task]
+other = "Failed to load subagent task"
+
+[error.load.scheduled_tasks]
+other = "Failed to load scheduled tasks"
+
+[error.load.notifications]
+other = "Failed to load notifications"
+
+[error.validation.state_required]
+other = "state is required"
+
+[error.validation.invalid_state]
+other = "invalid state"
+
+[error.validation.uid_required]
+other = "UID is required"
+
+[error.validation.expiry_required]
+other = "Expiry is required"
+
+[error.validation.scopes_required]
+other = "At least one scope is required"
+
+[error.validation.invalid_duration]
+other = "Invalid duration"
+
+[error.validation.invalid_scope]
+other = "Invalid scope: {{.Scope}}"
+
+[toast.life.breakdown_encode_failed]
+other = "Could not encode breakdown preview"
+
+[toast.life.breakdown_payload_required]
+other = "Breakdown preview payload required"
+
+[toast.life.breakdown_payload_invalid]
+other = "Invalid breakdown preview payload"
+
+[toast.life.prompt_required]
+other = "Prompt required"
+
+[toast.notify_settings.template_summary_required]
+other = "Default template must reference the summary placeholder (template syntax: {{ \"{{ .summary }}\" }})"
+
+[toast.notify_playground.send_failed]
+other = "Send failed: {{.Error}}"
+
+[toast.notify_playground.sent]
+other = "Notification sent to {{.Name}}"
+
+# --- table.* partial UI ---
+
+[table.search_tokens]
+other = "Search tokens..."
+
+[table.col.uid]
+other = "UID"
+
+[table.col.token]
+other = "Token"
+
+[table.col.created]
+other = "Created"
+
+[table.col.last_used]
+other = "Last Used"
+
+[table.col.expires]
+other = "Expires"
+
+[table.col.scopes]
+other = "Scopes"
+
+[table.col.actions]
+other = "Actions"
+
+[table.col.name]
+other = "Name"
+
+[table.col.status]
+other = "Status"
+
+[table.col.published]
+other = "Published"
+
+[table.empty.tokens]
+other = "No tokens yet"
+
+[table.empty.tokens_detail]
+other = "Tokens authenticate API and CLI access."
+
+[table.empty.tokens_cta]
+other = "Create token"
+
+[table.empty.functions]
+other = "No functions yet"
+
+[table.empty.functions_detail]
+other = "Create a named function to transform data in a sandbox."
+
+[table.empty.functions_cta]
+other = "Create function"
+
+[table.chip.unpublished]
+other = "Unpublished changes"
+
+[table.chip.published]
+other = "Published"
+
+[table.chip.draft]
+other = "Draft"
+
+# --- client pipeline confirm buttons + validation ---
+
+[client.pipeline.confirm_remove]
+other = "Remove"
+
+[client.pipeline.confirm_delete]
+other = "Delete"
+
+[client.pipeline.confirm_discard]
+other = "Discard"
+
+[client.pipeline.invalid_params_json]
+other = "Invalid params JSON: {{.Error}}"
+
+[client.pipeline.param_required]
+other = "Parameter \"{{.Name}}\" is required"
+
+[client.pipeline.param_invalid_json]
+other = "Parameter \"{{.Name}}\" has invalid JSON"
+
+[client.pipeline.trigger_prefix]
+other = "Trigger {{.Index}}: {{.Error}}"
+
+[client.pipeline.webhook_preview]
+other = "Webhook: ..."
+
+[client.pipeline.auth_token_preview]
+other = "Auth: ?token=... or header X-Webhook-Token"
+
+[client.pipeline.auth_hmac_preview]
+other = "Auth: header X-Hub-Signature-256"
+
+[client.pipeline.auth_configure]
+other = "Auth: configure Token or HMAC Secret"
+
+[client.pipeline.memory_load_failed]
+other = "Failed to load memory facts"
+
+[client.chatagent.close_session.btn]
+other = "Close"
+
+[client.chatagent.start_failed]
+other = "Failed to start"
+
+[client.chatagent.attached_image]
+other = "Attached image"
+
+[client.chatagent.thinking_off]
+other = "Off"
+
+[client.chatagent.thinking_low]
+other = "Low"
+
+[client.chatagent.thinking_high]
+other = "High"
+
+[client.chatagent.close_session.confirm_fallback]
+other = "Close this session?"

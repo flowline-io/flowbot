@@ -122,8 +122,8 @@ func notifyChannelCreate(ctx fiber.Ctx) error {
 		return partials.EmptyState("Channel created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Channel saved")
-	if err := partials.NotifyChannelRow(ch, false).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
+	setShowToastKey(ctx, "success", "toast.notify_settings.channel_saved")
+	if err := partials.NotifyChannelRow(ctx.Context(), ch, false).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
 		return err
 	}
 	_, _ = ctx.Response().BodyWriter().Write([]byte(`<tr id="notify-channels-empty" hx-swap-oob="delete"></tr>`))
@@ -161,10 +161,10 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	if notifypkg.IsSystemNotifyChannel(existing.Name) {
-		setShowToast(ctx, "error", "System channel cannot be modified")
+		setShowToastKey(ctx, "error", "toast.notify_settings.system_channel_readonly")
 		ch, _ := store.NotifyConfigStoreFromDB().GetNotifyChannel(ctx.Context(), id)
 		ctx.Type("html")
-		return partials.NotifyChannelRow(ch, false).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyChannelRow(ctx.Context(), ch, false).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	name := ctx.FormValue("name")
 	protocol := ctx.FormValue("protocol")
@@ -195,8 +195,8 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Channel saved")
-	return partials.NotifyChannelRow(ch, false).Render(ctx.Context(), ctx.Response().BodyWriter())
+	setShowToastKey(ctx, "success", "toast.notify_settings.channel_saved")
+	return partials.NotifyChannelRow(ctx.Context(), ch, false).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyChannelDelete(ctx fiber.Ctx) error {
@@ -212,7 +212,7 @@ func notifyChannelDelete(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	if notifypkg.IsSystemNotifyChannel(existing.Name) {
-		setShowToast(ctx, "error", "System channel cannot be deleted")
+		setShowToastKey(ctx, "error", "toast.notify_settings.system_channel_no_delete")
 		return ctx.SendStatus(fiber.StatusForbidden)
 	}
 	if err := store.NotifyConfigStoreFromDB().DeleteNotifyChannel(ctx.Context(), id); err != nil {
@@ -243,14 +243,14 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 		Priority: notifypkg.Low,
 	}
 	if err := notifypkg.SendToProtocol(ch.Protocol, ch.URI, notifyMsg); err != nil {
-		setShowToast(ctx, "error", "Channel test failed: "+err.Error())
+		setShowToast(ctx, "error", webMsgData(ctx, "toast.notify_settings.channel_test_failed", map[string]any{"Error": err.Error()}))
 		ns := notifypkg.GetNotifyStore()
 		if ns != nil {
 			_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), "", nil)
 		}
 		return ctx.SendString("")
 	}
-	setShowToast(ctx, "success", "Channel test succeeded")
+	setShowToastKey(ctx, "success", "toast.notify_settings.channel_test_succeeded")
 	ns := notifypkg.GetNotifyStore()
 	if ns != nil {
 		_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", "", nil)
@@ -274,7 +274,7 @@ func notifyChannelSetDefault(ctx fiber.Ctx) error {
 		return storeError(ctx, err)
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Default channel updated")
+	setShowToastKey(ctx, "success", "toast.notify_settings.default_channel_updated")
 	return partials.NotifyChannelsTable(channels, "").Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -328,8 +328,8 @@ func notifyTemplateCreate(ctx fiber.Ctx) error {
 		return partials.EmptyState("Template created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Template saved")
-	if err := partials.NotifyTemplateRow(row).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
+	setShowToastKey(ctx, "success", "toast.notify_settings.template_saved")
+	if err := partials.NotifyTemplateRow(ctx.Context(), row).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
 		return err
 	}
 	_, _ = ctx.Response().BodyWriter().Write([]byte(`<tr id="notify-templates-empty" hx-swap-oob="delete"></tr>`))
@@ -383,8 +383,8 @@ func notifyTemplateUpdate(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Template saved")
-	return partials.NotifyTemplateRow(row).Render(ctx.Context(), ctx.Response().BodyWriter())
+	setShowToastKey(ctx, "success", "toast.notify_settings.template_saved")
+	return partials.NotifyTemplateRow(ctx.Context(), row).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyTemplateDelete(ctx fiber.Ctx) error {
@@ -415,7 +415,7 @@ func notifyTemplateSetDefault(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	if !notifypkg.TemplateReferencesSummary(tmpl.DefaultTemplate, tmpl.OverridesJSON) {
-		return toastError(ctx, "default template must reference {{ .summary }}")
+		return toastErrorKey(ctx, "toast.notify_settings.template_summary_required")
 	}
 	if err := store.NotifyConfigStoreFromDB().SetDefaultNotifyTemplate(ctx.Context(), id); err != nil {
 		return toastError(ctx, err.Error())
@@ -425,7 +425,7 @@ func notifyTemplateSetDefault(ctx fiber.Ctx) error {
 		return storeError(ctx, err)
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Default template updated")
+	setShowToastKey(ctx, "success", "toast.notify_settings.default_template_updated")
 	return partials.NotifyTemplatesTable(templates).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -482,8 +482,8 @@ func notifyRuleCreate(ctx fiber.Ctx) error {
 		return partials.EmptyState("Rule created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Rule saved")
-	if err := partials.NotifyRuleRow(r, templateIDs, false).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
+	setShowToastKey(ctx, "success", "toast.notify_settings.rule_saved")
+	if err := partials.NotifyRuleRow(ctx.Context(), r, templateIDs, false).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
 		return err
 	}
 	_, _ = ctx.Response().BodyWriter().Write([]byte(`<tr id="notify-rules-empty" hx-swap-oob="delete"></tr>`))
@@ -539,8 +539,8 @@ func notifyRuleUpdate(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Rule saved")
-	return partials.NotifyRuleRow(r, templateIDs, false).Render(ctx.Context(), ctx.Response().BodyWriter())
+	setShowToastKey(ctx, "success", "toast.notify_settings.rule_saved")
+	return partials.NotifyRuleRow(ctx.Context(), r, templateIDs, false).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyRuleDelete(ctx fiber.Ctx) error {

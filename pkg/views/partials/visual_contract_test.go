@@ -8,43 +8,45 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 func TestPageHeader(t *testing.T) {
 	t.Parallel()
+	ctx := i18n.DefaultContext()
 	tests := []struct {
-		name     string
-		title    string
-		subtitle string
-		want     []string
-		absent   []string
+		name        string
+		titleKey    string
+		subtitleKey string
+		want        []string
+		absent      []string
 	}{
 		{
-			name:   "title only",
-			title:  "Configs",
-			want:   []string{`data-testid="page-header"`, "Configs", "font-semibold tracking-tight"},
-			absent: []string{"font-bold", "card-title"},
+			name:     "title only",
+			titleKey: "nav.configs",
+			want:     []string{`data-testid="page-header"`, "Configs", "font-semibold tracking-tight"},
+			absent:   []string{"font-bold", "card-title"},
 		},
 		{
-			name:     "with subtitle",
-			title:    "Home",
-			subtitle: "Operational overview",
-			want:     []string{"Home", "Operational overview", "text-base-content/60"},
+			name:        "with subtitle",
+			titleKey:    "nav.home",
+			subtitleKey: "page.home.subtitle",
+			want:        []string{"Home", "Operational overview", "text-base-content/60"},
+			absent:      []string{"card-title"},
+		},
+		{
+			name:     "tokens page title",
+			titleKey: "nav.tokens",
+			want:     []string{"Tokens", "text-2xl"},
 			absent:   []string{"card-title"},
-		},
-		{
-			name:   "tokens page title",
-			title:  "Tokens",
-			want:   []string{"Tokens", "text-2xl"},
-			absent: []string{"card-title"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			if err := partials.PageHeader(tt.title, tt.subtitle).Render(context.Background(), &buf); err != nil {
+			if err := partials.PageHeader(ctx, tt.titleKey, tt.subtitleKey).Render(ctx, &buf); err != nil {
 				t.Fatalf("render: %v", err)
 			}
 			body := buf.String()
@@ -62,6 +64,33 @@ func TestPageHeader(t *testing.T) {
 	}
 }
 
+func TestPageHeaderI18n(t *testing.T) {
+	t.Parallel()
+	enCtx := i18n.DefaultContext()
+	zhCtx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
+
+	var enBuf bytes.Buffer
+	if err := partials.PageHeader(enCtx, "nav.configs", "page.home.subtitle").Render(enCtx, &enBuf); err != nil {
+		t.Fatalf("render en: %v", err)
+	}
+	enBody := enBuf.String()
+	if !strings.Contains(enBody, "Configs") {
+		t.Fatalf("want English title Configs in %s", enBody)
+	}
+	if !strings.Contains(enBody, "Operational overview") {
+		t.Fatalf("want English subtitle in %s", enBody)
+	}
+
+	var zhBuf bytes.Buffer
+	if err := partials.PageHeader(zhCtx, "nav.home", "page.home.subtitle").Render(zhCtx, &zhBuf); err != nil {
+		t.Fatalf("render zh: %v", err)
+	}
+	zhBody := zhBuf.String()
+	if !strings.Contains(zhBody, "首页") {
+		t.Fatalf("want Chinese title 首页 in %s", zhBody)
+	}
+}
+
 func TestOpsConsoleSurfacesAvoidLegacyCardShell(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -74,7 +103,7 @@ func TestOpsConsoleSurfacesAvoidLegacyCardShell(t *testing.T) {
 		},
 		{
 			name: "token table",
-			html: renderTempl(t, partials.TokenTable(nil)),
+			html: renderTempl(t, partials.TokenTable(i18n.DefaultContext(), nil)),
 		},
 		{
 			name: "agent skill table",
@@ -164,7 +193,7 @@ func TestPipelineListUsesChipsNotBadges(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			html := renderTempl(t, partials.PipelineListTable(tt.entries))
+			html := renderTempl(t, partials.PipelineListTable(context.Background(), tt.entries))
 			if !strings.Contains(html, tt.want) {
 				t.Fatalf("want %q in %s", tt.want, html)
 			}

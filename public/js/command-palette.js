@@ -102,11 +102,21 @@
   }
 
   function groupLabel(group) {
-    if (group === 'pages') return 'Pages';
-    if (group === 'pipelines') return 'Pipelines';
-    if (group === 'sessions') return 'Sessions';
-    if (group === 'homelab') return 'Homelab';
-    if (group === 'recent') return 'Recent';
+    if (group === 'pages') {
+      return flowbotI18n('client.command_palette.pages', 'Pages');
+    }
+    if (group === 'pipelines') {
+      return flowbotI18n('client.command_palette.pipelines', 'Pipelines');
+    }
+    if (group === 'sessions') {
+      return flowbotI18n('client.command_palette.sessions', 'Sessions');
+    }
+    if (group === 'homelab') {
+      return flowbotI18n('client.command_palette.homelab', 'Homelab');
+    }
+    if (group === 'recent') {
+      return flowbotI18n('client.command_palette.recent', 'Recent');
+    }
     return group || 'Results';
   }
 
@@ -125,7 +135,14 @@
     flatItems = flattenGroups(groups);
     if (!flatItems.length) {
       resultsEl.innerHTML =
-        '<p class="flowbot-command-palette-empty" data-testid="command-palette-empty">No matching results</p>';
+        '<p class="flowbot-command-palette-empty" data-testid="command-palette-empty">' +
+        escapeHTML(
+          flowbotI18n(
+            'client.command_palette.empty',
+            'No matching results',
+          ),
+        ) +
+        '</p>';
       activeIndex = 0;
       return;
     }
@@ -379,6 +396,10 @@
       return;
     }
     pages = loadPages();
+    input.placeholder = flowbotI18n(
+      'client.command_palette.placeholder',
+      'Search pages, pipelines, sessions…',
+    );
     updateHint();
 
     var openBtn = $('nav-command-palette');

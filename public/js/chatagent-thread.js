@@ -275,7 +275,7 @@
     if (!btn) {
       btn = createCopyButton({
         cssClass: 'chatagent-copy-md',
-        title: 'Copy markdown',
+        title: flowbotI18n('client.chatagent.copy_md', 'Copy markdown'),
         testId: 'chatagent-copy-md',
         text: markdown,
       });

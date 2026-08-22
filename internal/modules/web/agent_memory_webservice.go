@@ -58,10 +58,10 @@ func agentMemoryTable(ctx fiber.Ctx) error {
 	items, err := listAgentMemoryFactModels(ctx.Context(), scope)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load memory facts")
+		return renderErrorKey(ctx, "error.load.memory_facts")
 	}
 	ctx.Type("html")
-	return partials.AgentMemoryTable(items, scope).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.AgentMemoryTable(ctx.Context(), items, scope).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentMemoryListFacts(ctx fiber.Ctx) error {
@@ -116,13 +116,13 @@ func agentMemorySaveFactForm(ctx fiber.Ctx) error {
 		scope = "default"
 	}
 	if key == "" || value == "" {
-		return toastError(ctx, "Key and value are required")
+		return toastErrorKey(ctx, "toast.agent_memory.key_value_required")
 	}
 	if _, err := updateExistingAgentMemoryFact(ctx.Context(), scope, key, value, pinned); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Fact not found; create facts with memory_set")
+			return toastErrorKey(ctx, "toast.agent_memory.fact_not_found_create")
 		}
-		return toastError(ctx, "Failed to save fact")
+		return toastErrorKey(ctx, "toast.agent_memory.save_failed")
 	}
 	chatagent.InvalidatePromptCache()
 	return renderAgentMemoryTable(ctx, scope)
@@ -138,13 +138,13 @@ func agentMemoryDeleteFactForm(ctx fiber.Ctx) error {
 		scope = "default"
 	}
 	if key == "" {
-		return toastError(ctx, "Key is required")
+		return toastErrorKey(ctx, "toast.agent_memory.key_required")
 	}
 	if err := store.AgentStoreFromDB().DeleteAgentMemoryFact(ctx.Context(), scope, key); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Fact not found")
+			return toastErrorKey(ctx, "toast.agent_memory.fact_not_found")
 		}
-		return toastError(ctx, "Failed to delete fact")
+		return toastErrorKey(ctx, "toast.agent_memory.delete_failed")
 	}
 	chatagent.InvalidatePromptCache()
 	return renderAgentMemoryTable(ctx, scope)
@@ -184,10 +184,10 @@ func updateExistingAgentMemoryFact(ctx context.Context, scope, key, value string
 func renderAgentMemoryTable(ctx fiber.Ctx, scope string) error {
 	items, err := listAgentMemoryFactModels(ctx.Context(), scope)
 	if err != nil {
-		return toastError(ctx, "Failed to refresh memory facts")
+		return toastErrorKey(ctx, "toast.agent_memory.refresh_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentMemoryTable(items, scope).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.AgentMemoryTable(ctx.Context(), items, scope).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentMemoryScopeQuery(ctx fiber.Ctx) string {

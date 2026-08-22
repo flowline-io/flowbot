@@ -57,8 +57,11 @@
     var copyBtn = document.createElement('button');
     copyBtn.type = 'button';
     copyBtn.className = 'btn btn-ghost btn-xs chatagent-codeblock-copy';
-    copyBtn.title = 'Copy code';
-    copyBtn.setAttribute('aria-label', 'Copy code');
+    copyBtn.title = flowbotI18n('client.chatagent.copy_code', 'Copy code');
+    copyBtn.setAttribute(
+      'aria-label',
+      flowbotI18n('client.chatagent.copy_code', 'Copy code'),
+    );
     copyBtn.setAttribute('data-testid', 'chatagent-codeblock-copy');
     copyBtn.setAttribute('data-clip-copy', '');
     copyBtn.setAttribute('data-clip-markdown', code.textContent || '');

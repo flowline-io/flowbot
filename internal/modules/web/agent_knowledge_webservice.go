@@ -54,7 +54,7 @@ func agentKnowledgeTable(ctx fiber.Ctx) error {
 	items, err := listAgentKnowledgeModels(ctx.Context(), q)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent knowledge")
+		return renderErrorKey(ctx, "error.load.agent_knowledge")
 	}
 	ctx.Type("html")
 	return partials.AgentKnowledgeTable(items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -99,12 +99,12 @@ func agentKnowledgeCreate(ctx fiber.Ctx) error {
 			ctx.Type("html")
 			return partials.AgentKnowledgeForm(input, true, fieldErrs, "").Render(reqCtx, ctx.Response().BodyWriter())
 		}
-		return toastError(ctx, "Failed to create knowledge document")
+		return toastErrorKey(ctx, "toast.agent_knowledge.create_failed")
 	}
 	flog.Info("[web] agent knowledge created uid=%s id=%d path=%s", getUID(ctx), row.ID, row.Path)
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-knowledge-empty" hx-swap-oob="delete"></tr>`))
-	return partials.AgentKnowledgeRow(agentKnowledgeModelFromGen(row)).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentKnowledgeRow(reqCtx, agentKnowledgeModelFromGen(row)).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentKnowledgeEditForm(ctx fiber.Ctx) error {
@@ -120,10 +120,10 @@ func agentKnowledgeEditForm(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Knowledge document not found")
+			return renderErrorKey(ctx, "toast.agent_knowledge.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load knowledge document")
+		return renderErrorKey(ctx, "toast.agent_knowledge.load_failed")
 	}
 	ctx.Type("html")
 	return partials.AgentKnowledgeForm(item, false, nil, "").Render(reqCtx, ctx.Response().BodyWriter())
@@ -142,10 +142,10 @@ func agentKnowledgeUpdate(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Knowledge document not found")
+			return renderErrorKey(ctx, "toast.agent_knowledge.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load knowledge document")
+		return renderErrorKey(ctx, "toast.agent_knowledge.load_failed")
 	}
 	input := parseAgentKnowledgeForm(ctx)
 	input.ID = id
@@ -166,15 +166,15 @@ func agentKnowledgeUpdate(ctx fiber.Ctx) error {
 			ctx.Type("html")
 			return partials.AgentKnowledgeForm(input, false, fieldErrs, "").Render(reqCtx, ctx.Response().BodyWriter())
 		}
-		return toastError(ctx, "Failed to update knowledge document")
+		return toastErrorKey(ctx, "toast.agent_knowledge.update_failed")
 	}
 	flog.Info("[web] agent knowledge updated uid=%s id=%d path=%s", getUID(ctx), id, existing.Path)
 	updated, err := loadAgentKnowledgeModel(reqCtx, id)
 	if err != nil {
-		return toastError(ctx, "Failed to load updated knowledge document")
+		return toastErrorKey(ctx, "toast.agent_knowledge.load_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentKnowledgeRow(updated).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentKnowledgeRow(reqCtx, updated).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentKnowledgeDelete(ctx fiber.Ctx) error {
@@ -188,9 +188,9 @@ func agentKnowledgeDelete(ctx fiber.Ctx) error {
 	reqCtx := ctx.Context()
 	if err := store.AgentStoreFromDB().DeleteAgentKnowledge(reqCtx, id); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Knowledge document not found")
+			return toastErrorKey(ctx, "toast.agent_knowledge.not_found")
 		}
-		return toastError(ctx, "Failed to delete knowledge document")
+		return toastErrorKey(ctx, "toast.agent_knowledge.delete_failed")
 	}
 	flog.Info("[web] agent knowledge deleted uid=%s id=%d", getUID(ctx), id)
 	items, err := store.AgentStoreFromDB().ListAgentKnowledge(reqCtx, store.AgentKnowledgeListFilter{})

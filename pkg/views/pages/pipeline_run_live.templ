@@ -29,7 +29,7 @@ type PipelineRunLiveParams struct {
 
 // PipelineRunLivePage renders the live run dashboard.
 templ PipelineRunLivePage(ctx context.Context, p PipelineRunLiveParams) {
-	@layout.Base(ctx, "Live: " + p.PipelineName) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.live", map[string]any{"Name": p.PipelineName})) {
 		<script src={ "/static/js/pipeline-run-live.js?v=" + version.Buildtags }></script>
 		<div class="max-w-6xl mx-auto" x-data="pipelineRunLive" x-init="init()" data-testid="live-dashboard">
 			<!-- Header -->

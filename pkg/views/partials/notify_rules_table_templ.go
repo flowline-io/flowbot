@@ -36,7 +36,7 @@ func NotifyRulesTable(rules []model.NotifyRule, templateIDs []string, highlight 
 			return templ_7745c5c3_Err
 		}
 		for _, rule := range rules {
-			templ_7745c5c3_Err = NotifyRuleRow(rule, templateIDs, highlight == rule.RuleID).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = NotifyRuleRow(ctx, rule, templateIDs, highlight == rule.RuleID).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

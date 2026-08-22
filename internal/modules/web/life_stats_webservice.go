@@ -19,7 +19,7 @@ func lifeStatsPage(ctx fiber.Ctx) error {
 	}
 	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
 	return pages.LifeStatsPage(pages.LifeStatsShellData{
@@ -38,7 +38,7 @@ func lifeStatsPanel(ctx fiber.Ctx) error {
 	tz := string(ctx.Query("tz"))
 	page, err := lifeService().GetStatsPage(context.Background(), uid, tz)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
 	return partials.LifeStatsPanel(partials.LifeStatsFromPage(page)).Render(

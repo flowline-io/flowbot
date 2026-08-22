@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
 )
 
@@ -586,24 +588,37 @@ func LifeSlotRarityClass(slot LifeEquipSlot) string {
 }
 
 // LifePlanNodeTypeLabel returns a human label for one node type.
-func LifePlanNodeTypeLabel(nodeType string) string {
+func LifePlanNodeTypeLabel(ctx context.Context, nodeType string) string {
 	switch strings.ToLower(strings.TrimSpace(nodeType)) {
 	case "goal":
-		return "Goal"
+		return i18n.T(ctx, "life.node_type.goal")
 	case "milestone":
-		return "Milestone"
+		return i18n.T(ctx, "life.node_type.milestone")
 	case "project":
-		return "Project"
+		return i18n.T(ctx, "life.node_type.project")
 	case "action":
-		return "Action"
+		return i18n.T(ctx, "life.node_type.action")
 	default:
-		return "Node"
+		return i18n.T(ctx, "life.node_type.node")
 	}
 }
 
 // LifeTaskTypeLabel returns a concise label for one action type.
-func LifeTaskTypeLabel(taskType string) string {
-	return pkglife.TaskTypeLabel(taskType)
+func LifeTaskTypeLabel(ctx context.Context, taskType string) string {
+	switch strings.ToLower(strings.TrimSpace(taskType)) {
+	case "todo":
+		return i18n.T(ctx, "life.task_type.todo")
+	case "recurring":
+		return i18n.T(ctx, "life.task_type.recurring")
+	case "habit_candidate":
+		return i18n.T(ctx, "life.task_type.habit_candidate")
+	case "habit":
+		return i18n.T(ctx, "life.task_type.habit")
+	case "checkpoint":
+		return i18n.T(ctx, "life.task_type.checkpoint")
+	default:
+		return pkglife.TaskTypeLabel(taskType)
+	}
 }
 
 // LifeActionLogSourceLabel returns a concise label for one audit source.

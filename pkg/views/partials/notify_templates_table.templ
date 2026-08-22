@@ -20,7 +20,7 @@ templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
 				</thead>
 				<tbody id="notify-templates-rows">
 				for _, tmpl := range templates {
-					@NotifyTemplateRow(tmpl)
+					@NotifyTemplateRow(ctx, tmpl)
 				}
 				if len(templates) == 0 {
 					<tr id="notify-templates-empty" data-testid="notify-templates-empty">

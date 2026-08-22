@@ -230,7 +230,7 @@ func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			if err := WorkflowTriggersTable("demo", []model.WorkflowTrigger{tt.tr}, tt.origin).Render(context.Background(), &buf); err != nil {
+			if err := WorkflowTriggersTable(context.Background(), "demo", []model.WorkflowTrigger{tt.tr}, tt.origin).Render(context.Background(), &buf); err != nil {
 				t.Fatalf("render: %v", err)
 			}
 			html := buf.String()

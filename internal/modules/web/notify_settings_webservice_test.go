@@ -891,7 +891,7 @@ func TestNotifyTemplateSetDefault(t *testing.T) {
 			},
 			id:         "1",
 			wantStatus: http.StatusNoContent,
-			wantSub:    "must reference {{ .summary }}",
+			wantSub:    "summary placeholder",
 		},
 		{
 			name:       "missing template",

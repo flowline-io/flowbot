@@ -1,8 +1,13 @@
 package partials
 
-import "fmt"
+import (
+	"context"
+	"fmt"
 
-templ WorkflowListTable(entries []WorkflowListEntry) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ WorkflowListTable(ctx context.Context, entries []WorkflowListEntry) {
 	if len(entries) == 0 {
 		<div class="py-12" data-testid="workflow-empty">
 			@EmptyStateCTA(
@@ -76,9 +81,9 @@ templ WorkflowListTable(entries []WorkflowListEntry) {
 											hx-vals='{"enabled": false}'
 											hx-target="#workflow-list-container"
 											hx-swap="outerHTML"
-											data-confirm="Disable this workflow? Cron and webhook triggers will stop until re-enabled."
-											data-confirm-title="Disable Workflow"
-											data-confirm-btn="Disable"
+											data-confirm={ i18n.T(ctx, "confirm.disable_workflow.message") }
+											data-confirm-title={ i18n.T(ctx, "confirm.disable_workflow.title") }
+											data-confirm-btn={ i18n.T(ctx, "confirm.disable_workflow.btn") }
 											data-confirm-class="btn-warning"
 											data-testid={ "btn-disable-workflow-" + entry.Name }
 											class="btn btn-ghost btn-xs text-warning">Disable</button>

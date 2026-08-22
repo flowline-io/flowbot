@@ -78,7 +78,7 @@ func ViewPage(ctx context.Context, title string, body templ.Component, expired b
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, title+" — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleLiteral(ctx, title)).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

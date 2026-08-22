@@ -42,7 +42,7 @@ func clipsListPartial(ctx fiber.Ctx) error {
 	items, err := loadClipListItems(ctx.Context())
 	if err != nil {
 		flog.Error(fmt.Errorf("clipsListPartial: %w", err))
-		return renderError(ctx, "Failed to load clips")
+		return renderErrorKey(ctx, "error.load.clips")
 	}
 	ctx.Type("html")
 	return partials.ClipsTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())

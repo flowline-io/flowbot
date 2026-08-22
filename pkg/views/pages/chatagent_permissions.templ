@@ -8,9 +8,9 @@ import (
 )
 
 templ ChatAgentPermissionsPage(ctx context.Context, data partials.PermissionFormPageData) {
-	@layout.Base(ctx, "Chat Agent Permissions — Flowbot") {
+	@layout.Base(ctx, DocTitlePage(ctx, "page.chatagent_permissions.title")) {
 		<script src="/static/js/chatagent-permissions.js"></script>
-		@partials.PageHeader("Chat Agent Permissions", "Edit OpenCode-style permission rules stored for your user account.") {
+		@partials.PageHeader(ctx, "page.chatagent_permissions.title", "page.chatagent_permissions.subtitle") {
 			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm">← Back to Sessions</a>
 		}
 		<div class="flowbot-surface">

@@ -10,9 +10,9 @@ import (
 )
 
 templ TokensPage(ctx context.Context, items []model.TokenItem) {
-	@layout.Base(ctx, "Tokens — Flowbot") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.tokens")) {
 		@partials.TableFilterScripts()
-		@partials.PageHeader("Tokens", "") {
+		@partials.PageHeader(ctx, "nav.tokens", "") {
 			<button
 				hx-get="/service/web/tokens/new"
 				hx-target="#tokens-rows"
@@ -23,6 +23,6 @@ templ TokensPage(ctx context.Context, items []model.TokenItem) {
 			</button>
 		}
 		<div id="token-alert-container" class="mb-4"></div>
-		@partials.TokenTable(items)
+		@partials.TokenTable(ctx, items)
 	}
 }

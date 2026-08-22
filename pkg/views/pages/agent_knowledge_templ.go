@@ -88,7 +88,7 @@ func AgentKnowledgePage(ctx context.Context, items []model.AgentKnowledge, q str
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("Agent Knowledge", "Markdown documents for search_knowledge / get_knowledge").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "nav.knowledge", "page.agent_knowledge.subtitle").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -102,7 +102,7 @@ func AgentKnowledgePage(ctx context.Context, items []model.AgentKnowledge, q str
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Agent Knowledge — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.knowledge")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

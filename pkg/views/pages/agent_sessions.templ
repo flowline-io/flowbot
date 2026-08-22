@@ -9,8 +9,8 @@ import (
 )
 
 templ AgentSessionsPage(ctx context.Context, items []model.AgentSession, nextCursor string) {
-	@layout.Base(ctx, "Agent Sessions — Flowbot") {
-		@partials.PageHeader("Agent Sessions", "") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.sessions")) {
+		@partials.PageHeader(ctx, "nav.sessions", "") {
 			<button hx-get="/service/web/agent-sessions/list"
 				hx-target="#agent-sessions-table"
 				hx-swap="outerHTML"

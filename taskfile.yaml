@@ -268,6 +268,7 @@ tasks:
     desc: Generate Go code from Templ templates
     cmds:
       - go tool templ generate
+      - python scripts/update_client_ids.py
 
   config:docs:
     desc: Regenerate pkg/config FieldDocs from struct godoc

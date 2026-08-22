@@ -2,12 +2,14 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ ConfigRow(item model.ConfigItem) {
+templ ConfigRow(ctx context.Context, item model.ConfigItem) {
 	<tr id={ configRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
 		<td class="text-base-content/70">{ fmt.Sprintf("%d", item.ID) }</td>
 		<td class="text-base-content font-mono">{ item.UID }</td>
@@ -23,9 +25,9 @@ templ ConfigRow(item model.ConfigItem) {
 					Edit
 				</button>
 				<button hx-delete={ configKeyURL(item) }
-					data-confirm="Delete this config?"
-					data-confirm-title="Delete Config"
-					data-confirm-btn="Delete"
+					data-confirm={ i18n.T(ctx, "confirm.delete_config.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_config.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_config.btn") }
 					data-confirm-class="btn-error"
 					data-testid="config-delete"
 					class="btn btn-ghost btn-xs text-error">

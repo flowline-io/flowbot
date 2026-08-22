@@ -9,9 +9,9 @@ import (
 )
 
 templ HomelabPage(ctx context.Context, apps []homelab.App, scannedAt string) {
-	@layout.Base(ctx, "Registry — Flowbot") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.registry")) {
 		@partials.HomelabRegistryScripts()
-		@partials.PageHeader("Homelab Registry", "") {
+		@partials.PageHeader(ctx, "page.homelab.title", "") {
 		}
 		@partials.HomelabGrid(apps, scannedAt)
 	}

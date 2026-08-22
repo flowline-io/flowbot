@@ -21,7 +21,7 @@ templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string, highlight
 				</thead>
 				<tbody id="notify-rules-rows">
 				for _, rule := range rules {
-					@NotifyRuleRow(rule, templateIDs, highlight == rule.RuleID)
+					@NotifyRuleRow(ctx, rule, templateIDs, highlight == rule.RuleID)
 				}
 				if len(rules) == 0 {
 					<tr id="notify-rules-empty">

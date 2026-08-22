@@ -26,11 +26,11 @@ func lifeRewardsPage(ctx fiber.Ctx) error {
 		context.Background(), uid, redemptionsPage, inactivePage, pages.LifeDefaultListPerPage,
 	)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
 	return pages.LifeRewardsPage(mapLifeRewardsData(page, len(pending), redemptionsPage, inactivePage, archiveTab)).
@@ -47,10 +47,10 @@ func lifeCreateReward(ctx fiber.Ctx) error {
 	}
 	in, err := parseLifeRewardForm(ctx)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	if _, err := lifeService().CreateReward(context.Background(), uid, in); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/rewards")
 	return ctx.SendStatus(http.StatusOK)
@@ -66,10 +66,10 @@ func lifeUpdateReward(ctx fiber.Ctx) error {
 	}
 	in, err := parseLifeRewardForm(ctx)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	if err := lifeService().UpdateReward(context.Background(), uid, ctx.Params("flag"), in); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/rewards")
 	return ctx.SendStatus(http.StatusOK)
@@ -84,7 +84,7 @@ func lifeDeactivateReward(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().DeactivateReward(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/rewards")
 	return ctx.SendStatus(http.StatusOK)
@@ -99,7 +99,7 @@ func lifeRestoreReward(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().RestoreReward(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/rewards")
 	return ctx.SendStatus(http.StatusOK)
@@ -114,7 +114,7 @@ func lifeRedeemReward(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().RedeemReward(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/rewards")
 	return ctx.SendStatus(http.StatusOK)

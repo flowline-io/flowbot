@@ -44,11 +44,11 @@ func clipPage(ctx fiber.Ctx) error {
 
 	if row == nil {
 		data.NotFound = true
-		data.Title = "Clip not found"
-		data.Description = "This clip does not exist or was removed."
+		data.Title = webMsg(ctx, "clip.not_found.title")
+		data.Description = webMsg(ctx, "clip.not_found.meta")
 		ctx.Type("html")
 		ctx.Status(http.StatusNotFound)
-		return pages.ClipPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return pages.ClipPage(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	data.Title = row.Title
@@ -67,5 +67,5 @@ func clipPage(ctx fiber.Ctx) error {
 	}
 
 	ctx.Type("html")
-	return pages.ClipPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.ClipPage(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }

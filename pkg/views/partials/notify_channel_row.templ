@@ -1,10 +1,13 @@
 package partials
 
 import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ NotifyChannelRow(item model.NotifyChannel, highlighted bool) {
+templ NotifyChannelRow(ctx context.Context, item model.NotifyChannel, highlighted bool) {
 	<tr id={ notifyChannelRowID(item) }
 		hx-target="this"
 		hx-swap="outerHTML"
@@ -49,9 +52,9 @@ templ NotifyChannelRow(item model.NotifyChannel, highlighted bool) {
 					@HtmxIndicator()
 				</button>
 				<button hx-delete={ notifyChannelDeleteURL(item) }
-					data-confirm="Delete this channel?"
-					data-confirm-title="Delete Channel"
-					data-confirm-btn="Delete"
+					data-confirm={ i18n.T(ctx, "confirm.delete_channel.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_channel.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_channel.btn") }
 					data-confirm-class="btn-error"
 					data-testid="channel-delete"
 					class="btn btn-ghost btn-xs text-error">

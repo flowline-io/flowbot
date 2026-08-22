@@ -1,15 +1,20 @@
 package partials
 
-import "fmt"
+import (
+	"context"
+	"fmt"
 
-templ FunctionListTable(entries []FunctionListEntry) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ FunctionListTable(ctx context.Context, entries []FunctionListEntry) {
 	if len(entries) == 0 {
 		<div class="text-center py-12" data-testid="function-empty">
 			@EmptyStateOnClickCTA(
-				"No functions yet",
-				"Create a named function to transform data in a sandbox.",
+				i18n.T(ctx, "table.empty.functions"),
+				i18n.T(ctx, "table.empty.functions_detail"),
 				"document.getElementById('create-modal').showModal()",
-				"Create function",
+				i18n.T(ctx, "table.empty.functions_cta"),
 			)
 		</div>
 	} else {
@@ -18,10 +23,10 @@ templ FunctionListTable(entries []FunctionListEntry) {
 				<table class="table w-full">
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th class="w-28">Status</th>
-							<th class="w-28">Published</th>
-							<th class="w-40 text-right">Actions</th>
+							<th>{ i18n.T(ctx, "table.col.name") }</th>
+							<th class="w-28">{ i18n.T(ctx, "table.col.status") }</th>
+							<th class="w-28">{ i18n.T(ctx, "table.col.published") }</th>
+							<th class="w-40 text-right">{ i18n.T(ctx, "table.col.actions") }</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -30,14 +35,14 @@ templ FunctionListTable(entries []FunctionListEntry) {
 								<td class="font-medium min-w-0">
 									<a href={ templ.URL(FunctionWebPath(entry.Name)) } class="link link-hover truncate block" data-testid={ "function-link-" + entry.Name }>{ entry.Name }</a>
 									if entry.HasUnpublishedChanges {
-										<span class="flowbot-chip flowbot-chip-warning mt-1">Unpublished changes</span>
+										<span class="flowbot-chip flowbot-chip-warning mt-1">{ i18n.T(ctx, "table.chip.unpublished") }</span>
 									}
 								</td>
 								<td>
 									if entry.Status == "published" {
-										<span class="flowbot-chip flowbot-chip-success">Published</span>
+										<span class="flowbot-chip flowbot-chip-success">{ i18n.T(ctx, "table.chip.published") }</span>
 									} else {
-										<span class="flowbot-chip flowbot-chip-muted">Draft</span>
+										<span class="flowbot-chip flowbot-chip-muted">{ i18n.T(ctx, "table.chip.draft") }</span>
 									}
 								</td>
 								<td class="tabular-nums text-sm">
@@ -48,15 +53,17 @@ templ FunctionListTable(entries []FunctionListEntry) {
 									}
 								</td>
 								<td class="text-right">
-									<a href={ templ.URL(FunctionWebPath(entry.Name)) } class="btn btn-ghost btn-sm" data-testid={ "btn-open-function-" + entry.Name }>Open</a>
+									<a href={ templ.URL(FunctionWebPath(entry.Name)) } class="btn btn-ghost btn-sm" data-testid={ "btn-open-function-" + entry.Name }>{ i18n.T(ctx, "common.open") }</a>
 									<button
 										type="button"
 										class="btn btn-ghost btn-sm text-error"
 										hx-delete={ "/service/web/functions/" + entry.Name }
 										hx-target="body"
-										data-confirm={ "Delete function " + entry.Name + "?" }
+										data-confirm={ i18n.TData(ctx, "confirm.delete_function.message", map[string]any{"Name": entry.Name}) }
+										data-confirm-title={ i18n.T(ctx, "confirm.delete_function.title") }
+										data-confirm-btn={ i18n.T(ctx, "confirm.delete_function.btn") }
 										data-testid={ "btn-delete-function-" + entry.Name }
-									>Delete</button>
+									>{ i18n.T(ctx, "common.delete") }</button>
 								</td>
 							</tr>
 						}

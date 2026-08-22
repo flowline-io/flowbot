@@ -74,7 +74,7 @@ func FunctionListPage(ctx context.Context, entries []partials.FunctionListEntry)
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("Functions", "Named FaaS transforms managed as draft/publish.").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "nav.functions", "page.function_list.subtitle").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -103,7 +103,7 @@ func FunctionListPage(ctx context.Context, entries []partials.FunctionListEntry)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.FunctionListTable(entries).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.FunctionListTable(ctx, entries).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -113,7 +113,7 @@ func FunctionListPage(ctx context.Context, entries []partials.FunctionListEntry)
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Functions").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.functions")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

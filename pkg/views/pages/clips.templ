@@ -9,8 +9,8 @@ import (
 )
 
 templ ClipsPage(ctx context.Context, items []partials.ClipListItem) {
-	@layout.Base(ctx, "Clips — Flowbot") {
-		@partials.PageHeader("Clips", "") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.clips")) {
+		@partials.PageHeader(ctx, "nav.clips", "") {
 		}
 		@partials.ClipsTable(items)
 	}

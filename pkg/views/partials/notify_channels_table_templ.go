@@ -36,7 +36,7 @@ func NotifyChannelsTable(channels []model.NotifyChannel, highlight string) templ
 			return templ_7745c5c3_Err
 		}
 		for _, ch := range channels {
-			templ_7745c5c3_Err = NotifyChannelRow(ch, highlight == ch.Name).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = NotifyChannelRow(ctx, ch, highlight == ch.Name).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -8,10 +8,10 @@ import (
 )
 
 templ WorkflowListPage(ctx context.Context, entries []partials.WorkflowListEntry) {
-	@layout.Base(ctx, "Workflows") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.workflows")) {
 		@partials.WorkflowStatsScripts()
 		<div class="max-w-6xl mx-auto">
-			@partials.PageHeader("Workflows", "") {
+			@partials.PageHeader(ctx, "nav.workflows", "") {
 			}
 			<div hx-get={ partials.WorkflowStatsURL("", 30, "day") } hx-trigger="revealed" hx-swap="outerHTML">
 				@partials.PanelSkeleton()
@@ -24,7 +24,7 @@ templ WorkflowListPage(ctx context.Context, entries []partials.WorkflowListEntry
 				data-preserve-scroll
 				data-testid="workflow-list-panel"
 			>
-				@partials.WorkflowListTable(entries)
+				@partials.WorkflowListTable(ctx, entries)
 			</div>
 		</div>
 	}

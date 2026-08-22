@@ -163,6 +163,7 @@ func warnResidualYAMLAuth() {
 // Webservice mounts web module routes on the fiber app.
 func (moduleHandler) Webservice(app *fiber.App) {
 	app.Get("/static/*", static.New("", static.Config{FS: webassets.SubFS}))
+	app.Use("/c", localeMiddleware())
 	app.Get("/c/:slug", clipPage)
 	app.Use("/service/web", localeMiddleware())
 	app.Use("/service/web", newCSRFMiddleware())

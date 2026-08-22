@@ -58,8 +58,8 @@
                     this.runStatus === 'failed',
                   )
                 : this.runStatus === 'failed'
-                  ? 'Live failed'
-                  : 'Live finished';
+                  ? flowbotI18n('client.pipeline_run.failed', 'Live failed')
+                  : flowbotI18n('client.pipeline_run.finished', 'Live finished');
             window.flowbotSetPageStatus(title);
             return;
           }
@@ -119,7 +119,10 @@
           this.eventSource = new EventSource(this.watchURL);
           this.eventSource.addEventListener('open', function () {
             if (self.reconnectAttempt > 0 && typeof showToast === 'function') {
-              showToast('Live stream connected', 'info');
+              showToast(
+                flowbotI18n('client.pipeline_run.connected', 'Live stream connected'),
+                'info',
+              );
             }
             self.reconnectAttempt = 0;
           });
@@ -146,7 +149,13 @@
               self.eventSource = null;
             }
             if (typeof showToast === 'function') {
-              showToast('Reconnecting live stream…', 'warning');
+              showToast(
+                flowbotI18n(
+                  'client.pipeline_run.reconnecting',
+                  'Reconnecting live stream…',
+                ),
+                'warning',
+              );
             }
             var delay = self.reconnectDelay(self.reconnectAttempt);
             self.reconnectAttempt += 1;

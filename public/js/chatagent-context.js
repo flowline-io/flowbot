@@ -6,13 +6,36 @@
   var RING_CIRCUMFERENCE = 62.832;
 
   var CONTEXT_CATEGORY_LABELS = {
-    system_prompt: 'System prompt',
-    system_tools: 'Tool definitions',
-    skills: 'Skills',
-    messages: 'Conversation',
-    autocompact_buffer: 'Autocompact buffer',
-    free_space: 'Free space',
+    system_prompt: function () {
+      return flowbotI18n('client.chatagent.context.system_prompt', 'System prompt');
+    },
+    system_tools: function () {
+      return flowbotI18n('client.chatagent.context.system_tools', 'Tool definitions');
+    },
+    skills: function () {
+      return flowbotI18n('client.chatagent.context.skills', 'Skills');
+    },
+    messages: function () {
+      return flowbotI18n('client.chatagent.context.messages', 'Conversation');
+    },
+    autocompact_buffer: function () {
+      return flowbotI18n('client.chatagent.context.autocompact_buffer', 'Autocompact buffer');
+    },
+    free_space: function () {
+      return flowbotI18n('client.chatagent.context.free_space', 'Free space');
+    },
   };
+
+  function contextCategoryLabel(id, cat) {
+    var entry = CONTEXT_CATEGORY_LABELS[id];
+    if (typeof entry === 'function') {
+      return entry();
+    }
+    if (entry) {
+      return entry;
+    }
+    return (cat && cat.label) || id;
+  }
 
   var CONTEXT_CATEGORY_COLORS = {
     system_prompt: '#9ca3af',
@@ -63,7 +86,8 @@
       formatTokenCount(used) +
       ' / ' +
       formatTokenCount(windowSize) +
-      ' Tokens'
+      ' ' +
+      flowbotI18n('client.chatagent.context.tokens_suffix', 'Tokens')
     );
   }
 
@@ -185,7 +209,7 @@
       swatch.style.backgroundColor = contextCategoryColor(id);
 
       var label = document.createElement('span');
-      label.textContent = CONTEXT_CATEGORY_LABELS[id] || cat.label || id;
+      label.textContent = contextCategoryLabel(id, cat);
 
       labelWrap.appendChild(swatch);
       if (hasSkills) {
@@ -296,7 +320,11 @@
               })
               .then(function (data) {
                 throw new Error(
-                  (data && data.error) || 'Failed to load context usage',
+                  (data && data.error) ||
+                    flowbotI18n(
+                      'client.chatagent.context.load_failed',
+                      'Failed to load context usage',
+                    ),
                 );
               });
           }
@@ -312,7 +340,13 @@
         })
         .catch(function (err) {
           if (open) {
-            showPopoverError(err.message || 'Failed to load context usage');
+            showPopoverError(
+              err.message ||
+                flowbotI18n(
+                  'client.chatagent.context.load_failed',
+                  'Failed to load context usage',
+                ),
+            );
           }
           return null;
         });

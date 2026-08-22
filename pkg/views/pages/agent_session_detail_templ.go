@@ -68,7 +68,7 @@ func AgentSessionDetailPage(ctx context.Context, session model.AgentSession, ent
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = partials.PageHeader(session.Title, session.Flag).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.PageHeaderLiteral(ctx, session.Title, session.Flag).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -91,7 +91,7 @@ func AgentSessionDetailPage(ctx context.Context, session model.AgentSession, ent
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = partials.PageHeader(session.Flag, "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.PageHeaderLiteral(ctx, session.Flag, "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -239,7 +239,7 @@ func AgentSessionDetailPage(ctx context.Context, session model.AgentSession, ent
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, partials.AgentSessionPageTitle(session)).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleAgentSession(ctx, session)).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

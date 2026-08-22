@@ -70,7 +70,7 @@ func ChatAgentPermissionsPage(ctx context.Context, data partials.PermissionFormP
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("Chat Agent Permissions", "Edit OpenCode-style permission rules stored for your user account.").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "page.chatagent_permissions.title", "page.chatagent_permissions.subtitle").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -107,7 +107,7 @@ func ChatAgentPermissionsPage(ctx context.Context, data partials.PermissionFormP
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Chat Agent Permissions — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitlePage(ctx, "page.chatagent_permissions.title")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

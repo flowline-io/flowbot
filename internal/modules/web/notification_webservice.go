@@ -76,16 +76,16 @@ func retryNotification(ctx fiber.Ctx) error {
 		return ctx.SendString("Not your notification")
 	}
 	if rec.Status != "failed" {
-		setShowToast(ctx, "error", "Only failed notifications can be retried")
+		setShowToastKey(ctx, "error", "toast.notification.retry_only_failed")
 		return renderNotificationsTable(ctx, ns, uid)
 	}
 
 	if notifypkg.IsConnectivityTestTemplate(rec.TemplateID) {
 		if err := retryConnectivityTest(ctx.Context(), ns, uid, rec.Channel); err != nil {
-			setShowToast(ctx, "error", "Retry failed: "+err.Error())
+			setShowToast(ctx, "error", webMsgData(ctx, "toast.notification.retry_failed", map[string]any{"Error": err.Error()}))
 			return renderNotificationsTable(ctx, ns, uid)
 		}
-		setShowToast(ctx, "success", "Connectivity retest succeeded")
+		setShowToastKey(ctx, "success", "toast.notification.connectivity_retest_succeeded")
 		return renderNotificationsTable(ctx, ns, uid)
 	}
 
@@ -96,13 +96,13 @@ func retryNotification(ctx fiber.Ctx) error {
 
 	notifyUid := types.Uid(rec.UID)
 	if err := notifypkg.GatewaySend(context.Background(), notifyUid, rec.TemplateID, []string{rec.Channel}, payload); err != nil {
-		setShowToast(ctx, "error", "Retry failed: "+err.Error())
+		setShowToast(ctx, "error", webMsgData(ctx, "toast.notification.retry_failed", map[string]any{"Error": err.Error()}))
 		return renderNotificationsTable(ctx, ns, uid)
 	}
 
 	// Wait briefly for the async record goroutine to persist the retry outcome
 	time.Sleep(50 * time.Millisecond)
-	setShowToast(ctx, "success", "Notification retried")
+	setShowToastKey(ctx, "success", "toast.notification.notification_retried")
 	return renderNotificationsTable(ctx, ns, uid)
 }
 
@@ -138,7 +138,7 @@ func markNotificationRead(ctx fiber.Ctx) error {
 		return ctx.SendString("Not your notification")
 	}
 	if err := ns.MarkRead(ctx.Context(), uid, id); err != nil {
-		setShowToast(ctx, "error", "Failed to mark as read")
+		setShowToastKey(ctx, "error", "toast.notification.mark_read_failed")
 		return renderNotificationsTable(ctx, ns, uid)
 	}
 	return renderNotificationsTable(ctx, ns, uid)
@@ -149,7 +149,7 @@ func renderNotificationsTable(ctx fiber.Ctx, ns notifypkg.NotifyRecords, uid str
 	opts := notifyHistoryListOptions(ctx)
 	records, nextCursor, listErr := ns.ListRecords(ctx.Context(), uid, opts)
 	if listErr != nil {
-		setShowToast(ctx, "error", "Failed to load notifications")
+		setShowToast(ctx, "error", webMsg(ctx, "error.load.notifications"))
 		return ctx.SendString("")
 	}
 

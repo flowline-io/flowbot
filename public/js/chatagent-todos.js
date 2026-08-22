@@ -119,7 +119,10 @@
     if (!todos || todos.length === 0) {
       var empty = document.createElement('p');
       empty.className = 'chatagent-todos-empty';
-      empty.textContent = 'No todos yet.';
+      empty.textContent = flowbotI18n(
+        'client.chatagent.todos.empty',
+        'No todos yet.',
+      );
       listEl.appendChild(empty);
       return;
     }
@@ -162,7 +165,7 @@
 
     var label = document.createElement('span');
     label.className = 'chatagent-todos-summary-label';
-    label.textContent = 'Todos';
+    label.textContent = flowbotI18n('client.chatagent.todos.label', 'Todos');
 
     var meta = document.createElement('span');
     meta.className = 'chatagent-todos-summary-meta';

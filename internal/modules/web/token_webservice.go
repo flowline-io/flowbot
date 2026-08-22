@@ -46,10 +46,10 @@ func tokensList(ctx fiber.Ctx) error {
 	items, err := store.ModuleDataStoreFromDB().ListTokens(context.Background())
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load tokens")
+		return renderErrorKey(ctx, "error.load.tokens")
 	}
 	ctx.Type("html")
-	return partials.TokenTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.TokenTable(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func tokensNewForm(ctx fiber.Ctx) error {
@@ -72,10 +72,10 @@ func tokensCreate(ctx fiber.Ctx) error {
 
 	errorsMsg := make(map[string]string)
 	if uidVal == "" {
-		errorsMsg["uid"] = "UID is required"
+		errorsMsg["uid"] = webMsg(ctx, "error.validation.uid_required")
 	}
 	if expiresVal == "" {
-		errorsMsg["expires"] = "Expiry is required"
+		errorsMsg["expires"] = webMsg(ctx, "error.validation.expiry_required")
 	}
 	scopes := make([]string, 0, len(scopesBytes))
 	for _, raw := range scopesBytes {
@@ -85,7 +85,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 		}
 	}
 	if len(scopes) == 0 {
-		errorsMsg["scopes"] = "At least one scope is required"
+		errorsMsg["scopes"] = webMsg(ctx, "error.validation.scopes_required")
 	}
 	if len(errorsMsg) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
@@ -95,7 +95,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 
 	expiresDuration, err := time.ParseDuration(expiresVal)
 	if err != nil {
-		errorsMsg["expires"] = "Invalid duration"
+		errorsMsg["expires"] = webMsg(ctx, "error.validation.invalid_duration")
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
 		return partials.TokenForm(errorsMsg).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -107,7 +107,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 	}
 	for _, s := range scopes {
 		if !validScopes[s] {
-			errorsMsg["scopes"] = fmt.Sprintf("Invalid scope: %s", s)
+			errorsMsg["scopes"] = webMsgData(ctx, "error.validation.invalid_scope", map[string]any{"Scope": s})
 			break
 		}
 	}
@@ -143,7 +143,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 		token, token,
 	)
 	ctx.Response().BodyWriter().Write([]byte(alert))
-	return partials.TokenRow(item).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.TokenRow(ctx.Context(), item).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func tokensRevoke(ctx fiber.Ctx) error {
@@ -157,9 +157,9 @@ func tokensRevoke(ctx fiber.Ctx) error {
 	err = store.ModuleDataStoreFromDB().RevokeToken(context.Background(), flag)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Token not found")
+			return toastErrorKey(ctx, "toast.token.not_found")
 		}
-		return toastError(ctx, "Failed to revoke token")
+		return toastErrorKey(ctx, "toast.token.revoke_failed")
 	}
 	items, err := store.ModuleDataStoreFromDB().ListTokens(context.Background())
 	if err == nil && len(items) == 0 {
@@ -171,12 +171,12 @@ func tokensRevoke(ctx fiber.Ctx) error {
 			"#tokens-rows",
 			"7",
 			partials.EmptyStateHXCTA(
-				"No tokens yet",
-				"Tokens authenticate API and CLI access.",
+				webMsg(ctx, "table.empty.tokens"),
+				webMsg(ctx, "table.empty.tokens_detail"),
 				"/service/web/tokens/new",
 				"#tokens-rows",
 				"afterbegin",
-				"Create token",
+				webMsg(ctx, "table.empty.tokens_cta"),
 			),
 		)
 	}

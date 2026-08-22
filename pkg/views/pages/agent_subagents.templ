@@ -9,9 +9,9 @@ import (
 )
 
 templ AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) {
-	@layout.Base(ctx, "Agent Subagents — Flowbot") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.subagents")) {
 		<div x-data="{ tab: 'subagents' }">
-			@partials.PageHeader("Agent Subagents", "") {
+			@partials.PageHeader(ctx, "nav.subagents", "") {
 				<div class="flex gap-2" x-show="tab === 'subagents'">
 					<button hx-get="/service/web/agent-subagents/list"
 						hx-target="#agent-subagents-table"

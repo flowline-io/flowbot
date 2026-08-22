@@ -36,7 +36,7 @@ func NotifyTemplatesTable(templates []model.NotifyTemplate) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, tmpl := range templates {
-			templ_7745c5c3_Err = NotifyTemplateRow(tmpl).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = NotifyTemplateRow(ctx, tmpl).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

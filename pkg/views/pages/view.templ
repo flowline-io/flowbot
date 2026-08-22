@@ -8,7 +8,7 @@ import (
 )
 
 templ ViewPage(ctx context.Context, title string, body templ.Component, expired bool) {
-	@layout.Base(ctx, title + " — Flowbot") {
+	@layout.Base(ctx, DocTitleLiteral(ctx, title)) {
 		if expired {
 			<div class="mb-4 alert alert-warning" data-testid="view-expired-banner">
 				This page has expired and may no longer be available.

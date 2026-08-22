@@ -121,7 +121,7 @@ func workflowListTable(c fiber.Ctx) error {
 		return renderError(c, "Failed to load workflows")
 	}
 	c.Type("html")
-	return partials.WorkflowListTable(entries).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func loadWorkflowListEntries(ctx context.Context) ([]partials.WorkflowListEntry, error) {
@@ -271,7 +271,7 @@ func setWorkflowEnabled(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list workflows: %v", err)
 	}
 	c.Type("html")
-	return partials.WorkflowListTable(entries).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func setWorkflowTriggerEnabled(c fiber.Ctx) error {
@@ -314,7 +314,7 @@ func setWorkflowTriggerEnabled(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
 	}
 	c.Type("html")
-	return partials.WorkflowTriggersTable(name, mapWorkflowTriggers(dto.Triggers), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowTriggersTable(c.Context(), name, mapWorkflowTriggers(dto.Triggers), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunsPage(c fiber.Ctx) error {
@@ -449,7 +449,7 @@ func workflowRunNow(c fiber.Ctx) error {
 		c.Status(http.StatusInternalServerError)
 		return renderFormError(c, "#form-error", "Failed to start workflow run")
 	}
-	setShowToast(c, "success", fmt.Sprintf("Workflow run #%d started", runID))
+	setShowToast(c, "success", webMsgData(c, "toast.workflow.run_started", map[string]any{"RunID": runID}))
 	c.Response().Header.Set("HX-Redirect", partials.WorkflowWebPath(name)+"/runs")
 	return c.SendStatus(http.StatusOK)
 }

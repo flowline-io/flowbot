@@ -1,10 +1,12 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 templ WorkflowRunsTable(name string, runs []model.WorkflowRun) {
@@ -362,7 +364,7 @@ templ workflowDAGConnector(fromCount, toCount int) {
 	</div>
 }
 
-templ WorkflowTriggersTable(workflowName string, triggers []model.WorkflowTrigger, publicOrigin string) {
+templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers []model.WorkflowTrigger, publicOrigin string) {
 	if len(triggers) == 0 {
 		<div class="py-6" data-testid="workflow-triggers-empty">
 			@EmptyState("No triggers configured.")
@@ -406,9 +408,9 @@ templ WorkflowTriggersTable(workflowName string, triggers []model.WorkflowTrigge
 											hx-vals='{"enabled": false}'
 											hx-target="#workflow-triggers-container"
 											hx-swap="outerHTML"
-											data-confirm="Disable this trigger? It will stop firing until re-enabled."
-											data-confirm-title="Disable Trigger"
-											data-confirm-btn="Disable"
+											data-confirm={ i18n.T(ctx, "confirm.disable_trigger.message") }
+											data-confirm-title={ i18n.T(ctx, "confirm.disable_trigger.title") }
+											data-confirm-btn={ i18n.T(ctx, "confirm.disable_trigger.btn") }
 											data-confirm-class="btn-warning"
 											data-testid={ "btn-disable-trigger-" + fmt.Sprint(tr.ID) }
 											class="btn btn-ghost btn-xs text-warning">Disable</button>

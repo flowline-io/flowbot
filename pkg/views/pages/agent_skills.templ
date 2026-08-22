@@ -9,8 +9,8 @@ import (
 )
 
 templ AgentSkillsPage(ctx context.Context, items []model.AgentSkill) {
-	@layout.Base(ctx, "Agent Skills — Flowbot") {
-		@partials.PageHeader("Agent Skills", "") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.skills")) {
+		@partials.PageHeader(ctx, "nav.skills", "") {
 			<button hx-get="/service/web/agent-skills/list"
 				hx-target="#agent-skills-table"
 				hx-swap="outerHTML"

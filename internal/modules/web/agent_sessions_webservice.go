@@ -50,7 +50,7 @@ func agentSessionsTable(ctx fiber.Ctx) error {
 	items, nextCursor, err := listAgentSessionModels(ctx, cursor)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent sessions")
+		return renderErrorKey(ctx, "error.load.agent_sessions")
 	}
 	ctx.Type("html")
 	if cursor != "" {

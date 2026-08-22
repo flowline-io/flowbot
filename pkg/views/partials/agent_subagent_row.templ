@@ -1,10 +1,13 @@
 package partials
 
 import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ AgentSubagentRow(item model.AgentSubagent) {
+templ AgentSubagentRow(ctx context.Context, item model.AgentSubagent) {
 	<tr id={ agentSubagentRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
 		<td class="text-base-content font-mono text-sm" data-label="Flag">{ item.Flag }</td>
 		<td class="text-base-content font-medium" data-label="Name">{ item.Name }</td>
@@ -22,9 +25,9 @@ templ AgentSubagentRow(item model.AgentSubagent) {
 					Edit
 				</button>
 				<button hx-delete={ agentSubagentURL(item) }
-					data-confirm="Delete this subagent?"
-					data-confirm-title="Delete Subagent"
-					data-confirm-btn="Delete"
+					data-confirm={ i18n.T(ctx, "confirm.delete_subagent.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_subagent.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_subagent.btn") }
 					data-confirm-class="btn-error"
 					data-testid="agent-subagent-delete"
 					class="btn btn-ghost btn-xs text-error">

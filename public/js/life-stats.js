@@ -60,7 +60,7 @@
           labels: labels,
           datasets: [
             {
-              label: 'Completions',
+              label: flowbotI18n('client.stats.completions', 'Completions'),
               data: stats.activity_counts || [],
               borderColor: palette.primary,
               backgroundColor: palette.primary + '33',
@@ -70,7 +70,7 @@
               yAxisID: 'y',
             },
             {
-              label: 'EXP',
+              label: flowbotI18n('client.stats.exp', 'EXP'),
               data: stats.activity_exp || [],
               borderColor: palette.grey,
               backgroundColor: 'transparent',
@@ -103,7 +103,7 @@
           labels: stats.growth_labels || [],
           datasets: [
             {
-              label: 'EXP',
+              label: flowbotI18n('client.stats.growth_exp', 'EXP'),
               data: stats.growth_values || [],
               backgroundColor: palette.primary,
             },
@@ -125,7 +125,7 @@
           labels: stats.quest_type_labels || [],
           datasets: [
             {
-              label: 'Completed',
+              label: flowbotI18n('client.stats.quest_completed', 'Completed'),
               data: stats.quest_type_values || [],
               backgroundColor: [
                 palette.primary,
@@ -150,7 +150,7 @@
           labels: labels,
           datasets: [
             {
-              label: 'Gold in',
+              label: flowbotI18n('client.stats.gold_in', 'Gold in'),
               data: stats.gold_in || [],
               borderColor: palette.primary,
               backgroundColor: palette.primary + '22',
@@ -159,7 +159,7 @@
               pointRadius: 2,
             },
             {
-              label: 'Gold out',
+              label: flowbotI18n('client.stats.gold_out', 'Gold out'),
               data: stats.gold_out || [],
               borderColor: palette.grey,
               backgroundColor: palette.grey + '22',
@@ -183,7 +183,7 @@
           labels: labels,
           datasets: [
             {
-              label: 'Drops',
+              label: flowbotI18n('client.stats.drops', 'Drops'),
               data: stats.drops || [],
               backgroundColor: palette.primary,
             },

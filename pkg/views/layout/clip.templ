@@ -1,13 +1,16 @@
 package layout
 
 import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 // Clip is a fixed light-shell layout for public clip pages (no ops nav, no theme toggle).
-templ Clip(title string, description string, actions templ.Component) {
+templ Clip(ctx context.Context, title string, description string, actions templ.Component) {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang={ i18n.LangTag(ctx) }>
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -18,6 +21,7 @@ templ Clip(title string, description string, actions templ.Component) {
 		<meta property="og:type" content="article"/>
 		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
 		<link href="/static/css/clip.css" rel="stylesheet"/>
+		@partials.I18nScript(ctx)
 		@partials.ClipCopyScripts()
 	</head>
 	<body class="clip-shell">

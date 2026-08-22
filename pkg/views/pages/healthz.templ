@@ -8,8 +8,8 @@ import (
 )
 
 templ HealthzPage(ctx context.Context, data partials.HealthzData) {
-	@layout.Base(ctx, "Health — Flowbot") {
-		@partials.PageHeader("System Health", "Infrastructure status for this instance.") {
+	@layout.Base(ctx, DocTitlePage(ctx, "page.healthz.title")) {
+		@partials.PageHeader(ctx, "page.healthz.title", "page.healthz.subtitle") {
 			<span class="text-sm text-base-content/50">
 				Auto-refreshes every 30s
 			</span>

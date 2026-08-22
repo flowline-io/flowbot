@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -20,7 +21,7 @@ func TestTablePinCols(t *testing.T) {
 			name: "token table pins columns",
 			render: func() (string, error) {
 				var buf bytes.Buffer
-				err := partials.TokenTable(nil).Render(context.Background(), &buf)
+				err := partials.TokenTable(i18n.DefaultContext(), nil).Render(context.Background(), &buf)
 				return buf.String(), err
 			},
 		},
@@ -118,7 +119,7 @@ func TestTableCardStackMarkup(t *testing.T) {
 			want: []string{},
 			html: func() (string, error) {
 				var buf bytes.Buffer
-				err := partials.TokenTable(nil).Render(context.Background(), &buf)
+				err := partials.TokenTable(i18n.DefaultContext(), nil).Render(context.Background(), &buf)
 				return buf.String(), err
 			},
 		},

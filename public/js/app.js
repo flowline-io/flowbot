@@ -534,12 +534,14 @@ document.addEventListener('htmx:afterSettle', function (evt) {
   }
 
   function flowbotFormatNeedsApprovalTitle() {
-    return '\u25CF Needs approval';
+    return '\u25CF ' + flowbotI18n('client.app.needs_approval', 'Needs approval');
   }
 
   function flowbotFormatLiveFinishedTitle(pipelineName, failed) {
     var name = String(pipelineName || '').trim();
-    var prefix = failed ? 'Live failed' : 'Live finished';
+    var prefix = failed
+      ? flowbotI18n('client.pipeline_run.failed', 'Live failed')
+      : flowbotI18n('client.pipeline_run.finished', 'Live finished');
     return name ? prefix + ': ' + name : prefix;
   }
 

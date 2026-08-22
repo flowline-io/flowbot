@@ -1,0 +1,2003 @@
+[_meta.lang]
+other = "zh-Hans"
+
+[nav.inbox]
+other = "收件箱"
+
+[nav.group.agent]
+other = "Agent"
+
+[nav.agents]
+other = "Agents"
+
+[nav.skills]
+other = "Skills"
+
+[nav.knowledge]
+other = "Knowledge"
+
+[nav.subagents]
+other = "Subagents"
+
+[nav.scheduled_tasks]
+other = "定时任务"
+
+[nav.sessions]
+other = "会话"
+
+[nav.permissions]
+other = "权限"
+
+[nav.group.automate]
+other = "Automate"
+
+[nav.pipelines]
+other = "流水线"
+
+[nav.workflows]
+other = "工作流"
+
+[nav.functions]
+other = "函数"
+
+[nav.events]
+other = "事件"
+
+[nav.relations]
+other = "关联"
+
+[nav.group.integrate]
+other = "Integrate"
+
+[nav.apps]
+other = "应用"
+
+[nav.registry]
+other = "注册表"
+
+[nav.capabilities]
+other = "能力"
+
+[nav.clips]
+other = "Clips"
+
+[nav.notifications]
+other = "通知"
+
+[nav.group.system]
+other = "System"
+
+[nav.health]
+other = "健康"
+
+[nav.tokens]
+other = "令牌"
+
+[nav.configs]
+other = "配置"
+
+[nav.settings]
+other = "设置"
+
+[nav.account]
+other = "账户"
+
+[nav.about]
+other = "关于"
+
+[nav.group.user]
+other = "User"
+
+[nav.life]
+other = "Life"
+
+[nav.stats]
+other = "统计"
+
+[nav.character]
+other = "角色"
+
+[nav.quests]
+other = "任务"
+
+[nav.inventory]
+other = "背包"
+
+[nav.achievements]
+other = "成就"
+
+[nav.rewards]
+other = "奖励"
+
+[nav.home]
+other = "首页"
+
+[nav.memory_facts]
+other = "记忆事实"
+
+[nav.session_summaries]
+other = "会话摘要"
+
+[nav.home_subtitle]
+other = "仪表盘"
+
+[common.search]
+other = "搜索"
+
+[common.open_command_palette]
+other = "打开命令面板"
+
+[common.search_hint]
+other = "搜索 (Ctrl/Cmd+K)"
+
+[common.open_nav_menu]
+other = "打开导航菜单"
+
+[common.flowbot_home]
+other = "Flowbot 首页"
+
+[common.logout]
+other = "退出登录"
+
+[common.logout_confirm]
+other = "确定退出当前会话？"
+
+[common.logout_title]
+other = "退出登录"
+
+[common.cancel]
+other = "取消"
+
+[common.confirm]
+other = "确认"
+
+[confirm.default_title]
+other = "确认操作"
+
+[common.toggle_theme]
+other = "切换浅色/深色"
+
+[common.pick_theme]
+other = "选择主题"
+
+[common.theme_light]
+other = "浅色"
+
+[common.theme_dark]
+other = "深色"
+
+[common.theme_advanced]
+other = "更多"
+
+[common.theme_cupcake]
+other = "Cupcake"
+
+[common.theme_synthwave]
+other = "Synthwave"
+
+[common.theme_cyberpunk]
+other = "Cyberpunk"
+
+[common.theme_forest]
+other = "Forest"
+
+[common.theme_dracula]
+other = "Dracula"
+
+[common.theme_nord]
+other = "Nord"
+
+[common.lang_en]
+other = "EN"
+
+[common.lang_zh]
+other = "中文"
+
+[common.switch_language]
+other = "切换语言"
+
+[auth.tagline]
+other = "Homelab 数据中心与能力编排"
+
+[auth.sign_in]
+other = "登录"
+
+[auth.username]
+other = "用户名"
+
+[auth.password]
+other = "密码"
+
+[auth.login]
+other = "登录"
+
+[auth.two_factor]
+other = "双因素认证"
+
+[auth.two_factor_hint]
+other = "请输入身份验证器中的 6 位验证码。"
+
+[auth.verification_code]
+other = "验证码"
+
+[auth.use_backup_code]
+other = "使用备份码"
+
+[auth.backup_code]
+other = "备份码"
+
+[auth.use_authenticator]
+other = "使用身份验证器"
+
+[auth.verify]
+other = "验证"
+
+[auth.create_admin]
+other = "创建管理员账户"
+
+[auth.setup_hint]
+other = "首次设置。接下来将绑定 TOTP。"
+
+[auth.continue]
+other = "继续"
+
+[auth.enable_authenticator]
+other = "启用身份验证器"
+
+[auth.enable_authenticator_hint]
+other = "使用身份验证器应用扫描二维码，然后输入验证码确认。"
+
+[auth.enter_secret_manually]
+other = "或手动输入密钥"
+
+[auth.confirm_and_continue]
+other = "确认并继续"
+
+[auth.save_backup_codes]
+other = "保存备份码"
+
+[auth.backup_codes_hint]
+other = "请将这些一次性备份码保存在安全的地方。它们不会再次显示。"
+
+[auth.continue_to_flowbot]
+other = "进入 Flowbot"
+
+[auth.confirm_backup_saved]
+other = "确认已保存备份码"
+
+[auth.confirm_backup_saved_hint]
+other = "备份码已显示过。请确认已妥善保存后再继续。"
+
+[auth.invalid_credentials]
+other = "用户名或密码无效"
+
+[auth.account_locked]
+other = "账户暂时锁定。请稍后再试。"
+
+[auth.too_many_attempts]
+other = "失败次数过多，账户暂时锁定。请稍后再试。"
+
+[auth.internal_error]
+other = "内部错误"
+
+[auth.username_required]
+other = "用户名不能为空"
+
+[auth.create_account_failed]
+other = "无法创建账户"
+
+[auth.invalid_totp]
+other = "验证码无效"
+
+[error.network]
+other = "网络错误。请检查连接后重试。"
+
+[error.timeout]
+other = "请求超时。请重试。"
+
+[error.permission_denied]
+other = "权限不足。您无权执行此操作。"
+
+# Quoted: leaf IDs that share a prefix with child IDs cannot use nested tables.
+["error.validation"]
+other = "验证错误。请检查输入后重试。"
+
+["error.not_found"]
+other = "未找到。请求的资源已不存在。"
+
+[error.server]
+other = "服务器错误"
+
+[error.request_failed]
+other = "请求失败"
+
+[error.try_again]
+other = "请重试。"
+
+# --- page.* ---
+
+[page.home.subtitle]
+other = "本 Flowbot 实例的运行概览。"
+
+[page.account_security.title]
+other = "账户安全"
+
+[page.account_security.subtitle]
+other = "Web 登录密码与备份码。"
+
+[page.account_security.backup_title]
+other = "新的备份码"
+
+[page.account_security.backup_subtitle]
+other = "请将这些一次性备份码保存在安全处，之后不会再显示。"
+
+[page.chatagent_permissions.title]
+other = "Chat Agent 权限"
+
+[page.chatagent_permissions.subtitle]
+other = "编辑存储在你账户下的 OpenCode 风格权限规则。"
+
+[page.agent_memory.subtitle]
+other = "由 memory_* 工具写入的可校正键值事实（scope 为 default 时在交互式聊天间共享）"
+
+[page.agent_knowledge.subtitle]
+other = "供 search_knowledge / get_knowledge 使用的 Markdown 文档"
+
+[page.agent_session_summaries.subtitle]
+other = "归档生成的摘要，可通过 search_session_summaries 检索"
+
+[page.function_list.subtitle]
+other = "以草稿/发布方式管理的命名 FaaS 转换函数。"
+
+[page.function_editor.subtitle]
+other = "命名函数编辑器"
+
+[page.healthz.title]
+other = "系统健康"
+
+[page.healthz.subtitle]
+other = "本实例的基础设施状态。"
+
+[page.about.subtitle]
+other = "本实例的版本与构建信息。"
+
+[page.settings.subtitle]
+other = "本进程生效的 flowbot.yaml 配置只读视图，密钥已脱敏。"
+
+[page.inbox.title]
+other = "收件箱"
+
+[page.inbox.subtitle]
+other = "投递到应用内通道的消息"
+
+[page.homelab.title]
+other = "Homelab Registry"
+
+[page.run_history.title]
+other = "运行历史"
+
+[page.agents.composer_placeholder]
+other = "让 Flowbot 帮你调研、自动化、编排"
+
+# --- confirm.* ---
+
+[confirm.delete_pipeline.message]
+other = "删除此流水线？关联的运行记录也会一并移除。"
+
+[confirm.delete_pipeline.title]
+other = "删除流水线"
+
+[confirm.delete_pipeline.btn]
+other = "删除"
+
+[confirm.pause_pipeline.message]
+other = "暂停此流水线？触发器将停止，直到恢复。"
+
+[confirm.pause_pipeline.title]
+other = "暂停流水线"
+
+[confirm.pause_pipeline.btn]
+other = "暂停"
+
+[confirm.delete_workflow.message]
+other = "删除此工作流？关联的运行记录也会一并移除。"
+
+[confirm.delete_workflow.title]
+other = "删除工作流"
+
+[confirm.delete_workflow.btn]
+other = "删除"
+
+[confirm.disable_workflow.message]
+other = "禁用此工作流？Cron 与 Webhook 触发器将停止，直到重新启用。"
+
+[confirm.disable_workflow.title]
+other = "禁用工作流"
+
+[confirm.disable_workflow.btn]
+other = "禁用"
+
+[confirm.disable_trigger.message]
+other = "禁用此触发器？它将停止触发，直到重新启用。"
+
+[confirm.disable_trigger.title]
+other = "禁用触发器"
+
+[confirm.disable_trigger.btn]
+other = "禁用"
+
+[confirm.disable_skill.message]
+other = "禁用此 Skill？它将不再出现在 Agent 提示词中，直到重新启用。"
+
+[confirm.disable_skill.title]
+other = "禁用 Skill"
+
+[confirm.disable_skill.btn]
+other = "禁用"
+
+[confirm.delete_skill.message]
+other = "删除此 Skill？"
+
+[confirm.delete_skill.title]
+other = "删除 Skill"
+
+[confirm.delete_skill.btn]
+other = "删除"
+
+[confirm.delete_skill_file.message]
+other = "删除此文件？"
+
+[confirm.delete_skill_file.title]
+other = "删除 Skill 文件"
+
+[confirm.delete_skill_file.btn]
+other = "删除"
+
+[confirm.delete_knowledge.message]
+other = "删除此知识文档？"
+
+[confirm.delete_knowledge.title]
+other = "删除文档"
+
+[confirm.delete_knowledge.btn]
+other = "删除"
+
+[confirm.delete_subagent.message]
+other = "删除此 Subagent？"
+
+[confirm.delete_subagent.title]
+other = "删除 Subagent"
+
+[confirm.delete_subagent.btn]
+other = "删除"
+
+[confirm.delete_fact.message]
+other = "删除事实 {{.Key}}？"
+
+[confirm.delete_fact.title]
+other = "删除事实"
+
+[confirm.delete_fact.btn]
+other = "删除"
+
+[confirm.delete_channel.message]
+other = "删除此通道？"
+
+[confirm.delete_channel.title]
+other = "删除通道"
+
+[confirm.delete_channel.btn]
+other = "删除"
+
+[confirm.delete_template.message]
+other = "删除此模板？"
+
+[confirm.delete_template.title]
+other = "删除模板"
+
+[confirm.delete_template.btn]
+other = "删除"
+
+[confirm.delete_rule.message]
+other = "删除此规则？"
+
+[confirm.delete_rule.title]
+other = "删除规则"
+
+[confirm.delete_rule.btn]
+other = "删除"
+
+[confirm.delete_function.message]
+other = "删除函数 {{.Name}}？"
+
+[confirm.delete_function.title]
+other = "删除函数"
+
+[confirm.delete_function.btn]
+other = "删除"
+
+[confirm.delete_config.message]
+other = "删除此配置？"
+
+[confirm.delete_config.title]
+other = "删除配置"
+
+[confirm.delete_config.btn]
+other = "删除"
+
+[confirm.revoke_token.message]
+other = "吊销此 Token？它将立即失效。"
+
+[confirm.revoke_token.title]
+other = "吊销 Token"
+
+[confirm.revoke_token.btn]
+other = "吊销"
+
+[confirm.regenerate_backup_codes.message]
+other = "这将使所有现有备份码失效。是否继续？"
+
+[confirm.regenerate_backup_codes.title]
+other = "重新生成备份码"
+
+[confirm.regenerate_backup_codes.btn]
+other = "重新生成"
+
+[confirm.stop_app.message]
+other = "停止 {{.App}}？这将关闭该应用。"
+
+[confirm.stop_app.title]
+other = "停止应用"
+
+[confirm.stop_app.btn]
+other = "停止"
+
+[confirm.restart_app.message]
+other = "重启 {{.App}}？这将中断正在运行的应用。"
+
+[confirm.restart_app.title]
+other = "重启应用"
+
+[confirm.restart_app.btn]
+other = "重启"
+
+[confirm.delete_goal.message]
+other = "删除此目标？"
+
+[confirm.delete_goal.title]
+other = "删除目标"
+
+[confirm.delete_goal.btn]
+other = "删除"
+
+[confirm.dismiss_quest.message]
+other = "放弃此任务？无惩罚。"
+
+[confirm.dismiss_quest.title]
+other = "放弃任务"
+
+[confirm.dismiss_quest.btn]
+other = "放弃"
+
+[confirm.deactivate_reward.message]
+other = "停用此奖励？"
+
+[confirm.deactivate_reward.title]
+other = "停用奖励"
+
+[confirm.deactivate_reward.btn]
+other = "停用"
+
+# --- toast.* ---
+
+[toast.config.saved]
+other = "配置已保存"
+
+[toast.config.not_found]
+other = "未找到配置"
+
+[toast.config.save_failed]
+other = "无法保存配置，请重试。"
+
+[toast.config.delete_failed]
+other = "删除配置失败"
+
+[toast.agent_skills.choose_zip]
+other = "请选择 Agent Skills 的 zip 压缩包"
+
+[toast.agent_skills.zip_too_large]
+other = "Zip 压缩包超过最大大小（5 MiB）"
+
+[toast.agent_skills.read_zip_failed]
+other = "读取 zip 压缩包失败"
+
+[toast.agent_skills.import_failed]
+other = "导入失败：{{.Error}}"
+
+[toast.agent_skills.no_skill_md]
+other = "Zip 压缩包中未找到 SKILL.md"
+
+[toast.agent_skills.reload_failed]
+other = "已导入但重新加载 Agent Skills 失败"
+
+[toast.agent_skills.imported_one]
+other = "已导入 {{.Count}} 个 Skill"
+
+[toast.agent_skills.imported_many]
+other = "已导入 {{.Count}} 个 Skills"
+
+[toast.agent_skills.create_failed]
+other = "创建 Agent Skill 失败"
+
+[toast.agent_skills.update_failed]
+other = "更新 Agent Skill 失败"
+
+[toast.agent_skills.load_failed]
+other = "加载 Agent Skill 失败"
+
+[toast.agent_skills.invalid_enabled]
+other = "无效的 enabled 值"
+
+[toast.agent_skills.not_found]
+other = "未找到 Agent Skill"
+
+[toast.agent_skills.delete_failed]
+other = "删除 Agent Skill 失败"
+
+[toast.agent_memory.key_value_required]
+other = "键和值均为必填"
+
+[toast.agent_memory.fact_not_found_create]
+other = "未找到事实；请使用 memory_set 创建事实"
+
+[toast.agent_memory.save_failed]
+other = "保存事实失败"
+
+[toast.agent_memory.key_required]
+other = "键为必填"
+
+[toast.agent_memory.fact_not_found]
+other = "未找到事实"
+
+[toast.agent_memory.delete_failed]
+other = "删除事实失败"
+
+[toast.agent_memory.refresh_failed]
+other = "刷新记忆事实失败"
+
+[toast.agent_knowledge.create_failed]
+other = "创建知识文档失败"
+
+[toast.agent_knowledge.update_failed]
+other = "更新知识文档失败"
+
+[toast.agent_knowledge.load_failed]
+other = "加载更新后的知识文档失败"
+
+[toast.agent_knowledge.not_found]
+other = "未找到知识文档"
+
+[toast.agent_knowledge.delete_failed]
+other = "删除知识文档失败"
+
+[toast.agents.not_enabled]
+other = "Chat Agent 未启用"
+
+[toast.agents.session_not_found]
+other = "未找到会话"
+
+[toast.agents.forbidden]
+other = "禁止访问"
+
+[toast.agents.pin_failed]
+other = "更新置顶失败"
+
+[toast.agents.refresh_sessions_failed]
+other = "刷新会话列表失败"
+
+[toast.agents.archive_failed]
+other = "更新归档状态失败"
+
+[toast.notify_settings.channel_saved]
+other = "通道已保存"
+
+[toast.notify_settings.system_channel_readonly]
+other = "系统通道不可修改"
+
+[toast.notify_settings.system_channel_no_delete]
+other = "系统通道不可删除"
+
+[toast.notify_settings.channel_test_failed]
+other = "通道测试失败：{{.Error}}"
+
+[toast.notify_settings.channel_test_succeeded]
+other = "通道测试成功"
+
+[toast.notify_settings.default_channel_updated]
+other = "默认通道已更新"
+
+[toast.notify_settings.template_saved]
+other = "模板已保存"
+
+[toast.notify_settings.default_template_updated]
+other = "默认模板已更新"
+
+[toast.notify_settings.rule_saved]
+other = "规则已保存"
+
+[toast.notification.retry_only_failed]
+other = "仅失败的通知可重试"
+
+[toast.notification.retry_failed]
+other = "重试失败：{{.Error}}"
+
+[toast.notification.connectivity_retest_succeeded]
+other = "连通性复测成功"
+
+[toast.notification.notification_retried]
+other = "通知已重试"
+
+[toast.notification.mark_read_failed]
+other = "标记已读失败"
+
+[toast.session_summaries.session_id_required]
+other = "会话 ID 为必填"
+
+[toast.session_summaries.retry_failed]
+other = "重试摘要失败"
+
+[toast.session_summaries.refresh_failed]
+other = "刷新摘要列表失败"
+
+[toast.workflow.run_started]
+other = "工作流运行 #{{.RunID}} 已启动"
+
+[toast.workflow.disabled]
+other = "工作流已禁用"
+
+[toast.workflow.enabled]
+other = "工作流已启用"
+
+[toast.token.not_found]
+other = "未找到 Token"
+
+[toast.token.revoke_failed]
+other = "吊销 Token 失败"
+
+[toast.function.not_found]
+other = "未找到函数"
+
+[toast.inbox.mark_read_failed]
+other = "标记已读失败"
+
+[toast.life.evidence_recorded]
+other = "已为任务记录证据。"
+
+[toast.life.dm_suggested_ruling]
+other = "地下城主已给出建议裁决。"
+
+[toast.life.ruling_applied]
+other = "建议裁决已应用。"
+
+[toast.life.quest_rated]
+other = "任务难度 {{.Difficulty}} — 约 {{.Chance}}% 概率获得 {{.Tier}} 级掉落"
+
+[toast.life.quest_complete]
+other = "+{{.Exp}} 经验，+{{.Gold}} 金币（骰点 {{.Dice}}）"
+
+[toast.life.quest_failed_tarnish]
+other = "任务失败 — 已装备装备 tarnished 24 小时"
+
+[toast.life.quest_dismissed]
+other = "任务已放弃。"
+
+[toast.life.class_saved]
+other = "职业已保存。"
+
+[toast.life.reward_redeemed]
+other = "奖励已兑换。"
+
+[toast.life.generic_error]
+other = "出了点问题"
+
+[toast.life.action_failed]
+other = "无法完成该操作，请重试。"
+
+# --- life.* ---
+
+[life.brand]
+other = "Life"
+
+[life.nav.aria_label]
+other = "Life 导航"
+
+[life.nav.dashboard]
+other = "Life"
+
+[life.nav.quests]
+other = "任务"
+
+[life.nav.rewards]
+other = "奖励"
+
+[life.nav.skills]
+other = "技能"
+
+[life.nav.inventory]
+other = "背包"
+
+[life.nav.goals]
+other = "目标"
+
+[life.nav.plan]
+other = "计划"
+
+[life.nav.stats]
+other = "统计"
+
+[life.nav.character]
+other = "角色"
+
+[life.nav.achievements]
+other = "成就"
+
+[life.btn.save]
+other = "保存"
+
+[life.btn.cancel]
+other = "取消"
+
+[life.btn.delete]
+other = "删除"
+
+[life.btn.create]
+other = "创建"
+
+[life.btn.pause]
+other = "暂停"
+
+[life.btn.resume]
+other = "恢复"
+
+[life.btn.equip]
+other = "装备"
+
+[life.btn.unequip]
+other = "卸下"
+
+[life.btn.redeem]
+other = "兑换"
+
+[life.btn.deactivate]
+other = "停用"
+
+[life.btn.confirm_habit]
+other = "确认习惯"
+
+[life.btn.edit]
+other = "编辑"
+
+[life.btn.prev]
+other = "上一页"
+
+[life.btn.next]
+other = "下一页"
+
+[life.btn.dismiss]
+other = "放弃"
+
+[life.btn.complete]
+other = "完成"
+
+[life.btn.skip]
+other = "跳过"
+
+[life.btn.check_in]
+other = "签到"
+
+[life.btn.add]
+other = "添加"
+
+[life.btn.restore]
+other = "恢复"
+
+[life.btn.preview_breakdown]
+other = "预览 AI 分解"
+
+[life.btn.import_suggestion]
+other = "导入建议"
+
+[life.btn.fail]
+other = "失败"
+
+[life.btn.submit]
+other = "提交"
+
+[life.btn.refresh]
+other = "刷新"
+
+[life.category.project]
+other = "项目"
+
+[life.category.area]
+other = "领域"
+
+[life.category.resource]
+other = "资源"
+
+[life.category.no_area]
+other = "无领域"
+
+[life.category.label]
+other = "类别"
+
+[life.category.area_label]
+other = "领域"
+
+[life.class.label]
+other = "职业"
+
+[life.class.architect]
+other = "Architect"
+
+[life.class.mage]
+other = "Mage"
+
+[life.class.warrior]
+other = "Warrior"
+
+[life.class.rogue]
+other = "Rogue"
+
+[life.page.goals.title]
+other = "目标"
+
+[life.page.goals.subtitle]
+other = "PARA · 项目、领域、资源 — 引导任务与加成的目标。"
+
+[life.page.plan.title]
+other = "计划树"
+
+[life.page.plan.subtitle]
+other = "目标 → 里程碑 → 项目 → 行动 · 用 Life DM 分解，然后确认导入。"
+
+[life.page.skills.title]
+other = "技能树"
+
+[life.page.skills.subtitle]
+other = "查看正在训练的分支，并检视各分支近期的练习证据。"
+
+[life.page.quests.title]
+other = "任务"
+
+[life.page.quests.subtitle]
+other = "描述要做的事；Life DM 评估难度与掉落。"
+
+[life.page.inventory.title]
+other = "背包"
+
+[life.page.inventory.subtitle]
+other = "装备物品以获得属性与能力加成。"
+
+[life.page.achievements.title]
+other = "成就"
+
+[life.page.achievements.subtitle]
+other = "任务完成带来的纪念里程碑。"
+
+[life.page.rewards.title]
+other = "奖励"
+
+[life.page.rewards.subtitle]
+other = "用金币兑换你定义的现实奖励。荣誉制 — 领取时再兑换。"
+
+[life.page.stats.title]
+other = "统计"
+
+[life.page.stats.subtitle]
+other = "近 30 天的活动、成长、任务、金币与掉落。"
+
+[life.page.character.title]
+other = "角色"
+
+[life.empty.goals]
+other = "尚无目标 — 在上方添加一个。"
+
+[life.empty.goal_group]
+other = "此领域下尚无项目或资源。"
+
+[life.empty.plan_nodes]
+other = "尚无计划节点 — 预览 AI 分解以开始构建树。"
+
+[life.empty.skills]
+other = "尚无跟踪技能 — 完成任务或制定行动计划以成长技能树。"
+
+[life.empty.skill_evidence]
+other = "选择一个分支以查看其近期练习证据。"
+
+[life.empty.skill_evidence_node]
+other = "此分支尚无近期关联证据。"
+
+[life.empty.today_actions]
+other = "今天没有待处理行动。"
+
+[life.empty.today_habits]
+other = "没有可打卡的习惯。"
+
+[life.empty.quests_pending]
+other = "没有待处理任务。在上方写一条开始。"
+
+[life.empty.quest_evidence]
+other = "尚未提交证据。"
+
+[life.empty.quest_completed]
+other = "尚无已完成项。"
+
+[life.empty.completions_log]
+other = "尚无完成记录。"
+
+[life.empty.inventory_backpack]
+other = "背包为空 — 完成任务以获得掉落。"
+
+[life.empty.inventory_slot]
+other = "空"
+
+[life.empty.achievements]
+other = "尚无预置成就。"
+
+[life.empty.rewards_active]
+other = "尚无奖励 — 在上方添加一个。"
+
+[life.empty.redemptions]
+other = "尚无兑换记录。"
+
+[life.empty.rewards_inactive]
+other = "没有已停用的奖励。"
+
+[life.goal.ungrouped]
+other = "未分组"
+
+[life.goal.title_placeholder]
+other = "今年完成出书"
+
+[life.goal.create]
+other = "创建目标"
+
+[life.goal.title_label]
+other = "目标标题"
+
+[life.plan.breakdown_placeholder]
+other = "请 AI 分解一个具体目标"
+
+[life.plan.outcome_placeholder]
+other = "可选：预期成果 / 约束"
+
+[life.plan.ai_suggestion]
+other = "AI 建议：{{.Title}}"
+
+[life.skills.growth_map]
+other = "成长地图"
+
+[life.skills.growth_map_sub]
+other = "展开分支探索；近期有练习的分支会高亮。"
+
+[life.skills.practice_evidence]
+other = "练习证据"
+
+[life.skills.practice_evidence_sub]
+other = "点击节点查看近期任务、行动与习惯如何维持该分支活跃。"
+
+[life.skills.last_activity]
+other = "最近活动：{{.Label}}"
+
+[life.quest.prompt_placeholder]
+other = "例如：今晚完成 API 架构图"
+
+[life.quest.evidence_placeholder]
+other = "描述你交付、学习或产出的内容。"
+
+[life.quest.add_evidence]
+other = "添加证据"
+
+[life.quest.request_ruling]
+other = "请求裁决"
+
+[life.quest.apply_ruling]
+other = "应用裁决"
+
+[life.quest.what_will_you_do]
+other = "你要做什么？"
+
+[life.quest.link_goal]
+other = "关联目标（可选）"
+
+[life.quest.link_goal_none]
+other = "无"
+
+[life.quest.composer_hint]
+other = "AI 评估难度；服务器设置奖励与掉落概率。"
+
+[life.quest.today_actions]
+other = "今日行动"
+
+[life.quest.today_habits]
+other = "今日习惯"
+
+[life.quest.pending]
+other = "待处理"
+
+[life.quest.completed]
+other = "已完成"
+
+[life.quest.completions_log]
+other = "完成记录"
+
+[life.quest.evidence]
+other = "任务证据"
+
+[life.quest.submit_evidence]
+other = "提交证据"
+
+[life.quest.evidence_type]
+other = "证据类型"
+
+[life.quest.evidence_type_note]
+other = "note"
+
+[life.quest.evidence_type_link]
+other = "link"
+
+[life.quest.evidence_type_artifact]
+other = "artifact"
+
+[life.quest.source_url]
+other = "来源 URL（可选）"
+
+[life.quest.open_source]
+other = "打开来源"
+
+[life.quest.fear]
+other = "恐惧 {{.Value}}"
+
+[life.quest.drop_chance]
+other = "约 {{.Percent}}% 掉落"
+
+[life.quest.suggested_exp]
+other = "建议 +{{.Value}} 经验"
+
+[life.quest.suggested_gold]
+other = "建议 +{{.Value}} 金币"
+
+[life.reward.exp]
+other = "+{{.Value}} 经验"
+
+[life.reward.gold]
+other = "+{{.Value}} 金币"
+
+[life.pager.page_of]
+other = "第 {{.Page}} / {{.Total}} 页"
+
+[life.dashboard.bonus]
+other = "掉落加成 +{{.DropRate}}% · 金币 ×{{.GoldMult}}"
+
+[life.meta.due]
+other = "截止 {{.Label}}"
+
+[life.meta.done_today]
+other = "今日已完成"
+
+[life.meta.dice]
+other = "骰点 {{.Value}}"
+
+[life.meta.drop]
+other = "掉落"
+
+[life.inventory.equipped]
+other = "已装备"
+
+[life.inventory.backpack]
+other = "背包"
+
+[life.inventory.equipped_badge]
+other = "已装备"
+
+[life.inventory.tarnished]
+other = "Tarnished"
+
+[life.inventory.perk]
+other = "Perk {{.Text}}"
+
+[life.inventory.lore]
+other = "Lore {{.Status}}"
+
+[life.achievements.unlocked]
+other = "已解锁"
+
+[life.achievements.locked]
+other = "未解锁"
+
+[life.achievements.unlocked_at]
+other = "解锁于 {{.At}}"
+
+[life.achievements.retired]
+other = "已从目录移除"
+
+[life.rewards.balance]
+other = "余额"
+
+[life.rewards.balance_unit]
+other = "金币"
+
+[life.rewards.add_title]
+other = "添加奖励"
+
+[life.rewards.add_sub]
+other = "命名、定价，可选冷却时间。"
+
+[life.rewards.active_title]
+other = "生效中"
+
+[life.rewards.active_sub]
+other = "领取奖励时再兑换。"
+
+[life.rewards.price]
+other = "价格"
+
+[life.rewards.cooldown]
+other = "冷却（小时）"
+
+[life.rewards.name_label]
+other = "名称"
+
+[life.rewards.name_placeholder]
+other = "奶茶"
+
+[life.rewards.notes_placeholder]
+other = "仅周末"
+
+[life.rewards.on_cooldown]
+other = "冷却中"
+
+[life.rewards.cooldown_until]
+other = "冷却 · 至 {{.Until}}"
+
+[life.rewards.cooldown_hours]
+other = "{{.Hours}} 小时冷却"
+
+[life.rewards.notes]
+other = "备注"
+
+[life.rewards.no_cooldown]
+other = "无冷却"
+
+[life.rewards.need_more_gold]
+other = "金币不足"
+
+[life.rewards.redemptions]
+other = "兑换记录"
+
+[life.rewards.inactive]
+other = "已停用"
+
+[life.profile.level]
+other = "等级 {{.Value}}"
+
+[life.profile.master_objective]
+other = "主要目标"
+
+[life.profile.minor_objective]
+other = "次要目标"
+
+[life.profile.strength]
+other = "优势"
+
+[life.profile.weaknesses]
+other = "弱点"
+
+[life.profile.level_up]
+other = "升级："
+
+[life.status.active]
+other = "Active"
+
+[life.status.paused]
+other = "Paused"
+
+# --- clip.* ---
+
+[clip.not_found.title]
+other = "未找到 Clip"
+
+[clip.not_found.meta]
+other = "此 Clip 不存在或已被移除。"
+
+[clip.gated_hint]
+other = "使用 Flowbot 账户登录以查看完整 Markdown。"
+
+[clip.login_to_read]
+other = "登录后阅读"
+
+[clip.copy_md]
+other = "复制 MD"
+
+[clip.copied]
+other = "已复制"
+
+[clip.copy_failed]
+other = "复制失败"
+
+# --- client.* ---
+
+[client.pipeline.load_failed]
+other = "加载流水线失败"
+
+[client.pipeline.name_required]
+other = "流水线名称为必填"
+
+[client.pipeline.rename_failed]
+other = "重命名流水线失败"
+
+[client.pipeline.renamed]
+other = "流水线已重命名"
+
+[client.pipeline.agent_options_failed]
+other = "加载 Agent 运行选项失败"
+
+[client.pipeline.capabilities_failed]
+other = "加载能力列表失败"
+
+[client.pipeline.remove_trigger.title]
+other = "移除触发器"
+
+[client.pipeline.remove_trigger.message]
+other = "从流水线中移除此触发器？"
+
+[client.pipeline.delete_step.title]
+other = "删除步骤"
+
+[client.pipeline.delete_step.message]
+other = "从流水线中删除此步骤？"
+
+[client.pipeline.discard_changes.title]
+other = "放弃更改"
+
+[client.pipeline.discard_changes.message]
+other = "有未保存的更改。是否放弃？"
+
+[client.pipeline.trigger_required]
+other = "至少需要启用一个触发器"
+
+[client.pipeline.step_required]
+other = "至少需要一个步骤"
+
+[client.pipeline.event_type_required]
+other = "事件类型为必填"
+
+[client.pipeline.webhook_path_required]
+other = "Webhook 路径为必填"
+
+[client.pipeline.auth_required]
+other = "至少需要一种认证方式"
+
+[client.pipeline.cron_required]
+other = "Cron 表达式为必填"
+
+[client.pipeline.step_name_required]
+other = "步骤名称为必填"
+
+[client.pipeline.capability_required]
+other = "能力为必填"
+
+[client.pipeline.operation_required]
+other = "操作为必填"
+
+[client.pipeline.draft_conflict]
+other = "此草稿已在别处修改。请刷新页面。"
+
+[client.pipeline.draft_saved]
+other = "草稿已保存"
+
+[client.pipeline.draft_saved_publish_hint]
+other = "草稿已保存。点击发布以更新线上 Webhook。"
+
+[client.pipeline.save_failed]
+other = "保存失败。更改尚未保存。"
+
+[client.pipeline.published]
+other = "流水线已发布"
+
+[client.pipeline.publish_failed]
+other = "发布失败：{{.Error}}"
+
+[client.pipeline.copy_failed]
+other = "复制失败"
+
+[client.pipeline.webhook_url_copied]
+other = "Webhook URL 已复制"
+
+[client.pipeline.curl_copied]
+other = "curl 示例已复制"
+
+[client.pipeline.test_failed]
+other = "测试失败：{{.Error}}"
+
+[client.pipeline.mock_payload_failed]
+other = "加载模拟载荷失败"
+
+[client.pipeline.invalid_yaml]
+other = "无效的 YAML：不是流水线定义"
+
+[client.pipeline.yaml_import_success]
+other = "YAML 导入成功"
+
+[client.pipeline.yaml_import_failed]
+other = "导入失败：{{.Error}}"
+
+[client.pipeline.versions_load_failed]
+other = "加载版本列表失败"
+
+[client.pipeline.version_load_failed]
+other = "加载版本失败"
+
+[client.pipeline.diff_failed]
+other = "比较版本失败"
+
+[client.pipeline.move_blocked]
+other = "无法移动：此步骤依赖位于目标位置或更上方的步骤数据。"
+
+[client.chatagent.prompt_required]
+other = "请输入提示词以开始。"
+
+[client.chatagent.session_create_failed]
+other = "创建会话失败"
+
+[client.chatagent.missing_session_id]
+other = "缺少会话 ID"
+
+[client.chatagent.settings_save_failed]
+other = "保存设置失败"
+
+[client.chatagent.close_session.title]
+other = "关闭会话"
+
+[client.chatagent.close_session.message]
+other = "关闭此会话？关闭后将无法继续发送消息。"
+
+[client.chatagent.close_session_failed]
+other = "关闭会话失败"
+
+[client.chatagent.media_not_supported]
+other = "所选模型不支持媒体输入"
+
+[client.chatagent.max_attachments]
+other = "每条消息最多 8 个附件"
+
+[client.chatagent.remove_attachment]
+other = "移除附件"
+
+[client.chatagent.copy_code]
+other = "复制代码"
+
+[client.chatagent.copy_md]
+other = "复制 Markdown"
+
+[client.chatagent.thinking_prefix]
+other = "思考：{{.Level}}"
+
+[client.chatagent.model_default]
+other = "Default"
+
+[client.chatagent.model_medium]
+other = "Medium"
+
+[client.chatagent.start_agent]
+other = "启动 Agent"
+
+[client.chatagent.approve]
+other = "批准"
+
+[client.chatagent.deny]
+other = "拒绝"
+
+[client.chatagent.always_allow]
+other = "始终允许"
+
+[client.command_palette.empty]
+other = "无匹配结果"
+
+[client.command_palette.placeholder]
+other = "搜索页面、流水线、会话…"
+
+[client.command_palette.recent]
+other = "最近"
+
+[client.command_palette.pages]
+other = "页面"
+
+[client.command_palette.pipelines]
+other = "流水线"
+
+[client.command_palette.sessions]
+other = "会话"
+
+[client.command_palette.homelab]
+other = "Homelab"
+
+[client.command_palette.search_failed]
+other = "搜索失败，请重试。"
+
+[client.function_editor.copied_call_url]
+other = "调用 URL 已复制"
+
+[client.function_editor.save_draft_failed]
+other = "保存草稿失败"
+
+[client.function_editor.publish_success]
+other = "函数已发布"
+
+[client.function_editor.publish_failed]
+other = "发布失败：{{.Error}}"
+
+[client.function_editor.delete_failed]
+other = "删除函数失败"
+
+[client.clip.copied]
+other = "已复制"
+
+[client.clip.copy_failed]
+other = "复制失败"
+
+[client.stats.completions]
+other = "完成次数"
+
+[client.stats.exp]
+other = "经验"
+
+[client.stats.growth_exp]
+other = "经验"
+
+[client.stats.quest_completed]
+other = "已完成"
+
+[client.stats.gold_in]
+other = "金币收入"
+
+[client.stats.gold_out]
+other = "金币支出"
+
+[client.stats.drops]
+other = "掉落"
+
+[client.stats.success_rate]
+other = "成功率"
+
+[client.stats.pipeline_runs]
+other = "流水线运行"
+
+[client.stats.workflow_runs]
+other = "工作流运行"
+
+[client.stats.function_runs]
+other = "函数运行"
+
+[client.pipeline_run.connected]
+other = "实时流已连接"
+
+[client.pipeline_run.reconnecting]
+other = "正在重连实时流…"
+
+[client.pipeline_run.failed]
+other = "实时运行失败"
+
+[client.pipeline_run.finished]
+other = "实时运行结束"
+
+[client.hub.logs.connected]
+other = "日志流已连接"
+
+[client.hub.logs.ended]
+other = "日志流已结束。请刷新页面重新连接。"
+
+[client.chatagent.context.system_prompt]
+other = "系统提示"
+
+[client.chatagent.context.system_tools]
+other = "工具定义"
+
+[client.chatagent.context.skills]
+other = "技能"
+
+[client.chatagent.context.messages]
+other = "对话"
+
+[client.chatagent.context.autocompact_buffer]
+other = "自动压缩缓冲"
+
+[client.chatagent.context.free_space]
+other = "剩余空间"
+
+[client.chatagent.context.load_failed]
+other = "加载上下文用量失败"
+
+[client.chatagent.context.tokens_suffix]
+other = "Token"
+
+[client.chatagent.todos.empty]
+other = "暂无待办。"
+
+[client.chatagent.todos.label]
+other = "待办"
+
+[client.chatagent.slash.skills_aria]
+other = "技能"
+
+[client.chatagent.slash.no_match]
+other = "无匹配技能"
+
+[client.chatagent.slash.no_skills]
+other = "暂无可用技能"
+
+[client.app.needs_approval]
+other = "需要审批"
+
+# --- common.* (doc titles) ---
+
+[common.app_name]
+other = "Flowbot"
+
+[common.doc_title_flowbot]
+other = " — Flowbot"
+
+[common.doc_title_life]
+other = " — Life"
+
+[common.delete]
+other = "删除"
+
+[common.open]
+other = "打开"
+
+[common.refresh]
+other = "刷新"
+
+[common.create]
+other = "创建"
+
+# --- page.doc_title.* ---
+
+[page.doc_title.pipeline]
+other = "流水线：{{.Name}}"
+
+[page.doc_title.runs]
+other = "运行：{{.Name}}"
+
+[page.doc_title.live]
+other = "实时：{{.Name}}"
+
+[page.doc_title.function]
+other = "函数 · {{.Name}}"
+
+[page.doc_title.workflow]
+other = "工作流：{{.Name}}"
+
+[page.doc_title.agent_chat]
+other = "Agent 对话"
+
+# --- clip meta ---
+
+[clip.default_title]
+other = "Clip"
+
+[clip.meta.words_only]
+other = "{{.Count}} 词"
+
+[clip.meta.date_only]
+other = "{{.Date}}"
+
+[clip.meta.date_words]
+other = "{{.Date}} · {{.Count}} 词"
+
+[clip.slug_label]
+other = "slug:"
+
+# --- life meta chips ---
+
+[life.meta.active_count]
+other = "{{.Count}} 活跃"
+
+[life.meta.tracked_count]
+other = "{{.Count}} 跟踪"
+
+[life.meta.records_count]
+other = "{{.Count}} 条记录"
+
+[life.meta.skills_count]
+other = "{{.Count}} 项技能"
+
+[life.meta.items_count]
+other = "{{.Count}} 项"
+
+[life.meta.level_prefix]
+other = "LV{{.Value}}"
+
+[life.node_type.goal]
+other = "目标"
+
+[life.node_type.milestone]
+other = "里程碑"
+
+[life.node_type.project]
+other = "项目"
+
+[life.node_type.action]
+other = "行动"
+
+[life.node_type.node]
+other = "节点"
+
+[life.task_type.todo]
+other = "待办"
+
+[life.task_type.recurring]
+other = "重复"
+
+[life.task_type.habit_candidate]
+other = "习惯（待定）"
+
+[life.task_type.habit]
+other = "习惯"
+
+[life.task_type.checkpoint]
+other = "检查点"
+
+# --- error.load.* / handler form ---
+
+[error.load.agent_skills_list]
+other = "加载 Agent 技能失败"
+
+[error.load.agent_skill_files]
+other = "加载 Agent 技能文件失败"
+
+[error.create.agent_skill_file]
+other = "创建 Agent 技能文件失败"
+
+[error.invalid.agent_skill_file_path]
+other = "Agent 技能文件路径无效"
+
+[error.not_found.agent_skill_file]
+other = "未找到 Agent 技能文件"
+
+[error.load.agent_skill_file]
+other = "加载 Agent 技能文件失败"
+
+[error.update.agent_skill_file]
+other = "更新 Agent 技能文件失败"
+
+[error.delete.agent_skill_file]
+other = "删除 Agent 技能文件失败"
+
+[error.load.agent_sessions]
+other = "加载 Agent 会话失败"
+
+[error.load.configs]
+other = "加载配置失败"
+
+[error.load.config]
+other = "加载配置失败"
+
+[error.load.tokens]
+other = "加载令牌失败"
+
+[error.load.agent_knowledge]
+other = "加载 Agent 知识库失败"
+
+[error.load.clips]
+other = "加载 Clip 失败"
+
+[error.load.memory_facts]
+other = "加载记忆事实失败"
+
+[error.load.session_summaries]
+other = "加载会话摘要失败"
+
+[error.load.agent_subagents]
+other = "加载 Agent 子代理失败"
+
+[error.load.subagent_form_options]
+other = "加载子代理表单选项失败"
+
+[error.create.agent_subagent]
+other = "创建 Agent 子代理失败"
+
+[error.not_found.agent_subagent]
+other = "未找到 Agent 子代理"
+
+[error.load.agent_subagent]
+other = "加载 Agent 子代理失败"
+
+[error.update.agent_subagent]
+other = "更新 Agent 子代理失败"
+
+[error.load.agent_subagent_updated]
+other = "加载更新后的 Agent 子代理失败"
+
+[error.delete.agent_subagent]
+other = "删除 Agent 子代理失败"
+
+[error.load.subagent_tasks]
+other = "加载子代理任务失败"
+
+[error.not_found.subagent_task]
+other = "未找到子代理任务"
+
+[error.load.subagent_task]
+other = "加载子代理任务失败"
+
+[error.load.scheduled_tasks]
+other = "加载定时任务失败"
+
+[error.load.notifications]
+other = "加载通知失败"
+
+[error.validation.state_required]
+other = "state 为必填项"
+
+[error.validation.invalid_state]
+other = "state 无效"
+
+[error.validation.uid_required]
+other = "UID 为必填项"
+
+[error.validation.expiry_required]
+other = "过期时间为必填项"
+
+[error.validation.scopes_required]
+other = "至少需要一个 scope"
+
+[error.validation.invalid_duration]
+other = "时长无效"
+
+[error.validation.invalid_scope]
+other = "无效 scope：{{.Scope}}"
+
+[toast.life.breakdown_encode_failed]
+other = "无法编码分解预览"
+
+[toast.life.breakdown_payload_required]
+other = "需要分解预览 payload"
+
+[toast.life.breakdown_payload_invalid]
+other = "分解预览 payload 无效"
+
+[toast.life.prompt_required]
+other = "需要填写提示"
+
+[toast.notify_settings.template_summary_required]
+other = "默认模板必须包含 summary 占位符（模板语法：{{ \"{{ .summary }}\" }}）"
+
+[toast.notify_playground.send_failed]
+other = "发送失败：{{.Error}}"
+
+[toast.notify_playground.sent]
+other = "通知已发送至 {{.Name}}"
+
+# --- table.* partial UI ---
+
+[table.search_tokens]
+other = "搜索令牌…"
+
+[table.col.uid]
+other = "UID"
+
+[table.col.token]
+other = "令牌"
+
+[table.col.created]
+other = "创建时间"
+
+[table.col.last_used]
+other = "最后使用"
+
+[table.col.expires]
+other = "过期时间"
+
+[table.col.scopes]
+other = "Scope"
+
+[table.col.actions]
+other = "操作"
+
+[table.col.name]
+other = "名称"
+
+[table.col.status]
+other = "状态"
+
+[table.col.published]
+other = "已发布"
+
+[table.empty.tokens]
+other = "暂无令牌"
+
+[table.empty.tokens_detail]
+other = "令牌用于 API 与 CLI 认证。"
+
+[table.empty.tokens_cta]
+other = "创建令牌"
+
+[table.empty.functions]
+other = "暂无函数"
+
+[table.empty.functions_detail]
+other = "创建命名函数，在沙箱中转换数据。"
+
+[table.empty.functions_cta]
+other = "创建函数"
+
+[table.chip.unpublished]
+other = "未发布变更"
+
+[table.chip.published]
+other = "已发布"
+
+[table.chip.draft]
+other = "草稿"
+
+# --- client pipeline confirm buttons + validation ---
+
+[client.pipeline.confirm_remove]
+other = "移除"
+
+[client.pipeline.confirm_delete]
+other = "删除"
+
+[client.pipeline.confirm_discard]
+other = "放弃"
+
+[client.pipeline.invalid_params_json]
+other = "参数 JSON 无效：{{.Error}}"
+
+[client.pipeline.param_required]
+other = "参数 \"{{.Name}}\" 为必填项"
+
+[client.pipeline.param_invalid_json]
+other = "参数 \"{{.Name}}\" 的 JSON 无效"
+
+[client.pipeline.trigger_prefix]
+other = "触发器 {{.Index}}：{{.Error}}"
+
+[client.pipeline.webhook_preview]
+other = "Webhook: ..."
+
+[client.pipeline.auth_token_preview]
+other = "Auth: ?token=... 或请求头 X-Webhook-Token"
+
+[client.pipeline.auth_hmac_preview]
+other = "Auth: 请求头 X-Hub-Signature-256"
+
+[client.pipeline.auth_configure]
+other = "Auth: 请配置 Token 或 HMAC Secret"
+
+[client.pipeline.memory_load_failed]
+other = "加载记忆事实失败"
+
+[client.chatagent.close_session.btn]
+other = "关闭"
+
+[client.chatagent.start_failed]
+other = "启动失败"
+
+[client.chatagent.attached_image]
+other = "已附加图片"
+
+[client.chatagent.thinking_off]
+other = "关"
+
+[client.chatagent.thinking_low]
+other = "低"
+
+[client.chatagent.thinking_high]
+other = "高"
+
+[client.chatagent.close_session.confirm_fallback]
+other = "关闭此会话？"

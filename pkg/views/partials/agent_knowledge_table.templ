@@ -18,7 +18,7 @@ templ AgentKnowledgeTable(items []model.AgentKnowledge, q string) {
 				</thead>
 				<tbody id="agent-knowledge-rows">
 				for _, item := range items {
-					@AgentKnowledgeRow(item)
+					@AgentKnowledgeRow(ctx, item)
 				}
 				if len(items) == 0 {
 					<tr id="agent-knowledge-empty">

@@ -70,7 +70,7 @@ func WorkflowListPage(ctx context.Context, entries []partials.WorkflowListEntry)
 				ctx = templ.InitializeContext(ctx)
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("Workflows", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "nav.workflows", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -99,7 +99,7 @@ func WorkflowListPage(ctx context.Context, entries []partials.WorkflowListEntry)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.WorkflowListTable(entries).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.WorkflowListTable(ctx, entries).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -109,7 +109,7 @@ func WorkflowListPage(ctx context.Context, entries []partials.WorkflowListEntry)
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Workflows").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.workflows")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

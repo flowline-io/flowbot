@@ -1,12 +1,14 @@
 package partials
 
 import (
+	"context"
 	"net/url"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ TokenRow(item model.TokenItem) {
+templ TokenRow(ctx context.Context, item model.TokenItem) {
 	<tr id={ tokenRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover"
 		data-filter-text={ TokenFilterText(item) }
 		x-show="rowMatches($el)">
@@ -37,9 +39,9 @@ templ TokenRow(item model.TokenItem) {
 		</td>
 		<td>
 			<button hx-delete={ tokenRevokeURL(item) }
-				data-confirm="Revoke this token? It will stop working immediately."
-				data-confirm-title="Revoke Token"
-				data-confirm-btn="Revoke"
+				data-confirm={ i18n.T(ctx, "confirm.revoke_token.message") }
+				data-confirm-title={ i18n.T(ctx, "confirm.revoke_token.title") }
+				data-confirm-btn={ i18n.T(ctx, "confirm.revoke_token.btn") }
 				data-confirm-class="btn-error"
 				data-testid="token-revoke-btn"
 				class="btn btn-ghost btn-xs text-error">

@@ -9,8 +9,8 @@ import (
 )
 
 templ AgentMemoryPage(ctx context.Context, items []model.AgentMemoryFact, scope string) {
-	@layout.Base(ctx, "Agent Memory — Flowbot") {
-		@partials.PageHeader("Agent Memory", "Correct keyed facts written by memory_* tools (shared across interactive chats when scope is default)") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.memory_facts")) {
+		@partials.PageHeader(ctx, "page.agent_memory.title", "page.agent_memory.subtitle") {
 			<form class="inline-flex items-center gap-2 m-0"
 				hx-get="/service/web/agent-memory/list"
 				hx-target="#agent-memory-table"
@@ -26,6 +26,6 @@ templ AgentMemoryPage(ctx context.Context, items []model.AgentMemoryFact, scope 
 				</button>
 			</form>
 		}
-		@partials.AgentMemoryTable(items, scope)
+		@partials.AgentMemoryTable(ctx, items, scope)
 	}
 }

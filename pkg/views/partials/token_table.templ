@@ -1,37 +1,42 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ TokenTable(items []model.TokenItem) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ TokenTable(ctx context.Context, items []model.TokenItem) {
 	<div class="flowbot-surface" x-data="tableFilter">
-		@TableFilterBar("Search tokens...", "token-table-filter")
+		@TableFilterBar(i18n.T(ctx, "table.search_tokens"), "token-table-filter")
 		<div id="tokens-table" data-testid="token-table" class="overflow-x-auto">
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs font-medium text-base-content/55">UID</th>
-					<th class="text-xs font-medium text-base-content/55">Token</th>
-					<th class="text-xs font-medium text-base-content/55">Created</th>
-					<th class="text-xs font-medium text-base-content/55">Last Used</th>
-					<th class="text-xs font-medium text-base-content/55">Expires</th>
-					<th class="text-xs font-medium text-base-content/55">Scopes</th>
-					<th class="text-xs font-medium text-base-content/55">Actions</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.uid") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.token") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.created") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.last_used") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.expires") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.scopes") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="tokens-rows">
 				for _, item := range items {
-					@TokenRow(item)
+					@TokenRow(ctx, item)
 				}
 				if len(items) == 0 {
 					<tr id="tokens-empty">
 						<td colspan="7" class="p-0">
 							@EmptyStateHXCTA(
-								"No tokens yet",
-								"Tokens authenticate API and CLI access.",
+								i18n.T(ctx, "table.empty.tokens"),
+								i18n.T(ctx, "table.empty.tokens_detail"),
 								"/service/web/tokens/new",
 								"#tokens-rows",
 								"afterbegin",
-								"Create token",
+								i18n.T(ctx, "table.empty.tokens_cta"),
 							)
 						</td>
 					</tr>

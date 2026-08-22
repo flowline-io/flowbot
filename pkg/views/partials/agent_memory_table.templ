@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ AgentMemoryTable(items []model.AgentMemoryFact, scope string) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentMemoryTable(ctx context.Context, items []model.AgentMemoryFact, scope string) {
 	<div id="agent-memory-table" class="overflow-x-auto" data-testid="agent-memory-table">
 		<table class="table table-sm">
 			<thead>
@@ -54,9 +59,9 @@ templ AgentMemoryTable(items []model.AgentMemoryFact, scope string) {
 									hx-post="/service/web/agent-memory/facts/delete"
 									hx-target="#agent-memory-table"
 									hx-swap="outerHTML"
-									data-confirm={ "Delete fact " + item.Key + "?" }
-									data-confirm-title="Delete Fact"
-									data-confirm-btn="Delete"
+									data-confirm={ i18n.TData(ctx, "confirm.delete_fact.message", map[string]any{"Key": item.Key}) }
+									data-confirm-title={ i18n.T(ctx, "confirm.delete_fact.title") }
+									data-confirm-btn={ i18n.T(ctx, "confirm.delete_fact.btn") }
 									data-confirm-class="btn-error">
 									<input type="hidden" name="scope" value={ scope }/>
 									<input type="hidden" name="key" value={ item.Key }/>

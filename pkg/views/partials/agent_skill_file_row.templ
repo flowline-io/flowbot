@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ AgentSkillFileRow(skill model.AgentSkill, file model.AgentSkillFile) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSkillFileRow(ctx context.Context, skill model.AgentSkill, file model.AgentSkillFile) {
 	<div id={ agentSkillFileRowID(skill, file) } class="flex items-center justify-between gap-2 rounded border border-base-300 px-3 py-2">
 		<div class="min-w-0">
 			<div class="font-mono text-sm truncate">{ file.Path }</div>
@@ -21,9 +26,9 @@ templ AgentSkillFileRow(skill model.AgentSkill, file model.AgentSkillFile) {
 				hx-delete={ agentSkillFileDeleteURL(skill, file) }
 				hx-target={ "#" + agentSkillFilesContainerID(skill) }
 				hx-swap="innerHTML"
-				data-confirm="Delete this file?"
-				data-confirm-title="Delete Skill File"
-				data-confirm-btn="Delete"
+				data-confirm={ i18n.T(ctx, "confirm.delete_skill_file.message") }
+				data-confirm-title={ i18n.T(ctx, "confirm.delete_skill_file.title") }
+				data-confirm-btn={ i18n.T(ctx, "confirm.delete_skill_file.btn") }
 				data-confirm-class="btn-error"
 				data-testid="agent-skill-file-delete"
 				class="btn btn-ghost btn-xs text-error">

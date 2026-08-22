@@ -2,15 +2,16 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 templ HomePage(ctx context.Context, d partials.HomeDashboard) {
-	@layout.Base(ctx, "Flowbot") {
+	@layout.Base(ctx, i18n.T(ctx, "common.app_name")) {
 		@partials.TokenUsageScripts()
-		@partials.PageHeader("Home", "Operational overview for this Flowbot instance.") {
+		@partials.PageHeader(ctx, "nav.home", "page.home.subtitle") {
 		}
 		<div data-testid="home-dashboard-loader">
 			@partials.HomeDashboardBlock(d)

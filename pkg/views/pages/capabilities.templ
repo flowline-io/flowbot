@@ -9,8 +9,8 @@ import (
 )
 
 templ CapabilitiesPage(ctx context.Context, descriptors []hub.Descriptor, types []string, providers []string) {
-	@layout.Base(ctx, "Capabilities — Flowbot") {
-		@partials.PageHeader("Capabilities", "") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.capabilities")) {
+		@partials.PageHeader(ctx, "nav.capabilities", "") {
 		}
 		<div class="flex items-center gap-3 mb-4">
 			<select id="capability-type-filter" name="type"

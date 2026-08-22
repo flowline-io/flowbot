@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ AgentKnowledgeRow(item model.AgentKnowledge) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentKnowledgeRow(ctx context.Context, item model.AgentKnowledge) {
 	<tr id={ agentKnowledgeRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
 		<td class="text-base-content font-mono text-sm">{ item.Path }</td>
 		<td class="text-base-content font-medium">{ item.Title }</td>
@@ -17,9 +22,9 @@ templ AgentKnowledgeRow(item model.AgentKnowledge) {
 					Edit
 				</button>
 				<button hx-delete={ agentKnowledgeURL(item) }
-					data-confirm="Delete this knowledge document?"
-					data-confirm-title="Delete Document"
-					data-confirm-btn="Delete"
+					data-confirm={ i18n.T(ctx, "confirm.delete_knowledge.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_knowledge.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_knowledge.btn") }
 					data-confirm-class="btn-error"
 					data-testid="agent-knowledge-delete"
 					class="btn btn-ghost btn-xs text-error">

@@ -35,7 +35,7 @@
           }),
           datasets: [
             {
-              label: 'Success Rate',
+              label: flowbotI18n('client.stats.success_rate', 'Success Rate'),
               data: trend.map(function (p) {
                 return +(p.rate * 100).toFixed(1);
               }),
@@ -74,7 +74,7 @@
           }),
           datasets: [
             {
-              label: 'Workflow Runs',
+              label: flowbotI18n('client.stats.workflow_runs', 'Workflow Runs'),
               data: workflow.map(function (b) {
                 return b.count;
               }),

@@ -222,7 +222,13 @@
         var rm = document.createElement('button');
         rm.type = 'button';
         rm.className = 'chatagent-pending-remove';
-        rm.setAttribute('aria-label', 'Remove attachment');
+        rm.setAttribute(
+          'aria-label',
+          flowbotI18n(
+            'client.chatagent.remove_attachment',
+            'Remove attachment',
+          ),
+        );
         rm.textContent = '\u00d7';
         rm.addEventListener('click', function () {
           var i = pendingAttachments.indexOf(item);
@@ -241,7 +247,7 @@
             thumb.className = 'chatagent-pending-thumb';
             var img = document.createElement('img');
             img.src = encodeURI(safeSrc.replace(/[<>"']/g, ''));
-            img.alt = item.name || 'Attached image';
+            img.alt = item.name || flowbotI18n('client.chatagent.attached_image', 'Attached image');
             thumb.appendChild(img);
             thumb.appendChild(rm);
             pendingEl.appendChild(thumb);
@@ -270,11 +276,23 @@
         return;
       }
       if (!selectedModelMultimodal(modelSel, settingsEl)) {
-        ns.showError(errorEl, 'Selected model does not support media input');
+        ns.showError(
+          errorEl,
+          flowbotI18n(
+            'client.chatagent.media_not_supported',
+            'Selected model does not support media input',
+          ),
+        );
         return;
       }
       if (pendingAttachments.length >= MAX_ATTACHMENTS) {
-        ns.showError(errorEl, 'At most 8 attachments per message');
+        ns.showError(
+          errorEl,
+          flowbotI18n(
+            'client.chatagent.max_attachments',
+            'At most 8 attachments per message',
+          ),
+        );
         return;
       }
       var item = {
@@ -469,7 +487,10 @@
     function start() {
       var text = readInputText(input);
       if (!text && queue.list.length === 0) {
-        ns.showError(errorEl, 'Enter a prompt to start.');
+        ns.showError(
+          errorEl,
+          flowbotI18n('client.chatagent.prompt_required', 'Enter a prompt to start.'),
+        );
         return;
       }
       ns.showError(errorEl, '');
@@ -503,7 +524,11 @@
               })
               .then(function (data) {
                 throw new Error(
-                  (data && data.error) || 'Failed to create session',
+                  (data && data.error) ||
+                    flowbotI18n(
+                      'client.chatagent.session_create_failed',
+                      'Failed to create session',
+                    ),
                 );
               });
           }
@@ -512,7 +537,12 @@
         .then(function (data) {
           var sessionID = data.session_id;
           if (!sessionID) {
-            throw new Error('Missing session id');
+            throw new Error(
+              flowbotI18n(
+                'client.chatagent.missing_session_id',
+                'Missing session id',
+              ),
+            );
           }
           var mediaURL = detailTemplate.replace('{id}', sessionID) + '/media';
           var upload =
@@ -538,7 +568,7 @@
           });
         })
         .catch(function (err) {
-          ns.showError(errorEl, err.message || 'Failed to start');
+          ns.showError(errorEl, err.message || flowbotI18n('client.chatagent.start_failed', 'Failed to start'));
           startBtn.disabled = false;
         });
     }
@@ -558,31 +588,41 @@
   function thinkingLabel(level) {
     var normalized = (level || 'default').toLowerCase();
     if (normalized === 'off') {
-      return 'Off';
+      return flowbotI18n('client.chatagent.thinking_off', 'Off');
     }
     if (normalized === 'low') {
-      return 'Low';
+      return flowbotI18n('client.chatagent.thinking_low', 'Low');
     }
     if (normalized === 'medium') {
-      return 'Medium';
+      return flowbotI18n('client.chatagent.model_medium', 'Medium');
     }
     if (normalized === 'high') {
-      return 'High';
+      return flowbotI18n('client.chatagent.thinking_high', 'High');
     }
-    return 'Default';
+    return flowbotI18n('client.chatagent.model_default', 'Default');
   }
 
   function settingsHeaderLabel(model, thinking, defaultModel) {
     var m = (model || '').trim() || (defaultModel || '').trim();
     var tl = thinkingLabel(thinking);
     if (m && tl) {
-      return m + ' \u00b7 Thinking: ' + tl;
+      return (
+        m +
+        ' \u00b7 ' +
+        flowbotI18n(
+          'client.chatagent.thinking_prefix',
+          'Thinking: {{.Level}}',
+        ).replace('{{.Level}}', tl)
+      );
     }
     if (m) {
       return m;
     }
     if (tl) {
-      return 'Thinking: ' + tl;
+      return flowbotI18n(
+        'client.chatagent.thinking_prefix',
+        'Thinking: {{.Level}}',
+      ).replace('{{.Level}}', tl);
     }
     return '';
   }
@@ -667,7 +707,11 @@
               })
               .then(function (data) {
                 throw new Error(
-                  (data && data.error) || 'Failed to save settings',
+                  (data && data.error) ||
+                    flowbotI18n(
+                      'client.chatagent.settings_save_failed',
+                      'Failed to save settings',
+                    ),
                 );
               });
           }
@@ -690,7 +734,12 @@
           }
         })
         .catch(function (err) {
-          var msg = (err && err.message) || 'Failed to save settings';
+          var msg =
+            (err && err.message) ||
+            flowbotI18n(
+              'client.chatagent.settings_save_failed',
+              'Failed to save settings',
+            );
           if (typeof showToast === 'function') {
             showToast(msg, 'error');
           }
@@ -783,29 +832,45 @@
                 })
                 .then(function (data) {
                   throw new Error(
-                    (data && data.error) || 'Failed to close session',
+                    (data && data.error) ||
+                      flowbotI18n(
+                        'client.chatagent.close_session_failed',
+                        'Failed to close session',
+                      ),
                   );
                 });
             }
             window.location.href = '/service/web/agents';
           })
           .catch(function (err) {
-            ns.showError(errorEl, err.message || 'Failed to close session');
+            ns.showError(
+              errorEl,
+              err.message ||
+                flowbotI18n(
+                  'client.chatagent.close_session_failed',
+                  'Failed to close session',
+                ),
+            );
             setCloseDisabled(false);
           });
       }
       if (window.showConfirmModal) {
         window.showConfirmModal({
-          title: 'Close session',
-          message:
+          title: flowbotI18n(
+            'client.chatagent.close_session.title',
+            'Close session',
+          ),
+          message: flowbotI18n(
+            'client.chatagent.close_session.message',
             'Close this session? You will not be able to send more messages.',
-          confirmText: 'Close',
+          ),
+          confirmText: flowbotI18n('client.chatagent.close_session.btn', 'Close'),
           confirmClass: 'btn-error',
           onConfirm: doClose,
         });
         return;
       }
-      if (window.confirm('Close this session?')) {
+      if (window.confirm(flowbotI18n('client.chatagent.close_session.confirm_fallback', 'Close this session?'))) {
         doClose();
       }
     }

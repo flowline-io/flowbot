@@ -9,7 +9,7 @@ import (
 )
 
 templ PipelineEditorPage(ctx context.Context, name string) {
-	@layout.Base(ctx, "Pipeline: " + name) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.pipeline", map[string]any{"Name": name})) {
 		<script src="/static/vendor/js-yaml.min.js"></script>
 		<script src="/static/vendor/diff.min.js"></script>
 		<script src={ "/static/js/pipeline-editor.js?v=" + version.Buildtags }></script>

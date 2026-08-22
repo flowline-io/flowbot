@@ -223,14 +223,14 @@ func agentsTable(ctx fiber.Ctx) error {
 	}
 	if err := webRequireChatAgentEnabled(); err != nil {
 		ctx.Status(http.StatusServiceUnavailable)
-		return renderError(ctx, "Chat agent is not enabled")
+		return renderErrorKey(ctx, "toast.agents.not_enabled")
 	}
 	cursor := ctx.Query("cursor")
 	filter := normalizeAgentsListFilter(ctx.Query("filter"))
 	items, nextCursor, err := listUserAgentSessionModels(ctx, cursor, filter)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load sessions")
+		return renderErrorKey(ctx, "error.load.agent_sessions")
 	}
 	pendingCount, err := pendingApprovalSessionCount()
 	if err != nil {
@@ -897,25 +897,25 @@ func setAgentChatPinned(ctx fiber.Ctx, pinned bool) error {
 		return err
 	}
 	if err := webRequireChatAgentEnabled(); err != nil {
-		return toastError(ctx, "Chat agent is not enabled")
+		return toastErrorKey(ctx, "toast.agents.not_enabled")
 	}
 	sessionID := strings.Clone(ctx.Params("id"))
 	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Session not found")
+			return toastErrorKey(ctx, "toast.agents.session_not_found")
 		}
 		if errors.Is(err, types.ErrForbidden) {
-			return toastError(ctx, "Forbidden")
+			return toastErrorKey(ctx, "toast.agents.forbidden")
 		}
 		return types.Errorf(types.ErrInternal, "pin session: %v", err)
 	}
 	if err := store.ChatStoreFromDB().UpdateChatSessionPinned(ctx.Context(), sessionID, pinned); err != nil {
-		return toastError(ctx, "Failed to update pin")
+		return toastErrorKey(ctx, "toast.agents.pin_failed")
 	}
 	filter := normalizeAgentsListFilter(ctx.Query("filter"))
 	items, nextCursor, err := listUserAgentSessionModels(ctx, "", filter)
 	if err != nil {
-		return toastError(ctx, "Failed to refresh sessions")
+		return toastErrorKey(ctx, "toast.agents.refresh_sessions_failed")
 	}
 	pendingCount, err := pendingApprovalSessionCount()
 	if err != nil {
@@ -931,20 +931,20 @@ func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
 		return err
 	}
 	if err := webRequireChatAgentEnabled(); err != nil {
-		return toastError(ctx, "Chat agent is not enabled")
+		return toastErrorKey(ctx, "toast.agents.not_enabled")
 	}
 	sessionID := strings.Clone(ctx.Params("id"))
 	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Session not found")
+			return toastErrorKey(ctx, "toast.agents.session_not_found")
 		}
 		if errors.Is(err, types.ErrForbidden) {
-			return toastError(ctx, "Forbidden")
+			return toastErrorKey(ctx, "toast.agents.forbidden")
 		}
 		return types.Errorf(types.ErrInternal, "archive session: %v", err)
 	}
 	if err := chatagent.SetSessionArchived(ctx.Context(), sessionID, archived); err != nil {
-		return toastError(ctx, "Failed to update archive")
+		return toastErrorKey(ctx, "toast.agents.archive_failed")
 	}
 	filter := normalizeAgentsListFilter(ctx.Query("filter"))
 	if archived && filter == agentsListFilterAll {
@@ -952,7 +952,7 @@ func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
 	}
 	items, nextCursor, err := listUserAgentSessionModels(ctx, "", filter)
 	if err != nil {
-		return toastError(ctx, "Failed to refresh sessions")
+		return toastErrorKey(ctx, "toast.agents.refresh_sessions_failed")
 	}
 	pendingCount, err := pendingApprovalSessionCount()
 	if err != nil {

@@ -10,8 +10,8 @@ import (
 )
 
 templ HubAppsPage(ctx context.Context, apps []homelab.App, updatedAts map[string]string) {
-	@layout.Base(ctx, "Apps — Flowbot") {
-		@partials.PageHeader("Apps", "") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.apps")) {
+		@partials.PageHeader(ctx, "nav.apps", "") {
 			<a href="/service/web/capabilities" class="btn btn-ghost btn-sm" data-testid="hub-apps-to-capabilities">Capabilities</a>
 		}
 		@partials.HubAppsTable(apps, updatedAts)

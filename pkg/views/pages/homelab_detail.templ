@@ -8,7 +8,7 @@ import (
 )
 
 templ HomelabDetailPage(ctx context.Context, app homelab.App, status homelab.AppStatus, version string, scannedAt string) {
-	@layout.Base(ctx, app.Name + " — Flowbot") {
+	@layout.Base(ctx, DocTitleLiteral(ctx, app.Name)) {
 		<div class="mb-4">
 			<a href="/service/web/homelab" class="btn btn-ghost btn-sm">← Back to Registry</a>
 		</div>

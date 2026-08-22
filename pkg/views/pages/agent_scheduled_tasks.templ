@@ -9,8 +9,8 @@ import (
 )
 
 templ AgentScheduledTasksPage(ctx context.Context, items []model.AgentScheduledTask) {
-	@layout.Base(ctx, "Scheduled Tasks — Flowbot") {
-		@partials.PageHeader("Scheduled Tasks", "") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.scheduled_tasks")) {
+		@partials.PageHeader(ctx, "nav.scheduled_tasks", "") {
 			<button hx-get="/service/web/agent-scheduled-tasks/list"
 				hx-target="#agent-scheduled-tasks-table"
 				hx-swap="outerHTML"

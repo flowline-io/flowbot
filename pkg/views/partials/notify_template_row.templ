@@ -1,12 +1,14 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ NotifyTemplateRow(item model.NotifyTemplate) {
+templ NotifyTemplateRow(ctx context.Context, item model.NotifyTemplate) {
 	<tr id={ notifyTemplateRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover"
 		data-testid={ "notify-template-" + item.TemplateID }>
 		<td class="font-mono text-sm text-base-content">{ item.TemplateID }</td>
@@ -34,9 +36,9 @@ templ NotifyTemplateRow(item model.NotifyTemplate) {
 					Edit
 				</button>
 				<button hx-delete={ notifyTemplateDeleteURL(item) }
-					data-confirm="Delete this template?"
-					data-confirm-title="Delete Template"
-					data-confirm-btn="Delete"
+					data-confirm={ i18n.T(ctx, "confirm.delete_template.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_template.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_template.btn") }
 					data-confirm-class="btn-error"
 					data-testid="template-delete"
 					class="btn btn-ghost btn-xs text-error">

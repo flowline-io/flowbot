@@ -22,6 +22,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -601,7 +602,8 @@ func TestHTMXResponseErrorMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.want, htmxResponseErrorMessage(tt.status, tt.body))
+			ctx := i18n.DefaultContext()
+			assert.Equal(t, tt.want, htmxResponseErrorMessage(ctx, tt.status, tt.body))
 		})
 	}
 }

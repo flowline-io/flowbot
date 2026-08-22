@@ -77,7 +77,7 @@ func ConfigsPage(ctx context.Context, items []model.ConfigItem) templ.Component 
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("Configs", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "nav.configs", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -91,7 +91,7 @@ func ConfigsPage(ctx context.Context, items []model.ConfigItem) templ.Component 
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Configs — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.configs")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

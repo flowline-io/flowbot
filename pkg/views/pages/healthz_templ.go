@@ -66,7 +66,7 @@ func HealthzPage(ctx context.Context, data partials.HealthzData) templ.Component
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("System Health", "Infrastructure status for this instance.").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "page.healthz.title", "page.healthz.subtitle").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -88,7 +88,7 @@ func HealthzPage(ctx context.Context, data partials.HealthzData) templ.Component
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Health — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitlePage(ctx, "page.healthz.title")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

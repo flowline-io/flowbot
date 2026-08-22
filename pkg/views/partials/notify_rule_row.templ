@@ -1,12 +1,14 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ NotifyRuleRow(item model.NotifyRule, templateIDs []string, highlighted bool) {
+templ NotifyRuleRow(ctx context.Context, item model.NotifyRule, templateIDs []string, highlighted bool) {
 	<tr id={ notifyRuleRowID(item) }
 		hx-target="this"
 		hx-swap="outerHTML"
@@ -56,9 +58,9 @@ templ NotifyRuleRow(item model.NotifyRule, templateIDs []string, highlighted boo
 					Edit
 				</button>
 				<button hx-delete={ notifyRuleDeleteURL(item) }
-					data-confirm="Delete this rule?"
-					data-confirm-title="Delete Rule"
-					data-confirm-btn="Delete"
+					data-confirm={ i18n.T(ctx, "confirm.delete_rule.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_rule.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_rule.btn") }
 					data-confirm-class="btn-error"
 					data-testid="rule-delete"
 					class="btn btn-ghost btn-xs text-error">

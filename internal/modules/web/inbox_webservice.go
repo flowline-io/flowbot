@@ -94,7 +94,7 @@ func inboxMarkRead(ctx fiber.Ctx) error {
 		return ctx.SendString("Not your notification")
 	}
 	if err := ns.MarkRead(ctx.Context(), uid, id); err != nil {
-		setShowToast(ctx, "error", "Failed to mark as read")
+		setShowToastKey(ctx, "error", "toast.inbox.mark_read_failed")
 		return renderInboxList(ctx, uid)
 	}
 	return renderInboxList(ctx, uid)

@@ -2,7 +2,13 @@
   function toastCopied() {
     window.dispatchEvent(
       new CustomEvent('flowbot:toast', {
-        detail: { type: 'success', message: 'Copied call URL' },
+        detail: {
+          type: 'success',
+          message: flowbotI18n(
+            'client.function_editor.copied_call_url',
+            'Copied call URL',
+          ),
+        },
       }),
     );
   }
@@ -183,7 +189,10 @@
             var msg =
               (data.error && data.error.message) ||
               data.message ||
-              'Save draft failed';
+              flowbotI18n(
+                'client.function_editor.save_draft_failed',
+                'Failed to save draft',
+              );
             window.dispatchEvent(
               new CustomEvent('flowbot:toast', {
                 detail: { type: 'error', message: msg },
@@ -235,7 +244,10 @@
             var msg =
               (data.error && data.error.message) ||
               data.message ||
-              'Publish failed';
+              flowbotI18n(
+                'client.function_editor.publish_failed',
+                'Publish failed: {{.Error}}',
+              ).replace('{{.Error}}', '');
             window.dispatchEvent(
               new CustomEvent('flowbot:toast', {
                 detail: { type: 'error', message: msg },
@@ -254,7 +266,13 @@
           this.syncCallVersionLink();
           window.dispatchEvent(
             new CustomEvent('flowbot:toast', {
-              detail: { type: 'success', message: 'Published' },
+              detail: {
+                type: 'success',
+                message: flowbotI18n(
+                  'client.function_editor.publish_success',
+                  'Function published',
+                ),
+              },
             }),
           );
         } finally {

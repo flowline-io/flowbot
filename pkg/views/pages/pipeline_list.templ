@@ -8,10 +8,10 @@ import (
 )
 
 templ PipelineListPage(ctx context.Context, entries []partials.PipelineListEntry) {
-	@layout.Base(ctx, "Pipelines") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.pipelines")) {
 		@partials.PipelineStatsScripts()
 		<div class="max-w-6xl mx-auto">
-			@partials.PageHeader("Pipelines", "") {
+			@partials.PageHeader(ctx, "nav.pipelines", "") {
 				<button type="button"
 					onclick="document.getElementById('create-modal').showModal()"
 					data-testid="btn-new-pipeline"
@@ -23,7 +23,7 @@ templ PipelineListPage(ctx context.Context, entries []partials.PipelineListEntry
 				@partials.PanelSkeleton()
 			</div>
 			<div id="pipeline-list-container" data-testid="pipeline-list-container">
-				@partials.PipelineListTable(entries)
+				@partials.PipelineListTable(ctx, entries)
 			</div>
 		</div>
 		<dialog id="create-modal" class="modal" data-testid="create-modal">

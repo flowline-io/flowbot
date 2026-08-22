@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 )
@@ -138,11 +139,12 @@ func TestLifeFormatPerkText(t *testing.T) {
 
 func TestLifePlanLabelsAndIndent(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, "Goal", pages.LifePlanNodeTypeLabel("goal"))
-	assert.Equal(t, "Action", pages.LifePlanNodeTypeLabel("action"))
-	assert.Equal(t, "Habit (pending)", pages.LifeTaskTypeLabel("habit_candidate"))
-	assert.Equal(t, "Habit", pages.LifeTaskTypeLabel("habit"))
-	assert.Equal(t, "Checkpoint", pages.LifeTaskTypeLabel("checkpoint"))
+	ctx := i18n.DefaultContext()
+	assert.Equal(t, "Goal", pages.LifePlanNodeTypeLabel(ctx, "goal"))
+	assert.Equal(t, "Action", pages.LifePlanNodeTypeLabel(ctx, "action"))
+	assert.Equal(t, "Habit (pending)", pages.LifeTaskTypeLabel(ctx, "habit_candidate"))
+	assert.Equal(t, "Habit", pages.LifeTaskTypeLabel(ctx, "habit"))
+	assert.Equal(t, "Checkpoint", pages.LifeTaskTypeLabel(ctx, "checkpoint"))
 	assert.Equal(t, "Action", pages.LifeActionLogSourceLabel("occurrence"))
 	assert.Equal(t, "Habit", pages.LifeActionLogSourceLabel("habit_checkin"))
 	assert.Equal(t, "Checkpoint", pages.LifeActionLogSourceLabel("checkpoint"))

@@ -15,8 +15,8 @@ type RelationsPageParams struct {
 }
 
 templ RelationsPage(ctx context.Context, p RelationsPageParams) {
-	@layout.Base(ctx, "Relations") {
-		@partials.PageHeader("Relations", "") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.relations")) {
+		@partials.PageHeader(ctx, "nav.relations", "") {
 		}
 		<div class="flex flex-wrap items-center gap-3 mb-6">
 			<input

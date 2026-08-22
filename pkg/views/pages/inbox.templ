@@ -9,8 +9,8 @@ import (
 
 // InboxPage renders the user notification inbox.
 templ InboxPage(ctx context.Context, filter string) {
-	@layout.Base(ctx, "Inbox — Flowbot") {
-		@partials.PageHeader("Inbox", "Messages delivered to the in-app channel") {
+	@layout.Base(ctx, DocTitlePage(ctx, "page.inbox.title")) {
+		@partials.PageHeader(ctx, "page.inbox.title", "page.inbox.subtitle") {
 		}
 		<div
 			hx-get={ templ.URL(partials.InboxListURL(filter)) }

@@ -194,7 +194,10 @@
     picker.className = PICKER_CLASS + ' hidden';
     picker.setAttribute('data-testid', 'chatagent-slash-picker');
     picker.setAttribute('role', 'listbox');
-    picker.setAttribute('aria-label', 'Skills');
+    picker.setAttribute(
+      'aria-label',
+      flowbotI18n('client.chatagent.slash.skills_aria', 'Skills'),
+    );
     // Keep picker out of the contenteditable tree so typed "/" cannot show through.
     if (composer || composerBox) {
       // Float below the whole composer card (page top has no room above).
@@ -257,8 +260,8 @@
       var empty = document.createElement('div');
       empty.className = 'chatagent-slash-empty';
       empty.textContent = state.query
-        ? 'No matching skills'
-        : 'No skills available';
+        ? flowbotI18n('client.chatagent.slash.no_match', 'No matching skills')
+        : flowbotI18n('client.chatagent.slash.no_skills', 'No skills available');
       state.picker.appendChild(empty);
       state.picker.classList.remove('hidden');
       state.open = true;

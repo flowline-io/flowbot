@@ -88,7 +88,7 @@ func AgentMemoryPage(ctx context.Context, items []model.AgentMemoryFact, scope s
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("Agent Memory", "Correct keyed facts written by memory_* tools (shared across interactive chats when scope is default)").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "page.agent_memory.title", "page.agent_memory.subtitle").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -96,13 +96,13 @@ func AgentMemoryPage(ctx context.Context, items []model.AgentMemoryFact, scope s
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.AgentMemoryTable(items, scope).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.AgentMemoryTable(ctx, items, scope).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Agent Memory — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.memory_facts")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

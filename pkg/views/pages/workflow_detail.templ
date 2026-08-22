@@ -5,6 +5,7 @@ import (
 	
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
@@ -12,10 +13,10 @@ import (
 )
 
 templ WorkflowDetailPage(ctx context.Context, meta *types.WorkflowMetadata, triggers []model.WorkflowTrigger, recentRuns []model.WorkflowRun, yamlText string, publicOrigin string) {
-	@layout.Base(ctx, "Workflow: " + meta.Name) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.workflow", map[string]any{"Name": meta.Name})) {
 		@partials.ClipCopyScripts()
 		<div class="max-w-4xl mx-auto space-y-6">
-			@partials.PageHeader(meta.Name, meta.Describe) {
+			@partials.PageHeaderLiteral(ctx, meta.Name, meta.Describe) {
 				<a href="/service/web/workflows" class="btn btn-ghost btn-sm" data-testid="workflow-back">← Workflows</a>
 				<a href={ templ.URL(partials.WorkflowWebPath(meta.Name) + "/runs") }
 					class="btn btn-ghost btn-sm"
@@ -48,7 +49,7 @@ templ WorkflowDetailPage(ctx context.Context, meta *types.WorkflowMetadata, trig
 
 					<section>
 						<h2 class="text-base font-semibold tracking-tight mb-2">Triggers</h2>
-						@partials.WorkflowTriggersTable(meta.Name, triggers, publicOrigin)
+						@partials.WorkflowTriggersTable(ctx, meta.Name, triggers, publicOrigin)
 					</section>
 
 					<section>
@@ -85,10 +86,10 @@ templ WorkflowDetailPage(ctx context.Context, meta *types.WorkflowMetadata, trig
 }
 
 templ WorkflowRunsPage(ctx context.Context, name string, runs []model.WorkflowRun) {
-	@layout.Base(ctx, "Runs: " + name) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.runs", map[string]any{"Name": name})) {
 		@partials.WorkflowStatsScripts()
 		<div class="max-w-4xl mx-auto">
-			@partials.PageHeader("Run History", name) {
+			@partials.PageHeaderLiteral(ctx, i18n.T(ctx, "page.run_history.title"), name) {
 				<a href="/service/web/workflows" class="btn btn-ghost btn-sm" data-testid="workflow-runs-list-back">← Workflows</a>
 				<a href={ templ.URL(partials.WorkflowWebPath(name)) }
 					class="btn btn-ghost btn-sm"

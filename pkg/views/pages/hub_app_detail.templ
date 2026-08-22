@@ -5,12 +5,13 @@ import (
 	"context"
 	
 	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppStatus, permissions homelab.Permissions) {
-	@layout.Base(ctx, app.Name + " — Flowbot") {
+	@layout.Base(ctx, DocTitleLiteral(ctx, app.Name)) {
 		<div class="mb-4">
 			<a href="/service/web/hub" class="btn btn-ghost btn-sm">&larr; Back to Apps</a>
 		</div>
@@ -45,9 +46,9 @@ templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppS
 						<button hx-post={ templ.URL("/service/web/hub/" + app.Name + "/stop") }
 							hx-target="#status-area"
 							hx-swap="innerHTML"
-							data-confirm={ "Stop " + app.Name + "? This will shut down the application." }
-							data-confirm-title="Stop App"
-							data-confirm-btn="Stop"
+							data-confirm={ i18n.TData(ctx, "confirm.stop_app.message", map[string]any{"App": app.Name}) }
+							data-confirm-title={ i18n.T(ctx, "confirm.stop_app.title") }
+							data-confirm-btn={ i18n.T(ctx, "confirm.stop_app.btn") }
 							data-confirm-class="btn-error"
 							data-testid="btn-stop"
 							class="btn btn-sm btn-error">
@@ -59,9 +60,9 @@ templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppS
 						<button hx-post={ templ.URL("/service/web/hub/" + app.Name + "/restart") }
 							hx-target="#status-area"
 							hx-swap="innerHTML"
-							data-confirm={ "Restart " + app.Name + "? This will interrupt the running application." }
-							data-confirm-title="Restart App"
-							data-confirm-btn="Restart"
+							data-confirm={ i18n.TData(ctx, "confirm.restart_app.message", map[string]any{"App": app.Name}) }
+							data-confirm-title={ i18n.T(ctx, "confirm.restart_app.title") }
+							data-confirm-btn={ i18n.T(ctx, "confirm.restart_app.btn") }
 							data-confirm-class="btn-warning"
 							data-testid="btn-restart"
 							class="btn btn-sm btn-warning">

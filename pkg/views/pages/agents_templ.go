@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"context"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -53,7 +54,7 @@ func AgentsPage(ctx context.Context, items []model.AgentSession, nextCursor stri
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.ChatAgentComposer(endpoints, "Ask Flowbot to research, automate, orchestrate", !chatEnabled).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.ChatAgentComposer(endpoints, i18n.T(ctx, "page.agents.composer_placeholder"), !chatEnabled).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -73,7 +74,7 @@ func AgentsPage(ctx context.Context, items []model.AgentSession, nextCursor stri
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Agents — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.agents")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -132,7 +133,7 @@ func AgentChatPage(ctx context.Context, session model.AgentSession, messages []m
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Agent Chat — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitlePage(ctx, "page.doc_title.agent_chat")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

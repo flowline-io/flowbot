@@ -45,7 +45,7 @@ func agentSessionSummariesTable(ctx fiber.Ctx) error {
 	items, err := listAgentSessionSummaryModels(ctx.Context(), q)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load session summaries")
+		return renderErrorKey(ctx, "error.load.session_summaries")
 	}
 	ctx.Type("html")
 	return partials.AgentSessionSummariesTable(items, q).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -58,15 +58,15 @@ func agentSessionSummaryRetry(ctx fiber.Ctx) error {
 	// Clone: Fiber reuses the request buffer; RetrySessionSummary enqueues async work that must outlive this ctx.
 	sessionID := strings.Clone(strings.TrimSpace(ctx.Params("session")))
 	if sessionID == "" {
-		return toastError(ctx, "Session id is required")
+		return toastErrorKey(ctx, "toast.session_summaries.session_id_required")
 	}
 	if err := chatagent.RetrySessionSummary(ctx.Context(), sessionID); err != nil {
-		return toastError(ctx, "Failed to retry summary")
+		return toastErrorKey(ctx, "toast.session_summaries.retry_failed")
 	}
 	q := strings.TrimSpace(ctx.Query("q"))
 	items, err := listAgentSessionSummaryModels(ctx.Context(), q)
 	if err != nil {
-		return toastError(ctx, "Failed to refresh summaries")
+		return toastErrorKey(ctx, "toast.session_summaries.refresh_failed")
 	}
 	ctx.Type("html")
 	return partials.AgentSessionSummariesTable(items, q).Render(ctx.Context(), ctx.Response().BodyWriter())

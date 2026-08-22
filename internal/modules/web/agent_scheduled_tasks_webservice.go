@@ -29,7 +29,7 @@ func agentScheduledTasksPage(ctx fiber.Ctx) error {
 	}
 	if err := webRequireChatAgentEnabled(); err != nil {
 		ctx.Status(http.StatusServiceUnavailable)
-		return renderError(ctx, "Chat agent is not enabled")
+		return renderErrorKey(ctx, "toast.agents.not_enabled")
 	}
 	items, err := listScheduledTaskModels(ctx)
 	if err != nil {
@@ -45,12 +45,12 @@ func agentScheduledTasksTable(ctx fiber.Ctx) error {
 	}
 	if err := webRequireChatAgentEnabled(); err != nil {
 		ctx.Status(http.StatusServiceUnavailable)
-		return renderError(ctx, "Chat agent is not enabled")
+		return renderErrorKey(ctx, "toast.agents.not_enabled")
 	}
 	items, err := listScheduledTaskModels(ctx)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load scheduled tasks")
+		return renderErrorKey(ctx, "error.load.scheduled_tasks")
 	}
 	ctx.Type("html")
 	return partials.AgentScheduledTaskTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -98,7 +98,7 @@ func agentScheduledTaskSetState(ctx fiber.Ctx) error {
 	}
 	if err := webRequireChatAgentEnabled(); err != nil {
 		ctx.Status(http.StatusServiceUnavailable)
-		return renderError(ctx, "Chat agent is not enabled")
+		return renderErrorKey(ctx, "toast.agents.not_enabled")
 	}
 	uid, err := webUID(ctx)
 	if err != nil {
@@ -111,7 +111,7 @@ func agentScheduledTaskSetState(ctx fiber.Ctx) error {
 	state := strings.TrimSpace(ctx.FormValue("state"))
 	if state == "" {
 		ctx.Status(http.StatusBadRequest)
-		return renderError(ctx, "state is required")
+		return renderErrorKey(ctx, "error.validation.state_required")
 	}
 	task, err := chatagent.SetScheduledTaskStateForUID(ctx.Context(), uid, taskID, state)
 	if err != nil {
@@ -120,7 +120,7 @@ func agentScheduledTaskSetState(ctx fiber.Ctx) error {
 		}
 		if errors.Is(err, types.ErrInvalidArgument) {
 			ctx.Status(http.StatusBadRequest)
-			return renderError(ctx, "invalid state")
+			return renderErrorKey(ctx, "error.validation.invalid_state")
 		}
 		return types.Errorf(types.ErrInternal, "set scheduled task state: %v", err)
 	}

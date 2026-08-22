@@ -20,11 +20,11 @@ func lifeSkillsPage(ctx fiber.Ctx) error {
 	}
 	tree, err := lifeService().BuildSkillTree(context.Background(), uid)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	selected := ctx.Query("node")
 	if selected == "" {

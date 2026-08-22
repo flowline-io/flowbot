@@ -116,7 +116,10 @@
           if (data.yaml) this.parseYamlToState(data.yaml);
         } catch (e) {
           console.error('Failed to load pipeline:', e);
-          showToast('Failed to load pipeline', 'error');
+          showToast(
+            flowbotI18n('client.pipeline.load_failed', 'Failed to load pipeline'),
+            'error',
+          );
         } finally {
           this.loading = false;
         }
@@ -146,7 +149,13 @@
         if (!this.renaming || this.renamingBusy) return;
         const nextName = (this.renameValue || '').trim();
         if (!nextName) {
-          showToast('Pipeline name is required', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.name_required',
+              'Pipeline name is required',
+            ),
+            'error',
+          );
           this.renameValue = this.name;
           this.renaming = false;
           return;
@@ -165,19 +174,32 @@
           const data = await resp.json().catch(() => ({}));
           if (!resp.ok) {
             const message =
-              (data.error && data.error.message) || 'Failed to rename pipeline';
+              (data.error && data.error.message) ||
+              flowbotI18n(
+                'client.pipeline.rename_failed',
+                'Failed to rename pipeline',
+              );
             showToast(message, 'error');
             this.renaming = false;
             this.renameValue = this.name;
             return;
           }
           const renamed = (data && data.name) || nextName;
-          showToast('Pipeline renamed', 'success');
+          showToast(
+            flowbotI18n('client.pipeline.renamed', 'Pipeline renamed'),
+            'success',
+          );
           window.location.href =
             '/service/web/pipelines/' + encodeURIComponent(renamed);
         } catch (e) {
           console.error('Failed to rename pipeline:', e);
-          showToast('Failed to rename pipeline', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.rename_failed',
+              'Failed to rename pipeline',
+            ),
+            'error',
+          );
           this.renaming = false;
           this.renameValue = this.name;
         } finally {
@@ -198,7 +220,13 @@
           };
         } catch (e) {
           console.error('Failed to load agent run options:', e);
-          showToast('Failed to load agent run options', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.agent_options_failed',
+              'Failed to load agent run options',
+            ),
+            'error',
+          );
         }
       },
 
@@ -222,7 +250,13 @@
           this.defaultTemplateSet = set;
         } catch (e) {
           console.error('Failed to load capabilities:', e);
-          showToast('Failed to load capabilities', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.capabilities_failed',
+              'Failed to load capabilities',
+            ),
+            'error',
+          );
         }
       },
 
@@ -953,19 +987,19 @@
         try {
           JSON.parse(step.paramsText || '{}');
         } catch (e) {
-          return 'Invalid params JSON: ' + e.message;
+          return flowbotI18n('client.pipeline.invalid_params_json', 'Invalid params JSON: {{.Error}}').replace('{{.Error}}', e.message);
         }
         const input = this.getCurrentOperationInput(idx);
         const params = this.parseStepParams(idx);
         for (const p of input) {
           if (p.required && this.isParamValueMissing(params[p.name], p.type)) {
-            return 'Parameter "' + p.name + '" is required';
+            return flowbotI18n('client.pipeline.param_required', 'Parameter "{{.Name}}" is required').replace('{{.Name}}', p.name);
           }
           if (
             p.type === 'map[string]any' &&
             this.isParamFieldError(idx, p.name)
           ) {
-            return 'Parameter "' + p.name + '" has invalid JSON';
+            return flowbotI18n('client.pipeline.param_invalid_json', 'Parameter "{{.Name}}" has invalid JSON').replace('{{.Name}}', p.name);
           }
         }
         return null;
@@ -1164,9 +1198,15 @@
       confirmRemoveTrigger(idx) {
         var self = this;
         showConfirmModal({
-          title: 'Remove Trigger',
-          message: 'Remove this trigger from the pipeline?',
-          confirmText: 'Remove',
+          title: flowbotI18n(
+            'client.pipeline.remove_trigger.title',
+            'Remove Trigger',
+          ),
+          message: flowbotI18n(
+            'client.pipeline.remove_trigger.message',
+            'Remove this trigger from the pipeline?',
+          ),
+          confirmText: flowbotI18n('client.pipeline.confirm_remove', 'Remove'),
           confirmClass: 'btn-error',
           onConfirm: function () {
             self.removeTrigger(idx);
@@ -1197,9 +1237,15 @@
       confirmRemoveStep(idx) {
         var self = this;
         showConfirmModal({
-          title: 'Delete Step',
-          message: 'Delete this step from the pipeline?',
-          confirmText: 'Delete',
+          title: flowbotI18n(
+            'client.pipeline.delete_step.title',
+            'Delete Step',
+          ),
+          message: flowbotI18n(
+            'client.pipeline.delete_step.message',
+            'Delete this step from the pipeline?',
+          ),
+          confirmText: flowbotI18n('client.pipeline.confirm_delete', 'Delete'),
           confirmClass: 'btn-error',
           onConfirm: function () {
             self.removeStep(idx);
@@ -1227,9 +1273,15 @@
         if (this.drawerDirty && this.selectedNode) {
           var self = this;
           showConfirmModal({
-            title: 'Discard Changes',
-            message: 'You have unsaved changes. Discard them?',
-            confirmText: 'Discard',
+            title: flowbotI18n(
+              'client.pipeline.discard_changes.title',
+              'Discard Changes',
+            ),
+            message: flowbotI18n(
+              'client.pipeline.discard_changes.message',
+              'You have unsaved changes. Discard them?',
+            ),
+            confirmText: flowbotI18n('client.pipeline.confirm_discard', 'Discard'),
             confirmClass: 'btn-error',
             onConfirm: function () {
               self.restoreDrawerSnapshot();
@@ -1307,9 +1359,15 @@
         if (this.drawerDirty) {
           var self = this;
           showConfirmModal({
-            title: 'Discard Changes',
-            message: 'You have unsaved changes. Discard them?',
-            confirmText: 'Discard',
+            title: flowbotI18n(
+              'client.pipeline.discard_changes.title',
+              'Discard Changes',
+            ),
+            message: flowbotI18n(
+              'client.pipeline.discard_changes.message',
+              'You have unsaved changes. Discard them?',
+            ),
+            confirmText: flowbotI18n('client.pipeline.confirm_discard', 'Discard'),
             confirmClass: 'btn-error',
             onConfirm: function () {
               self.restoreDrawerSnapshot();
@@ -1408,12 +1466,18 @@
         if (this.triggers.filter((t) => t.enabled).length === 0)
           this.errors.push({
             node: { type: 'trigger', index: -1 },
-            message: 'At least one trigger must be enabled',
+            message: flowbotI18n(
+              'client.pipeline.trigger_required',
+              'At least one trigger must be enabled',
+            ),
           });
         if (this.steps.length === 0)
           this.errors.push({
             node: { type: 'step', index: -1 },
-            message: 'At least one step is required',
+            message: flowbotI18n(
+              'client.pipeline.step_required',
+              'At least one step is required',
+            ),
           });
         for (let i = 0; i < this.triggers.length; i++) {
           const t = this.triggers[i];
@@ -1421,25 +1485,37 @@
           if (t.type === 'event' && !t.event)
             this.errors.push({
               node: { type: 'trigger', index: i },
-              message: 'Event type is required',
+              message: flowbotI18n(
+                'client.pipeline.event_type_required',
+                'Event type is required',
+              ),
             });
           if (t.type === 'webhook' && (!t.webhook || !t.webhook.path))
             this.errors.push({
               node: { type: 'trigger', index: i },
-              message: 'Webhook path is required',
+              message: flowbotI18n(
+                'client.pipeline.webhook_path_required',
+                'Webhook path is required',
+              ),
             });
           if (t.type === 'webhook') {
             var auth = t.webhook && t.webhook.auth ? t.webhook.auth : null;
             if (!auth || (!auth.token && !auth.hmac_secret))
               this.errors.push({
                 node: { type: 'trigger', index: i },
-                message: 'At least one auth method is required',
+                message: flowbotI18n(
+                  'client.pipeline.auth_required',
+                  'At least one auth method is required',
+                ),
               });
           }
           if (t.type === 'cron' && !t.cron)
             this.errors.push({
               node: { type: 'trigger', index: i },
-              message: 'Cron expression is required',
+              message: flowbotI18n(
+                'client.pipeline.cron_required',
+                'Cron expression is required',
+              ),
             });
         }
         for (let i = 0; i < this.steps.length; i++) {
@@ -1447,17 +1523,26 @@
           if (!s.name)
             this.errors.push({
               node: { type: 'step', index: i },
-              message: 'Step name is required',
+              message: flowbotI18n(
+                'client.pipeline.step_name_required',
+                'Step name is required',
+              ),
             });
           if (!s.capability)
             this.errors.push({
               node: { type: 'step', index: i },
-              message: 'Capability is required',
+              message: flowbotI18n(
+                'client.pipeline.capability_required',
+                'Capability is required',
+              ),
             });
           if (!s.operation)
             this.errors.push({
               node: { type: 'step', index: i },
-              message: 'Operation is required',
+              message: flowbotI18n(
+                'client.pipeline.operation_required',
+                'Operation is required',
+              ),
             });
           const re = /\{\{steps\.(\w+)\./g;
           const refs = [...(s.paramsText || '').matchAll(re)].map((m) => m[1]);
@@ -1552,11 +1637,11 @@
 
       webhookTriggerLabel(t) {
         if (!t || !t.webhook || !t.webhook.path) {
-          return 'Webhook: ...';
+          return flowbotI18n('client.pipeline.webhook_preview', 'Webhook: ...');
         }
         var url = this.webhookURL(t.webhook.path, this.webhookToken(t));
         if (!url) {
-          return 'Webhook: ...';
+          return flowbotI18n('client.pipeline.webhook_preview', 'Webhook: ...');
         }
         return this.webhookMethod(t) + ' ' + url;
       },
@@ -1567,12 +1652,12 @@
         }
         var auth = t.webhook.auth || {};
         if (auth.token) {
-          return 'Auth: ?token=... or header X-Webhook-Token';
+          return flowbotI18n('client.pipeline.auth_token_preview', 'Auth: ?token=... or header X-Webhook-Token');
         }
         if (auth.hmac_secret) {
-          return 'Auth: header X-Hub-Signature-256';
+          return flowbotI18n('client.pipeline.auth_hmac_preview', 'Auth: header X-Hub-Signature-256');
         }
-        return 'Auth: configure Token or HMAC Secret';
+        return flowbotI18n('client.pipeline.auth_configure', 'Auth: configure Token or HMAC Secret');
       },
 
       webhookCurlExample(t) {
@@ -1616,32 +1701,65 @@
               document.body.removeChild(area);
             }
           }
-          showToast(okMessage || 'Copied', 'success');
+          showToast(
+            okMessage || flowbotI18n('client.clip.copied', 'Copied'),
+            'success',
+          );
         } catch {
-          showToast('Failed to copy', 'error');
+          showToast(
+            flowbotI18n('client.pipeline.copy_failed', 'Failed to copy'),
+            'error',
+          );
         }
       },
 
       async copyWebhookURL(t) {
         if (!t || !t.webhook || !t.webhook.path) {
-          showToast('Webhook path is required', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.webhook_path_required',
+              'Webhook path is required',
+            ),
+            'error',
+          );
           return;
         }
         var url = this.webhookURL(t.webhook.path, this.webhookToken(t));
         if (!url) {
-          showToast('Webhook path is required', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.webhook_path_required',
+              'Webhook path is required',
+            ),
+            'error',
+          );
           return;
         }
-        await this.copyTextValue(url, 'Webhook URL copied');
+        await this.copyTextValue(
+          url,
+          flowbotI18n(
+            'client.pipeline.webhook_url_copied',
+            'Webhook URL copied',
+          ),
+        );
       },
 
       async copyWebhookCurl(t) {
         var example = this.webhookCurlExample(t);
         if (!example) {
-          showToast('Webhook path is required', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.webhook_path_required',
+              'Webhook path is required',
+            ),
+            'error',
+          );
           return;
         }
-        await this.copyTextValue(example, 'curl example copied');
+        await this.copyTextValue(
+          example,
+          flowbotI18n('client.pipeline.curl_copied', 'curl example copied'),
+        );
       },
 
       formatErrorMessage(err) {
@@ -1654,7 +1772,9 @@
           return name + ': ' + err.message;
         }
         if (type === 'trigger') {
-          return 'Trigger ' + (index + 1) + ': ' + err.message;
+          return flowbotI18n('client.pipeline.trigger_prefix', 'Trigger {{.Index}}: {{.Error}}')
+            .replace('{{.Index}}', String(index + 1))
+            .replace('{{.Error}}', err.message);
         }
         return err.message;
       },
@@ -1712,7 +1832,10 @@
           });
           if (resp.status === 409) {
             showToast(
-              'This draft was modified elsewhere. Please refresh the page.',
+              flowbotI18n(
+                'client.pipeline.draft_conflict',
+                'This draft was modified elsewhere. Please refresh the page.',
+              ),
               'error',
             );
             return;
@@ -1726,15 +1849,27 @@
           this.dirty = false;
           if (this.status === 'published') {
             showToast(
-              'Draft saved. Click Publish to update the live webhook.',
+              flowbotI18n(
+                'client.pipeline.draft_saved_publish_hint',
+                'Draft saved. Click Publish to update the live webhook.',
+              ),
               'success',
             );
           } else {
-            showToast('Draft saved', 'success');
+            showToast(
+              flowbotI18n('client.pipeline.draft_saved', 'Draft saved'),
+              'success',
+            );
           }
         } catch (e) {
           console.error('Auto-save failed:', e);
-          showToast('Save failed. Your changes are not saved yet.', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.save_failed',
+              'Save failed. Your changes are not saved yet.',
+            ),
+            'error',
+          );
         } finally {
           this.saving = false;
         }
@@ -1752,7 +1887,10 @@
           });
           if (resp.status === 409) {
             showToast(
-              'This draft was modified elsewhere. Please refresh the page.',
+              flowbotI18n(
+                'client.pipeline.draft_conflict',
+                'This draft was modified elsewhere. Please refresh the page.',
+              ),
               'error',
             );
             return;
@@ -1763,10 +1901,19 @@
           const data = await resp.json();
           this.version = data.version;
           this.status = 'published';
-          showToast('Pipeline published', 'success');
+          showToast(
+            flowbotI18n('client.pipeline.published', 'Pipeline published'),
+            'success',
+          );
         } catch (e) {
           console.error('Publish failed:', e);
-          showToast('Publish failed: ' + e.message, 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.publish_failed',
+              'Publish failed: {{.Error}}',
+            ).replace('{{.Error}}', e.message),
+            'error',
+          );
         } finally {
           this.publishing = false;
         }
@@ -1784,7 +1931,13 @@
           this.testMockPayload = JSON.stringify(data.payload, null, 2);
         } catch (e) {
           console.error('Failed to load mock payload:', e);
-          showToast('Failed to load mock payload', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.mock_payload_failed',
+              'Failed to load mock payload',
+            ),
+            'error',
+          );
         }
       },
 
@@ -1807,7 +1960,13 @@
         } catch (e) {
           console.error('Test failed:', e);
           this.testResults = { success: false, error: e.message };
-          showToast('Test failed: ' + e.message, 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.test_failed',
+              'Test failed: {{.Error}}',
+            ).replace('{{.Error}}', e.message),
+            'error',
+          );
         } finally {
           this.testing = false;
         }
@@ -1891,7 +2050,10 @@
           )
         ) {
           showToast(
-            'Cannot move: this step depends on data from a step at or above the target position.',
+            flowbotI18n(
+              'client.pipeline.move_blocked',
+              'Cannot move: this step depends on data from a step at or above the target position.',
+            ),
             'warning',
           );
           return;
@@ -1944,16 +2106,34 @@
           });
           var obj = jsyaml.load(text);
           if (!obj || typeof obj !== 'object') {
-            showToast('Invalid YAML: not a pipeline definition', 'error');
+            showToast(
+              flowbotI18n(
+                'client.pipeline.invalid_yaml',
+                'Invalid YAML: not a pipeline definition',
+              ),
+              'error',
+            );
             return;
           }
           this.pushUndo();
           this.parseYamlToState(text);
           this.markDirty();
           this.validate();
-          showToast('YAML imported successfully', 'success');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.yaml_import_success',
+              'YAML imported successfully',
+            ),
+            'success',
+          );
         } catch (err) {
-          showToast('Import failed: ' + err.message, 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.yaml_import_failed',
+              'Import failed: {{.Error}}',
+            ).replace('{{.Error}}', err.message),
+            'error',
+          );
         } finally {
           e.target.value = '';
         }
@@ -1965,14 +2145,26 @@
           var resp = await fetch(this.pipelineURL('/versions'));
           if (!resp.ok) {
             this.versions = [];
-            showToast('Failed to load versions', 'error');
+            showToast(
+              flowbotI18n(
+                'client.pipeline.versions_load_failed',
+                'Failed to load versions',
+              ),
+              'error',
+            );
             return;
           }
           this.versions = await resp.json();
         } catch (e) {
           console.error('Failed to load versions:', e);
           this.versions = [];
-          showToast('Failed to load versions', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.versions_load_failed',
+              'Failed to load versions',
+            ),
+            'error',
+          );
         } finally {
           this.historyLoading = false;
         }
@@ -1996,7 +2188,13 @@
         } catch (e) {
           console.error('Failed to load version:', e);
           this.selectedVersionYaml = '';
-          showToast('Failed to load version', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.version_load_failed',
+              'Failed to load version',
+            ),
+            'error',
+          );
         } finally {
           this.historyLoading = false;
         }
@@ -2067,7 +2265,13 @@
         } catch (e) {
           console.error('Diff error:', e);
           this.diffResult = null;
-          showToast('Failed to compare versions', 'error');
+          showToast(
+            flowbotI18n(
+              'client.pipeline.diff_failed',
+              'Failed to compare versions',
+            ),
+            'error',
+          );
         }
       },
 
@@ -2106,7 +2310,7 @@
           await this.loadMemoryFact();
         } catch (e) {
           console.error('Failed to load memory facts:', e);
-          this.memoryError = 'Failed to load memory facts';
+          this.memoryError = flowbotI18n('client.pipeline.memory_load_failed', 'Failed to load memory facts');
           this.memoryKeys = [];
         }
       },

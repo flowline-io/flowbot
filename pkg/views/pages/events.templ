@@ -14,9 +14,9 @@ type EventsPageParams struct {
 }
 
 templ EventsPage(ctx context.Context, p EventsPageParams) {
-	@layout.Base(ctx, "Events") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.events")) {
 		@partials.EventFilterScripts()
-		@partials.PageHeader("Events", "") {
+		@partials.PageHeader(ctx, "nav.events", "") {
 		}
 		<div x-data="eventFilters">
 			@partials.FilterBar(partials.FilterBarParams{

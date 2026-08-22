@@ -3,16 +3,17 @@ package pages
 import (
 	"context"
 	
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 templ PipelineRunsPage(ctx context.Context, name string, runs []model.PipelineRun) {
-	@layout.Base(ctx, "Runs: " + name) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.runs", map[string]any{"Name": name})) {
 		@partials.PipelineStatsScripts()
 		<div class="max-w-4xl mx-auto">
-			@partials.PageHeader("Run History", name) {
+			@partials.PageHeaderLiteral(ctx, i18n.T(ctx, "page.run_history.title"), name) {
 				<a href="/service/web/pipelines" class="btn btn-ghost btn-sm" data-testid="pipeline-runs-list-back">← Pipelines</a>
 				<a href={ templ.URL(partials.PipelineWebPath(name)) } class="btn btn-ghost btn-sm" data-testid="pipeline-runs-back">{ name }</a>
 			}

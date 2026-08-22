@@ -56,7 +56,7 @@ func SettingsPage(ctx context.Context, data SettingsPageData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.PageHeader("Settings", "Read-only view of the effective flowbot.yaml configuration for this process. Secrets are redacted.").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "nav.settings", "page.settings.subtitle").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -270,7 +270,7 @@ func SettingsPage(ctx context.Context, data SettingsPageData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Settings — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.settings")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

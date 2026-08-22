@@ -85,7 +85,7 @@ func AgentSkillFileTable(skill model.AgentSkill, files []model.AgentSkillFile) t
 				return templ_7745c5c3_Err
 			}
 			for _, file := range files {
-				templ_7745c5c3_Err = AgentSkillFileRow(skill, file).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = AgentSkillFileRow(ctx, skill, file).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

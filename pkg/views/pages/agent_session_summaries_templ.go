@@ -88,7 +88,7 @@ func AgentSessionSummariesPage(ctx context.Context, items []model.AgentSessionSu
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.PageHeader("Session Summaries", "Archive-generated summaries searchable via search_session_summaries").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PageHeader(ctx, "nav.session_summaries", "page.agent_session_summaries.subtitle").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -102,7 +102,7 @@ func AgentSessionSummariesPage(ctx context.Context, items []model.AgentSessionSu
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(ctx, "Session Summaries — Flowbot").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(ctx, DocTitleFlowbot(ctx, "nav.session_summaries")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

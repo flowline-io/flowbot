@@ -1,6 +1,24 @@
 (function () {
   'use strict';
 
+  if (typeof flowbotI18n !== 'function') {
+    window.flowbotI18n = function (key, fallback) {
+      var el = document.getElementById('flowbot-i18n');
+      if (!el || !el.textContent) {
+        return fallback || key;
+      }
+      try {
+        var dict = JSON.parse(el.textContent);
+        if (dict && dict[key]) {
+          return dict[key];
+        }
+      } catch {
+        /* ignore parse failures */
+      }
+      return fallback || key;
+    };
+  }
+
   function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       return navigator.clipboard.writeText(text);
@@ -72,10 +90,18 @@
         '';
       copyText(md)
         .then(function () {
-          showCopyFeedback(btn, 'Copied', true);
+          showCopyFeedback(
+            btn,
+            flowbotI18n('client.clip.copied', 'Copied'),
+            true,
+          );
         })
         .catch(function () {
-          showCopyFeedback(btn, 'Copy failed', true);
+          showCopyFeedback(
+            btn,
+            flowbotI18n('client.clip.copy_failed', 'Copy failed'),
+            true,
+          );
         });
     },
     true,

@@ -9,13 +9,13 @@ import (
 )
 
 templ AgentSessionDetailPage(ctx context.Context, session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan, todos []model.AgentTodo, pending *partials.ChatAgentPendingConfirm) {
-	@layout.Base(ctx, partials.AgentSessionPageTitle(session)) {
+	@layout.Base(ctx, DocTitleAgentSession(ctx, session)) {
 		if session.Title != "" {
-			@partials.PageHeader(session.Title, session.Flag) {
+			@partials.PageHeaderLiteral(ctx, session.Title, session.Flag) {
 				<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
 			}
 		} else {
-			@partials.PageHeader(session.Flag, "") {
+			@partials.PageHeaderLiteral(ctx, session.Flag, "") {
 				<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
 			}
 		}

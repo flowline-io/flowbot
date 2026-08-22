@@ -8,8 +8,8 @@ import (
 )
 
 templ AboutPage(ctx context.Context, data AboutData) {
-	@layout.Base(ctx, "About — Flowbot") {
-		@partials.PageHeader("About", "Version and build information for this instance.")
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.about")) {
+		@partials.PageHeader(ctx, "nav.about", "page.about.subtitle")
 		<div class="flowbot-surface w-fit" data-testid="about-info">
 			<div class="card-body">
 				<dl class="grid grid-cols-[8rem_auto] gap-x-4 gap-y-3 text-sm m-0">

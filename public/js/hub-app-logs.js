@@ -23,7 +23,10 @@
     es = new EventSource(url);
     es.addEventListener('open', function () {
       if (typeof showToast === 'function') {
-        showToast('Log stream connected', 'info');
+        showToast(
+          flowbotI18n('client.hub.logs.connected', 'Log stream connected'),
+          'info',
+        );
       }
     });
     es.addEventListener('message', function (e) {
@@ -38,7 +41,10 @@
       appendLine('-- Log stream ended --');
       if (typeof showToast === 'function') {
         showToast(
-          'Log stream ended. Refresh the page to reconnect.',
+          flowbotI18n(
+            'client.hub.logs.ended',
+            'Log stream ended. Refresh the page to reconnect.',
+          ),
           'warning',
         );
       }

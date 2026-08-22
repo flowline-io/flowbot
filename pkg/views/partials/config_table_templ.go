@@ -36,7 +36,7 @@ func ConfigTable(items []model.ConfigItem) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, item := range items {
-			templ_7745c5c3_Err = ConfigRow(item).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = ConfigRow(ctx, item).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

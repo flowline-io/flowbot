@@ -5,13 +5,14 @@ import (
 	
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 templ AccountSecurityPage(ctx context.Context, username string, totpEnabled bool, backupRemaining int, flash string, errorMsg string, csrfToken string) {
-	@layout.Base(ctx, "Account security — Flowbot") {
-		@partials.PageHeader("Account security", "Password and backup codes for web login.")
+	@layout.Base(ctx, DocTitlePage(ctx, "page.account_security.title")) {
+		@partials.PageHeader(ctx, "page.account_security.title", "page.account_security.subtitle")
 		<div class="max-w-xl space-y-6" data-testid="account-security-page">
 			if flash != "" {
 				<div class="alert alert-success text-sm" data-testid="account-security-flash">
@@ -101,9 +102,9 @@ templ AccountSecurityPage(ctx context.Context, username string, totpEnabled bool
 								class="btn btn-outline btn-sm"
 								data-testid="regen-backup-submit"
 								disabled?={ !totpEnabled }
-								data-confirm="This invalidates all existing backup codes. Continue?"
-								data-confirm-title="Regenerate backup codes"
-								data-confirm-btn="Regenerate"
+								data-confirm={ i18n.T(ctx, "confirm.regenerate_backup_codes.message") }
+								data-confirm-title={ i18n.T(ctx, "confirm.regenerate_backup_codes.title") }
+								data-confirm-btn={ i18n.T(ctx, "confirm.regenerate_backup_codes.btn") }
 								data-confirm-class="btn-warning">
 								Regenerate backup codes
 							</button>
@@ -116,8 +117,8 @@ templ AccountSecurityPage(ctx context.Context, username string, totpEnabled bool
 }
 
 templ RegeneratedBackupCodesPage(ctx context.Context, codes []string) {
-	@layout.Base(ctx, "Backup codes — Flowbot") {
-		@partials.PageHeader("New backup codes", "Store these one-time codes somewhere safe. They will not be shown again.")
+	@layout.Base(ctx, DocTitlePage(ctx, "page.account_security.backup_title")) {
+		@partials.PageHeader(ctx, "page.account_security.new_backup_codes_title", "page.account_security.new_backup_codes_subtitle")
 		<div class="max-w-xl space-y-6" data-testid="regen-backup-codes-page">
 			<div class="flowbot-surface">
 				<div class="card-body">

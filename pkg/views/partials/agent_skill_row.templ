@@ -1,10 +1,13 @@
 package partials
 
 import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ AgentSkillRow(item model.AgentSkill) {
+templ AgentSkillRow(ctx context.Context, item model.AgentSkill) {
 	<tr id={ agentSkillRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
 		<td class="text-base-content font-mono text-sm">{ item.Flag }</td>
 		<td class="text-base-content font-medium">{ item.Name }</td>
@@ -19,9 +22,9 @@ templ AgentSkillRow(item model.AgentSkill) {
 					<button type="button"
 						hx-put={ agentSkillEnabledURL(item) }
 						hx-vals='{"enabled": false}'
-						data-confirm="Disable this skill? It will be hidden from the agent prompt until re-enabled."
-						data-confirm-title="Disable Skill"
-						data-confirm-btn="Disable"
+						data-confirm={ i18n.T(ctx, "confirm.disable_skill.message") }
+						data-confirm-title={ i18n.T(ctx, "confirm.disable_skill.title") }
+						data-confirm-btn={ i18n.T(ctx, "confirm.disable_skill.btn") }
 						data-confirm-class="btn-warning"
 						data-testid="agent-skill-disable"
 						class="btn btn-ghost btn-xs text-warning">
@@ -42,9 +45,9 @@ templ AgentSkillRow(item model.AgentSkill) {
 					Edit
 				</button>
 				<button hx-delete={ agentSkillURL(item) }
-					data-confirm="Delete this skill?"
-					data-confirm-title="Delete Skill"
-					data-confirm-btn="Delete"
+					data-confirm={ i18n.T(ctx, "confirm.delete_skill.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_skill.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_skill.btn") }
 					data-confirm-class="btn-error"
 					data-testid="agent-skill-delete"
 					class="btn btn-ghost btn-xs text-error">

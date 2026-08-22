@@ -3,7 +3,6 @@ package web
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -66,40 +65,40 @@ func agentSkillsImport(ctx fiber.Ctx) error {
 	}
 	header, err := ctx.FormFile("archive")
 	if err != nil || header == nil {
-		return toastError(ctx, "Choose a zip archive of Agent Skills")
+		return toastErrorKey(ctx, "toast.agent_skills.choose_zip")
 	}
 	if header.Size > 5<<20 {
-		return toastError(ctx, "Zip archive exceeds maximum size (5 MiB)")
+		return toastErrorKey(ctx, "toast.agent_skills.zip_too_large")
 	}
 	file, err := header.Open()
 	if err != nil {
-		return toastError(ctx, "Failed to read zip archive")
+		return toastErrorKey(ctx, "toast.agent_skills.read_zip_failed")
 	}
 	defer file.Close()
 	data, err := io.ReadAll(io.LimitReader(file, (5<<20)+1))
 	if err != nil {
-		return toastError(ctx, "Failed to read zip archive")
+		return toastErrorKey(ctx, "toast.agent_skills.read_zip_failed")
 	}
 	if len(data) > 5<<20 {
-		return toastError(ctx, "Zip archive exceeds maximum size (5 MiB)")
+		return toastErrorKey(ctx, "toast.agent_skills.zip_too_large")
 	}
 	n, err := chatagent.ImportSkillsFromZip(ctx.Context(), data)
 	if err != nil {
 		flog.Warn("[web] agent skills import failed uid=%s: %v", getUID(ctx), err)
-		return toastError(ctx, "Import failed: "+err.Error())
+		return toastError(ctx, webMsgData(ctx, "toast.agent_skills.import_failed", map[string]any{"Error": err.Error()}))
 	}
 	if n == 0 {
-		return toastError(ctx, "No SKILL.md found in zip archive")
+		return toastErrorKey(ctx, "toast.agent_skills.no_skill_md")
 	}
 	items, err := listAgentSkillModels(ctx.Context())
 	if err != nil {
-		return toastError(ctx, "Imported but failed to reload agent skills")
+		return toastErrorKey(ctx, "toast.agent_skills.reload_failed")
 	}
-	msg := fmt.Sprintf("Imported %d skill", n)
-	if n != 1 {
-		msg = fmt.Sprintf("Imported %d skills", n)
+	importKey := "toast.agent_skills.imported_many"
+	if n == 1 {
+		importKey = "toast.agent_skills.imported_one"
 	}
-	setShowToast(ctx, "success", msg)
+	setShowToast(ctx, "success", webMsgData(ctx, importKey, map[string]any{"Count": n}))
 	flog.Info("[web] agent skills imported uid=%s count=%d", getUID(ctx), n)
 	ctx.Type("html")
 	return partials.AgentSkillTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -112,7 +111,7 @@ func agentSkillsTable(ctx fiber.Ctx) error {
 	items, err := listAgentSkillModels(ctx.Context())
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skills")
+		return renderErrorKey(ctx, "error.load.agent_skills_list")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -159,13 +158,13 @@ func agentSkillCreate(ctx fiber.Ctx) error {
 			ctx.Type("html")
 			return partials.AgentSkillForm(input, true, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
 		}
-		return toastError(ctx, "Failed to create agent skill")
+		return toastErrorKey(ctx, "toast.agent_skills.create_failed")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill created uid=%s flag=%s name=%s", getUID(ctx), row.Flag, row.Name)
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-skills-empty" hx-swap-oob="delete"></tr>`))
-	return partials.AgentSkillRow(agentSkillFromInput(input, now, now)).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSkillRow(reqCtx, agentSkillFromInput(input, now, now)).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSkillEditForm(ctx fiber.Ctx) error {
@@ -181,10 +180,10 @@ func agentSkillEditForm(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return renderErrorKey(ctx, "toast.agent_skills.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill")
+		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillForm(item, false, nil).Render(reqCtx, ctx.Response().BodyWriter())
@@ -203,10 +202,10 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return renderErrorKey(ctx, "toast.agent_skills.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill")
+		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	input := parseAgentSkillForm(ctx)
 	input.Flag = flag
@@ -233,16 +232,16 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 			ctx.Type("html")
 			return partials.AgentSkillForm(input, false, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
 		}
-		return toastError(ctx, "Failed to update agent skill")
+		return toastErrorKey(ctx, "toast.agent_skills.update_failed")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill updated uid=%s flag=%s name=%s", getUID(ctx), flag, input.Name)
 	updated, err := loadAgentSkillModel(reqCtx, flag)
 	if err != nil {
-		return toastError(ctx, "Failed to load updated agent skill")
+		return toastErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentSkillRow(updated).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSkillRow(reqCtx, updated).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSkillSetEnabled(ctx fiber.Ctx) error {
@@ -257,28 +256,28 @@ func agentSkillSetEnabled(ctx fiber.Ctx) error {
 		Enabled bool `json:"enabled" form:"enabled"`
 	}
 	if err := ctx.Bind().Body(&body); err != nil {
-		return toastError(ctx, "Invalid enabled value")
+		return toastErrorKey(ctx, "toast.agent_skills.invalid_enabled")
 	}
 	reqCtx := ctx.Context()
 	existing, err := store.AgentStoreFromDB().GetAgentSkillByFlag(reqCtx, flag)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Agent skill not found")
+			return toastErrorKey(ctx, "toast.agent_skills.not_found")
 		}
-		return toastError(ctx, "Failed to load agent skill")
+		return toastErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	existing.Enabled = body.Enabled
 	if err := store.AgentStoreFromDB().UpdateAgentSkill(reqCtx, existing); err != nil {
-		return toastError(ctx, "Failed to update agent skill")
+		return toastErrorKey(ctx, "toast.agent_skills.update_failed")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill enabled=%v uid=%s flag=%s", body.Enabled, getUID(ctx), flag)
 	updated, err := loadAgentSkillModel(reqCtx, flag)
 	if err != nil {
-		return toastError(ctx, "Failed to load updated agent skill")
+		return toastErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentSkillRow(updated).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSkillRow(reqCtx, updated).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSkillDelete(ctx fiber.Ctx) error {
@@ -292,9 +291,9 @@ func agentSkillDelete(ctx fiber.Ctx) error {
 	reqCtx := ctx.Context()
 	if err := store.AgentStoreFromDB().DeleteAgentSkill(reqCtx, flag); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Agent skill not found")
+			return toastErrorKey(ctx, "toast.agent_skills.not_found")
 		}
-		return toastError(ctx, "Failed to delete agent skill")
+		return toastErrorKey(ctx, "toast.agent_skills.delete_failed")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill deleted uid=%s flag=%s", getUID(ctx), flag)
@@ -443,15 +442,15 @@ func agentSkillFilesTable(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return renderErrorKey(ctx, "toast.agent_skills.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill")
+		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	files, err := listAgentSkillFileModels(reqCtx, flag)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill files")
+		return renderErrorKey(ctx, "error.load.agent_skill_files")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillFileTable(item, files).Render(reqCtx, ctx.Response().BodyWriter())
@@ -470,10 +469,10 @@ func agentSkillFileNewForm(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return renderErrorKey(ctx, "toast.agent_skills.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill")
+		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillFileForm(item, model.AgentSkillFile{SkillFlag: flag}, true, nil).
@@ -493,10 +492,10 @@ func agentSkillFileCreate(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return renderErrorKey(ctx, "toast.agent_skills.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill")
+		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	input := parseAgentSkillFileForm(ctx, flag)
 	errs := validateAgentSkillFileForm(input, true)
@@ -520,13 +519,13 @@ func agentSkillFileCreate(ctx fiber.Ctx) error {
 			return partials.AgentSkillFileForm(item, input, true, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to create agent skill file")
+		return renderErrorKey(ctx, "error.create.agent_skill_file")
 	}
 	chatagent.InvalidatePromptCache()
 	files, err := listAgentSkillFileModels(reqCtx, flag)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill files")
+		return renderErrorKey(ctx, "error.load.agent_skill_files")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillFileTable(item, files).Render(reqCtx, ctx.Response().BodyWriter())
@@ -545,24 +544,24 @@ func agentSkillFileEditForm(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return renderErrorKey(ctx, "toast.agent_skills.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill")
+		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	filePath, err := decodeAgentSkillFilePath(ctx)
 	if err != nil {
 		ctx.Status(http.StatusUnprocessableEntity)
-		return renderError(ctx, "Invalid agent skill file path")
+		return renderErrorKey(ctx, "error.invalid.agent_skill_file_path")
 	}
 	file, err := loadAgentSkillFileModel(reqCtx, flag, filePath)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill file not found")
+			return renderErrorKey(ctx, "error.not_found.agent_skill_file")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill file")
+		return renderErrorKey(ctx, "error.load.agent_skill_file")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillFileForm(item, file, false, nil).Render(reqCtx, ctx.Response().BodyWriter())
@@ -581,10 +580,10 @@ func agentSkillFileUpdate(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return renderErrorKey(ctx, "toast.agent_skills.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill")
+		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	input := parseAgentSkillFileForm(ctx, flag)
 	errs := validateAgentSkillFileForm(input, false)
@@ -596,10 +595,10 @@ func agentSkillFileUpdate(ctx fiber.Ctx) error {
 	if _, err := store.AgentStoreFromDB().GetAgentSkillFile(reqCtx, flag, input.Path); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill file not found")
+			return renderErrorKey(ctx, "error.not_found.agent_skill_file")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill file")
+		return renderErrorKey(ctx, "error.load.agent_skill_file")
 	}
 	row := &gen.AgentSkillFile{
 		SkillFlag: flag,
@@ -608,13 +607,13 @@ func agentSkillFileUpdate(ctx fiber.Ctx) error {
 	}
 	if err := store.AgentStoreFromDB().UpdateAgentSkillFile(reqCtx, row); err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to update agent skill file")
+		return renderErrorKey(ctx, "error.update.agent_skill_file")
 	}
 	chatagent.InvalidatePromptCache()
 	files, err := listAgentSkillFileModels(reqCtx, flag)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill files")
+		return renderErrorKey(ctx, "error.load.agent_skill_files")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillFileTable(item, files).Render(reqCtx, ctx.Response().BodyWriter())
@@ -631,31 +630,31 @@ func agentSkillFileDelete(ctx fiber.Ctx) error {
 	filePath, err := decodeAgentSkillFilePath(ctx)
 	if err != nil {
 		ctx.Status(http.StatusUnprocessableEntity)
-		return renderError(ctx, "Invalid agent skill file path")
+		return renderErrorKey(ctx, "error.invalid.agent_skill_file_path")
 	}
 	reqCtx := ctx.Context()
 	item, err := loadAgentSkillModel(reqCtx, flag)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return renderErrorKey(ctx, "toast.agent_skills.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill")
+		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	if err := store.AgentStoreFromDB().DeleteAgentSkillFile(reqCtx, flag, filePath); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill file not found")
+			return renderErrorKey(ctx, "error.not_found.agent_skill_file")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to delete agent skill file")
+		return renderErrorKey(ctx, "error.delete.agent_skill_file")
 	}
 	chatagent.InvalidatePromptCache()
 	files, err := listAgentSkillFileModels(reqCtx, flag)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent skill files")
+		return renderErrorKey(ctx, "error.load.agent_skill_files")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillFileTable(item, files).Render(reqCtx, ctx.Response().BodyWriter())

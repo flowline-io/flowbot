@@ -88,7 +88,7 @@ func pipelineListTable(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineListTable(entries).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // buildPipelineListEntries loads last-run timestamps and latency stats and builds pipeline list rows.
@@ -309,7 +309,7 @@ func setPipelineEnabled(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineListTable(entries).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func deletePipeline(c fiber.Ctx) error {
@@ -339,7 +339,7 @@ func deletePipeline(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineListTable(entries).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func getPipelineYaml(c fiber.Ctx) error {

@@ -56,7 +56,7 @@ func agentSubagentsTable(ctx fiber.Ctx) error {
 	items, err := listAgentSubagentModels(ctx.Context())
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent subagents")
+		return renderErrorKey(ctx, "error.load.agent_subagents")
 	}
 	ctx.Type("html")
 	return partials.AgentSubagentTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -71,7 +71,7 @@ func agentSubagentNewForm(ctx fiber.Ctx) error {
 	params, err := buildAgentSubagentFormParams(ctx.Context(), model.AgentSubagent{Source: "global", Enabled: true}, true, nil)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load subagent form options")
+		return renderErrorKey(ctx, "error.load.subagent_form_options")
 	}
 	return partials.AgentSubagentForm(params).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
@@ -88,7 +88,7 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 		ctx.Type("html")
 		params, buildErr := buildAgentSubagentFormParams(reqCtx, input, true, errs)
 		if buildErr != nil {
-			return renderError(ctx, "Failed to load subagent form options")
+			return renderErrorKey(ctx, "error.load.subagent_form_options")
 		}
 		return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 	}
@@ -112,18 +112,18 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 			ctx.Type("html")
 			params, buildErr := buildAgentSubagentFormParams(reqCtx, input, true, fieldErrs)
 			if buildErr != nil {
-				return renderError(ctx, "Failed to load subagent form options")
+				return renderErrorKey(ctx, "error.load.subagent_form_options")
 			}
 			return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to create agent subagent")
+		return renderErrorKey(ctx, "error.create.agent_subagent")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent subagent created uid=%s flag=%s name=%s", getUID(ctx), row.Flag, row.Name)
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-subagents-empty" hx-swap-oob="delete"></tr>`))
-	return partials.AgentSubagentRow(agentSubagentFromInput(input, now, now)).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSubagentRow(reqCtx, agentSubagentFromInput(input, now, now)).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSubagentEditForm(ctx fiber.Ctx) error {
@@ -139,16 +139,16 @@ func agentSubagentEditForm(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent subagent not found")
+			return renderErrorKey(ctx, "error.not_found.agent_subagent")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent subagent")
+		return renderErrorKey(ctx, "error.load.agent_subagent")
 	}
 	ctx.Type("html")
 	params, err := buildAgentSubagentFormParams(reqCtx, item, false, nil)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load subagent form options")
+		return renderErrorKey(ctx, "error.load.subagent_form_options")
 	}
 	return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 }
@@ -166,10 +166,10 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent subagent not found")
+			return renderErrorKey(ctx, "error.not_found.agent_subagent")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load agent subagent")
+		return renderErrorKey(ctx, "error.load.agent_subagent")
 	}
 	input := parseAgentSubagentForm(ctx)
 	input.Flag = flag
@@ -179,7 +179,7 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 		ctx.Type("html")
 		params, buildErr := buildAgentSubagentFormParams(reqCtx, input, false, errs)
 		if buildErr != nil {
-			return renderError(ctx, "Failed to load subagent form options")
+			return renderErrorKey(ctx, "error.load.subagent_form_options")
 		}
 		return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 	}
@@ -201,22 +201,22 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 			ctx.Type("html")
 			params, buildErr := buildAgentSubagentFormParams(reqCtx, input, false, fieldErrs)
 			if buildErr != nil {
-				return renderError(ctx, "Failed to load subagent form options")
+				return renderErrorKey(ctx, "error.load.subagent_form_options")
 			}
 			return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to update agent subagent")
+		return renderErrorKey(ctx, "error.update.agent_subagent")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent subagent updated uid=%s flag=%s name=%s", getUID(ctx), flag, input.Name)
 	updated, err := loadAgentSubagentModel(reqCtx, flag)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load updated agent subagent")
+		return renderErrorKey(ctx, "error.load.agent_subagent_updated")
 	}
 	ctx.Type("html")
-	return partials.AgentSubagentRow(updated).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSubagentRow(reqCtx, updated).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSubagentDelete(ctx fiber.Ctx) error {
@@ -231,10 +231,10 @@ func agentSubagentDelete(ctx fiber.Ctx) error {
 	if err := store.AgentStoreFromDB().DeleteAgentSubagent(reqCtx, flag); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent subagent not found")
+			return renderErrorKey(ctx, "error.not_found.agent_subagent")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to delete agent subagent")
+		return renderErrorKey(ctx, "error.delete.agent_subagent")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent subagent deleted uid=%s flag=%s", getUID(ctx), flag)
@@ -267,7 +267,7 @@ func agentSubagentTasksTable(ctx fiber.Ctx) error {
 	items, err := listAgentSubagentTaskModels(ctx.Context(), "", 100)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load subagent tasks")
+		return renderErrorKey(ctx, "error.load.subagent_tasks")
 	}
 	ctx.Type("html")
 	return partials.AgentSubagentTaskTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -286,10 +286,10 @@ func agentSubagentTaskDetail(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Subagent task not found")
+			return renderErrorKey(ctx, "error.not_found.subagent_task")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load subagent task")
+		return renderErrorKey(ctx, "error.load.subagent_task")
 	}
 	ctx.Type("html")
 	return partials.AgentSubagentTaskDetail(item).Render(reqCtx, ctx.Response().BodyWriter())

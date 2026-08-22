@@ -5,13 +5,14 @@ import (
 	
 	"strconv"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 	"github.com/flowline-io/flowbot/version"
 )
 
 templ FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) {
-	@layout.Base(ctx, "Function · " + draft.Name) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.function", map[string]any{"Name": draft.Name})) {
 		@partials.FunctionStatsScripts()
 		<script src={ "/static/js/function-editor.js?v=" + version.Buildtags }></script>
 		<div
@@ -28,7 +29,7 @@ templ FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) 
 			data-has-unpublished={ strconv.FormatBool(draft.HasUnpublishedChanges) }
 			data-published-version={ partials.PublishedVersionAttr(draft.PublishedVersion) }
 		>
-			@partials.PageHeader(draft.Name, "Named function editor") {
+			@partials.PageHeaderLiteral(ctx, draft.Name, i18n.T(ctx, "page.function_editor.subtitle")) {
 				<a href="/service/web/functions" class="btn btn-ghost btn-sm" data-testid="btn-back-functions">Back</a>
 				<button type="button" class="btn btn-ghost btn-sm" @click="saveDraft()" data-testid="btn-save-draft">Save draft</button>
 				<button type="button" class="btn btn-primary btn-sm" @click="publish()" data-testid="btn-publish">Publish</button>
@@ -37,7 +38,9 @@ templ FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) 
 					class="btn btn-ghost btn-sm text-error"
 					hx-delete={ "/service/web/functions/" + draft.Name }
 					hx-target="body"
-					data-confirm={ "Delete function " + draft.Name + "?" }
+					data-confirm={ i18n.TData(ctx, "confirm.delete_function.message", map[string]any{"Name": draft.Name}) }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_function.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_function.btn") }
 					data-testid="btn-delete-function"
 				>Delete</button>
 			}

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -43,7 +44,7 @@ func TestTokenTableClientFilter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			if err := partials.TokenTable([]model.TokenItem{item}).Render(context.Background(), &buf); err != nil {
+			if err := partials.TokenTable(i18n.DefaultContext(), []model.TokenItem{item}).Render(context.Background(), &buf); err != nil {
 				t.Fatalf("render: %v", err)
 			}
 			html := buf.String()

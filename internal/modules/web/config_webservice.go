@@ -47,7 +47,7 @@ func listConfigs(ctx fiber.Ctx) error {
 	items, err := store.ModuleDataStoreFromDB().ListConfigs(context.Background(), store.ListConfigOptions{Limit: 100})
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load configs")
+		return renderErrorKey(ctx, "error.load.configs")
 	}
 	ctx.Type("html")
 	return partials.ConfigTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -65,13 +65,13 @@ func getConfig(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Config not found")
+			return renderErrorKey(ctx, "toast.config.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load config")
+		return renderErrorKey(ctx, "error.load.config")
 	}
 	ctx.Type("html")
-	return partials.ConfigRow(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.ConfigRow(ctx.Context(), model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func newConfigForm(ctx fiber.Ctx) error {
@@ -113,13 +113,13 @@ func createConfig(ctx fiber.Ctx) error {
 	}
 	err := store.ModuleDataStoreFromDB().ConfigSet(context.Background(), types.Uid(uid), topic, key, value)
 	if err != nil {
-		return toastError(ctx, "Could not save config. Please try again.")
+		return toastErrorKey(ctx, "toast.config.save_failed")
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Config saved")
+	setShowToastKey(ctx, "success", "toast.config.saved")
 	// Remove empty-state row now that a config exists
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="configs-empty" hx-swap-oob="delete"></tr>`))
-	return partials.ConfigRow(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.ConfigRow(ctx.Context(), model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func editConfigForm(ctx fiber.Ctx) error {
@@ -134,10 +134,10 @@ func editConfigForm(ctx fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Config not found")
+			return renderErrorKey(ctx, "toast.config.not_found")
 		}
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load config")
+		return renderErrorKey(ctx, "error.load.config")
 	}
 	ctx.Type("html")
 	return partials.ConfigForm(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}, false, nil).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -160,11 +160,11 @@ func updateConfig(ctx fiber.Ctx) error {
 	}
 	err = store.ModuleDataStoreFromDB().ConfigSet(context.Background(), types.Uid(urlUID), urlTopic, urlKey, value)
 	if err != nil {
-		return toastError(ctx, "Could not save config. Please try again.")
+		return toastErrorKey(ctx, "toast.config.save_failed")
 	}
 	ctx.Type("html")
-	setShowToast(ctx, "success", "Config saved")
-	return partials.ConfigRow(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
+	setShowToastKey(ctx, "success", "toast.config.saved")
+	return partials.ConfigRow(ctx.Context(), model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func deleteConfig(ctx fiber.Ctx) error {
@@ -178,9 +178,9 @@ func deleteConfig(ctx fiber.Ctx) error {
 	err = store.ModuleDataStoreFromDB().ConfigDelete(context.Background(), types.Uid(uid), topic, key)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return toastError(ctx, "Config not found")
+			return toastErrorKey(ctx, "toast.config.not_found")
 		}
-		return toastError(ctx, "Failed to delete config")
+		return toastErrorKey(ctx, "toast.config.delete_failed")
 	}
 	// After deletion, show empty state if no configs remain
 	items, err := store.ModuleDataStoreFromDB().ListConfigs(context.Background(), store.ListConfigOptions{Limit: 1})

@@ -36,7 +36,7 @@ func AgentSubagentTable(items []model.AgentSubagent) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, item := range items {
-			templ_7745c5c3_Err = AgentSubagentRow(item).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = AgentSubagentRow(ctx, item).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

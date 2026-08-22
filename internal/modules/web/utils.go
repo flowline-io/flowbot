@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"net/url"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -62,28 +64,58 @@ func toastError(ctx fiber.Ctx, msg string) error {
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
 
+// webMsg localizes a message ID for the request context.
+func webMsg(c fiber.Ctx, id string) string {
+	return i18n.T(c.Context(), id)
+}
+
+// webMsgData localizes a message ID with template data.
+func webMsgData(c fiber.Ctx, id string, data map[string]any) string {
+	return i18n.TData(c.Context(), id, data)
+}
+
+// toastErrorKey shows a localized error toast.
+func toastErrorKey(c fiber.Ctx, id string) error {
+	return toastError(c, webMsg(c, id))
+}
+
+// setShowToastKey shows a localized toast.
+func setShowToastKey(c fiber.Ctx, toastType, id string) {
+	setShowToast(c, toastType, webMsg(c, id))
+}
+
+// renderFormErrorKey shows a localized form error fragment.
+func renderFormErrorKey(c fiber.Ctx, cssTarget, id string) error {
+	return renderFormError(c, cssTarget, webMsg(c, id))
+}
+
+// renderErrorKey writes a localized FormError HTML fragment.
+func renderErrorKey(c fiber.Ctx, id string) error {
+	return renderError(c, webMsg(c, id))
+}
+
 // htmxResponseErrorMessage maps non-HTML HTMX error responses to user-facing copy.
 // Keep in sync with flowbotHTMXErrorMessage in public/js/app.js.
-func htmxResponseErrorMessage(status int, body string) string {
+func htmxResponseErrorMessage(ctx context.Context, status int, body string) string {
 	body = strings.TrimSpace(body)
 	if body != "" && len(body) < 240 && !strings.Contains(body, "<") {
 		return body
 	}
 	switch {
 	case status == fiber.StatusForbidden:
-		return "Permission denied. You do not have access to perform this action."
+		return i18n.T(ctx, "error.permission_denied")
 	case status == fiber.StatusBadRequest || status == fiber.StatusUnprocessableEntity:
-		return "Validation error. Check your input and try again."
+		return i18n.T(ctx, "error.validation")
 	case status == fiber.StatusNotFound:
-		return "Not found. The requested resource no longer exists."
+		return i18n.T(ctx, "error.not_found")
 	case status == fiber.StatusRequestTimeout || status == fiber.StatusGatewayTimeout:
-		return "Request timed out. Please try again."
+		return i18n.T(ctx, "error.timeout")
 	case status >= 500:
-		return "Server error (" + strconv.Itoa(status) + "). Please try again."
+		return i18n.T(ctx, "error.server") + " (" + strconv.Itoa(status) + "). " + i18n.T(ctx, "error.try_again")
 	case status > 0:
-		return "Request failed (" + strconv.Itoa(status) + "). Please try again."
+		return i18n.T(ctx, "error.request_failed") + " (" + strconv.Itoa(status) + "). " + i18n.T(ctx, "error.try_again")
 	default:
-		return "Request failed. Please try again."
+		return i18n.T(ctx, "error.request_failed") + ". " + i18n.T(ctx, "error.try_again")
 	}
 }
 

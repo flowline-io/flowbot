@@ -62,20 +62,20 @@ var lifeWebserviceRules = []webservice.Rule{
 	webservice.Post("/life/inventory/slots/:slot/unequip", lifeUnequipSlot),
 }
 
-func lifeUserError(err error) string {
+func lifeUserError(c fiber.Ctx, err error) string {
 	if err == nil {
-		return "Something went wrong"
+		return webMsg(c, "toast.life.generic_error")
 	}
 	if errors.Is(err, types.ErrProvider) ||
 		errors.Is(err, types.ErrUnavailable) ||
 		errors.Is(err, types.ErrInternal) ||
 		errors.Is(err, types.ErrTimeout) {
-		return "Could not complete that action. Please try again."
+		return webMsg(c, "toast.life.action_failed")
 	}
 	msg := err.Error()
 	const prefix = "life: "
 	if !strings.HasPrefix(msg, prefix) {
-		return "Could not complete that action. Please try again."
+		return webMsg(c, "toast.life.action_failed")
 	}
 	rest := strings.TrimPrefix(msg, prefix)
 	if errors.Is(err, types.ErrNotFound) ||
@@ -83,7 +83,7 @@ func lifeUserError(err error) string {
 		errors.Is(err, types.ErrConflict) {
 		return rest
 	}
-	return "Could not complete that action. Please try again."
+	return webMsg(c, "toast.life.action_failed")
 }
 
 func lifeUID(ctx fiber.Ctx) (string, error) {
@@ -274,7 +274,7 @@ func lifeDashboardPage(ctx fiber.Ctx) error {
 	}
 	data, err := lifeIdentityData(uid, false)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
 	return pages.LifeDashboardPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -290,7 +290,7 @@ func lifeCharacterPage(ctx fiber.Ctx) error {
 	}
 	data, err := lifeIdentityData(uid, true)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
 	return pages.LifeCharacterPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -306,7 +306,7 @@ func lifeGoalsPage(ctx fiber.Ctx) error {
 	}
 	data, err := lifeGoalsPageData(uid)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
 	return pages.LifeGoalsPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -322,7 +322,7 @@ func lifePlanPage(ctx fiber.Ctx) error {
 	}
 	data, err := lifePlanPageData(uid)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
 	return pages.LifePlanPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -371,7 +371,7 @@ func lifeSetClass(ctx fiber.Ctx) error {
 	}
 	classType := strings.TrimSpace(ctx.FormValue("class_type"))
 	if err := lifeService().SetClassType(context.Background(), uid, classType); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/character")
 	return ctx.SendStatus(http.StatusOK)
@@ -403,7 +403,7 @@ func lifeCreatePlanNode(ctx fiber.Ctx) error {
 		action = nil
 	}
 	if _, err := lifeService().CreatePlanNode(context.Background(), uid, parentFlag, nodeType, title, description, action); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/plan")
 	return ctx.SendStatus(http.StatusOK)
@@ -433,7 +433,7 @@ func lifeConfirmHabit(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().ConfirmHabitAction(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/plan")
 	return ctx.SendStatus(http.StatusOK)
@@ -451,15 +451,15 @@ func lifePreviewBreakdown(ctx fiber.Ctx) error {
 	description := strings.TrimSpace(ctx.FormValue("description"))
 	suggestion, err := lifeService().PreviewGoalBreakdown(context.Background(), uid, rootTitle, description)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	data, err := lifePlanPageData(uid)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	payload, err := sonic.MarshalString(suggestion)
 	if err != nil {
-		return toastError(ctx, "could not encode breakdown preview")
+		return toastErrorKey(ctx, "toast.life.breakdown_encode_failed")
 	}
 	data.BreakdownPreview = &pages.LifeBreakdownPreviewData{
 		RootTitle:   rootTitle,
@@ -481,14 +481,14 @@ func lifeImportBreakdown(ctx fiber.Ctx) error {
 	}
 	payload := strings.TrimSpace(ctx.FormValue("payload_json"))
 	if payload == "" {
-		return toastError(ctx, "breakdown preview payload required")
+		return toastErrorKey(ctx, "toast.life.breakdown_payload_required")
 	}
 	var suggestion lifecap.GoalBreakdownSuggestion
 	if err := sonic.UnmarshalString(payload, &suggestion); err != nil {
-		return toastError(ctx, "invalid breakdown preview payload")
+		return toastErrorKey(ctx, "toast.life.breakdown_payload_invalid")
 	}
 	if err := lifeService().ImportGoalBreakdown(context.Background(), uid, &suggestion); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("Location", "/service/web/life/plan")
 	ctx.Status(http.StatusSeeOther)
@@ -507,7 +507,7 @@ func lifeCreateGoal(ctx fiber.Ctx) error {
 	category := strings.TrimSpace(ctx.FormValue("category"))
 	areaFlag := strings.TrimSpace(ctx.FormValue("area_flag"))
 	if _, err := lifeService().CreateGoal(context.Background(), uid, title, category, areaFlag); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/goals")
 	return ctx.SendStatus(http.StatusOK)
@@ -525,7 +525,7 @@ func lifeUpdateGoal(ctx fiber.Ctx) error {
 	category := strings.TrimSpace(ctx.FormValue("category"))
 	areaFlag := strings.TrimSpace(ctx.FormValue("area_flag"))
 	if err := lifeService().UpdateGoal(context.Background(), uid, ctx.Params("flag"), title, category, areaFlag); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/goals")
 	return ctx.SendStatus(http.StatusOK)
@@ -541,7 +541,7 @@ func lifeSetGoalStatus(ctx fiber.Ctx) error {
 	}
 	status := strings.TrimSpace(ctx.FormValue("status"))
 	if err := lifeService().SetGoalStatus(context.Background(), uid, ctx.Params("flag"), status); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/goals")
 	return ctx.SendStatus(http.StatusOK)
@@ -556,7 +556,7 @@ func lifeDeleteGoal(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().DeleteGoal(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/goals")
 	return ctx.SendStatus(http.StatusOK)
@@ -576,23 +576,23 @@ func lifeQuestsPage(ctx fiber.Ctx) error {
 	svc := lifeService()
 	pending, err := svc.ListPendingQuestDMViews(context.Background(), uid)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	done, doneTotal, err := svc.ListCompletedQuestsPage(context.Background(), uid, completedPage, pages.LifeDefaultListPerPage)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	char, err := svc.GetCharacter(context.Background(), uid)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	today, err := svc.ListTodayActions(context.Background(), uid)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	logs, logsTotal, err := svc.ListActionLogsPage(context.Background(), uid, logsPage, pages.LifeDefaultListPerPage)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	data := buildLifeQuestsData(char, pending, done, today, logs, completedPage, doneTotal, logsPage, logsTotal, historyTab)
 	ctx.Type("html")
@@ -827,14 +827,18 @@ func lifeCreateQuest(ctx fiber.Ctx) error {
 	}
 	prompt := strings.TrimSpace(ctx.FormValue("prompt"))
 	if prompt == "" {
-		return toastError(ctx, "prompt required")
+		return toastErrorKey(ctx, "toast.life.prompt_required")
 	}
 	goalFlag := strings.TrimSpace(ctx.FormValue("goal_flag"))
 	q, _, chance, err := lifeService().CreateQuestFromPrompt(context.Background(), uid, prompt, goalFlag)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	msg := fmt.Sprintf("Quest rated %s — ~%.0f%% chance of %s loot", q.AiEvaluatedDifficulty, chance*100, q.DropTier)
+	msg := webMsgData(ctx, "toast.life.quest_rated", map[string]any{
+		"Difficulty": q.AiEvaluatedDifficulty,
+		"Chance":     fmt.Sprintf("%.0f", chance*100),
+		"Tier":       q.DropTier,
+	})
 	setShowToast(ctx, "success", msg)
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
@@ -854,9 +858,9 @@ func lifeSubmitQuestEvidence(ctx fiber.Ctx) error {
 	questFlag := ctx.Params("flag")
 	if _, err := lifeService().SubmitQuestEvidence(context.Background(), uid, questFlag, sourceType, content, sourceURL); err != nil {
 		flog.Warn("[web] life quest evidence failed uid=%s flag=%s source_type=%s: %v", uid, questFlag, sourceType, err)
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	setShowToast(ctx, "success", "Evidence recorded for the quest.")
+	setShowToastKey(ctx, "success", "toast.life.evidence_recorded")
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
 }
@@ -870,9 +874,9 @@ func lifeAdjudicateQuest(ctx fiber.Ctx) error {
 		return err
 	}
 	if _, err := lifeService().AdjudicateQuest(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	setShowToast(ctx, "success", "The dungeon master issued a suggested ruling.")
+	setShowToastKey(ctx, "success", "toast.life.dm_suggested_ruling")
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
 }
@@ -886,9 +890,9 @@ func lifeApplyQuestAdjudication(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().ApplyQuestAdjudication(context.Background(), uid, ctx.Params("flag"), ctx.Params("adjudicationFlag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	setShowToast(ctx, "success", "Suggested ruling applied.")
+	setShowToastKey(ctx, "success", "toast.life.ruling_applied")
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
 }
@@ -904,7 +908,7 @@ func lifeCompleteQuest(ctx fiber.Ctx) error {
 	flag := ctx.Params("flag")
 	res, err := lifeService().CompleteQuest(context.Background(), uid, flag)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	msg := fmt.Sprintf("+%d EXP, +%d gold (dice %.2f)", res.GainedExp, res.GainedGold, res.Dice)
 	if res.Dropped {
@@ -931,7 +935,7 @@ func lifeCompleteActionOccurrence(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().CompleteActionOccurrence(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
@@ -946,7 +950,7 @@ func lifeSkipActionOccurrence(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().SkipActionOccurrence(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
@@ -961,7 +965,7 @@ func lifeCheckInHabit(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().CheckInHabit(context.Background(), uid, ctx.Params("flag"), time.Now().UTC()); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
@@ -976,9 +980,9 @@ func lifeFailQuest(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().FailQuest(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	setShowToast(ctx, "warning", "Quest failed — equipped gear tarnished for 24h")
+	setShowToastKey(ctx, "warning", "toast.life.quest_failed_tarnish")
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
 }
@@ -992,9 +996,9 @@ func lifeDismissQuest(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().DismissQuest(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	setShowToast(ctx, "success", "Quest dismissed.")
+	setShowToastKey(ctx, "success", "toast.life.quest_dismissed")
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
 }
@@ -1010,14 +1014,14 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 	backpackPage := parsePositiveIntQuery(ctx, "backpack_page", 1)
 	page, err := lifeService().ListInventoryPage(context.Background(), uid, backpackPage, pages.LifeDefaultListPerPage)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	equippedByID := lifeEquippedSlotFields(page.Slots)
 	backpackRows := mapLifeInventoryRows(page.Items, equippedByID)
 	equipRows := mapLifeInventoryRows(page.Equipped, equippedByID)
 	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
 	return pages.LifeInventoryPage(pages.LifeInventoryData{
@@ -1090,11 +1094,11 @@ func lifeAchievementsPage(ctx fiber.Ctx) error {
 	}
 	items, err := lifeService().ListAchievements(context.Background(), uid)
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
 	if err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	rows := make([]pages.LifeAchievementRow, 0, len(items))
 	unlockedCount := 0
@@ -1127,7 +1131,7 @@ func lifeEquipItem(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().Equip(context.Background(), uid, ctx.Params("flag")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/inventory")
 	return ctx.SendStatus(http.StatusOK)
@@ -1142,7 +1146,7 @@ func lifeUnequipSlot(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := lifeService().Unequip(context.Background(), uid, ctx.Params("slot")); err != nil {
-		return toastError(ctx, lifeUserError(err))
+		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/inventory")
 	return ctx.SendStatus(http.StatusOK)

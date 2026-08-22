@@ -346,10 +346,16 @@
               if (isDetachedObserver()) {
                 markApprovedWaiting();
               } else {
-                showStatusToast('Approved', 'success');
+                showStatusToast(
+                  flowbotI18n('client.chatagent.approve', 'Approve'),
+                  'success',
+                );
               }
             } else {
-              showStatusToast('Denied', 'warning');
+              showStatusToast(
+                flowbotI18n('client.chatagent.deny', 'Deny'),
+                'warning',
+              );
               if (isDetachedObserver()) {
                 reloadOnComplete = true;
                 setWaitingCopy('Denied. Waiting for the turn to finish…');

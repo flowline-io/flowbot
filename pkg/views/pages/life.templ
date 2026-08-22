@@ -1,17 +1,19 @@
 package pages
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 templ LifeDashboardPage(data LifeCharacterData) {
-	@layout.Base(ctx, "Life — Flowbot") {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.life")) {
 		@partials.LifeRadarScripts()
-		@lifeModuleShell("life", data.PendingCount) {
+		@lifeModuleShell(ctx, "life", data.PendingCount) {
 			<div class="life-dashboard" data-testid="life-dashboard">
 				<div class="life-dashboard-grid">
 					<section class="life-panel" data-testid="life-profile-card">
@@ -45,7 +47,7 @@ templ LifeDashboardPage(data LifeCharacterData) {
 									}
 								</div>
 								<span class="life-seg-nums">{ fmt.Sprintf("%d / %d", c.Exp, c.ExpToNext) }</span>
-								<span class="life-stat-lv">LV{ fmt.Sprintf("%d", c.Level) }</span>
+								<span class="life-stat-lv">{ i18n.TData(ctx, "life.meta.level_prefix", map[string]any{"Value": fmt.Sprintf("%d", c.Level)}) }</span>
 							</li>
 						}
 					</ul>
@@ -56,11 +58,11 @@ templ LifeDashboardPage(data LifeCharacterData) {
 }
 
 templ LifeCharacterPage(data LifeCharacterData) {
-	@layout.Base(ctx, "Character — Life") {
-		@lifeModuleShell("character", data.PendingCount) {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.character.title")) {
+		@lifeModuleShell(ctx, "character", data.PendingCount) {
 			<div class="life-identity" data-testid="life-character">
 				<div class="life-identity-title">
-					<div class="life-identity-title-box" data-testid="life-identity-title">Character</div>
+					<div class="life-identity-title-box" data-testid="life-identity-title">{ i18n.T(ctx, "life.page.character.title") }</div>
 				</div>
 				<section class="life-panel life-profile-panel" data-testid="life-profile-card">
 					@lifeProfileSummary(data)
@@ -71,15 +73,15 @@ templ LifeCharacterPage(data LifeCharacterData) {
 						data-testid="life-class-form"
 					>
 						<label class="life-field">
-							<span class="life-field-label">Class</span>
+							<span class="life-field-label">{ i18n.T(ctx, "life.class.label") }</span>
 							<select name="class_type" class="life-field-control" data-testid="life-class-select">
-								<option value="Architect" selected?={ data.ClassType == "Architect" }>Architect</option>
-								<option value="Mage" selected?={ data.ClassType == "Mage" }>Mage</option>
-								<option value="Warrior" selected?={ data.ClassType == "Warrior" }>Warrior</option>
-								<option value="Rogue" selected?={ data.ClassType == "Rogue" }>Rogue</option>
+								<option value="Architect" selected?={ data.ClassType == "Architect" }>{ i18n.T(ctx, "life.class.architect") }</option>
+								<option value="Mage" selected?={ data.ClassType == "Mage" }>{ i18n.T(ctx, "life.class.mage") }</option>
+								<option value="Warrior" selected?={ data.ClassType == "Warrior" }>{ i18n.T(ctx, "life.class.warrior") }</option>
+								<option value="Rogue" selected?={ data.ClassType == "Rogue" }>{ i18n.T(ctx, "life.class.rogue") }</option>
 							</select>
 						</label>
-						<button type="submit" class="btn btn-sm btn-primary" data-testid="life-class-save">Save</button>
+						<button type="submit" class="btn btn-sm btn-primary" data-testid="life-class-save">{ i18n.T(ctx, "life.btn.save") }</button>
 					</form>
 				</section>
 			</div>
@@ -88,13 +90,13 @@ templ LifeCharacterPage(data LifeCharacterData) {
 }
 
 templ LifeGoalsPage(data LifeGoalsData) {
-	@layout.Base(ctx, "Goals — Life") {
-		@lifeModuleShell("goals", data.PendingCount) {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.goals.title")) {
+		@lifeModuleShell(ctx, "goals", data.PendingCount) {
 			<div class="life-shell" data-testid="life-goals-page">
 				<header class="life-shell-header">
 					<div>
-						<h1>Goals</h1>
-						<p>PARA · Project, Area, Resource — the objectives that steer quests and buffs.</p>
+						<h1>{ i18n.T(ctx, "life.page.goals.title") }</h1>
+						<p>{ i18n.T(ctx, "life.page.goals.subtitle") }</p>
 					</div>
 					if len(data.Goals) > 0 {
 						<span class="life-section-count">{ fmt.Sprintf("%d", len(data.Goals)) }</span>
@@ -113,7 +115,7 @@ templ LifeGoalsPage(data LifeGoalsData) {
 							name="title"
 							class="life-goals-compose-title"
 							required
-							placeholder="Ship the book this year"
+							placeholder={ i18n.T(ctx, "life.goal.title_placeholder") }
 							autocomplete="off"
 							data-testid="life-goal-title"
 						/>
@@ -121,33 +123,33 @@ templ LifeGoalsPage(data LifeGoalsData) {
 							name="category"
 							class="life-goals-compose-cat"
 							data-testid="life-goal-category"
-							aria-label="Category"
+							aria-label={ i18n.T(ctx, "life.category.label") }
 							x-model="cat"
 						>
-							<option value="Project">Project</option>
-							<option value="Area">Area</option>
-							<option value="Resource">Resource</option>
+							<option value="Project">{ i18n.T(ctx, "life.category.project") }</option>
+							<option value="Area">{ i18n.T(ctx, "life.category.area") }</option>
+							<option value="Resource">{ i18n.T(ctx, "life.category.resource") }</option>
 						</select>
 						<select
 							name="area_flag"
 							class="life-goals-compose-cat life-goals-compose-area"
 							data-testid="life-goal-area"
-							aria-label="Area"
+							aria-label={ i18n.T(ctx, "life.category.area_label") }
 							x-show="showArea"
 							x-bind:disabled="!showArea"
 						>
-							<option value="">No area</option>
+							<option value="">{ i18n.T(ctx, "life.category.no_area") }</option>
 							for _, a := range data.ActiveAreas {
 								<option value={ a.Flag }>{ a.Title }</option>
 							}
 						</select>
 						<button type="submit" class="btn btn-sm btn-primary life-goals-compose-btn" data-testid="life-goal-create">
 							@partials.HtmxIndicator()
-							Add
+							{ i18n.T(ctx, "life.goal.create") }
 						</button>
 					</form>
 					if len(data.Goals) == 0 {
-						<p class="life-goals-empty">No goals yet — add one above.</p>
+						<p class="life-goals-empty">{ i18n.T(ctx, "life.empty.goals") }</p>
 					} else {
 						<div class="life-goal-groups" data-testid="life-goal-groups">
 							for _, group := range data.Groups {
@@ -155,7 +157,7 @@ templ LifeGoalsPage(data LifeGoalsData) {
 									if group.Area != nil {
 										@lifeGoalCard(*group.Area, data.ActiveAreas)
 									} else {
-										<h2 class="life-goal-group-title">Ungrouped</h2>
+										<h2 class="life-goal-group-title">{ i18n.T(ctx, "life.goal.ungrouped") }</h2>
 									}
 									if len(group.Children) > 0 {
 										<div class="life-goal-list">
@@ -164,14 +166,14 @@ templ LifeGoalsPage(data LifeGoalsData) {
 											}
 										</div>
 									} else if group.Area != nil {
-										<p class="life-goal-group-empty">No projects or resources in this area yet.</p>
+										<p class="life-goal-group-empty">{ i18n.T(ctx, "life.empty.goal_group") }</p>
 									}
 								</section>
 							}
 						</div>
 					}
 					<p class="life-goals-foot">
-						Drop buff +{ fmt.Sprintf("%.0f%%", data.DropRateBonus*100) } · Gold ×{ fmt.Sprintf("%.2f", data.GoldMult) }
+						{ i18n.TData(ctx, "life.dashboard.bonus", map[string]any{"DropRate": fmt.Sprintf("%.0f", data.DropRateBonus*100), "GoldMult": fmt.Sprintf("%.2f", data.GoldMult)}) }
 					</p>
 				</section>
 			</div>
@@ -195,15 +197,15 @@ templ lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) {
 			class="life-goal-card-main"
 			data-testid={ "life-goal-edit-" + g.Flag }
 		>
-			<input name="title" class="life-goal-card-title" required value={ g.Title } aria-label="Goal title"/>
-			<select name="category" class="life-goal-card-cat" aria-label="Category">
-				<option value="Project" selected?={ g.Category == "Project" }>Project</option>
-				<option value="Area" selected?={ g.Category == "Area" }>Area</option>
-				<option value="Resource" selected?={ g.Category == "Resource" }>Resource</option>
+			<input name="title" class="life-goal-card-title" required value={ g.Title } aria-label={ i18n.T(ctx, "life.goal.title_label") }/>
+			<select name="category" class="life-goal-card-cat" aria-label={ i18n.T(ctx, "life.category.label") }>
+				<option value="Project" selected?={ g.Category == "Project" }>{ i18n.T(ctx, "life.category.project") }</option>
+				<option value="Area" selected?={ g.Category == "Area" }>{ i18n.T(ctx, "life.category.area") }</option>
+				<option value="Resource" selected?={ g.Category == "Resource" }>{ i18n.T(ctx, "life.category.resource") }</option>
 			</select>
 			if g.Category == "Project" || g.Category == "Resource" {
-				<select name="area_flag" class="life-goal-card-cat life-goal-card-area" aria-label="Area" data-testid={ "life-goal-area-" + g.Flag }>
-					<option value="">No area</option>
+				<select name="area_flag" class="life-goal-card-cat life-goal-card-area" aria-label={ i18n.T(ctx, "life.category.area_label") } data-testid={ "life-goal-area-" + g.Flag }>
+					<option value="">{ i18n.T(ctx, "life.category.no_area") }</option>
 					for _, a := range LifeGoalAreaOptions(activeAreas, g.AreaFlag, g.AreaTitle) {
 						<option value={ a.Flag } selected?={ a.Flag == g.AreaFlag }>{ a.Title }</option>
 					}
@@ -211,11 +213,19 @@ templ lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) {
 			}
 			<button type="submit" class="btn btn-sm life-goal-save" data-testid={ "life-goal-save-" + g.Flag }>
 				@partials.HtmxIndicator()
-				Save
+				{ i18n.T(ctx, "life.btn.save") }
 			</button>
 		</form>
 		<div class="life-goal-card-toolbar">
-			<span class={ "life-meta-chip", LifeGoalStatusClass(g.Status) }>{ g.Status }</span>
+			<span class={ "life-meta-chip", LifeGoalStatusClass(g.Status) }>
+			if g.Status == "Active" {
+				{ i18n.T(ctx, "life.status.active") }
+			} else if g.Status == "Paused" {
+				{ i18n.T(ctx, "life.status.paused") }
+			} else {
+				{ g.Status }
+			}
+		</span>
 			if g.Status == "Active" {
 				<button
 					type="button"
@@ -224,7 +234,7 @@ templ lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) {
 					hx-vals='{"status":"Paused"}'
 					hx-swap="none"
 					data-testid={ "life-goal-pause-" + g.Flag }
-				>Pause</button>
+				>{ i18n.T(ctx, "life.btn.pause") }</button>
 			}
 			if g.Status == "Paused" {
 				<button
@@ -234,31 +244,31 @@ templ lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) {
 					hx-vals='{"status":"Active"}'
 					hx-swap="none"
 					data-testid={ "life-goal-resume-" + g.Flag }
-				>Resume</button>
+				>{ i18n.T(ctx, "life.btn.resume") }</button>
 			}
 			<button
 				type="button"
 				class="btn btn-ghost btn-sm life-goal-delete"
 				hx-post={ "/service/web/life/goals/" + g.Flag + "/delete" }
 				hx-swap="none"
-				data-confirm="Delete this goal?"
-				data-confirm-title="Delete Goal"
-				data-confirm-btn="Delete"
+				data-confirm={ i18n.T(ctx, "confirm.delete_goal.message") }
+				data-confirm-title={ i18n.T(ctx, "confirm.delete_goal.title") }
+				data-confirm-btn={ i18n.T(ctx, "confirm.delete_goal.btn") }
 				data-confirm-class="btn-error"
 				data-testid={ "life-goal-delete-" + g.Flag }
-			>Delete</button>
+			>{ i18n.T(ctx, "life.btn.delete") }</button>
 		</div>
 	</article>
 }
 
 templ LifePlanPage(data LifePlanData) {
-	@layout.Base(ctx, "Plan — Life") {
-		@lifeModuleShell("plan", data.PendingCount) {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.plan.title")) {
+		@lifeModuleShell(ctx, "plan", data.PendingCount) {
 			<div class="life-shell" data-testid="life-plan-page">
 				<header class="life-shell-header">
 					<div>
-						<h1>Plan Tree</h1>
-						<p>Goal → Milestone → Project → Action · decompose with the Life DM, then confirm import.</p>
+						<h1>{ i18n.T(ctx, "life.page.plan.title") }</h1>
+						<p>{ i18n.T(ctx, "life.page.plan.subtitle") }</p>
 					</div>
 					if len(data.PlanTree) > 0 {
 						<span class="life-section-count">{ fmt.Sprintf("%d", len(data.PlanTree)) }</span>
@@ -278,20 +288,20 @@ templ LifePlanPage(data LifePlanData) {
 								name="root_title"
 								class="life-goals-compose-title"
 								required
-								placeholder="Ask AI to decompose a concrete goal"
+								placeholder={ i18n.T(ctx, "life.plan.breakdown_placeholder") }
 								autocomplete="off"
 								data-testid="life-breakdown-root-title"
 							/>
 							<button type="submit" class="btn btn-sm btn-secondary life-goals-compose-btn" data-testid="life-breakdown-preview">
 								@partials.HtmxIndicator()
-								Preview AI breakdown
+								{ i18n.T(ctx, "life.btn.preview_breakdown") }
 							</button>
 						</div>
 						<textarea
 							name="description"
 							class="life-goals-compose-title life-plan-compose-textarea"
 							rows="2"
-							placeholder="Optional outcome / constraints"
+							placeholder={ i18n.T(ctx, "life.plan.outcome_placeholder") }
 							data-testid="life-breakdown-description"
 						></textarea>
 					</form>
@@ -299,7 +309,7 @@ templ LifePlanPage(data LifePlanData) {
 						<div class="life-goal-card" data-testid="life-breakdown-preview-card">
 							<div class="life-goal-card-main">
 								<div>
-									<p class="life-goal-card-title">AI suggestion: { data.BreakdownPreview.RootTitle }</p>
+									<p class="life-goal-card-title">{ i18n.TData(ctx, "life.plan.ai_suggestion", map[string]any{"Title": data.BreakdownPreview.RootTitle}) }</p>
 									if data.BreakdownPreview.Description != "" {
 										<p class="life-goals-sub">{ data.BreakdownPreview.Description }</p>
 									}
@@ -315,13 +325,13 @@ templ LifePlanPage(data LifePlanData) {
 								<input type="hidden" name="payload_json" value={ data.BreakdownPreview.PayloadJSON }/>
 								<button type="submit" class="btn btn-sm btn-primary" data-testid="life-breakdown-import">
 									@partials.HtmxIndicator()
-									Import suggestion
+									{ i18n.T(ctx, "life.btn.import_suggestion") }
 								</button>
 							</form>
 						</div>
 					}
 					if len(data.PlanTree) == 0 {
-						<p class="life-goals-empty">No plan nodes yet — preview an AI breakdown to start the tree.</p>
+						<p class="life-goals-empty">{ i18n.T(ctx, "life.empty.plan_nodes") }</p>
 					} else {
 						<div class="life-goal-list">
 							for _, node := range data.PlanTree {
@@ -336,29 +346,29 @@ templ LifePlanPage(data LifePlanData) {
 }
 
 templ LifeSkillsPage(data LifeSkillTreeData) {
-	@layout.Base(ctx, "Skills — Life") {
-		@lifeModuleShell("skills", data.PendingCount) {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.skills.title")) {
+		@lifeModuleShell(ctx, "skills", data.PendingCount) {
 			<div class="life-shell" data-testid="life-skills-page">
 				<header class="life-shell-header">
 					<div>
-						<h1>Skill Tree</h1>
-						<p>See which branches are actively trained and inspect the recent practice evidence behind each one.</p>
+						<h1>{ i18n.T(ctx, "life.page.skills.title") }</h1>
+						<p>{ i18n.T(ctx, "life.page.skills.subtitle") }</p>
 					</div>
 					<div class="life-skills-summary">
-						<span class="life-meta-chip">{ fmt.Sprintf("%d", data.ActiveLeafCount) } active</span>
-						<span class="life-meta-chip">{ fmt.Sprintf("%d", data.TrackedLeafCount) } tracked</span>
+						<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.active_count", map[string]any{"Count": data.ActiveLeafCount}) }</span>
+						<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.tracked_count", map[string]any{"Count": data.TrackedLeafCount}) }</span>
 					</div>
 				</header>
 				<div class="life-skills-grid">
 					<section class="life-panel life-section life-skills-tree-panel" data-testid="life-skills-tree">
 						<header class="life-goals-head">
 							<div>
-								<h2 class="life-goals-title">Growth Map</h2>
-								<p class="life-goals-sub">Expand branches to explore; active ones are highlighted by recent practice.</p>
+								<h2 class="life-goals-title">{ i18n.T(ctx, "life.skills.growth_map") }</h2>
+								<p class="life-goals-sub">{ i18n.T(ctx, "life.skills.growth_map_sub") }</p>
 							</div>
 						</header>
 						if len(data.Roots) == 0 {
-							<p class="life-goals-empty">No tracked skills yet — complete quests or build action plans to grow the tree.</p>
+							<p class="life-goals-empty">{ i18n.T(ctx, "life.empty.skills") }</p>
 						} else {
 							<div class="life-skill-node-list">
 								for _, node := range data.Roots {
@@ -370,12 +380,12 @@ templ LifeSkillsPage(data LifeSkillTreeData) {
 					<section class="life-panel life-section life-skills-detail-panel" data-testid="life-skill-detail">
 						<header class="life-goals-head">
 							<div>
-								<h2 class="life-goals-title">Practice Evidence</h2>
-								<p class="life-goals-sub">Click a node to inspect the recent quests, actions, and habits that keep it active.</p>
+								<h2 class="life-goals-title">{ i18n.T(ctx, "life.skills.practice_evidence") }</h2>
+								<p class="life-goals-sub">{ i18n.T(ctx, "life.skills.practice_evidence_sub") }</p>
 							</div>
 						</header>
 						if data.SelectedNode == nil {
-							<p class="life-goals-empty">Select a branch to inspect its recent practice evidence.</p>
+							<p class="life-goals-empty">{ i18n.T(ctx, "life.empty.skill_evidence") }</p>
 						} else {
 							<div class="life-goal-card life-skill-detail-card">
 								<div class="life-goal-card-main life-skill-detail-main">
@@ -390,16 +400,16 @@ templ LifeSkillsPage(data LifeSkillTreeData) {
 									</div>
 									<div class="life-goal-card-meta">
 										<span class={ "life-meta-chip", LifeSkillStatusClass(data.SelectedNode.Status) }>{ data.SelectedNode.Status }</span>
-										<span class="life-meta-chip">{ fmt.Sprintf("%d", data.SelectedNode.PracticeCount) } records</span>
-										<span class="life-meta-chip">{ fmt.Sprintf("%d", data.SelectedNode.SkillCount) } skills</span>
+										<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.records_count", map[string]any{"Count": data.SelectedNode.PracticeCount}) }</span>
+										<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.skills_count", map[string]any{"Count": data.SelectedNode.SkillCount}) }</span>
 									</div>
 								</div>
 								if data.SelectedNode.LastActivityLabel != "" {
-									<p class="life-skill-detail-foot">Last activity: { data.SelectedNode.LastActivityLabel }</p>
+									<p class="life-skill-detail-foot">{ i18n.TData(ctx, "life.skills.last_activity", map[string]any{"Label": data.SelectedNode.LastActivityLabel}) }</p>
 								}
 							</div>
 							if len(data.SelectedNode.Evidence) == 0 {
-								<p class="life-goals-empty">No recent evidence linked to this branch yet.</p>
+								<p class="life-goals-empty">{ i18n.T(ctx, "life.empty.skill_evidence_node") }</p>
 							} else {
 								<ul class="life-skill-evidence-list">
 									for _, evidence := range data.SelectedNode.Evidence {
@@ -443,10 +453,10 @@ templ lifePlanNode(node LifePlanNodeRow, depth int) {
 						}
 					</div>
 					<div class="life-goal-card-meta">
-						<span class="life-meta-chip">{ LifePlanNodeTypeLabel(node.NodeType) }</span>
-						<span class="life-meta-chip">{ fmt.Sprintf("%d", len(node.Children)) } items</span>
+						<span class="life-meta-chip">{ LifePlanNodeTypeLabel(ctx, node.NodeType) }</span>
+						<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.items_count", map[string]any{"Count": len(node.Children)}) }</span>
 						if node.TaskType != "" {
-							<span class="life-meta-chip">{ LifeTaskTypeLabel(node.TaskType) }</span>
+							<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, node.TaskType) }</span>
 						}
 					</div>
 				</div>
@@ -467,9 +477,9 @@ templ lifePlanNode(node LifePlanNodeRow, depth int) {
 					}
 				</div>
 				<div class="life-goal-card-meta">
-					<span class="life-meta-chip">{ LifePlanNodeTypeLabel(node.NodeType) }</span>
+					<span class="life-meta-chip">{ LifePlanNodeTypeLabel(ctx, node.NodeType) }</span>
 					if node.TaskType != "" {
-						<span class="life-meta-chip">{ LifeTaskTypeLabel(node.TaskType) }</span>
+						<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, node.TaskType) }</span>
 					}
 					if node.SuggestedCadence != "" {
 						<span class="life-meta-chip">{ node.SuggestedCadence }</span>
@@ -478,10 +488,10 @@ templ lifePlanNode(node LifePlanNodeRow, depth int) {
 						<span class="life-meta-chip">{ node.TrackingMode }</span>
 					}
 					if node.Exp > 0 {
-						<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", node.Exp) }</strong> EXP</span>
+						<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": node.Exp}) }</strong></span>
 					}
 					if node.Gold > 0 {
-						<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", node.Gold) }</strong> gold</span>
+						<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.gold", map[string]any{"Value": node.Gold}) }</strong></span>
 					}
 				</div>
 			</div>
@@ -493,7 +503,7 @@ templ lifePlanNode(node LifePlanNodeRow, depth int) {
 						hx-post={ "/service/web/life/character/plan/" + node.Flag + "/confirm-habit" }
 						hx-swap="none"
 						data-testid={ "life-plan-confirm-" + node.Flag }
-					>Confirm habit</button>
+					>{ i18n.T(ctx, "life.btn.confirm_habit") }</button>
 				</div>
 			}
 		</div>
@@ -510,9 +520,9 @@ templ lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) {
 				}
 			</div>
 			<div class="life-goal-card-meta">
-				<span class="life-meta-chip">{ LifePlanNodeTypeLabel(node.NodeType) }</span>
+				<span class="life-meta-chip">{ LifePlanNodeTypeLabel(ctx, node.NodeType) }</span>
 				if node.TaskType != "" {
-					<span class="life-meta-chip">{ LifeTaskTypeLabel(node.TaskType) }</span>
+					<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, node.TaskType) }</span>
 				}
 				if node.SuggestedCadence != "" {
 					<span class="life-meta-chip">{ node.SuggestedCadence }</span>
@@ -521,10 +531,10 @@ templ lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) {
 					<span class="life-meta-chip">{ node.Difficulty }</span>
 				}
 				if node.Exp > 0 {
-					<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", node.Exp) }</strong> EXP</span>
+					<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": node.Exp}) }</strong></span>
 				}
 				if node.Gold > 0 {
-					<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", node.Gold) }</strong> gold</span>
+					<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.gold", map[string]any{"Value": node.Gold}) }</strong></span>
 				}
 			</div>
 		</div>
@@ -534,22 +544,22 @@ templ lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) {
 	}
 }
 
-templ lifeModuleShell(active string, pendingCount int) {
+templ lifeModuleShell(ctx context.Context, active string, pendingCount int) {
 	<div class="life-module" data-testid="life-module">
-		<aside class="life-sidebar" aria-label="Life navigation">
-			<p class="life-sidebar-brand">Life</p>
+		<aside class="life-sidebar" aria-label={ i18n.T(ctx, "life.nav.aria_label") }>
+			<p class="life-sidebar-brand">{ i18n.T(ctx, "life.brand") }</p>
 			<nav class="life-sidebar-nav">
 				<a
 					href="/service/web/life"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "life") }
 					data-testid="life-goto-home"
-				>Life</a>
+				>{ i18n.T(ctx, "nav.life") }</a>
 				<a
 					href="/service/web/life/quests"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "quests") }
 					data-testid="life-goto-quests"
 				>
-					Quests
+					{ i18n.T(ctx, "nav.quests") }
 					if pendingCount > 0 {
 						<span class="life-sidebar-badge">{ fmt.Sprintf("%d", pendingCount) }</span>
 					}
@@ -558,42 +568,42 @@ templ lifeModuleShell(active string, pendingCount int) {
 					href="/service/web/life/rewards"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "rewards") }
 					data-testid="life-goto-rewards"
-				>Rewards</a>
+				>{ i18n.T(ctx, "nav.rewards") }</a>
 				<a
 					href="/service/web/life/skills"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "skills") }
 					data-testid="life-goto-skills"
-				>Skills</a>
+				>{ i18n.T(ctx, "nav.skills") }</a>
 				<a
 					href="/service/web/life/inventory"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "inventory") }
 					data-testid="life-goto-inventory"
-				>Inventory</a>
+				>{ i18n.T(ctx, "nav.inventory") }</a>
 				<a
 					href="/service/web/life/goals"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "goals") }
 					data-testid="life-goto-goals"
-				>Goals</a>
+				>{ i18n.T(ctx, "life.nav.goals") }</a>
 				<a
 					href="/service/web/life/plan"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "plan") }
 					data-testid="life-goto-plan"
-				>Plan</a>
+				>{ i18n.T(ctx, "life.nav.plan") }</a>
 				<a
 					href="/service/web/life/stats"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "stats") }
 					data-testid="life-goto-stats"
-				>Stats</a>
+				>{ i18n.T(ctx, "nav.stats") }</a>
 				<a
 					href="/service/web/life/character"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "character") }
 					data-testid="life-goto-character"
-				>Character</a>
+				>{ i18n.T(ctx, "nav.character") }</a>
 				<a
 					href="/service/web/life/achievements"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "achievements") }
 					data-testid="life-goto-achievements"
-				>Achievements</a>
+				>{ i18n.T(ctx, "nav.achievements") }</a>
 			</nav>
 		</aside>
 		<div class="life-module-main">
@@ -637,9 +647,9 @@ templ lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) {
 		</div>
 		<div class="life-goal-card-meta life-skill-node-meta">
 			<span class={ "life-meta-chip", LifeSkillStatusClass(node.Status) }>{ node.Status }</span>
-			<span class="life-meta-chip">{ fmt.Sprintf("%d", node.PracticeCount) } records</span>
+			<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.records_count", map[string]any{"Count": node.PracticeCount}) }</span>
 			if node.SkillCount > 0 {
-				<span class="life-meta-chip">{ fmt.Sprintf("%d", node.SkillCount) } skills</span>
+				<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.skills_count", map[string]any{"Count": node.SkillCount}) }</span>
 			}
 			if node.LastActivityLabel != "" {
 				<span class="life-meta-chip">{ node.LastActivityLabel }</span>
@@ -661,7 +671,7 @@ templ lifeProfileSummary(data LifeCharacterData) {
 	<p class="life-meta-line" data-testid="life-meta-line">
 		<span data-testid="life-nickname">{ data.Nickname }</span>
 		<span class="life-meta-sep">•</span>
-		<span data-testid="life-level">Level { fmt.Sprintf("%d", data.Level) }</span>
+		<span data-testid="life-level">{ i18n.TData(ctx, "life.profile.level", map[string]any{"Value": data.Level}) }</span>
 		<span class="life-meta-sep">•</span>
 		<span data-testid="life-gold">{ fmt.Sprintf("%d", data.Gold) } Coins</span>
 	</p>
@@ -680,24 +690,24 @@ templ lifeProfileSummary(data LifeCharacterData) {
 	</div>
 	<ul class="life-trait-list">
 		<li class="life-trait-row">
-			<span class="life-trait-label">Master Objective</span>
+			<span class="life-trait-label">{ i18n.T(ctx, "life.profile.master_objective") }</span>
 			<span class="life-trait-value" data-testid="life-master-objective">{ data.MasterObjective }</span>
 		</li>
 		<li class="life-trait-row">
-			<span class="life-trait-label">Minor Objective</span>
+			<span class="life-trait-label">{ i18n.T(ctx, "life.profile.minor_objective") }</span>
 			<span class="life-trait-value" data-testid="life-minor-objective">{ data.MinorObjective }</span>
 		</li>
 		<li class="life-trait-row">
-			<span class="life-trait-label">Strength</span>
+			<span class="life-trait-label">{ i18n.T(ctx, "life.profile.strength") }</span>
 			<span class="life-trait-value" data-testid="life-strength">{ data.Strength }</span>
 		</li>
 		<li class="life-trait-row">
-			<span class="life-trait-label">Weaknesses</span>
+			<span class="life-trait-label">{ i18n.T(ctx, "life.profile.weaknesses") }</span>
 			<span class="life-trait-value" data-testid="life-weakness">{ data.Weakness }</span>
 		</li>
 	</ul>
 	<div class="life-level-row" data-testid="life-level-progress">
-		<span class="life-level-label">Level UP:</span>
+		<span class="life-level-label">{ i18n.T(ctx, "life.profile.level_up") }</span>
 		<div class="life-seg-bar" aria-hidden="true">
 			for i := range LifeSegmentIndexes(data.LevelTotalSegs) {
 				if i < data.LevelFilledSegs {
@@ -738,30 +748,30 @@ templ lifeListPager(info LifePageInfo, testID string) {
 	if info.TotalPages > 1 {
 		<nav class="life-pager" data-testid={ testID }>
 			if info.HasPrev {
-				<a class="life-pager-btn" href={ templ.URL(info.PrevURL) } data-testid={ testID + "-prev" }>Prev</a>
+				<a class="life-pager-btn" href={ templ.URL(info.PrevURL) } data-testid={ testID + "-prev" }>{ i18n.T(ctx, "life.btn.prev") }</a>
 			} else {
-				<span class="life-pager-btn is-disabled" aria-disabled="true">Prev</span>
+				<span class="life-pager-btn is-disabled" aria-disabled="true">{ i18n.T(ctx, "life.btn.prev") }</span>
 			}
 			<span class="life-pager-status">
-				Page { fmt.Sprintf("%d", info.Page) } of { fmt.Sprintf("%d", info.TotalPages) }
+				{ i18n.TData(ctx, "life.pager.page_of", map[string]any{"Page": info.Page, "Total": info.TotalPages}) }
 			</span>
 			if info.HasNext {
-				<a class="life-pager-btn" href={ templ.URL(info.NextURL) } data-testid={ testID + "-next" }>Next</a>
+				<a class="life-pager-btn" href={ templ.URL(info.NextURL) } data-testid={ testID + "-next" }>{ i18n.T(ctx, "life.btn.next") }</a>
 			} else {
-				<span class="life-pager-btn is-disabled" aria-disabled="true">Next</span>
+				<span class="life-pager-btn is-disabled" aria-disabled="true">{ i18n.T(ctx, "life.btn.next") }</span>
 			}
 		</nav>
 	}
 }
 
 templ LifeQuestsPage(data LifeQuestsData) {
-	@layout.Base(ctx, "Quests — Life") {
-		@lifeModuleShell("quests", data.PendingCount) {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.quests.title")) {
+		@lifeModuleShell(ctx, "quests", data.PendingCount) {
 			<div class="life-shell" data-testid="life-quests-page">
 				<header class="life-shell-header">
 					<div>
-						<h1>Quests</h1>
-						<p>Describe work; the Life DM rates difficulty and loot.</p>
+						<h1>{ i18n.T(ctx, "life.page.quests.title") }</h1>
+						<p>{ i18n.T(ctx, "life.page.quests.subtitle") }</p>
 					</div>
 				</header>
 
@@ -773,21 +783,21 @@ templ LifeQuestsPage(data LifeQuestsData) {
 						data-testid="life-quest-form"
 					>
 						<label class="form-control w-full">
-							<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">What will you do?</span>
+							<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">{ i18n.T(ctx, "life.quest.what_will_you_do") }</span>
 							<textarea
 								name="prompt"
 								class="textarea textarea-bordered w-full mt-1"
 								rows="3"
 								required
-								placeholder="e.g. Finish the API architecture diagram tonight"
+								placeholder={ i18n.T(ctx, "life.quest.prompt_placeholder") }
 								data-testid="life-quest-prompt"
 							></textarea>
 						</label>
 						if len(data.Goals) > 0 {
 							<label class="form-control w-full mt-2">
-								<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">Link goal (optional)</span>
+								<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">{ i18n.T(ctx, "life.quest.link_goal") }</span>
 								<select name="goal_flag" class="select select-bordered select-sm w-full mt-1" data-testid="life-quest-goal">
-									<option value="">None</option>
+									<option value="">{ i18n.T(ctx, "life.quest.link_goal_none") }</option>
 									for _, g := range data.Goals {
 										<option value={ g.Flag }>{ g.Category }: { g.Title }</option>
 									}
@@ -795,10 +805,10 @@ templ LifeQuestsPage(data LifeQuestsData) {
 							</label>
 						}
 						<div class="life-composer-actions">
-							<p class="life-composer-hint">AI evaluates difficulty; server sets rewards and drop chance.</p>
+							<p class="life-composer-hint">{ i18n.T(ctx, "life.quest.composer_hint") }</p>
 							<button type="submit" class="btn btn-primary btn-sm" data-testid="life-quest-create">
 								@partials.HtmxIndicator()
-								Create quest
+								{ i18n.T(ctx, "life.btn.create") }
 							</button>
 						</div>
 					</form>
@@ -806,11 +816,11 @@ templ LifeQuestsPage(data LifeQuestsData) {
 
 			<section class="life-panel life-section">
 				<div class="life-section-head">
-					<h2>Today actions</h2>
+					<h2>{ i18n.T(ctx, "life.quest.today_actions") }</h2>
 					<span class="life-section-count">{ fmt.Sprintf("%d", len(data.TodayActions)) }</span>
 				</div>
 				if len(data.TodayActions) == 0 {
-					<p class="life-empty">No pending action occurrences for today.</p>
+					<p class="life-empty">{ i18n.T(ctx, "life.empty.today_actions") }</p>
 				} else {
 					<ul class="life-quest-list life-action-list" data-testid="life-today-actions">
 						for _, a := range data.TodayActions {
@@ -824,7 +834,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 										<p class="life-action-description">{ a.Description }</p>
 									}
 									<div class="life-quest-meta life-action-meta">
-										<span class="life-meta-chip">{ LifeTaskTypeLabel(a.TaskType) }</span>
+										<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, a.TaskType) }</span>
 										<span class="life-meta-chip">{ LifeOccurrenceKindLabel(a.Kind) }</span>
 										if a.SuggestedCadence != "" {
 											<span class="life-meta-chip">{ a.SuggestedCadence }</span>
@@ -836,24 +846,24 @@ templ LifeQuestsPage(data LifeQuestsData) {
 											<span class="life-meta-chip">{ a.Difficulty }</span>
 										}
 										if a.Exp > 0 {
-											<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", a.Exp) }</strong> EXP</span>
+											<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": a.Exp}) }</strong></span>
 										}
 										if a.Gold > 0 {
-											<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", a.Gold) }</strong> gold</span>
+											<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.gold", map[string]any{"Value": a.Gold}) }</strong></span>
 										}
 										if a.DueLabel != "" {
-											<span class="life-meta-chip">Due { a.DueLabel }</span>
+											<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.due", map[string]any{"Label": a.DueLabel}) }</span>
 										}
 									</div>
 								</div>
 								<div class="life-quest-actions life-action-actions">
 									<button type="button" class="btn btn-sm btn-primary" hx-post={ "/service/web/life/actions/" + a.Flag + "/complete" } hx-swap="none" data-testid={ "life-action-complete-" + a.Flag }>
 										@partials.HtmxIndicator()
-										Complete
+										{ i18n.T(ctx, "life.btn.complete") }
 									</button>
 									<button type="button" class="btn btn-sm btn-ghost" hx-post={ "/service/web/life/actions/" + a.Flag + "/skip" } hx-swap="none" data-testid={ "life-action-skip-" + a.Flag }>
 										@partials.HtmxIndicator()
-										Skip
+										{ i18n.T(ctx, "life.btn.skip") }
 									</button>
 								</div>
 							</li>
@@ -864,11 +874,11 @@ templ LifeQuestsPage(data LifeQuestsData) {
 
 			<section class="life-panel life-section">
 				<div class="life-section-head">
-					<h2>Today habits</h2>
+					<h2>{ i18n.T(ctx, "life.quest.today_habits") }</h2>
 					<span class="life-section-count">{ fmt.Sprintf("%d", len(data.TodayHabits)) }</span>
 				</div>
 				if len(data.TodayHabits) == 0 {
-					<p class="life-empty">No habits ready for check-in.</p>
+					<p class="life-empty">{ i18n.T(ctx, "life.empty.today_habits") }</p>
 				} else {
 					<ul class="life-done-list" data-testid="life-today-habits">
 						for _, h := range data.TodayHabits {
@@ -876,12 +886,12 @@ templ LifeQuestsPage(data LifeQuestsData) {
 								<div class="life-done-main">
 									<span class="life-done-title">{ h.Title }</span>
 									<div class="life-quest-meta">
-										<span class="life-meta-chip">{ LifeTaskTypeLabel(h.TaskType) }</span>
+										<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, h.TaskType) }</span>
 										if h.SuggestedCadence != "" {
 											<span class="life-meta-chip">{ h.SuggestedCadence }</span>
 										}
 										if h.CheckedIn {
-											<span class="life-meta-chip">done today</span>
+											<span class="life-meta-chip">{ i18n.T(ctx, "life.meta.done_today") }</span>
 										}
 									</div>
 								</div>
@@ -889,7 +899,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 									if !h.CheckedIn {
 										<button type="button" class="btn btn-sm btn-primary" hx-post={ "/service/web/life/habits/" + h.NodeFlag + "/checkin" } hx-swap="none" data-testid={ "life-habit-checkin-" + h.NodeFlag }>
 											@partials.HtmxIndicator()
-											Check in
+											{ i18n.T(ctx, "life.btn.check_in") }
 										</button>
 									}
 								</div>
@@ -901,11 +911,11 @@ templ LifeQuestsPage(data LifeQuestsData) {
 
 			<section class="life-panel life-section">
 				<div class="life-section-head">
-					<h2>Pending</h2>
+					<h2>{ i18n.T(ctx, "life.quest.pending") }</h2>
 					<span class="life-section-count" data-testid="life-pending-count">{ fmt.Sprintf("%d", len(data.Pending)) }</span>
 				</div>
 				if len(data.Pending) == 0 {
-					<p class="life-empty">No pending quests. Write one above to begin.</p>
+					<p class="life-empty">{ i18n.T(ctx, "life.empty.quests_pending") }</p>
 				} else {
 					<ul class="life-quest-list" data-testid="life-quests-pending">
 						for _, q := range data.Pending {
@@ -918,22 +928,22 @@ templ LifeQuestsPage(data LifeQuestsData) {
 									<div class="life-quest-meta">
 										<span class="life-meta-chip">{ q.Type }</span>
 										<span class="life-meta-chip life-meta-chip-diff">{ q.Difficulty }</span>
-										<span class="life-meta-chip">Fear { fmt.Sprintf("%d", q.Fear) }</span>
+										<span class="life-meta-chip">{ i18n.TData(ctx, "life.quest.fear", map[string]any{"Value": q.Fear}) }</span>
 										<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(q.DropTier) }>{ q.DropTier }</span>
 									</div>
 									<div class="life-quest-rewards">
-										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Exp) }</strong> EXP</span>
-										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Gold) }</strong> gold</span>
-										<span class="life-quest-reward">~<strong>{ fmt.Sprintf("%.0f%%", q.DropChance*100) }</strong> drop</span>
+										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": q.Exp}) }</strong></span>
+										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.gold", map[string]any{"Value": q.Gold}) }</strong></span>
+										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.quest.drop_chance", map[string]any{"Percent": fmt.Sprintf("%.0f", q.DropChance*100)}) }</strong></span>
 									</div>
 
 									<section class="life-quest-evidence">
 										<header class="life-quest-block-head">
-											<span>Quest evidence</span>
+											<span>{ i18n.T(ctx, "life.quest.evidence") }</span>
 											<span class="life-section-count">{ fmt.Sprintf("%d", len(q.Evidence)) }</span>
 										</header>
 										if len(q.Evidence) == 0 {
-											<p class="life-empty">No evidence submitted yet.</p>
+											<p class="life-empty">{ i18n.T(ctx, "life.empty.quest_evidence") }</p>
 										} else {
 											<ul class="life-quest-evidence-list">
 												for _, ev := range q.Evidence {
@@ -942,7 +952,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 															<span class="life-meta-chip">{ ev.SourceType }</span>
 															<p class="life-quest-evidence-content">{ ev.Content }</p>
 															if ev.SourceURL != "" {
-																<a href={ templ.URL(ev.SourceURL) } class="life-quest-evidence-link" target="_blank" rel="noreferrer">Open source</a>
+																<a href={ templ.URL(ev.SourceURL) } class="life-quest-evidence-link" target="_blank" rel="noreferrer">{ i18n.T(ctx, "life.quest.open_source") }</a>
 															}
 														</div>
 														<span class="life-quest-evidence-when">{ ev.When }</span>
@@ -959,33 +969,33 @@ templ LifeQuestsPage(data LifeQuestsData) {
 										class="life-quest-evidence-form"
 									>
 										<label class="life-quest-field">
-											<span class="life-quest-field-label">Submit evidence</span>
+											<span class="life-quest-field-label">{ i18n.T(ctx, "life.quest.submit_evidence") }</span>
 											<textarea
 												name="content"
 												class="life-quest-textarea"
 												rows="3"
 												required
-												placeholder="Describe what you shipped, learned, or produced."
+												placeholder={ i18n.T(ctx, "life.quest.evidence_placeholder") }
 											></textarea>
 										</label>
 										<div class="life-quest-field-grid">
 											<label class="life-quest-field">
-												<span class="life-quest-field-label">Evidence type</span>
+												<span class="life-quest-field-label">{ i18n.T(ctx, "life.quest.evidence_type") }</span>
 												<select name="source_type" class="life-quest-select">
-													<option value="note">note</option>
-													<option value="link">link</option>
-													<option value="artifact">artifact</option>
+													<option value="note">{ i18n.T(ctx, "life.quest.evidence_type_note") }</option>
+													<option value="link">{ i18n.T(ctx, "life.quest.evidence_type_link") }</option>
+													<option value="artifact">{ i18n.T(ctx, "life.quest.evidence_type_artifact") }</option>
 												</select>
 											</label>
 											<label class="life-quest-field">
-												<span class="life-quest-field-label">Source URL (optional)</span>
+												<span class="life-quest-field-label">{ i18n.T(ctx, "life.quest.source_url") }</span>
 												<input name="source_url" class="life-quest-input" placeholder="https://..." />
 											</label>
 										</div>
 										<div class="life-quest-toolbar">
 											<button type="submit" class="btn btn-sm btn-outline" data-testid={ "life-quest-add-evidence-" + q.Flag }>
 												@partials.HtmxIndicator()
-												Add evidence
+												{ i18n.T(ctx, "life.quest.add_evidence") }
 											</button>
 											<button
 												type="button"
@@ -996,7 +1006,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 												data-testid={ "life-quest-adjudicate-" + q.Flag }
 											>
 												@partials.HtmxIndicator()
-												Request ruling
+												{ i18n.T(ctx, "life.quest.request_ruling") }
 											</button>
 										</div>
 									</form>
@@ -1010,8 +1020,8 @@ templ LifeQuestsPage(data LifeQuestsData) {
 											</div>
 											<p class="life-quest-ruling-reason">{ q.Adjudication.Reason }</p>
 											<div class="life-quest-rewards">
-												<span class="life-quest-reward">Suggested +<strong>{ fmt.Sprintf("%d", q.Adjudication.SuggestedExp) }</strong> EXP</span>
-												<span class="life-quest-reward">Suggested +<strong>{ fmt.Sprintf("%d", q.Adjudication.SuggestedGold) }</strong> gold</span>
+												<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.quest.suggested_exp", map[string]any{"Value": q.Adjudication.SuggestedExp}) }</strong></span>
+												<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.quest.suggested_gold", map[string]any{"Value": q.Adjudication.SuggestedGold}) }</strong></span>
 											</div>
 											if len(q.Adjudication.SuggestedNextSteps) > 0 {
 												<ul class="life-quest-ruling-steps">
@@ -1034,7 +1044,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 												data-testid={ "life-quest-apply-" + q.Flag }
 											>
 												@partials.HtmxIndicator()
-												Apply ruling
+												{ i18n.T(ctx, "life.quest.apply_ruling") }
 											</button>
 										}
 										<button
@@ -1043,11 +1053,13 @@ templ LifeQuestsPage(data LifeQuestsData) {
 											hx-post={ "/service/web/life/quests/" + q.Flag + "/dismiss" }
 											hx-swap="none"
 											hx-disabled-elt="this"
-											data-confirm="Dismiss this quest? No penalty."
+											data-confirm={ i18n.T(ctx, "confirm.dismiss_quest.message") }
+											data-confirm-title={ i18n.T(ctx, "confirm.dismiss_quest.title") }
+											data-confirm-btn={ i18n.T(ctx, "confirm.dismiss_quest.btn") }
 											data-testid={ "life-quest-dismiss-" + q.Flag }
 										>
 											@partials.HtmxIndicator()
-											Dismiss
+											{ i18n.T(ctx, "life.btn.dismiss") }
 										</button>
 									</div>
 								</div>
@@ -1058,7 +1070,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 			</section>
 
 			<section id={ LifeHistoryAnchor } class="life-panel life-section life-anchor-target" data-testid="life-history-section">
-				<div class="life-tabs" role="tablist" aria-label="Quest history" data-testid="life-history-tabs">
+				<div class="life-tabs" role="tablist" aria-label={ i18n.T(ctx, "life.quest.completed") } data-testid="life-history-tabs">
 					<a
 						role="tab"
 						class={ LifeHistoryTabClass(data.HistoryTab, LifeHistoryTabCompleted) }
@@ -1070,7 +1082,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 						}
 						data-testid="life-history-tab-completed"
 					>
-						Recently completed
+						{ i18n.T(ctx, "life.quest.completed") }
 						<span class="life-tab-count">{ fmt.Sprintf("%d", data.CompletedPage.Total) }</span>
 					</a>
 					<a
@@ -1084,7 +1096,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 						}
 						data-testid="life-history-tab-logs"
 					>
-						Action log
+						{ i18n.T(ctx, "life.quest.completions_log") }
 						<span class="life-tab-count">{ fmt.Sprintf("%d", data.ActionLogsPage.Total) }</span>
 					</a>
 				</div>
@@ -1099,7 +1111,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 					}
 				>
 					if len(data.Completed) == 0 {
-						<p class="life-empty">Nothing completed yet.</p>
+						<p class="life-empty">{ i18n.T(ctx, "life.empty.quest_completed") }</p>
 					} else {
 						<ul class="life-done-list" data-testid="life-quests-completed">
 							for _, q := range data.Completed {
@@ -1111,8 +1123,8 @@ templ LifeQuestsPage(data LifeQuestsData) {
 										}
 									</div>
 									<div class="life-done-meta">
-										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Exp) }</strong> EXP</span>
-										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Gold) }</strong> gold</span>
+										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": q.Exp}) }</strong></span>
+										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.gold", map[string]any{"Value": q.Gold}) }</strong></span>
 										<span class="life-meta-chip life-meta-chip-diff">{ q.Difficulty }</span>
 									</div>
 								</li>
@@ -1132,7 +1144,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 					}
 				>
 					if len(data.ActionLogs) == 0 {
-						<p class="life-empty">No completions logged yet.</p>
+						<p class="life-empty">{ i18n.T(ctx, "life.empty.completions_log") }</p>
 					} else {
 						<ul class="life-done-list" data-testid="life-action-logs">
 							for _, l := range data.ActionLogs {
@@ -1142,13 +1154,13 @@ templ LifeQuestsPage(data LifeQuestsData) {
 										<span class="life-done-prompt">{ LifeActionLogSourceLabel(l.SourceType) } · { l.When }</span>
 									</div>
 									<div class="life-done-meta">
-										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", l.GainedExp) }</strong> EXP</span>
-										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", l.GainedGold) }</strong> gold</span>
+										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": l.GainedExp}) }</strong></span>
+										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.gold", map[string]any{"Value": l.GainedGold}) }</strong></span>
 										if l.HasDice {
-											<span class="life-meta-chip">dice { fmt.Sprintf("%.2f", l.Dice) }</span>
+											<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.dice", map[string]any{"Value": fmt.Sprintf("%.2f", l.Dice)}) }</span>
 										}
 										if l.Dropped {
-											<span class="life-meta-chip">drop</span>
+											<span class="life-meta-chip">{ i18n.T(ctx, "life.meta.drop") }</span>
 										}
 									</div>
 								</li>
@@ -1164,19 +1176,19 @@ templ LifeQuestsPage(data LifeQuestsData) {
 }
 
 templ LifeInventoryPage(data LifeInventoryData) {
-	@layout.Base(ctx, "Inventory — Life") {
-		@lifeModuleShell("inventory", data.PendingCount) {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.inventory.title")) {
+		@lifeModuleShell(ctx, "inventory", data.PendingCount) {
 			<div class="life-shell" data-testid="life-inventory-page">
 				<header class="life-shell-header">
 					<div>
-						<h1>Inventory</h1>
-						<p>Equip gear to gain attribute and ability bonuses.</p>
+						<h1>{ i18n.T(ctx, "life.page.inventory.title") }</h1>
+						<p>{ i18n.T(ctx, "life.page.inventory.subtitle") }</p>
 					</div>
 				</header>
 
 				<section class="life-panel life-section" data-testid="life-equip-board">
 					<div class="life-section-head">
-						<h2>Equipped</h2>
+						<h2>{ i18n.T(ctx, "life.inventory.equipped") }</h2>
 						<span class="life-section-count">{ lifeEquippedCount(data.Slots) }</span>
 					</div>
 					<div class="life-equip-stage" data-testid="life-equip-slots">
@@ -1204,10 +1216,10 @@ templ LifeInventoryPage(data LifeInventoryData) {
 											<span class="life-meta-chip">{ slot.Item.BuffText }</span>
 										}
 										if slot.Item.PerkText != "" {
-											<span class="life-meta-chip">Perk { slot.Item.PerkText }</span>
+											<span class="life-meta-chip">{ i18n.TData(ctx, "life.inventory.perk", map[string]any{"Text": slot.Item.PerkText}) }</span>
 										}
 										if slot.Item.Tarnished {
-											<span class="life-meta-chip life-meta-chip-warn">Tarnished</span>
+											<span class="life-meta-chip life-meta-chip-warn">{ i18n.T(ctx, "life.inventory.tarnished") }</span>
 										}
 									</div>
 									<button
@@ -1216,9 +1228,9 @@ templ LifeInventoryPage(data LifeInventoryData) {
 										hx-post={ "/service/web/life/inventory/slots/" + slot.SlotField + "/unequip" }
 										hx-swap="none"
 										data-testid={ "life-slot-unequip-" + strings.ToLower(slot.Label) }
-									>Unequip</button>
+									>{ i18n.T(ctx, "life.btn.unequip") }</button>
 								} else {
-									<p class="life-equip-slot-empty">Empty</p>
+									<p class="life-equip-slot-empty">{ i18n.T(ctx, "life.empty.inventory_slot") }</p>
 								}
 							</div>
 						}
@@ -1227,11 +1239,11 @@ templ LifeInventoryPage(data LifeInventoryData) {
 
 				<section id={ LifeBackpackAnchor } class="life-panel life-section life-anchor-target" data-testid="life-inventory">
 					<div class="life-section-head">
-						<h2>Backpack</h2>
+						<h2>{ i18n.T(ctx, "life.inventory.backpack") }</h2>
 						<span class="life-section-count">{ fmt.Sprintf("%d", data.BackpackPage.Total) }</span>
 					</div>
 					if len(data.Items) == 0 {
-						<p class="life-empty">Backpack empty — complete quests to earn loot.</p>
+						<p class="life-empty">{ i18n.T(ctx, "life.empty.inventory_backpack") }</p>
 					} else {
 						<ul class="life-inv-list">
 							for _, it := range data.Items {
@@ -1243,7 +1255,7 @@ templ LifeInventoryPage(data LifeInventoryData) {
 										<p class="life-inv-title">
 											{ it.Name }
 											if it.Equipped {
-												<span class="life-meta-chip life-meta-chip-ok text-xs ml-1 align-middle">Equipped</span>
+												<span class="life-meta-chip life-meta-chip-ok text-xs ml-1 align-middle">{ i18n.T(ctx, "life.inventory.equipped_badge") }</span>
 											}
 										</p>
 										<div class="life-quest-meta">
@@ -1253,11 +1265,11 @@ templ LifeInventoryPage(data LifeInventoryData) {
 												<span class="life-meta-chip">{ it.BuffText }</span>
 											}
 											if it.PerkText != "" {
-												<span class="life-meta-chip">Perk { it.PerkText }</span>
+												<span class="life-meta-chip">{ i18n.TData(ctx, "life.inventory.perk", map[string]any{"Text": it.PerkText}) }</span>
 											}
-											<span class="life-meta-chip">Lore { it.LoreStatus }</span>
+											<span class="life-meta-chip">{ i18n.TData(ctx, "life.inventory.lore", map[string]any{"Status": it.LoreStatus}) }</span>
 											if it.Tarnished {
-												<span class="life-meta-chip life-meta-chip-warn">Tarnished</span>
+												<span class="life-meta-chip life-meta-chip-warn">{ i18n.T(ctx, "life.inventory.tarnished") }</span>
 											}
 										</div>
 										if it.Lore != "" {
@@ -1272,7 +1284,7 @@ templ LifeInventoryPage(data LifeInventoryData) {
 												hx-post={ "/service/web/life/inventory/slots/" + it.SlotField + "/unequip" }
 												hx-swap="none"
 												data-testid={ "life-unequip-" + it.Flag }
-											>Unequip</button>
+											>{ i18n.T(ctx, "life.btn.unequip") }</button>
 										} else {
 											<button
 												type="button"
@@ -1280,7 +1292,7 @@ templ LifeInventoryPage(data LifeInventoryData) {
 												hx-post={ "/service/web/life/inventory/" + it.Flag + "/equip" }
 												hx-swap="none"
 												data-testid={ "life-equip-" + it.Flag }
-											>Equip</button>
+											>{ i18n.T(ctx, "life.btn.equip") }</button>
 										}
 									</div>
 								</li>
@@ -1295,13 +1307,13 @@ templ LifeInventoryPage(data LifeInventoryData) {
 }
 
 templ LifeAchievementsPage(data LifeAchievementsData) {
-	@layout.Base(ctx, "Achievements — Life") {
-		@lifeModuleShell("achievements", data.PendingCount) {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.achievements.title")) {
+		@lifeModuleShell(ctx, "achievements", data.PendingCount) {
 			<div class="life-shell" data-testid="life-achievements-page">
 				<header class="life-shell-header">
 					<div>
-						<h1>Achievements</h1>
-						<p>Memorial milestones from quest completions.</p>
+						<h1>{ i18n.T(ctx, "life.page.achievements.title") }</h1>
+						<p>{ i18n.T(ctx, "life.page.achievements.subtitle") }</p>
 					</div>
 					<span class="life-section-count" data-testid="life-achievements-count">
 						{ fmt.Sprintf("%d / %d unlocked", data.UnlockedCount, len(data.Items)) }
@@ -1310,7 +1322,7 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 
 				<section class="life-panel life-section" data-testid="life-achievements-list">
 					if len(data.Items) == 0 {
-						<p class="life-empty">No achievements seeded yet.</p>
+						<p class="life-empty">{ i18n.T(ctx, "life.empty.achievements") }</p>
 					} else {
 						<ul class="life-achievement-list">
 							for _, item := range data.Items {
@@ -1325,9 +1337,9 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 									<div class="life-achievement-head">
 										<h2 class="life-achievement-name">{ item.Name }</h2>
 										if item.Unlocked {
-											<span class="life-meta-chip life-meta-chip-ok">Unlocked</span>
+											<span class="life-meta-chip life-meta-chip-ok">{ i18n.T(ctx, "life.achievements.unlocked") }</span>
 										} else {
-											<span class="life-meta-chip">Locked</span>
+											<span class="life-meta-chip">{ i18n.T(ctx, "life.achievements.locked") }</span>
 										}
 									</div>
 									<p class="life-achievement-desc">{ item.Description }</p>
@@ -1343,10 +1355,10 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 										</div>
 									}
 									if item.Unlocked && item.UnlockedAt != "" {
-										<p class="life-achievement-meta">Unlocked { item.UnlockedAt }</p>
+										<p class="life-achievement-meta">{ i18n.TData(ctx, "life.achievements.unlocked_at", map[string]any{"At": item.UnlockedAt}) }</p>
 									}
 									if item.Retired {
-										<p class="life-achievement-meta">Retired from catalog</p>
+										<p class="life-achievement-meta">{ i18n.T(ctx, "life.achievements.retired") }</p>
 									}
 								</li>
 							}
@@ -1359,26 +1371,26 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 }
 
 templ LifeRewardsPage(data LifeRewardsData) {
-	@layout.Base(ctx, "Rewards — Life") {
-		@lifeModuleShell("rewards", data.PendingCount) {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.rewards.title")) {
+		@lifeModuleShell(ctx, "rewards", data.PendingCount) {
 			<div class="life-shell" data-testid="life-rewards-page">
 				<header class="life-shell-header">
 					<div>
-						<h1>Rewards</h1>
-						<p>Spend gold on real-life treats you define. Honor system — redeem when you claim it.</p>
+						<h1>{ i18n.T(ctx, "life.page.rewards.title") }</h1>
+						<p>{ i18n.T(ctx, "life.page.rewards.subtitle") }</p>
 					</div>
 					<div class="life-rewards-balance" data-testid="life-rewards-gold">
-						<span class="life-rewards-balance-label">Balance</span>
+						<span class="life-rewards-balance-label">{ i18n.T(ctx, "life.rewards.balance") }</span>
 						<span class="life-rewards-balance-value">{ fmt.Sprintf("%d", data.Gold) }</span>
-						<span class="life-rewards-balance-unit">gold</span>
+						<span class="life-rewards-balance-unit">{ i18n.T(ctx, "life.rewards.balance_unit") }</span>
 					</div>
 				</header>
 
 				<section class="life-panel life-section" data-testid="life-rewards-create">
 					<header class="life-goals-head">
 						<div>
-							<h2 class="life-goals-title">Add reward</h2>
-							<p class="life-goals-sub">Name it, price it, optional cooldown.</p>
+							<h2 class="life-goals-title">{ i18n.T(ctx, "life.rewards.add_title") }</h2>
+							<p class="life-goals-sub">{ i18n.T(ctx, "life.rewards.add_sub") }</p>
 						</div>
 					</header>
 					<form
@@ -1393,26 +1405,26 @@ templ LifeRewardsPage(data LifeRewardsData) {
 							name="name"
 							class="life-rewards-compose-name"
 							required
-							placeholder="Milk tea"
+							placeholder={ i18n.T(ctx, "life.rewards.name_placeholder") }
 							autocomplete="off"
 							data-testid="life-reward-name-input"
 						/>
 						<div class="life-rewards-compose-row">
 							<label class="life-rewards-compose-field">
-								<span class="life-field-label">Price</span>
+								<span class="life-field-label">{ i18n.T(ctx, "life.rewards.price") }</span>
 								<input type="number" name="price" class="life-rewards-compose-num" min="1" required value="10" data-testid="life-reward-price-input"/>
 							</label>
 							<label class="life-rewards-compose-field">
-								<span class="life-field-label">Cooldown h</span>
+								<span class="life-field-label">{ i18n.T(ctx, "life.rewards.cooldown") }</span>
 								<input type="number" name="cooldown_hours" class="life-rewards-compose-num" min="0" value="0" data-testid="life-reward-cooldown-input"/>
 							</label>
 							<label class="life-rewards-compose-field life-rewards-compose-notes">
-								<span class="life-field-label">Notes</span>
-								<input type="text" name="notes" class="life-rewards-compose-text" placeholder="Weekends only" data-testid="life-reward-notes-input"/>
+								<span class="life-field-label">{ i18n.T(ctx, "life.rewards.notes") }</span>
+								<input type="text" name="notes" class="life-rewards-compose-text" placeholder={ i18n.T(ctx, "life.rewards.notes_placeholder") } data-testid="life-reward-notes-input"/>
 							</label>
 							<button type="submit" class="btn btn-sm btn-primary life-goals-compose-btn" data-testid="life-reward-create-submit">
 								@partials.HtmxIndicator()
-								Add
+								{ i18n.T(ctx, "life.btn.add") }
 							</button>
 						</div>
 					</form>
@@ -1421,15 +1433,15 @@ templ LifeRewardsPage(data LifeRewardsData) {
 				<section class="life-panel life-section" data-testid="life-rewards-active">
 					<header class="life-goals-head">
 						<div>
-							<h2 class="life-goals-title">Active</h2>
-							<p class="life-goals-sub">Redeem when you take the treat.</p>
+							<h2 class="life-goals-title">{ i18n.T(ctx, "life.rewards.active_title") }</h2>
+							<p class="life-goals-sub">{ i18n.T(ctx, "life.rewards.active_sub") }</p>
 						</div>
 						if len(data.Active) > 0 {
 							<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.Active)) }</span>
 						}
 					</header>
 					if len(data.Active) == 0 {
-						<p class="life-empty">No rewards yet — add one above.</p>
+						<p class="life-empty">{ i18n.T(ctx, "life.empty.rewards_active") }</p>
 					} else {
 						<ul class="life-reward-list">
 							for _, item := range data.Active {
@@ -1439,7 +1451,7 @@ templ LifeRewardsPage(data LifeRewardsData) {
 											<div class="life-reward-head">
 												<h3 class="life-reward-name">{ item.Name }</h3>
 												<span class="life-meta-chip" data-testid={ "life-reward-price-" + item.Flag }>
-													{ fmt.Sprintf("%d gold", item.Price) }
+													{ fmt.Sprintf("%d %s", item.Price, i18n.T(ctx, "life.rewards.balance_unit")) }
 												</span>
 											</div>
 											if item.Notes != "" {
@@ -1449,18 +1461,18 @@ templ LifeRewardsPage(data LifeRewardsData) {
 												if item.OnCooldown {
 													<span class="life-meta-chip life-meta-chip-warn" data-testid={ "life-reward-cooldown-" + item.Flag }>
 														if item.CooldownEndsAt != "" {
-															{ fmt.Sprintf("Cooldown · until %s", item.CooldownEndsAt) }
+															{ i18n.TData(ctx, "life.rewards.cooldown_until", map[string]any{"Until": item.CooldownEndsAt}) }
 														} else {
-															On cooldown
+															{ i18n.T(ctx, "life.rewards.on_cooldown") }
 														}
 													</span>
 												} else if item.CooldownHours > 0 {
-													<span class="life-meta-chip">{ fmt.Sprintf("%dh cooldown", item.CooldownHours) }</span>
+													<span class="life-meta-chip">{ i18n.TData(ctx, "life.rewards.cooldown_hours", map[string]any{"Hours": item.CooldownHours}) }</span>
 												} else {
-													<span class="life-meta-chip">No cooldown</span>
+													<span class="life-meta-chip">{ i18n.T(ctx, "life.rewards.no_cooldown") }</span>
 												}
 												if !item.CanAfford && !item.OnCooldown {
-													<span class="life-meta-chip" data-testid={ "life-reward-unaffordable-" + item.Flag }>Need more gold</span>
+													<span class="life-meta-chip" data-testid={ "life-reward-unaffordable-" + item.Flag }>{ i18n.T(ctx, "life.rewards.need_more_gold") }</span>
 												}
 											</div>
 										</div>
@@ -1473,17 +1485,17 @@ templ LifeRewardsPage(data LifeRewardsData) {
 												>
 													<button type="submit" class="btn btn-primary btn-sm">
 														@partials.HtmxIndicator()
-														Redeem
+														{ i18n.T(ctx, "life.btn.redeem") }
 													</button>
 												</form>
 											} else {
-												<button type="button" class="btn btn-ghost btn-sm" disabled>Redeem</button>
+												<button type="button" class="btn btn-ghost btn-sm" disabled>{ i18n.T(ctx, "life.btn.redeem") }</button>
 											}
 										</div>
 									</div>
 									<div class="life-reward-footer">
 										<details class="life-reward-edit" data-testid={ "life-reward-edit-" + item.Flag }>
-											<summary class="life-goal-link">Edit</summary>
+											<summary class="life-goal-link">{ i18n.T(ctx, "life.btn.edit") }</summary>
 											<form
 												class="life-rewards-edit-form"
 												hx-post={ "/service/web/life/rewards/" + item.Flag }
@@ -1491,24 +1503,24 @@ templ LifeRewardsPage(data LifeRewardsData) {
 												hx-disabled-elt="find button[type='submit'], find input"
 											>
 												<label class="life-rewards-compose-field life-rewards-compose-notes">
-													<span class="life-field-label">Name</span>
-													<input type="text" name="name" class="life-rewards-compose-text" value={ item.Name } required aria-label="Name"/>
+													<span class="life-field-label">{ i18n.T(ctx, "life.rewards.name_label") }</span>
+													<input type="text" name="name" class="life-rewards-compose-text" value={ item.Name } required aria-label={ i18n.T(ctx, "life.rewards.add_title") }/>
 												</label>
 												<label class="life-rewards-compose-field">
-													<span class="life-field-label">Price</span>
-													<input type="number" name="price" class="life-rewards-compose-num" min="1" value={ fmt.Sprintf("%d", item.Price) } required aria-label="Price"/>
+													<span class="life-field-label">{ i18n.T(ctx, "life.rewards.price") }</span>
+													<input type="number" name="price" class="life-rewards-compose-num" min="1" value={ fmt.Sprintf("%d", item.Price) } required aria-label={ i18n.T(ctx, "life.rewards.price") }/>
 												</label>
 												<label class="life-rewards-compose-field">
-													<span class="life-field-label">Cooldown h</span>
-													<input type="number" name="cooldown_hours" class="life-rewards-compose-num" min="0" value={ fmt.Sprintf("%d", item.CooldownHours) } aria-label="Cooldown hours"/>
+													<span class="life-field-label">{ i18n.T(ctx, "life.rewards.cooldown") }</span>
+													<input type="number" name="cooldown_hours" class="life-rewards-compose-num" min="0" value={ fmt.Sprintf("%d", item.CooldownHours) } aria-label={ i18n.T(ctx, "life.rewards.cooldown") }/>
 												</label>
 												<label class="life-rewards-compose-field life-rewards-compose-notes">
-													<span class="life-field-label">Notes</span>
-													<input type="text" name="notes" class="life-rewards-compose-text" value={ item.Notes } aria-label="Notes"/>
+													<span class="life-field-label">{ i18n.T(ctx, "life.rewards.notes") }</span>
+													<input type="text" name="notes" class="life-rewards-compose-text" value={ item.Notes } aria-label={ i18n.T(ctx, "life.rewards.notes") }/>
 												</label>
 												<button type="submit" class="btn btn-sm btn-primary">
 													@partials.HtmxIndicator()
-													Save
+													{ i18n.T(ctx, "life.btn.save") }
 												</button>
 											</form>
 										</details>
@@ -1517,9 +1529,11 @@ templ LifeRewardsPage(data LifeRewardsData) {
 											class="life-goal-link life-goal-link-danger"
 											hx-post={ "/service/web/life/rewards/" + item.Flag + "/deactivate" }
 											hx-swap="none"
-											data-confirm="Deactivate this reward?"
+											data-confirm={ i18n.T(ctx, "confirm.deactivate_reward.message") }
+											data-confirm-title={ i18n.T(ctx, "confirm.deactivate_reward.title") }
+											data-confirm-btn={ i18n.T(ctx, "confirm.deactivate_reward.btn") }
 											data-testid={ "life-reward-deactivate-" + item.Flag }
-										>Deactivate</button>
+										>{ i18n.T(ctx, "life.btn.deactivate") }</button>
 									</div>
 								</li>
 							}
@@ -1528,7 +1542,7 @@ templ LifeRewardsPage(data LifeRewardsData) {
 				</section>
 
 				<section id={ LifeRewardsArchiveAnchor } class="life-panel life-section life-anchor-target" data-testid="life-rewards-archive">
-					<div class="life-tabs" role="tablist" aria-label="Rewards archive" data-testid="life-rewards-archive-tabs">
+					<div class="life-tabs" role="tablist" aria-label={ i18n.T(ctx, "life.rewards.redemptions") } data-testid="life-rewards-archive-tabs">
 						<a
 							role="tab"
 							class={ LifeRewardsArchiveTabClass(data.ArchiveTab, LifeRewardsTabRedemptions) }
@@ -1540,7 +1554,7 @@ templ LifeRewardsPage(data LifeRewardsData) {
 							}
 							data-testid="life-rewards-tab-redemptions"
 						>
-							Recent redemptions
+							{ i18n.T(ctx, "life.rewards.redemptions") }
 							<span class="life-tab-count">{ fmt.Sprintf("%d", data.RedemptionsPage.Total) }</span>
 						</a>
 						<a
@@ -1554,7 +1568,7 @@ templ LifeRewardsPage(data LifeRewardsData) {
 							}
 							data-testid="life-rewards-tab-deactivated"
 						>
-							Deactivated
+							{ i18n.T(ctx, "life.rewards.inactive") }
 							<span class="life-tab-count">{ fmt.Sprintf("%d", data.InactivePage.Total) }</span>
 						</a>
 					</div>
@@ -1569,14 +1583,14 @@ templ LifeRewardsPage(data LifeRewardsData) {
 						}
 					>
 						if len(data.Redemptions) == 0 {
-							<p class="life-empty">No redemptions yet.</p>
+							<p class="life-empty">{ i18n.T(ctx, "life.empty.redemptions") }</p>
 						} else {
 							<ul class="life-reward-history" data-testid="life-rewards-history-list">
 								for _, item := range data.Redemptions {
 									<li data-testid={ "life-redemption-" + item.Flag }>
 										<span class="life-reward-history-name">{ item.RewardName }</span>
 										<span class="life-reward-history-meta">
-											<span class="life-reward-history-price">{ fmt.Sprintf("−%d gold", item.PricePaid) }</span>
+											<span class="life-reward-history-price">{ fmt.Sprintf("−%d %s", item.PricePaid, i18n.T(ctx, "life.rewards.balance_unit")) }</span>
 											<span class="life-reward-history-time">{ item.RedeemedAt }</span>
 										</span>
 									</li>
@@ -1596,7 +1610,7 @@ templ LifeRewardsPage(data LifeRewardsData) {
 						}
 					>
 						if len(data.Inactive) == 0 {
-							<p class="life-empty">No deactivated rewards.</p>
+							<p class="life-empty">{ i18n.T(ctx, "life.empty.rewards_inactive") }</p>
 						} else {
 							<ul class="life-reward-list">
 								for _, item := range data.Inactive {
@@ -1605,7 +1619,7 @@ templ LifeRewardsPage(data LifeRewardsData) {
 											<div class="life-reward-copy">
 												<div class="life-reward-head">
 													<h3 class="life-reward-name">{ item.Name }</h3>
-													<span class="life-meta-chip">{ fmt.Sprintf("%d gold", item.Price) }</span>
+													<span class="life-meta-chip">{ fmt.Sprintf("%d %s", item.Price, i18n.T(ctx, "life.rewards.balance_unit")) }</span>
 												</div>
 												if item.Notes != "" {
 													<p class="life-reward-notes">{ item.Notes }</p>
@@ -1618,7 +1632,7 @@ templ LifeRewardsPage(data LifeRewardsData) {
 											>
 												<button type="submit" class="btn btn-sm btn-primary">
 													@partials.HtmxIndicator()
-													Restore
+													{ i18n.T(ctx, "life.btn.restore") }
 												</button>
 											</form>
 										</div>
@@ -1635,14 +1649,14 @@ templ LifeRewardsPage(data LifeRewardsData) {
 }
 
 templ LifeStatsPage(data LifeStatsShellData) {
-	@layout.Base(ctx, "Stats — Life") {
+	@layout.Base(ctx, DocTitleLife(ctx, "life.page.stats.title")) {
 		@partials.LifeStatsScripts()
-		@lifeModuleShell("stats", data.PendingCount) {
+		@lifeModuleShell(ctx, "stats", data.PendingCount) {
 			<div class="life-shell" data-testid="life-stats-page">
 				<header class="life-shell-header">
 					<div>
-						<h1>Stats</h1>
-						<p>Last 30 days of activity, growth, quests, gold, and loot.</p>
+						<h1>{ i18n.T(ctx, "life.page.stats.title") }</h1>
+						<p>{ i18n.T(ctx, "life.page.stats.subtitle") }</p>
 					</div>
 				</header>
 				<div id="life-stats-container" data-testid="life-stats-loader">

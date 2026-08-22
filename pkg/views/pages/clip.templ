@@ -2,8 +2,10 @@
 package pages
 
 import (
+	"context"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 )
 
@@ -32,18 +34,18 @@ type ClipPageData struct {
 }
 
 // ClipPage renders a shareable markdown clip with gated body for anonymous visitors.
-templ ClipPage(d ClipPageData) {
-	@layout.Clip(clipPageTitle(d), d.Description, clipHeaderActions(d)) {
+templ ClipPage(ctx context.Context, d ClipPageData) {
+	@layout.Clip(ctx, clipPageTitle(ctx, d), d.Description, clipHeaderActions(ctx, d)) {
 		if d.NotFound {
 			<section class="clip-article" data-testid="clip-not-found">
-				<h1 class="clip-title">Clip not found</h1>
-				<p class="clip-meta">This clip does not exist or was removed.</p>
+				<h1 class="clip-title">{ i18n.T(ctx, "clip.not_found.title") }</h1>
+				<p class="clip-meta">{ i18n.T(ctx, "clip.not_found.meta") }</p>
 			</section>
 		} else {
 			<section class="clip-article" data-testid="clip-page">
 				<h1 class="clip-title" data-testid="clip-title">{ d.Title }</h1>
 				<p class="clip-meta" data-testid="clip-meta">
-					{ formatClipMeta(d.CreatedAt, d.WordCount) }
+					{ formatClipMeta(ctx, d.CreatedAt, d.WordCount) }
 				</p>
 				if d.Authed {
 					<article class="clip-markdown" data-testid="clip-body">
@@ -52,11 +54,11 @@ templ ClipPage(d ClipPageData) {
 				} else {
 					<div class="clip-gated" data-testid="clip-gated">
 						<p class="clip-description" data-testid="clip-description">{ d.Description }</p>
-						<p class="clip-gated-hint">Sign in with your Flowbot account to view the full markdown.</p>
+						<p class="clip-gated-hint">{ i18n.T(ctx, "clip.gated_hint") }</p>
 					</div>
 				}
 				<footer class="clip-footer" data-testid="clip-footer">
-					<span class="clip-footer-slug">slug: { d.Slug }</span>
+					<span class="clip-footer-slug">{ i18n.T(ctx, "clip.slug_label") } { d.Slug }</span>
 				</footer>
 			</section>
 		}
@@ -64,7 +66,7 @@ templ ClipPage(d ClipPageData) {
 }
 
 // clipHeaderActions renders Copy MD or Log in controls in the clip top bar.
-templ clipHeaderActions(d ClipPageData) {
+templ clipHeaderActions(ctx context.Context, d ClipPageData) {
 	if d.NotFound {
 		<span></span>
 	} else if d.Authed {
@@ -75,11 +77,11 @@ templ clipHeaderActions(d ClipPageData) {
 			data-clip-copy
 			data-clip-markdown={ d.ContentMD }
 		>
-			Copy MD
+			{ i18n.T(ctx, "clip.copy_md") }
 		</button>
 	} else {
 		<a class="clip-btn clip-btn-primary" href={ templ.URL(d.LoginURL) } data-testid="clip-login">
-			Log in to read
+			{ i18n.T(ctx, "clip.login_to_read") }
 		</a>
 	}
 }
