@@ -22,9 +22,9 @@ import (
 	capfunctions "github.com/flowline-io/flowbot/pkg/capability/functions"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	pkgexec "github.com/flowline-io/flowbot/pkg/exec"
-	"github.com/flowline-io/flowbot/pkg/i18n"
 	pkgfunctions "github.com/flowline-io/flowbot/pkg/functions"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 )
 
 type webFnExecProvider struct {
