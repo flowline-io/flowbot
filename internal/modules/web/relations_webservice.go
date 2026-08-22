@@ -44,14 +44,14 @@ func relationsTree(ctx fiber.Ctx) error {
 	nodeParam := ctx.Query("node")
 	if nodeParam == "" {
 		ctx.Type("html")
-		return partials.EmptyState("Search for a resource entity ID to explore relations").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "relations.empty.search_hint")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	parts := strings.SplitN(nodeParam, "|", 3)
 	if len(parts) != 3 {
 		ctx.Status(http.StatusBadRequest)
 		ctx.Type("html")
-		return partials.EmptyState("Invalid node format. Use app|capability|entity_id").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.invalid_node_format")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	app := parts[0]
@@ -71,17 +71,17 @@ func relationsTree(ctx fiber.Ctx) error {
 	rcs := getResourceChainStore()
 	if rcs == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.store_unavailable")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	upstream, downstream, err := rcs.FindNodeRelations(ctx.Context(), app, capability, entityID, pipeline, since)
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load relations").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.failed_load_relations")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	ctx.Type("html")
-	return partials.RelationTree(partials.RelationTreeParams{
+	return partials.RelationTree(ctx.Context(), partials.RelationTreeParams{
 		Node: types.ResourceRef{
 			App:        app,
 			Capability: capability,
@@ -105,7 +105,7 @@ func relationsSearch(ctx fiber.Ctx) error {
 	rcs := getResourceChainStore()
 	if rcs == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.store_unavailable")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	limit := 20
@@ -116,11 +116,11 @@ func relationsSearch(ctx fiber.Ctx) error {
 	results, _, err := rcs.SearchNodes(ctx.Context(), query, limit, "")
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Search failed").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.search_failed")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	ctx.Type("html")
-	return partials.RelationSearchResults(results).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.RelationSearchResults(ctx.Context(), results).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func relationsDetail(ctx fiber.Ctx) error {
@@ -135,7 +135,7 @@ func relationsDetail(ctx fiber.Ctx) error {
 		app := ctx.Query("app")
 		capability := ctx.Query("capability")
 		entityID := ctx.Query("entity_id")
-		return partials.RelationDetail(partials.RelationDetailParams{
+		return partials.RelationDetail(ctx.Context(), partials.RelationDetailParams{
 			Type: "node",
 			Node: types.ResourceRef{
 				App:        app,
@@ -156,7 +156,7 @@ func relationsDetail(ctx fiber.Ctx) error {
 		if createdStr != "" {
 			createdAt, _ = time.Parse(time.RFC3339, createdStr)
 		}
-		return partials.RelationDetail(partials.RelationDetailParams{
+		return partials.RelationDetail(ctx.Context(), partials.RelationDetailParams{
 			Type: "edge",
 			Edge: types.ResourceEdge{
 				SourceApp:        sourceApp,
@@ -170,6 +170,6 @@ func relationsDetail(ctx fiber.Ctx) error {
 			},
 		}).Render(ctx.Context(), ctx.Response().BodyWriter())
 	default:
-		return partials.EmptyState("Invalid detail type").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.invalid_detail_type")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 }

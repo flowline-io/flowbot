@@ -3,6 +3,7 @@ package pages
 import (
 	"context"
 	
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -16,7 +17,7 @@ templ AgentScheduledTasksPage(ctx context.Context, items []model.AgentScheduledT
 				hx-swap="outerHTML"
 				data-testid="agent-scheduled-tasks-refresh"
 				class="btn btn-ghost btn-sm">
-				Refresh
+				{ i18n.T(ctx, "common.refresh") }
 				@partials.HtmxIndicator()
 			</button>
 		}

@@ -1,6 +1,10 @@
 package partials
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
 
 // LifeStatsPanel is the HTMX fragment for the Life stats dashboard.
 templ LifeStatsPanel(data LifeStatsData) {
@@ -10,29 +14,29 @@ templ LifeStatsPanel(data LifeStatsData) {
 		data-stats={ data.ChartsJSON }
 	>
 		if !data.HasActivity {
-			<p class="text-sm text-base-content/60 mb-4" data-testid="life-stats-empty">No activity in the last 30 days.</p>
+			<p class="text-sm text-base-content/60 mb-4" data-testid="life-stats-empty">{ i18n.T(ctx, "life.stats.no_activity") }</p>
 		}
 		<div class="flex flex-wrap items-center gap-2 mb-4">
 			<span class="flowbot-chip flowbot-chip-muted" data-testid="life-stats-timezone">{ data.Timezone }</span>
 			<span class="flowbot-chip flowbot-chip-muted" data-testid="life-stats-achievements">
-				{ fmt.Sprintf("%d achievements unlocked", data.AchievementUnlocks) }
+				{ i18n.TData(ctx, "life.stats.achievements", map[string]any{"Count": data.AchievementUnlocks}) }
 			</span>
 		</div>
 		<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4" data-testid="life-stats-kpi">
 			<div class="border border-base-300 rounded-box px-4 py-3">
-				<div class="text-xs text-base-content/55">Completions</div>
+				<div class="text-xs text-base-content/55">{ i18n.T(ctx, "life.stats.kpi.completions") }</div>
 				<div class="text-2xl font-semibold text-primary mt-1 tracking-tight" data-testid="life-stats-kpi-completions">
 					{ fmt.Sprintf("%d", data.Completions) }
 				</div>
 			</div>
 			<div class="border border-base-300 rounded-box px-4 py-3">
-				<div class="text-xs text-base-content/55">EXP</div>
+				<div class="text-xs text-base-content/55">{ i18n.T(ctx, "life.stats.kpi.exp") }</div>
 				<div class="text-2xl font-semibold text-primary mt-1 tracking-tight" data-testid="life-stats-kpi-exp">
 					{ fmt.Sprintf("%d", data.TotalExp) }
 				</div>
 			</div>
 			<div class="border border-base-300 rounded-box px-4 py-3">
-				<div class="text-xs text-base-content/55">Gold net</div>
+				<div class="text-xs text-base-content/55">{ i18n.T(ctx, "life.stats.kpi.gold_net") }</div>
 				<div class="text-2xl font-semibold text-primary mt-1 tracking-tight" data-testid="life-stats-kpi-gold-net">
 					{ fmt.Sprintf("%d", data.GoldNet) }
 				</div>
@@ -41,8 +45,8 @@ templ LifeStatsPanel(data LifeStatsData) {
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
 			<div class="flowbot-surface" data-testid="life-stats-activity">
 				<div class="p-4">
-					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">Activity</h3>
-					<p class="text-xs text-base-content/55 m-0 mb-2">Daily completions and EXP</p>
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">{ i18n.T(ctx, "life.stats.chart.activity.title") }</h3>
+					<p class="text-xs text-base-content/55 m-0 mb-2">{ i18n.T(ctx, "life.stats.chart.activity.subtitle") }</p>
 					<div class="relative w-full" style="height:256px">
 						<canvas data-chart-type="activity" data-testid="life-stats-chart-activity"></canvas>
 					</div>
@@ -50,8 +54,8 @@ templ LifeStatsPanel(data LifeStatsData) {
 			</div>
 			<div class="flowbot-surface" data-testid="life-stats-growth">
 				<div class="p-4">
-					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">Growth</h3>
-					<p class="text-xs text-base-content/55 m-0 mb-2">EXP by characteristic (Other = unattributed)</p>
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">{ i18n.T(ctx, "life.stats.chart.growth.title") }</h3>
+					<p class="text-xs text-base-content/55 m-0 mb-2">{ i18n.T(ctx, "life.stats.chart.growth.subtitle") }</p>
 					<div class="relative w-full" style="height:256px">
 						<canvas data-chart-type="growth" data-testid="life-stats-chart-growth"></canvas>
 					</div>
@@ -59,8 +63,8 @@ templ LifeStatsPanel(data LifeStatsData) {
 			</div>
 			<div class="flowbot-surface" data-testid="life-stats-quests">
 				<div class="p-4">
-					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">Quest types</h3>
-					<p class="text-xs text-base-content/55 m-0 mb-2">Completed quests by type</p>
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">{ i18n.T(ctx, "life.stats.chart.quests.title") }</h3>
+					<p class="text-xs text-base-content/55 m-0 mb-2">{ i18n.T(ctx, "life.stats.chart.quests.subtitle") }</p>
 					<div class="relative w-full" style="height:256px">
 						<canvas data-chart-type="quests" data-testid="life-stats-chart-quests"></canvas>
 					</div>
@@ -68,8 +72,8 @@ templ LifeStatsPanel(data LifeStatsData) {
 			</div>
 			<div class="flowbot-surface" data-testid="life-stats-economy">
 				<div class="p-4">
-					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">Economy</h3>
-					<p class="text-xs text-base-content/55 m-0 mb-2">Gold earned vs redeemed</p>
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">{ i18n.T(ctx, "life.stats.chart.economy.title") }</h3>
+					<p class="text-xs text-base-content/55 m-0 mb-2">{ i18n.T(ctx, "life.stats.chart.economy.subtitle") }</p>
 					<div class="relative w-full" style="height:256px">
 						<canvas data-chart-type="economy" data-testid="life-stats-chart-economy"></canvas>
 					</div>
@@ -77,8 +81,8 @@ templ LifeStatsPanel(data LifeStatsData) {
 			</div>
 			<div class="lg:col-span-2 flowbot-surface" data-testid="life-stats-loot">
 				<div class="p-4">
-					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">Loot</h3>
-					<p class="text-xs text-base-content/55 m-0 mb-2">Daily drops</p>
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-1">{ i18n.T(ctx, "life.stats.chart.loot.title") }</h3>
+					<p class="text-xs text-base-content/55 m-0 mb-2">{ i18n.T(ctx, "life.stats.chart.loot.subtitle") }</p>
 					<div class="relative w-full" style="height:256px">
 						<canvas data-chart-type="drops" data-testid="life-stats-chart-drops"></canvas>
 					</div>

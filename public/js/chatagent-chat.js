@@ -247,7 +247,9 @@
             thumb.className = 'chatagent-pending-thumb';
             var img = document.createElement('img');
             img.src = encodeURI(safeSrc.replace(/[<>"']/g, ''));
-            img.alt = item.name || flowbotI18n('client.chatagent.attached_image', 'Attached image');
+            img.alt =
+              item.name ||
+              flowbotI18n('client.chatagent.attached_image', 'Attached image');
             thumb.appendChild(img);
             thumb.appendChild(rm);
             pendingEl.appendChild(thumb);
@@ -391,7 +393,13 @@
           }).then(function (res) {
             return res.json().then(function (body) {
               if (!res.ok) {
-                throw new Error((body && body.error) || 'upload failed');
+                throw new Error(
+                  (body && body.error) ||
+                    flowbotI18n(
+                      'client.chatagent.upload_failed',
+                      'Upload failed',
+                    ),
+                );
               }
               return {
                 file_id: body.file_id,
@@ -489,7 +497,10 @@
       if (!text && queue.list.length === 0) {
         ns.showError(
           errorEl,
-          flowbotI18n('client.chatagent.prompt_required', 'Enter a prompt to start.'),
+          flowbotI18n(
+            'client.chatagent.prompt_required',
+            'Enter a prompt to start.',
+          ),
         );
         return;
       }
@@ -562,13 +573,22 @@
             }
             var safeURL = ns.safeAppPath(detailURL);
             if (!safeURL) {
-              throw new Error('Invalid redirect');
+              throw new Error(
+                flowbotI18n(
+                  'client.chatagent.invalid_redirect',
+                  'Invalid redirect',
+                ),
+              );
             }
             window.location.href = safeURL.replace(/[<>"']/g, '');
           });
         })
         .catch(function (err) {
-          ns.showError(errorEl, err.message || flowbotI18n('client.chatagent.start_failed', 'Failed to start'));
+          ns.showError(
+            errorEl,
+            err.message ||
+              flowbotI18n('client.chatagent.start_failed', 'Failed to start'),
+          );
           startBtn.disabled = false;
         });
     }
@@ -864,13 +884,23 @@
             'client.chatagent.close_session.message',
             'Close this session? You will not be able to send more messages.',
           ),
-          confirmText: flowbotI18n('client.chatagent.close_session.btn', 'Close'),
+          confirmText: flowbotI18n(
+            'client.chatagent.close_session.btn',
+            'Close',
+          ),
           confirmClass: 'btn-error',
           onConfirm: doClose,
         });
         return;
       }
-      if (window.confirm(flowbotI18n('client.chatagent.close_session.confirm_fallback', 'Close this session?'))) {
+      if (
+        window.confirm(
+          flowbotI18n(
+            'client.chatagent.close_session.confirm_fallback',
+            'Close this session?',
+          ),
+        )
+      ) {
         doClose();
       }
     }

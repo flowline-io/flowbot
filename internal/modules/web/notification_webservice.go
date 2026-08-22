@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -31,13 +32,13 @@ func notificationsTable(ctx fiber.Ctx) error {
 	uid := getUID(ctx)
 	if uid == "" {
 		ctx.Type("html")
-		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.not_authenticated")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.store_unavailable")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	return renderNotificationsTable(ctx, ns, uid)
@@ -50,30 +51,30 @@ func retryNotification(ctx fiber.Ctx) error {
 	uid := getUID(ctx)
 	if uid == "" {
 		ctx.Type("html")
-		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.not_authenticated")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	idStr := ctx.Params("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		ctx.Status(fiber.StatusBadRequest)
-		return ctx.SendString("Invalid ID")
+		return ctx.SendString(webMsg(ctx, "error.notification.invalid_id"))
 	}
 
 	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.store_unavailable")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	rec, err := ns.GetRecord(ctx.Context(), id)
 	if err != nil || rec == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Record not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.record_not_found")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if rec.UID != uid {
 		ctx.Status(fiber.StatusForbidden)
-		return ctx.SendString("Not your notification")
+		return ctx.SendString(webMsg(ctx, "error.notification.not_yours"))
 	}
 	if rec.Status != "failed" {
 		setShowToastKey(ctx, "error", "toast.notification.retry_only_failed")
@@ -113,29 +114,29 @@ func markNotificationRead(ctx fiber.Ctx) error {
 	uid := getUID(ctx)
 	if uid == "" {
 		ctx.Type("html")
-		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.not_authenticated")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
 		ctx.Status(fiber.StatusBadRequest)
-		return ctx.SendString("Invalid ID")
+		return ctx.SendString(webMsg(ctx, "error.notification.invalid_id"))
 	}
 
 	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.store_unavailable")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	rec, err := ns.GetRecord(ctx.Context(), id)
 	if err != nil || rec == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Record not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.record_not_found")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if rec.UID != uid {
 		ctx.Status(fiber.StatusForbidden)
-		return ctx.SendString("Not your notification")
+		return ctx.SendString(webMsg(ctx, "error.notification.not_yours"))
 	}
 	if err := ns.MarkRead(ctx.Context(), uid, id); err != nil {
 		setShowToastKey(ctx, "error", "toast.notification.mark_read_failed")
@@ -167,7 +168,7 @@ func renderNotificationsTable(ctx fiber.Ctx, ns notifypkg.NotifyRecords, uid str
 	}
 
 	ctx.Type("html")
-	return partials.NotificationsTable(params).
+	return partials.NotificationsTable(ctx.Context(), params).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -225,18 +226,18 @@ func retryConnectivityTest(ctx context.Context, ns notifypkg.NotifyRecords, uid,
 		return err
 	}
 	notifyMsg := notifypkg.Message{
-		Title:    "Test Notification",
-		Body:     "Connectivity test from Flowbot",
+		Title:    i18n.T(ctx, "notify.test.title"),
+		Body:     i18n.T(ctx, "notify.test.body"),
 		Priority: notifypkg.Low,
 	}
 	if err := notifypkg.SendToProtocol(ch.Protocol, ch.URI, notifyMsg); err != nil {
 		if ns != nil {
-			_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), "", nil)
+			_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, i18n.T(ctx, "notify.test.summary"), "failed", err.Error(), "", nil)
 		}
 		return err
 	}
 	if ns != nil {
-		_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", "", nil)
+		_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, i18n.T(ctx, "notify.test.summary"), "success", "", "", nil)
 	}
 	return nil
 }

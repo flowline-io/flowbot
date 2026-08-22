@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints ChatAgentEndpoints, pending *ChatAgentPendingConfirm) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ ChatAgentThread(ctx context.Context, session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints ChatAgentEndpoints, pending *ChatAgentPendingConfirm) {
 	<div
 		class="chatagent-thread flex flex-col flex-1 min-h-0"
 		data-chatagent-root="thread"
@@ -47,22 +52,22 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 						{ chatAgentSessionSettingsLabel(session, endpoints.DefaultModel) }
 					</p>
 					<p class="text-xs text-base-content/50 mt-0.5 truncate" data-testid="chatagent-thread-workspace">
-						Workspace: { chatAgentWorkspaceDisplay(session.Workspace, endpoints.WorkspaceRootLabel) }
+						{ i18n.T(ctx, "chatagent.workspace") } { chatAgentWorkspaceDisplay(session.Workspace, endpoints.WorkspaceRootLabel) }
 					</p>
 					if endpoints.TrajectoryURL != "" {
-						<div class="chatagent-view-toggle mt-2 flex gap-1" data-testid="chatagent-view-toggle" role="tablist" aria-label="Session view">
+						<div class="chatagent-view-toggle mt-2 flex gap-1" data-testid="chatagent-view-toggle" role="tablist" aria-label={ i18n.T(ctx, "chatagent.session_view") }>
 							<button
 								type="button"
 								class="btn btn-ghost btn-xs chatagent-view-btn is-active"
 								data-chatagent-view="chat"
 								data-testid="chatagent-view-chat"
-								aria-selected="true">Chat</button>
+								aria-selected="true">{ i18n.T(ctx, "chatagent.view.chat") }</button>
 							<button
 								type="button"
 								class="btn btn-ghost btn-xs chatagent-view-btn"
 								data-chatagent-view="trajectory"
 								data-testid="chatagent-view-trajectory"
-								aria-selected="false">Trajectory</button>
+								aria-selected="false">{ i18n.T(ctx, "chatagent.view.trajectory") }</button>
 						</div>
 					}
 				</div>
@@ -73,20 +78,20 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 							id="chatagent-close-session"
 							class="btn btn-ghost btn-sm text-error"
 							data-chatagent-close
-							data-testid="chatagent-close-session">Close session</button>
+							data-testid="chatagent-close-session">{ i18n.T(ctx, "chatagent.close_session") }</button>
 					}
 					if endpoints.InspectURL != "" {
-						<a href={ templ.URL(endpoints.InspectURL) } class="btn btn-ghost btn-sm" data-testid="chatagent-inspect">Inspect entries</a>
+						<a href={ templ.URL(endpoints.InspectURL) } class="btn btn-ghost btn-sm" data-testid="chatagent-inspect">{ i18n.T(ctx, "chatagent.inspect_entries") }</a>
 					}
-					<a href="/service/web/agents" class="btn btn-ghost btn-sm" data-testid="chatagent-back">Back to Agents</a>
+					<a href="/service/web/agents" class="btn btn-ghost btn-sm" data-testid="chatagent-back">{ i18n.T(ctx, "common.back_to_agents") }</a>
 				</div>
 				<div class="flex lg:hidden items-center gap-0.5 shrink-0 pt-0.5">
 					if endpoints.ListURL != "" {
 						<button
 							type="button"
 							class="btn btn-ghost btn-sm btn-square"
-							aria-label="Sessions"
-							title="Sessions"
+							aria-label={ i18n.T(ctx, "chatagent.sessions") }
+							title={ i18n.T(ctx, "chatagent.sessions") }
 							data-testid="chatagent-sessions-open"
 							onclick="document.getElementById('chatagent-sessions-drawer').showModal()">
 							<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -102,7 +107,7 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 					<button
 						type="button"
 						class="btn btn-ghost btn-sm btn-square"
-						aria-label="Session actions"
+						aria-label={ i18n.T(ctx, "chatagent.session_actions") }
 						data-testid="chatagent-header-menu"
 						onclick="document.getElementById('chatagent-header-actions-dialog').showModal()">
 						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -126,25 +131,25 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 								type="button"
 								class="text-error"
 								data-chatagent-close
-								data-testid="chatagent-close-session-mobile">Close session</button>
+								data-testid="chatagent-close-session-mobile">{ i18n.T(ctx, "chatagent.close_session") }</button>
 						</li>
 					}
 					if endpoints.InspectURL != "" {
 						<li>
-							<a href={ templ.URL(endpoints.InspectURL) } data-testid="chatagent-inspect-mobile">Inspect entries</a>
+							<a href={ templ.URL(endpoints.InspectURL) } data-testid="chatagent-inspect-mobile">{ i18n.T(ctx, "chatagent.inspect_entries") }</a>
 						</li>
 					}
 					<li>
-						<a href="/service/web/agents" data-testid="chatagent-back-mobile">Back to Agents</a>
+						<a href="/service/web/agents" data-testid="chatagent-back-mobile">{ i18n.T(ctx, "common.back_to_agents") }</a>
 					</li>
 				</ul>
 			</div>
 			<form method="dialog" class="modal-backdrop">
-				<button type="submit">close</button>
+				<button type="submit">{ i18n.T(ctx, "common.close") }</button>
 			</form>
 		</dialog>
 		if endpoints.ListURL != "" {
-			@ChatAgentSessionsDrawer(endpoints)
+			@ChatAgentSessionsDrawer(ctx, endpoints)
 		}
 		<div
 			id="chatagent-status-toast"
@@ -157,7 +162,7 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 			<div id="chatagent-messages" class="flex-1 min-h-0 px-1 pr-1 pb-4" data-testid="chatagent-messages">
 				if pending != nil {
 					<div class="chatagent-run-waiting text-sm text-base-content/60 px-1 py-2" data-testid="chatagent-run-waiting">
-						Waiting for tool approval. The rest of this turn appears after it finishes.
+						{ i18n.T(ctx, "chatagent.waiting_approval") }
 					</div>
 				}
 				for _, msg := range messages {
@@ -171,11 +176,11 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 					<aside id="chatagent-trajectory-inspector" class="chatagent-trajectory-inspector hidden" data-testid="chatagent-trajectory-inspector" hidden>
 						<div class="chatagent-trajectory-inspector-head">
 							<span id="chatagent-trajectory-inspector-title" class="text-sm font-semibold tracking-tight"></span>
-							<button type="button" class="btn btn-ghost btn-xs btn-square" data-testid="chatagent-trajectory-inspector-close" aria-label="Close inspector">&times;</button>
+							<button type="button" class="btn btn-ghost btn-xs btn-square" data-testid="chatagent-trajectory-inspector-close" aria-label={ i18n.T(ctx, "chatagent.close_inspector") }>&times;</button>
 						</div>
 						<div class="chatagent-trajectory-inspector-tabs" role="tablist">
-							<button type="button" class="chatagent-inspector-tab is-active" data-inspector-tab="preview" data-testid="chatagent-trajectory-tab-preview">Preview</button>
-							<button type="button" class="chatagent-inspector-tab" data-inspector-tab="raw" data-testid="chatagent-trajectory-tab-raw">Raw</button>
+							<button type="button" class="chatagent-inspector-tab is-active" data-inspector-tab="preview" data-testid="chatagent-trajectory-tab-preview">{ i18n.T(ctx, "chatagent.inspector.preview") }</button>
+							<button type="button" class="chatagent-inspector-tab" data-inspector-tab="raw" data-testid="chatagent-trajectory-tab-raw">{ i18n.T(ctx, "chatagent.inspector.raw") }</button>
 						</div>
 						<pre id="chatagent-trajectory-inspector-body" class="chatagent-trajectory-inspector-body" data-testid="chatagent-trajectory-inspector-body"></pre>
 					</aside>
@@ -186,21 +191,21 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 				id="chatagent-jump-bottom"
 				class="chatagent-jump-bottom hidden"
 				data-testid="chatagent-jump-bottom"
-				aria-label="Jump to bottom">
-				Jump to bottom
+				aria-label={ i18n.T(ctx, "chatagent.jump_to_bottom") }>
+				{ i18n.T(ctx, "chatagent.jump_to_bottom") }
 			</button>
 		</div>
 		@ChatAgentApprovalPanel(session.Flag, endpoints, pending)
 		<div class="chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4" data-testid="chatagent-input-bar">
 			<div class="chatagent-input-stack">
-				@ChatAgentContextPopover(endpoints)
+				@ChatAgentContextPopover(ctx, endpoints)
 				<div class="chatagent-input-wrap">
 					<div id="chatagent-pending-attachments" class="chatagent-pending-attachments empty:hidden" data-testid="chatagent-pending-attachments"></div>
 					@ChatAgentRichInput(
 						"chatagent-followup-input",
 						"chatagent-followup-textarea chatagent-rich-input w-full min-h-12 max-h-40 leading-normal",
-						"Add follow-up... (Enter to send, Shift+Enter for newline; / for skills)",
-						"Add follow-up",
+						i18n.T(ctx, "chatagent.follow_up_placeholder"),
+						i18n.T(ctx, "chatagent.follow_up_aria"),
 						session.State != "Active",
 					)
 					<div class="chatagent-input-footer">
@@ -230,8 +235,8 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 								type="button"
 								id="chatagent-cancel-run"
 								class="chatagent-stop-btn hidden"
-								aria-label="Stop"
-								title="Stop"
+								aria-label={ i18n.T(ctx, "chatagent.stop") }
+								title={ i18n.T(ctx, "chatagent.stop") }
 								data-testid="chatagent-cancel-run">
 								<span class="chatagent-stop-square" aria-hidden="true"></span>
 							</button>

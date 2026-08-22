@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 	"github.com/stretchr/testify/assert"
@@ -57,7 +58,7 @@ func TestBuildPermissionFormFields(t *testing.T) {
 				Defaults: defaults,
 				User:     tt.user,
 			}
-			fields := partials.BuildPermissionFormFields(view)
+			fields := partials.BuildPermissionFormFields(i18n.DefaultContext(), view)
 			require.NotEmpty(t, fields)
 			byKey := make(map[string]partials.PermissionFormField)
 			for _, field := range fields {
@@ -95,7 +96,7 @@ func TestFormatRuleSetSummary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, partials.FormatRuleSetSummary(tt.rs))
+			assert.Equal(t, tt.want, partials.FormatRuleSetSummary(i18n.DefaultContext(), tt.rs))
 		})
 	}
 }

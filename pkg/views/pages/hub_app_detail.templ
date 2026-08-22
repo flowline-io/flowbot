@@ -3,7 +3,7 @@ package pages
 
 import (
 	"context"
-	
+
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
@@ -13,19 +13,19 @@ import (
 templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppStatus, permissions homelab.Permissions) {
 	@layout.Base(ctx, DocTitleLiteral(ctx, app.Name)) {
 		<div class="mb-4">
-			<a href="/service/web/hub" class="btn btn-ghost btn-sm">&larr; Back to Apps</a>
+			<a href="/service/web/hub" class="btn btn-ghost btn-sm">{ i18n.T(ctx, "common.back_to_apps") }</a>
 		</div>
 		<div class="flowbot-surface mb-6">
 			<div class="p-6">
 				<h1 class="text-2xl font-semibold tracking-tight m-0">{ app.Name }</h1>
 				<div id="status-area" data-testid="status-area" class="mt-2">
-					@HubAppStatusBadge(status)
-					<span class="ml-2 text-sm text-base-content/50">Health: { string(app.Health) }</span>
+					@partials.AppStatusBadge(ctx, status)
+					<span class="ml-2 text-sm text-base-content/50">{ i18n.T(ctx, "homelab.detail.health") } { string(app.Health) }</span>
 				</div>
 				<div class="text-sm text-base-content/50 mt-2">
-					<div>Path: <code class="text-xs">{ app.Path }</code></div>
+					<div>{ i18n.T(ctx, "homelab.detail.path") } <code class="text-xs">{ app.Path }</code></div>
 					if app.ComposeFile != "" {
-						<div>Compose: <code class="text-xs">{ app.ComposeFile }</code></div>
+						<div>{ i18n.T(ctx, "homelab.detail.compose") } <code class="text-xs">{ app.ComposeFile }</code></div>
 					}
 				</div>
 				if label := partials.CapsLabel(app.Capabilities); label != "" {
@@ -38,7 +38,7 @@ templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppS
 							hx-swap="innerHTML"
 							data-testid="btn-start"
 							class="btn btn-sm btn-success">
-							Start
+							{ i18n.T(ctx, "hub.btn.start") }
 							<span class="loading loading-spinner loading-xs htmx-indicator ml-1"></span>
 						</button>
 					}
@@ -52,7 +52,7 @@ templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppS
 							data-confirm-class="btn-error"
 							data-testid="btn-stop"
 							class="btn btn-sm btn-error">
-							Stop
+							{ i18n.T(ctx, "hub.btn.stop") }
 							<span class="loading loading-spinner loading-xs htmx-indicator ml-1"></span>
 						</button>
 					}
@@ -66,7 +66,7 @@ templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppS
 							data-confirm-class="btn-warning"
 							data-testid="btn-restart"
 							class="btn btn-sm btn-warning">
-							Restart
+							{ i18n.T(ctx, "hub.btn.restart") }
 							<span class="loading loading-spinner loading-xs htmx-indicator ml-1"></span>
 						</button>
 					}
@@ -76,7 +76,7 @@ templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppS
 							hx-swap="innerHTML"
 							data-testid="btn-pull"
 							class="btn btn-sm btn-outline">
-							Pull
+							{ i18n.T(ctx, "hub.btn.pull") }
 							<span class="loading loading-spinner loading-xs htmx-indicator ml-1"></span>
 						</button>
 					}
@@ -86,7 +86,7 @@ templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppS
 							hx-swap="innerHTML"
 							data-testid="btn-update"
 							class="btn btn-sm btn-primary">
-							Update
+							{ i18n.T(ctx, "hub.btn.update") }
 							<span class="loading loading-spinner loading-xs htmx-indicator ml-1"></span>
 						</button>
 					}
@@ -96,38 +96,21 @@ templ HubAppDetailPage(ctx context.Context, app homelab.App, status homelab.AppS
 		<div class="flowbot-surface">
 			<div class="p-6">
 				if permissions.Logs {
-					<h2 class="text-lg font-semibold tracking-tight mb-3">Logs</h2>
+					<h2 class="text-lg font-semibold tracking-tight mb-3">{ i18n.T(ctx, "hub.logs.title") }</h2>
 					<pre id="log-panel"
 						data-url={ templ.URL("/service/web/hub/" + app.Name + "/logs/stream?tail=100") }
 						class="bg-neutral text-neutral-content rounded-lg p-4 text-xs font-mono h-96 overflow-y-auto"
 						data-testid="log-panel">
-						Loading logs...
+						{ i18n.T(ctx, "hub.logs.loading") }
 					</pre>
 					<script src="/static/js/hub-app-logs.js"></script>
 				} else {
-					<h2 class="text-lg font-semibold tracking-tight mb-3">Logs</h2>
+					<h2 class="text-lg font-semibold tracking-tight mb-3">{ i18n.T(ctx, "hub.logs.title") }</h2>
 					<p class="text-sm text-base-content/60 m-0" data-testid="logs-unavailable">
-						Log streaming is unavailable. Enable <code class="text-xs">homelab.permissions.logs</code> and set
-						<code class="text-xs">homelab.runtime.mode</code> to <code class="text-xs">docker_socket</code> or
-						<code class="text-xs">ssh</code>.
+						{ i18n.T(ctx, "hub.logs.unavailable") }
 					</p>
 				}
 			</div>
 		</div>
-	}
-}
-
-templ HubAppStatusBadge(status homelab.AppStatus) {
-	switch status {
-	case "running":
-		<span class="flowbot-chip flowbot-chip-success" data-testid="status-badge">online</span>
-	case "stopped":
-		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">offline</span>
-	case "partial":
-		<span class="flowbot-chip flowbot-chip-warning" data-testid="status-badge">warning</span>
-	case "unknown":
-		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">unknown</span>
-	default:
-		<span class="flowbot-chip flowbot-chip-error" data-testid="status-badge">error</span>
 	}
 }

@@ -51,7 +51,7 @@ func TestChatAgentThreadSessionsDrawer(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := ChatAgentThread(session, nil, nil, endpoints, nil).Render(context.Background(), &buf)
+			err := ChatAgentThread(context.Background(), session, nil, nil, endpoints, nil).Render(context.Background(), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}

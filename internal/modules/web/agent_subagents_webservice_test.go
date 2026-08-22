@@ -175,7 +175,8 @@ func TestValidateAgentSubagentForm(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			errs := validateAgentSubagentForm(tt.item, tt.isNew)
+			c := testWebFiberCtx(t)
+			errs := validateAgentSubagentForm(c, tt.item, tt.isNew)
 			if tt.wantKey == "" {
 				require.Empty(t, errs)
 				return

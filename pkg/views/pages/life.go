@@ -617,13 +617,177 @@ func LifeTaskTypeLabel(ctx context.Context, taskType string) string {
 	case "checkpoint":
 		return i18n.T(ctx, "life.task_type.checkpoint")
 	default:
-		return pkglife.TaskTypeLabel(taskType)
+		return i18n.TDefault(ctx, "life.task_type."+lifeEnumKey(taskType), pkglife.TaskTypeLabel(taskType))
+	}
+}
+
+func lifeEnumKey(raw string) string {
+	s := strings.ToLower(strings.TrimSpace(raw))
+	s = strings.ReplaceAll(s, "-", "_")
+	s = strings.ReplaceAll(s, " ", "_")
+	return s
+}
+
+func lifeEnumLabel(ctx context.Context, prefix, raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	key := prefix + lifeEnumKey(raw)
+	msg := i18n.T(ctx, key)
+	if msg != key {
+		return msg
+	}
+	return raw
+}
+
+// LifeCharacteristicLabel returns a localized characteristic name.
+func LifeCharacteristicLabel(ctx context.Context, code, fallback string) string {
+	if strings.EqualFold(strings.TrimSpace(code), "LVL") {
+		return i18n.T(ctx, "life.stat.lvl")
+	}
+	if label := lifeEnumLabel(ctx, "life.stat.", code); label != strings.TrimSpace(code) {
+		return label
+	}
+	return fallback
+}
+
+// LifeEquipSlotLabel returns a localized equipment slot name.
+func LifeEquipSlotLabel(ctx context.Context, slot string) string {
+	return lifeEnumLabel(ctx, "life.slot.", slot)
+}
+
+// LifeRarityLabel returns a localized rarity tier name.
+func LifeRarityLabel(ctx context.Context, rarity string) string {
+	return lifeEnumLabel(ctx, "life.rarity.", rarity)
+}
+
+// LifeSkillStatusLabel returns a localized skill activity status.
+func LifeSkillStatusLabel(ctx context.Context, status string) string {
+	return lifeEnumLabel(ctx, "life.skill_status.", status)
+}
+
+// LifeSkillTreeTitle returns a localized skill-tree node title.
+func LifeSkillTreeTitle(ctx context.Context, key, fallback string) string {
+	return i18n.TDefault(ctx, lifeCatalogKey("life.skill.", key)+".title", fallback)
+}
+
+// LifeSkillTreeSubtitle returns a localized skill-tree node subtitle.
+func LifeSkillTreeSubtitle(ctx context.Context, key, fallback string) string {
+	return i18n.TDefault(ctx, lifeCatalogKey("life.skill.", key)+".subtitle", fallback)
+}
+
+// LifeAchievementName returns a localized achievement title.
+func LifeAchievementName(ctx context.Context, flag, fallback string) string {
+	return i18n.TDefault(ctx, lifeCatalogKey("life.ach.", flag)+".name", fallback)
+}
+
+// LifeAchievementDescription returns a localized achievement description.
+func LifeAchievementDescription(ctx context.Context, flag, fallback string) string {
+	return i18n.TDefault(ctx, lifeCatalogKey("life.ach.", flag)+".description", fallback)
+}
+
+// LifeEquipmentName returns a localized equipment template name.
+func LifeEquipmentName(ctx context.Context, flag, fallback string) string {
+	return i18n.TDefault(ctx, lifeCatalogKey("life.equip.", flag)+".name", fallback)
+}
+
+// LifeEquipmentLore returns a localized equipment lore blurb.
+func LifeEquipmentLore(ctx context.Context, flag, fallback string) string {
+	return i18n.TDefault(ctx, lifeCatalogKey("life.equip.", flag)+".lore", fallback)
+}
+
+func lifeCatalogKey(prefix, flag string) string {
+	flag = strings.TrimSpace(flag)
+	if flag == "" {
+		return ""
+	}
+	return prefix + flag
+}
+
+// LifeQuestTypeLabel returns a localized quest type name.
+func LifeQuestTypeLabel(ctx context.Context, questType string) string {
+	return lifeEnumLabel(ctx, "life.quest_type.", questType)
+}
+
+// LifeVerdictLabel returns a localized adjudication verdict.
+func LifeVerdictLabel(ctx context.Context, verdict string) string {
+	return lifeEnumLabel(ctx, "life.verdict.", verdict)
+}
+
+// LifeAdjudicationStatusLabel returns a localized adjudication workflow status.
+func LifeAdjudicationStatusLabel(ctx context.Context, status string) string {
+	return lifeEnumLabel(ctx, "life.adjudication.", status)
+}
+
+// LifeEvidenceSourceTypeLabel returns a localized evidence source type.
+func LifeEvidenceSourceTypeLabel(ctx context.Context, sourceType string) string {
+	switch strings.ToLower(strings.TrimSpace(sourceType)) {
+	case "note":
+		return i18n.T(ctx, "life.quest.evidence_type_note")
+	case "link":
+		return i18n.T(ctx, "life.quest.evidence_type_link")
+	case "artifact":
+		return i18n.T(ctx, "life.quest.evidence_type_artifact")
+	default:
+		return sourceType
+	}
+}
+
+// LifeLoreStatusLabel returns a localized lore generation status.
+func LifeLoreStatusLabel(ctx context.Context, status string) string {
+	return lifeEnumLabel(ctx, "life.lore.", status)
+}
+
+// LifeTrackingModeLabel returns a localized tracking mode label.
+func LifeTrackingModeLabel(ctx context.Context, mode string) string {
+	mode = strings.TrimSpace(mode)
+	if mode == "" {
+		return ""
+	}
+	return i18n.TDefault(ctx, "life.tracking."+lifeEnumKey(mode), mode)
+}
+
+// LifeGoalCategoryLabel returns a localized PARA category label.
+func LifeGoalCategoryLabel(ctx context.Context, category string) string {
+	switch strings.TrimSpace(category) {
+	case pkglife.GoalCategoryProject:
+		return i18n.T(ctx, "life.category.project")
+	case pkglife.GoalCategoryArea:
+		return i18n.T(ctx, "life.category.area")
+	case pkglife.GoalCategoryResource:
+		return i18n.T(ctx, "life.category.resource")
+	default:
+		return category
+	}
+}
+
+// LifeGoalStatusLabel returns a localized goal status label.
+func LifeGoalStatusLabel(ctx context.Context, status string) string {
+	switch strings.TrimSpace(status) {
+	case pkglife.GoalStatusActive:
+		return i18n.T(ctx, "life.status.active")
+	case pkglife.GoalStatusPaused:
+		return i18n.T(ctx, "life.status.paused")
+	case pkglife.GoalStatusCompleted:
+		return i18n.T(ctx, "life.status.completed")
+	default:
+		return status
 	}
 }
 
 // LifeActionLogSourceLabel returns a concise label for one audit source.
-func LifeActionLogSourceLabel(sourceType string) string {
-	return pkglife.SourceTypeLabel(sourceType)
+func LifeActionLogSourceLabel(ctx context.Context, sourceType string) string {
+	switch strings.ToLower(strings.TrimSpace(sourceType)) {
+	case "habit_checkin":
+		return i18n.T(ctx, "life.source.habit")
+	case "occurrence":
+		return i18n.T(ctx, "life.source.action")
+	case "checkpoint":
+		return i18n.T(ctx, "life.source.checkpoint")
+	default:
+		return i18n.T(ctx, "life.source.quest")
+	}
 }
 
 // LifeBuildPageInfo builds pagination state for a list section.
@@ -800,12 +964,12 @@ func lifeTabClass(activeTab, tab string) string {
 }
 
 // LifeOccurrenceKindLabel returns a human label for one occurrence kind.
-func LifeOccurrenceKindLabel(kind string) string {
+func LifeOccurrenceKindLabel(ctx context.Context, kind string) string {
 	switch strings.ToLower(strings.TrimSpace(kind)) {
 	case "one_time":
-		return "One-time"
+		return i18n.T(ctx, "life.occurrence.one_time")
 	case "recurring":
-		return "Recurring"
+		return i18n.T(ctx, "life.occurrence.recurring")
 	default:
 		return kind
 	}
@@ -855,7 +1019,7 @@ func LifeSkillTreeBranchOpen(node LifeSkillTreeNodeRow) bool {
 }
 
 // LifeFormatBuffText formats equipment stat buffs for UI chips.
-func LifeFormatBuffText(statBuffs map[string]any) string {
+func LifeFormatBuffText(ctx context.Context, statBuffs map[string]any) string {
 	if len(statBuffs) == 0 {
 		return ""
 	}
@@ -872,11 +1036,19 @@ func LifeFormatBuffText(statBuffs map[string]any) string {
 		}
 		switch key {
 		case "DropRate":
-			parts = append(parts, fmt.Sprintf("Drop +%.0f%%", value*100))
+			parts = append(parts, i18n.TData(ctx, "life.buff.drop_rate", map[string]any{
+				"Percent": fmt.Sprintf("%.0f", value*100),
+			}))
 		case "GoldMult":
-			parts = append(parts, fmt.Sprintf("Gold +%.0f%%", value*100))
+			parts = append(parts, i18n.TData(ctx, "life.buff.gold_mult", map[string]any{
+				"Percent": fmt.Sprintf("%.0f", value*100),
+			}))
 		default:
-			parts = append(parts, fmt.Sprintf("%s +%s", key, lifeFormatNumber(value)))
+			statLabel := LifeCharacteristicLabel(ctx, key, key)
+			parts = append(parts, i18n.TData(ctx, "life.buff.stat", map[string]any{
+				"Stat":  statLabel,
+				"Value": lifeFormatNumber(value),
+			}))
 		}
 	}
 	return strings.Join(parts, " · ")
@@ -976,7 +1148,7 @@ func lifeFilledSegments(current, ceiling int64, segments int) int {
 }
 
 // LifeDisplayName picks a short display name from nickname or uid.
-func LifeDisplayName(nickname, uid string) string {
+func LifeDisplayName(ctx context.Context, nickname, uid string) string {
 	n := strings.TrimSpace(nickname)
 	if n != "" {
 		return n
@@ -984,7 +1156,7 @@ func LifeDisplayName(nickname, uid string) string {
 	u := strings.TrimPrefix(uid, "user:")
 	u = strings.TrimPrefix(u, "user-")
 	if u == "" {
-		return "Operator"
+		return i18n.T(ctx, "life.default.operator")
 	}
 	return u
 }
@@ -1009,39 +1181,39 @@ func LifeHPFromStats(stats []LifeStatRow, profileLevel int) (current, maxHP, hea
 }
 
 // LifeClassStrength maps class to a strength label.
-func LifeClassStrength(classType string) string {
+func LifeClassStrength(ctx context.Context, classType string) string {
 	switch classType {
 	case "Mage":
-		return "Analytical"
+		return i18n.T(ctx, "life.trait.mage_strength")
 	case "Warrior":
-		return "Resilient"
+		return i18n.T(ctx, "life.trait.warrior_strength")
 	case "Rogue":
-		return "Adaptive"
+		return i18n.T(ctx, "life.trait.rogue_strength")
 	default:
-		return "Creative"
+		return i18n.T(ctx, "life.trait.architect_strength")
 	}
 }
 
 // LifeClassWeakness maps class to a mild weakness label.
-func LifeClassWeakness(classType string) string {
+func LifeClassWeakness(ctx context.Context, classType string) string {
 	switch classType {
 	case "Mage":
-		return "Overthinking"
+		return i18n.T(ctx, "life.trait.mage_weakness")
 	case "Warrior":
-		return "Stubborn"
+		return i18n.T(ctx, "life.trait.warrior_weakness")
 	case "Rogue":
-		return "Restless"
+		return i18n.T(ctx, "life.trait.rogue_weakness")
 	default:
-		return "Impatient"
+		return i18n.T(ctx, "life.trait.architect_weakness")
 	}
 }
 
 // LifeMarshalRadar encodes radar chart labels/values as JSON arrays.
-func LifeMarshalRadar(stats []LifeStatRow) (labelsJSON, valuesJSON string) {
+func LifeMarshalRadar(ctx context.Context, stats []LifeStatRow) (labelsJSON, valuesJSON string) {
 	labels := make([]string, 0, len(stats))
 	values := make([]float64, 0, len(stats))
 	for _, s := range stats {
-		labels = append(labels, s.Name)
+		labels = append(labels, LifeCharacteristicLabel(ctx, s.Code, s.Name))
 		values = append(values, s.RadarValue)
 	}
 	lb, err := sonic.Marshal(labels)

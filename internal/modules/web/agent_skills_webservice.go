@@ -123,7 +123,7 @@ func agentSkillNewForm(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-skill-form-new" hx-swap-oob="delete"></tr><tr id="agent-skills-empty" hx-swap-oob="delete"></tr>`))
-	return partials.AgentSkillForm(model.AgentSkill{Source: "global", Enabled: true}, true, nil).
+	return partials.AgentSkillForm(ctx.Context(), model.AgentSkill{Source: "global", Enabled: true}, true, nil).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -137,7 +137,7 @@ func agentSkillCreate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentSkillForm(input, true, errs).Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentSkillForm(reqCtx, input, true, errs).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	now := time.Now().UTC()
 	row := &gen.AgentSkill{
@@ -156,7 +156,7 @@ func agentSkillCreate(ctx fiber.Ctx) error {
 		if fieldErrs := mapAgentSkillUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentSkillForm(input, true, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentSkillForm(reqCtx, input, true, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		return toastErrorKey(ctx, "toast.agent_skills.create_failed")
 	}
@@ -186,7 +186,7 @@ func agentSkillEditForm(ctx fiber.Ctx) error {
 		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentSkillForm(item, false, nil).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSkillForm(reqCtx, item, false, nil).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSkillUpdate(ctx fiber.Ctx) error {
@@ -213,7 +213,7 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentSkillForm(input, false, errs).Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentSkillForm(reqCtx, input, false, errs).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	row := &gen.AgentSkill{
 		Flag:                   flag,
@@ -230,7 +230,7 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 		if fieldErrs := mapAgentSkillUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentSkillForm(input, false, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentSkillForm(reqCtx, input, false, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		return toastErrorKey(ctx, "toast.agent_skills.update_failed")
 	}
@@ -475,7 +475,7 @@ func agentSkillFileNewForm(ctx fiber.Ctx) error {
 		return renderErrorKey(ctx, "toast.agent_skills.load_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentSkillFileForm(item, model.AgentSkillFile{SkillFlag: flag}, true, nil).
+	return partials.AgentSkillFileForm(reqCtx, item, model.AgentSkillFile{SkillFlag: flag}, true, nil).
 		Render(reqCtx, ctx.Response().BodyWriter())
 }
 
@@ -502,7 +502,7 @@ func agentSkillFileCreate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentSkillFileForm(item, input, true, errs).Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentSkillFileForm(reqCtx, item, input, true, errs).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	now := time.Now().UTC()
 	row := &gen.AgentSkillFile{
@@ -516,7 +516,7 @@ func agentSkillFileCreate(ctx fiber.Ctx) error {
 		if fieldErrs := mapAgentSkillFileUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentSkillFileForm(item, input, true, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentSkillFileForm(reqCtx, item, input, true, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		ctx.Status(http.StatusInternalServerError)
 		return renderErrorKey(ctx, "error.create.agent_skill_file")
@@ -564,7 +564,7 @@ func agentSkillFileEditForm(ctx fiber.Ctx) error {
 		return renderErrorKey(ctx, "error.load.agent_skill_file")
 	}
 	ctx.Type("html")
-	return partials.AgentSkillFileForm(item, file, false, nil).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSkillFileForm(reqCtx, item, file, false, nil).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSkillFileUpdate(ctx fiber.Ctx) error {
@@ -590,7 +590,7 @@ func agentSkillFileUpdate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentSkillFileForm(item, input, false, errs).Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentSkillFileForm(reqCtx, item, input, false, errs).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	if _, err := store.AgentStoreFromDB().GetAgentSkillFile(reqCtx, flag, input.Path); err != nil {
 		if errors.Is(err, types.ErrNotFound) {

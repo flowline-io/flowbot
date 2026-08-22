@@ -9,20 +9,20 @@ import (
 
 templ AgentSubagentRow(ctx context.Context, item model.AgentSubagent) {
 	<tr id={ agentSubagentRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
-		<td class="text-base-content font-mono text-sm" data-label="Flag">{ item.Flag }</td>
-		<td class="text-base-content font-medium" data-label="Name">{ item.Name }</td>
-		<td class="text-base-content/70 max-w-xs truncate" data-label="Description">{ agentSubagentDescriptionPreview(item.Description) }</td>
-		<td class="text-base-content/70 font-mono text-sm" data-label="Model">{ agentSubagentModelLabel(item.Model) }</td>
-		<td class="text-center" data-label="Enabled">
+		<td class="text-base-content font-mono text-sm" data-label={ i18n.T(ctx, "common.flag") }>{ item.Flag }</td>
+		<td class="text-base-content font-medium" data-label={ i18n.T(ctx, "table.col.name") }>{ item.Name }</td>
+		<td class="text-base-content/70 max-w-xs truncate" data-label={ i18n.T(ctx, "table.col.description") }>{ agentSubagentDescriptionPreview(item.Description) }</td>
+		<td class="text-base-content/70 font-mono text-sm" data-label={ i18n.T(ctx, "table.col.model") }>{ agentSubagentModelLabel(item.Model) }</td>
+		<td class="text-center" data-label={ i18n.T(ctx, "table.col.enabled") }>
 			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
 		</td>
-		<td class="text-base-content/50" data-label="Updated">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
-		<td data-label="Actions">
+		<td class="text-base-content/50" data-label={ i18n.T(ctx, "table.col.updated") }>{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
+		<td data-label={ i18n.T(ctx, "table.col.actions") }>
 			<div class="flex gap-1">
 				<button hx-get={ agentSubagentEditURL(item) }
 					data-testid="agent-subagent-edit"
 					class="btn btn-ghost btn-xs text-primary">
-					Edit
+					{ i18n.T(ctx, "common.edit") }
 				</button>
 				<button hx-delete={ agentSubagentURL(item) }
 					data-confirm={ i18n.T(ctx, "confirm.delete_subagent.message") }
@@ -31,7 +31,7 @@ templ AgentSubagentRow(ctx context.Context, item model.AgentSubagent) {
 					data-confirm-class="btn-error"
 					data-testid="agent-subagent-delete"
 					class="btn btn-ghost btn-xs text-error">
-					Delete
+					{ i18n.T(ctx, "common.delete") }
 					@HtmxIndicator()
 				</button>
 			</div>

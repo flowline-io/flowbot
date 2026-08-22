@@ -14,7 +14,7 @@ templ WorkflowListPage(ctx context.Context, entries []partials.WorkflowListEntry
 			@partials.PageHeader(ctx, "nav.workflows", "") {
 			}
 			<div hx-get={ partials.WorkflowStatsURL("", 30, "day") } hx-trigger="revealed" hx-swap="outerHTML">
-				@partials.PanelSkeleton()
+				@partials.PanelSkeleton(ctx)
 			</div>
 			<div
 				id="workflow-list-panel"

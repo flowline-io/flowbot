@@ -274,7 +274,7 @@ func TestPanelSkeleton(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			if err := partials.PanelSkeleton().Render(context.Background(), &buf); err != nil {
+			if err := partials.PanelSkeleton(context.Background()).Render(context.Background(), &buf); err != nil {
 				t.Fatalf("render: %v", err)
 			}
 			if !strings.Contains(buf.String(), tt.want) {

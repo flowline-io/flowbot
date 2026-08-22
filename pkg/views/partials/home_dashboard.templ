@@ -1,67 +1,73 @@
 package partials
 
-templ HomeDashboardBlock(d HomeDashboard) {
-	@HomeDashboardSummary(d)
-	@HomeSetupChecklist(d.Checklist)
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ HomeDashboardBlock(ctx context.Context, d HomeDashboard) {
+	@HomeDashboardSummary(ctx, d)
+	@HomeSetupChecklist(ctx, d.Checklist)
 }
 
-templ HomeDashboardSummary(d HomeDashboard) {
+templ HomeDashboardSummary(ctx context.Context, d HomeDashboard) {
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5 mb-8 pb-6 border-b border-base-300" data-testid="home-dashboard-summary">
 		<a href="/service/web/agents" class="group block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" data-testid="home-stat-agents-link">
-			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">Agents</p>
+			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">{ i18n.T(ctx, "home.stat.agents") }</p>
 			<p class="text-2xl font-semibold tracking-tight m-0 mt-1 group-hover:text-primary transition-colors" data-testid="home-stat-agents">{ d.ActiveSessions }</p>
-			<p class="text-sm text-base-content/60 m-0 mt-1">active sessions</p>
+			<p class="text-sm text-base-content/60 m-0 mt-1">{ i18n.T(ctx, "home.stat.active_sessions") }</p>
 		</a>
 		<a href="/service/web/pipelines" class="group block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" data-testid="home-stat-pipelines-link">
-			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">Pipelines (7d)</p>
+			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">{ i18n.T(ctx, "home.stat.pipelines_7d") }</p>
 			<p class="text-2xl font-semibold tracking-tight m-0 mt-1 group-hover:text-primary transition-colors" data-testid="home-stat-pipelines">{ d.PipelineTotal }</p>
 			<p class="text-sm text-base-content/60 m-0 mt-1">
-				<span class="text-success">{ d.PipelineOK } ok</span>
+				<span class="text-success">{ i18n.TData(ctx, "home.stat.ok", map[string]any{"Count": d.PipelineOK}) }</span>
 				<span class="mx-1">·</span>
 				if d.PipelineFailed > 0 {
-					<span class="text-error">{ d.PipelineFailed } failed</span>
+					<span class="text-error">{ i18n.TData(ctx, "home.stat.failed", map[string]any{"Count": d.PipelineFailed}) }</span>
 				} else {
-					<span>{ d.PipelineFailed } failed</span>
+					<span>{ i18n.TData(ctx, "home.stat.failed", map[string]any{"Count": d.PipelineFailed}) }</span>
 				}
 			</p>
 		</a>
 		<a href="/service/web/workflows" class="group block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" data-testid="home-stat-workflows-link">
-			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">Workflows (7d)</p>
+			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">{ i18n.T(ctx, "home.stat.workflows_7d") }</p>
 			<p class="text-2xl font-semibold tracking-tight m-0 mt-1 group-hover:text-primary transition-colors" data-testid="home-stat-workflows">{ d.WorkflowTotal }</p>
 			<p class="text-sm text-base-content/60 m-0 mt-1">
-				<span class="text-success">{ d.WorkflowOK } ok</span>
+				<span class="text-success">{ i18n.TData(ctx, "home.stat.ok", map[string]any{"Count": d.WorkflowOK}) }</span>
 				<span class="mx-1">·</span>
 				if d.WorkflowFailed > 0 {
-					<span class="text-error">{ d.WorkflowFailed } failed</span>
+					<span class="text-error">{ i18n.TData(ctx, "home.stat.failed", map[string]any{"Count": d.WorkflowFailed}) }</span>
 				} else {
-					<span>{ d.WorkflowFailed } failed</span>
+					<span>{ i18n.TData(ctx, "home.stat.failed", map[string]any{"Count": d.WorkflowFailed}) }</span>
 				}
 			</p>
 		</a>
 		<a href="/service/web/events" class="group block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" data-testid="home-stat-events-link">
-			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">Events (24h)</p>
+			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">{ i18n.T(ctx, "home.stat.events_24h") }</p>
 			<p class="text-2xl font-semibold tracking-tight m-0 mt-1 group-hover:text-primary transition-colors" data-testid="home-stat-events">{ d.Events24h }</p>
-			<p class="text-sm text-base-content/60 m-0 mt-1">View timeline</p>
+			<p class="text-sm text-base-content/60 m-0 mt-1">{ i18n.T(ctx, "home.stat.view_timeline") }</p>
 		</a>
 	</div>
 }
 
-templ HomeSetupChecklist(items []HomeChecklistItem) {
+templ HomeSetupChecklist(ctx context.Context, items []HomeChecklistItem) {
 	if len(items) == 0 {
 		<div></div>
 	} else {
 		<div class="mb-8 pb-6 border-b border-base-300" data-testid="home-setup-checklist">
-			<h2 class="text-lg font-semibold tracking-tight m-0 mb-1">Get started</h2>
-			<p class="text-sm text-base-content/60 m-0 mb-4">Complete these steps to put this instance to work.</p>
+			<h2 class="text-lg font-semibold tracking-tight m-0 mb-1">{ i18n.T(ctx, "home.checklist.title") }</h2>
+			<p class="text-sm text-base-content/60 m-0 mb-4">{ i18n.T(ctx, "home.checklist.subtitle") }</p>
 			<ul class="space-y-3 m-0 p-0 list-none">
 				for _, item := range items {
 					<li class="flex flex-wrap items-start justify-between gap-3 border-b border-base-200 last:border-0 pb-3 last:pb-0" data-testid={ item.TestID }>
 						<div class="min-w-0">
 							<p class="font-medium m-0 flex items-center gap-2">
 								if item.Done {
-									<span class="flowbot-chip flowbot-chip-success">Done</span>
+									<span class="flowbot-chip flowbot-chip-success">{ i18n.T(ctx, "common.done") }</span>
 								} else {
-									<span class="flowbot-chip flowbot-chip-muted">Todo</span>
+									<span class="flowbot-chip flowbot-chip-muted">{ i18n.T(ctx, "common.todo") }</span>
 								}
 								{ item.Title }
 							</p>
@@ -77,7 +83,7 @@ templ HomeSetupChecklist(items []HomeChecklistItem) {
 	}
 }
 
-templ HomeQuickLinksSection(links []HomeQuickLink) {
+templ HomeQuickLinksSection(ctx context.Context, links []HomeQuickLink) {
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mb-8" data-testid="home-quick-links">
 		for _, link := range links {
 			<a href={ link.Href } class="group block py-2 border-b border-base-200 hover:border-primary transition-colors" data-testid={ link.TestID }>

@@ -13,6 +13,6 @@ templ HomelabPage(ctx context.Context, apps []homelab.App, scannedAt string) {
 		@partials.HomelabRegistryScripts()
 		@partials.PageHeader(ctx, "page.homelab.title", "") {
 		}
-		@partials.HomelabGrid(apps, scannedAt)
+		@partials.HomelabGrid(ctx, apps, scannedAt)
 	}
 }

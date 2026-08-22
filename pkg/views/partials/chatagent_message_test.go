@@ -444,6 +444,7 @@ func TestChatAgentThreadJumpToBottomControl(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
 			err := ChatAgentThread(
+				context.Background(),
 				model.AgentSession{Flag: "sess-1", State: "Active"},
 				tt.messages,
 				nil,
@@ -474,6 +475,7 @@ func TestChatAgentThreadTrajectoryView(t *testing.T) {
 	t.Parallel()
 	var buf bytes.Buffer
 	err := ChatAgentThread(
+		context.Background(),
 		model.AgentSession{Flag: "sess-1", State: "Active", Title: "Task"},
 		nil,
 		nil,
@@ -566,6 +568,7 @@ func TestChatAgentThreadPendingApprovalEmptyState(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
 			err := ChatAgentThread(
+				context.Background(),
 				model.AgentSession{Flag: "sess-pending", State: "Active"},
 				tt.messages,
 				nil,

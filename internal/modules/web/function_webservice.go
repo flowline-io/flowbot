@@ -3,7 +3,6 @@ package web
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/url"
 	"strings"
 
@@ -124,7 +123,7 @@ func functionStats(c fiber.Ctx) error {
 		return c.JSON(stats)
 	}
 	c.Type("html")
-	return partials.FunctionStats(name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
+	return partials.FunctionStats(c.Context(), name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func createFunction(c fiber.Ctx) error {
@@ -144,7 +143,7 @@ func createFunction(c fiber.Ctx) error {
 	if _, err := svc.Create(context.Background(), name, entrypoint, getUID(c)); err != nil {
 		if errors.Is(err, types.ErrAlreadyExists) {
 			c.Status(fiber.StatusUnprocessableEntity)
-			return renderFormError(c, "#form-error", fmt.Sprintf("Function %q already exists.", name))
+			return renderFormError(c, "#form-error", webMsgData(c, "error.function.already_exists", map[string]any{"Name": name}))
 		}
 		if errors.Is(err, types.ErrInvalidArgument) {
 			c.Status(fiber.StatusUnprocessableEntity)

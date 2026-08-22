@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
@@ -486,7 +487,7 @@ func TestGroupAgentSessionsByDay(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			groups := GroupAgentSessionsForList(tt.items, now)
+			groups := GroupAgentSessionsForList(context.Background(), tt.items, now)
 			keys := make([]string, 0, len(groups))
 			lens := make([]int, 0, len(groups))
 			first := make([]string, 0, len(groups))

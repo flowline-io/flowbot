@@ -212,7 +212,7 @@
       wrap.appendChild(
         createCopyButton({
           cssClass: 'chatagent-copy-user',
-          title: 'Copy',
+          title: flowbotI18n('client.chatagent.copy', 'Copy'),
           testId: 'chatagent-copy-user',
           text: text,
           plainText: true,
@@ -295,7 +295,7 @@
       summaryClass:
         'chatagent-thinking-summary chatagent-step-summary cursor-pointer text-xs text-base-content/50 select-none',
       iconHTML: thinkIconSVG,
-      label: 'Think',
+      label: flowbotI18n('client.chatagent.think_label', 'Think'),
       durationClass: 'chatagent-duration text-base-content/40',
     });
     var summary = step.summary;
@@ -483,7 +483,10 @@
     footer.className =
       'chatagent-run-duration chatagent-duration text-xs text-base-content/50 text-center py-2';
     footer.setAttribute('data-testid', 'chatagent-run-duration');
-    footer.textContent = 'Completed in ' + ns.formatDuration(durationMs);
+    footer.textContent = flowbotI18n(
+      'client.chatagent.completed_in',
+      'Completed in {{.Duration}}',
+    ).replace('{{.Duration}}', ns.formatDuration(durationMs));
     messagesEl.appendChild(footer);
     ns.scrollMessages(messagesEl);
   }
@@ -507,10 +510,20 @@
     footer.setAttribute('data-testid', 'chatagent-message-duration');
     var parts = [];
     if (turnMs > 0) {
-      parts.push('Turn ' + ns.formatDuration(turnMs));
+      parts.push(
+        flowbotI18n(
+          'client.chatagent.turn_duration',
+          'Turn {{.Duration}}',
+        ).replace('{{.Duration}}', ns.formatDuration(turnMs)),
+      );
     }
     if (runMs > 0) {
-      parts.push('Total ' + ns.formatDuration(runMs));
+      parts.push(
+        flowbotI18n(
+          'client.chatagent.total_duration',
+          'Total {{.Duration}}',
+        ).replace('{{.Duration}}', ns.formatDuration(runMs)),
+      );
     }
     footer.textContent = parts.join(' · ');
     var copyBtn = meta.querySelector('[data-testid="chatagent-copy-md"]');
@@ -542,6 +555,16 @@
     if (!trimmed) {
       return false;
     }
+    var prefixes = [
+      flowbotI18n('client.chatagent.approved_label', 'Approved'),
+      flowbotI18n('client.chatagent.denied_label', 'Denied'),
+      flowbotI18n('client.chatagent.approval_timeout', 'Timed out').slice(0, 9),
+    ];
+    for (var i = 0; i < prefixes.length; i++) {
+      if (prefixes[i] && trimmed.indexOf(prefixes[i]) === 0) {
+        return true;
+      }
+    }
     return /^(Approved|Denied|Timed out)/i.test(trimmed);
   }
 
@@ -565,7 +588,10 @@
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn btn-ghost btn-xs text-primary align-baseline';
-    btn.textContent = 'Reload messages';
+    btn.textContent = flowbotI18n(
+      'client.chatagent.reload_messages',
+      'Reload messages',
+    );
     btn.setAttribute('data-testid', 'chatagent-reload-messages');
     btn.addEventListener('click', function () {
       window.location.reload();
@@ -663,7 +689,13 @@
                 }).then(function (res) {
                   return res.json().then(function (body) {
                     if (!res.ok) {
-                      throw new Error((body && body.error) || 'upload failed');
+                      throw new Error(
+                        (body && body.error) ||
+                          flowbotI18n(
+                            'client.chatagent.upload_failed',
+                            'Upload failed',
+                          ),
+                      );
                     }
                     return {
                       file_id: body.file_id,
@@ -686,7 +718,12 @@
       })
       .then(function (res) {
         if (res.status === 409) {
-          throw new Error('A run is already in progress.');
+          throw new Error(
+            flowbotI18n(
+              'client.chatagent.run_in_progress',
+              'A run is already in progress.',
+            ),
+          );
         }
         if (!res.ok) {
           return res
@@ -695,11 +732,19 @@
               return {};
             })
             .then(function (data) {
-              throw new Error((data && data.error) || 'Request failed');
+              throw new Error(
+                (data && data.error) ||
+                  flowbotI18n('error.request_failed', 'Request failed'),
+              );
             });
         }
         if (!res.body || !res.body.getReader) {
-          throw new Error('Streaming is not supported in this browser.');
+          throw new Error(
+            flowbotI18n(
+              'client.chatagent.streaming_unsupported',
+              'Streaming is not supported in this browser.',
+            ),
+          );
         }
         var reader = res.body.getReader();
         var decoder = new TextDecoder();
@@ -797,10 +842,18 @@
           }
           if (ev.type === 'error') {
             sawDone = true;
-            showThreadError(errorEl, ev.message || 'Run failed');
+            showThreadError(
+              errorEl,
+              ev.message ||
+                flowbotI18n('client.chatagent.run_failed', 'Run failed'),
+            );
           } else if (ev.type === 'canceled') {
             sawDone = true;
-            showThreadError(errorEl, ev.message || 'Run canceled');
+            showThreadError(
+              errorEl,
+              ev.message ||
+                flowbotI18n('client.chatagent.run_canceled', 'Run canceled'),
+            );
           }
         }
 
@@ -855,13 +908,18 @@
           if (!sawDone) {
             showReloadMessagesPrompt(
               errorEl,
-              'Run finished without a live stream.',
+              flowbotI18n(
+                'client.chatagent.run_finished_no_stream',
+                'Run finished without a live stream.',
+              ),
             );
           }
         });
       })
       .catch(function (err) {
-        var msg = (err && err.message) || 'Request failed';
+        var msg =
+          (err && err.message) ||
+          flowbotI18n('error.request_failed', 'Request failed');
         // Incomplete chunked SSE (e.g. server write timeout) often surfaces as a
         // TypeError/network error after the turn already persisted server-side.
         var networkLost =
@@ -869,7 +927,13 @@
           (err.name === 'TypeError' ||
             /network|fetch|load failed|incomplete/i.test(msg));
         if (networkLost) {
-          showReloadMessagesPrompt(errorEl, 'Connection lost while streaming.');
+          showReloadMessagesPrompt(
+            errorEl,
+            flowbotI18n(
+              'client.chatagent.connection_lost_streaming',
+              'Connection lost while streaming.',
+            ),
+          );
           return;
         }
         showThreadError(errorEl, msg);

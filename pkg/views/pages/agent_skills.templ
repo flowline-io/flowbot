@@ -3,6 +3,7 @@ package pages
 import (
 	"context"
 	
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -16,7 +17,7 @@ templ AgentSkillsPage(ctx context.Context, items []model.AgentSkill) {
 				hx-swap="outerHTML"
 				data-testid="agent-skills-refresh"
 				class="btn btn-ghost btn-sm">
-				Refresh
+				{ i18n.T(ctx, "common.refresh") }
 				@partials.HtmxIndicator()
 			</button>
 			<form
@@ -27,7 +28,7 @@ templ AgentSkillsPage(ctx context.Context, items []model.AgentSkill) {
 				hx-trigger="change from:input[type='file']"
 				class="inline-flex m-0">
 				<label class="btn btn-ghost btn-sm cursor-pointer" data-testid="agent-skills-import">
-					Import
+					{ i18n.T(ctx, "agent_skills.import") }
 					<input type="file"
 						name="archive"
 						accept=".zip,application/zip,application/x-zip-compressed"
@@ -40,7 +41,7 @@ templ AgentSkillsPage(ctx context.Context, items []model.AgentSkill) {
 				hx-swap="afterbegin"
 				data-testid="agent-skills-new"
 				class="btn btn-primary btn-sm">
-				New Skill
+				{ i18n.T(ctx, "agent_skills.new") }
 			</button>
 		}
 		@partials.AgentSkillTable(items)

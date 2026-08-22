@@ -8,7 +8,11 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "context"
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
 
 func CommandPalette(ctx context.Context) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -31,7 +35,98 @@ func CommandPalette(ctx context.Context) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog id=\"command-palette\" class=\"modal flowbot-command-palette\" data-testid=\"command-palette\"><div class=\"flowbot-command-palette-panel modal-box\"><div class=\"flowbot-command-palette-header\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"flowbot-command-palette-search-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"></circle><path d=\"m21 21-4.3-4.3\"></path></svg> <input id=\"command-palette-input\" type=\"search\" class=\"flowbot-command-palette-input\" placeholder=\"Search pages, pipelines, sessions, homelab…\" autocomplete=\"off\" spellcheck=\"false\" data-testid=\"command-palette-input\" aria-label=\"Command palette search\"> <kbd class=\"flowbot-command-palette-kbd flowbot-command-palette-kbd-esc hidden sm:inline-flex\" data-testid=\"command-palette-esc-hint\">esc</kbd></div><div id=\"command-palette-results\" class=\"flowbot-command-palette-results\" data-testid=\"command-palette-results\" role=\"listbox\" aria-label=\"Command palette results\"></div><div class=\"flowbot-command-palette-footer\"><span class=\"flowbot-command-palette-hint\"><kbd class=\"flowbot-command-palette-kbd\">↑</kbd><kbd class=\"flowbot-command-palette-kbd\">↓</kbd><span>navigate</span></span> <span class=\"flowbot-command-palette-hint\"><kbd class=\"flowbot-command-palette-kbd\">↵</kbd><span>open</span></span> <span class=\"flowbot-command-palette-hint\"><kbd class=\"flowbot-command-palette-kbd\">esc</kbd><span>close</span></span></div></div><form method=\"dialog\" class=\"modal-backdrop\"><button type=\"submit\" data-testid=\"command-palette-backdrop\">close</button></form></dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog id=\"command-palette\" class=\"modal flowbot-command-palette\" data-testid=\"command-palette\"><div class=\"flowbot-command-palette-panel modal-box\"><div class=\"flowbot-command-palette-header\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"flowbot-command-palette-search-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"></circle><path d=\"m21 21-4.3-4.3\"></path></svg> <input id=\"command-palette-input\" type=\"search\" class=\"flowbot-command-palette-input\" placeholder=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "client.command_palette.placeholder"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/command_palette.templ`, Line: 18, Col: 68}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" autocomplete=\"off\" spellcheck=\"false\" data-testid=\"command-palette-input\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "command_palette.search_aria"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/command_palette.templ`, Line: 22, Col: 60}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"> <kbd class=\"flowbot-command-palette-kbd flowbot-command-palette-kbd-esc hidden sm:inline-flex\" data-testid=\"command-palette-esc-hint\">esc</kbd></div><div id=\"command-palette-results\" class=\"flowbot-command-palette-results\" data-testid=\"command-palette-results\" role=\"listbox\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "command_palette.results_aria"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/command_palette.templ`, Line: 31, Col: 60}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"></div><div class=\"flowbot-command-palette-footer\"><span class=\"flowbot-command-palette-hint\"><kbd class=\"flowbot-command-palette-kbd\">↑</kbd><kbd class=\"flowbot-command-palette-kbd\">↓</kbd><span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "command_palette.navigate"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/command_palette.templ`, Line: 34, Col: 194}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span></span> <span class=\"flowbot-command-palette-hint\"><kbd class=\"flowbot-command-palette-kbd\">↵</kbd><span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "command_palette.open"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/command_palette.templ`, Line: 35, Col: 140}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</span></span> <span class=\"flowbot-command-palette-hint\"><kbd class=\"flowbot-command-palette-kbd\">esc</kbd><span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "command_palette.close_hint"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/command_palette.templ`, Line: 36, Col: 146}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span></span></div></div><form method=\"dialog\" class=\"modal-backdrop\"><button type=\"submit\" data-testid=\"command-palette-backdrop\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.close"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/command_palette.templ`, Line: 40, Col: 93}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</button></form></dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

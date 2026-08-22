@@ -35,7 +35,7 @@ templ LifeDashboardPage(data LifeCharacterData) {
 							<li class="life-stat-row">
 								<span class="life-stat-name">
 									@lifeStatIcon(c.Code)
-									{ c.Name }
+									{ LifeCharacteristicLabel(ctx, c.Code, c.Name) }
 								</span>
 								<div class="life-seg-bar" aria-hidden="true">
 									for i := range LifeSegmentIndexes(c.TotalSegs) {
@@ -218,14 +218,8 @@ templ lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) {
 		</form>
 		<div class="life-goal-card-toolbar">
 			<span class={ "life-meta-chip", LifeGoalStatusClass(g.Status) }>
-			if g.Status == "Active" {
-				{ i18n.T(ctx, "life.status.active") }
-			} else if g.Status == "Paused" {
-				{ i18n.T(ctx, "life.status.paused") }
-			} else {
-				{ g.Status }
-			}
-		</span>
+				{ LifeGoalStatusLabel(ctx, g.Status) }
+			</span>
 			if g.Status == "Active" {
 				<button
 					type="button"
@@ -399,7 +393,7 @@ templ LifeSkillsPage(data LifeSkillTreeData) {
 										</div>
 									</div>
 									<div class="life-goal-card-meta">
-										<span class={ "life-meta-chip", LifeSkillStatusClass(data.SelectedNode.Status) }>{ data.SelectedNode.Status }</span>
+										<span class={ "life-meta-chip", LifeSkillStatusClass(data.SelectedNode.Status) }>{ LifeSkillStatusLabel(ctx, data.SelectedNode.Status) }</span>
 										<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.records_count", map[string]any{"Count": data.SelectedNode.PracticeCount}) }</span>
 										<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.skills_count", map[string]any{"Count": data.SelectedNode.SkillCount}) }</span>
 									</div>
@@ -425,7 +419,7 @@ templ LifeSkillsPage(data LifeSkillTreeData) {
 													</div>
 												</div>
 												<div class="life-goal-card-meta">
-													<span class="life-meta-chip">{ evidence.SourceType }</span>
+													<span class="life-meta-chip">{ LifeEvidenceSourceTypeLabel(ctx, evidence.SourceType) }</span>
 													<span class="life-meta-chip">{ evidence.When }</span>
 												</div>
 											</div>
@@ -482,10 +476,10 @@ templ lifePlanNode(node LifePlanNodeRow, depth int) {
 						<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, node.TaskType) }</span>
 					}
 					if node.SuggestedCadence != "" {
-						<span class="life-meta-chip">{ node.SuggestedCadence }</span>
+						<span class="life-meta-chip">{ i18n.TDefault(ctx, "life.cadence."+strings.ToLower(node.SuggestedCadence), node.SuggestedCadence) }</span>
 					}
 					if node.TrackingMode != "" && node.TaskType != "" {
-						<span class="life-meta-chip">{ node.TrackingMode }</span>
+						<span class="life-meta-chip">{ LifeTrackingModeLabel(ctx, node.TrackingMode) }</span>
 					}
 					if node.Exp > 0 {
 						<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": node.Exp}) }</strong></span>
@@ -525,7 +519,7 @@ templ lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) {
 					<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, node.TaskType) }</span>
 				}
 				if node.SuggestedCadence != "" {
-					<span class="life-meta-chip">{ node.SuggestedCadence }</span>
+					<span class="life-meta-chip">{ i18n.TDefault(ctx, "life.cadence."+strings.ToLower(node.SuggestedCadence), node.SuggestedCadence) }</span>
 				}
 				if node.Difficulty != "" {
 					<span class="life-meta-chip">{ node.Difficulty }</span>
@@ -646,7 +640,7 @@ templ lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) {
 			</div>
 		</div>
 		<div class="life-goal-card-meta life-skill-node-meta">
-			<span class={ "life-meta-chip", LifeSkillStatusClass(node.Status) }>{ node.Status }</span>
+			<span class={ "life-meta-chip", LifeSkillStatusClass(node.Status) }>{ LifeSkillStatusLabel(ctx, node.Status) }</span>
 			<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.records_count", map[string]any{"Count": node.PracticeCount}) }</span>
 			if node.SkillCount > 0 {
 				<span class="life-meta-chip">{ i18n.TData(ctx, "life.meta.skills_count", map[string]any{"Count": node.SkillCount}) }</span>
@@ -673,10 +667,10 @@ templ lifeProfileSummary(data LifeCharacterData) {
 		<span class="life-meta-sep">•</span>
 		<span data-testid="life-level">{ i18n.TData(ctx, "life.profile.level", map[string]any{"Value": data.Level}) }</span>
 		<span class="life-meta-sep">•</span>
-		<span data-testid="life-gold">{ fmt.Sprintf("%d", data.Gold) } Coins</span>
+		<span data-testid="life-gold">{ i18n.TData(ctx, "life.profile.coins", map[string]any{"Count": data.Gold}) }</span>
 	</p>
 	<div class="life-hp-row" data-testid="life-hp-row">
-		<span class="life-hp-label">HP:</span>
+		<span class="life-hp-label">{ i18n.T(ctx, "life.profile.hp_label") }</span>
 		<span class="life-hearts" aria-hidden="true">
 			for i := range LifeSegmentIndexes(data.HeartsTotal) {
 				if i < data.HeartsFilled {
@@ -799,7 +793,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 								<select name="goal_flag" class="select select-bordered select-sm w-full mt-1" data-testid="life-quest-goal">
 									<option value="">{ i18n.T(ctx, "life.quest.link_goal_none") }</option>
 									for _, g := range data.Goals {
-										<option value={ g.Flag }>{ g.Category }: { g.Title }</option>
+										<option value={ g.Flag }>{ LifeGoalCategoryLabel(ctx, g.Category) }: { g.Title }</option>
 									}
 								</select>
 							</label>
@@ -835,12 +829,12 @@ templ LifeQuestsPage(data LifeQuestsData) {
 									}
 									<div class="life-quest-meta life-action-meta">
 										<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, a.TaskType) }</span>
-										<span class="life-meta-chip">{ LifeOccurrenceKindLabel(a.Kind) }</span>
+										<span class="life-meta-chip">{ LifeOccurrenceKindLabel(ctx, a.Kind) }</span>
 										if a.SuggestedCadence != "" {
-											<span class="life-meta-chip">{ a.SuggestedCadence }</span>
+											<span class="life-meta-chip">{ i18n.TDefault(ctx, "life.cadence."+strings.ToLower(a.SuggestedCadence), a.SuggestedCadence) }</span>
 										}
 										if a.TrackingMode != "" {
-											<span class="life-meta-chip">{ a.TrackingMode }</span>
+											<span class="life-meta-chip">{ LifeTrackingModeLabel(ctx, a.TrackingMode) }</span>
 										}
 										if a.Difficulty != "" {
 											<span class="life-meta-chip">{ a.Difficulty }</span>
@@ -888,7 +882,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 									<div class="life-quest-meta">
 										<span class="life-meta-chip">{ LifeTaskTypeLabel(ctx, h.TaskType) }</span>
 										if h.SuggestedCadence != "" {
-											<span class="life-meta-chip">{ h.SuggestedCadence }</span>
+											<span class="life-meta-chip">{ i18n.TDefault(ctx, "life.cadence."+strings.ToLower(h.SuggestedCadence), h.SuggestedCadence) }</span>
 										}
 										if h.CheckedIn {
 											<span class="life-meta-chip">{ i18n.T(ctx, "life.meta.done_today") }</span>
@@ -926,10 +920,10 @@ templ LifeQuestsPage(data LifeQuestsData) {
 										<p class="life-quest-prompt" title={ q.Prompt }>{ q.Prompt }</p>
 									}
 									<div class="life-quest-meta">
-										<span class="life-meta-chip">{ q.Type }</span>
+										<span class="life-meta-chip">{ LifeQuestTypeLabel(ctx, q.Type) }</span>
 										<span class="life-meta-chip life-meta-chip-diff">{ q.Difficulty }</span>
 										<span class="life-meta-chip">{ i18n.TData(ctx, "life.quest.fear", map[string]any{"Value": q.Fear}) }</span>
-										<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(q.DropTier) }>{ q.DropTier }</span>
+										<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(q.DropTier) }>{ LifeRarityLabel(ctx, q.DropTier) }</span>
 									</div>
 									<div class="life-quest-rewards">
 										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": q.Exp}) }</strong></span>
@@ -949,7 +943,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 												for _, ev := range q.Evidence {
 													<li class="life-quest-evidence-row">
 														<div class="life-quest-evidence-main">
-															<span class="life-meta-chip">{ ev.SourceType }</span>
+															<span class="life-meta-chip">{ LifeEvidenceSourceTypeLabel(ctx, ev.SourceType) }</span>
 															<p class="life-quest-evidence-content">{ ev.Content }</p>
 															if ev.SourceURL != "" {
 																<a href={ templ.URL(ev.SourceURL) } class="life-quest-evidence-link" target="_blank" rel="noreferrer">{ i18n.T(ctx, "life.quest.open_source") }</a>
@@ -1014,8 +1008,8 @@ templ LifeQuestsPage(data LifeQuestsData) {
 									if q.Adjudication != nil {
 										<section class="life-quest-ruling">
 											<div class="life-quest-meta">
-												<span class={ "life-meta-chip", LifeVerdictChipClass(q.Adjudication.Verdict) }>{ q.Adjudication.Verdict }</span>
-												<span class="life-meta-chip">{ q.Adjudication.Status }</span>
+												<span class={ "life-meta-chip", LifeVerdictChipClass(q.Adjudication.Verdict) }>{ LifeVerdictLabel(ctx, q.Adjudication.Verdict) }</span>
+												<span class="life-meta-chip">{ LifeAdjudicationStatusLabel(ctx, q.Adjudication.Status) }</span>
 												<span class="life-meta-chip">{ q.Adjudication.When }</span>
 											</div>
 											<p class="life-quest-ruling-reason">{ q.Adjudication.Reason }</p>
@@ -1151,7 +1145,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 								<li class="life-done-row">
 									<div class="life-done-main">
 										<span class="life-done-title" title={ l.QuestTitle }>{ l.QuestTitle }</span>
-										<span class="life-done-prompt">{ LifeActionLogSourceLabel(l.SourceType) } · { l.When }</span>
+										<span class="life-done-prompt">{ LifeActionLogSourceLabel(ctx, l.SourceType) } · { l.When }</span>
 									</div>
 									<div class="life-done-meta">
 										<span class="life-quest-reward"><strong>{ i18n.TData(ctx, "life.reward.exp", map[string]any{"Value": l.GainedExp}) }</strong></span>
@@ -1206,12 +1200,12 @@ templ LifeInventoryPage(data LifeInventoryData) {
 									<span class="life-equip-slot-icon" aria-hidden="true">
 										@lifeEquipSlotIcon(slot.Label)
 									</span>
-									<p class="life-equip-slot-label">{ slot.Label }</p>
+									<p class="life-equip-slot-label">{ LifeEquipSlotLabel(ctx, slot.Label) }</p>
 								</div>
 								if slot.Item != nil {
 									<p class="life-equip-slot-name">{ slot.Item.Name }</p>
 									<div class="life-equip-slot-meta">
-										<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(slot.Item.Rarity) }>{ slot.Item.Rarity }</span>
+										<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(slot.Item.Rarity) }>{ LifeRarityLabel(ctx, slot.Item.Rarity) }</span>
 										if slot.Item.BuffText != "" {
 											<span class="life-meta-chip">{ slot.Item.BuffText }</span>
 										}
@@ -1259,15 +1253,15 @@ templ LifeInventoryPage(data LifeInventoryData) {
 											}
 										</p>
 										<div class="life-quest-meta">
-											<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(it.Rarity) }>{ it.Rarity }</span>
-											<span class="life-meta-chip">{ it.Slot }</span>
+											<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(it.Rarity) }>{ LifeRarityLabel(ctx, it.Rarity) }</span>
+											<span class="life-meta-chip">{ LifeEquipSlotLabel(ctx, it.Slot) }</span>
 											if it.BuffText != "" {
 												<span class="life-meta-chip">{ it.BuffText }</span>
 											}
 											if it.PerkText != "" {
 												<span class="life-meta-chip">{ i18n.TData(ctx, "life.inventory.perk", map[string]any{"Text": it.PerkText}) }</span>
 											}
-											<span class="life-meta-chip">{ i18n.TData(ctx, "life.inventory.lore", map[string]any{"Status": it.LoreStatus}) }</span>
+											<span class="life-meta-chip">{ i18n.TData(ctx, "life.inventory.lore", map[string]any{"Status": LifeLoreStatusLabel(ctx, it.LoreStatus)}) }</span>
 											if it.Tarnished {
 												<span class="life-meta-chip life-meta-chip-warn">{ i18n.T(ctx, "life.inventory.tarnished") }</span>
 											}
@@ -1316,7 +1310,7 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 						<p>{ i18n.T(ctx, "life.page.achievements.subtitle") }</p>
 					</div>
 					<span class="life-section-count" data-testid="life-achievements-count">
-						{ fmt.Sprintf("%d / %d unlocked", data.UnlockedCount, len(data.Items)) }
+						{ i18n.TData(ctx, "life.achievements.unlocked_count", map[string]any{"Unlocked": data.UnlockedCount, "Total": len(data.Items)}) }
 					</span>
 				</header>
 
@@ -1335,14 +1329,14 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 									data-testid={ "life-achievement-" + item.Flag }
 								>
 									<div class="life-achievement-head">
-										<h2 class="life-achievement-name">{ item.Name }</h2>
+										<h2 class="life-achievement-name">{ LifeAchievementName(ctx, item.Flag, item.Name) }</h2>
 										if item.Unlocked {
 											<span class="life-meta-chip life-meta-chip-ok">{ i18n.T(ctx, "life.achievements.unlocked") }</span>
 										} else {
 											<span class="life-meta-chip">{ i18n.T(ctx, "life.achievements.locked") }</span>
 										}
 									</div>
-									<p class="life-achievement-desc">{ item.Description }</p>
+									<p class="life-achievement-desc">{ LifeAchievementDescription(ctx, item.Flag, item.Description) }</p>
 									if item.ShowProgress {
 										<div class="life-achievement-progress" data-testid={ "life-achievement-progress-" + item.Flag }>
 											<div class="life-seg-bar" aria-hidden="true">
@@ -1660,7 +1654,7 @@ templ LifeStatsPage(data LifeStatsShellData) {
 					</div>
 				</header>
 				<div id="life-stats-container" data-testid="life-stats-loader">
-					@partials.PanelSkeleton()
+					@partials.PanelSkeleton(ctx)
 				</div>
 			</div>
 		}

@@ -67,6 +67,12 @@ func TestTagForCookie(t *testing.T) {
 	assert.Equal(t, "zh-Hans", i18n.TagForCookie(i18n.CookieZH).String())
 }
 
+func TestTDefault(t *testing.T) {
+	t.Parallel()
+	ctx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
+	assert.Equal(t, "English fallback", i18n.TDefault(ctx, "settings.desc.missing.path", "English fallback"))
+}
+
 func TestLeafAndPrefixedChildIDs(t *testing.T) {
 	t.Parallel()
 	ctx := i18n.DefaultContext()

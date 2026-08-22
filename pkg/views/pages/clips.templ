@@ -12,6 +12,6 @@ templ ClipsPage(ctx context.Context, items []partials.ClipListItem) {
 	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.clips")) {
 		@partials.PageHeader(ctx, "nav.clips", "") {
 		}
-		@partials.ClipsTable(items)
+		@partials.ClipsTable(ctx, items)
 	}
 }

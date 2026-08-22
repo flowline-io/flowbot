@@ -41,7 +41,7 @@ func inboxList(ctx fiber.Ctx) error {
 	uid := getUID(ctx)
 	if uid == "" {
 		ctx.Type("html")
-		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.not_authenticated")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	notifypkg.TouchPresence(uid)
 	return renderInboxList(ctx, uid)
@@ -72,7 +72,7 @@ func inboxMarkRead(ctx fiber.Ctx) error {
 	uid := getUID(ctx)
 	if uid == "" {
 		ctx.Type("html")
-		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.not_authenticated")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
@@ -82,12 +82,12 @@ func inboxMarkRead(ctx fiber.Ctx) error {
 	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.store_unavailable")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	rec, err := ns.GetRecord(ctx.Context(), id)
 	if err != nil || rec == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Record not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.record_not_found")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if rec.UID != uid {
 		ctx.Status(fiber.StatusForbidden)
@@ -142,7 +142,7 @@ func renderInboxList(ctx fiber.Ctx, uid string) error {
 	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.store_unavailable")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	filter := strings.TrimSpace(ctx.Query("filter"))
 	if filter == "" {
@@ -160,7 +160,7 @@ func renderInboxList(ctx fiber.Ctx, uid string) error {
 	records, next, err := ns.ListRecords(ctx.Context(), uid, opts)
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load inbox").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.failed_load_inbox")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
 	return partials.InboxList(partials.InboxListParams{

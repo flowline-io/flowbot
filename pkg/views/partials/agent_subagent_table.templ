@@ -1,6 +1,9 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
 
 templ AgentSubagentTable(items []model.AgentSubagent) {
 	<div class="flowbot-surface" id="agent-subagents-table" data-testid="agent-subagents-table">
@@ -8,13 +11,13 @@ templ AgentSubagentTable(items []model.AgentSubagent) {
 			<table class="table flowbot-table-pin flowbot-table-cards">
 				<thead>
 				<tr>
-					<th class="text-xs text-base-content/55">Flag</th>
-					<th class="text-xs text-base-content/55">Name</th>
-					<th class="text-xs text-base-content/55">Description</th>
-					<th class="text-xs text-base-content/55">Model</th>
-					<th class="text-xs text-base-content/55 text-center">Enabled</th>
-					<th class="text-xs text-base-content/55">Updated</th>
-					<th class="text-xs text-base-content/55">Actions</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.flag") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.name") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.description") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.model") }</th>
+					<th class="text-xs text-base-content/55 text-center">{ i18n.T(ctx, "table.col.enabled") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.updated") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="agent-subagents-rows">
@@ -25,12 +28,12 @@ templ AgentSubagentTable(items []model.AgentSubagent) {
 					<tr id="agent-subagents-empty">
 						<td colspan="7" class="p-0">
 							@EmptyStateHXCTA(
-								"No subagents yet",
-								"Define specialists for delegated work.",
+								i18n.T(ctx, "table.empty.subagents"),
+								i18n.T(ctx, "table.empty.subagents_detail"),
 								"/service/web/agent-subagents/new",
 								"#agent-subagents-rows",
 								"afterbegin",
-								"Create subagent",
+								i18n.T(ctx, "table.empty.subagents_cta"),
 							)
 						</td>
 					</tr>

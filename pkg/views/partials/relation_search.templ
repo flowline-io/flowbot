@@ -1,10 +1,15 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types"
+import (
+	"context"
 
-templ RelationSearchResults(results []types.ResourceRef) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+templ RelationSearchResults(ctx context.Context, results []types.ResourceRef) {
 	if len(results) == 0 {
-		@EmptyState("No resources found")
+		@EmptyState(i18n.T(ctx, "relations.empty.no_resources"))
 		return
 	}
 	<div class="flex flex-wrap gap-2" data-testid="relations-search-results">

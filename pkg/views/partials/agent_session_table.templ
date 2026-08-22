@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -14,13 +15,13 @@ templ AgentSessionTable(items []model.AgentSession, nextCursor string) {
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs text-base-content/55">Title</th>
-					<th class="text-xs text-base-content/55">Session ID</th>
-					<th class="text-xs text-base-content/55">UID</th>
-					<th class="text-xs text-base-content/55 text-center">State</th>
-					<th class="text-xs text-base-content/55">Leaf ID</th>
-					<th class="text-xs text-base-content/55">Updated</th>
-					<th class="text-xs text-base-content/55">Created</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.title") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.session_id") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.uid") }</th>
+					<th class="text-xs text-base-content/55 text-center">{ i18n.T(ctx, "table.col.state") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.leaf_id") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.updated") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.created") }</th>
 				</tr>
 				</thead>
 				<tbody id="agent-sessions-rows">
@@ -31,10 +32,10 @@ templ AgentSessionTable(items []model.AgentSession, nextCursor string) {
 					<tr id="agent-sessions-empty">
 						<td colspan="7" class="p-0">
 							@EmptyStateCTA(
-								"No sessions yet",
-								"Conversations appear here after you chat with an agent.",
+								i18n.T(ctx, "table.empty.agent_sessions"),
+								i18n.T(ctx, "table.empty.agent_sessions_detail"),
 								"/service/web/agents",
-								"Open Agents",
+								i18n.T(ctx, "table.empty.agent_sessions_cta"),
 							)
 						</td>
 					</tr>

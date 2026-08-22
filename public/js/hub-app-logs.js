@@ -38,7 +38,9 @@
       }
       es.close();
       es = null;
-      appendLine('-- Log stream ended --');
+      appendLine(
+        flowbotI18n('client.hub.logs.ended_line', '-- Log stream ended --'),
+      );
       if (typeof showToast === 'function') {
         showToast(
           flowbotI18n(

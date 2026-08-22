@@ -91,7 +91,7 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 	}
 
 	ctx.Type("html")
-	return pages.AgentSessionDetailPage(ctx.Context(), 
+	return pages.AgentSessionDetailPage(ctx.Context(),
 		mapAgentSession(row),
 		mapAgentSessionEntries(entries),
 		mapAgentPlans(plans),
@@ -108,11 +108,11 @@ func agentSessionResourcePreview(ctx fiber.Ctx) error {
 	uri := ctx.Query("uri")
 	if sessionID == "" || uri == "" {
 		ctx.Type("html")
-		return partials.EmptyState("Invalid session or resource URI").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.invalid_session_uri")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if _, err := store.ChatStoreFromDB().GetChatSession(ctx.Context(), sessionID); err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Session not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.session_not_found")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	svc, err := chatAgentService()
 	if err != nil {
@@ -123,7 +123,7 @@ func agentSessionResourcePreview(ctx fiber.Ctx) error {
 	})
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Resource not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.resource_not_found")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	var bodyHTML string
 	if content.ContentType == "text/markdown" {
@@ -169,13 +169,13 @@ func agentSessionEntryPayload(ctx fiber.Ctx) error {
 	entryID := ctx.Params("entryID")
 	if sessionID == "" || entryID == "" {
 		ctx.Type("html")
-		return partials.EmptyState("Invalid session or entry id").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.invalid_session_entry")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	entry, err := store.ChatStoreFromDB().GetChatSessionEntryInSession(ctx.Context(), sessionID, entryID)
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Entry not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.entry_not_found")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	ctx.Type("html")

@@ -51,7 +51,7 @@ func TestWorkflowStatsActiveTabs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := WorkflowStats("", stats, tt.tabs).Render(context.Background(), &buf)
+			err := WorkflowStats(context.Background(), "", stats, tt.tabs).Render(context.Background(), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}

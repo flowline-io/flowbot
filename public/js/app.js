@@ -384,11 +384,20 @@ document.addEventListener('htmx:responseError', function (evt) {
 });
 
 document.addEventListener('htmx:sendError', function () {
-  showToast(flowbotI18n('error.network', 'Network error. Check your connection and try again.'), 'error');
+  showToast(
+    flowbotI18n(
+      'error.network',
+      'Network error. Check your connection and try again.',
+    ),
+    'error',
+  );
 });
 
 document.addEventListener('htmx:timeout', function () {
-  showToast(flowbotI18n('error.timeout', 'Request timed out. Please try again.'), 'error');
+  showToast(
+    flowbotI18n('error.timeout', 'Request timed out. Please try again.'),
+    'error',
+  );
 });
 
 // Preserve scroll position for containers marked data-preserve-scroll across HTMX swaps.
@@ -446,24 +455,49 @@ function flowbotHTMXErrorMessage(status, body) {
     return body;
   }
   if (status === 403) {
-    return flowbotI18n('error.permission_denied', 'Permission denied. You do not have access to perform this action.');
+    return flowbotI18n(
+      'error.permission_denied',
+      'Permission denied. You do not have access to perform this action.',
+    );
   }
   if (status === 400 || status === 422) {
-    return flowbotI18n('error.validation', 'Validation error. Check your input and try again.');
+    return flowbotI18n(
+      'error.validation',
+      'Validation error. Check your input and try again.',
+    );
   }
   if (status === 404) {
-    return flowbotI18n('error.not_found', 'Not found. The requested resource no longer exists.');
+    return flowbotI18n(
+      'error.not_found',
+      'Not found. The requested resource no longer exists.',
+    );
   }
   if (status === 408 || status === 504) {
     return flowbotI18n('error.timeout', 'Request timed out. Please try again.');
   }
   if (status >= 500) {
-    return flowbotI18n('error.server', 'Server error') + ' (' + status + '). ' + flowbotI18n('error.try_again', 'Please try again.');
+    return (
+      flowbotI18n('error.server', 'Server error') +
+      ' (' +
+      status +
+      '). ' +
+      flowbotI18n('error.try_again', 'Please try again.')
+    );
   }
   if (status) {
-    return flowbotI18n('error.request_failed', 'Request failed') + ' (' + status + '). ' + flowbotI18n('error.try_again', 'Please try again.');
+    return (
+      flowbotI18n('error.request_failed', 'Request failed') +
+      ' (' +
+      status +
+      '). ' +
+      flowbotI18n('error.try_again', 'Please try again.')
+    );
   }
-  return flowbotI18n('error.request_failed', 'Request failed') + '. ' + flowbotI18n('error.try_again', 'Please try again.');
+  return (
+    flowbotI18n('error.request_failed', 'Request failed') +
+    '. ' +
+    flowbotI18n('error.try_again', 'Please try again.')
+  );
 }
 
 // Global top progress: do NOT put hx-indicator on <body> — that replaces the
@@ -534,7 +568,9 @@ document.addEventListener('htmx:afterSettle', function (evt) {
   }
 
   function flowbotFormatNeedsApprovalTitle() {
-    return '\u25CF ' + flowbotI18n('client.app.needs_approval', 'Needs approval');
+    return (
+      '\u25CF ' + flowbotI18n('client.app.needs_approval', 'Needs approval')
+    );
   }
 
   function flowbotFormatLiveFinishedTitle(pipelineName, failed) {

@@ -1,6 +1,11 @@
 package partials
 
-import "time"
+import (
+	"context"
+	"time"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
 
 // ClipListItem is one row in the web clips list table.
 type ClipListItem struct {
@@ -18,17 +23,17 @@ type ClipListItem struct {
 	URL string
 }
 
-templ ClipsTable(items []ClipListItem) {
+templ ClipsTable(ctx context.Context, items []ClipListItem) {
 	<div id="clips-table" class="flowbot-surface" data-testid="clips-table">
 		<div class="overflow-x-auto">
 			<table class="table flowbot-table-pin">
 				<thead>
 					<tr>
-						<th class="text-xs font-medium text-base-content/55">Title</th>
-						<th class="text-xs font-medium text-base-content/55">Slug</th>
-						<th class="text-xs font-medium text-base-content/55">Description</th>
-						<th class="text-xs font-medium text-base-content/55">Created</th>
-						<th class="text-xs font-medium text-base-content/55">By</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.title") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.slug") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.description") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.created") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.by") }</th>
 					</tr>
 				</thead>
 				<tbody id="clips-rows">
@@ -39,10 +44,10 @@ templ ClipsTable(items []ClipListItem) {
 						<tr id="clips-empty">
 							<td colspan="5" class="p-0" data-testid="clips-empty">
 								@EmptyStateCTA(
-									"No clips yet",
-									"Create clips from the CLI or chat to share readable pages.",
+									i18n.T(ctx, "table.empty.clips"),
+									i18n.T(ctx, "table.empty.clips_detail"),
 									"/service/web/agents",
-									"Open Agents",
+									i18n.T(ctx, "table.empty.clips_cta"),
 								)
 							</td>
 						</tr>

@@ -1,6 +1,9 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
 
 templ ConfigTable(items []model.ConfigItem) {
 	<div class="flowbot-surface" id="configs-table" data-testid="configs-table">
@@ -8,13 +11,13 @@ templ ConfigTable(items []model.ConfigItem) {
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs text-base-content/55">ID</th>
-					<th class="text-xs text-base-content/55">UID</th>
-					<th class="text-xs text-base-content/55">Topic</th>
-					<th class="text-xs text-base-content/55">Key</th>
-					<th class="text-xs text-base-content/55">Value</th>
-					<th class="text-xs text-base-content/55">Updated</th>
-					<th class="text-xs text-base-content/55">Actions</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.id") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.uid") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.topic") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.key") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.value") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.updated") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="configs-rows">
@@ -25,12 +28,12 @@ templ ConfigTable(items []model.ConfigItem) {
 					<tr id="configs-empty">
 						<td colspan="7" class="p-0">
 							@EmptyStateHXCTA(
-								"No configs yet",
-								"Store per-module settings as key/value pairs.",
+								i18n.T(ctx, "table.empty.configs"),
+								i18n.T(ctx, "table.empty.configs_detail"),
 								"/service/web/configs/new",
 								"#configs-rows",
 								"afterbegin",
-								"Create config",
+								i18n.T(ctx, "table.empty.configs_cta"),
 							)
 						</td>
 					</tr>

@@ -1,6 +1,9 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
 
 templ AgentSkillTable(items []model.AgentSkill) {
 	<div class="flowbot-surface" id="agent-skills-table" data-testid="agent-skills-table">
@@ -8,12 +11,12 @@ templ AgentSkillTable(items []model.AgentSkill) {
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs text-base-content/55">Flag</th>
-					<th class="text-xs text-base-content/55">Name</th>
-					<th class="text-xs text-base-content/55">Description</th>
-					<th class="text-xs text-base-content/55 text-center">Enabled</th>
-					<th class="text-xs text-base-content/55">Updated</th>
-					<th class="text-xs text-base-content/55">Actions</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.flag") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.name") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.description") }</th>
+					<th class="text-xs text-base-content/55 text-center">{ i18n.T(ctx, "table.col.enabled") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.updated") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="agent-skills-rows">
@@ -24,12 +27,12 @@ templ AgentSkillTable(items []model.AgentSkill) {
 					<tr id="agent-skills-empty">
 						<td colspan="6" class="p-0">
 							@EmptyStateHXCTA(
-								"No agent skills yet",
-								"Skills extend what agents can do.",
+								i18n.T(ctx, "table.empty.agent_skills"),
+								i18n.T(ctx, "table.empty.agent_skills_detail"),
 								"/service/web/agent-skills/new",
 								"#agent-skills-rows",
 								"afterbegin",
-								"Create skill",
+								i18n.T(ctx, "table.empty.agent_skills_cta"),
 							)
 						</td>
 					</tr>

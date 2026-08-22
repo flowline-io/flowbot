@@ -91,7 +91,7 @@ func WorkflowListPage(ctx context.Context, entries []partials.WorkflowListEntry)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PanelSkeleton(ctx).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

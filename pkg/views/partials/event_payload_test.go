@@ -97,7 +97,7 @@ func TestDataEventsTable_expandTarget(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := DataEventsTable(nil, nil, tt.events, PageInfo{}, nil).Render(context.Background(), &buf)
+			err := DataEventsTable(context.Background(), nil, nil, tt.events, PageInfo{}, nil).Render(context.Background(), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}

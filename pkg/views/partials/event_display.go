@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 	"hash/fnv"
 	"html"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 )
 
 // EventTypeChipClass returns the flowbot-chip CSS class for an event type.
@@ -60,18 +62,18 @@ func EventRunStatusChipClass(status string) string {
 }
 
 // EventRunStatusText returns a short label for a pipeline run status string.
-func EventRunStatusText(status string) string {
+func EventRunStatusText(ctx context.Context, status string) string {
 	switch status {
 	case "2":
-		return "Success"
+		return i18n.T(ctx, "events.run_status.success")
 	case "4":
-		return "Failed"
+		return i18n.T(ctx, "events.run_status.failed")
 	case "3":
-		return "Cancelled"
+		return i18n.T(ctx, "events.run_status.cancelled")
 	case "1":
-		return "Running"
+		return i18n.T(ctx, "events.run_status.running")
 	default:
-		return "Started"
+		return i18n.T(ctx, "events.run_status.started")
 	}
 }
 

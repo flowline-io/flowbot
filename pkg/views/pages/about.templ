@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -13,13 +14,13 @@ templ AboutPage(ctx context.Context, data AboutData) {
 		<div class="flowbot-surface w-fit" data-testid="about-info">
 			<div class="card-body">
 				<dl class="grid grid-cols-[8rem_auto] gap-x-4 gap-y-3 text-sm m-0">
-					<dt class="text-base-content/55 m-0">Version</dt>
+					<dt class="text-base-content/55 m-0">{ i18n.T(ctx, "page.about.version") }</dt>
 					<dd class="m-0 font-mono" data-testid="about-version">{ data.Version }</dd>
-					<dt class="text-base-content/55 m-0">Build stamp</dt>
+					<dt class="text-base-content/55 m-0">{ i18n.T(ctx, "page.about.build_stamp") }</dt>
 					<dd class="m-0 font-mono" data-testid="about-buildstamp">{ data.Buildstamp }</dd>
-					<dt class="text-base-content/55 m-0">Go</dt>
+					<dt class="text-base-content/55 m-0">{ i18n.T(ctx, "page.about.go") }</dt>
 					<dd class="m-0 font-mono" data-testid="about-go-version">{ data.GoVersion }</dd>
-					<dt class="text-base-content/55 m-0">Platform</dt>
+					<dt class="text-base-content/55 m-0">{ i18n.T(ctx, "page.about.platform") }</dt>
 					<dd class="m-0 font-mono" data-testid="about-platform">{ data.Platform }</dd>
 				</dl>
 			</div>

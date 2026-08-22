@@ -1,27 +1,29 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-templ PipelineStats(name string, stats *types.PipelineStats, tabs StatsTabState) {
+templ PipelineStats(ctx context.Context, name string, stats *types.PipelineStats, tabs StatsTabState) {
 	<div id="pipeline-stats-container" data-testid="pipeline-stats-container">
 		if name == "" {
 			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4" data-testid="pipeline-stats-summary">
 				<div class="border border-base-300 rounded-box px-4 py-3">
-					<div class="text-xs text-base-content/55">Total Pipelines</div>
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "stats.total_pipelines") }</div>
 					<div class="text-2xl font-semibold text-primary mt-1">{ fmt.Sprint(stats.Summary.TotalPipelines) }</div>
 				</div>
 				<div class="border border-base-300 rounded-box px-4 py-3">
-					<div class="text-xs text-base-content/55">Successful Runs</div>
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "stats.successful_runs") }</div>
 					<div class="text-2xl font-semibold text-success mt-1">{ fmt.Sprint(stats.Summary.SuccessfulRuns) }</div>
 				</div>
 				<div class="border border-base-300 rounded-box px-4 py-3">
-					<div class="text-xs text-base-content/55">Failed Runs</div>
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "stats.failed_runs") }</div>
 					<div class="text-2xl font-semibold text-error mt-1">{ fmt.Sprint(stats.Summary.FailedRuns) }</div>
 				</div>
 			</div>
@@ -45,7 +47,7 @@ templ PipelineStats(name string, stats *types.PipelineStats, tabs StatsTabState)
 					hx-get={ PipelineStatsURL(name, 0, tabs.GroupBy) }
 					hx-target="#pipeline-stats-container"
 					hx-swap="outerHTML"
-					data-testid="btn-range-all">All</button>
+					data-testid="btn-range-all">{ i18n.T(ctx, "common.all") }</button>
 			</div>
 			<div class="join" data-testid="groupby-tabs">
 				<button type="button"
@@ -53,26 +55,26 @@ templ PipelineStats(name string, stats *types.PipelineStats, tabs StatsTabState)
 					hx-get={ PipelineStatsURL(name, tabs.RangeDays, "day") }
 					hx-target="#pipeline-stats-container"
 					hx-swap="outerHTML"
-					data-testid="btn-groupby-day">day</button>
+					data-testid="btn-groupby-day">{ i18n.T(ctx, "stats.groupby.day") }</button>
 				<button type="button"
 					class={ statsGroupByBtnClass(tabs.GroupBy, "week") }
 					hx-get={ PipelineStatsURL(name, tabs.RangeDays, "week") }
 					hx-target="#pipeline-stats-container"
 					hx-swap="outerHTML"
-					data-testid="btn-groupby-week">week</button>
+					data-testid="btn-groupby-week">{ i18n.T(ctx, "stats.groupby.week") }</button>
 				<button type="button"
 					class={ statsGroupByBtnClass(tabs.GroupBy, "month") }
 					hx-get={ PipelineStatsURL(name, tabs.RangeDays, "month") }
 					hx-target="#pipeline-stats-container"
 					hx-swap="outerHTML"
-					data-testid="btn-groupby-month">month</button>
+					data-testid="btn-groupby-month">{ i18n.T(ctx, "stats.groupby.month") }</button>
 			</div>
 		</div>
 
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
 			<div class="lg:col-span-2 flowbot-surface" data-testid="chart-success-rate">
 				<div class="p-4">
-					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">Success Rate Trend</h3>
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">{ i18n.T(ctx, "stats.success_rate_trend") }</h3>
 					<div class="relative w-full" style="height:256px">
 						<canvas id="chart-success-rate"
 							data-stats={ toJSON(stats) }
@@ -82,7 +84,7 @@ templ PipelineStats(name string, stats *types.PipelineStats, tabs StatsTabState)
 			</div>
 			<div class="flowbot-surface" data-testid="chart-duration">
 				<div class="p-4">
-					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">Duration Distribution</h3>
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">{ i18n.T(ctx, "stats.duration_distribution") }</h3>
 					<div class="relative w-full" style="height:256px">
 						<canvas id="chart-duration"
 							data-chart-type="bar"></canvas>
@@ -91,7 +93,7 @@ templ PipelineStats(name string, stats *types.PipelineStats, tabs StatsTabState)
 			</div>
 			<div class="flowbot-surface" data-testid="chart-trigger">
 				<div class="p-4">
-					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">Trigger Sources</h3>
+					<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">{ i18n.T(ctx, "stats.trigger_sources") }</h3>
 					<div class="relative w-full" style="height:256px">
 						<canvas id="chart-trigger"
 							data-chart-type="doughnut"></canvas>

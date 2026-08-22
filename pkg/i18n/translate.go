@@ -29,6 +29,20 @@ func TData(ctx context.Context, messageID string, data map[string]any) string {
 	return localize(ctx, messageID, data)
 }
 
+// TDefault localizes messageID for the active locale; when the key is absent, returns defaultText.
+// Use for catalog copy (e.g. config field docs) where English godoc is the source of truth.
+func TDefault(ctx context.Context, messageID, defaultText string) string {
+	if defaultText == "" {
+		return ""
+	}
+	loc := LocalizerFromContext(ctx)
+	msg, err := loc.Localize(&i18n.LocalizeConfig{MessageID: messageID})
+	if err == nil && msg != "" {
+		return msg
+	}
+	return defaultText
+}
+
 func localize(ctx context.Context, messageID string, data map[string]any) string {
 	loc := LocalizerFromContext(ctx)
 	cfg := &i18n.LocalizeConfig{MessageID: messageID, TemplateData: data}

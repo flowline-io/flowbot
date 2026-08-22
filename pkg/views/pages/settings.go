@@ -1,11 +1,12 @@
 package pages
 
 import (
-	"fmt"
+	"context"
 	"strings"
 	"unicode"
 
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 )
 
 // SettingsValueKind selects how a settings value cell is rendered.
@@ -45,31 +46,32 @@ type SettingsPageData struct {
 }
 
 // NewSettingsPageData maps a config settings catalog into page view models.
-func NewSettingsPageData(groups []config.SettingGroup) SettingsPageData {
+func NewSettingsPageData(ctx context.Context, groups []config.SettingGroup) SettingsPageData {
 	sections := make([]SettingsSection, 0, len(groups))
 	for _, g := range groups {
 		entries := make([]SettingsRow, 0, len(g.Entries))
 		for _, e := range g.Entries {
+			desc := i18n.TDefault(ctx, config.SettingDescriptionKey(e.Path), e.Description)
 			entries = append(entries, SettingsRow{
 				Path:        e.Path,
 				Value:       e.Value,
-				Description: e.Description,
+				Description: desc,
 				Sensitive:   e.Sensitive,
-				FilterText:  settingsFilterText(e),
+				FilterText:  settingsFilterText(e.Path, e.Value, desc),
 				ValueKind:   settingsValueKind(e),
 			})
 		}
 		sections = append(sections, SettingsSection{
 			Name:    g.Name,
-			Title:   settingsGroupTitle(g.Name),
+			Title:   settingsGroupTitle(ctx, g.Name),
 			Entries: entries,
 		})
 	}
 	return SettingsPageData{Sections: sections}
 }
 
-func settingsFilterText(e config.SettingEntry) string {
-	return strings.TrimSpace(e.Path + " " + e.Value + " " + e.Description)
+func settingsFilterText(path, value, description string) string {
+	return strings.TrimSpace(path + " " + value + " " + description)
 }
 
 func settingsValueKind(e config.SettingEntry) SettingsValueKind {
@@ -86,9 +88,9 @@ func settingsValueKind(e config.SettingEntry) SettingsValueKind {
 	return SettingsValueText
 }
 
-func settingsGroupTitle(name string) string {
+func settingsGroupTitle(ctx context.Context, name string) string {
 	if name == "" || name == "root" {
-		return "Root"
+		return i18n.T(ctx, "settings.group.root")
 	}
 	parts := strings.FieldsFunc(name, func(r rune) bool {
 		return r == '_' || r == '-'
@@ -96,7 +98,8 @@ func settingsGroupTitle(name string) string {
 	for i, p := range parts {
 		parts[i] = titleCaseWord(p)
 	}
-	return strings.Join(parts, " ")
+	defaultTitle := strings.Join(parts, " ")
+	return i18n.TDefault(ctx, "settings.group."+name, defaultTitle)
 }
 
 func titleCaseWord(s string) string {
@@ -112,10 +115,10 @@ func titleCaseWord(s string) string {
 	return string(runes)
 }
 
-func settingsSectionCount(section SettingsSection) string {
+func settingsSectionCount(ctx context.Context, section SettingsSection) string {
 	n := len(section.Entries)
 	if n == 1 {
-		return "1 key"
+		return i18n.T(ctx, "settings.section.one_key")
 	}
-	return fmt.Sprintf("%d keys", n)
+	return i18n.TData(ctx, "settings.section.key_count", map[string]any{"Count": n})
 }

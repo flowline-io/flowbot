@@ -137,7 +137,7 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := WorkflowStepRunsDetail(tt.steps).Render(context.Background(), &buf)
+			err := WorkflowStepRunsDetail(context.Background(), tt.steps).Render(context.Background(), &buf)
 			require.NoError(t, err)
 			html := buf.String()
 			for _, sub := range tt.contains {

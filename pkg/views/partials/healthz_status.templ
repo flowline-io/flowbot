@@ -1,6 +1,12 @@
 package partials
 
-templ HealthzStatus(data HealthzData) {
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ HealthzStatus(ctx context.Context, data HealthzData) {
 	<div id="healthz-status"
 		data-testid="healthz-status"
 		hx-get="/service/web/healthz"
@@ -11,39 +17,39 @@ templ HealthzStatus(data HealthzData) {
 			<!-- DB Latency -->
 			<div class="flowbot-surface" data-testid="healthz-db-latency">
 				<div class="card-body">
-					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Database Latency</h2>
+					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">{ i18n.T(ctx, "healthz.db_latency") }</h2>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="stat">
-							<div class="stat-title text-xs">PostgreSQL</div>
+							<div class="stat-title text-xs">{ i18n.T(ctx, "healthz.postgres") }</div>
 							<div class="stat-value text-lg">
 								if data.PostgresOk {
 									{ formatDuration(data.PostgresLatency) }
 								} else {
-									<span class="text-error">unreachable</span>
+									<span class="text-error">{ i18n.T(ctx, "status.unreachable") }</span>
 								}
 							</div>
 							<div class="stat-desc text-xs">
 								if data.PostgresOk {
-									<span class="text-success">connected</span>
+									<span class="text-success">{ i18n.T(ctx, "status.connected") }</span>
 								} else {
-									<span class="text-error">disconnected</span>
+									<span class="text-error">{ i18n.T(ctx, "status.disconnected") }</span>
 								}
 							</div>
 						</div>
 						<div class="stat">
-							<div class="stat-title text-xs">Redis</div>
+							<div class="stat-title text-xs">{ i18n.T(ctx, "healthz.redis") }</div>
 							<div class="stat-value text-lg">
 								if data.RedisOk {
 									{ formatDuration(data.RedisLatency) }
 								} else {
-									<span class="text-error">unreachable</span>
+									<span class="text-error">{ i18n.T(ctx, "status.unreachable") }</span>
 								}
 							</div>
 							<div class="stat-desc text-xs">
 								if data.RedisOk {
-									<span class="text-success">connected</span>
+									<span class="text-success">{ i18n.T(ctx, "status.connected") }</span>
 								} else {
-									<span class="text-error">disconnected</span>
+									<span class="text-error">{ i18n.T(ctx, "status.disconnected") }</span>
 								}
 							</div>
 						</div>
@@ -54,30 +60,30 @@ templ HealthzStatus(data HealthzData) {
 			<!-- Runtime -->
 			<div class="flowbot-surface" data-testid="healthz-runtime">
 				<div class="card-body">
-					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Runtime</h2>
+					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">{ i18n.T(ctx, "healthz.runtime") }</h2>
 					<div class="grid grid-cols-3 gap-4">
 						<div class="stat">
-							<div class="stat-title text-xs">Goroutines</div>
+							<div class="stat-title text-xs">{ i18n.T(ctx, "healthz.goroutines") }</div>
 							<div class="stat-value text-lg">{ data.Goroutines }</div>
 						</div>
 						<div class="stat">
-							<div class="stat-title text-xs">Heap Alloc</div>
+							<div class="stat-title text-xs">{ i18n.T(ctx, "healthz.heap_alloc") }</div>
 							<div class="stat-value text-lg">{ formatBytes(data.HeapAlloc) }</div>
 						</div>
 						<div class="stat">
-							<div class="stat-title text-xs">Total Alloc</div>
+							<div class="stat-title text-xs">{ i18n.T(ctx, "healthz.total_alloc") }</div>
 							<div class="stat-value text-lg">{ formatBytes(data.TotalAlloc) }</div>
 						</div>
 						<div class="stat">
-							<div class="stat-title text-xs">Sys Memory</div>
+							<div class="stat-title text-xs">{ i18n.T(ctx, "healthz.sys_memory") }</div>
 							<div class="stat-value text-lg">{ formatBytes(data.SysMem) }</div>
 						</div>
 						<div class="stat">
-							<div class="stat-title text-xs">GC Cycles</div>
+							<div class="stat-title text-xs">{ i18n.T(ctx, "healthz.gc_cycles") }</div>
 							<div class="stat-value text-lg">{ data.NumGC }</div>
 						</div>
 						<div class="stat">
-							<div class="stat-title text-xs">Last GC Pause</div>
+							<div class="stat-title text-xs">{ i18n.T(ctx, "healthz.last_gc_pause") }</div>
 							<div class="stat-value text-lg">{ formatDuration(data.LastGCPause) }</div>
 						</div>
 					</div>
@@ -87,10 +93,10 @@ templ HealthzStatus(data HealthzData) {
 
 		<div class="flowbot-surface mb-6" data-testid="healthz-errors">
 			<div class="card-body">
-				<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Recent Errors</h2>
+				<h2 class="text-base font-semibold tracking-tight m-0 mb-2">{ i18n.T(ctx, "healthz.recent_errors") }</h2>
 				<div class="overflow-x-auto max-h-64 overflow-y-auto">
 					if len(data.Errors) == 0 {
-						<p class="text-base-content/50 text-sm">No recent errors</p>
+						<p class="text-base-content/50 text-sm">{ i18n.T(ctx, "healthz.no_recent_errors") }</p>
 					} else {
 						<ul class="list-disc list-inside space-y-1">
 							for _, e := range data.Errors {
@@ -107,7 +113,7 @@ templ HealthzStatus(data HealthzData) {
 }
 
 // HealthzCapabilitiesPanel is the deferred capability probe panel (outside healthz-status swaps).
-templ HealthzCapabilitiesPanel() {
+templ HealthzCapabilitiesPanel(ctx context.Context) {
 	<div id="healthz-capabilities"
 		class="flowbot-surface mb-6"
 		data-testid="healthz-capabilities"
@@ -115,13 +121,13 @@ templ HealthzCapabilitiesPanel() {
 		hx-trigger="load, every 30s"
 		hx-swap="outerHTML show:none">
 		<div class="card-body">
-			<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Capability Status</h2>
-			@PanelSkeleton()
+			<h2 class="text-base font-semibold tracking-tight m-0 mb-2">{ i18n.T(ctx, "healthz.capability_status") }</h2>
+			@PanelSkeleton(ctx)
 		</div>
 	</div>
 }
 
-templ HealthzCapabilities(caps []HealthzCap) {
+templ HealthzCapabilities(ctx context.Context, caps []HealthzCap) {
 	<div id="healthz-capabilities"
 		class="flowbot-surface mb-6"
 		data-testid="healthz-capabilities"
@@ -129,13 +135,13 @@ templ HealthzCapabilities(caps []HealthzCap) {
 		hx-trigger="every 30s"
 		hx-swap="outerHTML show:none">
 		<div class="card-body">
-			<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Capability Status</h2>
+			<h2 class="text-base font-semibold tracking-tight m-0 mb-2">{ i18n.T(ctx, "healthz.capability_status") }</h2>
 			<div class="overflow-x-auto max-h-64 overflow-y-auto">
 				<table class="table table-sm">
 					<thead>
 						<tr>
-							<th>Capability</th>
-							<th>Status</th>
+							<th>{ i18n.T(ctx, "healthz.col.capability") }</th>
+							<th>{ i18n.T(ctx, "healthz.col.status") }</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -144,11 +150,11 @@ templ HealthzCapabilities(caps []HealthzCap) {
 								<td class="font-medium">{ cap.Type }</td>
 								<td>
 									if cap.Status == "healthy" {
-										<span class="flowbot-chip flowbot-chip-success">healthy</span>
+										<span class="flowbot-chip flowbot-chip-success">{ i18n.T(ctx, "status.healthy") }</span>
 									} else if cap.Status == "timeout" {
-										<span class="flowbot-chip flowbot-chip-warning">timeout</span>
+										<span class="flowbot-chip flowbot-chip-warning">{ i18n.T(ctx, "status.timeout") }</span>
 									} else if cap.Status == "na" {
-										<span class="flowbot-chip flowbot-chip-muted">n/a</span>
+										<span class="flowbot-chip flowbot-chip-muted">{ i18n.T(ctx, "status.na") }</span>
 									} else {
 										<span class="flowbot-chip flowbot-chip-error">{ cap.Status }</span>
 										if cap.Error != "" {
@@ -160,7 +166,7 @@ templ HealthzCapabilities(caps []HealthzCap) {
 						}
 						if len(caps) == 0 {
 							<tr>
-								<td colspan="2" class="text-center text-base-content/50">No capabilities registered</td>
+								<td colspan="2" class="text-center text-base-content/50">{ i18n.T(ctx, "healthz.no_capabilities") }</td>
 							</tr>
 						}
 					</tbody>

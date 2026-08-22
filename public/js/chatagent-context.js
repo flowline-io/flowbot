@@ -7,10 +7,16 @@
 
   var CONTEXT_CATEGORY_LABELS = {
     system_prompt: function () {
-      return flowbotI18n('client.chatagent.context.system_prompt', 'System prompt');
+      return flowbotI18n(
+        'client.chatagent.context.system_prompt',
+        'System prompt',
+      );
     },
     system_tools: function () {
-      return flowbotI18n('client.chatagent.context.system_tools', 'Tool definitions');
+      return flowbotI18n(
+        'client.chatagent.context.system_tools',
+        'Tool definitions',
+      );
     },
     skills: function () {
       return flowbotI18n('client.chatagent.context.skills', 'Skills');
@@ -19,7 +25,10 @@
       return flowbotI18n('client.chatagent.context.messages', 'Conversation');
     },
     autocompact_buffer: function () {
-      return flowbotI18n('client.chatagent.context.autocompact_buffer', 'Autocompact buffer');
+      return flowbotI18n(
+        'client.chatagent.context.autocompact_buffer',
+        'Autocompact buffer',
+      );
     },
     free_space: function () {
       return flowbotI18n('client.chatagent.context.free_space', 'Free space');

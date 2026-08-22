@@ -68,7 +68,8 @@ func TestValidatePlaygroundRequest(t *testing.T) {
 				require.NoError(t, notifytmpl.Init(tt.templates))
 			}
 			t.Cleanup(notifytmpl.ResetForTest)
-			errs := validatePlaygroundRequest(tt.req)
+			c := testWebFiberCtx(t)
+			errs := validatePlaygroundRequest(c, tt.req)
 			assert.Contains(t, errs[tt.wantField], tt.wantSub)
 		})
 	}

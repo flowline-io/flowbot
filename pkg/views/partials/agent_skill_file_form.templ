@@ -1,19 +1,30 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ AgentSkillFileForm(skill model.AgentSkill, file model.AgentSkillFile, isNew bool, errors map[string]string) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSkillFileForm(ctx context.Context, skill model.AgentSkill, file model.AgentSkillFile, isNew bool, errors map[string]string) {
 	<div id={ agentSkillFilesContainerID(skill) } class="md:col-span-2 border-t border-base-300 pt-4 mt-2">
 		<div class="flex items-center justify-between mb-2">
-			<span class="label-text font-medium">{ agentSkillFileFormTitle(isNew) }</span>
+			<span class="label-text font-medium">
+				if isNew {
+					{ i18n.T(ctx, "form.skill_file.new_title") }
+				} else {
+					{ i18n.T(ctx, "form.skill_file.edit_title") }
+				}
+			</span>
 		</div>
 		<div id={ agentSkillFileFormID(skill, file, isNew) } class="grid grid-cols-1 gap-3 rounded border border-base-300 p-3">
 			<div>
-				<label class="label"><span class="label-text">Path</span></label>
+				<label class="label"><span class="label-text">{ i18n.T(ctx, "form.skill_file.path") }</span></label>
 				<input type="text" name="path" value={ file.Path }
 					data-testid="agent-skill-file-path"
 					class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "path") }
-					placeholder="reference.md or scripts/run.sh"
+					placeholder={ i18n.T(ctx, "form.skill_file.path_placeholder") }
 					if !isNew {
 						readonly="readonly"
 					}
@@ -21,11 +32,11 @@ templ AgentSkillFileForm(skill model.AgentSkill, file model.AgentSkillFile, isNe
 				<div class="text-error text-xs">{ errors["path"] }</div>
 			</div>
 			<div>
-				<label class="label"><span class="label-text">Content</span></label>
+				<label class="label"><span class="label-text">{ i18n.T(ctx, "form.skill_file.content") }</span></label>
 				<textarea name="content" rows="8"
 					data-testid="agent-skill-file-content"
 					class={ "textarea textarea-bordered w-full font-mono text-sm " + fieldError(errors, "content") }
-					placeholder="File body loaded by read_skill path">{ file.Content }</textarea>
+					placeholder={ i18n.T(ctx, "form.skill_file.content_placeholder") }>{ file.Content }</textarea>
 				<div class="text-error text-xs">{ errors["content"] }</div>
 			</div>
 			<div class="flex items-center gap-2">
@@ -40,7 +51,7 @@ templ AgentSkillFileForm(skill model.AgentSkill, file model.AgentSkillFile, isNe
 					hx-include={ "#" + agentSkillFileFormID(skill, file, isNew) }
 					data-testid="agent-skill-file-save"
 					class="btn btn-primary btn-sm">
-					Save
+					{ i18n.T(ctx, "common.save") }
 				</button>
 				<button type="button"
 					hx-get={ agentSkillFilesListURL(skill) }
@@ -48,7 +59,7 @@ templ AgentSkillFileForm(skill model.AgentSkill, file model.AgentSkillFile, isNe
 					hx-swap="innerHTML"
 					data-testid="agent-skill-file-cancel"
 					class="btn btn-ghost btn-sm">
-					Cancel
+					{ i18n.T(ctx, "common.cancel") }
 				</button>
 			</div>
 		</div>

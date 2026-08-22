@@ -1,5 +1,11 @@
 package partials
 
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
 templ ChatAgentContextRing() {
 	<div class="chatagent-context-ring-wrap">
 		<button
@@ -26,24 +32,24 @@ templ ChatAgentContextRing() {
 	</div>
 }
 
-templ ChatAgentContextPopover(endpoints ChatAgentEndpoints) {
+templ ChatAgentContextPopover(ctx context.Context, endpoints ChatAgentEndpoints) {
 	<div
 		class="chatagent-context-popover hidden"
 		data-testid="chatagent-context-popover"
 		role="dialog"
-		aria-label="Context usage breakdown">
+		aria-label={ i18n.T(ctx, "chatagent.context.breakdown") }>
 		<div class="chatagent-context-popover-header">
-			<span class="chatagent-context-popover-title">Context Usage</span>
+			<span class="chatagent-context-popover-title">{ i18n.T(ctx, "chatagent.context.title") }</span>
 			<div class="chatagent-context-popover-actions">
 				if endpoints.InspectURL != "" {
-					<a href={ templ.URL(endpoints.InspectURL) } class="chatagent-context-view-report" data-testid="chatagent-context-view-report">View Report</a>
+					<a href={ templ.URL(endpoints.InspectURL) } class="chatagent-context-view-report" data-testid="chatagent-context-view-report">{ i18n.T(ctx, "chatagent.context.view_report") }</a>
 				}
-				<button type="button" class="chatagent-context-close" aria-label="Close context usage" data-testid="chatagent-context-close">&times;</button>
+				<button type="button" class="chatagent-context-close" aria-label={ i18n.T(ctx, "chatagent.context.close") } data-testid="chatagent-context-close">&times;</button>
 			</div>
 		</div>
 		<div class="chatagent-context-summary">
-			<span id="chatagent-context-percent" data-testid="chatagent-context-percent">0% Full</span>
-			<span id="chatagent-context-tokens" data-testid="chatagent-context-tokens">~0 / 0 Tokens</span>
+			<span id="chatagent-context-percent" data-testid="chatagent-context-percent">{ i18n.T(ctx, "chatagent.context.percent_full") }</span>
+			<span id="chatagent-context-tokens" data-testid="chatagent-context-tokens">{ i18n.T(ctx, "chatagent.context.tokens") }</span>
 		</div>
 		<div id="chatagent-context-bar" class="chatagent-context-bar" data-testid="chatagent-context-bar"></div>
 		<div id="chatagent-context-legend" class="chatagent-context-legend" data-testid="chatagent-context-legend"></div>

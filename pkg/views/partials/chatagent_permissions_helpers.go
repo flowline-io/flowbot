@@ -1,10 +1,12 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -57,12 +59,13 @@ var permissionKeyCatalog = []PermissionKeyMeta{
 }
 
 // BuildPermissionFormFields builds form rows from a permissions API view.
-func BuildPermissionFormFields(view model.PermissionsView) []PermissionFormField {
+func BuildPermissionFormFields(ctx context.Context, view model.PermissionsView) []PermissionFormField {
 	fields := make([]PermissionFormField, 0, len(permissionKeyCatalog))
 	for _, meta := range permissionKeyCatalog {
+		meta = localizePermissionMeta(ctx, meta)
 		field := PermissionFormField{
 			Meta:           meta,
-			DefaultSummary: FormatRuleSetSummary(view.Defaults[meta.Key]),
+			DefaultSummary: FormatRuleSetSummary(ctx, view.Defaults[meta.Key]),
 			SelectedAction: permission.FormActionInherit,
 		}
 		userRS, hasUser := view.User[meta.Key]
@@ -95,18 +98,46 @@ func patternRowsFromRuleSet(rs permission.RuleSet) []PermissionPatternRow {
 }
 
 // FormatRuleSetSummary returns a compact human-readable summary of one rule set.
-func FormatRuleSetSummary(rs permission.RuleSet) string {
+func FormatRuleSetSummary(ctx context.Context, rs permission.RuleSet) string {
 	if len(rs.Patterns) == 0 {
 		if rs.Default.Valid() {
-			return string(rs.Default)
+			return PermissionActionLabel(ctx, string(rs.Default))
 		}
-		return "ask"
+		return PermissionActionLabel(ctx, "ask")
 	}
 	parts := make([]string, 0, len(rs.Patterns))
 	for _, rule := range rs.Patterns {
-		parts = append(parts, fmt.Sprintf("%s → %s", rule.Pattern, rule.Action))
+		parts = append(parts, fmt.Sprintf("%s → %s", rule.Pattern, PermissionActionLabel(ctx, string(rule.Action))))
 	}
 	return strings.Join(parts, ", ")
+}
+
+// PermissionActionLabel returns a localized permission action label.
+func PermissionActionLabel(ctx context.Context, action string) string {
+	action = strings.TrimSpace(strings.ToLower(action))
+	if action == "" {
+		return ""
+	}
+	return i18n.TDefault(ctx, "permissions.action."+action, action)
+}
+
+// PermissionApprovalModeLabel returns a localized approval mode label.
+func PermissionApprovalModeLabel(ctx context.Context, mode string) string {
+	mode = strings.TrimSpace(strings.ToLower(mode))
+	if mode == "" {
+		return ""
+	}
+	return i18n.TDefault(ctx, "permissions.approval_mode."+mode, mode)
+}
+
+func localizePermissionMeta(ctx context.Context, meta PermissionKeyMeta) PermissionKeyMeta {
+	return PermissionKeyMeta{
+		Key:              meta.Key,
+		Label:            i18n.TDefault(ctx, "permissions.key."+meta.Key+".label", meta.Label),
+		Description:      i18n.TDefault(ctx, "permissions.key."+meta.Key+".description", meta.Description),
+		SupportsPatterns: meta.SupportsPatterns,
+		DisallowAllow:    meta.DisallowAllow,
+	}
 }
 
 // PermissionFieldError returns a validation error for one permission field.

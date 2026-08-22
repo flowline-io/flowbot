@@ -1,6 +1,10 @@
 package partials
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
 
 templ EventPagination(info PageInfo) {
 	if info.Total > 0 {
@@ -20,7 +24,11 @@ templ EventPagination(info PageInfo) {
 				</select>
 			</div>
 			<div class="text-xs text-base-content/70">
-				Showing { fmt.Sprintf("%d", (info.Page-1)*info.PerPage+1) }-{ fmt.Sprintf("%d", min(info.Page*info.PerPage, int(info.Total))) } of { fmt.Sprintf("%d", info.Total) }
+				{ i18n.TData(ctx, "pagination.showing", map[string]any{
+					"Start": (info.Page-1)*info.PerPage + 1,
+					"End":   min(info.Page*info.PerPage, int(info.Total)),
+					"Total": info.Total,
+				}) }
 			</div>
 			<div class="flex items-center gap-1">
 				<button class="btn btn-xs btn-ghost"
@@ -31,7 +39,7 @@ templ EventPagination(info PageInfo) {
 					hx-include="[data-filter-input]"
 					hx-target="#events-table-container"
 					hx-swap="innerHTML"
-					data-testid="pagination-prev">Prev</button>
+					data-testid="pagination-prev">{ i18n.T(ctx, "pagination.prev") }</button>
 
 				for _, p := range pageNumbers(info.Page, info.TotalPages) {
 					if p == 0 {
@@ -56,10 +64,10 @@ templ EventPagination(info PageInfo) {
 					hx-include="[data-filter-input]"
 					hx-target="#events-table-container"
 					hx-swap="innerHTML"
-					data-testid="pagination-next">Next</button>
+					data-testid="pagination-next">{ i18n.T(ctx, "pagination.next") }</button>
 			</div>
 			<div class="flex items-center gap-1">
-				<span class="text-xs text-base-content/50">Go to</span>
+				<span class="text-xs text-base-content/50">{ i18n.T(ctx, "pagination.go_to") }</span>
 				<input type="number" class="input input-bordered input-xs w-16" min="1" max={ fmt.Sprintf("%d", info.TotalPages) } name="page"
 					data-testid="pagination-jump"/>
 				<button class="btn btn-xs btn-ghost"
@@ -67,7 +75,7 @@ templ EventPagination(info PageInfo) {
 					hx-include="[data-filter-input], input[name='page']"
 					hx-target="#events-table-container"
 					hx-swap="innerHTML"
-					data-testid="pagination-go">Go</button>
+					data-testid="pagination-go">{ i18n.T(ctx, "pagination.go") }</button>
 			</div>
 		</div>
 	}

@@ -43,10 +43,10 @@ func notifyPlaygroundForm(ctx fiber.Ctx) error {
 	view, err := loadPlaygroundView(ctx.Context())
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load playground").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.failed_load_playground")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
-	return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyPlaygroundSamplePayload(ctx fiber.Ctx) error {
@@ -66,7 +66,7 @@ func notifyPlaygroundSamplePayload(ctx fiber.Ctx) error {
 		}
 	}
 	ctx.Type("html")
-	return partials.NotifyPlaygroundPayloadField(payloadJSON, "").Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyPlaygroundPayloadField(ctx.Context(), payloadJSON, "").Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyPlaygroundPreview(ctx fiber.Ctx) error {
@@ -77,25 +77,25 @@ func notifyPlaygroundPreview(ctx fiber.Ctx) error {
 	view, err := loadPlaygroundView(ctx.Context())
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load playground").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.failed_load_playground")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	view.Form = playgroundFormFromRequest(req)
-	errs := validatePlaygroundRequest(req)
+	errs := validatePlaygroundRequest(ctx, req)
 	if len(errs) > 0 {
 		view.Errors = errs
 		ctx.Type("html")
-		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if err := attachPlaygroundChannelProto(ctx.Context(), &req); err != nil {
 		view.Errors = map[string]string{"channel_id": err.Error()}
 		ctx.Type("html")
-		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	rendered, err := renderPlaygroundMessage(req)
 	if err != nil {
 		view.Errors = map[string]string{"_form": err.Error()}
 		ctx.Type("html")
-		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	view.Result = &partials.NotifyPlaygroundResultParams{
 		Title:   rendered.Title,
@@ -104,7 +104,7 @@ func notifyPlaygroundPreview(ctx fiber.Ctx) error {
 		Preview: true,
 	}
 	ctx.Type("html")
-	return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyPlaygroundSend(ctx fiber.Ctx) error {
@@ -115,26 +115,26 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 	view, err := loadPlaygroundView(ctx.Context())
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load playground").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.failed_load_playground")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	view.Form = playgroundFormFromRequest(req)
-	errs := validatePlaygroundRequest(req)
+	errs := validatePlaygroundRequest(ctx, req)
 	if len(errs) > 0 {
 		view.Errors = errs
 		ctx.Type("html")
-		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannelRaw(ctx.Context(), req.ChannelID)
 	if err != nil {
-		view.Errors = map[string]string{"channel_id": "Channel not found"}
+		view.Errors = map[string]string{"channel_id": webMsg(ctx, "error.validation.channel_not_found")}
 		ctx.Type("html")
-		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if !ch.Enabled {
-		view.Errors = map[string]string{"channel_id": "Channel is disabled"}
+		view.Errors = map[string]string{"channel_id": webMsg(ctx, "error.validation.channel_disabled")}
 		ctx.Type("html")
-		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	req.ChannelProto = ch.Protocol
 
@@ -142,7 +142,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 	if err != nil {
 		view.Errors = map[string]string{"_form": err.Error()}
 		ctx.Type("html")
-		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	msg := notifypkg.Message{
@@ -158,7 +158,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 	templateID := playgroundHistoryTemplateID(req)
 	summary := rendered.Title
 	if summary == "" {
-		summary = "Playground send"
+		summary = webMsg(ctx, "notify.playground.send_summary")
 	}
 	payload, _ := parsePlaygroundPayload(req.PayloadJSON)
 
@@ -175,7 +175,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 			Error:  err.Error(),
 		}
 		ctx.Type("html")
-		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	ns := notifypkg.GetNotifyStore()
@@ -190,7 +190,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 		Success: true,
 	}
 	ctx.Type("html")
-	return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func loadPlaygroundView(ctx context.Context) (partials.NotifyPlaygroundParams, error) {
@@ -264,25 +264,25 @@ func playgroundFormFromRequest(req playgroundRequest) partials.NotifyPlaygroundF
 }
 
 // validatePlaygroundRequest checks required playground fields before preview/send.
-func validatePlaygroundRequest(req playgroundRequest) map[string]string {
+func validatePlaygroundRequest(c fiber.Ctx, req playgroundRequest) map[string]string {
 	errs := map[string]string{}
 	if req.ChannelID <= 0 {
-		errs["channel_id"] = "Channel is required"
+		errs["channel_id"] = webMsg(c, "error.validation.channel_required")
 	}
 	switch req.Mode {
 	case "custom":
 		if strings.TrimSpace(req.CustomTemplate) == "" {
-			errs["custom_template"] = "Custom template is required"
+			errs["custom_template"] = webMsg(c, "error.validation.custom_template_required")
 		}
 	default:
 		if req.TemplateID == "" {
-			errs["template_id"] = "Template is required"
+			errs["template_id"] = webMsg(c, "error.validation.template_required")
 		} else if !playgroundTemplateExists(req.TemplateID) {
-			errs["template_id"] = "Unknown template"
+			errs["template_id"] = webMsg(c, "error.validation.unknown_template_id")
 		}
 	}
 	if _, err := parsePlaygroundPayload(req.PayloadJSON); err != nil {
-		errs["payload_json"] = "Invalid JSON: " + err.Error()
+		errs["payload_json"] = webMsgData(c, "error.validation.invalid_json_detail", map[string]any{"Error": err.Error()})
 	}
 	return errs
 }

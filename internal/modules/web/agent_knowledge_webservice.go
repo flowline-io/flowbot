@@ -67,7 +67,7 @@ func agentKnowledgeNewForm(ctx fiber.Ctx) error {
 	q := strings.TrimSpace(ctx.Query("q"))
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-knowledge-form-new" hx-swap-oob="delete"></tr><tr id="agent-knowledge-empty" hx-swap-oob="delete"></tr>`))
-	return partials.AgentKnowledgeForm(model.AgentKnowledge{Tags: []string{}}, true, nil, q).
+	return partials.AgentKnowledgeForm(ctx.Context(), model.AgentKnowledge{Tags: []string{}}, true, nil, q).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -77,11 +77,11 @@ func agentKnowledgeCreate(ctx fiber.Ctx) error {
 	}
 	reqCtx := ctx.Context()
 	input := parseAgentKnowledgeForm(ctx)
-	errs := validateAgentKnowledgeForm(input)
+	errs := validateAgentKnowledgeForm(ctx, input)
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentKnowledgeForm(input, true, errs, "").Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentKnowledgeForm(ctx.Context(), input, true, errs, "").Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	now := time.Now().UTC()
 	row := &gen.AgentKnowledge{
@@ -94,10 +94,10 @@ func agentKnowledgeCreate(ctx fiber.Ctx) error {
 		UpdatedAt: now,
 	}
 	if err := store.AgentStoreFromDB().CreateAgentKnowledge(reqCtx, row); err != nil {
-		if fieldErrs := mapAgentKnowledgeUniqueError(err); len(fieldErrs) > 0 {
+		if fieldErrs := mapAgentKnowledgeUniqueError(ctx, err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentKnowledgeForm(input, true, fieldErrs, "").Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentKnowledgeForm(ctx.Context(), input, true, fieldErrs, "").Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		return toastErrorKey(ctx, "toast.agent_knowledge.create_failed")
 	}
@@ -126,7 +126,7 @@ func agentKnowledgeEditForm(ctx fiber.Ctx) error {
 		return renderErrorKey(ctx, "toast.agent_knowledge.load_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentKnowledgeForm(item, false, nil, "").Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentKnowledgeForm(ctx.Context(), item, false, nil, "").Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentKnowledgeUpdate(ctx fiber.Ctx) error {
@@ -149,11 +149,11 @@ func agentKnowledgeUpdate(ctx fiber.Ctx) error {
 	}
 	input := parseAgentKnowledgeForm(ctx)
 	input.ID = id
-	errs := validateAgentKnowledgeForm(input)
+	errs := validateAgentKnowledgeForm(ctx, input)
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentKnowledgeForm(input, false, errs, "").Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentKnowledgeForm(ctx.Context(), input, false, errs, "").Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	existing.Path = input.Path
 	existing.Title = input.Title
@@ -161,10 +161,10 @@ func agentKnowledgeUpdate(ctx fiber.Ctx) error {
 	existing.Summary = input.Summary
 	existing.Content = input.Content
 	if err := store.AgentStoreFromDB().UpdateAgentKnowledge(reqCtx, existing); err != nil {
-		if fieldErrs := mapAgentKnowledgeUniqueError(err); len(fieldErrs) > 0 {
+		if fieldErrs := mapAgentKnowledgeUniqueError(ctx, err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentKnowledgeForm(input, false, fieldErrs, "").Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentKnowledgeForm(ctx.Context(), input, false, fieldErrs, "").Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		return toastErrorKey(ctx, "toast.agent_knowledge.update_failed")
 	}
@@ -203,12 +203,12 @@ func agentKnowledgeDelete(ctx fiber.Ctx) error {
 			"#agent-knowledge-rows",
 			"6",
 			partials.EmptyStateHXCTA(
-				"No knowledge documents yet",
-				"Add markdown docs for the agent to search and read.",
+				webMsg(ctx, "table.empty.knowledge"),
+				webMsg(ctx, "table.empty.knowledge_detail"),
 				"/service/web/agent-knowledge/new",
 				"#agent-knowledge-rows",
 				"afterbegin",
-				"Create document",
+				webMsg(ctx, "table.empty.knowledge_cta"),
 			),
 		)
 	}
@@ -253,29 +253,48 @@ func parseAgentKnowledgeTags(raw string) []string {
 	return out
 }
 
-func validateAgentKnowledgeForm(input model.AgentKnowledge) map[string]string {
+func validateAgentKnowledgeForm(c fiber.Ctx, input model.AgentKnowledge) map[string]string {
 	errs := map[string]string{}
 	if err := chatagent.ValidateKnowledgePath(input.Path); err != nil {
-		errs["path"] = err.Error()
+		errs["path"] = mapAgentKnowledgePathError(c, err)
 	}
 	if strings.TrimSpace(input.Title) == "" {
-		errs["title"] = "title is required"
+		errs["title"] = webMsg(c, "error.validation.title_required")
 	}
 	if strings.TrimSpace(input.Content) == "" {
-		errs["content"] = "content is required"
+		errs["content"] = webMsg(c, "error.validation.content_required")
 	} else if len(input.Content) > maxAgentKnowledgeContentBytes {
-		errs["content"] = "content exceeds maximum size"
+		errs["content"] = webMsg(c, "error.validation.content_too_large")
 	}
 	return errs
 }
 
-func mapAgentKnowledgeUniqueError(err error) map[string]string {
+func mapAgentKnowledgePathError(c fiber.Ctx, err error) string {
+	switch err.Error() {
+	case "path is required":
+		return webMsg(c, "error.validation.path_required")
+	case "path must start with /":
+		return webMsg(c, "error.validation.path_must_start_slash")
+	case "path must end with .md":
+		return webMsg(c, "error.validation.path_must_end_md")
+	case "path must not contain parent segments":
+		return webMsg(c, "error.validation.path_no_parent_segments")
+	case "path must not contain empty segments":
+		return webMsg(c, "error.validation.path_no_empty_segments")
+	case "path contains invalid characters":
+		return webMsg(c, "error.validation.path_invalid_chars")
+	default:
+		return err.Error()
+	}
+}
+
+func mapAgentKnowledgeUniqueError(c fiber.Ctx, err error) map[string]string {
 	if err == nil {
 		return nil
 	}
 	msg := strings.ToLower(err.Error())
 	if strings.Contains(msg, "unique") || strings.Contains(msg, "duplicate") {
-		return map[string]string{"path": "path already exists"}
+		return map[string]string{"path": webMsg(c, "error.validation.path_exists")}
 	}
 	return nil
 }

@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -12,11 +13,11 @@ templ AgentSessionDetailPage(ctx context.Context, session model.AgentSession, en
 	@layout.Base(ctx, DocTitleAgentSession(ctx, session)) {
 		if session.Title != "" {
 			@partials.PageHeaderLiteral(ctx, session.Title, session.Flag) {
-				<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
+				<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">{ i18n.T(ctx, "common.back_to_sessions") }</a>
 			}
 		} else {
 			@partials.PageHeaderLiteral(ctx, session.Flag, "") {
-				<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
+				<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">{ i18n.T(ctx, "common.back_to_sessions") }</a>
 			}
 		}
 		<div
@@ -32,20 +33,20 @@ templ AgentSessionDetailPage(ctx context.Context, session model.AgentSession, en
 				<div class="grid grid-cols-2 gap-2 text-sm text-base-content/70">
 					if session.Title != "" {
 						<div>
-							<span class="text-base-content/50">Session ID:</span>
+							<span class="text-base-content/50">{ i18n.T(ctx, "agent.session.session_id") }</span>
 							<code class="text-xs ml-1">{ session.Flag }</code>
 						</div>
 					}
 					<div>
-						<span class="text-base-content/50">UID:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "agent.session.uid") }</span>
 						<span class="font-mono text-xs ml-1">{ session.UID }</span>
 					</div>
 					<div>
-						<span class="text-base-content/50">State:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "agent.session.state") }</span>
 						@partials.AgentSessionStateBadge(session.State)
 					</div>
 					<div>
-						<span class="text-base-content/50">Leaf ID:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "agent.session.leaf_id") }</span>
 						if session.LeafID != "" {
 							<code class="text-xs ml-1">{ session.LeafID }</code>
 						} else {
@@ -53,11 +54,11 @@ templ AgentSessionDetailPage(ctx context.Context, session model.AgentSession, en
 						}
 					</div>
 					<div>
-						<span class="text-base-content/50">Created:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "agent.session.created") }</span>
 						<span class="ml-1">{ session.CreatedAt.Format("2006-01-02 15:04:05") }</span>
 					</div>
 					<div>
-						<span class="text-base-content/50">Updated:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "agent.session.updated") }</span>
 						<span class="ml-1">{ session.UpdatedAt.Format("2006-01-02 15:04:05") }</span>
 					</div>
 				</div>
@@ -65,7 +66,7 @@ templ AgentSessionDetailPage(ctx context.Context, session model.AgentSession, en
 		</div>
 		@partials.AgentSessionPlansCard(session.Flag, plans)
 		@partials.AgentSessionTodosCard(todos)
-		<h2 class="text-lg font-semibold mb-3">Entries</h2>
+		<h2 class="text-lg font-semibold mb-3">{ i18n.T(ctx, "agent.session.entries") }</h2>
 		@partials.AgentSessionEntriesTable(entries)
 		@partials.ChatAgentApprovalScripts()
 	}

@@ -1,55 +1,60 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ AgentKnowledgeForm(item model.AgentKnowledge, isNew bool, errors map[string]string, listQ string) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentKnowledgeForm(ctx context.Context, item model.AgentKnowledge, isNew bool, errors map[string]string, listQ string) {
 	<tr id={ agentKnowledgeFormID(item, isNew) }>
 		<td colspan="6" class="bg-base-200/50">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
 				<div class="md:col-span-2">
-					<label class="label"><span class="label-text">Path</span></label>
+					<label class="label"><span class="label-text">{ i18n.T(ctx, "common.path") }</span></label>
 					<input type="text" name="path" value={ item.Path }
 						data-testid="agent-knowledge-path"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "path") }
-						placeholder="/docs/develop/api-specs.md"
+						placeholder={ i18n.T(ctx, "agent.knowledge.path_placeholder") }
 						required maxlength="512"
 					/>
-					<p class="text-xs text-base-content/50 mt-1">Must start with / and end with .md</p>
+					<p class="text-xs text-base-content/50 mt-1">{ i18n.T(ctx, "agent.knowledge.path_hint") }</p>
 					<div class="text-error text-xs">{ errors["path"] }</div>
 				</div>
 				<div>
-					<label class="label"><span class="label-text">Title</span></label>
+					<label class="label"><span class="label-text">{ i18n.T(ctx, "common.title") }</span></label>
 					<input type="text" name="title" value={ item.Title }
 						data-testid="agent-knowledge-title"
 						class={ "input input-bordered input-sm w-full " + fieldError(errors, "title") }
-						placeholder="API Specs"
+						placeholder={ i18n.T(ctx, "agent.knowledge.title_placeholder") }
 						required maxlength="256"
 					/>
 					<div class="text-error text-xs">{ errors["title"] }</div>
 				</div>
 				<div>
-					<label class="label"><span class="label-text">Tags</span></label>
+					<label class="label"><span class="label-text">{ i18n.T(ctx, "common.tags") }</span></label>
 					<input type="text" name="tags" value={ agentKnowledgeTagsInput(item.Tags) }
 						data-testid="agent-knowledge-tags"
 						class="input input-bordered input-sm w-full"
-						placeholder="api, develop (comma-separated)"
+						placeholder={ i18n.T(ctx, "agent.knowledge.tags_placeholder") }
 					/>
 				</div>
 				<div class="md:col-span-2">
-					<label class="label"><span class="label-text">Summary</span></label>
+					<label class="label"><span class="label-text">{ i18n.T(ctx, "common.summary") }</span></label>
 					<input type="text" name="summary" value={ item.Summary }
 						data-testid="agent-knowledge-summary"
 						class="input input-bordered input-sm w-full"
-						placeholder="Short description shown in search results"
+						placeholder={ i18n.T(ctx, "agent.knowledge.summary_placeholder") }
 						maxlength="1024"
 					/>
 				</div>
 				<div class="md:col-span-2">
-					<label class="label"><span class="label-text">Content</span></label>
+					<label class="label"><span class="label-text">{ i18n.T(ctx, "common.content") }</span></label>
 					<textarea name="content" rows="14"
 						data-testid="agent-knowledge-content"
 						class={ "textarea textarea-bordered w-full font-mono text-sm " + fieldError(errors, "content") }
-						placeholder="# Title&#10;&#10;Markdown body">{ item.Content }</textarea>
+						placeholder={ i18n.T(ctx, "agent.knowledge.content_placeholder") }>{ item.Content }</textarea>
 					<div class="text-error text-xs">{ errors["content"] }</div>
 				</div>
 				<div class="flex items-end gap-2 md:col-span-2">
@@ -64,7 +69,7 @@ templ AgentKnowledgeForm(item model.AgentKnowledge, isNew bool, errors map[strin
 						hx-include="closest tr"
 						data-testid="agent-knowledge-save"
 						class="btn btn-primary btn-sm">
-						Save
+						{ i18n.T(ctx, "common.save") }
 					</button>
 					<button type="button"
 						hx-get={ agentKnowledgeListURL(listQ) }
@@ -72,7 +77,7 @@ templ AgentKnowledgeForm(item model.AgentKnowledge, isNew bool, errors map[strin
 						hx-swap="outerHTML"
 						data-testid="agent-knowledge-cancel"
 						class="btn btn-ghost btn-sm">
-						Cancel
+						{ i18n.T(ctx, "common.cancel") }
 					</button>
 				</div>
 			</div>

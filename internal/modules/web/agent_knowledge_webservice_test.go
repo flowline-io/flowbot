@@ -142,7 +142,8 @@ func TestValidateAgentKnowledgeForm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			errs := validateAgentKnowledgeForm(tt.item)
+			c := testWebFiberCtx(t)
+			errs := validateAgentKnowledgeForm(c, tt.item)
 			if tt.wantKey == "" {
 				require.Empty(t, errs)
 				return

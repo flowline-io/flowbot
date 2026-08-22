@@ -1,5 +1,11 @@
 package partials
 
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
 type FilterBarParams struct {
 	Tab            string
 	Sources        []string
@@ -13,11 +19,11 @@ type FilterBarParams struct {
 	TimeEnd        string
 }
 
-templ FilterBar(p FilterBarParams) {
+templ FilterBar(ctx context.Context, p FilterBarParams) {
 	<div class="flowbot-surface mb-4" id="event-filter-bar" data-testid="event-filter-bar">
 		<div class="flowbot-event-filter">
 			<div class="flowbot-event-filter-main">
-				<div class="flowbot-event-filter-time" role="group" aria-label="Time range">
+				<div class="flowbot-event-filter-time" role="group" aria-label={ i18n.T(ctx, "events.filter.time_range") }>
 					<div class="join">
 						<button type="button" class="btn btn-sm join-item"
 							x-on:click="setTimeRange('1h')"
@@ -36,20 +42,20 @@ templ FilterBar(p FilterBarParams) {
 						<input type="datetime-local" class="input input-bordered input-sm flowbot-event-filter-datetime"
 							x-model="timeStart" x-on:change="onDateChange()"
 							data-filter-input name="time_start"
-							aria-label="Start time"
+							aria-label={ i18n.T(ctx, "events.filter.start_time") }
 							data-testid="time-start"/>
 						<span class="flowbot-event-filter-range-sep" aria-hidden="true">–</span>
 						<input type="datetime-local" class="input input-bordered input-sm flowbot-event-filter-datetime"
 							x-model="timeEnd" x-on:change="onDateChange()"
 							data-filter-input name="time_end"
-							aria-label="End time"
+							aria-label={ i18n.T(ctx, "events.filter.end_time") }
 							data-testid="time-end"/>
 					</div>
 				</div>
 
 				<div class="flowbot-event-filter-fields">
 					<input type="search" class="input input-bordered input-sm flowbot-event-filter-search"
-						placeholder="Search events..."
+						placeholder={ i18n.T(ctx, "events.filter.search_placeholder") }
 						x-model="search"
 						x-on:keyup="debounceSearch()"
 						data-filter-input name="search"
@@ -58,9 +64,9 @@ templ FilterBar(p FilterBarParams) {
 						data-filter-input name="pipeline"
 						x-model="pipeline"
 						x-on:change="submitFilter()"
-						aria-label="Pipeline"
+						aria-label={ i18n.T(ctx, "events.filter.pipeline") }
 						data-testid="pipeline-select">
-						<option value="">All pipelines</option>
+						<option value="">{ i18n.T(ctx, "events.filter.all_pipelines") }</option>
 						for _, name := range p.PipelineNames {
 							<option value={ name } selected={ templ.KV(name == p.PipelineFilter, true) }>{ name }</option>
 						}
@@ -69,9 +75,9 @@ templ FilterBar(p FilterBarParams) {
 						data-filter-input name="source"
 						x-model="source"
 						x-on:change="submitFilter()"
-						aria-label="Source"
+						aria-label={ i18n.T(ctx, "events.filter.source") }
 						data-testid="source-select">
-						<option value="">All sources</option>
+						<option value="">{ i18n.T(ctx, "events.filter.all_sources") }</option>
 						for _, s := range p.Sources {
 							<option value={ s } selected={ templ.KV(s == p.SourceFilter, true) }>{ s }</option>
 						}
@@ -80,9 +86,9 @@ templ FilterBar(p FilterBarParams) {
 						data-filter-input name="type"
 						x-model="eventType"
 						x-on:change="submitFilter()"
-						aria-label="Event type"
+						aria-label={ i18n.T(ctx, "events.filter.event_type") }
 						data-testid="type-select">
-						<option value="">All types</option>
+						<option value="">{ i18n.T(ctx, "events.filter.all_types") }</option>
 						for _, t := range p.EventTypes {
 							<option value={ t } selected={ templ.KV(t == p.TypeFilter, true) }>{ t }</option>
 						}
@@ -91,27 +97,27 @@ templ FilterBar(p FilterBarParams) {
 
 				<button type="button" class="btn btn-sm btn-ghost flowbot-event-filter-reset"
 					x-on:click="resetFilters()"
-					data-testid="reset-filter-btn">Reset</button>
+					data-testid="reset-filter-btn">{ i18n.T(ctx, "common.reset") }</button>
 			</div>
 
 			<div class="flowbot-event-filter-presets">
-				<span class="flowbot-event-filter-label">Presets</span>
+				<span class="flowbot-event-filter-label">{ i18n.T(ctx, "events.presets.label") }</span>
 				<select class="select select-bordered select-sm flowbot-event-filter-select"
 					x-model="selectedPreset"
 					x-on:change="applySelectedPreset()"
 					x-ref="savedFiltersSelect"
-					aria-label="Saved filters"
+					aria-label={ i18n.T(ctx, "events.presets.saved_filters") }
 					data-testid="saved-filters-select">
-					<option value="">Saved filters</option>
+					<option value="">{ i18n.T(ctx, "events.presets.saved_filters") }</option>
 				</select>
 				<button type="button" class="btn btn-sm btn-ghost"
 					x-on:click="deleteSelectedPreset()"
 					x-bind:disabled="!selectedPreset"
-					data-testid="delete-filter-btn">Delete</button>
+					data-testid="delete-filter-btn">{ i18n.T(ctx, "common.delete") }</button>
 				<span class="flowbot-event-filter-presets-spacer" aria-hidden="true"></span>
 				<button type="button" class="btn btn-sm btn-ghost"
 					x-on:click="saveCurrentFilter()"
-					data-testid="save-filter-btn">Save filter</button>
+					data-testid="save-filter-btn">{ i18n.T(ctx, "events.presets.save_filter") }</button>
 			</div>
 		</div>
 	</div>

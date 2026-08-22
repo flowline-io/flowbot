@@ -157,7 +157,7 @@ func filteredEventsTable(c fiber.Ctx) error {
 	s := getEventStore()
 	if s == nil {
 		c.Type("html")
-		return partials.EmptyState("Store not available").Render(c.Context(), c.Response().BodyWriter())
+		return partials.EmptyState(webMsg(c, "empty.store_unavailable")).Render(c.Context(), c.Response().BodyWriter())
 	}
 
 	opts := parseEventFilterParams(c)
@@ -165,13 +165,13 @@ func filteredEventsTable(c fiber.Ctx) error {
 	total, err := s.CountDataEvents(c.Context(), opts)
 	if err != nil {
 		c.Type("html")
-		return partials.EmptyState("Failed to count events").Render(c.Context(), c.Response().BodyWriter())
+		return partials.EmptyState(webMsg(c, "empty.failed_count_events")).Render(c.Context(), c.Response().BodyWriter())
 	}
 
 	events, _, err := s.ListDataEvents(c.Context(), opts)
 	if err != nil {
 		c.Type("html")
-		return partials.EmptyState("Failed to load events").Render(c.Context(), c.Response().BodyWriter())
+		return partials.EmptyState(webMsg(c, "empty.failed_load_events")).Render(c.Context(), c.Response().BodyWriter())
 	}
 
 	// Build event ID list for pipeline name lookups
@@ -213,10 +213,10 @@ func filteredEventsTable(c fiber.Ctx) error {
 	viewEvents := mapDataEvents(events)
 	viewRuns := mapPipelineRunInfoMap(runMap)
 	if opts.Webhook {
-		return partials.WebhookLogsTable(sources, eventTypes, viewEvents, pageInfo, viewRuns).
+		return partials.WebhookLogsTable(c.Context(), sources, eventTypes, viewEvents, pageInfo, viewRuns).
 			Render(c.Context(), c.Response().BodyWriter())
 	}
-	return partials.DataEventsTable(sources, eventTypes, viewEvents, pageInfo, viewRuns).
+	return partials.DataEventsTable(c.Context(), sources, eventTypes, viewEvents, pageInfo, viewRuns).
 		Render(c.Context(), c.Response().BodyWriter())
 }
 
@@ -245,12 +245,12 @@ func eventPayload(ctx fiber.Ctx) error {
 	s := getEventStore()
 	if s == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.store_unavailable")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	found, err := s.GetDataEventByEventID(ctx.Context(), eventID)
 	if err != nil || found == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Event not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.EmptyState(webMsg(ctx, "empty.event_not_found")).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	payloadJSON := "{}"

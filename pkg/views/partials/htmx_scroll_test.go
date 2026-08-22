@@ -20,7 +20,7 @@ func TestPollingSwapPreservesScroll(t *testing.T) {
 			name: "hub apps table polling uses show none and preserve scroll",
 			render: func() (string, error) {
 				var buf bytes.Buffer
-				err := partials.HubAppsTable(nil, nil).Render(context.Background(), &buf)
+				err := partials.HubAppsTable(context.Background(), nil, nil).Render(context.Background(), &buf)
 				return buf.String(), err
 			},
 			want: []string{
@@ -32,7 +32,7 @@ func TestPollingSwapPreservesScroll(t *testing.T) {
 			name: "healthz status polling uses show none and preserve scroll",
 			render: func() (string, error) {
 				var buf bytes.Buffer
-				err := partials.HealthzStatus(partials.HealthzData{}).Render(context.Background(), &buf)
+				err := partials.HealthzStatus(context.Background(), partials.HealthzData{}).Render(context.Background(), &buf)
 				return buf.String(), err
 			},
 			want: []string{

@@ -1,152 +1,152 @@
-package pages
-
-import (
-	"context"
-	
-	"strconv"
-
-	"github.com/flowline-io/flowbot/pkg/i18n"
-	"github.com/flowline-io/flowbot/pkg/views/layout"
-	"github.com/flowline-io/flowbot/pkg/views/partials"
-	"github.com/flowline-io/flowbot/version"
-)
-
-templ FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) {
-	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.function", map[string]any{"Name": draft.Name})) {
-		@partials.FunctionStatsScripts()
-		<script src={ "/static/js/function-editor.js?v=" + version.Buildtags }></script>
-		<div
-			class="max-w-6xl mx-auto"
-			x-data="functionEditor"
-			x-init="init()"
-			data-testid="function-editor"
-			data-function-name={ draft.Name }
-			data-version={ strconv.Itoa(draft.Version) }
-			data-status={ draft.Status }
-			data-entrypoint={ draft.Entrypoint }
-			data-token-set={ strconv.FormatBool(draft.TokenSet) }
-			data-hmac-set={ strconv.FormatBool(draft.HMACSet) }
-			data-has-unpublished={ strconv.FormatBool(draft.HasUnpublishedChanges) }
-			data-published-version={ partials.PublishedVersionAttr(draft.PublishedVersion) }
-		>
-			@partials.PageHeaderLiteral(ctx, draft.Name, i18n.T(ctx, "page.function_editor.subtitle")) {
-				<a href="/service/web/functions" class="btn btn-ghost btn-sm" data-testid="btn-back-functions">Back</a>
-				<button type="button" class="btn btn-ghost btn-sm" @click="saveDraft()" data-testid="btn-save-draft">Save draft</button>
-				<button type="button" class="btn btn-primary btn-sm" @click="publish()" data-testid="btn-publish">Publish</button>
-				<button
-					type="button"
-					class="btn btn-ghost btn-sm text-error"
-					hx-delete={ "/service/web/functions/" + draft.Name }
-					hx-target="body"
-					data-confirm={ i18n.TData(ctx, "confirm.delete_function.message", map[string]any{"Name": draft.Name}) }
-					data-confirm-title={ i18n.T(ctx, "confirm.delete_function.title") }
-					data-confirm-btn={ i18n.T(ctx, "confirm.delete_function.btn") }
-					data-testid="btn-delete-function"
-				>Delete</button>
-			}
-			<div class="mb-4 flex flex-wrap items-center gap-2 text-sm" data-testid="function-status-bar">
-				<span class="text-base-content/60">Definition v<span x-text="version"></span></span>
-				<template x-if="status === 'published'">
-					<span class="flowbot-chip flowbot-chip-success">Published</span>
-				</template>
-				<template x-if="status !== 'published'">
-					<span class="flowbot-chip flowbot-chip-muted">Draft</span>
-				</template>
-				<template x-if="publishedVersion">
-					<span class="text-base-content/60">Latest published v<span x-text="publishedVersion"></span></span>
-				</template>
-				<template x-if="hasUnpublishedChanges">
-					<span class="flowbot-chip flowbot-chip-warning">Unpublished changes</span>
-				</template>
-				<template x-if="dirty">
-					<span class="flowbot-chip flowbot-chip-muted">Unsaved</span>
-				</template>
-			</div>
-			<div class="mb-4 flowbot-surface p-3 space-y-2" data-testid="function-call-links">
-				<div class="flex items-center gap-2 min-w-0">
-					<span class="flowbot-chip flowbot-chip-muted shrink-0">POST</span>
-					<span class="flowbot-chip flowbot-chip-muted shrink-0">latest</span>
-					<code class="min-w-0 flex-1 font-mono text-xs break-all" data-testid="function-call-url">{ draft.CallURL }</code>
-					<button
-						type="button"
-						class="btn btn-ghost btn-xs"
-						data-copy-url={ draft.CallURL }
-						@click="copyCallLink($event)"
-						data-testid="btn-copy-call-url"
-					>Copy</button>
-				</div>
-				<div
-					class="flex items-center gap-2 min-w-0"
-					data-testid="function-call-version-row"
-					x-show="publishedVersion"
-					x-cloak
-				>
-					<span class="flowbot-chip flowbot-chip-muted shrink-0">POST</span>
-					<span class="flowbot-chip flowbot-chip-muted shrink-0" data-testid="function-call-version-label" x-text="'v' + publishedVersion"></span>
-					<code class="min-w-0 flex-1 font-mono text-xs break-all" data-testid="function-call-url-version">{ draft.CallVersionURL }</code>
-					<button
-						type="button"
-						class="btn btn-ghost btn-xs"
-						data-copy-url={ draft.CallVersionURL }
-						@click="copyCallLink($event)"
-						data-testid="btn-copy-call-url-version"
-					>Copy</button>
-				</div>
-				<p class="text-xs text-base-content/50 m-0" data-testid="function-call-auth-hint">Auth: header X-Webhook-Token or query token. Versioned path pins a published snapshot.</p>
-			</div>
-			<div role="tablist" class="tabs tabs-border mb-4">
-				<button type="button" role="tab" class="tab" :class="tab === 'code' && 'tab-active'" @click="setTab('code')" data-testid="tab-code">Code</button>
-				<button type="button" role="tab" class="tab" :class="tab === 'runs' && 'tab-active'" @click="setTab('runs')" data-testid="tab-runs">Runs</button>
-				<button type="button" role="tab" class="tab" :class="tab === 'stats' && 'tab-active'" @click="setTab('stats')" data-testid="tab-stats">Stats</button>
-				<button type="button" role="tab" class="tab" :class="tab === 'try' && 'tab-active'" @click="setTab('try')" data-testid="tab-try">Try</button>
-			</div>
-			<div x-show="tab === 'code'" data-testid="panel-code">
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-					<div class="flowbot-surface p-4 space-y-3">
-						<label class="label"><span class="label-text">Entrypoint</span></label>
-						<select class="select select-bordered w-full" x-model="entrypoint" @change="markDirty()" data-testid="input-entrypoint">
-							<option value="main.py">main.py</option>
-							<option value="main.sh">main.sh</option>
-							<option value="main.go">main.go</option>
-						</select>
-						<label class="label"><span class="label-text">HTTP token</span></label>
-						<input type="password" class="input input-bordered w-full" x-model="token" @input="markDirty()" autocomplete="off" data-testid="input-token" placeholder="••••••••">
-						<label class="label"><span class="label-text">HMAC secret (optional)</span></label>
-						<input type="password" class="input input-bordered w-full" x-model="hmacSecret" @input="markDirty()" autocomplete="off" data-testid="input-hmac" placeholder="••••••••">
-						<label class="label"><span class="label-text">Env (KEY=VALUE per line)</span></label>
-						<textarea class="textarea textarea-bordered w-full font-mono text-sm h-32" x-model="envText" @input="markDirty()" data-testid="input-env">{ draft.EnvText }</textarea>
-					</div>
-					<div class="flowbot-surface p-4 space-y-3">
-						<label class="label"><span class="label-text">Source</span></label>
-						<textarea class="textarea textarea-bordered w-full font-mono text-sm h-96" x-model="source" @input="markDirty()" data-testid="input-source">{ draft.Source }</textarea>
-					</div>
-				</div>
-			</div>
-			<div x-show="tab === 'runs'" data-testid="panel-runs"
-				hx-get={ "/service/web/functions/" + draft.Name + "/runs" }
-				hx-trigger="intersect once"
-				hx-swap="innerHTML">
-				@partials.PanelSkeleton()
-			</div>
-			<div x-show="tab === 'stats'" data-testid="panel-stats"
-				hx-get={ partials.FunctionStatsURL(draft.Name, 30, "day") }
-				hx-trigger="intersect once"
-				hx-swap="innerHTML">
-				@partials.PanelSkeleton()
-			</div>
-			<div x-show="tab === 'try'" data-testid="panel-try" class="flowbot-surface p-4 space-y-3">
-				<template x-if="!publishedVersion">
-					<p class="text-base-content/60" data-testid="try-disabled">Publish a version before trying.</p>
-				</template>
-				<template x-if="publishedVersion">
-					<div class="space-y-3">
-						<label class="label"><span class="label-text">Event JSON</span></label>
-						<textarea class="textarea textarea-bordered w-full font-mono text-sm h-40" x-model="tryEvent" data-testid="input-try-event">{}</textarea>
-						<button type="button" class="btn btn-primary btn-sm" @click="tryInvoke()" data-testid="btn-try-invoke">Run published</button>
-						<pre class="bg-base-200 p-3 text-sm overflow-x-auto whitespace-pre-wrap" x-text="tryResult" data-testid="try-result"></pre>
-					</div>
-				</template>
-			</div>
-		</div>
-	}
-}
+package pages
+
+import (
+	"context"
+	
+	"strconv"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+	"github.com/flowline-io/flowbot/version"
+)
+
+templ FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.function", map[string]any{"Name": draft.Name})) {
+		@partials.FunctionStatsScripts()
+		<script src={ "/static/js/function-editor.js?v=" + version.Buildtags }></script>
+		<div
+			class="max-w-6xl mx-auto"
+			x-data="functionEditor"
+			x-init="init()"
+			data-testid="function-editor"
+			data-function-name={ draft.Name }
+			data-version={ strconv.Itoa(draft.Version) }
+			data-status={ draft.Status }
+			data-entrypoint={ draft.Entrypoint }
+			data-token-set={ strconv.FormatBool(draft.TokenSet) }
+			data-hmac-set={ strconv.FormatBool(draft.HMACSet) }
+			data-has-unpublished={ strconv.FormatBool(draft.HasUnpublishedChanges) }
+			data-published-version={ partials.PublishedVersionAttr(draft.PublishedVersion) }
+		>
+			@partials.PageHeaderLiteral(ctx, draft.Name, i18n.T(ctx, "page.function_editor.subtitle")) {
+				<a href="/service/web/functions" class="btn btn-ghost btn-sm" data-testid="btn-back-functions">{ i18n.T(ctx, "common.back_to_functions") }</a>
+				<button type="button" class="btn btn-ghost btn-sm" @click="saveDraft()" data-testid="btn-save-draft">{ i18n.T(ctx, "common.save_draft") }</button>
+				<button type="button" class="btn btn-primary btn-sm" @click="publish()" data-testid="btn-publish">{ i18n.T(ctx, "common.publish") }</button>
+				<button
+					type="button"
+					class="btn btn-ghost btn-sm text-error"
+					hx-delete={ "/service/web/functions/" + draft.Name }
+					hx-target="body"
+					data-confirm={ i18n.TData(ctx, "confirm.delete_function.message", map[string]any{"Name": draft.Name}) }
+					data-confirm-title={ i18n.T(ctx, "confirm.delete_function.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.delete_function.btn") }
+					data-testid="btn-delete-function"
+				>{ i18n.T(ctx, "common.delete") }</button>
+			}
+			<div class="mb-4 flex flex-wrap items-center gap-2 text-sm" data-testid="function-status-bar">
+				<span class="text-base-content/60">{ i18n.T(ctx, "function_editor.definition_version") }<span x-text="version"></span></span>
+				<template x-if="status === 'published'">
+					<span class="flowbot-chip flowbot-chip-success">{ i18n.T(ctx, "common.published") }</span>
+				</template>
+				<template x-if="status !== 'published'">
+					<span class="flowbot-chip flowbot-chip-muted">{ i18n.T(ctx, "common.draft") }</span>
+				</template>
+				<template x-if="publishedVersion">
+					<span class="text-base-content/60">{ i18n.T(ctx, "function_editor.latest_published") }<span x-text="publishedVersion"></span></span>
+				</template>
+				<template x-if="hasUnpublishedChanges">
+					<span class="flowbot-chip flowbot-chip-warning">{ i18n.T(ctx, "function_editor.unpublished_changes") }</span>
+				</template>
+				<template x-if="dirty">
+					<span class="flowbot-chip flowbot-chip-muted">{ i18n.T(ctx, "function_editor.unsaved") }</span>
+				</template>
+			</div>
+			<div class="mb-4 flowbot-surface p-3 space-y-2" data-testid="function-call-links">
+				<div class="flex items-center gap-2 min-w-0">
+					<span class="flowbot-chip flowbot-chip-muted shrink-0">POST</span>
+					<span class="flowbot-chip flowbot-chip-muted shrink-0">{ i18n.T(ctx, "common.latest") }</span>
+					<code class="min-w-0 flex-1 font-mono text-xs break-all" data-testid="function-call-url">{ draft.CallURL }</code>
+					<button
+						type="button"
+						class="btn btn-ghost btn-xs"
+						data-copy-url={ draft.CallURL }
+						@click="copyCallLink($event)"
+						data-testid="btn-copy-call-url"
+					>{ i18n.T(ctx, "common.copy") }</button>
+				</div>
+				<div
+					class="flex items-center gap-2 min-w-0"
+					data-testid="function-call-version-row"
+					x-show="publishedVersion"
+					x-cloak
+				>
+					<span class="flowbot-chip flowbot-chip-muted shrink-0">POST</span>
+					<span class="flowbot-chip flowbot-chip-muted shrink-0" data-testid="function-call-version-label" x-text="'v' + publishedVersion"></span>
+					<code class="min-w-0 flex-1 font-mono text-xs break-all" data-testid="function-call-url-version">{ draft.CallVersionURL }</code>
+					<button
+						type="button"
+						class="btn btn-ghost btn-xs"
+						data-copy-url={ draft.CallVersionURL }
+						@click="copyCallLink($event)"
+						data-testid="btn-copy-call-url-version"
+					>{ i18n.T(ctx, "common.copy") }</button>
+				</div>
+				<p class="text-xs text-base-content/50 m-0" data-testid="function-call-auth-hint">{ i18n.T(ctx, "function_editor.auth_hint") }</p>
+			</div>
+			<div role="tablist" class="tabs tabs-border mb-4">
+				<button type="button" role="tab" class="tab" :class="tab === 'code' && 'tab-active'" @click="setTab('code')" data-testid="tab-code">{ i18n.T(ctx, "common.code") }</button>
+				<button type="button" role="tab" class="tab" :class="tab === 'runs' && 'tab-active'" @click="setTab('runs')" data-testid="tab-runs">{ i18n.T(ctx, "common.runs") }</button>
+				<button type="button" role="tab" class="tab" :class="tab === 'stats' && 'tab-active'" @click="setTab('stats')" data-testid="tab-stats">{ i18n.T(ctx, "common.stats") }</button>
+				<button type="button" role="tab" class="tab" :class="tab === 'try' && 'tab-active'" @click="setTab('try')" data-testid="tab-try">{ i18n.T(ctx, "common.try") }</button>
+			</div>
+			<div x-show="tab === 'code'" data-testid="panel-code">
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+					<div class="flowbot-surface p-4 space-y-3">
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "function_editor.entrypoint") }</span></label>
+						<select class="select select-bordered w-full" x-model="entrypoint" @change="markDirty()" data-testid="input-entrypoint">
+							<option value="main.py">main.py</option>
+							<option value="main.sh">main.sh</option>
+							<option value="main.go">main.go</option>
+						</select>
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "function_editor.http_token") }</span></label>
+						<input type="password" class="input input-bordered w-full" x-model="token" @input="markDirty()" autocomplete="off" data-testid="input-token" placeholder="••••••••">
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "function_editor.hmac_secret") }</span></label>
+						<input type="password" class="input input-bordered w-full" x-model="hmacSecret" @input="markDirty()" autocomplete="off" data-testid="input-hmac" placeholder="••••••••">
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "function_editor.env") }</span></label>
+						<textarea class="textarea textarea-bordered w-full font-mono text-sm h-32" x-model="envText" @input="markDirty()" data-testid="input-env">{ draft.EnvText }</textarea>
+					</div>
+					<div class="flowbot-surface p-4 space-y-3">
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "function_editor.source") }</span></label>
+						<textarea class="textarea textarea-bordered w-full font-mono text-sm h-96" x-model="source" @input="markDirty()" data-testid="input-source">{ draft.Source }</textarea>
+					</div>
+				</div>
+			</div>
+			<div x-show="tab === 'runs'" data-testid="panel-runs"
+				hx-get={ "/service/web/functions/" + draft.Name + "/runs" }
+				hx-trigger="intersect once"
+				hx-swap="innerHTML">
+				@partials.PanelSkeleton(ctx)
+			</div>
+			<div x-show="tab === 'stats'" data-testid="panel-stats"
+				hx-get={ partials.FunctionStatsURL(draft.Name, 30, "day") }
+				hx-trigger="intersect once"
+				hx-swap="innerHTML">
+				@partials.PanelSkeleton(ctx)
+			</div>
+			<div x-show="tab === 'try'" data-testid="panel-try" class="flowbot-surface p-4 space-y-3">
+				<template x-if="!publishedVersion">
+					<p class="text-base-content/60" data-testid="try-disabled">{ i18n.T(ctx, "function_editor.try_disabled") }</p>
+				</template>
+				<template x-if="publishedVersion">
+					<div class="space-y-3">
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "function_editor.event_json") }</span></label>
+						<textarea class="textarea textarea-bordered w-full font-mono text-sm h-40" x-model="tryEvent" data-testid="input-try-event">{}</textarea>
+						<button type="button" class="btn btn-primary btn-sm" @click="tryInvoke()" data-testid="btn-try-invoke">{ i18n.T(ctx, "function_editor.run_published") }</button>
+						<pre class="bg-base-200 p-3 text-sm overflow-x-auto whitespace-pre-wrap" x-text="tryResult" data-testid="try-result"></pre>
+					</div>
+				</template>
+			</div>
+		</div>
+	}
+}

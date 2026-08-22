@@ -1,24 +1,29 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/hub"
+import (
+	"context"
 
-templ CapabilityGrid(descriptors []hub.Descriptor, filtered bool) {
+	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ CapabilityGrid(ctx context.Context, descriptors []hub.Descriptor, filtered bool) {
 	<div id="capability-grid" data-testid="capability-grid">
 		if len(descriptors) == 0 {
 			if filtered {
-				@EmptyState("No capabilities match these filters")
+				@EmptyState(i18n.T(ctx, "capability.empty.filtered"))
 			} else {
 				@EmptyStateCTA(
-					"No capabilities registered",
-					"Start Hub apps to expose capabilities here.",
+					i18n.T(ctx, "capability.empty.none"),
+					i18n.T(ctx, "capability.empty.detail"),
 					"/service/web/hub",
-					"Open Hub",
+					i18n.T(ctx, "capability.empty.cta"),
 				)
 			}
 		} else {
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 				for _, d := range descriptors {
-					@CapabilityCard(d)
+					@CapabilityCard(ctx, d)
 				}
 			</div>
 		}

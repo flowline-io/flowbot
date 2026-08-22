@@ -59,7 +59,10 @@
                   )
                 : this.runStatus === 'failed'
                   ? flowbotI18n('client.pipeline_run.failed', 'Live failed')
-                  : flowbotI18n('client.pipeline_run.finished', 'Live finished');
+                  : flowbotI18n(
+                      'client.pipeline_run.finished',
+                      'Live finished',
+                    );
             window.flowbotSetPageStatus(title);
             return;
           }
@@ -120,7 +123,10 @@
           this.eventSource.addEventListener('open', function () {
             if (self.reconnectAttempt > 0 && typeof showToast === 'function') {
               showToast(
-                flowbotI18n('client.pipeline_run.connected', 'Live stream connected'),
+                flowbotI18n(
+                  'client.pipeline_run.connected',
+                  'Live stream connected',
+                ),
                 'info',
               );
             }

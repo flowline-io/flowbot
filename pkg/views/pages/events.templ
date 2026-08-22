@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -19,7 +20,7 @@ templ EventsPage(ctx context.Context, p EventsPageParams) {
 		@partials.PageHeader(ctx, "nav.events", "") {
 		}
 		<div x-data="eventFilters">
-			@partials.FilterBar(partials.FilterBarParams{
+			@partials.FilterBar(ctx, partials.FilterBarParams{
 				Tab:           "data-events",
 				Sources:       p.Sources,
 				EventTypes:    p.EventTypes,
@@ -31,18 +32,18 @@ templ EventsPage(ctx context.Context, p EventsPageParams) {
 						class="tab"
 						x-bind:class="tab === 'data-events' ? 'tab-active' : ''"
 						x-on:click="switchTab('data-events')"
-						data-testid="tab-data-events">Data Events</button>
+						data-testid="tab-data-events">{ i18n.T(ctx, "page.events.tab_data") }</button>
 					<button role="tab"
 						class="tab"
 						x-bind:class="tab === 'webhook-logs' ? 'tab-active' : ''"
 						x-on:click="switchTab('webhook-logs')"
-						data-testid="tab-webhook-logs">Webhook Logs</button>
+						data-testid="tab-webhook-logs">{ i18n.T(ctx, "page.events.tab_webhooks") }</button>
 				</div>
 			</div>
 			<div id="events-table-container"
 				hx-swap="innerHTML"
 				data-testid="events-table-container">
-				@partials.PanelSkeleton()
+				@partials.PanelSkeleton(ctx)
 			</div>
 		</div>
 	}

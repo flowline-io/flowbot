@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -16,11 +17,11 @@ templ PipelineListPage(ctx context.Context, entries []partials.PipelineListEntry
 					onclick="document.getElementById('create-modal').showModal()"
 					data-testid="btn-new-pipeline"
 					class="btn btn-primary">
-					+ New Pipeline
+					{ i18n.T(ctx, "pipeline.create.new_btn") }
 				</button>
 			}
 			<div hx-get={ partials.PipelineStatsURL("", 30, "day") } hx-trigger="revealed" hx-swap="outerHTML">
-				@partials.PanelSkeleton()
+				@partials.PanelSkeleton(ctx)
 			</div>
 			<div id="pipeline-list-container" data-testid="pipeline-list-container">
 				@partials.PipelineListTable(ctx, entries)
@@ -28,32 +29,32 @@ templ PipelineListPage(ctx context.Context, entries []partials.PipelineListEntry
 		</div>
 		<dialog id="create-modal" class="modal" data-testid="create-modal">
 			<div class="modal-box">
-				<h3 class="text-lg font-medium text-base-content mb-4">New Pipeline</h3>
+				<h3 class="text-lg font-medium text-base-content mb-4">{ i18n.T(ctx, "pipeline.create.title") }</h3>
 				<form id="create-form" hx-post="/service/web/pipelines" hx-target="body" data-testid="create-form">
 					<div id="form-error" data-testid="form-error-slot"></div>
 					<label class="label">
-						<span class="label-text">Name</span>
+						<span class="label-text">{ i18n.T(ctx, "common.name") }</span>
 					</label>
 					<input type="text" name="name" required minlength="1" maxlength="128"
 						class="input input-bordered w-full mb-3"
-						placeholder="my-pipeline"
-						title="Letters or digits (including Chinese), hyphens, underscores. Must start with a letter or digit."
+						placeholder={ i18n.T(ctx, "pipeline.create.name_placeholder") }
+						title={ i18n.T(ctx, "pipeline.create.name_title") }
 						data-testid="input-pipeline-name">
 					<label class="label">
-						<span class="label-text">Description (optional)</span>
+						<span class="label-text">{ i18n.T(ctx, "pipeline.create.desc_optional") }</span>
 					</label>
 					<input type="text" name="description"
 						class="input input-bordered w-full mb-4"
-						placeholder="Brief description"
+						placeholder={ i18n.T(ctx, "pipeline.create.desc_placeholder") }
 						data-testid="input-pipeline-desc">
 					<div class="modal-action">
 						<button type="button"
 							onclick="document.getElementById('create-modal').close()"
 							class="btn btn-ghost"
-							data-testid="btn-cancel-create">Cancel</button>
+							data-testid="btn-cancel-create">{ i18n.T(ctx, "common.cancel") }</button>
 						<button type="submit"
 							class="btn btn-primary"
-							data-testid="btn-submit-create">Create</button>
+							data-testid="btn-submit-create">{ i18n.T(ctx, "common.create") }</button>
 					</div>
 				</form>
 			</div>

@@ -239,10 +239,10 @@ func agentsTable(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	endpoints := agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)
 	if cursor != "" {
-		return partials.ChatAgentSessionListAppend(items, nextCursor, endpoints).
+		return partials.ChatAgentSessionListAppend(ctx.Context(), items, nextCursor, endpoints).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	return partials.ChatAgentSessionList(items, nextCursor, endpoints).
+	return partials.ChatAgentSessionList(ctx.Context(), items, nextCursor, endpoints).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -400,7 +400,7 @@ func agentChatPage(ctx fiber.Ctx) error {
 	session.ApprovalMode = settings.ApprovalMode
 	uid := webRequestUID(ctx)
 	ctx.Type("html")
-	return pages.AgentChatPage(ctx.Context(), 
+	return pages.AgentChatPage(ctx.Context(),
 		session,
 		mapChatMessages(sessionID, messages),
 		todos,
@@ -922,7 +922,7 @@ func setAgentChatPinned(ctx fiber.Ctx, pinned bool) error {
 		return err
 	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)).
+	return partials.ChatAgentSessionList(ctx.Context(), items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -959,7 +959,7 @@ func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
 		return err
 	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)).
+	return partials.ChatAgentSessionList(ctx.Context(), items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 

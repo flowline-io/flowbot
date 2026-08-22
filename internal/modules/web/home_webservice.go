@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -41,7 +42,7 @@ func homeDashboardPartial(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	d := buildHomeDashboard(ctx.Context())
-	return partials.HomeDashboardBlock(d).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.HomeDashboardBlock(ctx.Context(), d).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // buildHomeDashboard assembles summary stats and an optional setup checklist for Home.
@@ -92,26 +93,26 @@ func buildHomeChecklist(ctx context.Context, d partials.HomeDashboard) []partial
 	items := []partials.HomeChecklistItem{
 		{
 			Done:   hasWorkflows,
-			Title:  "Create a workflow",
-			Detail: "Define multi-step automation with triggers and tasks.",
+			Title:  i18n.T(ctx, "home.checklist.workflow.title"),
+			Detail: i18n.T(ctx, "home.checklist.workflow.detail"),
 			Href:   "/service/web/workflows",
-			CTA:    "Open Workflows",
+			CTA:    i18n.T(ctx, "home.checklist.workflow.cta"),
 			TestID: "home-check-workflows",
 		},
 		{
 			Done:   hasPipelines,
-			Title:  "Create a pipeline",
-			Detail: "Automate reactions to data events.",
+			Title:  i18n.T(ctx, "home.checklist.pipeline.title"),
+			Detail: i18n.T(ctx, "home.checklist.pipeline.detail"),
 			Href:   "/service/web/pipelines",
-			CTA:    "Open Pipelines",
+			CTA:    i18n.T(ctx, "common.open_pipelines"),
 			TestID: "home-check-pipelines",
 		},
 		{
 			Done:   hasAgentsReady,
-			Title:  "Try Agents",
-			Detail: "Chat with an agent and configure skills when ready.",
+			Title:  i18n.T(ctx, "home.checklist.agents.title"),
+			Detail: i18n.T(ctx, "home.checklist.agents.detail"),
 			Href:   "/service/web/agents",
-			CTA:    "Open Agents",
+			CTA:    i18n.T(ctx, "home.checklist.agents.cta"),
 			TestID: "home-check-agents",
 		},
 	}

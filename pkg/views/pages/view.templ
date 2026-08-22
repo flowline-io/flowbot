@@ -4,6 +4,7 @@ package pages
 import (
 	"context"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 )
 
@@ -11,7 +12,7 @@ templ ViewPage(ctx context.Context, title string, body templ.Component, expired 
 	@layout.Base(ctx, DocTitleLiteral(ctx, title)) {
 		if expired {
 			<div class="mb-4 alert alert-warning" data-testid="view-expired-banner">
-				This page has expired and may no longer be available.
+				{ i18n.T(ctx, "page.view.expired") }
 			</div>
 		}
 		<h1 class="text-2xl font-semibold text-base-content mb-6" data-testid="view-title">{ title }</h1>

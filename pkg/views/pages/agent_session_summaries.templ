@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -17,11 +18,11 @@ templ AgentSessionSummariesPage(ctx context.Context, items []model.AgentSessionS
 				hx-swap="outerHTML"
 				hx-trigger="submit, keyup changed delay:300ms from:input">
 				<input type="search" name="q" value={ q }
-					placeholder="Filter title or summary"
+					placeholder={ i18n.T(ctx, "agent.session_summaries.filter_placeholder") }
 					data-testid="agent-session-summaries-filter"
 					class="input input-bordered input-sm w-48 md:w-64"/>
 				<button type="submit" data-testid="agent-session-summaries-refresh" class="btn btn-ghost btn-sm">
-					Refresh
+					{ i18n.T(ctx, "common.refresh") }
 					@partials.HtmxIndicator()
 				</button>
 			</form>

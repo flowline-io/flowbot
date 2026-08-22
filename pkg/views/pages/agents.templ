@@ -12,9 +12,9 @@ import (
 templ AgentsPage(ctx context.Context, items []model.AgentSession, nextCursor string, endpoints partials.ChatAgentEndpoints, chatEnabled bool) {
 	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.agents")) {
 		<div class="agents-home">
-			@partials.ChatAgentComposer(endpoints, i18n.T(ctx, "page.agents.composer_placeholder"), !chatEnabled)
+			@partials.ChatAgentComposer(ctx, endpoints, i18n.T(ctx, "page.agents.composer_placeholder"), !chatEnabled)
 			if chatEnabled {
-				@partials.ChatAgentSessionList(items, nextCursor, endpoints)
+				@partials.ChatAgentSessionList(ctx, items, nextCursor, endpoints)
 			}
 		</div>
 		@partials.ChatAgentComposerScripts()
@@ -24,7 +24,7 @@ templ AgentsPage(ctx context.Context, items []model.AgentSession, nextCursor str
 templ AgentChatPage(ctx context.Context, session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints partials.ChatAgentEndpoints, pending *partials.ChatAgentPendingConfirm) {
 	@layout.Base(ctx, DocTitlePage(ctx, "page.doc_title.agent_chat")) {
 		<div class="chatagent-page flex flex-col flex-1 min-h-0 overflow-hidden">
-			@partials.ChatAgentThread(session, messages, todos, endpoints, pending)
+			@partials.ChatAgentThread(ctx, session, messages, todos, endpoints, pending)
 		</div>
 		@partials.ChatAgentThreadScripts()
 	}

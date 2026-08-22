@@ -3,6 +3,7 @@ package pages
 import (
 	"context"
 	
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -21,7 +22,7 @@ templ AgentMemoryPage(ctx context.Context, items []model.AgentMemoryFact, scope 
 					data-testid="agent-memory-scope"
 					class="input input-bordered input-sm w-40"/>
 				<button type="submit" data-testid="agent-memory-refresh" class="btn btn-ghost btn-sm">
-					Refresh
+					{ i18n.T(ctx, "common.refresh") }
 					@partials.HtmxIndicator()
 				</button>
 			</form>

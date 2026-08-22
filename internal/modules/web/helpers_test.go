@@ -282,11 +282,12 @@ func TestValidateThrottleAndAggregateParams(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			c := testWebFiberCtx(t)
 			errs := map[string]string{}
 			if tt.agg {
-				validateAggregateParams(tt.params, &errs)
+				validateAggregateParams(c, tt.params, &errs)
 			} else {
-				validateThrottleParams(tt.params, &errs)
+				validateThrottleParams(c, tt.params, &errs)
 			}
 			assert.Contains(t, errs[tt.wantKey], tt.wantSubstr)
 		})
@@ -410,6 +411,23 @@ func TestMapAgentSession(t *testing.T) {
 	assert.Equal(t, "Active", got.State)
 }
 
+func testWebFiberCtx(t *testing.T) fiber.Ctx {
+	t.Helper()
+	var captured fiber.Ctx
+	app := fiber.New()
+	app.Use(localeMiddleware())
+	app.Get("/", func(c fiber.Ctx) error {
+		captured = c
+		return nil
+	})
+	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+	AttachLocaleForTest(req, i18n.CookieEN)
+	_, err := app.Test(req)
+	require.NoError(t, err)
+	require.NotNil(t, captured)
+	return captured
+}
+
 func TestValidateChannelForm(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -428,7 +446,8 @@ func TestValidateChannelForm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			errs := validateChannelForm(tt.channel, tt.protocol, tt.uri)
+			c := testWebFiberCtx(t)
+			errs := validateChannelForm(c, tt.channel, tt.protocol, tt.uri)
 			if tt.wantField == "" {
 				assert.Empty(t, errs)
 				return
@@ -459,7 +478,8 @@ func TestValidateRuleForm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			errs := validateRuleForm(tt.rule)
+			c := testWebFiberCtx(t)
+			errs := validateRuleForm(c, tt.rule)
 			if tt.wantField == "" {
 				assert.Empty(t, errs)
 				return
@@ -507,7 +527,8 @@ func TestNotifyFormErrorsFromStore(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			errs := notifyFormErrorsFromStore(tt.err)
+			c := testWebFiberCtx(t)
+			errs := notifyFormErrorsFromStore(c, tt.err)
 			require.Contains(t, errs, tt.wantField)
 			assert.Contains(t, errs[tt.wantField], tt.wantSub)
 			if tt.wantRaw {

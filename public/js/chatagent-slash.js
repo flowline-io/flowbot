@@ -261,7 +261,10 @@
       empty.className = 'chatagent-slash-empty';
       empty.textContent = state.query
         ? flowbotI18n('client.chatagent.slash.no_match', 'No matching skills')
-        : flowbotI18n('client.chatagent.slash.no_skills', 'No skills available');
+        : flowbotI18n(
+            'client.chatagent.slash.no_skills',
+            'No skills available',
+          );
       state.picker.appendChild(empty);
       state.picker.classList.remove('hidden');
       state.open = true;

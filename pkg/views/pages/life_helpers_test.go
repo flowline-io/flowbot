@@ -32,17 +32,19 @@ func TestLifeBuildStatRowAndRadar(t *testing.T) {
 	assert.InDelta(t, 1.0, empty.RadarValue, 0.001)
 	assert.Equal(t, 0, empty.FilledSegs)
 
-	labels, values := pages.LifeMarshalRadar([]pages.LifeStatRow{row})
+	ctx := i18n.DefaultContext()
+	labels, values := pages.LifeMarshalRadar(ctx, []pages.LifeStatRow{row})
 	assert.Contains(t, labels, "Intelligence")
 	assert.Contains(t, values, "3.5")
 }
 
 func TestLifeDisplayNameAndClassTraits(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, "Ada", pages.LifeDisplayName("Ada", "user-admin"))
-	assert.Equal(t, "admin", pages.LifeDisplayName("", "user-admin"))
-	assert.Equal(t, "Creative", pages.LifeClassStrength("Architect"))
-	assert.Equal(t, "Impatient", pages.LifeClassWeakness("Architect"))
+	ctx := i18n.DefaultContext()
+	assert.Equal(t, "Ada", pages.LifeDisplayName(ctx, "Ada", "user-admin"))
+	assert.Equal(t, "admin", pages.LifeDisplayName(ctx, "", "user-admin"))
+	assert.Equal(t, "Creative", pages.LifeClassStrength(ctx, "Architect"))
+	assert.Equal(t, "Impatient", pages.LifeClassWeakness(ctx, "Architect"))
 }
 
 func TestLifeBuildEquipSlots(t *testing.T) {
@@ -117,15 +119,16 @@ func TestLifeHPFromStats(t *testing.T) {
 
 func TestLifeFormatBuffText(t *testing.T) {
 	t.Parallel()
-	got := pages.LifeFormatBuffText(map[string]any{
+	ctx := i18n.DefaultContext()
+	got := pages.LifeFormatBuffText(ctx, map[string]any{
 		"INT":      float64(5),
 		"DropRate": float64(0.02),
 		"GoldMult": float64(0.1),
 	})
-	assert.Contains(t, got, "INT +5")
+	assert.Contains(t, got, "Intelligence +5")
 	assert.Contains(t, got, "Drop +2%")
 	assert.Contains(t, got, "Gold +10%")
-	assert.Empty(t, pages.LifeFormatBuffText(nil))
+	assert.Empty(t, pages.LifeFormatBuffText(ctx, nil))
 }
 
 func TestLifeFormatPerkText(t *testing.T) {
@@ -145,11 +148,11 @@ func TestLifePlanLabelsAndIndent(t *testing.T) {
 	assert.Equal(t, "Habit (pending)", pages.LifeTaskTypeLabel(ctx, "habit_candidate"))
 	assert.Equal(t, "Habit", pages.LifeTaskTypeLabel(ctx, "habit"))
 	assert.Equal(t, "Checkpoint", pages.LifeTaskTypeLabel(ctx, "checkpoint"))
-	assert.Equal(t, "Action", pages.LifeActionLogSourceLabel("occurrence"))
-	assert.Equal(t, "Habit", pages.LifeActionLogSourceLabel("habit_checkin"))
-	assert.Equal(t, "Checkpoint", pages.LifeActionLogSourceLabel("checkpoint"))
-	assert.Equal(t, "One-time", pages.LifeOccurrenceKindLabel("one_time"))
-	assert.Equal(t, "Recurring", pages.LifeOccurrenceKindLabel("recurring"))
+	assert.Equal(t, "Action", pages.LifeActionLogSourceLabel(ctx, "occurrence"))
+	assert.Equal(t, "Habit", pages.LifeActionLogSourceLabel(ctx, "habit_checkin"))
+	assert.Equal(t, "Checkpoint", pages.LifeActionLogSourceLabel(ctx, "checkpoint"))
+	assert.Equal(t, "One-time", pages.LifeOccurrenceKindLabel(ctx, "one_time"))
+	assert.Equal(t, "Recurring", pages.LifeOccurrenceKindLabel(ctx, "recurring"))
 	assert.Empty(t, pages.LifeIndentStyle(0))
 	assert.Equal(t, "margin-left:2rem;", pages.LifeIndentStyle(2))
 }

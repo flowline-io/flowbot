@@ -9,10 +9,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ WorkflowRunsTable(name string, runs []model.WorkflowRun) {
+templ WorkflowRunsTable(ctx context.Context, name string, runs []model.WorkflowRun) {
 	if len(runs) == 0 {
 		<div class="py-12" data-testid="workflow-runs-empty">
-			@EmptyState("No runs recorded yet.")
+			@EmptyState(i18n.T(ctx, "workflow.empty.runs"))
 		</div>
 	} else {
 		<div id="workflow-runs-container" class="flowbot-surface min-w-0 max-w-full" data-testid="workflow-runs-table">
@@ -21,12 +21,12 @@ templ WorkflowRunsTable(name string, runs []model.WorkflowRun) {
 					<thead>
 						<tr>
 							<th class="w-8"></th>
-							<th>Run ID</th>
-							<th>Trigger</th>
-							<th>Status</th>
-							<th>Started</th>
-							<th>Duration</th>
-							<th>Error</th>
+							<th>{ i18n.T(ctx, "table.col.run_id") }</th>
+							<th>{ i18n.T(ctx, "table.col.trigger") }</th>
+							<th>{ i18n.T(ctx, "table.col.status") }</th>
+							<th>{ i18n.T(ctx, "table.col.started") }</th>
+							<th>{ i18n.T(ctx, "common.duration") }</th>
+							<th>{ i18n.T(ctx, "table.col.error") }</th>
 						</tr>
 					</thead>
 					for _, r := range runs {
@@ -70,14 +70,14 @@ templ WorkflowRunsTable(name string, runs []model.WorkflowRun) {
 	}
 }
 
-templ WorkflowStepRunsDetail(steps []model.WorkflowStepRun) {
+templ WorkflowStepRunsDetail(ctx context.Context, steps []model.WorkflowStepRun) {
 	if len(steps) == 0 {
-		<div class="text-sm text-base-content/30 py-3 text-center" data-testid="workflow-step-runs-empty">No task runs recorded for this run.</div>
+		<div class="text-sm text-base-content/30 py-3 text-center" data-testid="workflow-step-runs-empty">{ i18n.T(ctx, "workflow.empty.step_runs") }</div>
 	} else {
 		<div class="px-4 py-3 min-w-0 max-w-full" data-testid="workflow-step-runs-detail">
 			if errs := WorkflowStepErrorSummary(steps); len(errs) > 0 {
 				<div class="mb-3 rounded border border-error/30 bg-error/5 px-3 py-2" data-testid="run-error-summary">
-					<div class="text-xs font-medium text-error mb-1">Errors</div>
+					<div class="text-xs font-medium text-error mb-1">{ i18n.T(ctx, "common.errors") }</div>
 					<ul class="space-y-1">
 						for _, e := range errs {
 							<li class="text-xs">
@@ -90,7 +90,7 @@ templ WorkflowStepRunsDetail(steps []model.WorkflowStepRun) {
 			}
 			if bars := WorkflowStepWaterfall(steps); len(bars) > 0 {
 				<div class="mb-3" data-testid="run-waterfall">
-					<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Duration</div>
+					<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">{ i18n.T(ctx, "common.duration") }</div>
 					<div class="run-waterfall space-y-1">
 						for _, bar := range bars {
 							<div class="run-waterfall-row">
@@ -103,17 +103,17 @@ templ WorkflowStepRunsDetail(steps []model.WorkflowStepRun) {
 					</div>
 				</div>
 			}
-			<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Task Runs</div>
+			<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">{ i18n.T(ctx, "workflow.task_runs") }</div>
 			<table class="table table-xs w-full">
 				<thead>
 					<tr>
 						<th class="w-8"></th>
-						<th>Task</th>
-						<th>Action</th>
-						<th>Type</th>
-						<th>Status</th>
-						<th>Attempt</th>
-						<th>Duration</th>
+						<th>{ i18n.T(ctx, "common.tasks") }</th>
+						<th>{ i18n.T(ctx, "common.action") }</th>
+						<th>{ i18n.T(ctx, "common.type") }</th>
+						<th>{ i18n.T(ctx, "table.col.status") }</th>
+						<th>{ i18n.T(ctx, "common.attempt") }</th>
+						<th>{ i18n.T(ctx, "common.duration") }</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -153,7 +153,7 @@ templ WorkflowStepRunsDetail(steps []model.WorkflowStepRun) {
 									<div class="min-w-0 max-w-full space-y-1 py-1">
 										if s.Error != "" {
 											<div class="mb-1" data-testid={ "workflow-step-error-" + WorkflowStepKey(s) }>
-												<div class="text-xs font-mono text-error/80 mb-1">Error</div>
+												<div class="text-xs font-mono text-error/80 mb-1">{ i18n.T(ctx, "table.col.error") }</div>
 												<div class="run-json-preview">
 													<pre class="text-error">{ s.Error }</pre>
 												</div>
@@ -161,23 +161,23 @@ templ WorkflowStepRunsDetail(steps []model.WorkflowStepRun) {
 										}
 										if len(s.Params) > 0 {
 											<details class="mb-1 min-w-0" open>
-												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Input</summary>
+												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">{ i18n.T(ctx, "common.input") }</summary>
 												<div class="run-json-preview" data-testid="workflow-step-input-json">
 													<pre>{ sprintJSON(s.Params) }</pre>
 												</div>
 											</details>
 										} else {
-											<div class="text-xs text-base-content/20 italic py-1">Input: (empty)</div>
+											<div class="text-xs text-base-content/20 italic py-1">{ i18n.T(ctx, "workflow.input.empty") }</div>
 										}
 										if len(s.Result) > 0 {
 											<details class="min-w-0" open>
-												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Output</summary>
+												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">{ i18n.T(ctx, "common.output") }</summary>
 												<div class="run-json-preview" data-testid="workflow-step-output-json">
 													<pre>{ sprintJSON(s.Result) }</pre>
 												</div>
 											</details>
 										} else {
-											<div class="text-xs text-base-content/20 italic py-1">Output: (empty)</div>
+											<div class="text-xs text-base-content/20 italic py-1">{ i18n.T(ctx, "workflow.output.empty") }</div>
 										}
 									</div>
 								</td>
@@ -190,9 +190,9 @@ templ WorkflowStepRunsDetail(steps []model.WorkflowStepRun) {
 	}
 }
 
-templ WorkflowRunNowForm(name string, inputs []types.WorkflowInputDef) {
+templ WorkflowRunNowForm(ctx context.Context, name string, inputs []types.WorkflowInputDef) {
 	<div class="flowbot-surface p-4" data-testid="workflow-run-now">
-		<h2 class="text-base font-semibold tracking-tight mb-3">Run now</h2>
+		<h2 class="text-base font-semibold tracking-tight mb-3">{ i18n.T(ctx, "workflow.run_now.title") }</h2>
 		<form
 			hx-post={ templ.URL(WorkflowWebPath(name) + "/run") }
 			hx-target="body"
@@ -200,7 +200,7 @@ templ WorkflowRunNowForm(name string, inputs []types.WorkflowInputDef) {
 		>
 			<div id="form-error" data-testid="form-error-slot"></div>
 			if len(inputs) == 0 {
-				<p class="text-sm text-base-content/50 mb-4">This workflow has no declared inputs.</p>
+				<p class="text-sm text-base-content/50 mb-4">{ i18n.T(ctx, "workflow.run_now.no_inputs") }</p>
 			} else {
 				<div class="space-y-3 mb-4">
 					for _, in := range inputs {
@@ -209,7 +209,7 @@ templ WorkflowRunNowForm(name string, inputs []types.WorkflowInputDef) {
 				</div>
 			}
 			<button type="submit" class="btn btn-primary btn-sm" data-testid="btn-workflow-run">
-				Run workflow
+				{ i18n.T(ctx, "workflow.run_now.submit") }
 				<span class="loading loading-spinner loading-xs htmx-indicator"></span>
 			</button>
 		</form>
@@ -265,10 +265,10 @@ templ WorkflowInputField(in types.WorkflowInputDef) {
 	</div>
 }
 
-templ WorkflowYAMLSource(yamlText string) {
+templ WorkflowYAMLSource(ctx context.Context, yamlText string) {
 	if yamlText == "" {
 		<div class="py-6" data-testid="workflow-yaml-empty">
-			@EmptyState("YAML source unavailable.")
+			@EmptyState(i18n.T(ctx, "workflow.empty.yaml"))
 		</div>
 	} else {
 		<div class="flowbot-surface workflow-yaml min-w-0 max-w-full" data-testid="workflow-yaml">
@@ -277,30 +277,30 @@ templ WorkflowYAMLSource(yamlText string) {
 	}
 }
 
-templ WorkflowDAG(view WorkflowDAGView) {
+templ WorkflowDAG(ctx context.Context, view WorkflowDAGView) {
 	if len(view.Layers) == 0 {
 		<div class="py-6" data-testid="workflow-dag-empty">
-			@EmptyState("No tasks to graph.")
+			@EmptyState(i18n.T(ctx, "workflow.empty.dag"))
 		</div>
 	} else {
 		<div class="workflow-dag flowbot-surface" data-testid="workflow-dag">
 			<div class="workflow-dag-header">
 				<div>
-					<div class="workflow-dag-title">Execution graph</div>
+					<div class="workflow-dag-title">{ i18n.T(ctx, "workflow.dag.title") }</div>
 					<p class="workflow-dag-subtitle">
 						if view.Sequential {
-							Tasks run in pipeline order
+							{ i18n.T(ctx, "workflow.dag.sequential_order") }
 						} else if view.ParallelRuntime {
-							Parallel branches follow Conn dependencies
+							{ i18n.T(ctx, "workflow.dag.parallel_conn") }
 						} else {
-							Conn graph; executes sequentially when max_concurrency ≤ 1
+							{ i18n.T(ctx, "workflow.dag.sequential_conn") }
 						}
 					</p>
 				</div>
 				if view.ParallelRuntime {
-					<span class="flowbot-chip flowbot-chip-primary" data-testid="workflow-dag-mode">Parallel DAG</span>
+					<span class="flowbot-chip flowbot-chip-primary" data-testid="workflow-dag-mode">{ i18n.T(ctx, "workflow.dag.parallel_dag") }</span>
 				} else {
-					<span class="flowbot-chip flowbot-chip-muted" data-testid="workflow-dag-mode">Sequential</span>
+					<span class="flowbot-chip flowbot-chip-muted" data-testid="workflow-dag-mode">{ i18n.T(ctx, "workflow.dag.sequential") }</span>
 				}
 			</div>
 			<div class="workflow-dag-canvas">
@@ -367,7 +367,7 @@ templ workflowDAGConnector(fromCount, toCount int) {
 templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers []model.WorkflowTrigger, publicOrigin string) {
 	if len(triggers) == 0 {
 		<div class="py-6" data-testid="workflow-triggers-empty">
-			@EmptyState("No triggers configured.")
+			@EmptyState(i18n.T(ctx, "workflow.empty.triggers"))
 		</div>
 	} else {
 		<div id="workflow-triggers-container" class="flowbot-surface" data-testid="workflow-triggers-table">
@@ -375,10 +375,10 @@ templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers [
 				<table class="table flowbot-table-pin">
 					<thead>
 						<tr>
-							<th>Type</th>
-							<th class="text-center">Status</th>
-							<th>Rule</th>
-							<th class="text-right">Actions</th>
+							<th>{ i18n.T(ctx, "common.type") }</th>
+							<th class="text-center">{ i18n.T(ctx, "table.col.status") }</th>
+							<th>{ i18n.T(ctx, "common.rule") }</th>
+							<th class="text-right">{ i18n.T(ctx, "table.col.actions") }</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -395,7 +395,7 @@ templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers [
 												class="min-w-0 flex-1 font-mono text-xs text-base-content break-all"
 												data-testid={ "workflow-webhook-url-" + fmt.Sprint(tr.ID) }
 											>{ webhookURL }</span>
-											@ClipCopyIconButton("btn-copy-workflow-webhook-url-"+fmt.Sprint(tr.ID), webhookURL, "Copy webhook URL")
+											@ClipCopyIconButton("btn-copy-workflow-webhook-url-"+fmt.Sprint(tr.ID), webhookURL, i18n.T(ctx, "workflow.copy_webhook_url"))
 										</div>
 									} else {
 										<span class="font-mono text-xs text-base-content/50 truncate block">{ valuePreview(tr.Rule) }</span>
@@ -413,7 +413,7 @@ templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers [
 											data-confirm-btn={ i18n.T(ctx, "confirm.disable_trigger.btn") }
 											data-confirm-class="btn-warning"
 											data-testid={ "btn-disable-trigger-" + fmt.Sprint(tr.ID) }
-											class="btn btn-ghost btn-xs text-warning">Disable</button>
+											class="btn btn-ghost btn-xs text-warning">{ i18n.T(ctx, "common.disable") }</button>
 									} else {
 										<button type="button"
 											hx-put={ templ.URL(WorkflowWebPath(workflowName) + "/triggers/" + fmt.Sprint(tr.ID) + "/enabled") }
@@ -421,7 +421,7 @@ templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers [
 											hx-target="#workflow-triggers-container"
 											hx-swap="outerHTML"
 											data-testid={ "btn-enable-trigger-" + fmt.Sprint(tr.ID) }
-											class="btn btn-ghost btn-xs text-success">Enable</button>
+											class="btn btn-ghost btn-xs text-success">{ i18n.T(ctx, "common.enable") }</button>
 									}
 								</td>
 							</tr>
@@ -433,10 +433,10 @@ templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers [
 	}
 }
 
-templ WorkflowInputsReadonly(inputs []types.WorkflowInputDef) {
+templ WorkflowInputsReadonly(ctx context.Context, inputs []types.WorkflowInputDef) {
 	if len(inputs) == 0 {
 		<div class="py-6" data-testid="workflow-inputs-empty">
-			@EmptyState("No inputs declared.")
+			@EmptyState(i18n.T(ctx, "workflow.empty.inputs"))
 		</div>
 	} else {
 		<div class="flowbot-surface" data-testid="workflow-inputs-table">
@@ -444,11 +444,11 @@ templ WorkflowInputsReadonly(inputs []types.WorkflowInputDef) {
 				<table class="table flowbot-table-pin">
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th>Type</th>
-							<th>Required</th>
-							<th>Default</th>
-							<th>Description</th>
+							<th>{ i18n.T(ctx, "table.col.name") }</th>
+							<th>{ i18n.T(ctx, "common.type") }</th>
+							<th>{ i18n.T(ctx, "common.required_field") }</th>
+							<th>{ i18n.T(ctx, "common.default") }</th>
+							<th>{ i18n.T(ctx, "table.col.description") }</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -458,9 +458,9 @@ templ WorkflowInputsReadonly(inputs []types.WorkflowInputDef) {
 								<td><span class="flowbot-chip flowbot-chip-muted">{ in.Type }</span></td>
 								<td class="text-sm">
 									if in.Required {
-										yes
+										{ i18n.T(ctx, "common.yes") }
 									} else {
-										no
+										{ i18n.T(ctx, "common.no") }
 									}
 								</td>
 								<td class="font-mono text-xs text-base-content/50">

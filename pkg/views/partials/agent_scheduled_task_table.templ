@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -10,28 +11,28 @@ templ AgentScheduledTaskTable(items []model.AgentScheduledTask) {
 			<table class="table flowbot-table-pin">
 				<thead>
 					<tr>
-						<th class="text-xs text-base-content/55">Name</th>
-						<th class="text-xs text-base-content/55">Task ID</th>
-						<th class="text-xs text-base-content/55">Kind</th>
-						<th class="text-xs text-base-content/55">Schedule</th>
-						<th class="text-xs text-base-content/55 text-center">State</th>
-						<th class="text-xs text-base-content/55">Next Run</th>
-						<th class="text-xs text-base-content/55">Last Run</th>
-						<th class="text-xs text-base-content/55">Updated</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.name") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.task_id") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.kind") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.schedule") }</th>
+						<th class="text-xs text-base-content/55 text-center">{ i18n.T(ctx, "table.col.state") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.next_run") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.last_run") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.updated") }</th>
 					</tr>
 				</thead>
 				<tbody id="agent-scheduled-tasks-rows">
 					for _, item := range items {
-						@AgentScheduledTaskRow(item)
+						@AgentScheduledTaskRow(ctx, item)
 					}
 					if len(items) == 0 {
 						<tr id="agent-scheduled-tasks-empty">
 							<td colspan="8" class="p-0">
 								@EmptyStateCTA(
-									"No scheduled tasks yet",
-									"Ask an agent to schedule recurring work.",
+									i18n.T(ctx, "table.empty.scheduled_tasks"),
+									i18n.T(ctx, "table.empty.scheduled_tasks_detail"),
 									"/service/web/agents",
-									"Open Agents",
+									i18n.T(ctx, "table.empty.scheduled_tasks_cta"),
 								)
 							</td>
 						</tr>

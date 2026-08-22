@@ -6,6 +6,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -14,8 +15,8 @@ templ TokenUsage(stats *types.TokenUsageStats) {
 		<div class="p-4 sm:p-6">
 			<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2">
 				<div>
-					<h2 class="text-xl font-semibold tracking-tight text-base-content">Token Usage</h2>
-					<p class="text-sm text-base-content/60">Your usage per day across this period</p>
+					<h2 class="text-xl font-semibold tracking-tight text-base-content">{ i18n.T(ctx, "token_usage.title") }</h2>
+					<p class="text-sm text-base-content/60">{ i18n.T(ctx, "token_usage.subtitle") }</p>
 				</div>
 				<div id="token-usage-filter-fields">
 					if stats.ActiveRange == "custom" {
@@ -26,7 +27,7 @@ templ TokenUsage(stats *types.TokenUsageStats) {
 					}
 					<div class="flex flex-wrap items-center gap-2">
 						<label class="text-sm text-base-content/70">
-							Group By
+							{ i18n.T(ctx, "token_usage.group_by") }
 							<select
 								class="select select-bordered select-sm ml-1"
 								name="groupBy"
@@ -35,14 +36,14 @@ templ TokenUsage(stats *types.TokenUsageStats) {
 								hx-include="#token-usage-filter-fields"
 								hx-target="#token-usage-container"
 								hx-swap="outerHTML">
-								<option value="model" selected?={ stats.GroupBy == "model" }>Model</option>
-								<option value="usage_type" selected?={ stats.GroupBy == "usage_type" }>Usage Type</option>
+								<option value="model" selected?={ stats.GroupBy == "model" }>{ i18n.T(ctx, "token_usage.option.model") }</option>
+								<option value="usage_type" selected?={ stats.GroupBy == "usage_type" }>{ i18n.T(ctx, "token_usage.option.usage_type") }</option>
 							</select>
 						</label>
 						<label class="text-sm text-base-content/70">
-							Metric
+							{ i18n.T(ctx, "token_usage.metric") }
 							<select class="select select-bordered select-sm ml-1" disabled data-testid="token-usage-metric">
-								<option selected>Tokens</option>
+								<option selected>{ i18n.T(ctx, "token_usage.option.tokens") }</option>
 							</select>
 						</label>
 					</div>
@@ -59,18 +60,18 @@ templ TokenUsage(stats *types.TokenUsageStats) {
 							hx-swap="outerHTML">
 							<input type="hidden" name="groupBy" value={ stats.GroupBy }/>
 							<label class="form-control">
-								<span class="label-text text-xs">Since (UTC)</span>
+								<span class="label-text text-xs">{ i18n.T(ctx, "token_usage.since_utc") }</span>
 								<input type="date" name="since" class="input input-bordered input-sm" value={ stats.PeriodStart } required/>
 							</label>
 							<label class="form-control">
-								<span class="label-text text-xs">Until (UTC)</span>
+								<span class="label-text text-xs">{ i18n.T(ctx, "token_usage.until_utc") }</span>
 								<input type="date" name="until" class="input input-bordered input-sm" value={ stats.PeriodEnd } required/>
 							</label>
-							<button type="submit" class="btn btn-sm btn-primary mt-1" data-testid="token-usage-apply-dates">Apply</button>
+							<button type="submit" class="btn btn-sm btn-primary mt-1" data-testid="token-usage-apply-dates">{ i18n.T(ctx, "token_usage.apply") }</button>
 						</form>
 					</div>
 				</details>
-				<span class="text-base-content/40 cursor-help" title="Stats from new LLM calls after deploy; dates are UTC." data-testid="token-usage-info">&#9432;</span>
+				<span class="text-base-content/40 cursor-help" title={ i18n.T(ctx, "token_usage.info_tooltip") } data-testid="token-usage-info">&#9432;</span>
 				<div class="join" data-testid="token-usage-range-tabs">
 					<button type="button"
 						class={ tokenUsageRangeBtnClass(stats.ActiveRange, "1d") }
@@ -101,37 +102,37 @@ templ TokenUsage(stats *types.TokenUsageStats) {
 						hx-get={ buildTokenUsageURL("last_month", stats.GroupBy, "", "") }
 						hx-target="#token-usage-container"
 						hx-swap="outerHTML"
-						data-testid="btn-range-last-month">Last month</button>
+						data-testid="btn-range-last-month">{ i18n.T(ctx, "token_usage.range.last_month") }</button>
 				</div>
 			</div>
 			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4" data-testid="token-usage-summary">
 				<div class="border border-base-300 rounded-box px-4 py-3">
-					<div class="text-xs text-base-content/55">Total Tokens</div>
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "token_usage.total_tokens") }</div>
 					<div class="text-2xl font-semibold text-primary mt-1">{ formatTokenCount(stats.Summary.TotalTokens) }</div>
 				</div>
 				<div class="border border-base-300 rounded-box px-4 py-3">
-					<div class="text-xs text-base-content/55">Prompt Tokens</div>
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "token_usage.prompt_tokens") }</div>
 					<div class="text-2xl font-semibold text-base-content mt-1">{ formatTokenCount(stats.Summary.PromptTokens) }</div>
 				</div>
 				<div class="border border-base-300 rounded-box px-4 py-3">
-					<div class="text-xs text-base-content/55">Completion Tokens</div>
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "token_usage.completion_tokens") }</div>
 					<div class="text-2xl font-semibold text-base-content mt-1">{ formatTokenCount(stats.Summary.CompletionTokens) }</div>
 				</div>
 			</div>
 			if len(stats.Series) == 0 {
 				@EmptyStateCTA(
-					"No usage recorded yet",
-					"Start a conversation in Agents to see token stats here.",
+					i18n.T(ctx, "token_usage.empty.title"),
+					i18n.T(ctx, "token_usage.empty.detail"),
 					"/service/web/agents",
-					"Open Agents",
+					i18n.T(ctx, "token_usage.empty.cta"),
 				)
 			} else {
 				<div class="border border-base-300 rounded-box" data-testid="token-usage-chart-card">
 					<div class="p-4">
-						<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">Cumulative Tokens</h3>
+						<h3 class="text-sm font-medium text-base-content/70 m-0 mb-2">{ i18n.T(ctx, "token_usage.chart.cumulative") }</h3>
 						<div class="relative w-full" style="height:280px" data-testid="token-usage-chart-wrap">
 							<div id="token-usage-today-marker" class="pointer-events-none absolute top-0 bottom-8 w-px border-l border-dashed border-base-content/30 hidden" data-testid="token-usage-today-marker"></div>
-							<span id="token-usage-today-label" class="pointer-events-none absolute text-xs text-base-content/50 hidden" data-testid="token-usage-today-label">Today</span>
+							<span id="token-usage-today-label" class="pointer-events-none absolute text-xs text-base-content/50 hidden" data-testid="token-usage-today-label">{ i18n.T(ctx, "token_usage.today") }</span>
 							<canvas id="token-usage-chart"
 								data-stats={ tokenUsageJSON(stats) }
 								data-chart-type="area"></canvas>

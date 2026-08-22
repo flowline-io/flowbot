@@ -11,10 +11,10 @@ templ WorkflowListTable(ctx context.Context, entries []WorkflowListEntry) {
 	if len(entries) == 0 {
 		<div class="py-12" data-testid="workflow-empty">
 			@EmptyStateCTA(
-				"No workflows yet",
-				"Apply a workflow definition via CLI to see it here.",
+				i18n.T(ctx, "workflow.empty.title"),
+				i18n.T(ctx, "workflow.empty.detail"),
 				"/service/web/pipelines",
-				"Open Pipelines",
+				i18n.T(ctx, "common.open_pipelines"),
 			)
 		</div>
 	} else {
@@ -23,15 +23,15 @@ templ WorkflowListTable(ctx context.Context, entries []WorkflowListEntry) {
 			<table class="table table-fixed w-full min-w-[56rem]">
 				<thead>
 					<tr>
-						<th class="w-[24%]">Name</th>
-						<th class="w-12 text-center">Status</th>
-						<th class="w-16">Triggers</th>
-						<th class="w-12 text-center">Tasks</th>
-						<th class="w-[18%]" title="Last 7 days: success rate · P50 / P95 duration">
-							<span class="border-b border-dotted border-base-content/35 cursor-help">Runs (7d)</span>
+						<th class="w-[24%]">{ i18n.T(ctx, "table.col.name") }</th>
+						<th class="w-12 text-center">{ i18n.T(ctx, "table.col.status") }</th>
+						<th class="w-16">{ i18n.T(ctx, "common.triggers") }</th>
+						<th class="w-12 text-center">{ i18n.T(ctx, "common.tasks") }</th>
+						<th class="w-[18%]" title={ i18n.T(ctx, "table.col.runs_7d_tip") }>
+							<span class="border-b border-dotted border-base-content/35 cursor-help">{ i18n.T(ctx, "table.col.runs_7d") }</span>
 						</th>
-						<th class="w-36">Last Run</th>
-						<th class="w-48 text-right">Actions</th>
+						<th class="w-36">{ i18n.T(ctx, "common.last_run") }</th>
+						<th class="w-48 text-right">{ i18n.T(ctx, "table.col.actions") }</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -86,7 +86,7 @@ templ WorkflowListTable(ctx context.Context, entries []WorkflowListEntry) {
 											data-confirm-btn={ i18n.T(ctx, "confirm.disable_workflow.btn") }
 											data-confirm-class="btn-warning"
 											data-testid={ "btn-disable-workflow-" + entry.Name }
-											class="btn btn-ghost btn-xs text-warning">Disable</button>
+											class="btn btn-ghost btn-xs text-warning">{ i18n.T(ctx, "common.disable") }</button>
 									} else {
 										<button type="button"
 											hx-put={ templ.URL(WorkflowWebPath(entry.Name) + "/enabled") }
@@ -94,11 +94,11 @@ templ WorkflowListTable(ctx context.Context, entries []WorkflowListEntry) {
 											hx-target="#workflow-list-container"
 											hx-swap="outerHTML"
 											data-testid={ "btn-enable-workflow-" + entry.Name }
-											class="btn btn-ghost btn-xs text-success">Enable</button>
+											class="btn btn-ghost btn-xs text-success">{ i18n.T(ctx, "common.enable") }</button>
 									}
 									<a href={ templ.URL(WorkflowWebPath(entry.Name) + "/runs") }
 										class="btn btn-ghost btn-xs"
-										data-testid={ "workflow-runs-link-" + entry.Name }>Run History</a>
+										data-testid={ "workflow-runs-link-" + entry.Name }>{ i18n.T(ctx, "common.run_history") }</a>
 								</div>
 							</td>
 						</tr>

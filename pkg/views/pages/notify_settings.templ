@@ -1,132 +1,133 @@
-// Package pages provides full-page Templ views.
-package pages
-
-import (
-	"context"
-	
-	"net/url"
-
-	"github.com/flowline-io/flowbot/pkg/views/layout"
-	"github.com/flowline-io/flowbot/pkg/views/partials"
-)
-
-// NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
-// activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
-// focusChannel / focusRuleID deep-link highlight a row after jumping from History.
-templ NotifySettingsPage(ctx context.Context, activeTab, focusChannel, focusRuleID string) {
-	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.notifications")) {
-		@partials.PageHeader(ctx, "nav.notifications", "") {
-		}
-
-		<div role="tablist" class="tabs tabs-bordered mb-4">
-			<input type="radio" name="notify-tabs" class="tab" aria-label="Channels"
-				if activeTab == "" || activeTab == "channels" {
-					checked="checked"
-				}
-			/>
-			<div class="tab-content p-4">
-				<div class="flex justify-end mb-3">
-					<button hx-get="/service/web/notifications/channels/new"
-						hx-target="#notify-channels-rows"
-						hx-swap="afterbegin"
-						data-testid="channels-new"
-						class="btn btn-primary btn-sm">
-						New Channel
-					</button>
-				</div>
-				<div hx-get={ templ.URL(notifyChannelsListURL(focusChannel)) }
-					hx-trigger="load"
-					hx-swap="outerHTML">
-					@partials.PanelSkeleton()
-				</div>
-			</div>
-
-			<input type="radio" name="notify-tabs" class="tab" aria-label="Templates"
-				if activeTab == "templates" {
-					checked="checked"
-				}
-			/>
-			<div class="tab-content p-4">
-				<div class="flex justify-end mb-3">
-					<button hx-get="/service/web/notifications/templates/new"
-						hx-target="#notify-templates-rows"
-						hx-swap="afterbegin"
-						data-testid="templates-new"
-						class="btn btn-primary btn-sm">
-						New Template
-					</button>
-				</div>
-				<div hx-get="/service/web/notifications/templates/list"
-					hx-trigger="load once"
-					hx-swap="outerHTML">
-					@partials.PanelSkeleton()
-				</div>
-			</div>
-
-			<input type="radio" name="notify-tabs" class="tab" aria-label="Rules"
-				if activeTab == "rules" {
-					checked="checked"
-				}
-			/>
-			<div class="tab-content p-4">
-				<div class="flex justify-end mb-3">
-					<button hx-get="/service/web/notifications/rules/new"
-						hx-target="#notify-rules-rows"
-						hx-swap="afterbegin"
-						data-testid="rules-new"
-						class="btn btn-primary btn-sm">
-						New Rule
-					</button>
-				</div>
-				<div hx-get={ templ.URL(notifyRulesListURL(focusRuleID)) }
-					hx-trigger="load once"
-					hx-swap="outerHTML">
-					@partials.PanelSkeleton()
-				</div>
-			</div>
-
-			<input type="radio" name="notify-tabs" class="tab" aria-label="History" data-testid="tab-history"
-				if activeTab == "history" || activeTab == "notifications" {
-					checked="checked"
-				}
-			/>
-			<div class="tab-content p-4">
-				<div id="notifications-content"
-					hx-get="/service/web/notifications/list"
-					hx-trigger="load once"
-					hx-swap="innerHTML">
-					@partials.PanelSkeleton()
-				</div>
-			</div>
-
-			<input type="radio" name="notify-tabs" class="tab" aria-label="Playground" data-testid="tab-playground"
-				if activeTab == "playground" {
-					checked="checked"
-				}
-			/>
-			<div class="tab-content p-4">
-				<div hx-get="/service/web/notifications/playground"
-					hx-trigger="load once"
-					hx-swap="outerHTML">
-					@partials.PanelSkeleton()
-				</div>
-			</div>
-		</div>
-	}
-}
-
-func notifyChannelsListURL(focusChannel string) string {
-	path := "/service/web/notifications/channels/list"
-	if focusChannel == "" {
-		return path
-	}
-	return path + "?highlight=" + url.QueryEscape(focusChannel)
-}
-
-func notifyRulesListURL(focusRuleID string) string {
-	path := "/service/web/notifications/rules/list"
-	if focusRuleID == "" {
-		return path
-	}
-	return path + "?highlight=" + url.QueryEscape(focusRuleID)
-}
+// Package pages provides full-page Templ views.
+package pages
+
+import (
+	"context"
+	
+	"net/url"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+// NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
+// activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
+// focusChannel / focusRuleID deep-link highlight a row after jumping from History.
+templ NotifySettingsPage(ctx context.Context, activeTab, focusChannel, focusRuleID string) {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.notifications")) {
+		@partials.PageHeader(ctx, "nav.notifications", "") {
+		}
+
+		<div role="tablist" class="tabs tabs-bordered mb-4">
+			<input type="radio" name="notify-tabs" class="tab" aria-label={ i18n.T(ctx, "notify.tab.channels") }
+				if activeTab == "" || activeTab == "channels" {
+					checked="checked"
+				}
+			/>
+			<div class="tab-content p-4">
+				<div class="flex justify-end mb-3">
+					<button hx-get="/service/web/notifications/channels/new"
+						hx-target="#notify-channels-rows"
+						hx-swap="afterbegin"
+						data-testid="channels-new"
+						class="btn btn-primary btn-sm">
+						{ i18n.T(ctx, "notify.new_channel") }
+					</button>
+				</div>
+				<div hx-get={ templ.URL(notifyChannelsListURL(focusChannel)) }
+					hx-trigger="load"
+					hx-swap="outerHTML">
+					@partials.PanelSkeleton(ctx)
+				</div>
+			</div>
+
+			<input type="radio" name="notify-tabs" class="tab" aria-label={ i18n.T(ctx, "notify.tab.templates") }
+				if activeTab == "templates" {
+					checked="checked"
+				}
+			/>
+			<div class="tab-content p-4">
+				<div class="flex justify-end mb-3">
+					<button hx-get="/service/web/notifications/templates/new"
+						hx-target="#notify-templates-rows"
+						hx-swap="afterbegin"
+						data-testid="templates-new"
+						class="btn btn-primary btn-sm">
+						{ i18n.T(ctx, "notify.new_template") }
+					</button>
+				</div>
+				<div hx-get="/service/web/notifications/templates/list"
+					hx-trigger="load once"
+					hx-swap="outerHTML">
+					@partials.PanelSkeleton(ctx)
+				</div>
+			</div>
+
+			<input type="radio" name="notify-tabs" class="tab" aria-label={ i18n.T(ctx, "notify.tab.rules") }
+				if activeTab == "rules" {
+					checked="checked"
+				}
+			/>
+			<div class="tab-content p-4">
+				<div class="flex justify-end mb-3">
+					<button hx-get="/service/web/notifications/rules/new"
+						hx-target="#notify-rules-rows"
+						hx-swap="afterbegin"
+						data-testid="rules-new"
+						class="btn btn-primary btn-sm">
+						{ i18n.T(ctx, "notify.new_rule") }
+					</button>
+				</div>
+				<div hx-get={ templ.URL(notifyRulesListURL(focusRuleID)) }
+					hx-trigger="load once"
+					hx-swap="outerHTML">
+					@partials.PanelSkeleton(ctx)
+				</div>
+			</div>
+
+			<input type="radio" name="notify-tabs" class="tab" aria-label={ i18n.T(ctx, "notify.tab.history") } data-testid="tab-history"
+				if activeTab == "history" || activeTab == "notifications" {
+					checked="checked"
+				}
+			/>
+			<div class="tab-content p-4">
+				<div id="notifications-content"
+					hx-get="/service/web/notifications/list"
+					hx-trigger="load once"
+					hx-swap="innerHTML">
+					@partials.PanelSkeleton(ctx)
+				</div>
+			</div>
+
+			<input type="radio" name="notify-tabs" class="tab" aria-label={ i18n.T(ctx, "notify.tab.playground") } data-testid="tab-playground"
+				if activeTab == "playground" {
+					checked="checked"
+				}
+			/>
+			<div class="tab-content p-4">
+				<div hx-get="/service/web/notifications/playground"
+					hx-trigger="load once"
+					hx-swap="outerHTML">
+					@partials.PanelSkeleton(ctx)
+				</div>
+			</div>
+		</div>
+	}
+}
+
+func notifyChannelsListURL(focusChannel string) string {
+	path := "/service/web/notifications/channels/list"
+	if focusChannel == "" {
+		return path
+	}
+	return path + "?highlight=" + url.QueryEscape(focusChannel)
+}
+
+func notifyRulesListURL(focusRuleID string) string {
+	path := "/service/web/notifications/rules/list"
+	if focusRuleID == "" {
+		return path
+	}
+	return path + "?highlight=" + url.QueryEscape(focusRuleID)
+}

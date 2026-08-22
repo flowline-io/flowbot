@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string, highlight string) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ NotifyRulesTable(ctx context.Context, rules []model.NotifyRule, templateIDs []string, highlight string) {
 	<div id="notify-rules-table"
 		data-testid="notify-rules-table"
 		class="flowbot-surface">
@@ -10,13 +15,13 @@ templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string, highlight
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs font-medium text-base-content/55">Priority</th>
-					<th class="text-xs font-medium text-base-content/55">Name</th>
-					<th class="text-xs font-medium text-base-content/55">Action</th>
-					<th class="text-xs font-medium text-base-content/55">Event</th>
-					<th class="text-xs font-medium text-base-content/55">Channel</th>
-					<th class="text-xs font-medium text-base-content/55 text-center">Status</th>
-					<th class="text-xs font-medium text-base-content/55">Actions</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.priority") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.name") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "common.action") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.event") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "common.channel") }</th>
+					<th class="text-xs font-medium text-base-content/55 text-center">{ i18n.T(ctx, "table.col.status") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="notify-rules-rows">
@@ -27,12 +32,12 @@ templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string, highlight
 					<tr id="notify-rules-empty">
 						<td colspan="7" class="p-0">
 							@EmptyStateHXCTA(
-								"No rules yet",
-								"Rules match events to channels and templates.",
+								i18n.T(ctx, "notify.empty.rules_title"),
+								i18n.T(ctx, "notify.empty.rules_detail"),
 								"/service/web/notifications/rules/new",
 								"#notify-rules-rows",
 								"afterbegin",
-								"Create rule",
+								i18n.T(ctx, "common.create_rule"),
 							)
 						</td>
 					</tr>

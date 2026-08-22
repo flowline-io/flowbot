@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/homelab"
+import (
+	"context"
 
-templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
+	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ HubAppsTable(ctx context.Context, apps []homelab.App, updatedAts map[string]string) {
 	<div id="hub-apps-table"
 		hx-get="/service/web/hub/list"
 		hx-trigger="every 10s"
@@ -14,10 +19,10 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 				<table class="table flowbot-table-pin">
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th>Status</th>
-							<th>Capabilities</th>
-							<th>Last Updated</th>
+							<th>{ i18n.T(ctx, "table.col.name") }</th>
+							<th>{ i18n.T(ctx, "table.col.status") }</th>
+							<th>{ i18n.T(ctx, "table.col.capabilities") }</th>
+							<th>{ i18n.T(ctx, "table.col.last_updated") }</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -25,10 +30,10 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 							<tr data-testid="hub-apps-empty">
 								<td colspan="4" class="p-0">
 									@EmptyStateCTA(
-										"No apps discovered",
-										"Configure homelab.apps_dir, then rescan the registry.",
+										i18n.T(ctx, "hub.empty.title"),
+										i18n.T(ctx, "hub.empty.detail"),
 										"/service/web/homelab",
-										"Open Registry",
+										i18n.T(ctx, "homelab.empty.cta"),
 									)
 								</td>
 							</tr>
@@ -42,7 +47,7 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 										</a>
 									</td>
 									<td>
-										@HubAppStatusBadge(a.Status)
+										@AppStatusBadge(ctx, a.Status)
 									</td>
 									<td>
 										if len(a.Capabilities) > 0 {
@@ -62,19 +67,4 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 			</div>
 		</div>
 	</div>
-}
-
-templ HubAppStatusBadge(status homelab.AppStatus) {
-	switch status {
-	case "running":
-		<span class="flowbot-chip flowbot-chip-success" data-testid="status-badge">online</span>
-	case "stopped":
-		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">offline</span>
-	case "partial":
-		<span class="flowbot-chip flowbot-chip-warning" data-testid="status-badge">warning</span>
-	case "unknown":
-		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">unknown</span>
-	default:
-		<span class="flowbot-chip flowbot-chip-error" data-testid="status-badge">error</span>
-	}
 }

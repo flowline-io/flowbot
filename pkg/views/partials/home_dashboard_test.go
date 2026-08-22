@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,7 @@ import (
 
 func TestHomeQuickLinks(t *testing.T) {
 	t.Parallel()
-	links := HomeQuickLinks()
+	links := HomeQuickLinks(context.Background())
 	require.Len(t, links, 4)
 
 	tests := []struct {

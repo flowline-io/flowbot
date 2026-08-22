@@ -8,7 +8,13 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func TriggerCard() templ.Component {
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+func TriggerCard(ctx context.Context) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +35,33 @@ func TriggerCard() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface card-body p-3 cursor-pointer\" :class=\"getTriggerErrorClass(idx)\" @click=\"selectNode('trigger', idx)\" data-testid=\"trigger-card\"><div class=\"flex flex-row items-center justify-between gap-2\"><div class=\"flex items-center gap-3 min-w-0 flex-1\"><div class=\"w-8 h-8 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary text-sm font-bold\"><span x-show=\"t.type === 'event'\">E</span> <span x-show=\"t.type === 'webhook'\">W</span> <span x-show=\"t.type === 'cron'\">C</span></div><div class=\"min-w-0 flex-1\"><div class=\"text-sm font-medium text-base-content\" x-text=\"'Event: ' + (t.event || '...')\" x-show=\"t.type === 'event'\"></div><div class=\"flex items-center gap-1 min-w-0\" x-show=\"t.type === 'webhook'\"><div class=\"min-w-0 flex-1\"><div class=\"text-sm font-medium text-base-content font-mono truncate\" x-text=\"webhookTriggerLabel(t)\" data-testid=\"webhook-trigger-url\"></div><div class=\"text-xs text-base-content/50 truncate\" x-text=\"webhookAuthHint(t)\" data-testid=\"webhook-auth-hint\"></div></div><button type=\"button\" class=\"btn btn-ghost btn-xs btn-square shrink-0\" title=\"Copy webhook URL\" aria-label=\"Copy webhook URL\" @click.stop=\"copyWebhookURL(t)\" data-testid=\"btn-copy-webhook-url\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" fill=\"currentColor\" class=\"w-3.5 h-3.5\" aria-hidden=\"true\"><path d=\"M5 6.5A1.5 1.5 0 0 1 6.5 5h6A1.5 1.5 0 0 1 14 6.5v6a1.5 1.5 0 0 1-1.5 1.5h-6A1.5 1.5 0 0 1 5 12.5v-6Z\"></path> <path d=\"M3.5 2A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11V6.5a3 3 0 0 1 3-3H11A1.5 1.5 0 0 0 9.5 2h-6Z\"></path></svg></button></div><div class=\"text-sm font-medium text-base-content\" x-text=\"'Cron: ' + (t.cron || '...')\" x-show=\"t.type === 'cron'\"></div></div></div><div class=\"flex items-center gap-2 shrink-0\"><label class=\"relative inline-flex items-center cursor-pointer\" @click.stop><input type=\"checkbox\" x-model=\"t.enabled\" @change=\"onTriggerEnabledChange()\" class=\"sr-only peer\" data-testid=\"trigger-switch\"><div class=\"w-9 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all\"></div></label> <button type=\"button\" @click.stop=\"confirmRemoveTrigger(idx)\" class=\"text-base-content/30 hover:text-error\" data-testid=\"btn-remove-trigger\">&times;</button></div></div><template x-for=\"(msg, msgIdx) in getNodeErrorMessages('trigger', idx)\" :key=\"msgIdx\"><p class=\"text-xs text-error mt-2\" data-testid=\"trigger-error-message\" x-text=\"msg\"></p></template></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface card-body p-3 cursor-pointer\" :class=\"getTriggerErrorClass(idx)\" @click=\"selectNode('trigger', idx)\" data-testid=\"trigger-card\"><div class=\"flex flex-row items-center justify-between gap-2\"><div class=\"flex items-center gap-3 min-w-0 flex-1\"><div class=\"w-8 h-8 shrink-0 rounded bg-primary/10 flex items-center justify-center text-primary text-sm font-bold\"><span x-show=\"t.type === 'event'\">E</span> <span x-show=\"t.type === 'webhook'\">W</span> <span x-show=\"t.type === 'cron'\">C</span></div><div class=\"min-w-0 flex-1\"><div class=\"text-sm font-medium text-base-content\" x-text=\"triggerEventLabel(t)\" x-show=\"t.type === 'event'\"></div><div class=\"flex items-center gap-1 min-w-0\" x-show=\"t.type === 'webhook'\"><div class=\"min-w-0 flex-1\"><div class=\"text-sm font-medium text-base-content font-mono truncate\" x-text=\"webhookTriggerLabel(t)\" data-testid=\"webhook-trigger-url\"></div><div class=\"text-xs text-base-content/50 truncate\" x-text=\"webhookAuthHint(t)\" data-testid=\"webhook-auth-hint\"></div></div><button type=\"button\" class=\"btn btn-ghost btn-xs btn-square shrink-0\" title=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.copy_webhook_url"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_partials.templ`, Line: 29, Col: 67}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.copy_webhook_url"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_partials.templ`, Line: 30, Col: 72}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" @click.stop=\"copyWebhookURL(t)\" data-testid=\"btn-copy-webhook-url\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" fill=\"currentColor\" class=\"w-3.5 h-3.5\" aria-hidden=\"true\"><path d=\"M5 6.5A1.5 1.5 0 0 1 6.5 5h6A1.5 1.5 0 0 1 14 6.5v6a1.5 1.5 0 0 1-1.5 1.5h-6A1.5 1.5 0 0 1 5 12.5v-6Z\"></path> <path d=\"M3.5 2A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11V6.5a3 3 0 0 1 3-3H11A1.5 1.5 0 0 0 9.5 2h-6Z\"></path></svg></button></div><div class=\"text-sm font-medium text-base-content\" x-text=\"triggerCronLabel(t)\" x-show=\"t.type === 'cron'\"></div></div></div><div class=\"flex items-center gap-2 shrink-0\"><label class=\"relative inline-flex items-center cursor-pointer\" @click.stop><input type=\"checkbox\" x-model=\"t.enabled\" @change=\"onTriggerEnabledChange()\" class=\"sr-only peer\" data-testid=\"trigger-switch\"><div class=\"w-9 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all\"></div></label> <button type=\"button\" @click.stop=\"confirmRemoveTrigger(idx)\" class=\"text-base-content/30 hover:text-error\" data-testid=\"btn-remove-trigger\">&times;</button></div></div><template x-for=\"(msg, msgIdx) in getNodeErrorMessages('trigger', idx)\" :key=\"msgIdx\"><p class=\"text-xs text-error mt-2\" data-testid=\"trigger-error-message\" x-text=\"msg\"></p></template></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -37,7 +69,7 @@ func TriggerCard() templ.Component {
 	})
 }
 
-func StepCard() templ.Component {
+func StepCard(ctx context.Context) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -53,12 +85,38 @@ func StepCard() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var2 == nil {
-			templ_7745c5c3_Var2 = templ.NopComponent
+		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var4 == nil {
+			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flowbot-surface card-body p-4 relative group cursor-pointer\" :class=\"getStepErrorClass(idx)\" draggable=\"true\" :data-sort-idx=\"idx\" @dragstart=\"onStepDragStart(idx, $event)\" @dragend=\"onStepDragEnd($event)\" @dragover=\"onStepDragOver(idx, $event)\" @dragleave=\"onStepDragLeave($event)\" @drop=\"onStepDrop(idx, $event)\" @click=\"selectNode('step', idx)\" data-testid=\"step-card\"><div class=\"absolute -top-2 right-2 hidden group-hover:flex gap-1 bg-base-100 border rounded-box shadow-sm px-2 py-0.5 text-xs\"><button type=\"button\" @click.stop=\"duplicateStep(idx)\" class=\"text-base-content/30 hover:text-base-content\" data-testid=\"btn-copy-step\">Copy</button> <button type=\"button\" @click.stop=\"confirmRemoveStep(idx)\" class=\"text-error/50 hover:text-error\" data-testid=\"btn-delete-step\">Delete</button></div><div class=\"flex items-center gap-3\"><div class=\"w-8 h-8 rounded bg-base-200 flex items-center justify-center text-base-content/50 text-xs font-bold\" x-text=\"(step.capability || '?')[0].toUpperCase()\"></div><div class=\"flex-1 min-w-0\"><div class=\"text-sm font-medium text-base-content truncate\" x-text=\"step.name || 'Unnamed Step'\"></div><div class=\"text-xs text-base-content/30 truncate\" x-text=\"step.capability + '.' + step.operation\"></div></div><button type=\"button\" @click.stop=\"selectNode('step', idx)\" class=\"text-base-content/30 hover:text-base-content\">...</button></div><div x-show=\"step.paramsText && step.paramsText.trim() !== '{}'\" class=\"mt-2 text-xs text-base-content/50 font-mono bg-base-200 rounded-box p-2 whitespace-pre-wrap break-words\" x-text=\"formatStepParamsPreview(step.paramsText)\"></div><template x-for=\"(msg, msgIdx) in getNodeErrorMessages('step', idx)\" :key=\"msgIdx\"><p class=\"text-xs text-error mt-2\" data-testid=\"step-error-message\" x-text=\"msg\"></p></template></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flowbot-surface card-body p-4 relative group cursor-pointer\" :class=\"getStepErrorClass(idx)\" draggable=\"true\" :data-sort-idx=\"idx\" @dragstart=\"onStepDragStart(idx, $event)\" @dragend=\"onStepDragEnd($event)\" @dragover=\"onStepDragOver(idx, $event)\" @dragleave=\"onStepDragLeave($event)\" @drop=\"onStepDrop(idx, $event)\" @click=\"selectNode('step', idx)\" data-testid=\"step-card\"><div class=\"absolute -top-2 right-2 hidden group-hover:flex gap-1 bg-base-100 border rounded-box shadow-sm px-2 py-0.5 text-xs\"><button type=\"button\" @click.stop=\"duplicateStep(idx)\" class=\"text-base-content/30 hover:text-base-content\" data-testid=\"btn-copy-step\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.copy"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_partials.templ`, Line: 69, Col: 167}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</button> <button type=\"button\" @click.stop=\"confirmRemoveStep(idx)\" class=\"text-error/50 hover:text-error\" data-testid=\"btn-delete-step\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.delete"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_partials.templ`, Line: 70, Col: 161}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</button></div><div class=\"flex items-center gap-3\"><div class=\"w-8 h-8 rounded bg-base-200 flex items-center justify-center text-base-content/50 text-xs font-bold\" x-text=\"(step.capability || '?')[0].toUpperCase()\"></div><div class=\"flex-1 min-w-0\"><div class=\"text-sm font-medium text-base-content truncate\" x-text=\"stepDisplayName(step)\"></div><div class=\"text-xs text-base-content/30 truncate\" x-text=\"step.capability + '.' + step.operation\"></div></div><button type=\"button\" @click.stop=\"selectNode('step', idx)\" class=\"text-base-content/30 hover:text-base-content\">...</button></div><div x-show=\"step.paramsText && step.paramsText.trim() !== '{}'\" class=\"mt-2 text-xs text-base-content/50 font-mono bg-base-200 rounded-box p-2 whitespace-pre-wrap break-words\" x-text=\"formatStepParamsPreview(step.paramsText)\"></div><template x-for=\"(msg, msgIdx) in getNodeErrorMessages('step', idx)\" :key=\"msgIdx\"><p class=\"text-xs text-error mt-2\" data-testid=\"step-error-message\" x-text=\"msg\"></p></template></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

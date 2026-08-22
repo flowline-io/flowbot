@@ -16,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -94,7 +95,7 @@ func lifeUID(ctx fiber.Ctx) (string, error) {
 	return uid.String(), nil
 }
 
-func lifeIdentityData(uid string, showClassForm bool) (pages.LifeCharacterData, error) {
+func lifeIdentityData(ctx context.Context, uid string, showClassForm bool) (pages.LifeCharacterData, error) {
 	char, err := lifeService().GetCharacter(context.Background(), uid)
 	if err != nil {
 		return pages.LifeCharacterData{}, err
@@ -103,10 +104,10 @@ func lifeIdentityData(uid string, showClassForm bool) (pages.LifeCharacterData, 
 	if err != nil {
 		return pages.LifeCharacterData{}, err
 	}
-	return mapLifeCharacterData(uid, char, len(pending), showClassForm), nil
+	return mapLifeCharacterData(ctx, uid, char, len(pending), showClassForm), nil
 }
 
-func mapLifeCharacterData(uid string, char *lifemod.CharacterView, pendingCount int, showClassForm bool) pages.LifeCharacterData {
+func mapLifeCharacterData(ctx context.Context, uid string, char *lifemod.CharacterView, pendingCount int, showClassForm bool) pages.LifeCharacterData {
 	stats := make([]pages.LifeStatRow, 0, len(char.Characteristics))
 	for _, c := range char.Characteristics {
 		stats = append(stats, pages.LifeBuildStatRow(c.Code, c.Name, c.Level, c.CurrentExp))
@@ -118,18 +119,20 @@ func mapLifeCharacterData(uid string, char *lifemod.CharacterView, pendingCount 
 	goals := mapLifeGoalRows(char.Goals)
 	planTree := make([]pages.LifePlanNodeRow, 0, len(char.PlanTree))
 	planParents := make([]pages.LifePlanParentOption, 0)
-	master, minor := "Set a Project goal", "Set an Area goal"
+	masterDefault := i18n.T(ctx, "life.default.master_objective")
+	minorDefault := i18n.T(ctx, "life.default.minor_objective")
+	master, minor := masterDefault, minorDefault
 	for _, g := range goals {
 		if g.Status != pkglife.GoalStatusActive {
 			continue
 		}
 		switch g.Category {
 		case pkglife.GoalCategoryProject:
-			if master == "Set a Project goal" {
+			if master == masterDefault {
 				master = g.Title
 			}
 		case pkglife.GoalCategoryArea:
-			if minor == "Set an Area goal" {
+			if minor == minorDefault {
 				minor = g.Title
 			}
 		}
@@ -141,9 +144,9 @@ func mapLifeCharacterData(uid string, char *lifemod.CharacterView, pendingCount 
 	expNeed := pkglife.ExpToNextLevel(char.Profile.Level)
 	levelProg := pages.LifeBuildStatRow("LVL", "Level", char.Profile.Level, char.Profile.Exp)
 	hpCur, hpMax, heartsFilled, heartsTotal := pages.LifeHPFromStats(stats, char.Profile.Level)
-	labelsJSON, valuesJSON := pages.LifeMarshalRadar(stats)
+	labelsJSON, valuesJSON := pages.LifeMarshalRadar(ctx, stats)
 	return pages.LifeCharacterData{
-		Nickname:        pages.LifeDisplayName(char.Profile.Nickname, uid),
+		Nickname:        pages.LifeDisplayName(ctx, char.Profile.Nickname, uid),
 		ClassType:       char.Profile.ClassType,
 		Level:           char.Profile.Level,
 		Exp:             char.Profile.Exp,
@@ -157,8 +160,8 @@ func mapLifeCharacterData(uid string, char *lifemod.CharacterView, pendingCount 
 		HeartsTotal:     heartsTotal,
 		MasterObjective: master,
 		MinorObjective:  minor,
-		Strength:        pages.LifeClassStrength(char.Profile.ClassType),
-		Weakness:        pages.LifeClassWeakness(char.Profile.ClassType),
+		Strength:        pages.LifeClassStrength(ctx, char.Profile.ClassType),
+		Weakness:        pages.LifeClassWeakness(ctx, char.Profile.ClassType),
 		Characteristics: stats,
 		Skills:          skills,
 		DropRateBonus:   char.Buffs.DropRate,
@@ -272,7 +275,7 @@ func lifeDashboardPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	data, err := lifeIdentityData(uid, false)
+	data, err := lifeIdentityData(ctx.Context(), uid, false)
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
@@ -288,7 +291,7 @@ func lifeCharacterPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	data, err := lifeIdentityData(uid, true)
+	data, err := lifeIdentityData(ctx.Context(), uid, true)
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
@@ -304,7 +307,7 @@ func lifeGoalsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	data, err := lifeGoalsPageData(uid)
+	data, err := lifeGoalsPageData(ctx.Context(), uid)
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
@@ -320,7 +323,7 @@ func lifePlanPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	data, err := lifePlanPageData(uid)
+	data, err := lifePlanPageData(ctx.Context(), uid)
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
@@ -328,8 +331,8 @@ func lifePlanPage(ctx fiber.Ctx) error {
 	return pages.LifePlanPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
-func lifeGoalsPageData(uid string) (pages.LifeGoalsData, error) {
-	identity, err := lifeIdentityData(uid, false)
+func lifeGoalsPageData(reqCtx context.Context, uid string) (pages.LifeGoalsData, error) {
+	identity, err := lifeIdentityData(reqCtx, uid, false)
 	if err != nil {
 		return pages.LifeGoalsData{}, err
 	}
@@ -349,8 +352,8 @@ func lifeGoalsPageData(uid string) (pages.LifeGoalsData, error) {
 	}, nil
 }
 
-func lifePlanPageData(uid string) (pages.LifePlanData, error) {
-	identity, err := lifeIdentityData(uid, false)
+func lifePlanPageData(reqCtx context.Context, uid string) (pages.LifePlanData, error) {
+	identity, err := lifeIdentityData(reqCtx, uid, false)
 	if err != nil {
 		return pages.LifePlanData{}, err
 	}
@@ -453,7 +456,7 @@ func lifePreviewBreakdown(ctx fiber.Ctx) error {
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	data, err := lifePlanPageData(uid)
+	data, err := lifePlanPageData(ctx.Context(), uid)
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
@@ -594,7 +597,7 @@ func lifeQuestsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	data := buildLifeQuestsData(char, pending, done, today, logs, completedPage, doneTotal, logsPage, logsTotal, historyTab)
+	data := buildLifeQuestsData(ctx.Context(), char, pending, done, today, logs, completedPage, doneTotal, logsPage, logsTotal, historyTab)
 	ctx.Type("html")
 	return pages.LifeQuestsPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
@@ -612,6 +615,7 @@ func parsePositiveIntQuery(ctx fiber.Ctx, key string, fallback int) int {
 }
 
 func buildLifeQuestsData(
+	ctx context.Context,
 	char *lifemod.CharacterView,
 	pending []lifemod.QuestDMView,
 	done []*gen.LifeQuest,
@@ -623,7 +627,7 @@ func buildLifeQuestsData(
 	goalRows := mapActiveGoalRows(char)
 	rowsPending := mapPendingQuestRows(pending)
 	rowsDone := mapCompletedQuestRows(done)
-	logRows := mapActionLogRows(logs)
+	logRows := mapActionLogRows(ctx, logs)
 	todayActions := mapTodayActionRows(today, char.PlanTree)
 	todayHabits := mapTodayHabitRows(today)
 	completedInfo := pages.LifeWithCompletedPager(
@@ -699,12 +703,12 @@ func mapCompletedQuestRows(done []*gen.LifeQuest) []pages.LifeQuestRow {
 	return rows
 }
 
-func mapActionLogRows(logs []lifemod.ActionLogView) []pages.LifeActionLogRow {
+func mapActionLogRows(ctx context.Context, logs []lifemod.ActionLogView) []pages.LifeActionLogRow {
 	rows := make([]pages.LifeActionLogRow, 0, len(logs))
 	for _, l := range logs {
 		title := l.QuestTitle
 		if title == "" {
-			title = "Action"
+			title = i18n.T(ctx, "life.default.action_title")
 		}
 		rows = append(rows, pages.LifeActionLogRow{
 			Flag: l.Flag, SourceType: l.SourceType, QuestTitle: title, GainedExp: l.GainedExp, GainedGold: l.GainedGold,
@@ -910,16 +914,27 @@ func lifeCompleteQuest(ctx fiber.Ctx) error {
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
-	msg := fmt.Sprintf("+%d EXP, +%d gold (dice %.2f)", res.GainedExp, res.GainedGold, res.Dice)
+	msg := webMsgData(ctx, "toast.life.quest_complete", map[string]any{
+		"Exp":  res.GainedExp,
+		"Gold": res.GainedGold,
+		"Dice": fmt.Sprintf("%.2f", res.Dice),
+	})
 	if res.Dropped {
-		msg = fmt.Sprintf("Loot drop! %s — +%d EXP, +%d gold", res.ItemName, res.GainedExp, res.GainedGold)
+		msg = webMsgData(ctx, "toast.life.quest_complete_loot", map[string]any{
+			"Item": res.ItemName,
+			"Exp":  res.GainedExp,
+			"Gold": res.GainedGold,
+		})
 	}
 	if len(res.NewlyUnlocked) > 0 {
 		names := make([]string, 0, len(res.NewlyUnlocked))
 		for _, a := range res.NewlyUnlocked {
 			names = append(names, a.Name)
 		}
-		msg = fmt.Sprintf("%s · Achievement: %s", msg, strings.Join(names, ", "))
+		msg = webMsgData(ctx, "toast.life.quest_complete_achievement", map[string]any{
+			"Message": msg,
+			"Names":   strings.Join(names, ", "),
+		})
 	}
 	setShowToast(ctx, "success", msg)
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
@@ -1017,8 +1032,8 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	equippedByID := lifeEquippedSlotFields(page.Slots)
-	backpackRows := mapLifeInventoryRows(page.Items, equippedByID)
-	equipRows := mapLifeInventoryRows(page.Equipped, equippedByID)
+	backpackRows := mapLifeInventoryRows(ctx.Context(), page.Items, equippedByID)
+	equipRows := mapLifeInventoryRows(ctx.Context(), page.Equipped, equippedByID)
 	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
 	if err != nil {
 		return toastError(ctx, lifeUserError(ctx, err))
@@ -1056,17 +1071,17 @@ func lifeEquippedSlotFields(slots *gen.LifeEquippedSlots) map[int64]string {
 	return equipped
 }
 
-func mapLifeInventoryRows(items []lifemod.InventoryItem, equipped map[int64]string) []pages.LifeInventoryRow {
+func mapLifeInventoryRows(ctx context.Context, items []lifemod.InventoryItem, equipped map[int64]string) []pages.LifeInventoryRow {
 	rows := make([]pages.LifeInventoryRow, 0, len(items))
 	for _, it := range items {
 		if it.Inv == nil || it.Equip == nil {
 			continue
 		}
-		name := it.Equip.Name
+		name := pages.LifeEquipmentName(ctx, it.Equip.Flag, it.Equip.Name)
 		if it.Inv.InstanceName != "" {
 			name = it.Inv.InstanceName
 		}
-		lore := it.Equip.AiLoreText
+		lore := pages.LifeEquipmentLore(ctx, it.Equip.Flag, it.Equip.AiLoreText)
 		if it.Inv.InstanceLore != "" {
 			lore = it.Inv.InstanceLore
 		}
@@ -1074,7 +1089,7 @@ func mapLifeInventoryRows(items []lifemod.InventoryItem, equipped map[int64]stri
 		rows = append(rows, pages.LifeInventoryRow{
 			Flag: it.Inv.Flag, Name: name, Rarity: it.Equip.Rarity, Slot: it.Equip.SlotType,
 			SlotField:  slotField,
-			BuffText:   pages.LifeFormatBuffText(it.Equip.StatBuffs),
+			BuffText:   pages.LifeFormatBuffText(ctx, it.Equip.StatBuffs),
 			PerkText:   pages.LifeFormatPerkText(it.Equip.AiUnlockedPrivilege),
 			Lore:       lore,
 			LoreStatus: it.Inv.LoreStatus,

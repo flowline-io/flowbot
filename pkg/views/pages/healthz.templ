@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -11,10 +12,10 @@ templ HealthzPage(ctx context.Context, data partials.HealthzData) {
 	@layout.Base(ctx, DocTitlePage(ctx, "page.healthz.title")) {
 		@partials.PageHeader(ctx, "page.healthz.title", "page.healthz.subtitle") {
 			<span class="text-sm text-base-content/50">
-				Auto-refreshes every 30s
+				{ i18n.T(ctx, "page.healthz.auto_refresh") }
 			</span>
 		}
-		@partials.HealthzStatus(data)
-		@partials.HealthzCapabilitiesPanel()
+		@partials.HealthzStatus(ctx, data)
+		@partials.HealthzCapabilitiesPanel(ctx)
 	}
 }

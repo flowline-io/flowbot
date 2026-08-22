@@ -85,6 +85,16 @@ func normalizeDocPath(path string) string {
 	return indexSegmentPattern.ReplaceAllString(path, "")
 }
 
+// NormalizeSettingPath strips slice indices so paths align with FieldDocs and settings.desc.* keys.
+func NormalizeSettingPath(path string) string {
+	return normalizeDocPath(path)
+}
+
+// SettingDescriptionKey is the i18n message ID for a config path description.
+func SettingDescriptionKey(path string) string {
+	return "settings.desc." + NormalizeSettingPath(path)
+}
+
 func isSensitivePath(path string, explicit bool) bool {
 	if explicit {
 		return true

@@ -29,7 +29,7 @@ func TestTablePinCols(t *testing.T) {
 			name: "notify channels table pins columns",
 			render: func() (string, error) {
 				var buf bytes.Buffer
-				err := partials.NotifyChannelsTable(nil, "").Render(context.Background(), &buf)
+				err := partials.NotifyChannelsTable(context.Background(), nil, "").Render(context.Background(), &buf)
 				return buf.String(), err
 			},
 		},
@@ -92,7 +92,7 @@ func TestTableCardStackMarkup(t *testing.T) {
 			},
 			html: func() (string, error) {
 				var buf bytes.Buffer
-				err := partials.NotifyChannelsTable([]model.NotifyChannel{channel}, "").Render(context.Background(), &buf)
+				err := partials.NotifyChannelsTable(context.Background(), []model.NotifyChannel{channel}, "").Render(context.Background(), &buf)
 				return buf.String(), err
 			},
 		},

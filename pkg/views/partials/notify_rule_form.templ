@@ -1,12 +1,14 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string, templateIDs []string) {
+templ NotifyRuleForm(ctx context.Context, item model.NotifyRule, isNew bool, errors map[string]string, templateIDs []string) {
 	{{ params := parseRuleParamsFields(item.ParamsJSON) }}
 	<tr id={ notifyRuleFormID(item, isNew) } x-data={ "{ action: '" + item.Action + "' }" }>
 		<td>
@@ -20,7 +22,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 			<input type="text" name="name" value={ item.Name }
 				data-testid="rule-name"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "name") }
-				placeholder="Rule name"
+				placeholder={ i18n.T(ctx, "notify.rule.name_placeholder") }
 			/>
 			<div class="text-error text-xs">{ errors["name"] }</div>
 		</td>
@@ -29,7 +31,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				data-testid="rule-action"
 				x-model="action"
 				class={ "select select-bordered select-sm w-full " + fieldError(errors, "action") }>
-				<option value="">Select...</option>
+				<option value="">{ i18n.T(ctx, "common.select") }</option>
 				<option value="throttle" if item.Action == "throttle" { selected }>throttle</option>
 				<option value="aggregate" if item.Action == "aggregate" { selected }>aggregate</option>
 				<option value="mute" if item.Action == "mute" { selected }>mute</option>
@@ -46,7 +48,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 			<input type="text" name="rule_id" value={ item.RuleID }
 				data-testid="rule-id"
 				class={ "input input-bordered input-sm w-full mt-1 font-mono " + fieldError(errors, "rule_id") }
-				placeholder="rule_id (e.g. night_mute)"
+				placeholder={ i18n.T(ctx, "notify.rule.id_placeholder") }
 			/>
 			<div class="text-error text-xs">{ errors["rule_id"] }</div>
 			<div class="text-error text-xs">{ errors["event_pattern"] }</div>
@@ -65,13 +67,13 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 					data-testid="rule-enabled"
 					if item.Enabled { checked }
 					class="checkbox checkbox-sm"/>
-				<span class="text-xs">Enabled</span>
+				<span class="text-xs">{ i18n.T(ctx, "common.enabled") }</span>
 			</label>
 		</td>
 		<td class="min-w-56">
 			<div class="flex flex-col gap-2">
 				<div x-show="action === 'mute'" class="flex flex-col gap-1">
-					<label class="text-xs text-base-content/55 text-base-content/50">Condition</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">{ i18n.T(ctx, "common.condition") }</label>
 					<input type="text" name="condition" value={ item.Condition }
 						data-testid="rule-condition"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "condition") }
@@ -81,7 +83,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				</div>
 
 				<div x-show="action === 'throttle' || action === 'aggregate'" class="flex flex-col gap-1">
-					<label class="text-xs text-base-content/55 text-base-content/50">Window</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">{ i18n.T(ctx, "common.window") }</label>
 					<input type="text" name="param_window" value={ ruleFormWindow(params) }
 						data-testid="rule-param-window"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "window") }
@@ -91,7 +93,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				</div>
 
 				<div x-show="action === 'throttle'" class="flex flex-col gap-1">
-					<label class="text-xs text-base-content/55 text-base-content/50">Limit</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">{ i18n.T(ctx, "common.limit") }</label>
 					<input type="number" name="param_limit" value={ ruleFormLimit(params) }
 						data-testid="rule-param-limit"
 						class={ "input input-bordered input-sm w-full " + fieldError(errors, "limit") }
@@ -102,11 +104,11 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				</div>
 
 				<div x-show="action === 'aggregate'" class="flex flex-col gap-1">
-					<label class="text-xs text-base-content/55 text-base-content/50">Digest template</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">{ i18n.T(ctx, "notify.rule.digest_template") }</label>
 					<select name="param_digest_template_id"
 						data-testid="rule-param-digest"
 						class={ "select select-bordered select-sm w-full " + fieldError(errors, "digest_template_id") }>
-						<option value="">None</option>
+						<option value="">{ i18n.T(ctx, "common.none") }</option>
 						for _, tid := range templateIDs {
 							<option value={ tid } if params.DigestTemplateID == tid { selected }>{ tid }</option>
 						}
@@ -117,16 +119,16 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 							data-testid="rule-param-delayed"
 							if params.DelayedSend { checked }
 							class="checkbox checkbox-sm"/>
-						<span class="text-xs">Delayed send</span>
+						<span class="text-xs">{ i18n.T(ctx, "notify.rule.delayed_send") }</span>
 					</label>
 				</div>
 
 				<div x-show="action === 'drop'" class="text-xs text-base-content/50" data-testid="rule-drop-hint">
-					No additional parameters.
+					{ i18n.T(ctx, "notify.rule.drop_hint") }
 				</div>
 
 				<div x-show="!action" class="text-xs text-base-content/50">
-					Select an action to configure.
+					{ i18n.T(ctx, "notify.rule.select_action") }
 				</div>
 
 				<div class="flex gap-1 mt-1">
@@ -141,7 +143,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 						hx-include="closest tr"
 						data-testid="rule-save"
 						class="btn btn-primary btn-sm">
-						Save
+						{ i18n.T(ctx, "common.save") }
 					</button>
 					<button type="button"
 						hx-get={ notifyRuleCancelURL() }
@@ -149,7 +151,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 						hx-swap="outerHTML"
 						data-testid="rule-cancel"
 						class="btn btn-ghost btn-sm">
-						Cancel
+						{ i18n.T(ctx, "common.cancel") }
 					</button>
 				</div>
 				if errors["_save"] != "" {

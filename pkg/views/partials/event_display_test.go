@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -82,6 +83,7 @@ func TestEventRunStatusChipClass(t *testing.T) {
 
 func TestEventRunStatusText(t *testing.T) {
 	t.Parallel()
+	ctx := i18n.DefaultContext()
 	tests := []struct {
 		name   string
 		status string
@@ -96,7 +98,7 @@ func TestEventRunStatusText(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, EventRunStatusText(tt.status))
+			assert.Equal(t, tt.want, EventRunStatusText(ctx, tt.status))
 		})
 	}
 }

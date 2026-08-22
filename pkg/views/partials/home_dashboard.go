@@ -1,5 +1,11 @@
 package partials
 
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
 // HomeDashboard is the view model for the authenticated home page.
 type HomeDashboard struct {
 	ActiveSessions int
@@ -32,11 +38,11 @@ type HomeQuickLink struct {
 }
 
 // HomeQuickLinks returns the standard home shortcut set.
-func HomeQuickLinks() []HomeQuickLink {
+func HomeQuickLinks(ctx context.Context) []HomeQuickLink {
 	return []HomeQuickLink{
-		{Title: "Knowledge", Detail: "Markdown docs for agent retrieval", Href: "/service/web/agent-knowledge", TestID: "home-link-knowledge"},
-		{Title: "Skills", Detail: "Reusable agent skill packages", Href: "/service/web/agent-skills", TestID: "home-link-skills"},
-		{Title: "Notifications", Detail: "Channels, rules, and delivery", Href: "/service/web/notifications", TestID: "home-link-notifications"},
-		{Title: "Health", Detail: "Infrastructure status", Href: "/service/web/healthz", TestID: "home-link-healthz"},
+		{Title: i18n.T(ctx, "home.quick.knowledge.title"), Detail: i18n.T(ctx, "home.quick.knowledge.detail"), Href: "/service/web/agent-knowledge", TestID: "home-link-knowledge"},
+		{Title: i18n.T(ctx, "home.quick.skills.title"), Detail: i18n.T(ctx, "home.quick.skills.detail"), Href: "/service/web/agent-skills", TestID: "home-link-skills"},
+		{Title: i18n.T(ctx, "home.quick.notifications.title"), Detail: i18n.T(ctx, "home.quick.notifications.detail"), Href: "/service/web/notifications", TestID: "home-link-notifications"},
+		{Title: i18n.T(ctx, "home.quick.health.title"), Detail: i18n.T(ctx, "home.quick.health.detail"), Href: "/service/web/healthz", TestID: "home-link-healthz"},
 	}
 }

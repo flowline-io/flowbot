@@ -79,7 +79,7 @@ func HomePage(ctx context.Context, d partials.HomeDashboard) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.HomeDashboardBlock(d).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.HomeDashboardBlock(ctx, d).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -87,7 +87,7 @@ func HomePage(ctx context.Context, d partials.HomeDashboard) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.HomeQuickLinksSection(partials.HomeQuickLinks()).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.HomeQuickLinksSection(ctx, partials.HomeQuickLinks(ctx)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -95,7 +95,7 @@ func HomePage(ctx context.Context, d partials.HomeDashboard) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PanelSkeleton(ctx).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

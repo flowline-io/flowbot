@@ -30,19 +30,19 @@ func lifeSkillsPage(ctx fiber.Ctx) error {
 	if selected == "" {
 		selected = tree.DefaultSelected
 	}
-	data := buildLifeSkillTreeData(tree, selected, len(pending))
+	data := buildLifeSkillTreeData(ctx.Context(), tree, selected, len(pending))
 	ctx.Type("html")
 	return pages.LifeSkillsPage(data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
-func buildLifeSkillTreeData(tree *lifemod.SkillTreeView, selected string, pendingCount int) pages.LifeSkillTreeData {
+func buildLifeSkillTreeData(ctx context.Context, tree *lifemod.SkillTreeView, selected string, pendingCount int) pages.LifeSkillTreeData {
 	if tree == nil {
 		return pages.LifeSkillTreeData{}
 	}
 	roots := make([]pages.LifeSkillTreeNodeRow, 0, len(tree.Roots))
 	detail := (*pages.LifeSkillTreeNodeDetail)(nil)
 	for _, root := range tree.Roots {
-		row, selectedDetail := mapLifeSkillTreeNode(root, selected)
+		row, selectedDetail := mapLifeSkillTreeNode(ctx, root, selected)
 		roots = append(roots, row)
 		if selectedDetail != nil {
 			detail = selectedDetail
@@ -50,7 +50,7 @@ func buildLifeSkillTreeData(tree *lifemod.SkillTreeView, selected string, pendin
 	}
 	if detail == nil && tree.DefaultSelected != "" {
 		for _, root := range tree.Roots {
-			_, selectedDetail := mapLifeSkillTreeNode(root, tree.DefaultSelected)
+			_, selectedDetail := mapLifeSkillTreeNode(ctx, root, tree.DefaultSelected)
 			if selectedDetail != nil {
 				detail = selectedDetail
 				break
@@ -66,11 +66,11 @@ func buildLifeSkillTreeData(tree *lifemod.SkillTreeView, selected string, pendin
 	}
 }
 
-func mapLifeSkillTreeNode(node *lifemod.SkillTreeNodeView, selected string) (pages.LifeSkillTreeNodeRow, *pages.LifeSkillTreeNodeDetail) {
+func mapLifeSkillTreeNode(ctx context.Context, node *lifemod.SkillTreeNodeView, selected string) (pages.LifeSkillTreeNodeRow, *pages.LifeSkillTreeNodeDetail) {
 	row := pages.LifeSkillTreeNodeRow{
 		Key:               node.Key,
-		Title:             node.Title,
-		Subtitle:          node.Subtitle,
+		Title:             pages.LifeSkillTreeTitle(ctx, node.Key, node.Title),
+		Subtitle:          pages.LifeSkillTreeSubtitle(ctx, node.Key, node.Subtitle),
 		Status:            node.Status,
 		PracticeCount:     node.PracticeCount,
 		SkillCount:        node.SkillCount,
@@ -90,8 +90,8 @@ func mapLifeSkillTreeNode(node *lifemod.SkillTreeNodeView, selected string) (pag
 			})
 		}
 		detail = &pages.LifeSkillTreeNodeDetail{
-			Title:             node.Title,
-			Subtitle:          node.Subtitle,
+			Title:             row.Title,
+			Subtitle:          row.Subtitle,
 			Status:            node.Status,
 			PracticeCount:     node.PracticeCount,
 			SkillCount:        node.SkillCount,
@@ -100,7 +100,7 @@ func mapLifeSkillTreeNode(node *lifemod.SkillTreeNodeView, selected string) (pag
 		}
 	}
 	for _, child := range node.Children {
-		childRow, childDetail := mapLifeSkillTreeNode(child, selected)
+		childRow, childDetail := mapLifeSkillTreeNode(ctx, child, selected)
 		row.Children = append(row.Children, childRow)
 		if detail == nil && childDetail != nil {
 			detail = childDetail

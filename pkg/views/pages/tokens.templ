@@ -4,6 +4,7 @@ package pages
 import (
 	"context"
 	
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -19,7 +20,7 @@ templ TokensPage(ctx context.Context, items []model.TokenItem) {
 				hx-swap="afterbegin"
 				data-testid="token-new-btn"
 				class="btn btn-primary btn-sm">
-				New Token
+				{ i18n.T(ctx, "btn.new_token") }
 			</button>
 		}
 		<div id="token-alert-container" class="mb-4"></div>

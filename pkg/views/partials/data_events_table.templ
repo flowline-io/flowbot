@@ -1,6 +1,9 @@
 package partials
 
 import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -12,19 +15,19 @@ func eventPipelineRuns(eventID string, runMap map[string][]model.PipelineRunInfo
 	return nil
 }
 
-templ DataEventsTable(sources, eventTypes []string, events []model.DataEvent, pageInfo PageInfo, runMap map[string][]model.PipelineRunInfo) {
+templ DataEventsTable(ctx context.Context, sources, eventTypes []string, events []model.DataEvent, pageInfo PageInfo, runMap map[string][]model.PipelineRunInfo) {
 	<div id="events-table-container">
 		<div class="flowbot-surface" id="data-events-table" data-testid="data-events-table">
 			<div class="overflow-x-auto">
 				<table class="table flowbot-table-pin">
 					<thead>
 					<tr>
-						<th class="text-xs font-medium text-base-content/55">Time</th>
-						<th class="text-xs font-medium text-base-content/55">Event Type</th>
-						<th class="text-xs font-medium text-base-content/55">Source / Capability</th>
-						<th class="text-xs font-medium text-base-content/55">Entity</th>
-						<th class="text-xs font-medium text-base-content/55">Pipeline</th>
-						<th class="text-xs font-medium text-base-content/55">Actions</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.time") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.event_type") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.source_capability") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.entity") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.pipeline") }</th>
+						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 					</tr>
 					</thead>
 					if len(events) == 0 {
@@ -32,10 +35,10 @@ templ DataEventsTable(sources, eventTypes []string, events []model.DataEvent, pa
 							<tr>
 								<td colspan="6" class="p-0">
 									@EmptyStateCTA(
-										"No events yet",
-										"Events appear when capabilities emit data.",
+										i18n.T(ctx, "table.empty.data_events"),
+										i18n.T(ctx, "table.empty.data_events_detail"),
 										"/service/web/pipelines",
-										"Create pipeline",
+										i18n.T(ctx, "common.create_pipeline"),
 									)
 								</td>
 							</tr>
@@ -67,7 +70,7 @@ templ DataEventsTable(sources, eventTypes []string, events []model.DataEvent, pa
 												href={ templ.URL(PipelineRunLiveURL(run.PipelineName, run.ID)) }
 												data-testid="event-pipeline-run-link"
 												onclick="event.stopPropagation()">{ run.PipelineName }</a>
-											<span class={ EventRunStatusChipClass(run.Status) }>{ EventRunStatusText(run.Status) }</span>
+											<span class={ EventRunStatusChipClass(run.Status) }>{ EventRunStatusText(ctx, run.Status) }</span>
 										</div>
 									}
 									</div>
@@ -79,7 +82,7 @@ templ DataEventsTable(sources, eventTypes []string, events []model.DataEvent, pa
 									<a class="link link-hover"
 										href={ templ.URL(SimilarEventsURL(e.Source, e.EventType)) }
 										data-testid="event-similar-link"
-										onclick="event.stopPropagation()">Similar</a>
+										onclick="event.stopPropagation()">{ i18n.T(ctx, "events.action.similar") }</a>
 								</td>
 							</tr>
 							<tr id={ "detail-" + e.EventID } class="event-detail-row">

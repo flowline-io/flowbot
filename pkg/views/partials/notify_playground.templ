@@ -1,29 +1,34 @@
 package partials
 
-import "fmt"
+import (
+	"context"
+	"fmt"
 
-templ NotifyPlayground(p NotifyPlaygroundParams) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ NotifyPlayground(ctx context.Context, p NotifyPlaygroundParams) {
 	<div id="notify-playground" data-testid="notify-playground" class="space-y-4"
 		x-data={ playgroundAlpineData(p.Form.Mode) }>
 		<div class="flowbot-surface">
 			<div class="card-body gap-4">
 				<div class="flex flex-wrap items-center justify-between gap-2">
 					<div>
-						<h2 class="text-base font-semibold tracking-tight m-0">Playground</h2>
-						<p class="text-sm text-base-content/60">Preview and manually send a notification to an enabled channel.</p>
+						<h2 class="text-base font-semibold tracking-tight m-0">{ i18n.T(ctx, "notify.playground.title") }</h2>
+						<p class="text-sm text-base-content/60">{ i18n.T(ctx, "notify.playground.subtitle") }</p>
 					</div>
 					<div class="join">
 						<button type="button" class="btn btn-sm join-item"
 							:class="mode === 'template' ? 'btn-primary' : 'btn-ghost'"
 							@click="mode = 'template'"
 							data-testid="playground-mode-template">
-							Template
+							{ i18n.T(ctx, "common.template") }
 						</button>
 						<button type="button" class="btn btn-sm join-item"
 							:class="mode === 'custom' ? 'btn-primary' : 'btn-ghost'"
 							@click="mode = 'custom'"
 							data-testid="playground-mode-custom">
-							Custom
+							{ i18n.T(ctx, "common.custom") }
 						</button>
 					</div>
 				</div>
@@ -36,10 +41,10 @@ templ NotifyPlayground(p NotifyPlaygroundParams) {
 					<input type="hidden" name="mode" :value="mode"/>
 
 					<div class="form-control">
-						<label class="label"><span class="label-text">Channel</span></label>
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "common.channel") }</span></label>
 						<select name="channel_id" data-testid="playground-channel"
 							class={ "select select-bordered select-sm w-full " + playgroundFieldError(p.Errors, "channel_id") }>
-							<option value="">Select channel...</option>
+							<option value="">{ i18n.T(ctx, "notify.playground.select_channel") }</option>
 							for _, ch := range p.Channels {
 								<option value={ fmt.Sprintf("%d", ch.ID) }
 									if p.Form.ChannelID == ch.ID {
@@ -53,23 +58,23 @@ templ NotifyPlayground(p NotifyPlaygroundParams) {
 							<div class="label"><span class="label-text-alt text-error">{ p.Errors["channel_id"] }</span></div>
 						}
 						if len(p.Channels) == 0 {
-							<div class="label"><span class="label-text-alt text-warning">No enabled channels. Add one in the Channels tab.</span></div>
+							<div class="label"><span class="label-text-alt text-warning">{ i18n.T(ctx, "notify.playground.no_channels") }</span></div>
 						}
 					</div>
 
 					<div class="form-control">
-						<label class="label"><span class="label-text">Priority</span></label>
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "common.priority") }</span></label>
 						<select name="priority" data-testid="playground-priority" class="select select-bordered select-sm w-full">
-							<option value="low" if p.Form.Priority == "low" { selected }>Low</option>
-							<option value="moderate" if p.Form.Priority == "moderate" { selected }>Moderate</option>
-							<option value="normal" if p.Form.Priority == "normal" || p.Form.Priority == "" { selected }>Normal</option>
-							<option value="high" if p.Form.Priority == "high" { selected }>High</option>
-							<option value="emergency" if p.Form.Priority == "emergency" { selected }>Emergency</option>
+							<option value="low" if p.Form.Priority == "low" { selected }>{ i18n.T(ctx, "notify.playground.priority.low") }</option>
+							<option value="moderate" if p.Form.Priority == "moderate" { selected }>{ i18n.T(ctx, "notify.playground.priority.moderate") }</option>
+							<option value="normal" if p.Form.Priority == "normal" || p.Form.Priority == "" { selected }>{ i18n.T(ctx, "notify.playground.priority.normal") }</option>
+							<option value="high" if p.Form.Priority == "high" { selected }>{ i18n.T(ctx, "notify.playground.priority.high") }</option>
+							<option value="emergency" if p.Form.Priority == "emergency" { selected }>{ i18n.T(ctx, "notify.playground.priority.emergency") }</option>
 						</select>
 					</div>
 
 					<div class="form-control md:col-span-2" x-show="mode === 'template'" x-cloak>
-						<label class="label"><span class="label-text">Template</span></label>
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "common.template") }</span></label>
 						<select name="template_id" data-testid="playground-template"
 							hx-get="/service/web/notifications/playground/sample-payload"
 							hx-trigger="change"
@@ -77,7 +82,7 @@ templ NotifyPlayground(p NotifyPlaygroundParams) {
 							hx-swap="outerHTML"
 							hx-include="this"
 							class={ "select select-bordered select-sm w-full " + playgroundFieldError(p.Errors, "template_id") }>
-							<option value="">Select template...</option>
+							<option value="">{ i18n.T(ctx, "notify.playground.select_template") }</option>
 							for _, tmpl := range p.Templates {
 								<option value={ tmpl.ID }
 									if p.Form.TemplateID == tmpl.ID {
@@ -97,16 +102,16 @@ templ NotifyPlayground(p NotifyPlaygroundParams) {
 					</div>
 
 					<div class="form-control md:col-span-2" x-show="mode === 'custom'" x-cloak>
-						<label class="label"><span class="label-text">Custom template</span></label>
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "notify.playground.custom_template") }</span></label>
 						<textarea name="custom_template" rows="6"
 							data-testid="playground-custom-template"
 							class={ "textarea textarea-bordered font-mono text-xs w-full " + playgroundFieldError(p.Errors, "custom_template") }
-							placeholder={"**Title**\nHello {{ .name }}"}>{ p.Form.CustomTemplate }</textarea>
+							placeholder={ i18n.T(ctx, "notify.playground.custom_placeholder") }>{ p.Form.CustomTemplate }</textarea>
 						if p.Errors["custom_template"] != "" {
 							<div class="label"><span class="label-text-alt text-error">{ p.Errors["custom_template"] }</span></div>
 						}
 						<div class="mt-2">
-							<label class="label"><span class="label-text">Format</span></label>
+							<label class="label"><span class="label-text">{ i18n.T(ctx, "common.format") }</span></label>
 							<select name="format" data-testid="playground-format" class="select select-bordered select-sm w-full max-w-xs">
 								<option value="markdown" if p.Form.Format == "markdown" || p.Form.Format == "" { selected }>markdown</option>
 								<option value="html" if p.Form.Format == "html" { selected }>html</option>
@@ -115,10 +120,10 @@ templ NotifyPlayground(p NotifyPlaygroundParams) {
 						</div>
 					</div>
 
-					@NotifyPlaygroundPayloadField(p.Form.PayloadJSON, p.Errors["payload_json"])
+					@NotifyPlaygroundPayloadField(ctx, p.Form.PayloadJSON, p.Errors["payload_json"])
 
 					<div class="form-control md:col-span-2">
-						<label class="label"><span class="label-text">URL (optional)</span></label>
+						<label class="label"><span class="label-text">{ i18n.T(ctx, "notify.playground.url_optional") }</span></label>
 						<input type="text" name="url" value={ p.Form.URL }
 							data-testid="playground-url"
 							class="input input-bordered input-sm w-full"
@@ -133,7 +138,7 @@ templ NotifyPlayground(p NotifyPlaygroundParams) {
 							hx-include="#playground-form"
 							data-testid="playground-preview"
 							class="btn btn-ghost btn-sm">
-							Preview
+							{ i18n.T(ctx, "common.preview") }
 						</button>
 						<button type="button"
 							hx-post="/service/web/notifications/playground/send"
@@ -142,7 +147,7 @@ templ NotifyPlayground(p NotifyPlaygroundParams) {
 							hx-include="#playground-form"
 							data-testid="playground-send"
 							class="btn btn-primary btn-sm">
-							Send
+							{ i18n.T(ctx, "common.send") }
 						</button>
 					</div>
 				</form>
@@ -150,14 +155,14 @@ templ NotifyPlayground(p NotifyPlaygroundParams) {
 		</div>
 
 		if p.Result != nil {
-			@NotifyPlaygroundResult(*p.Result)
+			@NotifyPlaygroundResult(ctx, *p.Result)
 		}
 	</div>
 }
 
-templ NotifyPlaygroundPayloadField(payloadJSON, errMsg string) {
+templ NotifyPlaygroundPayloadField(ctx context.Context, payloadJSON, errMsg string) {
 	<div id="playground-payload-field" class="form-control md:col-span-2" data-testid="playground-payload-field">
-		<label class="label"><span class="label-text">Payload JSON</span></label>
+		<label class="label"><span class="label-text">{ i18n.T(ctx, "notify.playground.payload_json") }</span></label>
 		<textarea name="payload_json" rows="6"
 			data-testid="playground-payload"
 			class={ "textarea textarea-bordered font-mono text-xs w-full " + playgroundPayloadErrorClass(errMsg) }
@@ -168,26 +173,26 @@ templ NotifyPlaygroundPayloadField(payloadJSON, errMsg string) {
 	</div>
 }
 
-templ NotifyPlaygroundResult(p NotifyPlaygroundResultParams) {
+templ NotifyPlaygroundResult(ctx context.Context, p NotifyPlaygroundResultParams) {
 	<div id="playground-result" data-testid="playground-result" class="flowbot-surface">
 		<div class="card-body gap-3">
 			<div class="flex items-center gap-2">
 				<h3 class="font-medium">
 					if p.Preview {
-						Preview
+						{ i18n.T(ctx, "common.preview") }
 					} else if p.Success {
-						Sent
+						{ i18n.T(ctx, "common.sent") }
 					} else if p.Error != "" {
-						Failed
+						{ i18n.T(ctx, "common.failed") }
 					} else {
-						Result
+						{ i18n.T(ctx, "common.result") }
 					}
 				</h3>
 				if p.Format != "" {
 					<span class="flowbot-chip flowbot-chip-muted">{ p.Format }</span>
 				}
 				if p.Success {
-					<span class="flowbot-chip flowbot-chip-success">success</span>
+					<span class="flowbot-chip flowbot-chip-success">{ i18n.T(ctx, "common.success") }</span>
 				}
 			</div>
 			if p.Error != "" {
@@ -195,13 +200,13 @@ templ NotifyPlaygroundResult(p NotifyPlaygroundResultParams) {
 			}
 			if p.Title != "" {
 				<div>
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Title</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "common.title") }</div>
 					<div class="text-sm font-medium" data-testid="playground-result-title">{ p.Title }</div>
 				</div>
 			}
 			if p.Body != "" {
 				<div>
-					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Body</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">{ i18n.T(ctx, "common.body") }</div>
 					<pre class="bg-base-300 rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-x-auto" data-testid="playground-result-body">{ p.Body }</pre>
 				</div>
 			}

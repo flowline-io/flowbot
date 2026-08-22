@@ -1,12 +1,14 @@
 package partials
 
 import (
+	"context"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabled bool) {
+templ ChatAgentComposer(ctx context.Context, endpoints ChatAgentEndpoints, placeholder string, disabled bool) {
 	<div
 		class="agents-composer mb-8"
 		data-chatagent-root="composer"
@@ -18,7 +20,7 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 		}
 		data-testid="chatagent-composer">
 		if disabled {
-			<div class="alert alert-warning text-sm mb-3" data-testid="chatagent-disabled">Chat agent is not enabled. Configure chat_agent.chat_model in flowbot.yaml.</div>
+			<div class="alert alert-warning text-sm mb-3" data-testid="chatagent-disabled">{ i18n.T(ctx, "chatagent.disabled") }</div>
 		}
 		<div class="agents-composer-box">
 			<div
@@ -68,7 +70,7 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 					id="chatagent-composer-start"
 					class="agents-composer-send"
 					disabled?={ disabled }
-					aria-label="Start agent"
+					aria-label={ i18n.T(ctx, "client.chatagent.start_agent") }
 					data-testid="chatagent-composer-start">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4" aria-hidden="true">
 						<path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clip-rule="evenodd"></path>
@@ -80,7 +82,7 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 	</div>
 }
 
-templ ChatAgentSessionRow(item model.AgentSession, endpoints ChatAgentEndpoints) {
+templ ChatAgentSessionRow(ctx context.Context, item model.AgentSession, endpoints ChatAgentEndpoints) {
 	<div
 		class={ "agents-session-row", templ.KV("agents-session-row-pinned", item.Pinned) }
 		data-testid={ "chatagent-session-row-" + item.Flag }
@@ -92,14 +94,14 @@ templ ChatAgentSessionRow(item model.AgentSession, endpoints ChatAgentEndpoints)
 			<div class={ chatAgentSessionThumbClass(chatAgentSessionDisplayState(item)) } aria-hidden="true">
 				<span class={ chatAgentSessionBadgeClass(chatAgentSessionDisplayState(item)) }>
 					if item.Activity == "needs_approval" {
-						Needs approval
+						{ i18n.T(ctx, "chatagent.state.needs_approval") }
 					} else if item.Activity == "running" {
-						Running
+						{ i18n.T(ctx, "chatagent.state.running") }
 					} else if item.State == "Active" {
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3 h-3" aria-hidden="true">
 							<path fill-rule="evenodd" d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm11.78-2.78a.75.75 0 00-1.06-1.06L6.75 8.19 5.28 6.72a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4.5-4.5z" clip-rule="evenodd"></path>
 						</svg>
-						Active
+						{ i18n.T(ctx, "chatagent.state.active") }
 					} else {
 						{ item.State }
 					}
@@ -109,7 +111,7 @@ templ ChatAgentSessionRow(item model.AgentSession, endpoints ChatAgentEndpoints)
 				<div class="agents-session-title-row">
 					<div class="agents-session-title">{ ChatAgentSessionTitle(item) }</div>
 					if item.Pinned {
-						<span class="agents-session-pin-mark" aria-label="Pinned" data-testid="chatagent-session-pinned">Pinned</span>
+						<span class="agents-session-pin-mark" aria-label={ i18n.T(ctx, "chatagent.pinned") } data-testid="chatagent-session-pinned">{ i18n.T(ctx, "chatagent.pinned") }</span>
 					}
 				</div>
 				if preview := TruncateChatAgentSessionPreview(item.Preview, 96); preview != "" {
@@ -118,7 +120,7 @@ templ ChatAgentSessionRow(item model.AgentSession, endpoints ChatAgentEndpoints)
 				<div class="agents-session-meta">
 					<span>{ FormatChatAgentRelativeTime(item.UpdatedAt) }</span>
 					if item.TotalDurationMs > 0 {
-						<span class="chatagent-duration" data-testid="chatagent-session-duration">· Total { ChatAgentDurationLabel(item.TotalDurationMs) }</span>
+						<span class="chatagent-duration" data-testid="chatagent-session-duration">· { i18n.T(ctx, "common.total") } { ChatAgentDurationLabel(item.TotalDurationMs) }</span>
 					}
 				</div>
 				if item.TodoSummary != nil && item.TodoSummary.Total > 0 {
@@ -139,7 +141,7 @@ templ ChatAgentSessionRow(item model.AgentSession, endpoints ChatAgentEndpoints)
 					hx-delete={ templ.URL(ChatAgentListActionURL(endpoints.PinURLTemplate, item.Flag, endpoints.Filter)) }
 					hx-target="#chatagent-session-list"
 					hx-swap="outerHTML"
-					data-testid="chatagent-session-unpin">Unpin</button>
+					data-testid="chatagent-session-unpin">{ i18n.T(ctx, "common.unpin") }</button>
 			} else {
 				<button
 					type="button"
@@ -147,7 +149,7 @@ templ ChatAgentSessionRow(item model.AgentSession, endpoints ChatAgentEndpoints)
 					hx-post={ templ.URL(ChatAgentListActionURL(endpoints.PinURLTemplate, item.Flag, endpoints.Filter)) }
 					hx-target="#chatagent-session-list"
 					hx-swap="outerHTML"
-					data-testid="chatagent-session-pin">Pin</button>
+					data-testid="chatagent-session-pin">{ i18n.T(ctx, "common.pin") }</button>
 			}
 			if item.Archived {
 				<button
@@ -156,7 +158,7 @@ templ ChatAgentSessionRow(item model.AgentSession, endpoints ChatAgentEndpoints)
 					hx-delete={ templ.URL(ChatAgentListActionURL(endpoints.ArchiveURLTemplate, item.Flag, endpoints.Filter)) }
 					hx-target="#chatagent-session-list"
 					hx-swap="outerHTML"
-					data-testid="chatagent-session-unarchive">Unarchive</button>
+					data-testid="chatagent-session-unarchive">{ i18n.T(ctx, "common.unarchive") }</button>
 			} else {
 				<button
 					type="button"
@@ -164,13 +166,13 @@ templ ChatAgentSessionRow(item model.AgentSession, endpoints ChatAgentEndpoints)
 					hx-post={ templ.URL(ChatAgentListActionURL(endpoints.ArchiveURLTemplate, item.Flag, endpoints.Filter)) }
 					hx-target="#chatagent-session-list"
 					hx-swap="outerHTML"
-					data-testid="chatagent-session-archive">Archive</button>
+					data-testid="chatagent-session-archive">{ i18n.T(ctx, "common.archive") }</button>
 			}
 		</div>
 	</div>
 }
 
-templ ChatAgentSessionLoadMore(nextCursor string, endpoints ChatAgentEndpoints, oob bool) {
+templ ChatAgentSessionLoadMore(ctx context.Context, nextCursor string, endpoints ChatAgentEndpoints, oob bool) {
 	if nextCursor != "" {
 		if oob {
 			<div class="pt-4 text-center" id="chatagent-sessions-load-more" hx-swap-oob="true">
@@ -179,7 +181,7 @@ templ ChatAgentSessionLoadMore(nextCursor string, endpoints ChatAgentEndpoints, 
 					hx-get={ templ.URL(ChatAgentSessionListURL(endpoints, nextCursor)) }
 					hx-target="#chatagent-session-rows"
 					hx-swap="beforeend"
-					data-testid="chatagent-sessions-load-more">Load more</button>
+					data-testid="chatagent-sessions-load-more">{ i18n.T(ctx, "common.load_more") }</button>
 			</div>
 		} else {
 			<div class="pt-4 text-center" id="chatagent-sessions-load-more">
@@ -188,7 +190,7 @@ templ ChatAgentSessionLoadMore(nextCursor string, endpoints ChatAgentEndpoints, 
 					hx-get={ templ.URL(ChatAgentSessionListURL(endpoints, nextCursor)) }
 					hx-target="#chatagent-session-rows"
 					hx-swap="beforeend"
-					data-testid="chatagent-sessions-load-more">Load more</button>
+					data-testid="chatagent-sessions-load-more">{ i18n.T(ctx, "common.load_more") }</button>
 			</div>
 		}
 	} else if oob {
@@ -196,23 +198,23 @@ templ ChatAgentSessionLoadMore(nextCursor string, endpoints ChatAgentEndpoints, 
 	}
 }
 
-templ ChatAgentSessionListAppend(items []model.AgentSession, nextCursor string, endpoints ChatAgentEndpoints) {
-	for _, group := range GroupAgentSessionsForList(items, time.Now()) {
-		@ChatAgentSessionDayGroup(group, endpoints)
+templ ChatAgentSessionListAppend(ctx context.Context, items []model.AgentSession, nextCursor string, endpoints ChatAgentEndpoints) {
+	for _, group := range GroupAgentSessionsForList(ctx, items, time.Now()) {
+		@ChatAgentSessionDayGroup(ctx, group, endpoints)
 	}
-	@ChatAgentSessionLoadMore(nextCursor, endpoints, true)
+	@ChatAgentSessionLoadMore(ctx, nextCursor, endpoints, true)
 }
 
-templ ChatAgentSessionDayGroup(group model.AgentSessionDayGroup, endpoints ChatAgentEndpoints) {
+templ ChatAgentSessionDayGroup(ctx context.Context, group model.AgentSessionDayGroup, endpoints ChatAgentEndpoints) {
 	<section class="agents-session-day-group" data-testid={ "chatagent-session-day-" + group.Key }>
 		<h3 class="agents-session-day-label">{ group.Label }</h3>
 		for _, item := range group.Items {
-			@ChatAgentSessionRow(item, endpoints)
+			@ChatAgentSessionRow(ctx, item, endpoints)
 		}
 	</section>
 }
 
-templ ChatAgentSessionListFilters(endpoints ChatAgentEndpoints) {
+templ ChatAgentSessionListFilters(ctx context.Context, endpoints ChatAgentEndpoints) {
 	<div class="agents-session-filters join" data-testid="chatagent-session-filters">
 		<button
 			type="button"
@@ -220,14 +222,14 @@ templ ChatAgentSessionListFilters(endpoints ChatAgentEndpoints) {
 			hx-get={ templ.URL(ChatAgentSessionListURL(ChatAgentEndpoints{ListURL: endpoints.ListURL, Filter: ""}, "")) }
 			hx-target="#chatagent-session-list"
 			hx-swap="outerHTML"
-			data-testid="chatagent-filter-all">All</button>
+			data-testid="chatagent-filter-all">{ i18n.T(ctx, "common.all") }</button>
 		<button
 			type="button"
 			class={ "btn btn-xs join-item", templ.KV("btn-active", endpoints.Filter == "running") }
 			hx-get={ templ.URL(ChatAgentSessionListURL(ChatAgentEndpoints{ListURL: endpoints.ListURL, Filter: "running"}, "")) }
 			hx-target="#chatagent-session-list"
 			hx-swap="outerHTML"
-			data-testid="chatagent-filter-running">Running</button>
+			data-testid="chatagent-filter-running">{ i18n.T(ctx, "chatagent.state.running") }</button>
 		<button
 			type="button"
 			class={ "btn btn-xs join-item", templ.KV("btn-active", endpoints.Filter == "needs_approval") }
@@ -235,7 +237,7 @@ templ ChatAgentSessionListFilters(endpoints ChatAgentEndpoints) {
 			hx-target="#chatagent-session-list"
 			hx-swap="outerHTML"
 			data-testid="chatagent-filter-needs-approval">
-			Needs approval
+			{ i18n.T(ctx, "chatagent.filter.needs_approval") }
 			if endpoints.PendingApprovalCount > 0 {
 				@ApprovalCountBadge(endpoints.PendingApprovalCount)
 			}
@@ -246,45 +248,45 @@ templ ChatAgentSessionListFilters(endpoints ChatAgentEndpoints) {
 			hx-get={ templ.URL(ChatAgentSessionListURL(ChatAgentEndpoints{ListURL: endpoints.ListURL, Filter: "archived"}, "")) }
 			hx-target="#chatagent-session-list"
 			hx-swap="outerHTML"
-			data-testid="chatagent-filter-archived">Archived</button>
+			data-testid="chatagent-filter-archived">{ i18n.T(ctx, "chatagent.filter.archived") }</button>
 	</div>
 }
 
-templ ChatAgentSessionList(items []model.AgentSession, nextCursor string, endpoints ChatAgentEndpoints) {
+templ ChatAgentSessionList(ctx context.Context, items []model.AgentSession, nextCursor string, endpoints ChatAgentEndpoints) {
 	<div class="agents-session-list" id="chatagent-session-list" data-testid="chatagent-session-list">
 		<div class="agents-session-list-header">
-			<span class="agents-session-list-label">Your sessions</span>
+			<span class="agents-session-list-label">{ i18n.T(ctx, "chatagent.your_sessions") }</span>
 			<div class="agents-session-list-header-actions">
-				@ChatAgentSessionListFilters(endpoints)
+				@ChatAgentSessionListFilters(ctx, endpoints)
 				<button
 					hx-get={ templ.URL(ChatAgentSessionListURL(endpoints, "")) }
 					hx-target="#chatagent-session-list"
 					hx-swap="outerHTML"
 					class="btn btn-ghost btn-xs text-base-content/50"
 					data-testid="chatagent-sessions-refresh">
-					Refresh
+					{ i18n.T(ctx, "common.refresh") }
 					@HtmxIndicator()
 				</button>
 			</div>
 		</div>
 		<div id="chatagent-session-rows" class="agents-session-rows">
-			for _, group := range GroupAgentSessionsForList(items, time.Now()) {
-				@ChatAgentSessionDayGroup(group, endpoints)
+			for _, group := range GroupAgentSessionsForList(ctx, items, time.Now()) {
+				@ChatAgentSessionDayGroup(ctx, group, endpoints)
 			}
 			if len(items) == 0 {
 				<div id="chatagent-sessions-empty" class="agents-session-empty">
 					if endpoints.Filter == "archived" {
-						No archived sessions.
+						{ i18n.T(ctx, "chatagent.empty.archived") }
 					} else if endpoints.Filter == "running" {
-						No running sessions.
+						{ i18n.T(ctx, "chatagent.empty.running") }
 					} else if endpoints.Filter == "needs_approval" {
-						No sessions need approval.
+						{ i18n.T(ctx, "chatagent.empty.needs_approval") }
 					} else {
-						No sessions yet. Start one above.
+						{ i18n.T(ctx, "chatagent.empty.default") }
 					}
 				</div>
 			}
 		</div>
-		@ChatAgentSessionLoadMore(nextCursor, endpoints, false)
+		@ChatAgentSessionLoadMore(ctx, nextCursor, endpoints, false)
 	</div>
 }

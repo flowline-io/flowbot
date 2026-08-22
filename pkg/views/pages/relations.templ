@@ -3,7 +3,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -22,7 +23,7 @@ templ RelationsPage(ctx context.Context, p RelationsPageParams) {
 			<input
 				type="search"
 				name="q"
-				placeholder="Search by entity ID..."
+				placeholder={ i18n.T(ctx, "relations.search_placeholder") }
 				value={ p.Query }
 				class="input input-bordered w-64"
 				data-testid="relations-search"
@@ -40,7 +41,7 @@ templ RelationsPage(ctx context.Context, p RelationsPageParams) {
 				hx-target="#relations-tree"
 				hx-swap="innerHTML"
 			>
-				<option value="">All pipelines</option>
+				<option value="">{ i18n.T(ctx, "relations.filter.all_pipelines") }</option>
 			</select>
 			<select
 				name="since"
@@ -51,21 +52,21 @@ templ RelationsPage(ctx context.Context, p RelationsPageParams) {
 				hx-target="#relations-tree"
 				hx-swap="innerHTML"
 			>
-				<option value="">All time</option>
-				<option value="168h">Last 7 days</option>
-				<option value="720h">Last 30 days</option>
-				<option value="2160h">Last 90 days</option>
+				<option value="">{ i18n.T(ctx, "relations.filter.all_time") }</option>
+				<option value="168h">{ i18n.T(ctx, "relations.filter.last_7_days") }</option>
+				<option value="720h">{ i18n.T(ctx, "relations.filter.last_30_days") }</option>
+				<option value="2160h">{ i18n.T(ctx, "relations.filter.last_90_days") }</option>
 			</select>
 		</div>
 		<div id="relations-search-results" class="mb-6"></div>
 		<div class="flex gap-6">
 			<div class="w-2/3" id="relations-tree-container">
 				<div id="relations-tree">
-					@partials.EmptyState("Search for a resource entity ID to explore relations")
+					@partials.EmptyState(i18n.T(ctx, "relations.empty.search_hint"))
 				</div>
 			</div>
 			<div class="w-1/3" id="relations-detail" data-testid="relations-detail">
-				@partials.EmptyState("Select a node or edge to see details")
+				@partials.EmptyState(i18n.T(ctx, "relations.empty.select_hint"))
 			</div>
 		</div>
 	}

@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/version"
 )
@@ -17,7 +18,7 @@ type StepState struct {
 	Input     map[string]any `json:"input"`
 }
 
-// PipelineRunLiveParams holds all data for the live dashboard page.
+// PipelineRunLiveParams holds all data for the live run dashboard.
 type PipelineRunLiveParams struct {
 	RunID        int64
 	PipelineName string
@@ -32,18 +33,17 @@ templ PipelineRunLivePage(ctx context.Context, p PipelineRunLiveParams) {
 	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.live", map[string]any{"Name": p.PipelineName})) {
 		<script src={ "/static/js/pipeline-run-live.js?v=" + version.Buildtags }></script>
 		<div class="max-w-6xl mx-auto" x-data="pipelineRunLive" x-init="init()" data-testid="live-dashboard">
-			<!-- Header -->
 			<div class="flex items-center justify-between mb-4">
 				<div>
 					<h1 class="text-xl font-semibold text-base-content">
-						Live: <a href={ templ.URL("/service/web/pipelines/" + p.PipelineName) }
+						{ i18n.T(ctx, "pipeline.live.title_prefix") } <a href={ templ.URL("/service/web/pipelines/" + p.PipelineName) }
 							class="link link-hover text-primary">{ p.PipelineName }</a>
 					</h1>
-					<p class="text-sm text-base-content/60 mt-1">Trigger: { p.Trigger }</p>
+					<p class="text-sm text-base-content/60 mt-1">{ i18n.T(ctx, "pipeline.live.trigger") } { p.Trigger }</p>
 				</div>
 				<div class="flex items-center gap-4">
 					<span class="text-lg font-mono tabular-nums" x-text="formattedElapsed">0s</span>
-					<span class="badge" :class="runStatusClass()" x-text="runStatus" data-testid="run-status-badge">Running</span>
+					<span class="badge" :class="runStatusClass()" x-text="runStatus" data-testid="run-status-badge">{ i18n.T(ctx, "pipeline.live.running") }</span>
 				</div>
 			</div>
 			<div class="grid grid-cols-12 gap-4">
@@ -65,33 +65,33 @@ templ PipelineRunLivePage(ctx context.Context, p PipelineRunLiveParams) {
 						<div>
 							<h3 class="font-semibold mb-2" x-text="selectedStep.name" data-testid="detail-name"></h3>
 							<div class="space-y-2 text-sm">
-								<div><span class="text-base-content/60">Status: </span>
+								<div><span class="text-base-content/60">{ i18n.T(ctx, "pipeline.live.status") } </span>
 									<span x-text="selectedStep.status" data-testid="detail-status"></span></div>
-								<div x-show="selectedStep.elapsed_ms"><span class="text-base-content/60">Elapsed: </span>
+								<div x-show="selectedStep.elapsed_ms"><span class="text-base-content/60">{ i18n.T(ctx, "pipeline.live.elapsed") } </span>
 									<span x-text="formatStepElapsed(selectedStep.elapsed_ms)" data-testid="detail-elapsed"></span></div>
-								<div x-show="selectedStep.input"><span class="text-base-content/60">Input: </span>
+								<div x-show="selectedStep.input"><span class="text-base-content/60">{ i18n.T(ctx, "common.input") }: </span>
 									<pre class="text-xs bg-base-300 rounded p-2 mt-1 overflow-x-auto max-h-40"
 									     x-text="prettyJSON(selectedStep.input)" data-testid="detail-input"></pre></div>
-								<div x-show="selectedStep.output"><span class="text-base-content/60">Output: </span>
+								<div x-show="selectedStep.output"><span class="text-base-content/60">{ i18n.T(ctx, "common.output") }: </span>
 									<pre class="text-xs bg-base-300 rounded p-2 mt-1 overflow-x-auto max-h-40"
 									     x-text="prettyJSON(selectedStep.output)" data-testid="detail-output"></pre></div>
-								<div x-show="selectedStep.error"><span class="text-base-content/60">Error: </span>
+								<div x-show="selectedStep.error"><span class="text-base-content/60">{ i18n.T(ctx, "common.errors") }: </span>
 									<span class="text-error" x-text="selectedStep.error" data-testid="detail-error"></span></div>
 							</div>
 						</div>
 					</template>
 					<template x-if="!selectedStep">
-						<p class="text-base-content/60">Select a step to view details</p>
+						<p class="text-base-content/60">{ i18n.T(ctx, "pipeline.live.select_step") }</p>
 					</template>
 				</div>
 			</div>
 			<div class="mt-4 bg-base-200 rounded-box p-3 flex items-center gap-3 text-sm" data-testid="summary-bar">
-				<span x-text="completed + ' done'"></span>
+				<span><span x-text="completed"></span> { i18n.T(ctx, "pipeline.live.done") }</span>
 				<span class="text-base-content/40">|</span>
-				<span x-text="(steps.length - completed - failedSteps) + ' pending'"></span>
+				<span><span x-text="(steps.length - completed - failedSteps)"></span> { i18n.T(ctx, "pipeline.live.pending") }</span>
 				<span class="text-base-content/40">|</span>
-				<span x-show="failedSteps > 0" x-text="failedSteps + ' failed'" class="text-error"></span>
-				<span class="ml-auto">Steps: <span x-text="completed + '/' + steps.length" data-testid="summary-progress"></span></span>
+				<span x-show="failedSteps > 0"><span x-text="failedSteps"></span> { i18n.T(ctx, "pipeline.live.failed") }</span>
+				<span class="ml-auto">{ i18n.T(ctx, "pipeline.live.steps") } <span x-text="completed + '/' + steps.length" data-testid="summary-progress"></span></span>
 			</div>
 		</div>
 		@templ.JSONScript("initial-data", map[string]any{

@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -17,11 +18,11 @@ templ AgentKnowledgePage(ctx context.Context, items []model.AgentKnowledge, q st
 				hx-swap="outerHTML"
 				hx-trigger="submit, keyup changed delay:300ms from:input">
 				<input type="search" name="q" value={ q }
-					placeholder="Filter path or title"
+					placeholder={ i18n.T(ctx, "agent.knowledge.filter_placeholder") }
 					data-testid="agent-knowledge-filter"
 					class="input input-bordered input-sm w-48 md:w-64"/>
 				<button type="submit" data-testid="agent-knowledge-refresh" class="btn btn-ghost btn-sm">
-					Refresh
+					{ i18n.T(ctx, "common.refresh") }
 					@partials.HtmxIndicator()
 				</button>
 			</form>
@@ -30,7 +31,7 @@ templ AgentKnowledgePage(ctx context.Context, items []model.AgentKnowledge, q st
 				hx-swap="afterbegin"
 				data-testid="agent-knowledge-new"
 				class="btn btn-primary btn-sm">
-				New Document
+				{ i18n.T(ctx, "agent.knowledge.new_document") }
 			</button>
 		}
 		@partials.AgentKnowledgeTable(items, q)

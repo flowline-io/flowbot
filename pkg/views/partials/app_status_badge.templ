@@ -1,0 +1,23 @@
+package partials
+
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ AppStatusBadge(ctx context.Context, status homelab.AppStatus) {
+	switch status {
+	case homelab.AppStatusRunning:
+		<span class="flowbot-chip flowbot-chip-success" data-testid="status-badge">{ i18n.T(ctx, "status.online") }</span>
+	case homelab.AppStatusStopped:
+		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">{ i18n.T(ctx, "status.offline") }</span>
+	case homelab.AppStatusPartial:
+		<span class="flowbot-chip flowbot-chip-warning" data-testid="status-badge">{ i18n.T(ctx, "status.warning") }</span>
+	case homelab.AppStatusUnknown:
+		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">{ i18n.T(ctx, "status.unknown") }</span>
+	default:
+		<span class="flowbot-chip flowbot-chip-error" data-testid="status-badge">{ i18n.T(ctx, "status.error") }</span>
+	}
+}

@@ -54,12 +54,12 @@ func AgentsPage(ctx context.Context, items []model.AgentSession, nextCursor stri
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.ChatAgentComposer(endpoints, i18n.T(ctx, "page.agents.composer_placeholder"), !chatEnabled).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.ChatAgentComposer(ctx, endpoints, i18n.T(ctx, "page.agents.composer_placeholder"), !chatEnabled).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if chatEnabled {
-				templ_7745c5c3_Err = partials.ChatAgentSessionList(items, nextCursor, endpoints).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.ChatAgentSessionList(ctx, items, nextCursor, endpoints).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -119,7 +119,7 @@ func AgentChatPage(ctx context.Context, session model.AgentSession, messages []m
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.ChatAgentThread(session, messages, todos, endpoints, pending).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.ChatAgentThread(ctx, session, messages, todos, endpoints, pending).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

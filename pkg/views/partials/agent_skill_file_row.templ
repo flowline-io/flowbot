@@ -20,7 +20,7 @@ templ AgentSkillFileRow(ctx context.Context, skill model.AgentSkill, file model.
 				hx-swap="innerHTML"
 				data-testid="agent-skill-file-edit"
 				class="btn btn-ghost btn-xs text-primary">
-				Edit
+				{ i18n.T(ctx, "common.edit") }
 			</button>
 			<button type="button"
 				hx-delete={ agentSkillFileDeleteURL(skill, file) }
@@ -32,7 +32,7 @@ templ AgentSkillFileRow(ctx context.Context, skill model.AgentSkill, file model.
 				data-confirm-class="btn-error"
 				data-testid="agent-skill-file-delete"
 				class="btn btn-ghost btn-xs text-error">
-				Delete
+				{ i18n.T(ctx, "common.delete") }
 				@HtmxIndicator()
 			</button>
 		</div>

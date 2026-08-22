@@ -2,15 +2,17 @@ package pages
 
 import (
 	"context"
-	
+
 	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 templ HomelabDetailPage(ctx context.Context, app homelab.App, status homelab.AppStatus, version string, scannedAt string) {
 	@layout.Base(ctx, DocTitleLiteral(ctx, app.Name)) {
 		<div class="mb-4">
-			<a href="/service/web/homelab" class="btn btn-ghost btn-sm">← Back to Registry</a>
+			<a href="/service/web/homelab" class="btn btn-ghost btn-sm">{ i18n.T(ctx, "common.back_to_registry") }</a>
 		</div>
 		<div class="flowbot-surface mb-6">
 			<div class="p-6">
@@ -27,31 +29,31 @@ templ HomelabDetailPage(ctx context.Context, app homelab.App, status homelab.App
 					<div>
 						<h1 class="text-2xl font-semibold tracking-tight m-0">{ app.Name }</h1>
 						<div class="flex items-center gap-2 mt-1">
-							@HomelabDetailStatusBadge(status)
-							<span class="text-sm text-base-content/50">Health: { string(app.Health) }</span>
+							@partials.AppStatusBadge(ctx, status)
+							<span class="text-sm text-base-content/50">{ i18n.T(ctx, "homelab.detail.health") } { string(app.Health) }</span>
 						</div>
 					</div>
 				</div>
 				<div class="grid grid-cols-2 gap-2 text-sm text-base-content/70 mb-4">
 					<div>
-						<span class="text-base-content/50">Path:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "homelab.detail.path") }</span>
 						<code class="text-xs">{ app.Path }</code>
 					</div>
 					if app.ComposeFile != "" {
 						<div>
-							<span class="text-base-content/50">Compose:</span>
+							<span class="text-base-content/50">{ i18n.T(ctx, "homelab.detail.compose") }</span>
 							<code class="text-xs">{ app.ComposeFile }</code>
 						</div>
 					}
 					if version != "" {
 						<div>
-							<span class="text-base-content/50">Version:</span>
+							<span class="text-base-content/50">{ i18n.T(ctx, "homelab.detail.version") }</span>
 							<span class="text-xs font-mono">{ version }</span>
 						</div>
 					}
 					if scannedAt != "" {
 						<div>
-							<span class="text-base-content/50">Last Discovered:</span>
+							<span class="text-base-content/50">{ i18n.T(ctx, "homelab.detail.last_discovered") }</span>
 							<span>{ scannedAt }</span>
 						</div>
 					}
@@ -61,15 +63,15 @@ templ HomelabDetailPage(ctx context.Context, app homelab.App, status homelab.App
 		if len(app.Services) > 0 {
 			<div class="flowbot-surface mb-6">
 				<div class="p-6">
-					<h2 class="text-lg font-semibold tracking-tight mb-2">Services</h2>
+					<h2 class="text-lg font-semibold tracking-tight mb-2">{ i18n.T(ctx, "homelab.detail.services") }</h2>
 					<div class="overflow-x-auto">
 						<table class="table table-xs">
 							<thead>
 								<tr>
-									<th>Service</th>
-									<th>Image</th>
-									<th>Container</th>
-									<th>Ports</th>
+									<th>{ i18n.T(ctx, "table.col.service") }</th>
+									<th>{ i18n.T(ctx, "table.col.image") }</th>
+									<th>{ i18n.T(ctx, "table.col.container") }</th>
+									<th>{ i18n.T(ctx, "table.col.ports") }</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -106,16 +108,16 @@ templ HomelabDetailPage(ctx context.Context, app homelab.App, status homelab.App
 		if len(app.Capabilities) > 0 {
 			<div class="flowbot-surface mb-6">
 				<div class="p-6">
-					<h2 class="text-lg font-semibold tracking-tight mb-2">Exposed Endpoints</h2>
+					<h2 class="text-lg font-semibold tracking-tight mb-2">{ i18n.T(ctx, "homelab.detail.exposed_endpoints") }</h2>
 					<div class="overflow-x-auto">
 						<table class="table table-xs">
 							<thead>
 								<tr>
-									<th>Capability</th>
-									<th>Provider</th>
-									<th>Base URL</th>
-									<th>Auth</th>
-									<th>Health</th>
+									<th>{ i18n.T(ctx, "healthz.col.capability") }</th>
+									<th>{ i18n.T(ctx, "table.col.provider") }</th>
+									<th>{ i18n.T(ctx, "table.col.base_url") }</th>
+									<th>{ i18n.T(ctx, "table.col.auth") }</th>
+									<th>{ i18n.T(ctx, "healthz.col.status") }</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -156,20 +158,5 @@ templ HomelabDetailPage(ctx context.Context, app homelab.App, status homelab.App
 				</div>
 			</div>
 		}
-	}
-}
-
-templ HomelabDetailStatusBadge(status homelab.AppStatus) {
-	switch status {
-	case homelab.AppStatusRunning:
-		<span class="flowbot-chip flowbot-chip-success" data-testid="status-badge">online</span>
-	case homelab.AppStatusStopped:
-		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">offline</span>
-	case homelab.AppStatusPartial:
-		<span class="flowbot-chip flowbot-chip-warning" data-testid="status-badge">warning</span>
-	case homelab.AppStatusUnknown:
-		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">unknown</span>
-	default:
-		<span class="flowbot-chip flowbot-chip-error" data-testid="status-badge">error</span>
 	}
 }

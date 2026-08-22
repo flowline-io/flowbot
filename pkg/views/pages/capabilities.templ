@@ -2,8 +2,9 @@ package pages
 
 import (
 	"context"
-	
+
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -21,7 +22,7 @@ templ CapabilitiesPage(ctx context.Context, descriptors []hub.Descriptor, types 
 				hx-include="[name='provider']"
 				data-testid="capability-type-filter"
 				class="select select-bordered select-sm">
-				<option value="">All Types</option>
+				<option value="">{ i18n.T(ctx, "page.capabilities.all_types") }</option>
 				for _, t := range types {
 					<option value={ t }>{ t }</option>
 				}
@@ -34,12 +35,12 @@ templ CapabilitiesPage(ctx context.Context, descriptors []hub.Descriptor, types 
 				hx-include="[name='type']"
 				data-testid="capability-provider-filter"
 				class="select select-bordered select-sm">
-				<option value="">All Providers</option>
+				<option value="">{ i18n.T(ctx, "page.capabilities.all_providers") }</option>
 				for _, p := range providers {
 					<option value={ p }>{ p }</option>
 				}
 			</select>
 		</div>
-		@partials.CapabilityGrid(descriptors, false)
+		@partials.CapabilityGrid(ctx, descriptors, false)
 	}
 }

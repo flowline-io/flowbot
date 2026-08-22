@@ -137,10 +137,7 @@
       resultsEl.innerHTML =
         '<p class="flowbot-command-palette-empty" data-testid="command-palette-empty">' +
         escapeHTML(
-          flowbotI18n(
-            'client.command_palette.empty',
-            'No matching results',
-          ),
+          flowbotI18n('client.command_palette.empty', 'No matching results'),
         ) +
         '</p>';
       activeIndex = 0;

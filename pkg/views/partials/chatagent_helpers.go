@@ -1,12 +1,14 @@
 package partials
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -131,7 +133,7 @@ func ChatAgentSessionActivityLabel(activity string) string {
 }
 
 // GroupAgentSessionsForList builds pinned + calendar-day buckets for the agents home list.
-func GroupAgentSessionsForList(items []model.AgentSession, now time.Time) []model.AgentSessionDayGroup {
+func GroupAgentSessionsForList(ctx context.Context, items []model.AgentSession, now time.Time) []model.AgentSessionDayGroup {
 	if len(items) == 0 {
 		return nil
 	}
@@ -148,17 +150,17 @@ func GroupAgentSessionsForList(items []model.AgentSession, now time.Time) []mode
 	if len(pinned) > 0 {
 		groups = append(groups, model.AgentSessionDayGroup{
 			Key:   "pinned",
-			Label: "Pinned",
+			Label: i18n.T(ctx, "chatagent.day.pinned"),
 			Items: pinned,
 		})
 	}
-	groups = append(groups, GroupAgentSessionsByDay(rest, now)...)
+	groups = append(groups, GroupAgentSessionsByDay(ctx, rest, now)...)
 	return groups
 }
 
 // GroupAgentSessionsByDay buckets sessions by local calendar day of UpdatedAt.
 // Input order is preserved within each day group.
-func GroupAgentSessionsByDay(items []model.AgentSession, now time.Time) []model.AgentSessionDayGroup {
+func GroupAgentSessionsByDay(ctx context.Context, items []model.AgentSession, now time.Time) []model.AgentSessionDayGroup {
 	if len(items) == 0 {
 		return nil
 	}
@@ -179,10 +181,10 @@ func GroupAgentSessionsByDay(items []model.AgentSession, now time.Time) []model.
 		switch {
 		case day.Equal(today):
 			key = "today"
-			label = "Today"
+			label = i18n.T(ctx, "chatagent.day.today")
 		case day.Equal(yesterday):
 			key = "yesterday"
-			label = "Yesterday"
+			label = i18n.T(ctx, "chatagent.day.yesterday")
 		default:
 			label = day.Format("Mon, Jan 2")
 		}

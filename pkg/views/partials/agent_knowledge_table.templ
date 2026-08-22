@@ -1,6 +1,9 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
 
 templ AgentKnowledgeTable(items []model.AgentKnowledge, q string) {
 	<div class="flowbot-surface" id="agent-knowledge-table" data-testid="agent-knowledge-table">
@@ -8,12 +11,12 @@ templ AgentKnowledgeTable(items []model.AgentKnowledge, q string) {
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs text-base-content/55">Path</th>
-					<th class="text-xs text-base-content/55">Title</th>
-					<th class="text-xs text-base-content/55">Tags</th>
-					<th class="text-xs text-base-content/55">Summary</th>
-					<th class="text-xs text-base-content/55">Updated</th>
-					<th class="text-xs text-base-content/55">Actions</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.path") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.title") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.tags") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.summary") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.updated") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="agent-knowledge-rows">
@@ -24,12 +27,12 @@ templ AgentKnowledgeTable(items []model.AgentKnowledge, q string) {
 					<tr id="agent-knowledge-empty">
 						<td colspan="6" class="p-0">
 							@EmptyStateHXCTA(
-								"No knowledge documents yet",
-								"Add markdown docs for the agent to search and read.",
+								i18n.T(ctx, "table.empty.knowledge"),
+								i18n.T(ctx, "table.empty.knowledge_detail"),
 								"/service/web/agent-knowledge/new",
 								"#agent-knowledge-rows",
 								"afterbegin",
-								"Create document",
+								i18n.T(ctx, "table.empty.knowledge_cta"),
 							)
 						</td>
 					</tr>

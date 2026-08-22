@@ -1,5 +1,9 @@
 package partials
 
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
 templ AgentMemoryModal() {
 	<div
 		x-show="memoryModalOpen"
@@ -7,22 +11,22 @@ templ AgentMemoryModal() {
 		class="fixed inset-0 z-60 flex items-center justify-center p-4"
 		data-testid="agent-memory-modal">
 		<div class="absolute inset-0 bg-black/30" @click="closeMemoryModal"></div>
-		<div class="relative bg-base-100 rounded-box shadow-sm w-full max-w-lg border border-base-300" role="dialog" aria-label="Memory Facts">
+		<div class="relative bg-base-100 rounded-box shadow-sm w-full max-w-lg border border-base-300" role="dialog" aria-label={ i18n.T(ctx, "agent.memory.title") }>
 			<div class="flex items-start justify-between px-5 pt-5 pb-3 border-b border-base-300">
 				<div>
-					<h3 class="text-lg font-semibold text-base-content">Memory Facts</h3>
-					<p class="text-sm text-base-content/60">Correct existing facts for this pipeline memory scope</p>
+					<h3 class="text-lg font-semibold text-base-content">{ i18n.T(ctx, "agent.memory.title") }</h3>
+					<p class="text-sm text-base-content/60">{ i18n.T(ctx, "agent.memory.subtitle") }</p>
 				</div>
-				<button type="button" class="btn btn-ghost btn-sm btn-circle" @click="closeMemoryModal" aria-label="Close memory facts" data-testid="agent-memory-close">&times;</button>
+				<button type="button" class="btn btn-ghost btn-sm btn-circle" @click="closeMemoryModal" aria-label={ i18n.T(ctx, "agent.memory.close_aria") } data-testid="agent-memory-close">&times;</button>
 			</div>
 			<div class="px-5 py-4 space-y-4">
 				<template x-if="memoryKeys.length === 0">
-					<p class="text-sm text-base-content/60" data-testid="agent-memory-empty">No facts yet. Create them with the memory_set tool.</p>
+					<p class="text-sm text-base-content/60" data-testid="agent-memory-empty">{ i18n.T(ctx, "agent.memory.empty") }</p>
 				</template>
 				<template x-if="memoryKeys.length > 0">
 					<div class="space-y-4">
 						<label class="form-control w-full">
-							<span class="label-text mb-1">Key</span>
+							<span class="label-text mb-1">{ i18n.T(ctx, "agent.memory.key") }</span>
 							<select class="select select-bordered select-sm w-full"
 								x-model="memorySelectedKey"
 								@change="loadMemoryFact()"
@@ -33,27 +37,27 @@ templ AgentMemoryModal() {
 							</select>
 						</label>
 						<label class="form-control w-full">
-							<span class="label-text mb-1">Value</span>
+							<span class="label-text mb-1">{ i18n.T(ctx, "agent.memory.value") }</span>
 							<textarea class="textarea textarea-bordered w-full h-32 font-mono text-sm"
 								x-model="memoryContent"
 								data-testid="agent-memory-content"></textarea>
 						</label>
 						<label class="label cursor-pointer justify-start gap-2">
 							<input type="checkbox" class="checkbox checkbox-sm" x-model="memoryPinned" data-testid="agent-memory-pinned"/>
-							<span class="label-text">Pinned for auto-inject</span>
+							<span class="label-text">{ i18n.T(ctx, "agent.memory.pinned") }</span>
 						</label>
 					</div>
 				</template>
 				<p class="text-sm text-error hidden" :class="{ 'hidden': !memoryError, 'block': memoryError }" x-text="memoryError" data-testid="agent-memory-error"></p>
 			</div>
 			<div class="flex justify-end gap-2 px-5 py-4 border-t border-base-300">
-				<button type="button" class="btn btn-ghost btn-sm" @click="closeMemoryModal" data-testid="agent-memory-cancel">Cancel</button>
+				<button type="button" class="btn btn-ghost btn-sm" @click="closeMemoryModal" data-testid="agent-memory-cancel">{ i18n.T(ctx, "common.cancel") }</button>
 				<button type="button" class="btn btn-ghost btn-sm text-error" @click="deleteMemoryFact()" :disabled="memorySaving || !memorySelectedKey" data-testid="agent-memory-delete">
-					Delete
+					{ i18n.T(ctx, "common.delete") }
 				</button>
 				<button type="button" class="btn btn-primary btn-sm" @click="saveMemoryFact()" :disabled="memorySaving || !memorySelectedKey" data-testid="agent-memory-save">
-					<span x-show="!memorySaving">Save</span>
-					<span x-show="memorySaving">Saving…</span>
+					<span x-show="!memorySaving">{ i18n.T(ctx, "common.save") }</span>
+					<span x-show="memorySaving">{ i18n.T(ctx, "agent.memory.saving") }</span>
 				</button>
 			</div>
 		</div>

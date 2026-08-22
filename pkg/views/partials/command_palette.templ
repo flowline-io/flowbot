@@ -1,6 +1,10 @@
 package partials
 
-import "context"
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
 
 templ CommandPalette(ctx context.Context) {
 	<dialog id="command-palette" class="modal flowbot-command-palette" data-testid="command-palette">
@@ -11,11 +15,11 @@ templ CommandPalette(ctx context.Context) {
 					id="command-palette-input"
 					type="search"
 					class="flowbot-command-palette-input"
-					placeholder="Search pages, pipelines, sessions, homelab…"
+					placeholder={ i18n.T(ctx, "client.command_palette.placeholder") }
 					autocomplete="off"
 					spellcheck="false"
 					data-testid="command-palette-input"
-					aria-label="Command palette search"
+					aria-label={ i18n.T(ctx, "command_palette.search_aria") }
 				/>
 				<kbd class="flowbot-command-palette-kbd flowbot-command-palette-kbd-esc hidden sm:inline-flex" data-testid="command-palette-esc-hint">esc</kbd>
 			</div>
@@ -24,16 +28,16 @@ templ CommandPalette(ctx context.Context) {
 				class="flowbot-command-palette-results"
 				data-testid="command-palette-results"
 				role="listbox"
-				aria-label="Command palette results"
+				aria-label={ i18n.T(ctx, "command_palette.results_aria") }
 			></div>
 			<div class="flowbot-command-palette-footer">
-				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">↑</kbd><kbd class="flowbot-command-palette-kbd">↓</kbd><span>navigate</span></span>
-				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">↵</kbd><span>open</span></span>
-				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">esc</kbd><span>close</span></span>
+				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">↑</kbd><kbd class="flowbot-command-palette-kbd">↓</kbd><span>{ i18n.T(ctx, "command_palette.navigate") }</span></span>
+				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">↵</kbd><span>{ i18n.T(ctx, "command_palette.open") }</span></span>
+				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">esc</kbd><span>{ i18n.T(ctx, "command_palette.close_hint") }</span></span>
 			</div>
 		</div>
 		<form method="dialog" class="modal-backdrop">
-			<button type="submit" data-testid="command-palette-backdrop">close</button>
+			<button type="submit" data-testid="command-palette-backdrop">{ i18n.T(ctx, "common.close") }</button>
 		</form>
 	</dialog>
 	@templ.JSONScript("command-palette-pages", CommandPaletteNavPages(ctx))

@@ -132,7 +132,7 @@ func createPipeline(c fiber.Ctx) error {
 	if err := s.CreateDefinition(context.Background(), name, description, getUID(c)); err != nil {
 		if errors.Is(err, types.ErrAlreadyExists) {
 			c.Status(fiber.StatusUnprocessableEntity)
-			return renderFormError(c, "#form-error", fmt.Sprintf("Pipeline %q already exists.", name))
+			return renderFormError(c, "#form-error", webMsgData(c, "error.pipeline.already_exists", map[string]any{"Name": name}))
 		}
 		return types.Errorf(types.ErrInternal, "create pipeline: %v", err)
 	}
@@ -761,7 +761,7 @@ func pipelineStats(c fiber.Ctx) error {
 		return c.JSON(stats)
 	}
 	c.Type("html")
-	return partials.PipelineStats(name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineStats(c.Context(), name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // stepRunStatusLabel converts an ent PipelineStepRun status int to a display string.

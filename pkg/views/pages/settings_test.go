@@ -1,9 +1,11 @@
 package pages
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -67,7 +69,7 @@ func TestNewSettingsPageData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			data := NewSettingsPageData(tt.groups)
+			data := NewSettingsPageData(i18n.DefaultContext(), tt.groups)
 			require.Len(t, data.Sections, len(tt.wantTitles))
 			for i, title := range tt.wantTitles {
 				assert.Equal(t, title, data.Sections[i].Title)
@@ -81,8 +83,34 @@ func TestNewSettingsPageData(t *testing.T) {
 	}
 }
 
+func TestTDefaultSettingsDesc(t *testing.T) {
+	t.Parallel()
+	ctx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
+	got := i18n.TDefault(ctx, "settings.desc.listen", "English listen doc")
+	assert.NotEqual(t, "English listen doc", got)
+	assert.NotEmpty(t, got)
+}
+
+func TestNewSettingsPageDataLocalizedDescription(t *testing.T) {
+	t.Parallel()
+	ctx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
+	groups := []config.SettingGroup{{
+		Name: "root",
+		Entries: []config.SettingEntry{{
+			Path:        "listen",
+			Value:       ":80",
+			Description: "HTTP(S) address fallback english",
+		}},
+	}}
+	data := NewSettingsPageData(ctx, groups)
+	require.Len(t, data.Sections, 1)
+	require.Len(t, data.Sections[0].Entries, 1)
+	assert.NotEqual(t, "HTTP(S) address fallback english", data.Sections[0].Entries[0].Description)
+}
+
 func TestSettingsGroupTitle(t *testing.T) {
 	t.Parallel()
+	ctx := i18n.DefaultContext()
 	tests := []struct {
 		in, want string
 	}{
@@ -94,7 +122,7 @@ func TestSettingsGroupTitle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.want, settingsGroupTitle(tt.in))
+			assert.Equal(t, tt.want, settingsGroupTitle(ctx, tt.in))
 		})
 	}
 }

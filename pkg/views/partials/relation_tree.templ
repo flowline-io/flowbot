@@ -1,6 +1,11 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types"
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types"
+)
 
 type RelationTreeParams struct {
 	Node       types.ResourceRef
@@ -8,12 +13,12 @@ type RelationTreeParams struct {
 	Downstream []types.ResourceEdge
 }
 
-templ RelationTree(p RelationTreeParams) {
+templ RelationTree(ctx context.Context, p RelationTreeParams) {
 	<div data-testid="relations-tree">
 		<input type="hidden" name="node" value={ p.Node.App + "|" + p.Node.Capability + "|" + p.Node.EntityID } />
-		<div class="text-sm text-base-content/60 mb-2">Upstream</div>
+		<div class="text-sm text-base-content/60 mb-2">{ i18n.T(ctx, "relation.upstream") }</div>
 		if len(p.Upstream) == 0 {
-			<div class="text-xs text-base-content/40 pl-4 mb-3">None</div>
+			<div class="text-xs text-base-content/40 pl-4 mb-3">{ i18n.T(ctx, "common.none") }</div>
 		}
 		for _, edge := range p.Upstream {
 			<div class="pl-2">
@@ -33,9 +38,9 @@ templ RelationTree(p RelationTreeParams) {
 				</div>
 			</div>
 		</div>
-		<div class="text-sm text-base-content/60 mb-2">Downstream</div>
+		<div class="text-sm text-base-content/60 mb-2">{ i18n.T(ctx, "relation.downstream") }</div>
 		if len(p.Downstream) == 0 {
-			<div class="text-xs text-base-content/40 pl-4 mb-3">None</div>
+			<div class="text-xs text-base-content/40 pl-4 mb-3">{ i18n.T(ctx, "common.none") }</div>
 		}
 		for _, edge := range p.Downstream {
 			<div class="pl-2">
@@ -49,7 +54,7 @@ templ RelationTree(p RelationTreeParams) {
 		}
 	</div>
 	<div id="relations-detail-parent" hx-swap-oob="innerHTML:#relations-detail">
-		@RelationDetail(RelationDetailParams{
+		@RelationDetail(ctx, RelationDetailParams{
 			Type: "node",
 			Node: p.Node,
 		})

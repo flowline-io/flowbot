@@ -63,15 +63,15 @@ func accountChangePassword(ctx fiber.Ctx) error {
 	ws := store.WebAccountStoreFromDB()
 	account, err := ws.GetByUsername(context.Background(), username)
 	if err != nil || account == nil || !webauth.CheckPassword(account.PasswordHash, current) {
-		return renderAccountSecurity(ctx, "", "Current password is incorrect")
+		return renderAccountSecurity(ctx, "", webMsg(ctx, "error.account.current_password_incorrect"))
 	}
 	hash, err := webauth.HashPassword(newPass)
 	if err != nil {
-		return renderAccountSecurity(ctx, "", "Internal error")
+		return renderAccountSecurity(ctx, "", webMsg(ctx, "error.account.internal"))
 	}
 	if err := ws.UpdatePasswordHash(context.Background(), username, hash); err != nil {
 		flog.Error(fmt.Errorf("update password: %w", err))
-		return renderAccountSecurity(ctx, "", "Internal error")
+		return renderAccountSecurity(ctx, "", webMsg(ctx, "error.account.internal"))
 	}
 	if _, err := ws.DeleteWebSessionsForUID(context.Background(), account.UID); err != nil {
 		flog.Error(fmt.Errorf("revoke sessions after password change: %w", err))
@@ -92,22 +92,22 @@ func accountRegenBackupCodes(ctx fiber.Ctx) error {
 	ws := store.WebAccountStoreFromDB()
 	account, err := ws.GetByUsername(context.Background(), username)
 	if err != nil || account == nil || !webauth.CheckPassword(account.PasswordHash, password) {
-		return renderAccountSecurity(ctx, "", "Password is incorrect")
+		return renderAccountSecurity(ctx, "", webMsg(ctx, "error.account.password_incorrect"))
 	}
 	if !account.TotpEnabled {
-		return renderAccountSecurity(ctx, "", "Enable two-factor authentication first")
+		return renderAccountSecurity(ctx, "", webMsg(ctx, "error.account.enable_2fa_first"))
 	}
 	enc := getEncryptor()
 	if enc == nil {
-		return renderAccountSecurity(ctx, "", "Internal error")
+		return renderAccountSecurity(ctx, "", webMsg(ctx, "error.account.internal"))
 	}
 	codes, hashes, err := enc.GenerateBackupCodes(webauth.BackupCodeCount)
 	if err != nil {
-		return renderAccountSecurity(ctx, "", "Internal error")
+		return renderAccountSecurity(ctx, "", webMsg(ctx, "error.account.internal"))
 	}
 	if err := ws.SetBackupCodeHashes(context.Background(), username, hashes); err != nil {
 		flog.Error(fmt.Errorf("regen backup codes: %w", err))
-		return renderAccountSecurity(ctx, "", "Internal error")
+		return renderAccountSecurity(ctx, "", webMsg(ctx, "error.account.internal"))
 	}
 	if _, err := ws.DeleteWebSessionsForUID(context.Background(), account.UID); err != nil {
 		flog.Error(fmt.Errorf("revoke sessions after backup regen: %w", err))

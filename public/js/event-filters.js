@@ -165,7 +165,9 @@
       },
 
       saveCurrentFilter() {
-        var name = window.prompt('Filter name');
+        var name = window.prompt(
+          flowbotI18n('client.event_filters.prompt_name', 'Filter name'),
+        );
         if (!name) {
           return;
         }

@@ -1,10 +1,11 @@
 package partials
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 )
 
 // InboxItem is a view model for one inbox row.
@@ -39,8 +40,8 @@ templ InboxCountBadge(count int) {
 		<span
 			class="flowbot-chip flowbot-chip-warning ml-1 tabular-nums"
 			data-testid="inbox-count-badge"
-			title={ fmt.Sprintf("%d unread", count) }
-			aria-label={ fmt.Sprintf("%d unread inbox messages", count) }>
+			title={ i18n.TData(ctx, "inbox.unread_count_title", map[string]any{"Count": count}) }
+			aria-label={ i18n.TData(ctx, "inbox.unread_count_aria", map[string]any{"Count": count}) }>
 			{ strconv.Itoa(count) }
 		</span>
 	} else {
@@ -56,16 +57,16 @@ templ InboxList(p InboxListParams) {
 				hx-get={ templ.URL(InboxListURL("unread")) }
 				hx-target="#inbox-list"
 				hx-swap="outerHTML"
-				data-testid="inbox-filter-unread">Unread</a>
+				data-testid="inbox-filter-unread">{ i18n.T(ctx, "inbox.filter.unread") }</a>
 			<a class={ "btn btn-sm", templ.KV("btn-primary", p.Filter == "all") }
 				href={ templ.URL(InboxListURL("all")) }
 				hx-get={ templ.URL(InboxListURL("all")) }
 				hx-target="#inbox-list"
 				hx-swap="outerHTML"
-				data-testid="inbox-filter-all">All</a>
+				data-testid="inbox-filter-all">{ i18n.T(ctx, "common.all") }</a>
 		</div>
 		if len(p.Items) == 0 {
-			@EmptyState("No messages")
+			@EmptyState(i18n.T(ctx, "inbox.empty"))
 		} else {
 			<ul class="flowbot-surface divide-y divide-base-300" data-testid="inbox-items">
 				for _, item := range p.Items {
@@ -95,7 +96,7 @@ templ InboxList(p InboxListParams) {
 				hx-get={ templ.URL(InboxListURL(p.Filter) + "&cursor=" + url.QueryEscape(p.Cursor)) }
 				hx-target="#inbox-list"
 				hx-swap="outerHTML"
-				data-testid="inbox-load-more">Load more</button>
+				data-testid="inbox-load-more">{ i18n.T(ctx, "common.load_more") }</button>
 		}
 	</div>
 }
@@ -111,7 +112,7 @@ templ inboxItemBody(item InboxItem) {
 		<div class="shrink-0 text-xs text-base-content/50 tabular-nums">
 			{ item.CreatedAt.Local().Format("Jan 2 15:04") }
 			if item.Unread {
-				<span class="flowbot-chip flowbot-chip-warning ml-2">Unread</span>
+				<span class="flowbot-chip flowbot-chip-warning ml-2">{ i18n.T(ctx, "inbox.unread_label") }</span>
 			}
 		</div>
 	</div>

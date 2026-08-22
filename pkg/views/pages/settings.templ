@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -13,7 +14,7 @@ templ SettingsPage(ctx context.Context, data SettingsPageData) {
 		@partials.PageHeader(ctx, "nav.settings", "page.settings.subtitle")
 		<div class="flowbot-settings" x-data="tableFilter" data-testid="settings-page">
 			<div class="flowbot-surface flowbot-settings-toolbar">
-				@partials.TableFilterBar("Search by key, value, or description…", "settings-table-filter")
+				@partials.TableFilterBar(i18n.T(ctx, "page.settings.search"), "settings-table-filter")
 			</div>
 			<div class="flowbot-settings-groups">
 				for _, section := range data.Sections {
@@ -23,15 +24,15 @@ templ SettingsPage(ctx context.Context, data SettingsPageData) {
 						x-show="groupVisible($el)">
 						<header class="flowbot-settings-group-head">
 							<h2 class="flowbot-settings-group-title">{ section.Title }</h2>
-							<span class="flowbot-settings-group-meta">{ settingsSectionCount(section) }</span>
+							<span class="flowbot-settings-group-meta">{ settingsSectionCount(ctx, section) }</span>
 						</header>
 						<div class="flowbot-settings-table-wrap">
 							<table class="table flowbot-settings-table">
 								<thead>
 									<tr>
-										<th scope="col">Key</th>
-										<th scope="col">Value</th>
-										<th scope="col">Description</th>
+										<th scope="col">{ i18n.T(ctx, "table.col.key") }</th>
+										<th scope="col">{ i18n.T(ctx, "table.col.value") }</th>
+										<th scope="col">{ i18n.T(ctx, "table.col.description") }</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -46,7 +47,7 @@ templ SettingsPage(ctx context.Context, data SettingsPageData) {
 											<td class="flowbot-settings-value">
 												switch row.ValueKind {
 													case SettingsValueSecret:
-														<span class="flowbot-settings-secret" title="Redacted">{ row.Value }</span>
+														<span class="flowbot-settings-secret" title={ i18n.T(ctx, "page.settings.redacted") }>{ row.Value }</span>
 													case SettingsValueEmpty:
 														<span class="flowbot-settings-empty">{ row.Value }</span>
 													case SettingsValueCode:

@@ -1,9 +1,9 @@
 package pages_test
 
 import (
-	"github.com/flowline-io/flowbot/pkg/i18n"
 	"bytes"
 	"context"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"strings"
 	"testing"
 

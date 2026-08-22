@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"context"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -65,7 +66,16 @@ func AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) templ.
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex gap-2\" x-show=\"tab === 'subagents'\"><button hx-get=\"/service/web/agent-subagents/list\" hx-target=\"#agent-subagents-table\" hx-swap=\"outerHTML\" data-testid=\"agent-subagents-refresh\" class=\"btn btn-ghost btn-sm\">Refresh")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex gap-2\" x-show=\"tab === 'subagents'\"><button hx-get=\"/service/web/agent-subagents/list\" hx-target=\"#agent-subagents-table\" hx-swap=\"outerHTML\" data-testid=\"agent-subagents-refresh\" class=\"btn btn-ghost btn-sm\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.refresh"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_subagents.templ`, Line: 22, Col: 37}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -73,7 +83,29 @@ func AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) templ.
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button> <button hx-get=\"/service/web/agent-subagents/new\" hx-target=\"#agent-subagents-rows\" hx-swap=\"afterbegin\" data-testid=\"agent-subagents-new\" class=\"btn btn-primary btn-sm\">New Subagent</button></div><div class=\"flex gap-2\" x-show=\"tab === 'tasks'\" x-cloak><button hx-get=\"/service/web/agent-subagents/tasks\" hx-target=\"#agent-subagent-tasks-panel\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-tasks-refresh\" class=\"btn btn-ghost btn-sm\">Refresh")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button> <button hx-get=\"/service/web/agent-subagents/new\" hx-target=\"#agent-subagents-rows\" hx-swap=\"afterbegin\" data-testid=\"agent-subagents-new\" class=\"btn btn-primary btn-sm\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "btn.new_subagent"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_subagents.templ`, Line: 30, Col: 39}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button></div><div class=\"flex gap-2\" x-show=\"tab === 'tasks'\" x-cloak><button hx-get=\"/service/web/agent-subagents/tasks\" hx-target=\"#agent-subagent-tasks-panel\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-tasks-refresh\" class=\"btn btn-ghost btn-sm\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.refresh"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_subagents.templ`, Line: 39, Col: 37}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -81,7 +113,7 @@ func AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) templ.
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</button></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -91,7 +123,33 @@ func AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) templ.
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div role=\"tablist\" class=\"tabs tabs-bordered mb-6\"><button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'subagents' ? 'tab-active' : ''\" x-on:click=\"tab = 'subagents'\" data-testid=\"agent-subagents-tab-subagents\">Subagents</button> <button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'tasks' ? 'tab-active' : ''\" x-on:click=\"tab = 'tasks'\" data-testid=\"agent-subagents-tab-tasks\">Tasks</button></div><div x-show=\"tab === 'subagents'\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div role=\"tablist\" class=\"tabs tabs-bordered mb-6\"><button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'subagents' ? 'tab-active' : ''\" x-on:click=\"tab = 'subagents'\" data-testid=\"agent-subagents-tab-subagents\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.subagents.tab_subagents"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_subagents.templ`, Line: 50, Col: 50}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</button> <button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'tasks' ? 'tab-active' : ''\" x-on:click=\"tab = 'tasks'\" data-testid=\"agent-subagents-tab-tasks\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var8 string
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.subagents.tab_tasks"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_subagents.templ`, Line: 57, Col: 46}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</button></div><div x-show=\"tab === 'subagents'\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -99,15 +157,15 @@ func AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) templ.
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div x-show=\"tab === 'tasks'\" id=\"agent-subagent-tasks-panel\" hx-get=\"/service/web/agent-subagents/tasks\" hx-trigger=\"revealed\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-tasks-panel\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div x-show=\"tab === 'tasks'\" id=\"agent-subagent-tasks-panel\" hx-get=\"/service/web/agent-subagents/tasks\" hx-trigger=\"revealed\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-tasks-panel\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.PanelSkeleton(ctx).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

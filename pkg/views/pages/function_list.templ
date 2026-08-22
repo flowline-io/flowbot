@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -16,11 +17,11 @@ templ FunctionListPage(ctx context.Context, entries []partials.FunctionListEntry
 					onclick="document.getElementById('create-modal').showModal()"
 					data-testid="btn-new-function"
 					class="btn btn-primary">
-					+ New Function
+					{ i18n.T(ctx, "function.create.new_btn") }
 				</button>
 			}
 			<div hx-get={ partials.FunctionStatsURL("", 30, "day") } hx-trigger="revealed" hx-swap="outerHTML">
-				@partials.PanelSkeleton()
+				@partials.PanelSkeleton(ctx)
 			</div>
 			<div id="function-list-container"
 				hx-get="/service/web/functions/list"
@@ -33,18 +34,18 @@ templ FunctionListPage(ctx context.Context, entries []partials.FunctionListEntry
 		</div>
 		<dialog id="create-modal" class="modal" data-testid="create-modal">
 			<div class="modal-box">
-				<h3 class="text-lg font-medium text-base-content mb-4">New Function</h3>
+				<h3 class="text-lg font-medium text-base-content mb-4">{ i18n.T(ctx, "function.create.title") }</h3>
 				<form id="create-form" hx-post="/service/web/functions" hx-target="body" data-testid="create-form">
 					<div id="form-error" data-testid="form-error-slot"></div>
 					<label class="label">
-						<span class="label-text">Name</span>
+						<span class="label-text">{ i18n.T(ctx, "common.name") }</span>
 					</label>
 					<input type="text" name="name" required minlength="1" maxlength="128"
 						class="input input-bordered w-full mb-3"
-						placeholder="my-function"
+						placeholder={ i18n.T(ctx, "function.create.name_placeholder") }
 						data-testid="input-function-name">
 					<label class="label">
-						<span class="label-text">Entrypoint</span>
+						<span class="label-text">{ i18n.T(ctx, "function_editor.entrypoint") }</span>
 					</label>
 					<select name="entrypoint" class="select select-bordered w-full mb-4" data-testid="input-function-entrypoint">
 						<option value="main.py" selected>main.py (Python)</option>
@@ -55,10 +56,10 @@ templ FunctionListPage(ctx context.Context, entries []partials.FunctionListEntry
 						<button type="button"
 							onclick="document.getElementById('create-modal').close()"
 							class="btn btn-ghost"
-							data-testid="btn-cancel-create">Cancel</button>
+							data-testid="btn-cancel-create">{ i18n.T(ctx, "common.cancel") }</button>
 						<button type="submit"
 							class="btn btn-primary"
-							data-testid="btn-submit-create">Create</button>
+							data-testid="btn-submit-create">{ i18n.T(ctx, "common.create") }</button>
 					</div>
 				</form>
 			</div>

@@ -117,7 +117,10 @@
         } catch (e) {
           console.error('Failed to load pipeline:', e);
           showToast(
-            flowbotI18n('client.pipeline.load_failed', 'Failed to load pipeline'),
+            flowbotI18n(
+              'client.pipeline.load_failed',
+              'Failed to load pipeline',
+            ),
             'error',
           );
         } finally {
@@ -517,7 +520,79 @@
       },
 
       numberParamPlaceholder(p) {
-        return p && p.required ? '0 or {{expr}}' : 'optional';
+        if (p && p.required) {
+          return flowbotI18n(
+            'client.pipeline.number_param_required',
+            '0 or {{expr}}',
+          );
+        }
+        return flowbotI18n('client.pipeline.number_param_optional', 'optional');
+      },
+
+      paramFieldPlaceholder(p) {
+        if (p && p.required) {
+          return flowbotI18n(
+            'client.pipeline.param_placeholder_required',
+            'required',
+          );
+        }
+        return flowbotI18n(
+          'client.pipeline.param_placeholder_optional',
+          'optional',
+        );
+      },
+
+      errorSummaryText() {
+        var count = this.errors.length;
+        return flowbotI18n(
+          'client.pipeline.error_summary',
+          '{{.Count}} error(s). Publish is disabled.',
+        ).replace('{{.Count}}', String(count));
+      },
+
+      triggerEventLabel(t) {
+        var val =
+          t && t.event
+            ? t.event
+            : flowbotI18n('client.pipeline.placeholder_ellipsis', '...');
+        return flowbotI18n(
+          'client.pipeline.trigger_event_prefix',
+          'Event: {{.Value}}',
+        ).replace('{{.Value}}', val);
+      },
+
+      triggerCronLabel(t) {
+        var val =
+          t && t.cron
+            ? t.cron
+            : flowbotI18n('client.pipeline.placeholder_ellipsis', '...');
+        return flowbotI18n(
+          'client.pipeline.trigger_cron_prefix',
+          'Cron: {{.Value}}',
+        ).replace('{{.Value}}', val);
+      },
+
+      stepDisplayName(step) {
+        if (step && step.name) {
+          return step.name;
+        }
+        return flowbotI18n('client.pipeline.unnamed_step', 'Unnamed Step');
+      },
+
+      extraFieldsHint(idx) {
+        var count = this.getExtraParamKeys(idx).length;
+        return flowbotI18n(
+          'client.pipeline.extra_fields',
+          '{{.Count}} extra field(s) only visible in Advanced JSON.',
+        ).replace('{{.Count}}', String(count));
+      },
+
+      customEventLabel(eventName) {
+        var suffix = flowbotI18n(
+          'client.pipeline.custom_event_suffix',
+          '(custom)',
+        );
+        return (eventName || '') + ' ' + suffix;
       },
 
       isParamTemplateValue(value, type) {
@@ -987,19 +1062,28 @@
         try {
           JSON.parse(step.paramsText || '{}');
         } catch (e) {
-          return flowbotI18n('client.pipeline.invalid_params_json', 'Invalid params JSON: {{.Error}}').replace('{{.Error}}', e.message);
+          return flowbotI18n(
+            'client.pipeline.invalid_params_json',
+            'Invalid params JSON: {{.Error}}',
+          ).replace('{{.Error}}', e.message);
         }
         const input = this.getCurrentOperationInput(idx);
         const params = this.parseStepParams(idx);
         for (const p of input) {
           if (p.required && this.isParamValueMissing(params[p.name], p.type)) {
-            return flowbotI18n('client.pipeline.param_required', 'Parameter "{{.Name}}" is required').replace('{{.Name}}', p.name);
+            return flowbotI18n(
+              'client.pipeline.param_required',
+              'Parameter "{{.Name}}" is required',
+            ).replace('{{.Name}}', p.name);
           }
           if (
             p.type === 'map[string]any' &&
             this.isParamFieldError(idx, p.name)
           ) {
-            return flowbotI18n('client.pipeline.param_invalid_json', 'Parameter "{{.Name}}" has invalid JSON').replace('{{.Name}}', p.name);
+            return flowbotI18n(
+              'client.pipeline.param_invalid_json',
+              'Parameter "{{.Name}}" has invalid JSON',
+            ).replace('{{.Name}}', p.name);
           }
         }
         return null;
@@ -1281,7 +1365,10 @@
               'client.pipeline.discard_changes.message',
               'You have unsaved changes. Discard them?',
             ),
-            confirmText: flowbotI18n('client.pipeline.confirm_discard', 'Discard'),
+            confirmText: flowbotI18n(
+              'client.pipeline.confirm_discard',
+              'Discard',
+            ),
             confirmClass: 'btn-error',
             onConfirm: function () {
               self.restoreDrawerSnapshot();
@@ -1367,7 +1454,10 @@
               'client.pipeline.discard_changes.message',
               'You have unsaved changes. Discard them?',
             ),
-            confirmText: flowbotI18n('client.pipeline.confirm_discard', 'Discard'),
+            confirmText: flowbotI18n(
+              'client.pipeline.confirm_discard',
+              'Discard',
+            ),
             confirmClass: 'btn-error',
             onConfirm: function () {
               self.restoreDrawerSnapshot();
@@ -1551,16 +1641,18 @@
             if (ri === -1)
               this.errors.push({
                 node: { type: 'step', index: i },
-                message:
-                  'Upstream variable {{steps.' +
-                  ref +
-                  '.*}} is invalid or has been removed',
+                message: flowbotI18n(
+                  'client.pipeline.upstream_var_invalid',
+                  'Upstream variable steps.{{.Ref}}.* is invalid or has been removed',
+                ).replace('{{.Ref}}', ref),
               });
             else if (ri >= i)
               this.errors.push({
                 node: { type: 'step', index: i },
-                message:
-                  'Depends on [' + ref + '] which must be above this step',
+                message: flowbotI18n(
+                  'client.pipeline.depends_on_above',
+                  'Depends on [{{.Ref}}] which must be above this step',
+                ).replace('{{.Ref}}', ref),
               });
           }
         }
@@ -1652,12 +1744,21 @@
         }
         var auth = t.webhook.auth || {};
         if (auth.token) {
-          return flowbotI18n('client.pipeline.auth_token_preview', 'Auth: ?token=... or header X-Webhook-Token');
+          return flowbotI18n(
+            'client.pipeline.auth_token_preview',
+            'Auth: ?token=... or header X-Webhook-Token',
+          );
         }
         if (auth.hmac_secret) {
-          return flowbotI18n('client.pipeline.auth_hmac_preview', 'Auth: header X-Hub-Signature-256');
+          return flowbotI18n(
+            'client.pipeline.auth_hmac_preview',
+            'Auth: header X-Hub-Signature-256',
+          );
         }
-        return flowbotI18n('client.pipeline.auth_configure', 'Auth: configure Token or HMAC Secret');
+        return flowbotI18n(
+          'client.pipeline.auth_configure',
+          'Auth: configure Token or HMAC Secret',
+        );
       },
 
       webhookCurlExample(t) {
@@ -1768,11 +1869,19 @@
           return err.message;
         }
         if (type === 'step') {
-          const name = this.steps[index]?.name || 'Step ' + (index + 1);
+          const name =
+            this.steps[index]?.name ||
+            flowbotI18n(
+              'client.pipeline.step_display_name',
+              'Step {{.Index}}',
+            ).replace('{{.Index}}', String(index + 1));
           return name + ': ' + err.message;
         }
         if (type === 'trigger') {
-          return flowbotI18n('client.pipeline.trigger_prefix', 'Trigger {{.Index}}: {{.Error}}')
+          return flowbotI18n(
+            'client.pipeline.trigger_prefix',
+            'Trigger {{.Index}}: {{.Error}}',
+          )
             .replace('{{.Index}}', String(index + 1))
             .replace('{{.Error}}', err.message);
         }
@@ -1799,8 +1908,10 @@
             this.validate();
           } catch (e) {
             showToast(
-              'YAML syntax error. Fix errors before switching back to visual mode.\n' +
-                e.message,
+              flowbotI18n(
+                'client.pipeline.yaml_syntax_error',
+                'YAML syntax error. Fix errors before switching back to visual mode.\n{{.Error}}',
+              ).replace('{{.Error}}', e.message),
               'error',
             );
           }
@@ -2207,11 +2318,24 @@
         var now = new Date();
         var diff = now - d;
         var mins = Math.floor(diff / 60000);
-        if (mins < 60) return mins + ' minutes ago';
+        if (mins < 60) {
+          return flowbotI18n(
+            'client.pipeline.relative_minutes',
+            '{{.Count}} minutes ago',
+          ).replace('{{.Count}}', String(mins));
+        }
         var hours = Math.floor(mins / 60);
-        if (hours < 24) return hours + ' hours ago';
+        if (hours < 24) {
+          return flowbotI18n(
+            'client.pipeline.relative_hours',
+            '{{.Count}} hours ago',
+          ).replace('{{.Count}}', String(hours));
+        }
         var days = Math.floor(hours / 24);
-        return days + ' days ago';
+        return flowbotI18n(
+          'client.pipeline.relative_days',
+          '{{.Count}} days ago',
+        ).replace('{{.Count}}', String(days));
       },
 
       toggleCompareMode() {
@@ -2310,7 +2434,10 @@
           await this.loadMemoryFact();
         } catch (e) {
           console.error('Failed to load memory facts:', e);
-          this.memoryError = flowbotI18n('client.pipeline.memory_load_failed', 'Failed to load memory facts');
+          this.memoryError = flowbotI18n(
+            'client.pipeline.memory_load_failed',
+            'Failed to load memory facts',
+          );
           this.memoryKeys = [];
         }
       },
@@ -2335,7 +2462,10 @@
           this.memoryError = '';
         } catch (e) {
           console.error('Failed to load memory fact:', e);
-          this.memoryError = 'Failed to load memory fact';
+          this.memoryError = flowbotI18n(
+            'client.pipeline.memory_fact_load_failed',
+            'Failed to load memory fact',
+          );
         }
       },
 
@@ -2345,7 +2475,10 @@
         }
         const key = (this.memorySelectedKey || '').trim();
         if (!key) {
-          this.memoryError = 'Key is required';
+          this.memoryError = flowbotI18n(
+            'client.pipeline.memory_key_required',
+            'Key is required',
+          );
           return;
         }
         this.memorySaving = true;
@@ -2367,7 +2500,10 @@
           this.closeMemoryModal();
         } catch (e) {
           console.error('Failed to save memory fact:', e);
-          this.memoryError = 'Failed to save memory fact';
+          this.memoryError = flowbotI18n(
+            'client.pipeline.memory_fact_save_failed',
+            'Failed to save memory fact',
+          );
         } finally {
           this.memorySaving = false;
         }
@@ -2397,7 +2533,10 @@
           await this.loadMemoryFacts();
         } catch (e) {
           console.error('Failed to delete memory fact:', e);
-          this.memoryError = 'Failed to delete memory fact';
+          this.memoryError = flowbotI18n(
+            'client.pipeline.memory_fact_delete_failed',
+            'Failed to delete memory fact',
+          );
         } finally {
           this.memorySaving = false;
         }

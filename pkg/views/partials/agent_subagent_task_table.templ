@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ AgentSubagentTaskTable(items []model.AgentSubagentTask) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSubagentTaskTable(ctx context.Context, items []model.AgentSubagentTask) {
 	<div class="flowbot-surface">
 		<div id="agent-subagent-tasks-table"
 			data-testid="agent-subagent-tasks-table"
@@ -10,14 +15,14 @@ templ AgentSubagentTaskTable(items []model.AgentSubagentTask) {
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs text-base-content/55">ID</th>
-					<th class="text-xs text-base-content/55">Subagent</th>
-					<th class="text-xs text-base-content/55">Description</th>
-					<th class="text-xs text-base-content/55">Session</th>
-					<th class="text-xs text-base-content/55">Status</th>
-					<th class="text-xs text-base-content/55">Started</th>
-					<th class="text-xs text-base-content/55">Duration</th>
-					<th class="text-xs text-base-content/55">Actions</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.id") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.subagent") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.description") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.session") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.status") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.started") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.duration") }</th>
+					<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="agent-subagent-tasks-rows">
@@ -28,10 +33,10 @@ templ AgentSubagentTaskTable(items []model.AgentSubagentTask) {
 					<tr id="agent-subagent-tasks-empty">
 						<td colspan="8" class="p-0">
 							@EmptyStateCTA(
-								"No delegated tasks yet",
-								"Tasks appear when agents delegate work to subagents.",
+								i18n.T(ctx, "table.empty.subagent_tasks"),
+								i18n.T(ctx, "table.empty.subagent_tasks_detail"),
 								"/service/web/agents",
-								"Open Agents",
+								i18n.T(ctx, "table.empty.subagent_tasks_cta"),
 							)
 						</td>
 					</tr>

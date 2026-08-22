@@ -212,7 +212,13 @@
           this.dirty = false;
           window.dispatchEvent(
             new CustomEvent('flowbot:toast', {
-              detail: { type: 'success', message: 'Draft saved' },
+              detail: {
+                type: 'success',
+                message: flowbotI18n(
+                  'client.function_editor.draft_saved',
+                  'Draft saved',
+                ),
+              },
             }),
           );
         } finally {
@@ -283,13 +289,19 @@
       async tryInvoke() {
         if (this.busy || !this.publishedVersion) return;
         this.busy = true;
-        this.tryResult = 'Running…';
+        this.tryResult = flowbotI18n(
+          'client.function_editor.running',
+          'Running…',
+        );
         try {
           var eventPayload = {};
           try {
             eventPayload = JSON.parse(this.tryEvent || '{}');
           } catch {
-            this.tryResult = 'Invalid event JSON';
+            this.tryResult = flowbotI18n(
+              'client.function_editor.invalid_event_json',
+              'Invalid event JSON',
+            );
             return;
           }
           var resp = await fetch(this.baseURL() + '/try', {
@@ -308,7 +320,10 @@
             this.tryResult =
               (data.error && data.error.message) ||
               data.message ||
-              'Invoke failed';
+              flowbotI18n(
+                'client.function_editor.invoke_failed',
+                'Invoke failed',
+              );
             return;
           }
           this.tryResult = JSON.stringify(data, null, 2);

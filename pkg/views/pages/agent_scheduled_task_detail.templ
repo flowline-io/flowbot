@@ -2,7 +2,8 @@ package pages
 
 import (
 	"context"
-	
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -12,11 +13,11 @@ templ AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentSchedule
 	@layout.Base(ctx, DocTitleAgentScheduledTask(ctx, task)) {
 		if task.Name != "" {
 			@partials.PageHeaderLiteral(ctx, task.Name, task.TaskID) {
-				<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">← Back to Scheduled Tasks</a>
+				<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">{ i18n.T(ctx, "common.back_to_scheduled_tasks") }</a>
 			}
 		} else {
 			@partials.PageHeaderLiteral(ctx, task.TaskID, "") {
-				<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">← Back to Scheduled Tasks</a>
+				<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">{ i18n.T(ctx, "common.back_to_scheduled_tasks") }</a>
 			}
 		}
 		<div class="flowbot-surface mb-6">
@@ -26,15 +27,15 @@ templ AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentSchedule
 						@partials.AgentScheduledTaskStatePanel(task)
 					</div>
 					<div>
-						<span class="text-base-content/50">Kind:</span>
-						<span class="ml-1">{ partials.AgentScheduledTaskKindLabel(task.ScheduleKind) }</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "scheduled_task.kind") }</span>
+						<span class="ml-1">{ partials.AgentScheduledTaskKindLabel(ctx, task.ScheduleKind) }</span>
 					</div>
 					<div>
-						<span class="text-base-content/50">Schedule:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "scheduled_task.schedule") }</span>
 						<code class="text-xs ml-1">{ partials.AgentScheduledTaskScheduleSummary(task) }</code>
 					</div>
 					<div>
-						<span class="text-base-content/50">Source Session:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "scheduled_task.source_session") }</span>
 						if task.SourceSessionID != "" {
 							<a href={ "/service/web/agent-sessions/" + task.SourceSessionID } class="link link-hover font-mono text-xs ml-1">{ task.SourceSessionID }</a>
 						} else {
@@ -42,24 +43,24 @@ templ AgentScheduledTaskDetailPage(ctx context.Context, task model.AgentSchedule
 						}
 					</div>
 					<div>
-						<span class="text-base-content/50">Next Run:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "scheduled_task.next_run") }</span>
 						<span class="ml-1">{ partials.AgentScheduledTaskTimeOrDash(task.NextRunAt) }</span>
 					</div>
 					<div>
-						<span class="text-base-content/50">Last Run:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "scheduled_task.last_run") }</span>
 						<span class="ml-1">{ partials.AgentScheduledTaskTimeOrDash(task.LastRunAt) }</span>
 					</div>
 					<div>
-						<span class="text-base-content/50">Created:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "agent.session.created") }</span>
 						<span class="ml-1">{ task.CreatedAt.Format("2006-01-02 15:04:05") }</span>
 					</div>
 					<div>
-						<span class="text-base-content/50">Updated:</span>
+						<span class="text-base-content/50">{ i18n.T(ctx, "agent.session.updated") }</span>
 						<span class="ml-1">{ task.UpdatedAt.Format("2006-01-02 15:04:05") }</span>
 					</div>
 				</div>
 				<div class="mt-4">
-					<div class="text-sm font-semibold mb-2">Prompt</div>
+					<div class="text-sm font-semibold mb-2">{ i18n.T(ctx, "scheduled_task.prompt") }</div>
 					<pre class="bg-base-200 rounded-box p-4 whitespace-pre-wrap text-sm" data-testid="agent-scheduled-task-prompt">{ task.Prompt }</pre>
 				</div>
 			</div>

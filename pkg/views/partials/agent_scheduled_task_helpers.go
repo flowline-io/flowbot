@@ -1,11 +1,13 @@
 package partials
 
 import (
+	"context"
 	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -40,12 +42,12 @@ func AgentScheduledTaskPageTitle(task model.AgentScheduledTask) string {
 }
 
 // AgentScheduledTaskKindLabel returns a user-friendly label for schedule kind.
-func AgentScheduledTaskKindLabel(kind string) string {
-	switch kind {
+func AgentScheduledTaskKindLabel(ctx context.Context, kind string) string {
+	switch strings.ToLower(strings.TrimSpace(kind)) {
 	case "cron":
-		return "Cron"
+		return i18n.T(ctx, "scheduled_task.kind_cron")
 	case "once":
-		return "Once"
+		return i18n.T(ctx, "scheduled_task.kind_once")
 	default:
 		return kind
 	}

@@ -8,9 +8,14 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/flowline-io/flowbot/pkg/hub"
+import (
+	"context"
 
-func CapabilityGrid(descriptors []hub.Descriptor, filtered bool) templ.Component {
+	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+func CapabilityGrid(ctx context.Context, descriptors []hub.Descriptor, filtered bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -37,16 +42,16 @@ func CapabilityGrid(descriptors []hub.Descriptor, filtered bool) templ.Component
 		}
 		if len(descriptors) == 0 {
 			if filtered {
-				templ_7745c5c3_Err = EmptyState("No capabilities match these filters").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = EmptyState(i18n.T(ctx, "capability.empty.filtered")).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
 				templ_7745c5c3_Err = EmptyStateCTA(
-					"No capabilities registered",
-					"Start Hub apps to expose capabilities here.",
+					i18n.T(ctx, "capability.empty.none"),
+					i18n.T(ctx, "capability.empty.detail"),
 					"/service/web/hub",
-					"Open Hub",
+					i18n.T(ctx, "capability.empty.cta"),
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -58,7 +63,7 @@ func CapabilityGrid(descriptors []hub.Descriptor, filtered bool) templ.Component
 				return templ_7745c5c3_Err
 			}
 			for _, d := range descriptors {
-				templ_7745c5c3_Err = CapabilityCard(d).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = CapabilityCard(ctx, d).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

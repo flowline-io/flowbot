@@ -8,6 +8,10 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
 func AgentMemoryModal() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,7 +33,163 @@ func AgentMemoryModal() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-show=\"memoryModalOpen\" x-cloak class=\"fixed inset-0 z-60 flex items-center justify-center p-4\" data-testid=\"agent-memory-modal\"><div class=\"absolute inset-0 bg-black/30\" @click=\"closeMemoryModal\"></div><div class=\"relative bg-base-100 rounded-box shadow-sm w-full max-w-lg border border-base-300\" role=\"dialog\" aria-label=\"Memory Facts\"><div class=\"flex items-start justify-between px-5 pt-5 pb-3 border-b border-base-300\"><div><h3 class=\"text-lg font-semibold text-base-content\">Memory Facts</h3><p class=\"text-sm text-base-content/60\">Correct existing facts for this pipeline memory scope</p></div><button type=\"button\" class=\"btn btn-ghost btn-sm btn-circle\" @click=\"closeMemoryModal\" aria-label=\"Close memory facts\" data-testid=\"agent-memory-close\">&times;</button></div><div class=\"px-5 py-4 space-y-4\"><template x-if=\"memoryKeys.length === 0\"><p class=\"text-sm text-base-content/60\" data-testid=\"agent-memory-empty\">No facts yet. Create them with the memory_set tool.</p></template><template x-if=\"memoryKeys.length > 0\"><div class=\"space-y-4\"><label class=\"form-control w-full\"><span class=\"label-text mb-1\">Key</span> <select class=\"select select-bordered select-sm w-full\" x-model=\"memorySelectedKey\" @change=\"loadMemoryFact()\" data-testid=\"agent-memory-key-select\"><template x-for=\"key in memoryKeys\" :key=\"key\"><option :value=\"key\" x-text=\"key\"></option></template></select></label> <label class=\"form-control w-full\"><span class=\"label-text mb-1\">Value</span> <textarea class=\"textarea textarea-bordered w-full h-32 font-mono text-sm\" x-model=\"memoryContent\" data-testid=\"agent-memory-content\"></textarea></label> <label class=\"label cursor-pointer justify-start gap-2\"><input type=\"checkbox\" class=\"checkbox checkbox-sm\" x-model=\"memoryPinned\" data-testid=\"agent-memory-pinned\"> <span class=\"label-text\">Pinned for auto-inject</span></label></div></template><p class=\"text-sm text-error hidden\" :class=\"{ 'hidden': !memoryError, 'block': memoryError }\" x-text=\"memoryError\" data-testid=\"agent-memory-error\"></p></div><div class=\"flex justify-end gap-2 px-5 py-4 border-t border-base-300\"><button type=\"button\" class=\"btn btn-ghost btn-sm\" @click=\"closeMemoryModal\" data-testid=\"agent-memory-cancel\">Cancel</button> <button type=\"button\" class=\"btn btn-ghost btn-sm text-error\" @click=\"deleteMemoryFact()\" :disabled=\"memorySaving || !memorySelectedKey\" data-testid=\"agent-memory-delete\">Delete</button> <button type=\"button\" class=\"btn btn-primary btn-sm\" @click=\"saveMemoryFact()\" :disabled=\"memorySaving || !memorySelectedKey\" data-testid=\"agent-memory-save\"><span x-show=\"!memorySaving\">Save</span> <span x-show=\"memorySaving\">Saving…</span></button></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-show=\"memoryModalOpen\" x-cloak class=\"fixed inset-0 z-60 flex items-center justify-center p-4\" data-testid=\"agent-memory-modal\"><div class=\"absolute inset-0 bg-black/30\" @click=\"closeMemoryModal\"></div><div class=\"relative bg-base-100 rounded-box shadow-sm w-full max-w-lg border border-base-300\" role=\"dialog\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "agent.memory.title"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 14, Col: 157}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div class=\"flex items-start justify-between px-5 pt-5 pb-3 border-b border-base-300\"><div><h3 class=\"text-lg font-semibold text-base-content\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent.memory.title"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 17, Col: 92}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h3><p class=\"text-sm text-base-content/60\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent.memory.subtitle"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 18, Col: 83}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p></div><button type=\"button\" class=\"btn btn-ghost btn-sm btn-circle\" @click=\"closeMemoryModal\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "agent.memory.close_aria"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 20, Col: 143}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" data-testid=\"agent-memory-close\">&times;</button></div><div class=\"px-5 py-4 space-y-4\"><template x-if=\"memoryKeys.length === 0\"><p class=\"text-sm text-base-content/60\" data-testid=\"agent-memory-empty\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent.memory.empty"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 24, Col: 113}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</p></template><template x-if=\"memoryKeys.length > 0\"><div class=\"space-y-4\"><label class=\"form-control w-full\"><span class=\"label-text mb-1\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent.memory.key"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 29, Col: 70}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span> <select class=\"select select-bordered select-sm w-full\" x-model=\"memorySelectedKey\" @change=\"loadMemoryFact()\" data-testid=\"agent-memory-key-select\"><template x-for=\"key in memoryKeys\" :key=\"key\"><option :value=\"key\" x-text=\"key\"></option></template></select></label> <label class=\"form-control w-full\"><span class=\"label-text mb-1\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent.memory.value"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 40, Col: 72}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span> <textarea class=\"textarea textarea-bordered w-full h-32 font-mono text-sm\" x-model=\"memoryContent\" data-testid=\"agent-memory-content\"></textarea></label> <label class=\"label cursor-pointer justify-start gap-2\"><input type=\"checkbox\" class=\"checkbox checkbox-sm\" x-model=\"memoryPinned\" data-testid=\"agent-memory-pinned\"> <span class=\"label-text\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent.memory.pinned"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 47, Col: 68}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span></label></div></template><p class=\"text-sm text-error hidden\" :class=\"{ 'hidden': !memoryError, 'block': memoryError }\" x-text=\"memoryError\" data-testid=\"agent-memory-error\"></p></div><div class=\"flex justify-end gap-2 px-5 py-4 border-t border-base-300\"><button type=\"button\" class=\"btn btn-ghost btn-sm\" @click=\"closeMemoryModal\" data-testid=\"agent-memory-cancel\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.cancel"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 54, Col: 145}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</button> <button type=\"button\" class=\"btn btn-ghost btn-sm text-error\" @click=\"deleteMemoryFact()\" :disabled=\"memorySaving || !memorySelectedKey\" data-testid=\"agent-memory-delete\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.delete"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 56, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button> <button type=\"button\" class=\"btn btn-primary btn-sm\" @click=\"saveMemoryFact()\" :disabled=\"memorySaving || !memorySelectedKey\" data-testid=\"agent-memory-save\"><span x-show=\"!memorySaving\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.save"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 59, Col: 62}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span> <span x-show=\"memorySaving\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var13 string
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent.memory.saving"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_memory_modal.templ`, Line: 60, Col: 69}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></button></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -118,7 +118,7 @@ func workflowListTable(c fiber.Ctx) error {
 	entries, err := loadWorkflowListEntries(c.Context())
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
-		return renderError(c, "Failed to load workflows")
+		return renderErrorKey(c, "error.failed_load_workflows")
 	}
 	c.Type("html")
 	return partials.WorkflowListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
@@ -193,7 +193,7 @@ func workflowStats(c fiber.Ctx) error {
 		return c.JSON(stats)
 	}
 	c.Type("html")
-	return partials.WorkflowStats(name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowStats(c.Context(), name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowDetailPage(c fiber.Ctx) error {
@@ -354,15 +354,15 @@ func workflowRunsTable(c fiber.Ctx) error {
 	s := getWorkflowStore()
 	if s == nil {
 		c.Status(http.StatusInternalServerError)
-		return renderError(c, "Workflow store not available")
+		return renderErrorKey(c, "error.workflow_store_unavailable")
 	}
 	runs, err := s.ListRunsByName(c.Context(), name)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
-		return renderError(c, "Failed to load workflow runs")
+		return renderErrorKey(c, "error.failed_load_workflow_runs")
 	}
 	c.Type("html")
-	return partials.WorkflowRunsTable(name, mapWorkflowRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowRunsTable(c.Context(), name, mapWorkflowRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunSteps(c fiber.Ctx) error {
@@ -396,7 +396,7 @@ func workflowRunSteps(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get workflow step runs: %v", err)
 	}
 	c.Type("html")
-	return partials.WorkflowStepRunsDetail(mapWorkflowStepRuns(steps)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowStepRunsDetail(c.Context(), mapWorkflowStepRuns(steps)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunNow(c fiber.Ctx) error {
@@ -411,13 +411,13 @@ func workflowRunNow(c fiber.Ctx) error {
 	svc := getWorkflowService()
 	if catalog == nil || svc == nil {
 		c.Status(http.StatusServiceUnavailable)
-		return renderFormError(c, "#form-error", "Workflow run service is not available")
+		return renderFormErrorKey(c, "#form-error", "error.workflow_run_unavailable")
 	}
 	meta, err := catalog.GetMetadata(c.Context(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			c.Status(http.StatusNotFound)
-			return renderFormError(c, "#form-error", "Workflow not found")
+			return renderFormErrorKey(c, "#form-error", "error.workflow_not_found")
 		}
 		return types.Errorf(types.ErrInternal, "get workflow metadata: %v", err)
 	}
@@ -439,15 +439,15 @@ func workflowRunNow(c fiber.Ctx) error {
 		}
 		if errors.Is(err, types.ErrNotFound) {
 			c.Status(http.StatusNotFound)
-			return renderFormError(c, "#form-error", "Workflow not found")
+			return renderFormErrorKey(c, "#form-error", "error.workflow_not_found")
 		}
 		if errors.Is(err, types.ErrUnavailable) {
 			c.Status(http.StatusServiceUnavailable)
-			return renderFormError(c, "#form-error", "Workflow run service is not available")
+			return renderFormErrorKey(c, "#form-error", "error.workflow_run_unavailable")
 		}
 		flog.Error(fmt.Errorf("workflowRunNow: %w", err))
 		c.Status(http.StatusInternalServerError)
-		return renderFormError(c, "#form-error", "Failed to start workflow run")
+		return renderFormErrorKey(c, "#form-error", "error.workflow_run_start_failed")
 	}
 	setShowToast(c, "success", webMsgData(c, "toast.workflow.run_started", map[string]any{"RunID": runID}))
 	c.Response().Header.Set("HX-Redirect", partials.WorkflowWebPath(name)+"/runs")

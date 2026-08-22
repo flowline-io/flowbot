@@ -18,7 +18,7 @@ func settingsPage(ctx fiber.Ctx) error {
 		return err
 	}
 
-	data := pages.NewSettingsPageData(pkgconfig.SettingsCatalog(&pkgconfig.App))
+	data := pages.NewSettingsPageData(ctx.Context(), pkgconfig.SettingsCatalog(&pkgconfig.App))
 	ctx.Type("html")
 	return pages.SettingsPage(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }

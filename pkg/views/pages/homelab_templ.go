@@ -79,7 +79,7 @@ func HomelabPage(ctx context.Context, apps []homelab.App, scannedAt string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.HomelabGrid(apps, scannedAt).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.HomelabGrid(ctx, apps, scannedAt).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

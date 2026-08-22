@@ -73,7 +73,7 @@ func agentSubagentNewForm(ctx fiber.Ctx) error {
 		ctx.Status(http.StatusInternalServerError)
 		return renderErrorKey(ctx, "error.load.subagent_form_options")
 	}
-	return partials.AgentSubagentForm(params).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.AgentSubagentForm(ctx.Context(), params).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSubagentCreate(ctx fiber.Ctx) error {
@@ -82,7 +82,7 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 	}
 	reqCtx := ctx.Context()
 	input := parseAgentSubagentForm(ctx)
-	errs := validateAgentSubagentForm(input, true)
+	errs := validateAgentSubagentForm(ctx, input, true)
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
@@ -90,7 +90,7 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 		if buildErr != nil {
 			return renderErrorKey(ctx, "error.load.subagent_form_options")
 		}
-		return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentSubagentForm(ctx.Context(), params).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	now := time.Now().UTC()
 	row := &gen.AgentSubagent{
@@ -107,14 +107,14 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 		UpdatedAt:    now,
 	}
 	if err := store.AgentStoreFromDB().CreateAgentSubagent(reqCtx, row); err != nil {
-		if fieldErrs := mapAgentSubagentUniqueError(err); len(fieldErrs) > 0 {
+		if fieldErrs := mapAgentSubagentUniqueError(ctx, err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
 			params, buildErr := buildAgentSubagentFormParams(reqCtx, input, true, fieldErrs)
 			if buildErr != nil {
 				return renderErrorKey(ctx, "error.load.subagent_form_options")
 			}
-			return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentSubagentForm(ctx.Context(), params).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		ctx.Status(http.StatusInternalServerError)
 		return renderErrorKey(ctx, "error.create.agent_subagent")
@@ -150,7 +150,7 @@ func agentSubagentEditForm(ctx fiber.Ctx) error {
 		ctx.Status(http.StatusInternalServerError)
 		return renderErrorKey(ctx, "error.load.subagent_form_options")
 	}
-	return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentSubagentForm(ctx.Context(), params).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSubagentUpdate(ctx fiber.Ctx) error {
@@ -173,7 +173,7 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 	}
 	input := parseAgentSubagentForm(ctx)
 	input.Flag = flag
-	errs := validateAgentSubagentForm(input, false)
+	errs := validateAgentSubagentForm(ctx, input, false)
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
@@ -181,7 +181,7 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 		if buildErr != nil {
 			return renderErrorKey(ctx, "error.load.subagent_form_options")
 		}
-		return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentSubagentForm(ctx.Context(), params).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	row := &gen.AgentSubagent{
 		Flag:         flag,
@@ -196,14 +196,14 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 		CreatedAt:    existing.CreatedAt,
 	}
 	if err := store.AgentStoreFromDB().UpdateAgentSubagent(reqCtx, row); err != nil {
-		if fieldErrs := mapAgentSubagentUniqueError(err); len(fieldErrs) > 0 {
+		if fieldErrs := mapAgentSubagentUniqueError(ctx, err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
 			params, buildErr := buildAgentSubagentFormParams(reqCtx, input, false, fieldErrs)
 			if buildErr != nil {
 				return renderErrorKey(ctx, "error.load.subagent_form_options")
 			}
-			return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentSubagentForm(ctx.Context(), params).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		ctx.Status(http.StatusInternalServerError)
 		return renderErrorKey(ctx, "error.update.agent_subagent")
@@ -248,12 +248,12 @@ func agentSubagentDelete(ctx fiber.Ctx) error {
 			"#agent-subagents-rows",
 			"7",
 			partials.EmptyStateHXCTA(
-				"No subagents yet",
-				"Define specialists for delegated work.",
+				webMsg(ctx, "table.empty.subagents"),
+				webMsg(ctx, "table.empty.subagents_detail"),
 				"/service/web/agent-subagents/new",
 				"#agent-subagents-rows",
 				"afterbegin",
-				"Create subagent",
+				webMsg(ctx, "table.empty.subagents_cta"),
 			),
 		)
 	}
@@ -270,7 +270,7 @@ func agentSubagentTasksTable(ctx fiber.Ctx) error {
 		return renderErrorKey(ctx, "error.load.subagent_tasks")
 	}
 	ctx.Type("html")
-	return partials.AgentSubagentTaskTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.AgentSubagentTaskTable(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSubagentTaskDetail(ctx fiber.Ctx) error {
@@ -379,28 +379,28 @@ func listAgentSubagentSkillOptions(ctx context.Context) ([]model.AgentSubagentSk
 	return options, nil
 }
 
-func validateAgentSubagentForm(item model.AgentSubagent, isNew bool) map[string]string {
+func validateAgentSubagentForm(c fiber.Ctx, item model.AgentSubagent, isNew bool) map[string]string {
 	errs := make(map[string]string)
 	if isNew {
 		if item.Flag == "" {
-			errs["flag"] = "Flag is required"
+			errs["flag"] = webMsg(c, "error.validation.flag_required")
 		} else if !agentSubagentSlugPattern.MatchString(item.Flag) {
-			errs["flag"] = "Flag must be lowercase letters, numbers, and hyphens"
+			errs["flag"] = webMsg(c, "error.validation.flag_slug")
 		}
 	}
 	if item.Name == "" {
-		errs["name"] = "Name is required"
+		errs["name"] = webMsg(c, "error.validation.name_required")
 	} else if !agentSubagentSlugPattern.MatchString(item.Name) {
-		errs["name"] = "Name must be lowercase letters, numbers, and hyphens"
+		errs["name"] = webMsg(c, "error.validation.name_slug")
 	}
 	if item.Description == "" {
-		errs["description"] = "Description is required"
+		errs["description"] = webMsg(c, "error.validation.description_required")
 	}
 	if strings.TrimSpace(item.SystemPrompt) == "" {
-		errs["system_prompt"] = "System prompt is required"
+		errs["system_prompt"] = webMsg(c, "error.validation.system_prompt_required")
 	}
 	if len(item.Tools) == 0 {
-		errs["tools"] = "At least one tool is required"
+		errs["tools"] = webMsg(c, "error.validation.tools_required")
 	} else {
 		allowed := make(map[string]struct{}, len(chatagent.SelectableSubagentTools()))
 		for _, name := range chatagent.SelectableSubagentTools() {
@@ -408,7 +408,7 @@ func validateAgentSubagentForm(item model.AgentSubagent, isNew bool) map[string]
 		}
 		for _, toolName := range item.Tools {
 			if _, ok := allowed[toolName]; !ok {
-				errs["tools"] = "Tool " + toolName + " is not allowed"
+				errs["tools"] = webMsgData(c, "error.validation.tool_not_allowed", map[string]any{"Tool": toolName})
 				break
 			}
 		}
@@ -423,14 +423,14 @@ func defaultAgentSubagentSource(source string) string {
 	return source
 }
 
-func mapAgentSubagentUniqueError(err error) map[string]string {
+func mapAgentSubagentUniqueError(c fiber.Ctx, err error) map[string]string {
 	msg := err.Error()
 	errs := make(map[string]string)
 	if strings.Contains(msg, "agent_subagents_flag_key") || strings.Contains(msg, "agent_subagents.flag") {
-		errs["flag"] = "Flag already exists"
+		errs["flag"] = webMsg(c, "error.validation.flag_exists")
 	}
 	if strings.Contains(msg, "agent_subagents_name_key") || strings.Contains(msg, "agent_subagents.name") {
-		errs["name"] = "Name already exists"
+		errs["name"] = webMsg(c, "error.validation.name_exists")
 	}
 	if len(errs) == 0 {
 		return nil

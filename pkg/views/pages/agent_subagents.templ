@@ -3,6 +3,7 @@ package pages
 import (
 	"context"
 	
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -18,7 +19,7 @@ templ AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) {
 						hx-swap="outerHTML"
 						data-testid="agent-subagents-refresh"
 						class="btn btn-ghost btn-sm">
-						Refresh
+						{ i18n.T(ctx, "common.refresh") }
 						@partials.HtmxIndicator()
 					</button>
 					<button hx-get="/service/web/agent-subagents/new"
@@ -26,7 +27,7 @@ templ AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) {
 						hx-swap="afterbegin"
 						data-testid="agent-subagents-new"
 						class="btn btn-primary btn-sm">
-						New Subagent
+						{ i18n.T(ctx, "btn.new_subagent") }
 					</button>
 				</div>
 				<div class="flex gap-2" x-show="tab === 'tasks'" x-cloak>
@@ -35,7 +36,7 @@ templ AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) {
 						hx-swap="innerHTML"
 						data-testid="agent-subagent-tasks-refresh"
 						class="btn btn-ghost btn-sm">
-						Refresh
+						{ i18n.T(ctx, "common.refresh") }
 						@partials.HtmxIndicator()
 					</button>
 				</div>
@@ -46,14 +47,14 @@ templ AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) {
 					x-bind:class="tab === 'subagents' ? 'tab-active' : ''"
 					x-on:click="tab = 'subagents'"
 					data-testid="agent-subagents-tab-subagents">
-					Subagents
+					{ i18n.T(ctx, "page.subagents.tab_subagents") }
 				</button>
 				<button role="tab"
 					class="tab"
 					x-bind:class="tab === 'tasks' ? 'tab-active' : ''"
 					x-on:click="tab = 'tasks'"
 					data-testid="agent-subagents-tab-tasks">
-					Tasks
+					{ i18n.T(ctx, "page.subagents.tab_tasks") }
 				</button>
 			</div>
 			<div x-show="tab === 'subagents'">
@@ -65,7 +66,7 @@ templ AgentSubagentsPage(ctx context.Context, items []model.AgentSubagent) {
 				hx-trigger="revealed"
 				hx-swap="innerHTML"
 				data-testid="agent-subagent-tasks-panel">
-				@partials.PanelSkeleton()
+				@partials.PanelSkeleton(ctx)
 			</div>
 		</div>
 	}

@@ -5,11 +5,21 @@
 
   function formatConfirmResolvedLabel(ev) {
     if (ev.reason === 'timeout') {
-      return 'Timed out — tool was denied automatically.';
+      return flowbotI18n(
+        'client.chatagent.approval_timeout',
+        'Timed out — tool was denied automatically.',
+      );
     }
-    var label = ev.approved ? 'Approved' : 'Denied';
+    var label = ev.approved
+      ? flowbotI18n('client.chatagent.approved_label', 'Approved')
+      : flowbotI18n('client.chatagent.denied_label', 'Denied');
     if (ev.reason && ev.reason !== 'approved' && ev.reason !== 'denied') {
-      label += ' (' + ev.reason + ')';
+      label = flowbotI18n(
+        'client.chatagent.approval_resolved_reason',
+        '{{.Label}} ({{.Reason}})',
+      )
+        .replace('{{.Label}}', label)
+        .replace('{{.Reason}}', ev.reason);
     }
     return label;
   }
@@ -34,7 +44,8 @@
     var title =
       typeof window.flowbotFormatNeedsApprovalTitle === 'function'
         ? window.flowbotFormatNeedsApprovalTitle()
-        : '\u25CF Needs approval';
+        : '\u25CF ' +
+          flowbotI18n('client.app.needs_approval', 'Needs approval');
     window.flowbotSetPageStatus(title);
   }
 
@@ -45,7 +56,7 @@
     var tool = (ev && ev.tool) || 'tool';
     var summary = (ev && ev.summary) || '';
     window.flowbotNotifyIfHidden({
-      title: 'Needs approval',
+      title: flowbotI18n('client.app.needs_approval', 'Needs approval'),
       body: summary ? tool + ': ' + summary : tool,
       tag: 'flowbot-approval-' + ((ev && ev.id) || sessionID),
     });
@@ -204,7 +215,10 @@
           alwaysBtn.classList.remove('hidden');
           alwaysBtn.setAttribute(
             'title',
-            'Remember for future matching calls: ' + ev.suggested_pattern,
+            flowbotI18n(
+              'client.chatagent.remember_always_allow',
+              'Remember for future matching calls: {{.Pattern}}',
+            ).replace('{{.Pattern}}', ev.suggested_pattern),
           );
           if (alwaysHint) {
             alwaysHint.textContent = ev.suggested_pattern;
@@ -221,7 +235,10 @@
         actionsEl.classList.remove('hidden');
       }
       setWaitingCopy(
-        'Waiting for tool approval. The rest of this turn appears after it finishes.',
+        flowbotI18n(
+          'client.chatagent.waiting_approval',
+          'Waiting for tool approval. The rest of this turn appears after it finishes.',
+        ),
       );
     }
 
@@ -253,9 +270,18 @@
 
     function markApprovedWaiting() {
       reloadOnComplete = true;
-      showStatusToast('Approved — continuing the turn…', 'info');
+      showStatusToast(
+        flowbotI18n(
+          'client.chatagent.approved_continuing',
+          'Approved — continuing the turn…',
+        ),
+        'info',
+      );
       setWaitingCopy(
-        'Approved. Waiting for the next step (another approval or the final reply)…',
+        flowbotI18n(
+          'client.chatagent.approved_waiting_next',
+          'Approved. Waiting for the next step (another approval or the final reply)…',
+        ),
       );
     }
 
@@ -283,7 +309,12 @@
           );
           if (!ev.approved && isDetachedObserver()) {
             reloadOnComplete = true;
-            setWaitingCopy('Denied. Waiting for the turn to finish…');
+            setWaitingCopy(
+              flowbotI18n(
+                'client.chatagent.denied_waiting_finish',
+                'Denied. Waiting for the turn to finish…',
+              ),
+            );
           }
         }
         return;
@@ -300,7 +331,10 @@
         pending = null;
         submitting = false;
         hidePanel();
-        showStatusToast('Run canceled.', 'warning');
+        showStatusToast(
+          flowbotI18n('client.chatagent.run_canceled', 'Run canceled.'),
+          'warning',
+        );
         reloadOnComplete = true;
         window.setTimeout(function () {
           window.location.reload();
@@ -312,7 +346,14 @@
       pending = null;
       submitting = false;
       hidePanel();
-      showStatusToast(message || 'Approval request expired.', 'error');
+      showStatusToast(
+        message ||
+          flowbotI18n(
+            'client.chatagent.approval_expired',
+            'Approval request expired.',
+          ),
+        'error',
+      );
     }
 
     function postConfirm(approved, mode) {
@@ -358,13 +399,23 @@
               );
               if (isDetachedObserver()) {
                 reloadOnComplete = true;
-                setWaitingCopy('Denied. Waiting for the turn to finish…');
+                setWaitingCopy(
+                  flowbotI18n(
+                    'client.chatagent.denied_waiting_finish',
+                    'Denied. Waiting for the turn to finish…',
+                  ),
+                );
               }
             }
             return;
           }
           if (res.status === 404 || res.status === 409) {
-            showConfirmExpired('Approval request expired or already resolved.');
+            showConfirmExpired(
+              flowbotI18n(
+                'client.chatagent.approval_expired_resolved',
+                'Approval request expired or already resolved.',
+              ),
+            );
             return;
           }
           submitting = false;
@@ -375,14 +426,24 @@
             })
             .then(function (data) {
               showStatusToast(
-                (data && data.error) || 'Confirm request failed.',
+                (data && data.error) ||
+                  flowbotI18n(
+                    'client.chatagent.confirm_failed',
+                    'Confirm request failed.',
+                  ),
                 'error',
               );
             });
         })
         .catch(function () {
           submitting = false;
-          showStatusToast('Confirm request failed.', 'error');
+          showStatusToast(
+            flowbotI18n(
+              'client.chatagent.confirm_failed',
+              'Confirm request failed.',
+            ),
+            'error',
+          );
         });
     }
 
@@ -428,7 +489,10 @@
       source = new EventSource(eventsURL);
       source.addEventListener('open', function () {
         if (reconnectAttempt > 0) {
-          showStatusToast('Connected', 'info');
+          showStatusToast(
+            flowbotI18n('client.chatagent.connected', 'Connected'),
+            'info',
+          );
         }
         reconnectAttempt = 0;
       });
@@ -449,7 +513,10 @@
           source.close();
           source = null;
         }
-        showStatusToast('Reconnecting…', 'warning');
+        showStatusToast(
+          flowbotI18n('client.chatagent.reconnecting', 'Reconnecting…'),
+          'warning',
+        );
         var delay = reconnectDelay(reconnectAttempt);
         reconnectAttempt += 1;
         reconnectTimer = window.setTimeout(connect, delay);

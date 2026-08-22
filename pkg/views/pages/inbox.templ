@@ -17,7 +17,7 @@ templ InboxPage(ctx context.Context, filter string) {
 			hx-trigger="load, every 30s"
 			hx-swap="outerHTML"
 			data-testid="inbox-panel">
-			@partials.PanelSkeleton()
+			@partials.PanelSkeleton(ctx)
 		</div>
 	}
 }

@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ NotifyChannelsTable(channels []model.NotifyChannel, highlight string) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ NotifyChannelsTable(ctx context.Context, channels []model.NotifyChannel, highlight string) {
 	<div id="notify-channels-table"
 		data-testid="notify-channels-table"
 		class="flowbot-surface">
@@ -10,12 +15,12 @@ templ NotifyChannelsTable(channels []model.NotifyChannel, highlight string) {
 			<table class="table flowbot-table-pin flowbot-table-cards">
 				<thead>
 				<tr>
-					<th class="text-xs font-medium text-base-content/55">Name</th>
-					<th class="text-xs font-medium text-base-content/55">Protocol</th>
-					<th class="text-xs font-medium text-base-content/55">URI</th>
-					<th class="text-xs font-medium text-base-content/55 text-center">Status</th>
-					<th class="text-xs font-medium text-base-content/55 text-center">Default</th>
-					<th class="text-xs font-medium text-base-content/55">Actions</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.name") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "common.protocol") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "common.uri") }</th>
+					<th class="text-xs font-medium text-base-content/55 text-center">{ i18n.T(ctx, "table.col.status") }</th>
+					<th class="text-xs font-medium text-base-content/55 text-center">{ i18n.T(ctx, "common.default") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="notify-channels-rows">
@@ -26,12 +31,12 @@ templ NotifyChannelsTable(channels []model.NotifyChannel, highlight string) {
 					<tr id="notify-channels-empty">
 						<td colspan="6" class="p-0">
 							@EmptyStateHXCTA(
-								"No channels yet",
-								"Add a channel to deliver notifications.",
+								i18n.T(ctx, "notify.empty.channels_title"),
+								i18n.T(ctx, "notify.empty.channels_detail"),
 								"/service/web/notifications/channels/new",
 								"#notify-channels-rows",
 								"afterbegin",
-								"Create channel",
+								i18n.T(ctx, "common.create_channel"),
 							)
 						</td>
 					</tr>

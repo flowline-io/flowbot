@@ -5,19 +5,19 @@ other = "zh-Hans"
 other = "收件箱"
 
 [nav.group.agent]
-other = "Agent"
+other = "智能体"
 
 [nav.agents]
-other = "Agents"
+other = "智能体"
 
 [nav.skills]
-other = "Skills"
+other = "技能"
 
 [nav.knowledge]
-other = "Knowledge"
+other = "知识库"
 
 [nav.subagents]
-other = "Subagents"
+other = "子代理"
 
 [nav.scheduled_tasks]
 other = "定时任务"
@@ -29,7 +29,7 @@ other = "会话"
 other = "权限"
 
 [nav.group.automate]
-other = "Automate"
+other = "自动化"
 
 [nav.pipelines]
 other = "流水线"
@@ -47,7 +47,7 @@ other = "事件"
 other = "关联"
 
 [nav.group.integrate]
-other = "Integrate"
+other = "集成"
 
 [nav.apps]
 other = "应用"
@@ -59,13 +59,13 @@ other = "注册表"
 other = "能力"
 
 [nav.clips]
-other = "Clips"
+other = "剪贴页"
 
 [nav.notifications]
 other = "通知"
 
 [nav.group.system]
-other = "System"
+other = "系统"
 
 [nav.health]
 other = "健康"
@@ -86,10 +86,10 @@ other = "账户"
 other = "关于"
 
 [nav.group.user]
-other = "User"
+other = "用户"
 
 [nav.life]
-other = "Life"
+other = "生活"
 
 [nav.stats]
 other = "统计"
@@ -375,6 +375,210 @@ other = "Homelab Registry"
 
 [page.run_history.title]
 other = "运行历史"
+
+[page.pipeline_editor.click_to_rename]
+other = "点击重命名"
+
+[page.pipeline_editor.status_draft]
+other = "草稿"
+
+[page.pipeline_editor.status_published]
+other = "已发布"
+
+[page.pipeline_editor.undo]
+other = "撤销"
+
+[page.pipeline_editor.redo]
+other = "重做"
+
+[page.pipeline_editor.history]
+other = "历史"
+
+[page.pipeline_editor.memory_notes]
+other = "记忆笔记"
+
+[page.pipeline_editor.code]
+other = "</> 代码"
+
+[page.pipeline_editor.run_history]
+other = "运行历史"
+
+[page.pipeline_editor.download]
+other = "下载"
+
+[page.pipeline_editor.import]
+other = "导入"
+
+[page.pipeline_editor.save_draft]
+other = "保存草稿"
+
+[page.pipeline_editor.saving]
+other = "保存中..."
+
+[page.pipeline_editor.publish]
+other = "发布"
+
+[page.pipeline_editor.publishing]
+other = "发布中..."
+
+[page.pipeline_editor.trigger_heading]
+other = "触发条件（任一启用的触发器均可启动流水线）"
+
+[page.pipeline_editor.add_trigger]
+other = "+ 添加触发器"
+
+[page.pipeline_editor.steps_empty]
+other = "尚无步骤。点击 + 添加第一个步骤。"
+
+[page.pipeline_editor.history_title]
+other = "版本历史"
+
+[page.pipeline_editor.compare]
+other = "对比"
+
+[page.pipeline_editor.no_versions]
+other = "尚无已发布版本。"
+
+[page.pipeline_editor.select_two_compare]
+other = "选择两个版本进行对比"
+
+[page.pipeline_editor.select_two_diff]
+other = "选择两个版本以查看差异"
+
+[page.pipeline_editor.no_content]
+other = "无内容"
+
+[page.pipeline_editor.tab_setup]
+other = "配置"
+
+[page.pipeline_editor.tab_test]
+other = "测试"
+
+[page.pipeline_editor.type]
+other = "类型"
+
+[page.pipeline_editor.trigger_type_event]
+other = "事件"
+
+[page.pipeline_editor.trigger_type_webhook]
+other = "Webhook"
+
+[page.pipeline_editor.trigger_type_cron]
+other = "Cron"
+
+[page.pipeline_editor.event_type]
+other = "事件类型"
+
+[page.pipeline_editor.select_event]
+other = "选择事件..."
+
+[page.pipeline_editor.custom_group]
+other = "自定义"
+
+[page.pipeline_editor.path]
+other = "路径"
+
+[page.pipeline_editor.method]
+other = "方法"
+
+[page.pipeline_editor.token]
+other = "令牌"
+
+[page.pipeline_editor.hmac_secret]
+other = "HMAC 密钥"
+
+[page.pipeline_editor.webhook_url]
+other = "Webhook URL"
+
+[page.pipeline_editor.copy_webhook_url]
+other = "复制 Webhook URL"
+
+[page.pipeline_editor.webhook_publish_hint]
+other = "线上端点使用最后一次发布。保存后请点击发布以应用方法/路径/令牌变更。"
+
+[page.pipeline_editor.copy_curl]
+other = "复制 curl 示例"
+
+[page.pipeline_editor.cron_expression]
+other = "Cron 表达式"
+
+[page.pipeline_editor.step_name]
+other = "步骤名称"
+
+[page.pipeline_editor.capability]
+other = "能力"
+
+[page.pipeline_editor.select_capability]
+other = "选择能力..."
+
+[page.pipeline_editor.operation]
+other = "操作"
+
+[page.pipeline_editor.select_operation]
+other = "选择操作..."
+
+[page.pipeline_editor.tools]
+other = "工具"
+
+[page.pipeline_editor.tools_hint]
+other = "全部不选则使用流水线默认值。"
+
+[page.pipeline_editor.skills]
+other = "技能"
+
+[page.pipeline_editor.skills_hint]
+other = "所选技能将注入 agent 提示词并通过 read_skill 启用。"
+
+[page.pipeline_editor.no_skills]
+other = "无已启用技能。请在 Agent → Skills 下创建。"
+
+[page.pipeline_editor.parameters]
+other = "参数"
+
+[page.pipeline_editor.placeholder_comma_values]
+other = "逗号分隔的值"
+
+[page.pipeline_editor.placeholder_comma_ids]
+other = "逗号分隔的 ID"
+
+[page.pipeline_editor.invalid_json_object]
+other = "无效的 JSON 对象"
+
+[page.pipeline_editor.advanced_json]
+other = "高级 JSON"
+
+[page.pipeline_editor.insert_variable]
+other = "{x} 插入变量"
+
+[page.pipeline_editor.var_picker_title]
+other = "插入变量"
+
+[page.pipeline_editor.var_picker_event_data]
+other = "事件数据"
+
+[page.pipeline_editor.test_trigger_source]
+other = "触发源"
+
+[page.pipeline_editor.test_mock_payload]
+other = "模拟载荷 (JSON)"
+
+[page.pipeline_editor.test_mock_placeholder]
+other = "模拟载荷 JSON"
+
+[page.pipeline_editor.test_load_sample]
+other = "加载示例数据"
+
+[page.pipeline_editor.test_run]
+other = "测试到此步骤"
+
+[page.pipeline_editor.test_testing]
+other = "测试中..."
+
+[page.pipeline_editor.test_status_ok]
+other = "OK"
+
+[page.pipeline_editor.test_status_err]
+other = "ERR"
 
 [page.agents.composer_placeholder]
 other = "让 Flowbot 帮你调研、自动化、编排"
@@ -806,13 +1010,13 @@ other = "无法完成该操作，请重试。"
 # --- life.* ---
 
 [life.brand]
-other = "Life"
+other = "生活"
 
 [life.nav.aria_label]
-other = "Life 导航"
+other = "生活导航"
 
 [life.nav.dashboard]
-other = "Life"
+other = "生活"
 
 [life.nav.quests]
 other = "任务"
@@ -938,16 +1142,16 @@ other = "领域"
 other = "职业"
 
 [life.class.architect]
-other = "Architect"
+other = "建筑师"
 
 [life.class.mage]
-other = "Mage"
+other = "法师"
 
 [life.class.warrior]
-other = "Warrior"
+other = "战士"
 
 [life.class.rogue]
-other = "Rogue"
+other = "游侠"
 
 [life.page.goals.title]
 other = "目标"
@@ -1202,13 +1406,13 @@ other = "背包"
 other = "已装备"
 
 [life.inventory.tarnished]
-other = "Tarnished"
+other = "黯淡"
 
 [life.inventory.perk]
-other = "Perk {{.Text}}"
+other = "特权 {{.Text}}"
 
 [life.inventory.lore]
-other = "Lore {{.Status}}"
+other = "背景 {{.Status}}"
 
 [life.achievements.unlocked]
 other = "已解锁"
@@ -1298,10 +1502,10 @@ other = "弱点"
 other = "升级："
 
 [life.status.active]
-other = "Active"
+other = "进行中"
 
 [life.status.paused]
-other = "Paused"
+other = "已暂停"
 
 # --- clip.* ---
 
@@ -1979,7 +2183,73 @@ other = "Auth: 请求头 X-Hub-Signature-256"
 other = "Auth: 请配置 Token 或 HMAC Secret"
 
 [client.pipeline.memory_load_failed]
-other = "加载记忆事实失败"
+other = "加载记忆条目失败"
+
+[client.pipeline.error_summary]
+other = "{{.Count}} 个错误。已禁用发布。"
+
+[client.pipeline.yaml_syntax_error]
+other = "YAML 语法错误。切换回可视化模式前请先修复。\n{{.Error}}"
+
+[client.pipeline.upstream_var_invalid]
+other = "上游变量 steps.{{.Ref}}.* 无效或已被移除"
+
+[client.pipeline.depends_on_above]
+other = "依赖 [{{.Ref}}]，该步骤必须位于本步骤之上"
+
+[client.pipeline.step_display_name]
+other = "步骤 {{.Index}}"
+
+[client.pipeline.relative_minutes]
+other = "{{.Count}} 分钟前"
+
+[client.pipeline.relative_hours]
+other = "{{.Count}} 小时前"
+
+[client.pipeline.relative_days]
+other = "{{.Count}} 天前"
+
+[client.pipeline.trigger_event_prefix]
+other = "事件：{{.Value}}"
+
+[client.pipeline.trigger_cron_prefix]
+other = "Cron：{{.Value}}"
+
+[client.pipeline.unnamed_step]
+other = "未命名步骤"
+
+[client.pipeline.placeholder_ellipsis]
+other = "..."
+
+[client.pipeline.custom_event_suffix]
+other = "（自定义）"
+
+[client.pipeline.number_param_required]
+other = "0 或 {{expr}}"
+
+[client.pipeline.number_param_optional]
+other = "可选"
+
+[client.pipeline.param_placeholder_required]
+other = "必填"
+
+[client.pipeline.param_placeholder_optional]
+other = "可选"
+
+[client.pipeline.extra_fields]
+other = "{{.Count}} 个额外字段仅在高级 JSON 中可见。"
+
+[client.pipeline.memory_fact_load_failed]
+other = "加载记忆条目失败"
+
+[client.pipeline.memory_key_required]
+other = "键为必填项"
+
+[client.pipeline.memory_fact_save_failed]
+other = "保存记忆条目失败"
+
+[client.pipeline.memory_fact_delete_failed]
+other = "删除记忆条目失败"
 
 [client.chatagent.close_session.btn]
 other = "关闭"
@@ -2001,3 +2271,2809 @@ other = "高"
 
 [client.chatagent.close_session.confirm_fallback]
 other = "关闭此会话？"
+
+[client.chatagent.copy]
+other = "复制"
+
+[client.chatagent.think_label]
+other = "思考"
+
+[client.chatagent.completed_in]
+other = "{{.Duration}}内完成"
+
+[client.chatagent.turn_duration]
+other = "本轮 {{.Duration}}"
+
+[client.chatagent.total_duration]
+other = "总计 {{.Duration}}"
+
+[client.chatagent.reload_messages]
+other = "重新加载消息"
+
+[client.chatagent.run_failed]
+other = "运行失败"
+
+[client.chatagent.run_canceled]
+other = "运行已取消"
+
+[client.chatagent.run_finished_no_stream]
+other = "运行已完成，但实时流未送达。"
+
+[client.chatagent.connection_lost_streaming]
+other = "流式传输时连接丢失。"
+
+[client.chatagent.run_in_progress]
+other = "已有运行正在进行。"
+
+[client.chatagent.streaming_unsupported]
+other = "此浏览器不支持流式传输。"
+
+[client.chatagent.approval_timeout]
+other = "已超时 — 工具被自动拒绝。"
+
+[client.chatagent.approved_label]
+other = "已批准"
+
+[client.chatagent.denied_label]
+other = "已拒绝"
+
+[client.chatagent.approval_resolved_reason]
+other = "{{.Label}}（{{.Reason}}）"
+
+[client.chatagent.waiting_approval]
+other = "等待工具批准。本轮其余内容将在完成后显示。"
+
+[client.chatagent.approved_continuing]
+other = "已批准 — 继续本轮…"
+
+[client.chatagent.approved_waiting_next]
+other = "已批准。等待下一步（可能再次批准或最终回复）…"
+
+[client.chatagent.denied_waiting_finish]
+other = "已拒绝。等待本轮结束…"
+
+[client.chatagent.approval_expired]
+other = "批准请求已过期。"
+
+[client.chatagent.approval_expired_resolved]
+other = "批准请求已过期或已处理。"
+
+[client.chatagent.confirm_failed]
+other = "确认请求失败。"
+
+[client.chatagent.connected]
+other = "已连接"
+
+[client.chatagent.reconnecting]
+other = "重新连接中…"
+
+[client.chatagent.remember_always_allow]
+other = "记住以供未来匹配调用：{{.Pattern}}"
+
+[client.chatagent.invalid_redirect]
+other = "无效的重定向"
+
+[client.chatagent.upload_failed]
+other = "上传失败"
+
+[client.function_editor.draft_saved]
+other = "草稿已保存"
+
+[client.function_editor.running]
+other = "运行中…"
+
+[client.function_editor.invalid_event_json]
+other = "事件 JSON 无效"
+
+[client.function_editor.invoke_failed]
+other = "调用失败"
+
+[client.event_filters.prompt_name]
+other = "筛选器名称"
+
+[client.hub.logs.ended_line]
+other = "-- 日志流已结束 --"
+
+[client.chatagent.todos.count_zero]
+other = "0 项"
+
+[client.chatagent.todos.count_done]
+other = "{{.Done}}/{{.Total}} 已完成"
+
+[client.chatagent.todos.count_active]
+other = "{{.Active}} 进行中 · {{.Done}}/{{.Total}}"
+
+# --- Phase 3: remaining web UI ---
+
+[common.loading]
+other = "加载中…"
+
+[common.reset]
+other = "重置"
+
+[common.back_to_registry]
+other = "← 返回注册表"
+
+[common.back_to_apps]
+other = "← 返回应用"
+
+[common.back_to_sessions]
+other = "← 返回会话"
+
+[common.back_to_list]
+other = "返回列表"
+
+[common.none]
+other = "无"
+
+[common.or_divider]
+other = "- 或 -"
+
+[common.vs]
+other = "对比"
+
+[common.left]
+other = "左"
+
+[common.right]
+other = "右"
+
+[common.remove]
+other = "移除"
+
+[common.save]
+other = "保存"
+
+[common.expand]
+other = "展开"
+
+[common.copy]
+other = "复制"
+
+[common.required]
+other = "必填"
+
+[common.optional]
+other = "可选"
+
+[common.not_set]
+other = "未设置"
+
+[common.clear]
+other = "清除"
+
+[status.online]
+other = "在线"
+
+[status.offline]
+other = "离线"
+
+[status.warning]
+other = "警告"
+
+[status.unknown]
+other = "未知"
+
+[status.error]
+other = "错误"
+
+[status.healthy]
+other = "健康"
+
+[status.unhealthy]
+other = "不健康"
+
+[status.ok]
+other = "正常"
+
+[status.warn]
+other = "异常"
+
+[status.timeout]
+other = "超时"
+
+[status.na]
+other = "不适用"
+
+[status.connected]
+other = "已连接"
+
+[status.disconnected]
+other = "未连接"
+
+[status.unreachable]
+other = "不可达"
+
+[page.about.version]
+other = "版本"
+
+[page.about.build_stamp]
+other = "构建标识"
+
+[page.about.go]
+other = "Go"
+
+[page.about.platform]
+other = "平台"
+
+[page.healthz.auto_refresh]
+other = "每 30 秒自动刷新"
+
+[healthz.db_latency]
+other = "数据库延迟"
+
+[healthz.postgres]
+other = "PostgreSQL"
+
+[healthz.redis]
+other = "Redis"
+
+[healthz.runtime]
+other = "运行时"
+
+[healthz.goroutines]
+other = "Goroutines"
+
+[healthz.heap_alloc]
+other = "堆分配"
+
+[healthz.total_alloc]
+other = "总分配"
+
+[healthz.sys_memory]
+other = "系统内存"
+
+[healthz.gc_cycles]
+other = "GC 次数"
+
+[healthz.last_gc_pause]
+other = "上次 GC 暂停"
+
+[healthz.recent_errors]
+other = "近期错误"
+
+[healthz.no_recent_errors]
+other = "暂无近期错误"
+
+[healthz.capability_status]
+other = "能力状态"
+
+[healthz.col.capability]
+other = "能力"
+
+[healthz.col.status]
+other = "状态"
+
+[healthz.no_capabilities]
+other = "未注册任何能力"
+
+[homelab.search_placeholder]
+other = "搜索应用..."
+
+[homelab.search_aria]
+other = "搜索应用"
+
+[homelab.all_capabilities]
+other = "全部能力"
+
+[homelab.rescan]
+other = "重新扫描"
+
+[homelab.last_scan]
+other = "上次扫描："
+
+[homelab.empty.title]
+other = "未发现应用"
+
+[homelab.empty.detail]
+other = "请在 flowbot.yaml 中配置 homelab.apps_dir，然后重新扫描注册表。"
+
+[homelab.empty.cta]
+other = "打开注册表"
+
+[homelab.detail.health]
+other = "健康："
+
+[homelab.detail.path]
+other = "路径："
+
+[homelab.detail.compose]
+other = "Compose："
+
+[homelab.detail.version]
+other = "版本："
+
+[homelab.detail.last_discovered]
+other = "上次发现："
+
+[homelab.detail.services]
+other = "服务"
+
+[homelab.detail.exposed_endpoints]
+other = "暴露端点"
+
+[table.col.service]
+other = "服务"
+
+[table.col.image]
+other = "镜像"
+
+[table.col.container]
+other = "容器"
+
+[table.col.ports]
+other = "端口"
+
+[table.col.provider]
+other = "提供者"
+
+[table.col.base_url]
+other = "基础 URL"
+
+[table.col.auth]
+other = "认证"
+
+[table.col.capabilities]
+other = "能力"
+
+[table.col.last_updated]
+other = "上次更新"
+
+[table.col.key]
+other = "键"
+
+[table.col.value]
+other = "值"
+
+[table.col.description]
+other = "描述"
+
+[hub.btn.start]
+other = "启动"
+
+[hub.btn.stop]
+other = "停止"
+
+[hub.btn.restart]
+other = "重启"
+
+[hub.btn.pull]
+other = "拉取"
+
+[hub.btn.update]
+other = "更新"
+
+[hub.logs.title]
+other = "日志"
+
+[hub.logs.loading]
+other = "加载日志中..."
+
+[hub.logs.unavailable]
+other = "日志流不可用。请启用 homelab.permissions.logs，并将 homelab.runtime.mode 设为 docker_socket 或 ssh。"
+
+[hub.empty.title]
+other = "未发现应用"
+
+[hub.empty.detail]
+other = "请配置 homelab.apps_dir，然后重新扫描注册表。"
+
+[page.events.tab_data]
+other = "数据事件"
+
+[page.events.tab_webhooks]
+other = "Webhook 日志"
+
+[events.filter.time_range]
+other = "时间范围"
+
+[events.filter.start_time]
+other = "开始时间"
+
+[events.filter.end_time]
+other = "结束时间"
+
+[events.filter.search_placeholder]
+other = "搜索事件..."
+
+[events.filter.all_pipelines]
+other = "全部流水线"
+
+[events.filter.all_sources]
+other = "全部来源"
+
+[events.filter.all_types]
+other = "全部类型"
+
+[events.filter.pipeline]
+other = "流水线"
+
+[events.filter.source]
+other = "来源"
+
+[events.filter.event_type]
+other = "事件类型"
+
+[events.presets.label]
+other = "预设"
+
+[events.presets.saved_filters]
+other = "已保存筛选"
+
+[events.presets.save_filter]
+other = "保存筛选"
+
+[events.presets.filter_name_prompt]
+other = "筛选名称"
+
+[relations.search_placeholder]
+other = "按实体 ID 搜索..."
+
+[relations.filter.all_pipelines]
+other = "全部流水线"
+
+[relations.filter.all_time]
+other = "全部时间"
+
+[relations.filter.last_7_days]
+other = "最近 7 天"
+
+[relations.filter.last_30_days]
+other = "最近 30 天"
+
+[relations.filter.last_90_days]
+other = "最近 90 天"
+
+[relations.empty.search_hint]
+other = "搜索资源实体 ID 以探索关系"
+
+[relations.empty.select_hint]
+other = "选择节点或边以查看详情"
+
+[relations.empty.no_resources]
+other = "未找到资源"
+
+[relations.detail.resource_node]
+other = "资源节点"
+
+[relations.detail.relation_edge]
+other = "关系边"
+
+[relations.detail.capability]
+other = "能力："
+
+[relations.detail.app]
+other = "应用："
+
+[relations.detail.entity_id]
+other = "实体 ID："
+
+[relations.detail.pipeline]
+other = "流水线："
+
+[relations.detail.source]
+other = "来源："
+
+[relations.detail.target]
+other = "目标："
+
+[relations.detail.created]
+other = "创建时间："
+
+[page.capabilities.all_types]
+other = "全部类型"
+
+[page.capabilities.all_providers]
+other = "全部提供者"
+
+[capability.empty.filtered]
+other = "没有匹配筛选条件的能力"
+
+[capability.empty.none]
+other = "未注册任何能力"
+
+[capability.empty.detail]
+other = "启动 Hub 应用以在此暴露能力。"
+
+[capability.empty.cta]
+other = "打开 Hub"
+
+[capability.app_label]
+other = "应用："
+
+[capability.operations_count]
+other = "{{.Count}} 个操作"
+
+[capability.no_operations]
+other = "无操作"
+
+[capability.input]
+other = "输入"
+
+[capability.output]
+other = "输出"
+
+[capability.scopes]
+other = "作用域"
+
+[capability.healthy_aria]
+other = "健康"
+
+[capability.unhealthy_aria]
+other = "不健康"
+
+[page.settings.search]
+other = "按键、值或描述搜索…"
+
+[page.settings.redacted]
+other = "已脱敏"
+
+[page.view.expired]
+other = "此页面已过期，可能不再可用。"
+
+[empty.not_authenticated]
+other = "未认证"
+
+[empty.store_unavailable]
+other = "存储不可用"
+
+[empty.record_not_found]
+other = "记录未找到"
+
+[empty.not_found]
+other = "未找到"
+
+[empty.operation_failed]
+other = "操作失败"
+
+[empty.failed_load_inbox]
+other = "加载收件箱失败"
+
+[empty.failed_count_events]
+other = "统计事件失败"
+
+[empty.failed_load_events]
+other = "加载事件失败"
+
+[empty.event_not_found]
+other = "事件未找到"
+
+[empty.failed_load_relations]
+other = "加载关系失败"
+
+[empty.search_failed]
+other = "搜索失败"
+
+[empty.invalid_node_format]
+other = "节点格式无效。请使用 app|capability|entity_id"
+
+[empty.invalid_detail_type]
+other = "详情类型无效"
+
+[empty.invalid_session_uri]
+other = "会话或资源 URI 无效"
+
+[empty.session_not_found]
+other = "会话未找到"
+
+[empty.resource_not_found]
+other = "资源未找到"
+
+[empty.invalid_session_entry]
+other = "会话或条目 ID 无效"
+
+[empty.entry_not_found]
+other = "条目未找到"
+
+[empty.failed_load_channels]
+other = "加载通道失败"
+
+[empty.channel_created_load_failed]
+other = "通道已创建但加载失败"
+
+[empty.failed_load_templates]
+other = "加载模板失败"
+
+[empty.template_created_load_failed]
+other = "模板已创建但加载失败"
+
+[empty.failed_load_rules]
+other = "加载规则失败"
+
+[empty.rule_created_load_failed]
+other = "规则已创建但加载失败"
+
+[empty.failed_load_playground]
+other = "加载演练场失败"
+
+[empty.not_your_notification]
+other = "非您的通知"
+
+[error.failed_load_workflows]
+other = "加载工作流失败"
+
+[error.workflow_store_unavailable]
+other = "工作流存储不可用"
+
+[error.failed_load_workflow_runs]
+other = "加载工作流运行记录失败"
+
+[error.workflow_run_unavailable]
+other = "工作流运行服务不可用"
+
+[error.workflow_not_found]
+other = "工作流未找到"
+
+[toast.hub.permission_scope]
+other = "权限不足：缺少作用域 {{.Scope}}"
+
+[toast.hub.permission_operation]
+other = "权限不足：Hub 配置不允许 {{.Operation}}"
+
+[toast.hub.operation_failed]
+other = "无法 {{.Operation}} {{.Name}}：{{.Error}}"
+
+[toast.hub.started]
+other = "{{.Name}} 已启动"
+
+[toast.hub.stopped]
+other = "{{.Name}} 已停止"
+
+[toast.hub.restarted]
+other = "{{.Name}} 已重启"
+
+[toast.hub.pulled]
+other = "{{.Name}} 镜像已拉取"
+
+[toast.hub.updated]
+other = "{{.Name}} 已更新"
+
+# --- Phase 4: remaining templ i18n ---
+
+[common.back]
+other = "返回"
+
+[common.back_to_functions]
+other = "返回"
+
+[common.back_to_workflows]
+other = "← 工作流"
+
+[common.back_to_agents]
+other = "返回 Agents"
+
+[common.back_to_account]
+other = "返回账户安全"
+
+[common.enabled]
+other = "已启用"
+
+[common.yes]
+other = "是"
+
+[common.no]
+other = "否"
+
+[common.edit]
+other = "编辑"
+
+[common.test]
+other = "测试"
+
+[common.publish]
+other = "发布"
+
+[common.draft]
+other = "草稿"
+
+[common.published]
+other = "已发布"
+
+[common.pause]
+other = "暂停"
+
+[common.resume]
+other = "恢复"
+
+[common.disable]
+other = "禁用"
+
+[common.enable]
+other = "启用"
+
+[common.load_more]
+other = "加载更多"
+
+[common.close]
+other = "关闭"
+
+[common.preview]
+other = "预览"
+
+[common.send]
+other = "发送"
+
+[common.pin]
+other = "置顶"
+
+[common.unpin]
+other = "取消置顶"
+
+[common.archive]
+other = "归档"
+
+[common.unarchive]
+other = "取消归档"
+
+[common.retry]
+other = "重试"
+
+[common.mark_read]
+other = "标记已读"
+
+[common.select]
+other = "请选择…"
+
+[common.run]
+other = "运行"
+
+[common.view_all]
+other = "查看全部"
+
+[common.total]
+other = "总计"
+
+[common.done]
+other = "已完成"
+
+[common.todo]
+other = "待办"
+
+[common.success]
+other = "成功"
+
+[common.failed]
+other = "失败"
+
+[common.result]
+other = "结果"
+
+[common.title]
+other = "标题"
+
+[common.body]
+other = "正文"
+
+[common.template]
+other = "模板"
+
+[common.custom]
+other = "自定义"
+
+[common.priority]
+other = "优先级"
+
+[common.channel]
+other = "通道"
+
+[common.format]
+other = "格式"
+
+[common.condition]
+other = "条件"
+
+[common.window]
+other = "窗口"
+
+[common.limit]
+other = "限制"
+
+[common.rule]
+other = "规则"
+
+[common.time]
+other = "时间"
+
+[common.summary]
+other = "摘要"
+
+[common.type]
+other = "类型"
+
+[common.default]
+other = "默认"
+
+[common.overrides]
+other = "覆盖"
+
+[common.protocol]
+other = "协议"
+
+[common.uri]
+other = "URI"
+
+[common.triggers]
+other = "触发器"
+
+[common.steps]
+other = "步骤"
+
+[common.tasks]
+other = "任务"
+
+[common.runtime]
+other = "运行时"
+
+[common.last_run]
+other = "上次运行"
+
+[common.run_history]
+other = "运行历史"
+
+[common.save_draft]
+other = "保存草稿"
+
+[common.set_default]
+other = "设为默认"
+
+[common.sent]
+other = "已发送"
+
+[common.all]
+other = "全部"
+
+[common.input]
+other = "输入"
+
+[common.output]
+other = "输出"
+
+[common.errors]
+other = "错误"
+
+[common.duration]
+other = "耗时"
+
+[common.attempt]
+other = "尝试"
+
+[common.action]
+other = "操作"
+
+[common.required_field]
+other = "必填"
+
+[common.name]
+other = "名称"
+
+[common.flag]
+other = "标识"
+
+[common.content]
+other = "内容"
+
+[common.source]
+other = "来源"
+
+[common.model]
+other = "模型"
+
+[common.tools]
+other = "工具"
+
+[common.skills]
+other = "技能"
+
+[common.path]
+other = "路径"
+
+[common.topic]
+other = "主题"
+
+[common.tags]
+other = "标签"
+
+[common.overview]
+other = "概览"
+
+[common.runs]
+other = "运行"
+
+[common.code]
+other = "代码"
+
+[common.stats]
+other = "统计"
+
+[common.try]
+other = "试用"
+
+[common.latest]
+other = "最新"
+
+[common.inherit_default]
+other = "继承默认"
+
+[common.overridden]
+other = "已覆盖"
+
+[common.inheriting_default]
+other = "继承默认中"
+
+[common.permission]
+other = "权限"
+
+[common.your_setting]
+other = "你的设置"
+
+[common.advanced_json]
+other = "高级 JSON"
+
+[common.save_json]
+other = "保存 JSON"
+
+[common.reset_to_defaults]
+other = "重置为默认"
+
+[common.open_pipelines]
+other = "打开流水线"
+
+[common.create_pipeline]
+other = "创建流水线"
+
+[common.create_channel]
+other = "创建通道"
+
+[common.create_template]
+other = "创建模板"
+
+[common.create_rule]
+other = "创建规则"
+
+[common.open_notify_settings]
+other = "打开通知设置"
+
+[table.col.run_id]
+other = "运行 ID"
+
+[table.col.trigger]
+other = "触发器"
+
+[table.col.started]
+other = "开始时间"
+
+[table.col.error]
+other = "错误"
+
+[table.col.event]
+other = "事件"
+
+[table.col.template_id]
+other = "模板 ID"
+
+[table.col.id]
+other = "ID"
+
+[table.col.priority]
+other = "优先级"
+
+[table.col.runs_7d]
+other = "运行 (7天)"
+
+[table.col.runs_7d_tip]
+other = "近 7 天：成功率 · P50 / P95 耗时"
+
+[page.account_security.new_backup_codes_title]
+other = "新备份码"
+
+[page.account_security.new_backup_codes_subtitle]
+other = "请将这些一次性代码保存在安全位置，之后不会再显示。"
+
+[account.2fa.title]
+other = "双因素认证"
+
+[account.2fa.enabled]
+other = "已启用"
+
+[account.2fa.not_enabled]
+other = "未启用"
+
+[account.2fa.bound_hint]
+other = "已绑定验证器应用。如需重置，请在服务器上运行"
+
+[account.2fa.setup_hint]
+other = "使用备份码前请先完成 TOTP 设置。"
+
+[account.password.title]
+other = "密码"
+
+[account.password.signed_in_as]
+other = "当前登录"
+
+[account.password.current]
+other = "当前密码"
+
+[account.password.new]
+other = "新密码"
+
+[account.password.update]
+other = "更新密码"
+
+[account.backup.title]
+other = "备份码"
+
+[account.backup.hint]
+other = "丢失验证器时可使用的一次性代码。"
+
+[account.backup.confirm_password]
+other = "使用密码确认"
+
+[account.backup.regenerate]
+other = "重新生成备份码"
+
+[account.backup.none_remaining]
+other = "无剩余"
+
+[account.backup.one_remaining]
+other = "剩余 1 个"
+
+[account.backup.n_remaining]
+other = "剩余 {{.Count}} 个"
+
+[function_editor.definition_version]
+other = "定义 v"
+
+[function_editor.latest_published]
+other = "最新已发布 v"
+
+[function_editor.unpublished_changes]
+other = "未发布更改"
+
+[function_editor.unsaved]
+other = "未保存"
+
+[function_editor.auth_hint]
+other = "认证：请求头 X-Webhook-Token 或 query token。版本化路径固定已发布快照。"
+
+[function_editor.entrypoint]
+other = "入口"
+
+[function_editor.http_token]
+other = "HTTP 令牌"
+
+[function_editor.hmac_secret]
+other = "HMAC 密钥（可选）"
+
+[function_editor.env]
+other = "环境变量（每行 KEY=VALUE）"
+
+[function_editor.source]
+other = "源码"
+
+[function_editor.event_json]
+other = "事件 JSON"
+
+[function_editor.try_disabled]
+other = "请先发布版本后再试用。"
+
+[function_editor.run_published]
+other = "运行已发布版本"
+
+[permissions.form_hint]
+other = "表单编辑仅保存你的覆盖规则。设为「继承默认」的键将使用各字段旁显示的系统基线。"
+
+[permissions.approval_mode.title]
+other = "审批模式"
+
+[permissions.approval_mode.hint]
+other = "manual 使用权限询问对话框；auto 对标记的副作用工具使用轻量安全审查；off 跳过询问（DCG 与 deny 规则仍生效）。服务器默认：{{.Default}}。"
+
+[permissions.general.title]
+other = "通用权限"
+
+[permissions.pattern.title]
+other = "模式权限"
+
+[permissions.pattern.hint]
+other = "覆盖模式权限会替换该键的所有默认规则。添加具体模式以允许、询问或拒绝匹配目标。"
+
+[permissions.pattern.add]
+other = "添加模式规则"
+
+[permissions.wildcard.title]
+other = "通配符回退"
+
+[permissions.wildcard.hint]
+other = "* 键在无具体规则匹配时生效。默认为 ask，且不可覆盖。"
+
+[permissions.advanced_json_hint]
+other = "编辑原始用户覆盖 JSON。从此区域保存将忽略上方表单。"
+
+[permissions.action.ask]
+other = "询问"
+
+[permissions.action.allow]
+other = "允许"
+
+[permissions.action.deny]
+other = "拒绝"
+
+[permissions.approval_mode.manual]
+other = "手动"
+
+[permissions.approval_mode.auto]
+other = "自动"
+
+[permissions.approval_mode.off]
+other = "关闭"
+
+[permissions.key.websearch.label]
+other = "网页搜索"
+
+[permissions.key.websearch.description]
+other = "控制 web_search 工具访问。"
+
+[permissions.key.skill.label]
+other = "技能"
+
+[permissions.key.skill.description]
+other = "控制 read_skill 工具访问。"
+
+[permissions.key.knowledge.label]
+other = "知识库"
+
+[permissions.key.knowledge.description]
+other = "控制 search_knowledge 与 get_knowledge 工具访问。"
+
+[permissions.key.delegate.label]
+other = "委派"
+
+[permissions.key.delegate.description]
+other = "控制任务（子 Agent）委派。"
+
+[permissions.key.schedule.label]
+other = "定时写入"
+
+[permissions.key.schedule.description]
+other = "控制 schedule_task、update_scheduled_task 与 cancel_scheduled_task。"
+
+[permissions.key.schedule_read.label]
+other = "定时读取"
+
+[permissions.key.schedule_read.description]
+other = "控制 list_scheduled_tasks。"
+
+[permissions.key.doom_loop.label]
+other = "死循环"
+
+[permissions.key.doom_loop.description]
+other = "控制循环检测的严重命中（ask/deny/allow）。全局与压缩后硬停止忽略此键。"
+
+[permissions.key.read.label]
+other = "读取文件"
+
+[permissions.key.read.description]
+other = "按文件路径模式控制 read_file 访问。"
+
+[permissions.key.edit.label]
+other = "编辑文件"
+
+[permissions.key.edit.description]
+other = "按文件路径模式控制 write_file 访问。"
+
+[permissions.key.bash.label]
+other = "Shell / 代码"
+
+[permissions.key.bash.description]
+other = "按命令模式控制 run_terminal 与 run_code。"
+
+[permissions.key.external_directory.label]
+other = "外部路径"
+
+[permissions.key.external_directory.description]
+other = "控制对工作区外路径的访问。"
+
+[agent_skills.import]
+other = "导入"
+
+[agent_skills.new]
+other = "新建技能"
+
+[chatagent.workspace]
+other = "工作区："
+
+[chatagent.session_view]
+other = "会话视图"
+
+[chatagent.view.chat]
+other = "对话"
+
+[chatagent.view.trajectory]
+other = "轨迹"
+
+[chatagent.close_session]
+other = "关闭会话"
+
+[chatagent.inspect_entries]
+other = "查看条目"
+
+[chatagent.sessions]
+other = "会话"
+
+[chatagent.session_actions]
+other = "会话操作"
+
+[chatagent.waiting_approval]
+other = "等待工具审批。本轮其余内容将在完成后显示。"
+
+[chatagent.jump_to_bottom]
+other = "跳到底部"
+
+[chatagent.follow_up_placeholder]
+other = "添加后续消息…（Enter 发送，Shift+Enter 换行；/ 打开技能）"
+
+[chatagent.follow_up_aria]
+other = "添加后续消息"
+
+[chatagent.stop]
+other = "停止"
+
+[chatagent.close_inspector]
+other = "关闭检查器"
+
+[chatagent.inspector.preview]
+other = "预览"
+
+[chatagent.inspector.raw]
+other = "原始"
+
+[chatagent.disabled]
+other = "Chat Agent 未启用。请在 flowbot.yaml 中配置 chat_agent.chat_model。"
+
+[chatagent.state.needs_approval]
+other = "待审批"
+
+[chatagent.state.running]
+other = "运行中"
+
+[chatagent.state.active]
+other = "活跃"
+
+[chatagent.pinned]
+other = "已置顶"
+
+[chatagent.your_sessions]
+other = "你的会话"
+
+[chatagent.filter.needs_approval]
+other = "待审批"
+
+[chatagent.filter.archived]
+other = "已归档"
+
+[chatagent.empty.archived]
+other = "暂无已归档会话。"
+
+[chatagent.empty.running]
+other = "暂无运行中会话。"
+
+[chatagent.empty.needs_approval]
+other = "暂无需要审批的会话。"
+
+[chatagent.empty.default]
+other = "暂无会话。请在上方开始一个。"
+
+[chatagent.day.pinned]
+other = "置顶"
+
+[chatagent.day.today]
+other = "今天"
+
+[chatagent.day.yesterday]
+other = "昨天"
+
+[chatagent.context.title]
+other = "上下文用量"
+
+[chatagent.context.show_usage]
+other = "显示上下文用量"
+
+[chatagent.context.breakdown]
+other = "上下文用量明细"
+
+[chatagent.context.view_report]
+other = "查看报告"
+
+[chatagent.context.close]
+other = "关闭上下文用量"
+
+[chatagent.context.percent_full]
+other = "0% 已满"
+
+[chatagent.context.tokens]
+other = "~0 / 0 令牌"
+
+[command_palette.search_aria]
+other = "命令面板搜索"
+
+[command_palette.results_aria]
+other = "命令面板结果"
+
+[command_palette.navigate]
+other = "导航"
+
+[command_palette.open]
+other = "打开"
+
+[command_palette.close_hint]
+other = "关闭"
+
+[notify.tab.channels]
+other = "通道"
+
+[notify.tab.templates]
+other = "模板"
+
+[notify.tab.rules]
+other = "规则"
+
+[notify.tab.history]
+other = "历史"
+
+[notify.tab.playground]
+other = "试验场"
+
+[notify.new_channel]
+other = "新建通道"
+
+[notify.new_template]
+other = "新建模板"
+
+[notify.new_rule]
+other = "新建规则"
+
+[notify.channel.name_placeholder]
+other = "通道名称"
+
+[notify.channel.uri_placeholder_new]
+other = "slack://T00000000/B00000000/XXXXXXXX"
+
+[notify.channel.uri_placeholder_edit]
+other = "留空以保留现有 URI"
+
+[notify.template.id_label]
+other = "模板 ID"
+
+[notify.template.id_placeholder]
+other = "例如 bookmark.created"
+
+[notify.template.name_placeholder]
+other = "显示名称"
+
+[notify.template.description_placeholder]
+other = "可选描述"
+
+[notify.template.default_template]
+other = "默认模板"
+
+[notify.template.body_placeholder]
+other = "Go text/template 正文（支持 Sprig 函数）"
+
+[notify.template.overrides_json]
+other = "覆盖 JSON"
+
+[notify.template.overrides_placeholder]
+other = '[{"channel":"telegram","format":"html","template":"<b>{{ .title }}</b>"}]'
+
+[notify.rule.name_placeholder]
+other = "规则名称"
+
+[notify.rule.id_placeholder]
+other = "rule_id（例如 night_mute）"
+
+[notify.rule.digest_template]
+other = "摘要模板"
+
+[notify.rule.delayed_send]
+other = "延迟发送"
+
+[notify.rule.drop_hint]
+other = "无额外参数。"
+
+[notify.rule.select_action]
+other = "请选择操作以配置。"
+
+[notify.playground.title]
+other = "Playground"
+
+[notify.playground.subtitle]
+other = "预览并手动向已启用通道发送通知。"
+
+[notify.playground.select_channel]
+other = "选择通道…"
+
+[notify.playground.no_channels]
+other = "无已启用通道。请在「通道」标签页添加。"
+
+[notify.playground.select_template]
+other = "选择模板…"
+
+[notify.playground.custom_template]
+other = "自定义模板"
+
+[notify.playground.custom_placeholder]
+other = "**标题**\n你好 {{ .name }}"
+
+[notify.playground.payload_json]
+other = "Payload JSON"
+
+[notify.playground.url_optional]
+other = "URL（可选）"
+
+[notify.playground.priority.low]
+other = "低"
+
+[notify.playground.priority.moderate]
+other = "中"
+
+[notify.playground.priority.normal]
+other = "正常"
+
+[notify.playground.priority.high]
+other = "高"
+
+[notify.playground.priority.emergency]
+other = "紧急"
+
+[notify.history.group_aria]
+other = "通知分组"
+
+[notify.history.by_channel]
+other = "按通道"
+
+[notify.history.by_rule]
+other = "按规则"
+
+[notify.history.unread]
+other = "未读"
+
+[notify.history.filter_channel]
+other = "筛选通道"
+
+[notify.history.all_channels]
+other = "全部通道"
+
+[notify.history.filter_rule]
+other = "筛选规则"
+
+[notify.history.all_rules]
+other = "全部规则"
+
+[notify.history.open_channel]
+other = "打开通道"
+
+[notify.history.open_rule]
+other = "打开规则"
+
+[notify.history.retry_tip]
+other = "重试走正常投递流程，速率限制仍然生效。"
+
+[notify.empty.channels_title]
+other = "暂无通道"
+
+[notify.empty.channels_detail]
+other = "添加通道以投递通知。"
+
+[notify.empty.templates_title]
+other = "暂无模板"
+
+[notify.empty.templates_detail]
+other = "模板为通道格式化通知内容。"
+
+[notify.empty.rules_title]
+other = "暂无规则"
+
+[notify.empty.rules_detail]
+other = "规则将事件匹配到通道和模板。"
+
+[notify.empty.history_title]
+other = "暂无通知"
+
+[notify.empty.history_detail]
+other = "配置通道和规则以投递告警。"
+
+[workflow.resumable]
+other = "可恢复"
+
+[workflow.max_concurrency]
+other = "最大并发 · {{.Count}}"
+
+[workflow.tab.overview]
+other = "概览"
+
+[workflow.tab.yaml]
+other = "YAML"
+
+[workflow.section.inputs]
+other = "输入"
+
+[workflow.section.triggers]
+other = "触发器"
+
+[workflow.section.execution_graph]
+other = "执行图"
+
+[workflow.section.recent_runs]
+other = "最近运行"
+
+[workflow.empty.runs]
+other = "暂无运行记录。"
+
+[workflow.empty.step_runs]
+other = "此次运行暂无任务运行记录。"
+
+[workflow.empty.yaml]
+other = "YAML 源码不可用。"
+
+[workflow.empty.dag]
+other = "无可绘制任务。"
+
+[workflow.empty.triggers]
+other = "未配置触发器。"
+
+[workflow.empty.inputs]
+other = "未声明输入。"
+
+[workflow.dag.title]
+other = "执行图"
+
+[workflow.dag.sequential_order]
+other = "任务按流水线顺序运行"
+
+[workflow.dag.parallel_conn]
+other = "并行分支遵循 Conn 依赖"
+
+[workflow.dag.sequential_conn]
+other = "Conn 图；max_concurrency ≤ 1 时顺序执行"
+
+[workflow.dag.parallel_dag]
+other = "并行 DAG"
+
+[workflow.dag.sequential]
+other = "顺序"
+
+[workflow.run_now.title]
+other = "立即运行"
+
+[workflow.run_now.no_inputs]
+other = "此工作流未声明输入。"
+
+[workflow.run_now.submit]
+other = "运行工作流"
+
+[workflow.copy_webhook_url]
+other = "复制 Webhook URL"
+
+[workflow.input.empty]
+other = "输入：（空）"
+
+[workflow.output.empty]
+other = "输出：（空）"
+
+[workflow.task_runs]
+other = "任务运行"
+
+[pipeline.empty.title]
+other = "暂无流水线"
+
+[pipeline.empty.detail]
+other = "创建第一个自动化以响应事件。"
+
+[workflow.empty.title]
+other = "暂无工作流"
+
+[workflow.empty.detail]
+other = "通过 CLI 应用工作流定义后在此显示。"
+
+[agent.skill.name_hint]
+other = "供 read_skill 使用并在 Agent 提示中显示（与 Flag 独立）。"
+
+[agent.skill.base_dir]
+other = "基础目录"
+
+[agent.skill.base_dir_placeholder]
+other = "技能文件的可选相对路径"
+
+[agent.skill.content_placeholder]
+other = "# 技能标题\n\nread_skill 加载的 Markdown 正文"
+
+[agent.skill.disable_invocation]
+other = "禁用模型调用（从提示和 read_skill 中隐藏）"
+
+[agent.subagent.name_hint]
+other = "由 delegate_subagent 工具以 subagent_type 引用，并在 Agent 提示中显示。"
+
+[agent.subagent.tools_hint]
+other = "全部不选则继承子 Agent 默认工具。"
+
+[agent.subagent.skills_hint]
+other = "所选技能注入子 Agent 提示并通过 read_skill 启用。"
+
+[agent.subagent.no_skills]
+other = "无已启用技能。请在 Agent → Skills 中创建。"
+
+[agent.subagent.system_prompt]
+other = "系统提示"
+
+[agent.subagent.system_prompt_placeholder]
+other = "定义子 Agent 角色与任务焦点的指令"
+
+[agent.knowledge.path_hint]
+other = "必须以 / 开头并以 .md 结尾"
+
+[agent.knowledge.tags_placeholder]
+other = "api, develop（逗号分隔）"
+
+[agent.knowledge.summary_placeholder]
+other = "搜索结果中显示的简短描述"
+
+[agent.knowledge.content_placeholder]
+other = "# 标题\n\nMarkdown 正文"
+
+[home.stat.agents]
+other = "Agents"
+
+[home.stat.active_sessions]
+other = "活跃会话"
+
+[home.stat.pipelines_7d]
+other = "流水线 (7天)"
+
+[home.stat.workflows_7d]
+other = "工作流 (7天)"
+
+[home.stat.ok]
+other = "{{.Count}} 成功"
+
+[home.stat.failed]
+other = "{{.Count}} 失败"
+
+[home.stat.events_24h]
+other = "事件 (24小时)"
+
+[home.stat.view_timeline]
+other = "查看时间线"
+
+[home.checklist.title]
+other = "快速开始"
+
+[home.checklist.subtitle]
+other = "完成以下步骤以启用此实例。"
+
+[home.checklist.workflow.title]
+other = "创建工作流"
+
+[home.checklist.workflow.detail]
+other = "定义带触发器和任务的多步自动化。"
+
+[home.checklist.workflow.cta]
+other = "打开工作流"
+
+[home.checklist.pipeline.title]
+other = "创建流水线"
+
+[home.checklist.pipeline.detail]
+other = "自动化响应数据事件。"
+
+[home.checklist.agents.title]
+other = "试用 Agents"
+
+[home.checklist.agents.detail]
+other = "与 Agent 对话并在就绪后配置技能。"
+
+[home.checklist.agents.cta]
+other = "打开 Agents"
+
+[home.quick.knowledge.title]
+other = "知识库"
+
+[home.quick.knowledge.detail]
+other = "供 Agent 检索的 Markdown 文档"
+
+[home.quick.skills.title]
+other = "技能"
+
+[home.quick.skills.detail]
+other = "可复用的 Agent 技能包"
+
+[home.quick.notifications.title]
+other = "通知"
+
+[home.quick.notifications.detail]
+other = "通道、规则与投递"
+
+[home.quick.health.title]
+other = "健康"
+
+[home.quick.health.detail]
+other = "基础设施状态"
+
+# --- inbox.* ---
+
+[inbox.filter.unread]
+other = "未读"
+
+[inbox.empty]
+other = "暂无消息"
+
+[inbox.unread_label]
+other = "未读"
+
+[inbox.unread_count_title]
+other = "{{.Count}} 条未读"
+
+[inbox.unread_count_aria]
+other = "{{.Count}} 条未读收件箱消息"
+
+# --- life.stats.* ---
+
+[life.stats.no_activity]
+other = "近 30 天无活动。"
+
+[life.stats.achievements]
+other = "已解锁 {{.Count}} 个成就"
+
+[life.stats.kpi.completions]
+other = "完成数"
+
+[life.stats.kpi.exp]
+other = "经验"
+
+[life.stats.kpi.gold_net]
+other = "金币净值"
+
+[life.stats.chart.activity.title]
+other = "活动"
+
+[life.stats.chart.activity.subtitle]
+other = "每日完成数与经验"
+
+[life.stats.chart.growth.title]
+other = "成长"
+
+[life.stats.chart.growth.subtitle]
+other = "按特性划分的经验（其他 = 未归因）"
+
+[life.stats.chart.quests.title]
+other = "任务类型"
+
+[life.stats.chart.quests.subtitle]
+other = "按类型统计的已完成任务"
+
+[life.stats.chart.economy.title]
+other = "经济"
+
+[life.stats.chart.economy.subtitle]
+other = "获得与兑换的金币"
+
+[life.stats.chart.loot.title]
+other = "掉落"
+
+[life.stats.chart.loot.subtitle]
+other = "每日掉落"
+
+# --- scheduled_task.* ---
+
+[scheduled_task.state]
+other = "状态："
+
+[scheduled_task.set_state]
+other = "设置状态"
+
+[scheduled_task.kind]
+other = "类型："
+
+[scheduled_task.schedule]
+other = "计划："
+
+[scheduled_task.source_session]
+other = "来源会话："
+
+[scheduled_task.next_run]
+other = "下次运行："
+
+[scheduled_task.last_run]
+other = "上次运行："
+
+[scheduled_task.prompt]
+other = "提示词"
+
+[scheduled_task.kind_cron]
+other = "Cron"
+
+[scheduled_task.kind_once]
+other = "一次性"
+
+[common.back_to_scheduled_tasks]
+other = "← 返回定时任务"
+
+[common.update]
+other = "更新"
+
+# --- token_usage.* ---
+
+[token_usage.title]
+other = "Token 用量"
+
+[token_usage.subtitle]
+other = "此期间内每日用量"
+
+[token_usage.group_by]
+other = "分组"
+
+[token_usage.metric]
+other = "指标"
+
+[token_usage.option.tokens]
+other = "Token"
+
+[token_usage.option.model]
+other = "模型"
+
+[token_usage.option.usage_type]
+other = "用途类型"
+
+[token_usage.range.last_month]
+other = "上月"
+
+[token_usage.since_utc]
+other = "起始 (UTC)"
+
+[token_usage.until_utc]
+other = "结束 (UTC)"
+
+[token_usage.apply]
+other = "应用"
+
+[token_usage.info_tooltip]
+other = "统计来自部署后的新 LLM 调用；日期为 UTC。"
+
+[token_usage.total_tokens]
+other = "总 Token"
+
+[token_usage.prompt_tokens]
+other = "提示 Token"
+
+[token_usage.completion_tokens]
+other = "补全 Token"
+
+[token_usage.empty.title]
+other = "暂无用量记录"
+
+[token_usage.empty.detail]
+other = "在 Agents 中开始对话即可在此查看 Token 统计。"
+
+[token_usage.empty.cta]
+other = "打开 Agents"
+
+[token_usage.chart.cumulative]
+other = "累计 Token"
+
+[token_usage.today]
+other = "今天"
+
+# --- pagination.* ---
+
+[pagination.showing]
+other = "显示 {{.Start}}-{{.End}}，共 {{.Total}} 条"
+
+[pagination.prev]
+other = "上一页"
+
+[pagination.next]
+other = "下一页"
+
+[pagination.go_to]
+other = "跳至"
+
+[pagination.go]
+other = "跳转"
+
+# --- relation.* ---
+
+[relation.upstream]
+other = "上游"
+
+[relation.downstream]
+other = "下游"
+
+# --- table.empty agent/config ---
+
+[table.empty.knowledge]
+other = "暂无知识文档"
+
+[table.empty.knowledge_detail]
+other = "添加 Markdown 文档供 Agent 搜索与阅读。"
+
+[table.empty.knowledge_cta]
+other = "创建文档"
+
+[table.empty.subagents]
+other = "暂无子 Agent"
+
+[table.empty.subagents_detail]
+other = "定义用于委派工作的 specialists。"
+
+[table.empty.subagents_cta]
+other = "创建子 Agent"
+
+[table.empty.agent_skills]
+other = "暂无 Agent 技能"
+
+[table.empty.agent_skills_detail]
+other = "技能扩展 Agent 的能力。"
+
+[table.empty.agent_skills_cta]
+other = "创建技能"
+
+[table.empty.scheduled_tasks]
+other = "暂无定时任务"
+
+[table.empty.scheduled_tasks_detail]
+other = "请让 Agent 安排重复性工作。"
+
+[table.empty.scheduled_tasks_cta]
+other = "打开 Agent"
+
+[table.empty.agent_sessions]
+other = "暂无会话"
+
+[table.empty.agent_sessions_detail]
+other = "与 Agent 对话后会在此显示。"
+
+[table.empty.agent_sessions_cta]
+other = "打开 Agent"
+
+[table.empty.configs]
+other = "暂无配置"
+
+[table.empty.configs_detail]
+other = "以键值对存储各模块设置。"
+
+[table.empty.configs_cta]
+other = "创建配置"
+
+[table.col.updated]
+other = "更新时间"
+
+[table.col.enabled]
+other = "启用"
+
+[table.col.model]
+other = "模型"
+
+[table.col.task_id]
+other = "任务 ID"
+
+[table.col.kind]
+other = "类型"
+
+[table.col.schedule]
+other = "计划"
+
+[table.col.state]
+other = "状态"
+
+[table.col.next_run]
+other = "下次运行"
+
+[table.col.last_run]
+other = "上次运行"
+
+[table.col.session_id]
+other = "会话 ID"
+
+[table.col.leaf_id]
+other = "叶节点 ID"
+
+# --- function/pipeline create modals ---
+
+[function.create.new_btn]
+other = "+ 新建 Function"
+
+[function.create.title]
+other = "新建 Function"
+
+[function.create.name_placeholder]
+other = "my-function"
+
+[pipeline.create.new_btn]
+other = "+ 新建 Pipeline"
+
+[pipeline.create.title]
+other = "新建 Pipeline"
+
+[pipeline.create.name_placeholder]
+other = "my-pipeline"
+
+[pipeline.create.name_title]
+other = "字母或数字（含中文）、连字符、下划线；须以字母或数字开头。"
+
+[pipeline.create.desc_optional]
+other = "描述（可选）"
+
+[pipeline.create.desc_placeholder]
+other = "简要描述"
+
+[hub.btn.capabilities]
+other = "能力"
+
+# --- agent pages/filters ---
+
+[agent.knowledge.filter_placeholder]
+other = "筛选路径或标题"
+
+[agent.knowledge.new_document]
+other = "新建文档"
+
+[agent.knowledge.path_placeholder]
+other = "/docs/develop/api-specs.md"
+
+[agent.knowledge.title_placeholder]
+other = "API Specs"
+
+[agent.session_summaries.filter_placeholder]
+other = "筛选标题或摘要"
+
+[agent.subagent.flag_placeholder]
+other = "code-reviewer"
+
+[agent.subagent.name_placeholder]
+other = "code-reviewer"
+
+[agent.subagent.description_placeholder]
+other = "主 Agent 应在何时委派给此子 Agent"
+
+[agent.subagent.model_placeholder]
+other = "可选模型覆盖（默认使用聊天模型）"
+
+[agent.subagent.source_placeholder]
+other = "global"
+
+[agent.skill.flag_placeholder]
+other = "karakeep"
+
+[agent.skill.name_placeholder]
+other = "karakeep"
+
+[agent.skill.description_placeholder]
+other = "显示在 Agent 提示词中的简短描述"
+
+[agent.skill.source_placeholder]
+other = "global"
+
+[agent.skill.files.title]
+other = "技能文件"
+
+[agent.skill.files.add]
+other = "添加文件"
+
+[agent.skill.files.empty]
+other = "暂无辅助文件。"
+
+[agent.session.session_id]
+other = "会话 ID："
+
+[agent.session.uid]
+other = "UID："
+
+[agent.session.state]
+other = "状态："
+
+[agent.session.leaf_id]
+other = "Leaf ID："
+
+[agent.session.created]
+other = "创建："
+
+[agent.session.updated]
+other = "更新："
+
+[agent.session.entries]
+other = "条目"
+
+# --- agent memory modal ---
+
+[agent.memory.title]
+other = "记忆事实"
+
+[agent.memory.subtitle]
+other = "修正此 Pipeline 记忆范围内的已有事实"
+
+[agent.memory.empty]
+other = "暂无事实。使用 memory_set 工具创建。"
+
+[agent.memory.key]
+other = "键"
+
+[agent.memory.value]
+other = "值"
+
+[agent.memory.pinned]
+other = "固定以自动注入"
+
+[agent.memory.close_aria]
+other = "关闭记忆事实"
+
+[agent.memory.saving]
+other = "保存中…"
+
+[chatagent.close_sessions_aria]
+other = "关闭会话列表"
+
+# --- pipeline live ---
+
+[pipeline.live.title_prefix]
+other = "实时："
+
+[pipeline.live.trigger]
+other = "触发："
+
+[pipeline.live.running]
+other = "运行中"
+
+[pipeline.live.select_step]
+other = "选择步骤查看详情"
+
+[pipeline.live.status]
+other = "状态："
+
+[pipeline.live.elapsed]
+other = "耗时："
+
+[pipeline.live.done]
+other = "已完成"
+
+[pipeline.live.pending]
+other = "待处理"
+
+[pipeline.live.failed]
+other = "失败"
+
+[pipeline.live.steps]
+other = "步骤："
+
+# --- error.validation (web forms) ---
+
+[error.validation.name_required]
+other = "名称为必填"
+
+[error.validation.flag_required]
+other = "标识为必填"
+
+[error.validation.flag_slug]
+other = "标识须为小写字母、数字和连字符"
+
+[error.validation.name_slug]
+other = "名称须为小写字母、数字和连字符"
+
+[error.validation.description_required]
+other = "描述为必填"
+
+[error.validation.system_prompt_required]
+other = "系统提示词为必填"
+
+[error.validation.tools_required]
+other = "至少选择一个工具"
+
+[error.validation.tool_not_allowed]
+other = "不允许使用工具 {{.Tool}}"
+
+[error.validation.flag_exists]
+other = "标识已存在"
+
+[error.validation.name_exists]
+other = "名称已存在"
+
+[error.validation.topic_required]
+other = "主题为必填"
+
+[error.validation.key_required]
+other = "键为必填"
+
+[error.validation.invalid_json]
+other = "JSON 无效"
+
+[error.validation.invalid_json_detail]
+other = "JSON 无效：{{.Error}}"
+
+[error.validation.path_required]
+other = "路径为必填"
+
+[error.validation.title_required]
+other = "标题为必填"
+
+[error.validation.content_required]
+other = "内容为必填"
+
+[error.validation.content_too_large]
+other = "内容超出最大长度"
+
+[error.validation.path_exists]
+other = "路径已存在"
+
+[error.validation.path_must_start_slash]
+other = "路径须以 / 开头"
+
+[error.validation.path_must_end_md]
+other = "路径须以 .md 结尾"
+
+[error.validation.path_no_parent_segments]
+other = "路径不得包含父目录段"
+
+[error.validation.path_no_empty_segments]
+other = "路径不得包含空段"
+
+[error.validation.path_invalid_chars]
+other = "路径包含无效字符"
+
+[error.validation.template_id_required]
+other = "模板 ID 为必填"
+
+[error.validation.format_required]
+other = "格式为必填"
+
+[error.validation.template_body_required]
+other = "模板正文为必填"
+
+[error.validation.template_compile]
+other = "模板编译错误：{{.Error}}"
+
+[error.validation.protocol_required]
+other = "协议为必填"
+
+[error.validation.uri_required]
+other = "URI 为必填"
+
+[error.validation.rule_id_required]
+other = "规则 ID 为必填"
+
+[error.validation.event_pattern_required]
+other = "事件模式为必填"
+
+[error.validation.channel_pattern_required]
+other = "通道模式为必填"
+
+[error.validation.action_required]
+other = "动作为必填"
+
+[error.validation.window_required]
+other = "窗口为必填"
+
+[error.validation.limit_required]
+other = "限制为必填"
+
+[error.validation.limit_positive]
+other = "限制须 > 0"
+
+[error.validation.invalid_params]
+other = "参数无效"
+
+[error.validation.unknown_template]
+other = "未知模板：{{.ID}}"
+
+[error.validation.template_id_exists]
+other = "模板 ID 已存在"
+
+[error.validation.rule_id_exists]
+other = "规则 ID 已存在"
+
+[error.validation.channel_required]
+other = "通道为必填"
+
+[error.validation.channel_not_found]
+other = "未找到通道"
+
+[error.validation.channel_disabled]
+other = "通道已禁用"
+
+[error.validation.custom_template_required]
+other = "自定义模板为必填"
+
+[error.validation.template_required]
+other = "模板为必填"
+
+[error.validation.unknown_template_id]
+other = "未知模板"
+
+[error.validation.save_failed]
+other = "无法保存，请重试。"
+
+# --- error.account / notification / workflow / pipeline / function ---
+
+[error.account.current_password_incorrect]
+other = "当前密码不正确"
+
+[error.account.password_incorrect]
+other = "密码不正确"
+
+[error.account.enable_2fa_first]
+other = "请先启用双因素认证"
+
+[error.account.internal]
+other = "内部错误"
+
+[error.notification.invalid_id]
+other = "ID 无效"
+
+[error.notification.not_yours]
+other = "非您的通知"
+
+[error.workflow_run_start_failed]
+other = "无法启动工作流运行"
+
+[error.pipeline.already_exists]
+other = "Pipeline {{.Name}} 已存在。"
+
+[error.function.already_exists]
+other = "Function {{.Name}} 已存在。"
+
+# --- notify test records ---
+
+[notify.test.title]
+other = "测试通知"
+
+[notify.test.body]
+other = "来自 Flowbot 的连通性测试"
+
+[notify.test.summary]
+other = "测试连通性"
+
+[notify.playground.send_summary]
+other = "Playground 发送"
+
+# --- stats panels ---
+
+[stats.total_pipelines]
+other = "流水线总数"
+
+[stats.total_workflows]
+other = "工作流总数"
+
+[stats.total_functions]
+other = "函数总数"
+
+[stats.successful_runs]
+other = "成功运行"
+
+[stats.failed_runs]
+other = "失败运行"
+
+[stats.success_rate_trend]
+other = "成功率趋势"
+
+[stats.duration_distribution]
+other = "耗时分布"
+
+[stats.trigger_sources]
+other = "触发来源"
+
+[stats.published_versions]
+other = "已发布版本"
+
+[stats.groupby.day]
+other = "日"
+
+[stats.groupby.week]
+other = "周"
+
+[stats.groupby.month]
+other = "月"
+
+[form.skill_file.new_title]
+other = "新建技能文件"
+
+[form.skill_file.edit_title]
+other = "编辑技能文件"
+
+[form.skill_file.path]
+other = "路径"
+
+[form.skill_file.content]
+other = "内容"
+
+[form.skill_file.path_placeholder]
+other = "reference.md 或 scripts/run.sh"
+
+[form.skill_file.content_placeholder]
+other = "由 read_skill 路径加载的文件内容"
+
+[settings.group.root]
+other = "根"
+
+[settings.section.one_key]
+other = "1 个键"
+
+[settings.section.key_count]
+other = "{{.Count}} 个键"
+
+[settings.group.ability]
+other = "能力"
+
+[settings.group.chat_agent]
+other = "Chat Agent"
+
+[settings.group.core]
+other = "核心"
+
+[settings.group.executor]
+other = "执行器"
+
+[settings.group.flowbot]
+other = "Flowbot"
+
+[settings.group.gateway]
+other = "Gateway"
+
+[settings.group.homelab]
+other = "Homelab"
+
+[settings.group.http]
+other = "HTTP"
+
+[settings.group.log]
+other = "日志"
+
+[settings.group.media]
+other = "媒体"
+
+[settings.group.metrics]
+other = "指标"
+
+[settings.group.models]
+other = "模型"
+
+[settings.group.modules]
+other = "模块"
+
+[settings.group.platform]
+other = "平台"
+
+[settings.group.plugins]
+other = "插件"
+
+[settings.group.postgres]
+other = "Postgres"
+
+[settings.group.profiling]
+other = "性能分析"
+
+[settings.group.redis]
+other = "Redis"
+
+[settings.group.retention]
+other = "保留"
+
+[settings.group.search]
+other = "搜索"
+
+[settings.group.store]
+other = "存储"
+
+[settings.group.tracing]
+other = "追踪"
+
+[settings.group.vendors]
+other = "供应商"
+
+[btn.new_config]
+other = "新建配置"
+
+[btn.new_token]
+other = "新建令牌"
+
+[btn.new_subagent]
+other = "新建子代理"
+
+[page.subagents.tab_subagents]
+other = "子代理"
+
+[page.subagents.tab_tasks]
+other = "任务"
+
+[table.col.title]
+other = "标题"
+
+[table.col.slug]
+other = "Slug"
+
+[table.col.by]
+other = "创建者"
+
+[table.col.time]
+other = "时间"
+
+[table.col.event_type]
+other = "事件类型"
+
+[table.col.source]
+other = "来源"
+
+[table.col.path]
+other = "路径"
+
+[table.col.method]
+other = "方法"
+
+[table.col.entity]
+other = "实体"
+
+[table.col.source_capability]
+other = "来源 / 能力"
+
+[table.col.pipeline]
+other = "流水线"
+
+[table.col.subagent]
+other = "子代理"
+
+[table.col.session]
+other = "会话"
+
+[table.col.duration]
+other = "时长"
+
+[table.empty.clips]
+other = "暂无剪贴页"
+
+[table.empty.clips_detail]
+other = "通过 CLI 或聊天创建剪贴页，以分享可读页面。"
+
+[table.empty.clips_cta]
+other = "打开智能体"
+
+[table.empty.webhook_logs]
+other = "暂无 Webhook 接收记录"
+
+[table.empty.webhook_logs_detail]
+other = "Webhook 触发器触发时会在此记录接收情况。"
+
+[table.empty.data_events]
+other = "暂无事件"
+
+[table.empty.data_events_detail]
+other = "能力发出数据时，事件会显示在这里。"
+
+[table.empty.subagent_tasks]
+other = "暂无委派任务"
+
+[table.empty.subagent_tasks_detail]
+other = "智能体将工作委派给子代理时，任务会显示在这里。"
+
+[table.empty.subagent_tasks_cta]
+other = "打开智能体"
+
+[common.open_agents]
+other = "打开智能体"
+
+[events.action.similar]
+other = "相似"
+
+[events.run_status.success]
+other = "成功"
+
+[events.run_status.failed]
+other = "失败"
+
+[events.run_status.cancelled]
+other = "已取消"
+
+[events.run_status.running]
+other = "运行中"
+
+[events.run_status.started]
+other = "已开始"
+
+[life.profile.coins]
+other = "{{.Count}} 金币"
+
+[life.profile.hp_label]
+other = "生命："
+
+[life.default.master_objective]
+other = "设置一个项目目标"
+
+[life.default.minor_objective]
+other = "设置一个领域目标"
+
+[life.default.operator]
+other = "操作者"
+
+[life.default.action_title]
+other = "行动"
+
+[life.achievements.unlocked_count]
+other = "已解锁 {{.Unlocked}} / {{.Total}}"
+
+[life.status.completed]
+other = "已完成"
+
+[life.occurrence.one_time]
+other = "一次性"
+
+[life.occurrence.recurring]
+other = "重复"
+
+[life.source.quest]
+other = "任务"
+
+[life.source.habit]
+other = "习惯"
+
+[life.source.action]
+other = "行动"
+
+[life.source.checkpoint]
+other = "检查点"
+
+[life.skill_status.active]
+other = "活跃"
+
+[life.skill_status.cooling]
+other = "冷却中"
+
+[life.skill_status.quiet]
+other = "静默"
+
+[life.quest_type.daily]
+other = "日常"
+
+[life.quest_type.one_time]
+other = "一次性"
+
+[life.quest_type.boss]
+other = "Boss"
+
+[life.rarity.common]
+other = "普通"
+
+[life.rarity.uncommon]
+other = "优秀"
+
+[life.rarity.rare]
+other = "稀有"
+
+[life.rarity.epic]
+other = "史诗"
+
+[life.rarity.legendary]
+other = "传说"
+
+[life.rarity.mythic]
+other = "神话"
+
+[life.slot.head]
+other = "头部"
+
+[life.slot.weapon]
+other = "武器"
+
+[life.slot.armor]
+other = "护甲"
+
+[life.slot.shoes]
+other = "鞋子"
+
+[life.slot.accessory]
+other = "饰品"
+
+[life.slot.artifact]
+other = "神器"
+
+[life.verdict.completed]
+other = "已完成"
+
+[life.verdict.partial]
+other = "部分完成"
+
+[life.verdict.failed]
+other = "失败"
+
+[life.verdict.needs_more_evidence]
+other = "需要更多证据"
+
+[life.adjudication.suggested]
+other = "建议"
+
+[life.adjudication.applied]
+other = "已应用"
+
+[life.adjudication.rejected]
+other = "已拒绝"
+
+[life.lore.none]
+other = "无"
+
+[life.lore.pending]
+other = "生成中"
+
+[life.lore.ready]
+other = "就绪"
+
+[life.lore.failed]
+other = "失败"
+
+[life.tracking.consistency]
+other = "持续性"
+
+[life.tracking.completion]
+other = "完成度"
+
+[life.trait.architect_strength]
+other = "创造力"
+
+[life.trait.mage_strength]
+other = "分析力"
+
+[life.trait.warrior_strength]
+other = "韧性"
+
+[life.trait.rogue_strength]
+other = "适应力"
+
+[life.trait.architect_weakness]
+other = "急躁"
+
+[life.trait.mage_weakness]
+other = "想太多"
+
+[life.trait.warrior_weakness]
+other = "固执"
+
+[life.trait.rogue_weakness]
+other = "不安分"
+
+[life.stat.int]
+other = "智力"
+
+[life.stat.phy]
+other = "体魄"
+
+[life.stat.wil]
+other = "意志"
+
+[life.stat.cha]
+other = "魅力"
+
+[life.stat.cre]
+other = "创造力"
+
+[life.stat.fin]
+other = "财务"
+
+[life.stat.wri]
+other = "写作"
+
+[life.stat.foc]
+other = "专注"
+
+[life.stat.lvl]
+other = "等级"
+
+[life.stat.other]
+other = "其他"
+
+[life.buff.drop_rate]
+other = "掉落 +{{.Percent}}%"
+
+[life.buff.gold_mult]
+other = "金币 +{{.Percent}}%"
+
+[life.buff.stat]
+other = "{{.Stat}} +{{.Value}}"
+
+[toast.life.quest_complete_loot]
+other = "掉落！{{.Item}} — +{{.Exp}} 经验，+{{.Gold}} 金币"
+
+[toast.life.quest_complete_achievement]
+other = "{{.Message}} · 成就：{{.Names}}"

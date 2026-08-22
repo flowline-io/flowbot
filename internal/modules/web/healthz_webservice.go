@@ -60,7 +60,7 @@ func healthzPage(ctx fiber.Ctx) error {
 
 	ctx.Type("html")
 	if ctx.Get("HX-Request") != "" {
-		return partials.HealthzStatus(data).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.HealthzStatus(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	return pages.HealthzPage(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
@@ -76,7 +76,7 @@ func healthzCapabilitiesPartial(ctx fiber.Ctx) error {
 
 	caps := gatherCapabilityHealth(hctx)
 	ctx.Type("html")
-	return partials.HealthzCapabilities(caps).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.HealthzCapabilities(ctx.Context(), caps).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // gatherInfraHealthzData returns infra metrics with stale-while-revalidate caching.

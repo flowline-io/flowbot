@@ -41,8 +41,8 @@ func lifeStatsPanel(ctx fiber.Ctx) error {
 		return toastError(ctx, lifeUserError(ctx, err))
 	}
 	ctx.Type("html")
-	return partials.LifeStatsPanel(partials.LifeStatsFromPage(page)).Render(
-		context.Background(),
+	return partials.LifeStatsPanel(partials.LifeStatsFromPage(ctx.Context(), page)).Render(
+		ctx.Context(),
 		ctx.Response().BodyWriter(),
 	)
 }

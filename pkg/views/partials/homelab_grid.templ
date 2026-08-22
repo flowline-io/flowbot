@@ -1,9 +1,11 @@
 package partials
 
 import (
+	"context"
 	"sort"
 
 	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 )
 
 func uniqueCapTypes(apps []homelab.App) []string {
@@ -21,7 +23,7 @@ func uniqueCapTypes(apps []homelab.App) []string {
 	return result
 }
 
-templ HomelabGrid(apps []homelab.App, scannedAt string) {
+templ HomelabGrid(ctx context.Context, apps []homelab.App, scannedAt string) {
 	<div id="homelab-registry" x-data="homelabRegistry"
 		data-testid="homelab-registry">
 		<div class="flowbot-surface flowbot-homelab-toolbar">
@@ -34,16 +36,16 @@ templ HomelabGrid(apps []homelab.App, scannedAt string) {
 					<input
 						type="search"
 						class="flowbot-homelab-toolbar-search-input"
-						placeholder="Search apps..."
+						placeholder={ i18n.T(ctx, "homelab.search_placeholder") }
 						x-model="search"
-						aria-label="Search apps"
+						aria-label={ i18n.T(ctx, "homelab.search_aria") }
 						data-testid="homelab-search"/>
 				</label>
 				<select
 					class="select select-bordered select-sm flowbot-homelab-toolbar-select"
 					x-model="filterCapability"
 					data-testid="homelab-capability-filter">
-					<option value="">All Capabilities</option>
+					<option value="">{ i18n.T(ctx, "homelab.all_capabilities") }</option>
 					for _, capType := range uniqueCapTypes(apps) {
 						<option value={ capType }>{ capType }</option>
 					}
@@ -55,27 +57,27 @@ templ HomelabGrid(apps []homelab.App, scannedAt string) {
 						class="btn btn-sm btn-ghost flowbot-homelab-toolbar-btn"
 						data-testid="homelab-rescan">
 						<span class="loading loading-spinner loading-xs htmx-indicator mr-1"></span>
-						Rescan
+						{ i18n.T(ctx, "homelab.rescan") }
 					</button>
 					if scannedAt != "" {
 						<span class="flowbot-homelab-toolbar-meta"
-							data-testid="homelab-scanned-at">Last scan: { scannedAt }</span>
+							data-testid="homelab-scanned-at">{ i18n.T(ctx, "homelab.last_scan") } { scannedAt }</span>
 					}
 				</div>
 			</div>
 		</div>
 		if len(apps) == 0 {
 			@EmptyStateCTA(
-				"No apps discovered",
-				"Configure homelab.apps_dir in flowbot.yaml, then rescan the registry.",
+				i18n.T(ctx, "homelab.empty.title"),
+				i18n.T(ctx, "homelab.empty.detail"),
 				"/service/web/homelab",
-				"Open Registry",
+				i18n.T(ctx, "homelab.empty.cta"),
 			)
 		} else {
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
 				data-testid="homelab-card-grid">
 				for _, app := range apps {
-					@HomelabCard(app)
+					@HomelabCard(ctx, app)
 				}
 			</div>
 		}

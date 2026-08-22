@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"context"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -61,7 +62,16 @@ func AgentSkillsPage(ctx context.Context, items []model.AgentSkill) templ.Compon
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/agent-skills/list\" hx-target=\"#agent-skills-table\" hx-swap=\"outerHTML\" data-testid=\"agent-skills-refresh\" class=\"btn btn-ghost btn-sm\">Refresh")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/agent-skills/list\" hx-target=\"#agent-skills-table\" hx-swap=\"outerHTML\" data-testid=\"agent-skills-refresh\" class=\"btn btn-ghost btn-sm\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.refresh"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_skills.templ`, Line: 20, Col: 35}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -69,7 +79,33 @@ func AgentSkillsPage(ctx context.Context, items []model.AgentSkill) templ.Compon
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button><form hx-post=\"/service/web/agent-skills/import\" hx-encoding=\"multipart/form-data\" hx-target=\"#agent-skills-table\" hx-swap=\"outerHTML\" hx-trigger=\"change from:input[type='file']\" class=\"inline-flex m-0\"><label class=\"btn btn-ghost btn-sm cursor-pointer\" data-testid=\"agent-skills-import\">Import <input type=\"file\" name=\"archive\" accept=\".zip,application/zip,application/x-zip-compressed\" class=\"hidden\" data-testid=\"agent-skills-import-input\"></label></form><button hx-get=\"/service/web/agent-skills/new\" hx-target=\"#agent-skills-rows\" hx-swap=\"afterbegin\" data-testid=\"agent-skills-new\" class=\"btn btn-primary btn-sm\">New Skill</button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button><form hx-post=\"/service/web/agent-skills/import\" hx-encoding=\"multipart/form-data\" hx-target=\"#agent-skills-table\" hx-swap=\"outerHTML\" hx-trigger=\"change from:input[type='file']\" class=\"inline-flex m-0\"><label class=\"btn btn-ghost btn-sm cursor-pointer\" data-testid=\"agent-skills-import\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent_skills.import"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_skills.templ`, Line: 31, Col: 41}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " <input type=\"file\" name=\"archive\" accept=\".zip,application/zip,application/x-zip-compressed\" class=\"hidden\" data-testid=\"agent-skills-import-input\"></label></form><button hx-get=\"/service/web/agent-skills/new\" hx-target=\"#agent-skills-rows\" hx-swap=\"afterbegin\" data-testid=\"agent-skills-new\" class=\"btn btn-primary btn-sm\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "agent_skills.new"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/agent_skills.templ`, Line: 44, Col: 37}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -79,7 +115,7 @@ func AgentSkillsPage(ctx context.Context, items []model.AgentSkill) templ.Compon
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -94,17 +94,17 @@ func createConfig(ctx fiber.Ctx) error {
 	valueRaw := ctx.FormValue("value")
 	errorsMsg := make(map[string]string)
 	if uid == "" {
-		errorsMsg["uid"] = "UID is required"
+		errorsMsg["uid"] = webMsg(ctx, "error.validation.uid_required")
 	}
 	if topic == "" {
-		errorsMsg["topic"] = "Topic is required"
+		errorsMsg["topic"] = webMsg(ctx, "error.validation.topic_required")
 	}
 	if key == "" {
-		errorsMsg["key"] = "Key is required"
+		errorsMsg["key"] = webMsg(ctx, "error.validation.key_required")
 	}
 	value := parseConfigValue(valueRaw)
 	if valueRaw != "" && value == nil {
-		errorsMsg["value"] = "Invalid JSON"
+		errorsMsg["value"] = webMsg(ctx, "error.validation.invalid_json")
 	}
 	if len(errorsMsg) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
@@ -156,7 +156,7 @@ func updateConfig(ctx fiber.Ctx) error {
 	if valueRaw != "" && value == nil {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": "Invalid JSON"}).Render(ctx.Context(), ctx.Response().BodyWriter())
+		return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": webMsg(ctx, "error.validation.invalid_json")}).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	err = store.ModuleDataStoreFromDB().ConfigSet(context.Background(), types.Uid(urlUID), urlTopic, urlKey, value)
 	if err != nil {
@@ -193,12 +193,12 @@ func deleteConfig(ctx fiber.Ctx) error {
 			"#configs-rows",
 			"7",
 			partials.EmptyStateHXCTA(
-				"No configs yet",
-				"Store per-module settings as key/value pairs.",
+				webMsg(ctx, "table.empty.configs"),
+				webMsg(ctx, "table.empty.configs_detail"),
 				"/service/web/configs/new",
 				"#configs-rows",
 				"afterbegin",
-				"Create config",
+				webMsg(ctx, "table.empty.configs_cta"),
 			),
 		)
 	}

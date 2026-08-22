@@ -35,18 +35,32 @@
 
   function countLabel(todos) {
     if (!todos || todos.length === 0) {
-      return '0 items';
+      return flowbotI18n('client.chatagent.todos.count_zero', '0 items');
     }
     var progress = todosProgress(todos);
     if (progress.done === progress.total) {
-      return progress.done + '/' + progress.total + ' done';
+      return flowbotI18n(
+        'client.chatagent.todos.count_done',
+        '{{.Done}}/{{.Total}} done',
+      )
+        .replace('{{.Done}}', String(progress.done))
+        .replace('{{.Total}}', String(progress.total));
     }
     if (progress.active <= 0) {
-      return progress.done + '/' + progress.total + ' done';
+      return flowbotI18n(
+        'client.chatagent.todos.count_done',
+        '{{.Done}}/{{.Total}} done',
+      )
+        .replace('{{.Done}}', String(progress.done))
+        .replace('{{.Total}}', String(progress.total));
     }
-    return (
-      progress.active + ' active · ' + progress.done + '/' + progress.total
-    );
+    return flowbotI18n(
+      'client.chatagent.todos.count_active',
+      '{{.Active}} active · {{.Done}}/{{.Total}}',
+    )
+      .replace('{{.Active}}', String(progress.active))
+      .replace('{{.Done}}', String(progress.done))
+      .replace('{{.Total}}', String(progress.total));
   }
 
   function progressPercentLabel(todos) {

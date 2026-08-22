@@ -1,13 +1,14 @@
 package partials
 
 import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 templ AgentScheduledTaskStatePanel(task model.AgentScheduledTask) {
 	<div id="agent-scheduled-task-state-panel" data-testid="agent-scheduled-task-state-panel">
 		<div>
-			<span class="text-base-content/50">State:</span>
+			<span class="text-base-content/50">{ i18n.T(ctx, "scheduled_task.state") }</span>
 			<span class="ml-1 inline-flex align-middle">
 				@StatusIcon(ScheduledTaskStateStatusIcon(task.State), "")
 			</span>
@@ -20,14 +21,14 @@ templ AgentScheduledTaskStatePanel(task model.AgentScheduledTask) {
 			data-testid="agent-scheduled-task-state-form"
 		>
 			<label class="form-control w-full max-w-xs">
-				<span class="label-text text-xs text-base-content/60">Set state</span>
+				<span class="label-text text-xs text-base-content/60">{ i18n.T(ctx, "scheduled_task.set_state") }</span>
 				<select name="state" class="select select-bordered select-sm" data-testid="agent-scheduled-task-state-select">
 					for _, option := range AgentScheduledTaskStateOptions() {
 						<option value={ option } selected={ templ.KV(option == task.State, true) }>{ option }</option>
 					}
 				</select>
 			</label>
-			<button type="submit" class="btn btn-primary btn-sm" data-testid="agent-scheduled-task-state-submit">Update</button>
+			<button type="submit" class="btn btn-primary btn-sm" data-testid="agent-scheduled-task-state-submit">{ i18n.T(ctx, "common.update") }</button>
 		</form>
 	</div>
 }

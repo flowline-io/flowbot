@@ -3,8 +3,9 @@ package pages
 
 import (
 	"context"
-	
+
 	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -12,8 +13,8 @@ import (
 templ HubAppsPage(ctx context.Context, apps []homelab.App, updatedAts map[string]string) {
 	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.apps")) {
 		@partials.PageHeader(ctx, "nav.apps", "") {
-			<a href="/service/web/capabilities" class="btn btn-ghost btn-sm" data-testid="hub-apps-to-capabilities">Capabilities</a>
+			<a href="/service/web/capabilities" class="btn btn-ghost btn-sm" data-testid="hub-apps-to-capabilities">{ i18n.T(ctx, "hub.btn.capabilities") }</a>
 		}
-		@partials.HubAppsTable(apps, updatedAts)
+		@partials.HubAppsTable(ctx, apps, updatedAts)
 	}
 }

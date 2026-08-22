@@ -1,8 +1,13 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"context"
 
-templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ NotifyTemplatesTable(ctx context.Context, templates []model.NotifyTemplate) {
 	<div id="notify-templates-table"
 		data-testid="notify-templates-table"
 		class="flowbot-surface">
@@ -10,12 +15,12 @@ templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
 			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
-					<th class="text-xs font-medium text-base-content/55">ID</th>
-					<th class="text-xs font-medium text-base-content/55">Name</th>
-					<th class="text-xs font-medium text-base-content/55">Format</th>
-					<th class="text-xs font-medium text-base-content/55">Overrides</th>
-					<th class="text-xs font-medium text-base-content/55 text-center">Default</th>
-					<th class="text-xs font-medium text-base-content/55">Actions</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.id") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.name") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "common.format") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "common.overrides") }</th>
+					<th class="text-xs font-medium text-base-content/55 text-center">{ i18n.T(ctx, "common.default") }</th>
+					<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.actions") }</th>
 				</tr>
 				</thead>
 				<tbody id="notify-templates-rows">
@@ -26,12 +31,12 @@ templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
 					<tr id="notify-templates-empty" data-testid="notify-templates-empty">
 						<td colspan="6" class="p-0">
 							@EmptyStateHXCTA(
-								"No templates yet",
-								"Templates format notification content for channels.",
+								i18n.T(ctx, "notify.empty.templates_title"),
+								i18n.T(ctx, "notify.empty.templates_detail"),
 								"/service/web/notifications/templates/new",
 								"#notify-templates-rows",
 								"afterbegin",
-								"Create template",
+								i18n.T(ctx, "common.create_template"),
 							)
 						</td>
 					</tr>

@@ -376,6 +376,210 @@ other = "Homelab Registry"
 [page.run_history.title]
 other = "Run History"
 
+[page.pipeline_editor.click_to_rename]
+other = "Click to rename"
+
+[page.pipeline_editor.status_draft]
+other = "Draft"
+
+[page.pipeline_editor.status_published]
+other = "Published"
+
+[page.pipeline_editor.undo]
+other = "Undo"
+
+[page.pipeline_editor.redo]
+other = "Redo"
+
+[page.pipeline_editor.history]
+other = "History"
+
+[page.pipeline_editor.memory_notes]
+other = "Memory Notes"
+
+[page.pipeline_editor.code]
+other = "</> Code"
+
+[page.pipeline_editor.run_history]
+other = "Run History"
+
+[page.pipeline_editor.download]
+other = "Download"
+
+[page.pipeline_editor.import]
+other = "Import"
+
+[page.pipeline_editor.save_draft]
+other = "Save Draft"
+
+[page.pipeline_editor.saving]
+other = "Saving..."
+
+[page.pipeline_editor.publish]
+other = "Publish"
+
+[page.pipeline_editor.publishing]
+other = "Publishing..."
+
+[page.pipeline_editor.trigger_heading]
+other = "Trigger Conditions (any enabled trigger starts the pipeline)"
+
+[page.pipeline_editor.add_trigger]
+other = "+ Add Trigger"
+
+[page.pipeline_editor.steps_empty]
+other = "No steps yet. Click + to add your first step."
+
+[page.pipeline_editor.history_title]
+other = "Version History"
+
+[page.pipeline_editor.compare]
+other = "Compare"
+
+[page.pipeline_editor.no_versions]
+other = "No published versions yet."
+
+[page.pipeline_editor.select_two_compare]
+other = "Select two versions to compare"
+
+[page.pipeline_editor.select_two_diff]
+other = "Select two versions to see diff"
+
+[page.pipeline_editor.no_content]
+other = "No content"
+
+[page.pipeline_editor.tab_setup]
+other = "Setup"
+
+[page.pipeline_editor.tab_test]
+other = "Test"
+
+[page.pipeline_editor.type]
+other = "Type"
+
+[page.pipeline_editor.trigger_type_event]
+other = "Event"
+
+[page.pipeline_editor.trigger_type_webhook]
+other = "Webhook"
+
+[page.pipeline_editor.trigger_type_cron]
+other = "Cron"
+
+[page.pipeline_editor.event_type]
+other = "Event Type"
+
+[page.pipeline_editor.select_event]
+other = "Select event..."
+
+[page.pipeline_editor.custom_group]
+other = "Custom"
+
+[page.pipeline_editor.path]
+other = "Path"
+
+[page.pipeline_editor.method]
+other = "Method"
+
+[page.pipeline_editor.token]
+other = "Token"
+
+[page.pipeline_editor.hmac_secret]
+other = "HMAC Secret"
+
+[page.pipeline_editor.webhook_url]
+other = "Webhook URL"
+
+[page.pipeline_editor.copy_webhook_url]
+other = "Copy webhook URL"
+
+[page.pipeline_editor.webhook_publish_hint]
+other = "Live endpoint uses the last Publish. Click Publish after Save to apply method/path/token."
+
+[page.pipeline_editor.copy_curl]
+other = "Copy curl example"
+
+[page.pipeline_editor.cron_expression]
+other = "Cron Expression"
+
+[page.pipeline_editor.step_name]
+other = "Step Name"
+
+[page.pipeline_editor.capability]
+other = "Capability"
+
+[page.pipeline_editor.select_capability]
+other = "Select capability..."
+
+[page.pipeline_editor.operation]
+other = "Operation"
+
+[page.pipeline_editor.select_operation]
+other = "Select operation..."
+
+[page.pipeline_editor.tools]
+other = "Tools"
+
+[page.pipeline_editor.tools_hint]
+other = "Leave all unchecked to use pipeline defaults."
+
+[page.pipeline_editor.skills]
+other = "Skills"
+
+[page.pipeline_editor.skills_hint]
+other = "Selected skills are injected into the agent prompt and enabled via read_skill."
+
+[page.pipeline_editor.no_skills]
+other = "No enabled skills. Create skills under Agent → Skills."
+
+[page.pipeline_editor.parameters]
+other = "Parameters"
+
+[page.pipeline_editor.placeholder_comma_values]
+other = "comma-separated values"
+
+[page.pipeline_editor.placeholder_comma_ids]
+other = "comma-separated IDs"
+
+[page.pipeline_editor.invalid_json_object]
+other = "Invalid JSON object"
+
+[page.pipeline_editor.advanced_json]
+other = "Advanced JSON"
+
+[page.pipeline_editor.insert_variable]
+other = "{x} Insert Variable"
+
+[page.pipeline_editor.var_picker_title]
+other = "Insert Variable"
+
+[page.pipeline_editor.var_picker_event_data]
+other = "event data"
+
+[page.pipeline_editor.test_trigger_source]
+other = "Trigger Source"
+
+[page.pipeline_editor.test_mock_payload]
+other = "Mock Payload (JSON)"
+
+[page.pipeline_editor.test_mock_placeholder]
+other = "Mock payload JSON"
+
+[page.pipeline_editor.test_load_sample]
+other = "Load sample data"
+
+[page.pipeline_editor.test_run]
+other = "Test up to this step"
+
+[page.pipeline_editor.test_testing]
+other = "Testing..."
+
+[page.pipeline_editor.test_status_ok]
+other = "OK"
+
+[page.pipeline_editor.test_status_err]
+other = "ERR"
+
 [page.agents.composer_placeholder]
 other = "Ask Flowbot to research, automate, orchestrate"
 
@@ -1981,6 +2185,72 @@ other = "Auth: configure Token or HMAC Secret"
 [client.pipeline.memory_load_failed]
 other = "Failed to load memory facts"
 
+[client.pipeline.error_summary]
+other = "{{.Count}} error(s). Publish is disabled."
+
+[client.pipeline.yaml_syntax_error]
+other = "YAML syntax error. Fix errors before switching back to visual mode.\n{{.Error}}"
+
+[client.pipeline.upstream_var_invalid]
+other = "Upstream variable steps.{{.Ref}}.* is invalid or has been removed"
+
+[client.pipeline.depends_on_above]
+other = "Depends on [{{.Ref}}] which must be above this step"
+
+[client.pipeline.step_display_name]
+other = "Step {{.Index}}"
+
+[client.pipeline.relative_minutes]
+other = "{{.Count}} minutes ago"
+
+[client.pipeline.relative_hours]
+other = "{{.Count}} hours ago"
+
+[client.pipeline.relative_days]
+other = "{{.Count}} days ago"
+
+[client.pipeline.trigger_event_prefix]
+other = "Event: {{.Value}}"
+
+[client.pipeline.trigger_cron_prefix]
+other = "Cron: {{.Value}}"
+
+[client.pipeline.unnamed_step]
+other = "Unnamed Step"
+
+[client.pipeline.placeholder_ellipsis]
+other = "..."
+
+[client.pipeline.custom_event_suffix]
+other = "(custom)"
+
+[client.pipeline.number_param_required]
+other = "0 or {{expr}}"
+
+[client.pipeline.number_param_optional]
+other = "optional"
+
+[client.pipeline.param_placeholder_required]
+other = "required"
+
+[client.pipeline.param_placeholder_optional]
+other = "optional"
+
+[client.pipeline.extra_fields]
+other = "{{.Count}} extra field(s) only visible in Advanced JSON."
+
+[client.pipeline.memory_fact_load_failed]
+other = "Failed to load memory fact"
+
+[client.pipeline.memory_key_required]
+other = "Key is required"
+
+[client.pipeline.memory_fact_save_failed]
+other = "Failed to save memory fact"
+
+[client.pipeline.memory_fact_delete_failed]
+other = "Failed to delete memory fact"
+
 [client.chatagent.close_session.btn]
 other = "Close"
 
@@ -2001,3 +2271,2806 @@ other = "High"
 
 [client.chatagent.close_session.confirm_fallback]
 other = "Close this session?"
+
+[client.chatagent.copy]
+other = "Copy"
+
+[client.chatagent.think_label]
+other = "Think"
+
+[client.chatagent.completed_in]
+other = "Completed in {{.Duration}}"
+
+[client.chatagent.turn_duration]
+other = "Turn {{.Duration}}"
+
+[client.chatagent.total_duration]
+other = "Total {{.Duration}}"
+
+[client.chatagent.reload_messages]
+other = "Reload messages"
+
+[client.chatagent.run_failed]
+other = "Run failed"
+
+[client.chatagent.run_canceled]
+other = "Run canceled"
+
+[client.chatagent.run_finished_no_stream]
+other = "Run finished without a live stream."
+
+[client.chatagent.connection_lost_streaming]
+other = "Connection lost while streaming."
+
+[client.chatagent.run_in_progress]
+other = "A run is already in progress."
+
+[client.chatagent.streaming_unsupported]
+other = "Streaming is not supported in this browser."
+
+[client.chatagent.approval_timeout]
+other = "Timed out — tool was denied automatically."
+
+[client.chatagent.approved_label]
+other = "Approved"
+
+[client.chatagent.denied_label]
+other = "Denied"
+
+[client.chatagent.approval_resolved_reason]
+other = "{{.Label}} ({{.Reason}})"
+
+[client.chatagent.waiting_approval]
+other = "Waiting for tool approval. The rest of this turn appears after it finishes."
+
+[client.chatagent.approved_continuing]
+other = "Approved — continuing the turn…"
+
+[client.chatagent.approved_waiting_next]
+other = "Approved. Waiting for the next step (another approval or the final reply)…"
+
+[client.chatagent.denied_waiting_finish]
+other = "Denied. Waiting for the turn to finish…"
+
+[client.chatagent.approval_expired]
+other = "Approval request expired."
+
+[client.chatagent.approval_expired_resolved]
+other = "Approval request expired or already resolved."
+
+[client.chatagent.confirm_failed]
+other = "Confirm request failed."
+
+[client.chatagent.connected]
+other = "Connected"
+
+[client.chatagent.reconnecting]
+other = "Reconnecting…"
+
+[client.chatagent.remember_always_allow]
+other = "Remember for future matching calls: {{.Pattern}}"
+
+[client.chatagent.invalid_redirect]
+other = "Invalid redirect"
+
+[client.chatagent.upload_failed]
+other = "Upload failed"
+
+[client.function_editor.draft_saved]
+other = "Draft saved"
+
+[client.function_editor.running]
+other = "Running…"
+
+[client.function_editor.invalid_event_json]
+other = "Invalid event JSON"
+
+[client.function_editor.invoke_failed]
+other = "Invoke failed"
+
+[client.event_filters.prompt_name]
+other = "Filter name"
+
+[client.hub.logs.ended_line]
+other = "-- Log stream ended --"
+
+[client.chatagent.todos.count_zero]
+other = "0 items"
+
+[client.chatagent.todos.count_done]
+other = "{{.Done}}/{{.Total}} done"
+
+[client.chatagent.todos.count_active]
+other = "{{.Active}} active · {{.Done}}/{{.Total}}"
+
+# --- Phase 3: remaining web UI ---
+
+[common.loading]
+other = "Loading…"
+
+[common.reset]
+other = "Reset"
+
+[common.back_to_registry]
+other = "← Back to Registry"
+
+[common.back_to_apps]
+other = "← Back to Apps"
+
+[common.back_to_sessions]
+other = "← Back to Sessions"
+
+[common.back_to_list]
+other = "Back to list"
+
+[common.none]
+other = "None"
+
+[common.or_divider]
+other = "- OR -"
+
+[common.vs]
+other = "vs"
+
+[common.left]
+other = "LEFT"
+
+[common.right]
+other = "RIGHT"
+
+[common.remove]
+other = "Remove"
+
+[common.save]
+other = "Save"
+
+[common.expand]
+other = "Expand"
+
+[common.copy]
+other = "Copy"
+
+[common.required]
+other = "required"
+
+[common.optional]
+other = "optional"
+
+[common.not_set]
+other = "Not set"
+
+[common.clear]
+other = "Clear"
+
+[status.online]
+other = "online"
+
+[status.offline]
+other = "offline"
+
+[status.warning]
+other = "warning"
+
+[status.unknown]
+other = "unknown"
+
+[status.error]
+other = "error"
+
+[status.healthy]
+other = "healthy"
+
+[status.unhealthy]
+other = "unhealthy"
+
+[status.ok]
+other = "ok"
+
+[status.warn]
+other = "warn"
+
+[status.timeout]
+other = "timeout"
+
+[status.na]
+other = "n/a"
+
+[status.connected]
+other = "connected"
+
+[status.disconnected]
+other = "disconnected"
+
+[status.unreachable]
+other = "unreachable"
+
+[page.about.version]
+other = "Version"
+
+[page.about.build_stamp]
+other = "Build stamp"
+
+[page.about.go]
+other = "Go"
+
+[page.about.platform]
+other = "Platform"
+
+[page.healthz.auto_refresh]
+other = "Auto-refreshes every 30s"
+
+[healthz.db_latency]
+other = "Database Latency"
+
+[healthz.postgres]
+other = "PostgreSQL"
+
+[healthz.redis]
+other = "Redis"
+
+[healthz.runtime]
+other = "Runtime"
+
+[healthz.goroutines]
+other = "Goroutines"
+
+[healthz.heap_alloc]
+other = "Heap Alloc"
+
+[healthz.total_alloc]
+other = "Total Alloc"
+
+[healthz.sys_memory]
+other = "Sys Memory"
+
+[healthz.gc_cycles]
+other = "GC Cycles"
+
+[healthz.last_gc_pause]
+other = "Last GC Pause"
+
+[healthz.recent_errors]
+other = "Recent Errors"
+
+[healthz.no_recent_errors]
+other = "No recent errors"
+
+[healthz.capability_status]
+other = "Capability Status"
+
+[healthz.col.capability]
+other = "Capability"
+
+[healthz.col.status]
+other = "Status"
+
+[healthz.no_capabilities]
+other = "No capabilities registered"
+
+[homelab.search_placeholder]
+other = "Search apps..."
+
+[homelab.search_aria]
+other = "Search apps"
+
+[homelab.all_capabilities]
+other = "All Capabilities"
+
+[homelab.rescan]
+other = "Rescan"
+
+[homelab.last_scan]
+other = "Last scan:"
+
+[homelab.empty.title]
+other = "No apps discovered"
+
+[homelab.empty.detail]
+other = "Configure homelab.apps_dir in flowbot.yaml, then rescan the registry."
+
+[homelab.empty.cta]
+other = "Open Registry"
+
+[homelab.detail.health]
+other = "Health:"
+
+[homelab.detail.path]
+other = "Path:"
+
+[homelab.detail.compose]
+other = "Compose:"
+
+[homelab.detail.version]
+other = "Version:"
+
+[homelab.detail.last_discovered]
+other = "Last Discovered:"
+
+[homelab.detail.services]
+other = "Services"
+
+[homelab.detail.exposed_endpoints]
+other = "Exposed Endpoints"
+
+[table.col.service]
+other = "Service"
+
+[table.col.image]
+other = "Image"
+
+[table.col.container]
+other = "Container"
+
+[table.col.ports]
+other = "Ports"
+
+[table.col.provider]
+other = "Provider"
+
+[table.col.base_url]
+other = "Base URL"
+
+[table.col.auth]
+other = "Auth"
+
+[table.col.capabilities]
+other = "Capabilities"
+
+[table.col.last_updated]
+other = "Last Updated"
+
+[table.col.key]
+other = "Key"
+
+[table.col.value]
+other = "Value"
+
+[table.col.description]
+other = "Description"
+
+[hub.btn.start]
+other = "Start"
+
+[hub.btn.stop]
+other = "Stop"
+
+[hub.btn.restart]
+other = "Restart"
+
+[hub.btn.pull]
+other = "Pull"
+
+[hub.btn.update]
+other = "Update"
+
+[hub.logs.title]
+other = "Logs"
+
+[hub.logs.loading]
+other = "Loading logs..."
+
+[hub.logs.unavailable]
+other = "Log streaming is unavailable. Enable homelab.permissions.logs and set homelab.runtime.mode to docker_socket or ssh."
+
+[hub.empty.title]
+other = "No apps discovered"
+
+[hub.empty.detail]
+other = "Configure homelab.apps_dir, then rescan the registry."
+
+[page.events.tab_data]
+other = "Data Events"
+
+[page.events.tab_webhooks]
+other = "Webhook Logs"
+
+[events.filter.time_range]
+other = "Time range"
+
+[events.filter.start_time]
+other = "Start time"
+
+[events.filter.end_time]
+other = "End time"
+
+[events.filter.search_placeholder]
+other = "Search events..."
+
+[events.filter.all_pipelines]
+other = "All pipelines"
+
+[events.filter.all_sources]
+other = "All sources"
+
+[events.filter.all_types]
+other = "All types"
+
+[events.filter.pipeline]
+other = "Pipeline"
+
+[events.filter.source]
+other = "Source"
+
+[events.filter.event_type]
+other = "Event type"
+
+[events.presets.label]
+other = "Presets"
+
+[events.presets.saved_filters]
+other = "Saved filters"
+
+[events.presets.save_filter]
+other = "Save filter"
+
+[events.presets.filter_name_prompt]
+other = "Filter name"
+
+[relations.search_placeholder]
+other = "Search by entity ID..."
+
+[relations.filter.all_pipelines]
+other = "All pipelines"
+
+[relations.filter.all_time]
+other = "All time"
+
+[relations.filter.last_7_days]
+other = "Last 7 days"
+
+[relations.filter.last_30_days]
+other = "Last 30 days"
+
+[relations.filter.last_90_days]
+other = "Last 90 days"
+
+[relations.empty.search_hint]
+other = "Search for a resource entity ID to explore relations"
+
+[relations.empty.select_hint]
+other = "Select a node or edge to see details"
+
+[relations.empty.no_resources]
+other = "No resources found"
+
+[relations.detail.resource_node]
+other = "Resource Node"
+
+[relations.detail.relation_edge]
+other = "Relation Edge"
+
+[relations.detail.capability]
+other = "Capability:"
+
+[relations.detail.app]
+other = "App:"
+
+[relations.detail.entity_id]
+other = "Entity ID:"
+
+[relations.detail.pipeline]
+other = "Pipeline:"
+
+[relations.detail.source]
+other = "Source:"
+
+[relations.detail.target]
+other = "Target:"
+
+[relations.detail.created]
+other = "Created:"
+
+[page.capabilities.all_types]
+other = "All Types"
+
+[page.capabilities.all_providers]
+other = "All Providers"
+
+[capability.empty.filtered]
+other = "No capabilities match these filters"
+
+[capability.empty.none]
+other = "No capabilities registered"
+
+[capability.empty.detail]
+other = "Start Hub apps to expose capabilities here."
+
+[capability.empty.cta]
+other = "Open Hub"
+
+[capability.app_label]
+other = "App:"
+
+[capability.operations_count]
+other = "{{.Count}} Operations"
+
+[capability.no_operations]
+other = "No operations"
+
+[capability.input]
+other = "Input"
+
+[capability.output]
+other = "Output"
+
+[capability.scopes]
+other = "Scopes"
+
+[capability.healthy_aria]
+other = "healthy"
+
+[capability.unhealthy_aria]
+other = "unhealthy"
+
+[page.settings.search]
+other = "Search by key, value, or description…"
+
+[page.settings.redacted]
+other = "Redacted"
+
+[page.view.expired]
+other = "This page has expired and may no longer be available."
+
+[empty.not_authenticated]
+other = "Not authenticated"
+
+[empty.store_unavailable]
+other = "Store not available"
+
+[empty.record_not_found]
+other = "Record not found"
+
+[empty.not_found]
+other = "Not found"
+
+[empty.operation_failed]
+other = "Operation failed"
+
+[empty.failed_load_inbox]
+other = "Failed to load inbox"
+
+[empty.failed_count_events]
+other = "Failed to count events"
+
+[empty.failed_load_events]
+other = "Failed to load events"
+
+[empty.event_not_found]
+other = "Event not found"
+
+[empty.failed_load_relations]
+other = "Failed to load relations"
+
+[empty.search_failed]
+other = "Search failed"
+
+[empty.invalid_node_format]
+other = "Invalid node format. Use app|capability|entity_id"
+
+[empty.invalid_detail_type]
+other = "Invalid detail type"
+
+[empty.invalid_session_uri]
+other = "Invalid session or resource URI"
+
+[empty.session_not_found]
+other = "Session not found"
+
+[empty.resource_not_found]
+other = "Resource not found"
+
+[empty.invalid_session_entry]
+other = "Invalid session or entry id"
+
+[empty.entry_not_found]
+other = "Entry not found"
+
+[empty.failed_load_channels]
+other = "Failed to load channels"
+
+[empty.channel_created_load_failed]
+other = "Channel created but failed to load"
+
+[empty.failed_load_templates]
+other = "Failed to load templates"
+
+[empty.template_created_load_failed]
+other = "Template created but failed to load"
+
+[empty.failed_load_rules]
+other = "Failed to load rules"
+
+[empty.rule_created_load_failed]
+other = "Rule created but failed to load"
+
+[empty.failed_load_playground]
+other = "Failed to load playground"
+
+[empty.not_your_notification]
+other = "Not your notification"
+
+[error.failed_load_workflows]
+other = "Failed to load workflows"
+
+[error.workflow_store_unavailable]
+other = "Workflow store not available"
+
+[error.failed_load_workflow_runs]
+other = "Failed to load workflow runs"
+
+[error.workflow_run_unavailable]
+other = "Workflow run service is not available"
+
+[error.workflow_not_found]
+other = "Workflow not found"
+
+[toast.hub.permission_scope]
+other = "Permission denied: missing scope {{.Scope}}"
+
+[toast.hub.permission_operation]
+other = "Permission denied: {{.Operation}} is not allowed by Hub config"
+
+[toast.hub.operation_failed]
+other = "Could not {{.Operation}} {{.Name}}: {{.Error}}"
+
+[toast.hub.started]
+other = "{{.Name}} started"
+
+[toast.hub.stopped]
+other = "{{.Name}} stopped"
+
+[toast.hub.restarted]
+other = "{{.Name}} restarted"
+
+[toast.hub.pulled]
+other = "{{.Name}} image pulled"
+
+[toast.hub.updated]
+other = "{{.Name}} updated"
+
+# --- Phase 4: remaining templ i18n ---
+
+[common.back]
+other = "Back"
+
+[common.back_to_functions]
+other = "Back"
+
+[common.back_to_workflows]
+other = "← Workflows"
+
+[common.back_to_agents]
+other = "Back to Agents"
+
+[common.back_to_account]
+other = "Back to account security"
+
+[common.enabled]
+other = "Enabled"
+
+[common.yes]
+other = "yes"
+
+[common.no]
+other = "no"
+
+[common.edit]
+other = "Edit"
+
+[common.test]
+other = "Test"
+
+[common.publish]
+other = "Publish"
+
+[common.draft]
+other = "Draft"
+
+[common.published]
+other = "Published"
+
+[common.pause]
+other = "Pause"
+
+[common.resume]
+other = "Resume"
+
+[common.disable]
+other = "Disable"
+
+[common.enable]
+other = "Enable"
+
+[common.load_more]
+other = "Load more"
+
+[common.close]
+other = "close"
+
+[common.preview]
+other = "Preview"
+
+[common.send]
+other = "Send"
+
+[common.pin]
+other = "Pin"
+
+[common.unpin]
+other = "Unpin"
+
+[common.archive]
+other = "Archive"
+
+[common.unarchive]
+other = "Unarchive"
+
+[common.retry]
+other = "Retry"
+
+[common.mark_read]
+other = "Mark read"
+
+[common.select]
+other = "Select..."
+
+[common.run]
+other = "Run"
+
+[common.view_all]
+other = "View all"
+
+[common.total]
+other = "Total"
+
+[common.done]
+other = "Done"
+
+[common.todo]
+other = "Todo"
+
+[common.success]
+other = "success"
+
+[common.failed]
+other = "Failed"
+
+[common.result]
+other = "Result"
+
+[common.title]
+other = "Title"
+
+[common.body]
+other = "Body"
+
+[common.template]
+other = "Template"
+
+[common.custom]
+other = "Custom"
+
+[common.priority]
+other = "Priority"
+
+[common.channel]
+other = "Channel"
+
+[common.format]
+other = "Format"
+
+[common.condition]
+other = "Condition"
+
+[common.window]
+other = "Window"
+
+[common.limit]
+other = "Limit"
+
+[common.rule]
+other = "Rule"
+
+[common.time]
+other = "Time"
+
+[common.summary]
+other = "Summary"
+
+[common.type]
+other = "Type"
+
+[common.default]
+other = "Default"
+
+[common.overrides]
+other = "Overrides"
+
+[common.protocol]
+other = "Protocol"
+
+[common.uri]
+other = "URI"
+
+[common.triggers]
+other = "Triggers"
+
+[common.steps]
+other = "Steps"
+
+[common.tasks]
+other = "Tasks"
+
+[common.runtime]
+other = "Runtime"
+
+[common.last_run]
+other = "Last Run"
+
+[common.run_history]
+other = "Run History"
+
+[common.save_draft]
+other = "Save draft"
+
+[common.set_default]
+other = "Set default"
+
+[common.sent]
+other = "Sent"
+
+[common.all]
+other = "All"
+
+[common.input]
+other = "Input"
+
+[common.output]
+other = "Output"
+
+[common.errors]
+other = "Errors"
+
+[common.duration]
+other = "Duration"
+
+[common.attempt]
+other = "Attempt"
+
+[common.action]
+other = "Action"
+
+[common.required_field]
+other = "Required"
+
+[common.name]
+other = "Name"
+
+[common.flag]
+other = "Flag"
+
+[common.content]
+other = "Content"
+
+[common.source]
+other = "Source"
+
+[common.model]
+other = "Model"
+
+[common.tools]
+other = "Tools"
+
+[common.skills]
+other = "Skills"
+
+[common.path]
+other = "Path"
+
+[common.topic]
+other = "Topic"
+
+[common.tags]
+other = "Tags"
+
+[common.overview]
+other = "Overview"
+
+[common.runs]
+other = "Runs"
+
+[common.code]
+other = "Code"
+
+[common.stats]
+other = "Stats"
+
+[common.try]
+other = "Try"
+
+[common.latest]
+other = "latest"
+
+[common.inherit_default]
+other = "Inherit default"
+
+[common.overridden]
+other = "Overridden"
+
+[common.inheriting_default]
+other = "Inheriting default"
+
+[common.permission]
+other = "Permission"
+
+[common.your_setting]
+other = "Your setting"
+
+[common.advanced_json]
+other = "Advanced JSON"
+
+[common.save_json]
+other = "Save JSON"
+
+[common.reset_to_defaults]
+other = "Reset to defaults"
+
+[common.open_pipelines]
+other = "Open Pipelines"
+
+[common.create_pipeline]
+other = "Create pipeline"
+
+[common.create_channel]
+other = "Create channel"
+
+[common.create_template]
+other = "Create template"
+
+[common.create_rule]
+other = "Create rule"
+
+[common.open_notify_settings]
+other = "Open Notify settings"
+
+[table.col.run_id]
+other = "Run ID"
+
+[table.col.trigger]
+other = "Trigger"
+
+[table.col.started]
+other = "Started"
+
+[table.col.error]
+other = "Error"
+
+[table.col.event]
+other = "Event"
+
+[table.col.template_id]
+other = "Template ID"
+
+[table.col.id]
+other = "ID"
+
+[table.col.priority]
+other = "Priority"
+
+[table.col.runs_7d]
+other = "Runs (7d)"
+
+[table.col.runs_7d_tip]
+other = "Last 7 days: success rate · P50 / P95 duration"
+
+[page.account_security.new_backup_codes_title]
+other = "New backup codes"
+
+[page.account_security.new_backup_codes_subtitle]
+other = "Store these one-time codes somewhere safe. They will not be shown again."
+
+[account.2fa.title]
+other = "Two-factor authentication"
+
+[account.2fa.enabled]
+other = "Enabled"
+
+[account.2fa.not_enabled]
+other = "Not enabled"
+
+[account.2fa.bound_hint]
+other = "Authenticator app is bound. To reset, run"
+
+[account.2fa.setup_hint]
+other = "Complete TOTP setup before using backup codes."
+
+[account.password.title]
+other = "Password"
+
+[account.password.signed_in_as]
+other = "Signed in as"
+
+[account.password.current]
+other = "Current password"
+
+[account.password.new]
+other = "New password"
+
+[account.password.update]
+other = "Update password"
+
+[account.backup.title]
+other = "Backup codes"
+
+[account.backup.hint]
+other = "One-time codes if you lose access to your authenticator."
+
+[account.backup.confirm_password]
+other = "Confirm with password"
+
+[account.backup.regenerate]
+other = "Regenerate backup codes"
+
+[account.backup.none_remaining]
+other = "None remaining"
+
+[account.backup.one_remaining]
+other = "1 remaining"
+
+[account.backup.n_remaining]
+other = "{{.Count}} remaining"
+
+[function_editor.definition_version]
+other = "Definition v"
+
+[function_editor.latest_published]
+other = "Latest published v"
+
+[function_editor.unpublished_changes]
+other = "Unpublished changes"
+
+[function_editor.unsaved]
+other = "Unsaved"
+
+[function_editor.auth_hint]
+other = "Auth: header X-Webhook-Token or query token. Versioned path pins a published snapshot."
+
+[function_editor.entrypoint]
+other = "Entrypoint"
+
+[function_editor.http_token]
+other = "HTTP token"
+
+[function_editor.hmac_secret]
+other = "HMAC secret (optional)"
+
+[function_editor.env]
+other = "Env (KEY=VALUE per line)"
+
+[function_editor.source]
+other = "Source"
+
+[function_editor.event_json]
+other = "Event JSON"
+
+[function_editor.try_disabled]
+other = "Publish a version before trying."
+
+[function_editor.run_published]
+other = "Run published"
+
+[permissions.form_hint]
+other = "Form edits store your override rules only. Keys set to Inherit default use the system baseline shown beside each field."
+
+[permissions.approval_mode.title]
+other = "Approval Mode"
+
+[permissions.approval_mode.hint]
+other = "manual uses permission ask dialogs; auto uses a lightweight security reviewer for flagged side-effect tools; off skips ask (DCG and deny rules still apply). Server default: {{.Default}}."
+
+[permissions.general.title]
+other = "General Permissions"
+
+[permissions.pattern.title]
+other = "Pattern Permissions"
+
+[permissions.pattern.hint]
+other = "Overriding a pattern permission replaces all default rules for that key. Add specific patterns to allow, ask, or deny matching targets."
+
+[permissions.pattern.add]
+other = "Add pattern rule"
+
+[permissions.wildcard.title]
+other = "Wildcard Fallback"
+
+[permissions.wildcard.hint]
+other = "The * key applies when no specific rule matches. It defaults to ask and cannot be overridden."
+
+[permissions.advanced_json_hint]
+other = "Edit raw user override JSON. Saving from this section ignores the form above."
+
+[permissions.action.ask]
+other = "ask"
+
+[permissions.action.allow]
+other = "allow"
+
+[permissions.action.deny]
+other = "deny"
+
+[permissions.approval_mode.manual]
+other = "manual"
+
+[permissions.approval_mode.auto]
+other = "auto"
+
+[permissions.approval_mode.off]
+other = "off"
+
+[permissions.key.websearch.label]
+other = "Web Search"
+
+[permissions.key.websearch.description]
+other = "Controls web_search tool access."
+
+[permissions.key.skill.label]
+other = "Skills"
+
+[permissions.key.skill.description]
+other = "Controls read_skill tool access."
+
+[permissions.key.knowledge.label]
+other = "Knowledge"
+
+[permissions.key.knowledge.description]
+other = "Controls search_knowledge and get_knowledge tool access."
+
+[permissions.key.delegate.label]
+other = "Delegate"
+
+[permissions.key.delegate.description]
+other = "Controls task (subagent) delegation."
+
+[permissions.key.schedule.label]
+other = "Schedule Write"
+
+[permissions.key.schedule.description]
+other = "Controls schedule_task, update_scheduled_task, and cancel_scheduled_task."
+
+[permissions.key.schedule_read.label]
+other = "Schedule Read"
+
+[permissions.key.schedule_read.description]
+other = "Controls list_scheduled_tasks."
+
+[permissions.key.doom_loop.label]
+other = "Doom Loop"
+
+[permissions.key.doom_loop.description]
+other = "Controls loop-detection critical hits (ask/deny/allow). Global and post-compaction hard-stops ignore this key."
+
+[permissions.key.read.label]
+other = "Read Files"
+
+[permissions.key.read.description]
+other = "Controls read_file access by file path pattern."
+
+[permissions.key.edit.label]
+other = "Edit Files"
+
+[permissions.key.edit.description]
+other = "Controls write_file access by file path pattern."
+
+[permissions.key.bash.label]
+other = "Shell / Code"
+
+[permissions.key.bash.description]
+other = "Controls run_terminal and run_code by command pattern."
+
+[permissions.key.external_directory.label]
+other = "External Paths"
+
+[permissions.key.external_directory.description]
+other = "Controls access to paths outside the workspace."
+
+[agent_skills.import]
+other = "Import"
+
+[agent_skills.new]
+other = "New Skill"
+
+[chatagent.workspace]
+other = "Workspace:"
+
+[chatagent.session_view]
+other = "Session view"
+
+[chatagent.view.chat]
+other = "Chat"
+
+[chatagent.view.trajectory]
+other = "Trajectory"
+
+[chatagent.close_session]
+other = "Close session"
+
+[chatagent.inspect_entries]
+other = "Inspect entries"
+
+[chatagent.sessions]
+other = "Sessions"
+
+[chatagent.session_actions]
+other = "Session actions"
+
+[chatagent.waiting_approval]
+other = "Waiting for tool approval. The rest of this turn appears after it finishes."
+
+[chatagent.jump_to_bottom]
+other = "Jump to bottom"
+
+[chatagent.follow_up_placeholder]
+other = "Add follow-up... (Enter to send, Shift+Enter for newline; / for skills)"
+
+[chatagent.follow_up_aria]
+other = "Add follow-up"
+
+[chatagent.stop]
+other = "Stop"
+
+[chatagent.close_inspector]
+other = "Close inspector"
+
+[chatagent.inspector.preview]
+other = "Preview"
+
+[chatagent.inspector.raw]
+other = "Raw"
+
+[chatagent.disabled]
+other = "Chat agent is not enabled. Configure chat_agent.chat_model in flowbot.yaml."
+
+[chatagent.state.needs_approval]
+other = "Needs approval"
+
+[chatagent.state.running]
+other = "Running"
+
+[chatagent.state.active]
+other = "Active"
+
+[chatagent.pinned]
+other = "Pinned"
+
+[chatagent.your_sessions]
+other = "Your sessions"
+
+[chatagent.filter.needs_approval]
+other = "Needs approval"
+
+[chatagent.filter.archived]
+other = "Archived"
+
+[chatagent.empty.archived]
+other = "No archived sessions."
+
+[chatagent.empty.running]
+other = "No running sessions."
+
+[chatagent.empty.needs_approval]
+other = "No sessions need approval."
+
+[chatagent.empty.default]
+other = "No sessions yet. Start one above."
+
+[chatagent.day.pinned]
+other = "Pinned"
+
+[chatagent.day.today]
+other = "Today"
+
+[chatagent.day.yesterday]
+other = "Yesterday"
+
+[chatagent.context.title]
+other = "Context Usage"
+
+[chatagent.context.show_usage]
+other = "Show context usage"
+
+[chatagent.context.breakdown]
+other = "Context usage breakdown"
+
+[chatagent.context.view_report]
+other = "View Report"
+
+[chatagent.context.close]
+other = "Close context usage"
+
+[chatagent.context.percent_full]
+other = "0% Full"
+
+[chatagent.context.tokens]
+other = "~0 / 0 Tokens"
+
+[command_palette.search_aria]
+other = "Command palette search"
+
+[command_palette.results_aria]
+other = "Command palette results"
+
+[command_palette.navigate]
+other = "navigate"
+
+[command_palette.open]
+other = "open"
+
+[command_palette.close_hint]
+other = "close"
+
+[notify.tab.channels]
+other = "Channels"
+
+[notify.tab.templates]
+other = "Templates"
+
+[notify.tab.rules]
+other = "Rules"
+
+[notify.tab.history]
+other = "History"
+
+[notify.tab.playground]
+other = "Playground"
+
+[notify.new_channel]
+other = "New Channel"
+
+[notify.new_template]
+other = "New Template"
+
+[notify.new_rule]
+other = "New Rule"
+
+[notify.channel.name_placeholder]
+other = "Channel name"
+
+[notify.channel.uri_placeholder_new]
+other = "slack://T00000000/B00000000/XXXXXXXX"
+
+[notify.channel.uri_placeholder_edit]
+other = "Leave blank to keep existing URI"
+
+[notify.template.id_label]
+other = "Template ID"
+
+[notify.template.id_placeholder]
+other = "e.g. bookmark.created"
+
+[notify.template.name_placeholder]
+other = "Display name"
+
+[notify.template.description_placeholder]
+other = "Optional description"
+
+[notify.template.default_template]
+other = "Default template"
+
+[notify.template.body_placeholder]
+other = "Go text/template body with Sprig functions"
+
+[notify.template.overrides_json]
+other = "Overrides JSON"
+
+[notify.template.overrides_placeholder]
+other = '[{"channel":"telegram","format":"html","template":"<b>{{ .title }}</b>"}]'
+
+[notify.rule.name_placeholder]
+other = "Rule name"
+
+[notify.rule.id_placeholder]
+other = "rule_id (e.g. night_mute)"
+
+[notify.rule.digest_template]
+other = "Digest template"
+
+[notify.rule.delayed_send]
+other = "Delayed send"
+
+[notify.rule.drop_hint]
+other = "No additional parameters."
+
+[notify.rule.select_action]
+other = "Select an action to configure."
+
+[notify.playground.title]
+other = "Playground"
+
+[notify.playground.subtitle]
+other = "Preview and manually send a notification to an enabled channel."
+
+[notify.playground.select_channel]
+other = "Select channel..."
+
+[notify.playground.no_channels]
+other = "No enabled channels. Add one in the Channels tab."
+
+[notify.playground.select_template]
+other = "Select template..."
+
+[notify.playground.custom_template]
+other = "Custom template"
+
+[notify.playground.custom_placeholder]
+other = "**Title**\nHello {{ .name }}"
+
+[notify.playground.payload_json]
+other = "Payload JSON"
+
+[notify.playground.url_optional]
+other = "URL (optional)"
+
+[notify.playground.priority.low]
+other = "Low"
+
+[notify.playground.priority.moderate]
+other = "Moderate"
+
+[notify.playground.priority.normal]
+other = "Normal"
+
+[notify.playground.priority.high]
+other = "High"
+
+[notify.playground.priority.emergency]
+other = "Emergency"
+
+[notify.history.group_aria]
+other = "Group notifications"
+
+[notify.history.by_channel]
+other = "By channel"
+
+[notify.history.by_rule]
+other = "By rule"
+
+[notify.history.unread]
+other = "Unread"
+
+[notify.history.filter_channel]
+other = "Filter channel"
+
+[notify.history.all_channels]
+other = "All channels"
+
+[notify.history.filter_rule]
+other = "Filter rule"
+
+[notify.history.all_rules]
+other = "All rules"
+
+[notify.history.open_channel]
+other = "Open channel"
+
+[notify.history.open_rule]
+other = "Open rule"
+
+[notify.history.retry_tip]
+other = "Retries go through normal delivery. Rate limits still apply."
+
+[notify.empty.channels_title]
+other = "No channels yet"
+
+[notify.empty.channels_detail]
+other = "Add a channel to deliver notifications."
+
+[notify.empty.templates_title]
+other = "No templates yet"
+
+[notify.empty.templates_detail]
+other = "Templates format notification content for channels."
+
+[notify.empty.rules_title]
+other = "No rules yet"
+
+[notify.empty.rules_detail]
+other = "Rules match events to channels and templates."
+
+[notify.empty.history_title]
+other = "No notifications yet"
+
+[notify.empty.history_detail]
+other = "Configure channels and rules to deliver alerts."
+
+[workflow.resumable]
+other = "Resumable"
+
+[workflow.max_concurrency]
+other = "max concurrency · {{.Count}}"
+
+[workflow.tab.overview]
+other = "Overview"
+
+[workflow.tab.yaml]
+other = "YAML"
+
+[workflow.section.inputs]
+other = "Inputs"
+
+[workflow.section.triggers]
+other = "Triggers"
+
+[workflow.section.execution_graph]
+other = "Execution graph"
+
+[workflow.section.recent_runs]
+other = "Recent runs"
+
+[workflow.empty.runs]
+other = "No runs recorded yet."
+
+[workflow.empty.step_runs]
+other = "No task runs recorded for this run."
+
+[workflow.empty.yaml]
+other = "YAML source unavailable."
+
+[workflow.empty.dag]
+other = "No tasks to graph."
+
+[workflow.empty.triggers]
+other = "No triggers configured."
+
+[workflow.empty.inputs]
+other = "No inputs declared."
+
+[workflow.dag.title]
+other = "Execution graph"
+
+[workflow.dag.sequential_order]
+other = "Tasks run in pipeline order"
+
+[workflow.dag.parallel_conn]
+other = "Parallel branches follow Conn dependencies"
+
+[workflow.dag.sequential_conn]
+other = "Conn graph; executes sequentially when max_concurrency ≤ 1"
+
+[workflow.dag.parallel_dag]
+other = "Parallel DAG"
+
+[workflow.dag.sequential]
+other = "Sequential"
+
+[workflow.run_now.title]
+other = "Run now"
+
+[workflow.run_now.no_inputs]
+other = "This workflow has no declared inputs."
+
+[workflow.run_now.submit]
+other = "Run workflow"
+
+[workflow.copy_webhook_url]
+other = "Copy webhook URL"
+
+[workflow.input.empty]
+other = "Input: (empty)"
+
+[workflow.output.empty]
+other = "Output: (empty)"
+
+[workflow.task_runs]
+other = "Task Runs"
+
+[pipeline.empty.title]
+other = "No pipelines yet"
+
+[pipeline.empty.detail]
+other = "Create your first automation to react to events."
+
+[workflow.empty.title]
+other = "No workflows yet"
+
+[workflow.empty.detail]
+other = "Apply a workflow definition via CLI to see it here."
+
+[agent.skill.name_hint]
+other = "Used by read_skill and shown in the agent prompt (independent of Flag)."
+
+[agent.skill.base_dir]
+other = "Base Directory"
+
+[agent.skill.base_dir_placeholder]
+other = "Optional relative path for skill files"
+
+[agent.skill.content_placeholder]
+other = "# Skill title\n\nMarkdown body loaded by read_skill"
+
+[agent.skill.disable_invocation]
+other = "Disable model invocation (hidden from prompt and read_skill)"
+
+[agent.subagent.name_hint]
+other = "Referenced as subagent_type by the delegate_subagent tool and shown in the agent prompt."
+
+[agent.subagent.tools_hint]
+other = "Leave all unchecked to inherit default tools for the subagent."
+
+[agent.subagent.skills_hint]
+other = "Selected skills are injected into the subagent prompt and enabled via read_skill."
+
+[agent.subagent.no_skills]
+other = "No enabled skills. Create skills under Agent → Skills."
+
+[agent.subagent.system_prompt]
+other = "System Prompt"
+
+[agent.subagent.system_prompt_placeholder]
+other = "Instructions defining the subagent persona and task focus"
+
+[agent.knowledge.path_hint]
+other = "Must start with / and end with .md"
+
+[agent.knowledge.tags_placeholder]
+other = "api, develop (comma-separated)"
+
+[agent.knowledge.summary_placeholder]
+other = "Short description shown in search results"
+
+[agent.knowledge.content_placeholder]
+other = "# Title\n\nMarkdown body"
+
+[home.stat.agents]
+other = "Agents"
+
+[home.stat.active_sessions]
+other = "active sessions"
+
+[home.stat.pipelines_7d]
+other = "Pipelines (7d)"
+
+[home.stat.workflows_7d]
+other = "Workflows (7d)"
+
+[home.stat.ok]
+other = "{{.Count}} ok"
+
+[home.stat.failed]
+other = "{{.Count}} failed"
+
+[home.stat.events_24h]
+other = "Events (24h)"
+
+[home.stat.view_timeline]
+other = "View timeline"
+
+[home.checklist.title]
+other = "Get started"
+
+[home.checklist.subtitle]
+other = "Complete these steps to put this instance to work."
+
+[home.checklist.workflow.title]
+other = "Create a workflow"
+
+[home.checklist.workflow.detail]
+other = "Define multi-step automation with triggers and tasks."
+
+[home.checklist.workflow.cta]
+other = "Open Workflows"
+
+[home.checklist.pipeline.title]
+other = "Create a pipeline"
+
+[home.checklist.pipeline.detail]
+other = "Automate reactions to data events."
+
+[home.checklist.agents.title]
+other = "Try Agents"
+
+[home.checklist.agents.detail]
+other = "Chat with an agent and configure skills when ready."
+
+[home.checklist.agents.cta]
+other = "Open Agents"
+
+[home.quick.knowledge.title]
+other = "Knowledge"
+
+[home.quick.knowledge.detail]
+other = "Markdown docs for agent retrieval"
+
+[home.quick.skills.title]
+other = "Skills"
+
+[home.quick.skills.detail]
+other = "Reusable agent skill packages"
+
+[home.quick.notifications.title]
+other = "Notifications"
+
+[home.quick.notifications.detail]
+other = "Channels, rules, and delivery"
+
+[home.quick.health.title]
+other = "Health"
+
+[home.quick.health.detail]
+other = "Infrastructure status"
+
+# --- inbox.* ---
+
+[inbox.filter.unread]
+other = "Unread"
+
+[inbox.empty]
+other = "No messages"
+
+[inbox.unread_label]
+other = "Unread"
+
+[inbox.unread_count_title]
+other = "{{.Count}} unread"
+
+[inbox.unread_count_aria]
+other = "{{.Count}} unread inbox messages"
+
+# --- life.stats.* ---
+
+[life.stats.no_activity]
+other = "No activity in the last 30 days."
+
+[life.stats.achievements]
+other = "{{.Count}} achievements unlocked"
+
+[life.stats.kpi.completions]
+other = "Completions"
+
+[life.stats.kpi.exp]
+other = "EXP"
+
+[life.stats.kpi.gold_net]
+other = "Gold net"
+
+[life.stats.chart.activity.title]
+other = "Activity"
+
+[life.stats.chart.activity.subtitle]
+other = "Daily completions and EXP"
+
+[life.stats.chart.growth.title]
+other = "Growth"
+
+[life.stats.chart.growth.subtitle]
+other = "EXP by characteristic (Other = unattributed)"
+
+[life.stats.chart.quests.title]
+other = "Quest types"
+
+[life.stats.chart.quests.subtitle]
+other = "Completed quests by type"
+
+[life.stats.chart.economy.title]
+other = "Economy"
+
+[life.stats.chart.economy.subtitle]
+other = "Gold earned vs redeemed"
+
+[life.stats.chart.loot.title]
+other = "Loot"
+
+[life.stats.chart.loot.subtitle]
+other = "Daily drops"
+
+# --- scheduled_task.* ---
+
+[scheduled_task.state]
+other = "State:"
+
+[scheduled_task.set_state]
+other = "Set state"
+
+[scheduled_task.kind]
+other = "Kind:"
+
+[scheduled_task.schedule]
+other = "Schedule:"
+
+[scheduled_task.source_session]
+other = "Source Session:"
+
+[scheduled_task.next_run]
+other = "Next Run:"
+
+[scheduled_task.last_run]
+other = "Last Run:"
+
+[scheduled_task.prompt]
+other = "Prompt"
+
+[scheduled_task.kind_cron]
+other = "Cron"
+
+[scheduled_task.kind_once]
+other = "Once"
+
+[common.back_to_scheduled_tasks]
+other = "← Back to Scheduled Tasks"
+
+[common.update]
+other = "Update"
+
+# --- token_usage.* ---
+
+[token_usage.title]
+other = "Token Usage"
+
+[token_usage.subtitle]
+other = "Your usage per day across this period"
+
+[token_usage.group_by]
+other = "Group By"
+
+[token_usage.metric]
+other = "Metric"
+
+[token_usage.option.tokens]
+other = "Tokens"
+
+[token_usage.option.model]
+other = "Model"
+
+[token_usage.option.usage_type]
+other = "Usage Type"
+
+[token_usage.range.last_month]
+other = "Last month"
+
+[token_usage.since_utc]
+other = "Since (UTC)"
+
+[token_usage.until_utc]
+other = "Until (UTC)"
+
+[token_usage.apply]
+other = "Apply"
+
+[token_usage.info_tooltip]
+other = "Stats from new LLM calls after deploy; dates are UTC."
+
+[token_usage.total_tokens]
+other = "Total Tokens"
+
+[token_usage.prompt_tokens]
+other = "Prompt Tokens"
+
+[token_usage.completion_tokens]
+other = "Completion Tokens"
+
+[token_usage.empty.title]
+other = "No usage recorded yet"
+
+[token_usage.empty.detail]
+other = "Start a conversation in Agents to see token stats here."
+
+[token_usage.empty.cta]
+other = "Open Agents"
+
+[token_usage.chart.cumulative]
+other = "Cumulative Tokens"
+
+[token_usage.today]
+other = "Today"
+
+# --- pagination.* ---
+
+[pagination.showing]
+other = "Showing {{.Start}}-{{.End}} of {{.Total}}"
+
+[pagination.prev]
+other = "Prev"
+
+[pagination.next]
+other = "Next"
+
+[pagination.go_to]
+other = "Go to"
+
+[pagination.go]
+other = "Go"
+
+# --- relation.* ---
+
+[relation.upstream]
+other = "Upstream"
+
+[relation.downstream]
+other = "Downstream"
+
+# --- table.empty agent/config ---
+
+[table.empty.knowledge]
+other = "No knowledge documents yet"
+
+[table.empty.knowledge_detail]
+other = "Add markdown docs for the agent to search and read."
+
+[table.empty.knowledge_cta]
+other = "Create document"
+
+[table.empty.subagents]
+other = "No subagents yet"
+
+[table.empty.subagents_detail]
+other = "Define specialists for delegated work."
+
+[table.empty.subagents_cta]
+other = "Create subagent"
+
+[table.empty.agent_skills]
+other = "No agent skills yet"
+
+[table.empty.agent_skills_detail]
+other = "Skills extend what agents can do."
+
+[table.empty.agent_skills_cta]
+other = "Create skill"
+
+[table.empty.scheduled_tasks]
+other = "No scheduled tasks yet"
+
+[table.empty.scheduled_tasks_detail]
+other = "Ask an agent to schedule recurring work."
+
+[table.empty.scheduled_tasks_cta]
+other = "Open Agents"
+
+[table.empty.agent_sessions]
+other = "No sessions yet"
+
+[table.empty.agent_sessions_detail]
+other = "Conversations appear here after you chat with an agent."
+
+[table.empty.agent_sessions_cta]
+other = "Open Agents"
+
+[table.empty.configs]
+other = "No configs yet"
+
+[table.empty.configs_detail]
+other = "Store per-module settings as key/value pairs."
+
+[table.empty.configs_cta]
+other = "Create config"
+
+[table.col.updated]
+other = "Updated"
+
+[table.col.enabled]
+other = "Enabled"
+
+[table.col.model]
+other = "Model"
+
+[table.col.task_id]
+other = "Task ID"
+
+[table.col.kind]
+other = "Kind"
+
+[table.col.schedule]
+other = "Schedule"
+
+[table.col.state]
+other = "State"
+
+[table.col.next_run]
+other = "Next Run"
+
+[table.col.last_run]
+other = "Last Run"
+
+[table.col.session_id]
+other = "Session ID"
+
+[table.col.leaf_id]
+other = "Leaf ID"
+
+# --- function/pipeline create modals ---
+
+[function.create.new_btn]
+other = "+ New Function"
+
+[function.create.title]
+other = "New Function"
+
+[function.create.name_placeholder]
+other = "my-function"
+
+[pipeline.create.new_btn]
+other = "+ New Pipeline"
+
+[pipeline.create.title]
+other = "New Pipeline"
+
+[pipeline.create.name_placeholder]
+other = "my-pipeline"
+
+[pipeline.create.name_title]
+other = "Letters or digits (including Chinese), hyphens, underscores. Must start with a letter or digit."
+
+[pipeline.create.desc_optional]
+other = "Description (optional)"
+
+[pipeline.create.desc_placeholder]
+other = "Brief description"
+
+[hub.btn.capabilities]
+other = "Capabilities"
+
+# --- agent pages/filters ---
+
+[agent.knowledge.filter_placeholder]
+other = "Filter path or title"
+
+[agent.knowledge.new_document]
+other = "New Document"
+
+[agent.knowledge.path_placeholder]
+other = "/docs/develop/api-specs.md"
+
+[agent.knowledge.title_placeholder]
+other = "API Specs"
+
+[agent.session_summaries.filter_placeholder]
+other = "Filter title or summary"
+
+[agent.subagent.flag_placeholder]
+other = "code-reviewer"
+
+[agent.subagent.name_placeholder]
+other = "code-reviewer"
+
+[agent.subagent.description_placeholder]
+other = "When the primary agent should delegate to this subagent"
+
+[agent.subagent.model_placeholder]
+other = "Optional model override (defaults to chat model)"
+
+[agent.subagent.source_placeholder]
+other = "global"
+
+[agent.skill.flag_placeholder]
+other = "karakeep"
+
+[agent.skill.name_placeholder]
+other = "karakeep"
+
+[agent.skill.description_placeholder]
+other = "Short description shown in the agent prompt"
+
+[agent.skill.source_placeholder]
+other = "global"
+
+[agent.skill.files.title]
+other = "Skill Files"
+
+[agent.skill.files.add]
+other = "Add File"
+
+[agent.skill.files.empty]
+other = "No auxiliary files yet."
+
+[agent.session.session_id]
+other = "Session ID:"
+
+[agent.session.uid]
+other = "UID:"
+
+[agent.session.state]
+other = "State:"
+
+[agent.session.leaf_id]
+other = "Leaf ID:"
+
+[agent.session.created]
+other = "Created:"
+
+[agent.session.updated]
+other = "Updated:"
+
+[agent.session.entries]
+other = "Entries"
+
+# --- agent memory modal ---
+
+[agent.memory.title]
+other = "Memory Facts"
+
+[agent.memory.subtitle]
+other = "Correct existing facts for this pipeline memory scope"
+
+[agent.memory.empty]
+other = "No facts yet. Create them with the memory_set tool."
+
+[agent.memory.key]
+other = "Key"
+
+[agent.memory.value]
+other = "Value"
+
+[agent.memory.pinned]
+other = "Pinned for auto-inject"
+
+[agent.memory.close_aria]
+other = "Close memory facts"
+
+[agent.memory.saving]
+other = "Saving…"
+
+[chatagent.close_sessions_aria]
+other = "Close sessions"
+
+# --- pipeline live ---
+
+[pipeline.live.title_prefix]
+other = "Live:"
+
+[pipeline.live.trigger]
+other = "Trigger:"
+
+[pipeline.live.running]
+other = "Running"
+
+[pipeline.live.select_step]
+other = "Select a step to view details"
+
+[pipeline.live.status]
+other = "Status:"
+
+[pipeline.live.elapsed]
+other = "Elapsed:"
+
+[pipeline.live.done]
+other = "done"
+
+[pipeline.live.pending]
+other = "pending"
+
+[pipeline.live.failed]
+other = "failed"
+
+[pipeline.live.steps]
+other = "Steps:"
+
+# --- error.validation (web forms) ---
+
+[error.validation.name_required]
+other = "Name is required"
+
+[error.validation.flag_required]
+other = "Flag is required"
+
+[error.validation.flag_slug]
+other = "Flag must be lowercase letters, numbers, and hyphens"
+
+[error.validation.name_slug]
+other = "Name must be lowercase letters, numbers, and hyphens"
+
+[error.validation.description_required]
+other = "Description is required"
+
+[error.validation.system_prompt_required]
+other = "System prompt is required"
+
+[error.validation.tools_required]
+other = "At least one tool is required"
+
+[error.validation.tool_not_allowed]
+other = "Tool {{.Tool}} is not allowed"
+
+[error.validation.flag_exists]
+other = "Flag already exists"
+
+[error.validation.name_exists]
+other = "Name already exists"
+
+[error.validation.topic_required]
+other = "Topic is required"
+
+[error.validation.key_required]
+other = "Key is required"
+
+[error.validation.invalid_json]
+other = "Invalid JSON"
+
+[error.validation.invalid_json_detail]
+other = "Invalid JSON: {{.Error}}"
+
+[error.validation.path_required]
+other = "path is required"
+
+[error.validation.title_required]
+other = "title is required"
+
+[error.validation.content_required]
+other = "content is required"
+
+[error.validation.content_too_large]
+other = "content exceeds maximum size"
+
+[error.validation.path_exists]
+other = "path already exists"
+
+[error.validation.path_must_start_slash]
+other = "path must start with /"
+
+[error.validation.path_must_end_md]
+other = "path must end with .md"
+
+[error.validation.path_no_parent_segments]
+other = "path must not contain parent segments"
+
+[error.validation.path_no_empty_segments]
+other = "path must not contain empty segments"
+
+[error.validation.path_invalid_chars]
+other = "path contains invalid characters"
+
+[error.validation.template_id_required]
+other = "Template ID is required"
+
+[error.validation.format_required]
+other = "Format is required"
+
+[error.validation.template_body_required]
+other = "Template body is required"
+
+[error.validation.template_compile]
+other = "Template compile error: {{.Error}}"
+
+[error.validation.protocol_required]
+other = "Protocol is required"
+
+[error.validation.uri_required]
+other = "URI is required"
+
+[error.validation.rule_id_required]
+other = "Rule ID is required"
+
+[error.validation.event_pattern_required]
+other = "Event pattern is required"
+
+[error.validation.channel_pattern_required]
+other = "Channel pattern is required"
+
+[error.validation.action_required]
+other = "Action is required"
+
+[error.validation.window_required]
+other = "Window is required"
+
+[error.validation.limit_required]
+other = "Limit is required"
+
+[error.validation.limit_positive]
+other = "Limit must be > 0"
+
+[error.validation.invalid_params]
+other = "Invalid parameters"
+
+[error.validation.unknown_template]
+other = "Unknown template: {{.ID}}"
+
+[error.validation.template_id_exists]
+other = "Template ID already exists"
+
+[error.validation.rule_id_exists]
+other = "Rule ID already exists"
+
+[error.validation.channel_required]
+other = "Channel is required"
+
+[error.validation.channel_not_found]
+other = "Channel not found"
+
+[error.validation.channel_disabled]
+other = "Channel is disabled"
+
+[error.validation.custom_template_required]
+other = "Custom template is required"
+
+[error.validation.template_required]
+other = "Template is required"
+
+[error.validation.unknown_template_id]
+other = "Unknown template"
+
+[error.validation.save_failed]
+other = "Could not save. Please try again."
+
+# --- error.account / notification / workflow / pipeline / function ---
+
+[error.account.current_password_incorrect]
+other = "Current password is incorrect"
+
+[error.account.password_incorrect]
+other = "Password is incorrect"
+
+[error.account.enable_2fa_first]
+other = "Enable two-factor authentication first"
+
+[error.account.internal]
+other = "Internal error"
+
+[error.notification.invalid_id]
+other = "Invalid ID"
+
+[error.notification.not_yours]
+other = "Not your notification"
+
+[error.workflow_run_start_failed]
+other = "Failed to start workflow run"
+
+[error.pipeline.already_exists]
+other = "Pipeline {{.Name}} already exists."
+
+[error.function.already_exists]
+other = "Function {{.Name}} already exists."
+
+# --- notify test records ---
+
+[notify.test.title]
+other = "Test Notification"
+
+[notify.test.body]
+other = "Connectivity test from Flowbot"
+
+[notify.test.summary]
+other = "Test connectivity"
+
+[notify.playground.send_summary]
+other = "Playground send"
+
+# --- stats panels ---
+
+[stats.total_pipelines]
+other = "Total Pipelines"
+
+[stats.total_workflows]
+other = "Total Workflows"
+
+[stats.total_functions]
+other = "Total Functions"
+
+[stats.successful_runs]
+other = "Successful Runs"
+
+[stats.failed_runs]
+other = "Failed Runs"
+
+[stats.success_rate_trend]
+other = "Success Rate Trend"
+
+[stats.duration_distribution]
+other = "Duration Distribution"
+
+[stats.trigger_sources]
+other = "Trigger Sources"
+
+[stats.published_versions]
+other = "Published Versions"
+
+[stats.groupby.day]
+other = "day"
+
+[stats.groupby.week]
+other = "week"
+
+[stats.groupby.month]
+other = "month"
+
+[form.skill_file.new_title]
+other = "New Skill File"
+
+[form.skill_file.edit_title]
+other = "Edit Skill File"
+
+[form.skill_file.path]
+other = "Path"
+
+[form.skill_file.content]
+other = "Content"
+
+[form.skill_file.path_placeholder]
+other = "reference.md or scripts/run.sh"
+
+[settings.group.root]
+other = "Root"
+
+[settings.section.one_key]
+other = "1 key"
+
+[settings.section.key_count]
+other = "{{.Count}} keys"
+
+[settings.group.ability]
+other = "Ability"
+
+[settings.group.chat_agent]
+other = "Chat Agent"
+
+[settings.group.core]
+other = "Core"
+
+[settings.group.executor]
+other = "Executor"
+
+[settings.group.flowbot]
+other = "Flowbot"
+
+[settings.group.gateway]
+other = "Gateway"
+
+[settings.group.homelab]
+other = "Homelab"
+
+[settings.group.http]
+other = "HTTP"
+
+[settings.group.log]
+other = "Log"
+
+[settings.group.media]
+other = "Media"
+
+[settings.group.metrics]
+other = "Metrics"
+
+[settings.group.models]
+other = "Models"
+
+[settings.group.modules]
+other = "Modules"
+
+[settings.group.platform]
+other = "Platform"
+
+[settings.group.plugins]
+other = "Plugins"
+
+[settings.group.postgres]
+other = "Postgres"
+
+[settings.group.profiling]
+other = "Profiling"
+
+[settings.group.redis]
+other = "Redis"
+
+[settings.group.retention]
+other = "Retention"
+
+[settings.group.search]
+other = "Search"
+
+[settings.group.store]
+other = "Store"
+
+[settings.group.tracing]
+other = "Tracing"
+
+[settings.group.vendors]
+other = "Vendors"
+
+[btn.new_config]
+other = "New Config"
+
+[btn.new_token]
+other = "New Token"
+
+[btn.new_subagent]
+other = "New Subagent"
+
+[page.subagents.tab_subagents]
+other = "Subagents"
+
+[page.subagents.tab_tasks]
+other = "Tasks"
+
+[table.col.title]
+other = "Title"
+
+[table.col.slug]
+other = "Slug"
+
+[table.col.by]
+other = "By"
+
+[table.col.time]
+other = "Time"
+
+[table.col.event_type]
+other = "Event Type"
+
+[table.col.source]
+other = "Source"
+
+[table.col.path]
+other = "Path"
+
+[table.col.method]
+other = "Method"
+
+[table.col.entity]
+other = "Entity"
+
+[table.col.source_capability]
+other = "Source / Capability"
+
+[table.col.pipeline]
+other = "Pipeline"
+
+[table.col.subagent]
+other = "Subagent"
+
+[table.col.session]
+other = "Session"
+
+[table.col.duration]
+other = "Duration"
+
+[table.empty.clips]
+other = "No clips yet"
+
+[table.empty.clips_detail]
+other = "Create clips from the CLI or chat to share readable pages."
+
+[table.empty.clips_cta]
+other = "Open Agents"
+
+[table.empty.webhook_logs]
+other = "No webhook receipts yet"
+
+[table.empty.webhook_logs_detail]
+other = "Webhook triggers record receipts here when they fire."
+
+[table.empty.data_events]
+other = "No events yet"
+
+[table.empty.data_events_detail]
+other = "Events appear when capabilities emit data."
+
+[table.empty.subagent_tasks]
+other = "No delegated tasks yet"
+
+[table.empty.subagent_tasks_detail]
+other = "Tasks appear when agents delegate work to subagents."
+
+[table.empty.subagent_tasks_cta]
+other = "Open Agents"
+
+[common.open_agents]
+other = "Open Agents"
+
+[events.action.similar]
+other = "Similar"
+
+[events.run_status.success]
+other = "Success"
+
+[events.run_status.failed]
+other = "Failed"
+
+[events.run_status.cancelled]
+other = "Cancelled"
+
+[events.run_status.running]
+other = "Running"
+
+[events.run_status.started]
+other = "Started"
+
+[life.profile.coins]
+other = "{{.Count}} Coins"
+
+[life.profile.hp_label]
+other = "HP:"
+
+[life.default.master_objective]
+other = "Set a Project goal"
+
+[life.default.minor_objective]
+other = "Set an Area goal"
+
+[life.default.operator]
+other = "Operator"
+
+[life.default.action_title]
+other = "Action"
+
+[life.achievements.unlocked_count]
+other = "{{.Unlocked}} / {{.Total}} unlocked"
+
+[life.status.completed]
+other = "Completed"
+
+[life.occurrence.one_time]
+other = "One-time"
+
+[life.occurrence.recurring]
+other = "Recurring"
+
+[life.source.quest]
+other = "Quest"
+
+[life.source.habit]
+other = "Habit"
+
+[life.source.action]
+other = "Action"
+
+[life.source.checkpoint]
+other = "Checkpoint"
+
+[life.skill_status.active]
+other = "Active"
+
+[life.skill_status.cooling]
+other = "Cooling"
+
+[life.skill_status.quiet]
+other = "Quiet"
+
+[life.quest_type.daily]
+other = "Daily"
+
+[life.quest_type.one_time]
+other = "One-Time"
+
+[life.quest_type.boss]
+other = "Boss"
+
+[life.rarity.common]
+other = "Common"
+
+[life.rarity.uncommon]
+other = "Uncommon"
+
+[life.rarity.rare]
+other = "Rare"
+
+[life.rarity.epic]
+other = "Epic"
+
+[life.rarity.legendary]
+other = "Legendary"
+
+[life.rarity.mythic]
+other = "Mythic"
+
+[life.slot.head]
+other = "Head"
+
+[life.slot.weapon]
+other = "Weapon"
+
+[life.slot.armor]
+other = "Armor"
+
+[life.slot.shoes]
+other = "Shoes"
+
+[life.slot.accessory]
+other = "Accessory"
+
+[life.slot.artifact]
+other = "Artifact"
+
+[life.verdict.completed]
+other = "completed"
+
+[life.verdict.partial]
+other = "partial"
+
+[life.verdict.failed]
+other = "failed"
+
+[life.verdict.needs_more_evidence]
+other = "needs_more_evidence"
+
+[life.adjudication.suggested]
+other = "suggested"
+
+[life.adjudication.applied]
+other = "applied"
+
+[life.adjudication.rejected]
+other = "rejected"
+
+[life.lore.none]
+other = "none"
+
+[life.lore.pending]
+other = "pending"
+
+[life.lore.ready]
+other = "ready"
+
+[life.lore.failed]
+other = "failed"
+
+[life.tracking.consistency]
+other = "consistency"
+
+[life.tracking.completion]
+other = "completion"
+
+[life.trait.architect_strength]
+other = "Creative"
+
+[life.trait.mage_strength]
+other = "Analytical"
+
+[life.trait.warrior_strength]
+other = "Resilient"
+
+[life.trait.rogue_strength]
+other = "Adaptive"
+
+[life.trait.architect_weakness]
+other = "Impatient"
+
+[life.trait.mage_weakness]
+other = "Overthinking"
+
+[life.trait.warrior_weakness]
+other = "Stubborn"
+
+[life.trait.rogue_weakness]
+other = "Restless"
+
+[life.stat.int]
+other = "Intelligence"
+
+[life.stat.phy]
+other = "Physique"
+
+[life.stat.wil]
+other = "Willpower"
+
+[life.stat.cha]
+other = "Charisma"
+
+[life.stat.cre]
+other = "Creativity"
+
+[life.stat.fin]
+other = "Financial"
+
+[life.stat.wri]
+other = "Writing"
+
+[life.stat.foc]
+other = "Focus"
+
+[life.stat.lvl]
+other = "Level"
+
+[life.stat.other]
+other = "Other"
+
+[life.buff.drop_rate]
+other = "Drop +{{.Percent}}%"
+
+[life.buff.gold_mult]
+other = "Gold +{{.Percent}}%"
+
+[life.buff.stat]
+other = "{{.Stat}} +{{.Value}}"
+
+[toast.life.quest_complete_loot]
+other = "Loot drop! {{.Item}} — +{{.Exp}} EXP, +{{.Gold}} gold"
+
+[toast.life.quest_complete_achievement]
+other = "{{.Message}} · Achievement: {{.Names}}"

@@ -1,8 +1,10 @@
 package partials
 
 import (
+	"context"
 	"strconv"
 
+	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -17,38 +19,38 @@ func statusBadgeClass(status string) string {
 	}
 }
 
-templ NotificationsTable(p NotificationHistoryParams) {
+templ NotificationsTable(ctx context.Context, p NotificationHistoryParams) {
 	<div class="space-y-3" id="notifications-table" data-testid="notifications-table">
 		<div class="flex flex-wrap items-center gap-3" data-testid="history-group-bar">
-			<div class="join" role="group" aria-label="Group notifications">
+			<div class="join" role="group" aria-label={ i18n.T(ctx, "notify.history.group_aria") }>
 				<a class={ "btn btn-sm join-item", templ.KV("btn-primary", p.Group == "") }
 					href={ templ.URL(NotifyHistoryListURL("", "", "", "")) }
 					hx-get={ templ.URL(NotifyHistoryListURL("", "", "", "")) }
 					hx-target="#notifications-table"
 					hx-swap="outerHTML"
-					data-testid="group-all">All</a>
+					data-testid="group-all">{ i18n.T(ctx, "common.all") }</a>
 				<a class={ "btn btn-sm join-item", templ.KV("btn-primary", p.Group == "channel") }
 					href={ templ.URL(NotifyHistoryListURL("channel", p.Channel, "", "")) }
 					hx-get={ templ.URL(NotifyHistoryListURL("channel", p.Channel, "", "")) }
 					hx-target="#notifications-table"
 					hx-swap="outerHTML"
-					data-testid="group-channel">By channel</a>
+					data-testid="group-channel">{ i18n.T(ctx, "notify.history.by_channel") }</a>
 				<a class={ "btn btn-sm join-item", templ.KV("btn-primary", p.Group == "rule") }
 					href={ templ.URL(NotifyHistoryListURL("rule", "", p.RuleID, "")) }
 					hx-get={ templ.URL(NotifyHistoryListURL("rule", "", p.RuleID, "")) }
 					hx-target="#notifications-table"
 					hx-swap="outerHTML"
-					data-testid="group-rule">By rule</a>
+					data-testid="group-rule">{ i18n.T(ctx, "notify.history.by_rule") }</a>
 				<a class={ "btn btn-sm join-item", templ.KV("btn-primary", p.Group == "unread") }
 					href={ templ.URL(NotifyHistoryListURL("unread", "", "", "")) }
 					hx-get={ templ.URL(NotifyHistoryListURL("unread", "", "", "")) }
 					hx-target="#notifications-table"
 					hx-swap="outerHTML"
-					data-testid="group-unread">Unread</a>
+					data-testid="group-unread">{ i18n.T(ctx, "notify.history.unread") }</a>
 			</div>
 			if p.Group == "channel" && len(p.Channels) > 0 {
 				<select class="select select-bordered select-sm"
-					aria-label="Filter channel"
+					aria-label={ i18n.T(ctx, "notify.history.filter_channel") }
 					data-testid="history-channel-filter"
 					name="channel"
 					hx-get="/service/web/notifications/list"
@@ -56,7 +58,7 @@ templ NotificationsTable(p NotificationHistoryParams) {
 					hx-target="#notifications-table"
 					hx-swap="outerHTML"
 					hx-vals='{"group":"channel"}'>
-					<option value="" if p.Channel == "" { selected }>All channels</option>
+					<option value="" if p.Channel == "" { selected }>{ i18n.T(ctx, "notify.history.all_channels") }</option>
 					for _, ch := range p.Channels {
 						<option value={ ch } if ch == p.Channel { selected }>{ ch }</option>
 					}
@@ -64,7 +66,7 @@ templ NotificationsTable(p NotificationHistoryParams) {
 			}
 			if p.Group == "rule" && len(p.RuleIDs) > 0 {
 				<select class="select select-bordered select-sm"
-					aria-label="Filter rule"
+					aria-label={ i18n.T(ctx, "notify.history.filter_rule") }
 					data-testid="history-rule-filter"
 					name="rule_id"
 					hx-get="/service/web/notifications/list"
@@ -72,7 +74,7 @@ templ NotificationsTable(p NotificationHistoryParams) {
 					hx-target="#notifications-table"
 					hx-swap="outerHTML"
 					hx-vals='{"group":"rule"}'>
-					<option value="" if p.RuleID == "" { selected }>All rules</option>
+					<option value="" if p.RuleID == "" { selected }>{ i18n.T(ctx, "notify.history.all_rules") }</option>
 					for _, rid := range p.RuleIDs {
 						<option value={ rid } if rid == p.RuleID { selected }>{ rid }</option>
 					}
@@ -85,12 +87,12 @@ templ NotificationsTable(p NotificationHistoryParams) {
 				<table class="table flowbot-table-pin">
 					<thead>
 					<tr>
-						<th class="text-xs text-base-content/55">Time</th>
-						<th class="text-xs text-base-content/55">Channel</th>
-						<th class="text-xs text-base-content/55">Rule</th>
-						<th class="text-xs text-base-content/55">Template</th>
-						<th class="text-xs text-base-content/55">Summary</th>
-						<th class="text-xs text-base-content/55">Status</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.time") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.channel") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.rule") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.template") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "common.summary") }</th>
+						<th class="text-xs text-base-content/55">{ i18n.T(ctx, "table.col.status") }</th>
 					</tr>
 					</thead>
 					<tbody id="notifications-rows">
@@ -101,17 +103,17 @@ templ NotificationsTable(p NotificationHistoryParams) {
 							</tr>
 						}
 						for _, r := range g.Records {
-							@notificationHistoryRow(r, p.Group)
+							@notificationHistoryRow(ctx, r, p.Group)
 						}
 					}
 					if len(p.Records) == 0 {
 						<tr id="notifications-empty">
 							<td colspan="6" class="p-0">
 								@EmptyStateCTA(
-									"No notifications yet",
-									"Configure channels and rules to deliver alerts.",
+									i18n.T(ctx, "notify.empty.history_title"),
+									i18n.T(ctx, "notify.empty.history_detail"),
 									"/service/web/notifications?tab=channels",
-									"Open Notify settings",
+									i18n.T(ctx, "common.open_notify_settings"),
 								)
 							</td>
 						</tr>
@@ -126,14 +128,14 @@ templ NotificationsTable(p NotificationHistoryParams) {
 						hx-get={ templ.URL(NotifyHistoryListURL(p.Group, p.Channel, p.RuleID, p.NextCursor)) }
 						hx-target="#load-more-container"
 						hx-swap="outerHTML"
-						data-testid="load-more">Load more</button>
+						data-testid="load-more">{ i18n.T(ctx, "common.load_more") }</button>
 				</div>
 			}
 		</div>
 	</div>
 }
 
-templ notificationHistoryRow(r model.NotificationRecord, group string) {
+templ notificationHistoryRow(ctx context.Context, r model.NotificationRecord, group string) {
 	<tr id={ "notify-row-" + strconv.FormatInt(r.ID, 10) }
 		class={ NotifyRecordRowClass(string(r.Status)) }
 		data-testid={ "notify-row-" + strconv.FormatInt(r.ID, 10) }
@@ -143,14 +145,14 @@ templ notificationHistoryRow(r model.NotificationRecord, group string) {
 			<a class="flowbot-chip flowbot-chip-muted link link-hover"
 				href={ templ.URL(NotifyChannelJumpURL(r.Channel)) }
 				data-testid={ "jump-channel-" + strconv.FormatInt(r.ID, 10) }
-				title="Open channel">{ r.Channel }</a>
+				title={ i18n.T(ctx, "notify.history.open_channel") }>{ r.Channel }</a>
 		</td>
 		<td class="text-xs font-mono">
 			if r.RuleID != "" {
 				<a class="link link-hover"
 					href={ templ.URL(NotifyRuleJumpURL(r.RuleID)) }
 					data-testid={ "jump-rule-" + strconv.FormatInt(r.ID, 10) }
-					title="Open rule">{ r.RuleID }</a>
+					title={ i18n.T(ctx, "notify.history.open_rule") }>{ r.RuleID }</a>
 			} else {
 				<span class="text-base-content/40">—</span>
 			}
@@ -165,15 +167,15 @@ templ notificationHistoryRow(r model.NotificationRecord, group string) {
 					hx-target="#notifications-table"
 					hx-swap="outerHTML"
 					hx-disabled-elt="this"
-					title="Retries go through normal delivery. Rate limits still apply."
-					data-testid={ "retry-btn-" + strconv.FormatInt(r.ID, 10) }>Retry</button>
+					title={ i18n.T(ctx, "notify.history.retry_tip") }
+					data-testid={ "retry-btn-" + strconv.FormatInt(r.ID, 10) }>{ i18n.T(ctx, "common.retry") }</button>
 			}
 			if group == "unread" && r.ReadAt == nil {
 				<button class="btn btn-xs btn-ghost"
 					hx-post={ templ.URL(NotifyRecordReadURL(r.ID) + "?group=unread") }
 					hx-target="#notifications-table"
 					hx-swap="outerHTML"
-					data-testid={ "mark-read-" + strconv.FormatInt(r.ID, 10) }>Mark read</button>
+					data-testid={ "mark-read-" + strconv.FormatInt(r.ID, 10) }>{ i18n.T(ctx, "common.mark_read") }</button>
 			}
 		</td>
 	</tr>

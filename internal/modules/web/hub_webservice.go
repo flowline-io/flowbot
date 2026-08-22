@@ -73,7 +73,7 @@ func hubAppsList(c fiber.Ctx) error {
 	}
 	apps, updatedAts := loadAppsWithUpdatedAts(c.Context())
 	c.Type("html")
-	return partials.HubAppsTable(apps, updatedAts).Render(c.Context(), c.Response().BodyWriter())
+	return partials.HubAppsTable(c.Context(), apps, updatedAts).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // hubAppDetailPage renders the full detail page for a single app.
@@ -110,7 +110,7 @@ func hubAppStatusPartial(c fiber.Ctx) error {
 		status = app.Status
 	}
 	c.Type("html")
-	return pages.HubAppStatusBadge(status).Render(c.Context(), c.Response().BodyWriter())
+	return partials.AppStatusBadge(c.Context(), status).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // hubAppLogsSSE streams logs via Server-Sent Events.
@@ -197,17 +197,25 @@ func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.Ap
 
 	scope := lifecycleScope(operation)
 	if scope != "" && !route.ScopeHandler(c, scope) {
-		return toastError(c, "Permission denied: missing scope "+scope)
+		return toastError(c, webMsgData(c, "toast.hub.permission_scope", map[string]any{"Scope": scope}))
 	}
 	if !homelab.AllowsLifecycle(homelab.DefaultRegistry.Permissions(), operation) {
-		return toastError(c, "Permission denied: "+operation+" is not allowed by Hub config")
+		return toastError(c, webMsgData(c, "toast.hub.permission_operation", map[string]any{"Operation": operation}))
 	}
 
 	if err := fn(c.Context(), app); err != nil {
 		if errors.Is(err, types.ErrNotImplemented) {
-			return toastError(c, operation+" is not available for this app")
+			return toastError(c, webMsgData(c, "toast.hub.operation_failed", map[string]any{
+				"Operation": operation,
+				"Name":      name,
+				"Error":     operation + " is not available for this app",
+			}))
 		}
-		return toastError(c, "Could not "+operation+" "+name+": "+err.Error())
+		return toastError(c, webMsgData(c, "toast.hub.operation_failed", map[string]any{
+			"Operation": operation,
+			"Name":      name,
+			"Error":     err.Error(),
+		}))
 	}
 
 	invalidateAppStatusCache(name)
@@ -217,26 +225,26 @@ func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.Ap
 	} else {
 		storeAppStatusCache(name, status)
 	}
-	setShowToast(c, "success", hubLifecycleSuccessMessage(name, operation))
+	setShowToast(c, "success", hubLifecycleSuccessMessage(c, name, operation))
 	c.Type("html")
-	return pages.HubAppStatusBadge(status).Render(c.Context(), c.Response().BodyWriter())
+	return partials.AppStatusBadge(c.Context(), status).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // hubLifecycleSuccessMessage returns the success toast for a Hub lifecycle action.
-func hubLifecycleSuccessMessage(name, operation string) string {
+func hubLifecycleSuccessMessage(c fiber.Ctx, name, operation string) string {
 	switch operation {
 	case "start":
-		return name + " started"
+		return webMsgData(c, "toast.hub.started", map[string]any{"Name": name})
 	case "stop":
-		return name + " stopped"
+		return webMsgData(c, "toast.hub.stopped", map[string]any{"Name": name})
 	case "restart":
-		return name + " restarted"
+		return webMsgData(c, "toast.hub.restarted", map[string]any{"Name": name})
 	case "pull":
-		return name + " image pull started"
+		return webMsgData(c, "toast.hub.pulled", map[string]any{"Name": name})
 	case "update":
-		return name + " updated"
+		return webMsgData(c, "toast.hub.updated", map[string]any{"Name": name})
 	default:
-		return name + " " + operation + " completed"
+		return webMsgData(c, "toast.hub.updated", map[string]any{"Name": name})
 	}
 }
 
@@ -408,7 +416,7 @@ func hubCapabilitiesGrid(c fiber.Ctx) error {
 	}
 
 	c.Type("html")
-	return partials.CapabilityGrid(descriptors, filtered).Render(c.Context(), c.Response().BodyWriter())
+	return partials.CapabilityGrid(c.Context(), descriptors, filtered).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // uniqueTypes extracts unique capability type strings from descriptors, sorted.
