@@ -145,6 +145,7 @@ body {
   justify-content: center;
   width: 1.625rem;
   height: 1.625rem;
+  overflow: hidden;
   border-radius: var(--flowbot-radius, 0.375rem);
   background: color-mix(
     in oklab,
@@ -152,6 +153,12 @@ body {
     transparent
   );
   color: var(--color-primary, #0f766e);
+}
+
+.flowbot-nav-user-avatar svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
 }
 
 .flowbot-nav-user-meta {

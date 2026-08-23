@@ -5,6 +5,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
+	"github.com/flowline-io/flowbot/version"
 )
 
 // Clip is a fixed light-shell layout for public clip pages (no ops nav, no theme toggle).
@@ -20,7 +21,7 @@ templ Clip(ctx context.Context, title string, description string, actions templ.
 		<meta property="og:description" content={ description }/>
 		<meta property="og:type" content="article"/>
 		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
-		<link href="/static/css/clip.css" rel="stylesheet"/>
+		<link href={ "/static/css/clip.css?v=" + version.Buildtags } rel="stylesheet"/>
 		@partials.I18nScript(ctx)
 		@partials.ClipCopyScripts()
 	</head>

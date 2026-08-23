@@ -99,3 +99,43 @@ func TestIBMPlexSansFontsEmbedded(t *testing.T) {
 		})
 	}
 }
+
+func TestCommittedCSSIncludesNavbarIconUtilities(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		path       string
+		wantSubstr []string
+	}{
+		{
+			name:       "app.css has w-3.5 h-3.5 used by session badge SVG",
+			path:       "css/app.css",
+			wantSubstr: []string{".w-3\\.5", ".h-3\\.5"},
+		},
+		{
+			name:       "custom.css constrains navbar avatar SVG",
+			path:       "css/custom.css",
+			wantSubstr: []string{".flowbot-nav-user-avatar svg", "overflow: hidden"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f, err := SubFS.Open(tt.path)
+			if err != nil {
+				t.Fatalf("SubFS.Open(%q) error = %v", tt.path, err)
+			}
+			defer f.Close()
+			data, err := io.ReadAll(f)
+			if err != nil {
+				t.Fatalf("ReadAll() error = %v", err)
+			}
+			got := string(data)
+			for _, want := range tt.wantSubstr {
+				if !strings.Contains(got, want) {
+					t.Errorf("%s missing %q", tt.path, want)
+				}
+			}
+		})
+	}
+}

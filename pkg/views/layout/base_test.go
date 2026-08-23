@@ -24,7 +24,7 @@ func TestBaseLayout(t *testing.T) {
 			body: templ.NopComponent,
 			check: func(t *testing.T, html string) {
 				t.Helper()
-				assertContainsAll(t, html, []string{"htmx.min.js", "app.js?v=", "alpine.csp.min.js", "app.css", "theme-init.js"})
+				assertContainsAll(t, html, []string{"htmx.min.js", "app.js?v=", "alpine.csp.min.js", "app.css?v=", "custom.css?v=", "theme-init.js"})
 				assertContainsNone(t, html, []string{"tailwind-browser", "daisyui.css"}, "did not want %q in body")
 			},
 		},

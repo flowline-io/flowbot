@@ -71,7 +71,7 @@ Any control that **destroys, revokes, stops, disables, logs out, or otherwise ca
 ## Alpine (pipeline editor)
 
 - `pipelineEditor()` in `public/js/pipeline-editor.js`; mount with `x-data` / `x-init`.
-- **CSP-safe expressions only** in templates: no `?.`, `??`, `=>`, object/array literals, or `...` in `x-text` / `x-for` / `@click`. Put logic in JS helpers; prefer getter/`x-for` data props; cache-bust Alpine scripts with `?v=` + `version.Buildtags`.
+- Cache-bust Alpine scripts **and** layout CSS (`app.css`, `custom.css`, …) with `?v=` + `version.Buildtags`.
 
 ## Static assets
 
