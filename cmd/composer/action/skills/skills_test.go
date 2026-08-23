@@ -562,6 +562,8 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 		{name: "devops", skill: "devops", wantCap: string(hub.CapDevops), wantTitle: "DevOps", wantCLI: "devops"},
 		{name: "gitea", skill: "gitea", wantCap: string(hub.CapGitea), wantTitle: "Gitea", wantCLI: "forge"},
 		{name: "github", skill: "github", wantCap: string(hub.CapGithub), wantTitle: "GitHub", wantCLI: "github"},
+		{name: "trello", skill: "trello", wantCap: string(hub.CapTrello), wantTitle: "Trello", wantCLI: "trello"},
+		{name: "confluence", skill: "confluence", wantCap: string(hub.CapConfluence), wantTitle: "Confluence", wantCLI: "confluence"},
 	}
 
 	byName := make(map[string]metaSpec, len(metaSpecs))
@@ -596,6 +598,8 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 			string(hub.CapDevops):       {},
 			string(hub.CapGitea):        {},
 			string(hub.CapGithub):       {},
+			string(hub.CapTrello):       {},
+			string(hub.CapConfluence):   {},
 			string(hub.CapTrilium):      {},
 			string(hub.CapCore):         {},
 			string(hub.CapExample):      {},
