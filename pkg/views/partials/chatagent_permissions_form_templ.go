@@ -295,7 +295,7 @@ func ChatAgentPermissionsForm(ctx context.Context, data PermissionFormPageData) 
 			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<form method=\"post\" action=\"/service/web/chatagent-permissions\" class=\"space-y-6\" data-testid=\"chatagent-permissions-form\"><input type=\"hidden\" name=\"submit_mode\" id=\"chatagent-permissions-submit-mode\" value=\"form\"><div class=\"alert alert-info text-sm\"><span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<form method=\"post\" action=\"/service/web/chatagent-settings\" class=\"space-y-6\" data-testid=\"chatagent-permissions-form\"><input type=\"hidden\" name=\"submit_mode\" id=\"chatagent-permissions-submit-mode\" value=\"form\"><div class=\"alert alert-info text-sm\"><span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -797,7 +797,7 @@ func ChatAgentPermissionsForm(ctx context.Context, data PermissionFormPageData) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "</select></div></div><button type=\"submit\" formmethod=\"post\" formaction=\"/service/web/chatagent-permissions/reset-server-defaults\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-server-defaults-reset\" data-confirm=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "</select></div></div><button type=\"submit\" formmethod=\"post\" formaction=\"/service/web/chatagent-settings/reset-server-defaults\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-server-defaults-reset\" data-confirm=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1509,7 +1509,7 @@ func ChatAgentPermissionsForm(ctx context.Context, data PermissionFormPageData) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "</button> <button type=\"submit\" formaction=\"/service/web/chatagent-permissions/reset\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-permissions-reset\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "</button> <button type=\"submit\" formaction=\"/service/web/chatagent-settings/reset\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-permissions-reset\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

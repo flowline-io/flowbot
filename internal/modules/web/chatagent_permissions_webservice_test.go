@@ -33,7 +33,7 @@ func TestChatAgentPermissionsPageUnauthenticated(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
-			req := httptest.NewRequest(http.MethodGet, "/service/web/chatagent-permissions", http.NoBody)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/chatagent-settings", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -48,7 +48,7 @@ func TestChatAgentPermissionsPageAuthenticated(t *testing.T) {
 		wantStatus int
 		contains   string
 	}{
-		{name: "renders form page", wantStatus: http.StatusOK, contains: "Chat Agent Permissions"},
+		{name: "renders form page", wantStatus: http.StatusOK, contains: "Chat Agent Settings"},
 		{name: "includes general permissions table", wantStatus: http.StatusOK, contains: "General Permissions"},
 		{name: "includes advanced json editor", wantStatus: http.StatusOK, contains: "Advanced JSON"},
 		{name: "includes server defaults section", wantStatus: http.StatusOK, contains: "data-testid=\"chatagent-server-defaults\""},
@@ -58,7 +58,7 @@ func TestChatAgentPermissionsPageAuthenticated(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/chatagent-permissions", http.NoBody)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/chatagent-settings", http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
 			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
@@ -117,7 +117,7 @@ func TestChatAgentPermissionsSaveForm(t *testing.T) {
 			app, _ := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
 
-			req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions", strings.NewReader(tt.form.Encode()))
+			req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-settings", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.Header.Set("Cookie", "accessToken=test-token")
 			AttachCSRFForTest(req)
@@ -194,7 +194,7 @@ func TestChatAgentPermissionsSaveJSON(t *testing.T) {
 				"submit_mode": {"json"},
 				"rules":       {tt.rules},
 			}
-			req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions", strings.NewReader(form.Encode()))
+			req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-settings", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.Header.Set("Cookie", "accessToken=test-token")
 			AttachCSRFForTest(req)
@@ -241,7 +241,7 @@ func TestChatAgentPermissionsSaveServerDefaults(t *testing.T) {
 		"server_thinking_level": {"inherit"},
 		"perm[websearch]":       {"inherit"},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-settings", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Cookie", "accessToken=test-token")
 	AttachCSRFForTest(req)
@@ -274,7 +274,7 @@ func TestChatAgentPermissionsResetServerDefaults(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, chatagent.SaveServerDefaults(ctx, chatagent.ServerDefaultsFormInput{ChatModel: "gpt-alt"}))
 
-	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions/reset-server-defaults", http.NoBody)
+	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-settings/reset-server-defaults", http.NoBody)
 	req.Header.Set("Cookie", "accessToken=test-token")
 	AttachCSRFForTest(req)
 	resp, err := app.Test(req)
@@ -310,7 +310,7 @@ func TestChatAgentPermissionsSaveJSONPreservesServerDefaults(t *testing.T) {
 		"submit_mode": {"json"},
 		"rules":       {`{"websearch":"allow"}`},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-settings", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Cookie", "accessToken=test-token")
 	AttachCSRFForTest(req)

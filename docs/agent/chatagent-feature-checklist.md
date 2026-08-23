@@ -78,7 +78,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 
 | ID | Behavior | Entry | Edge cases | Tests |
 | -- | -------- | ----- | ---------- | ----- |
-| Q-01 | Permissions page render | `GET /service/web/chatagent-permissions` | | `chatagent_permissions_webservice_test.go` |
+| Q-01 | Permissions page render | `GET /service/web/chatagent-settings` | | `chatagent_permissions_webservice_test.go` |
 | Q-02 | Save form / JSON / reset | `POST …`, `POST …/reset` | Field validation errors | same |
 | Q-03 | REST permissions parity | `/chatagent/permissions` | Defaults when empty | BDD permissions It |
 

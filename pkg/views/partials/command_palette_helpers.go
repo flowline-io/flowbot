@@ -33,7 +33,7 @@ func CommandPaletteNavPages(ctx context.Context) []CommandPaletteNavPage {
 		{"nav.subagents", "nav.group.agent", "/service/web/agent-subagents"},
 		{"nav.scheduled_tasks", "nav.group.agent", "/service/web/agent-scheduled-tasks"},
 		{"nav.sessions", "nav.group.agent", "/service/web/agent-sessions"},
-		{"nav.permissions", "nav.group.agent", "/service/web/chatagent-permissions"},
+		{"nav.permissions", "nav.group.agent", "/service/web/chatagent-settings"},
 		{"nav.pipelines", "nav.group.automate", "/service/web/pipelines"},
 		{"nav.workflows", "nav.group.automate", "/service/web/workflows"},
 		{"nav.functions", "nav.group.automate", "/service/web/functions"},

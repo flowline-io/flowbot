@@ -26,7 +26,7 @@ other = "Scheduled Tasks"
 other = "Sessions"
 
 [nav.permissions]
-other = "Permissions"
+other = "Agent Settings"
 
 [nav.group.automate]
 other = "Automate"
@@ -332,10 +332,10 @@ other = "New backup codes"
 other = "Store these one-time codes somewhere safe. They will not be shown again."
 
 [page.chatagent_permissions.title]
-other = "Chat Agent Permissions"
+other = "Chat Agent Settings"
 
 [page.chatagent_permissions.subtitle]
-other = "Edit OpenCode-style permission rules stored for your user account."
+other = "Configure permission rules, approval mode, and default models for your account."
 
 [page.agent_memory.subtitle]
 other = "Correct keyed facts written by memory_* tools (shared across interactive chats when scope is default)"

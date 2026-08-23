@@ -22,10 +22,10 @@ import (
 )
 
 var chatAgentPermissionsWebserviceRules = []webservice.Rule{
-	webservice.Get("/chatagent-permissions", chatAgentPermissionsPage),
-	webservice.Post("/chatagent-permissions", chatAgentPermissionsSave),
-	webservice.Post("/chatagent-permissions/reset", chatAgentPermissionsReset),
-	webservice.Post("/chatagent-permissions/reset-server-defaults", chatAgentPermissionsResetServerDefaults),
+	webservice.Get("/chatagent-settings", chatAgentPermissionsPage),
+	webservice.Post("/chatagent-settings", chatAgentPermissionsSave),
+	webservice.Post("/chatagent-settings/reset", chatAgentPermissionsReset),
+	webservice.Post("/chatagent-settings/reset-server-defaults", chatAgentPermissionsResetServerDefaults),
 }
 
 func chatAgentPermissionsPage(ctx fiber.Ctx) error {
@@ -78,7 +78,7 @@ func chatAgentPermissionsSave(ctx fiber.Ctx) error {
 	if err := persistChatAgentPermissionsSave(ctx, uid, view, cfg, mode, submitted); err != nil {
 		return err
 	}
-	ctx.Redirect().To("/service/web/chatagent-permissions")
+	ctx.Redirect().To("/service/web/chatagent-settings")
 	return nil
 }
 
@@ -170,7 +170,7 @@ func chatAgentPermissionsReset(ctx fiber.Ctx) error {
 	if err := chatagent.DeleteUserPermissions(ctx.Context(), uid); err != nil {
 		return types.Errorf(types.ErrInternal, "reset permissions: %v", err)
 	}
-	ctx.Redirect().To("/service/web/chatagent-permissions")
+	ctx.Redirect().To("/service/web/chatagent-settings")
 	return nil
 }
 
@@ -181,7 +181,7 @@ func chatAgentPermissionsResetServerDefaults(ctx fiber.Ctx) error {
 	if err := chatagent.DeleteServerDefaults(ctx.Context()); err != nil {
 		return types.Errorf(types.ErrInternal, "reset server defaults: %v", err)
 	}
-	ctx.Redirect().To("/service/web/chatagent-permissions")
+	ctx.Redirect().To("/service/web/chatagent-settings")
 	return nil
 }
 

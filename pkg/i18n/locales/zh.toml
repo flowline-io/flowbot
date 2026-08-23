@@ -26,7 +26,7 @@ other = "定时任务"
 other = "会话"
 
 [nav.permissions]
-other = "权限"
+other = "智能体设置"
 
 [nav.group.automate]
 other = "自动化"
@@ -332,10 +332,10 @@ other = "新的备份码"
 other = "请将这些一次性备份码保存在安全处，之后不会再显示。"
 
 [page.chatagent_permissions.title]
-other = "Chat Agent 权限"
+other = "Chat Agent 设置"
 
 [page.chatagent_permissions.subtitle]
-other = "编辑存储在你账户下的 OpenCode 风格权限规则。"
+other = "配置账户下的权限规则、审批模式与默认模型。"
 
 [page.agent_memory.subtitle]
 other = "由 memory_* 工具写入的可校正键值事实（scope 为 default 时在交互式聊天间共享）"

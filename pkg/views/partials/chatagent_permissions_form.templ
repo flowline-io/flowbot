@@ -33,7 +33,7 @@ templ permissionPatternRow(ctx context.Context, key string, idx int, row Permiss
 }
 
 templ ChatAgentPermissionsForm(ctx context.Context, data PermissionFormPageData) {
-	<form method="post" action="/service/web/chatagent-permissions" class="space-y-6" data-testid="chatagent-permissions-form">
+	<form method="post" action="/service/web/chatagent-settings" class="space-y-6" data-testid="chatagent-permissions-form">
 		<input type="hidden" name="submit_mode" id="chatagent-permissions-submit-mode" value="form"/>
 
 		<div class="alert alert-info text-sm">
@@ -134,7 +134,7 @@ templ ChatAgentPermissionsForm(ctx context.Context, data PermissionFormPageData)
 			<button
 				type="submit"
 				formmethod="post"
-				formaction="/service/web/chatagent-permissions/reset-server-defaults"
+				formaction="/service/web/chatagent-settings/reset-server-defaults"
 				class="btn btn-ghost btn-sm"
 				data-testid="chatagent-server-defaults-reset"
 				data-confirm={ i18n.T(ctx, "confirm.reset_server_defaults.message") }
@@ -270,7 +270,7 @@ templ ChatAgentPermissionsForm(ctx context.Context, data PermissionFormPageData)
 			>
 				{ i18n.T(ctx, "common.save") }
 			</button>
-			<button type="submit" formaction="/service/web/chatagent-permissions/reset" class="btn btn-ghost btn-sm" data-testid="chatagent-permissions-reset">
+			<button type="submit" formaction="/service/web/chatagent-settings/reset" class="btn btn-ghost btn-sm" data-testid="chatagent-permissions-reset">
 				{ i18n.T(ctx, "common.reset_to_defaults") }
 			</button>
 		</div>
