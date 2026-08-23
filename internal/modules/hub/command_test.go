@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/parser"
@@ -35,6 +36,8 @@ func TestCommandRules_Metadata(t *testing.T) {
 				assert.Contains(t, defines, "hub app [name]")
 				assert.Contains(t, defines, "hub capabilities")
 				assert.Contains(t, defines, "version")
+				assert.Contains(t, defines, "web")
+				assert.Equal(t, "Web UI link", defines["web"])
 				assert.Contains(t, defines, "hub app start [name]")
 				assert.Contains(t, defines, "hub app stop [name]")
 				assert.Contains(t, defines, "hub app restart [name]")
@@ -79,6 +82,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 		{name: "hub app with name param", define: "hub app [name]", input: "hub app archivebox", want: true},
 		{name: "hub capabilities exact match", define: "hub capabilities", input: "hub capabilities", want: true},
 		{name: "version exact match", define: "version", input: "version", want: true},
+		{name: "web exact match", define: "web", input: "web", want: true},
 		{name: "hub app start with name param", define: "hub app start [name]", input: "hub app start archivebox", want: true},
 		{name: "hub app stop with name param", define: "hub app stop [name]", input: "hub app stop archivebox", want: true},
 		{name: "hub app restart with name param", define: "hub app restart [name]", input: "hub app restart archivebox", want: true},
@@ -330,6 +334,63 @@ func TestVersionHandler(t *testing.T) {
 			require.True(t, ok)
 			assert.Equal(t, version.Buildtags, model["Version"])
 			assert.Equal(t, version.Buildstamp, model["Build"])
+		})
+	}
+}
+
+func TestWebHandler(t *testing.T) {
+	tests := []struct {
+		name       string
+		flowbotURL string
+		wantURL    string
+		wantText   string
+	}{
+		{
+			name:       "configured flowbot.url returns LinkMsg",
+			flowbotURL: "https://flowbot.example.com",
+			wantURL:    "https://flowbot.example.com/service/web/login",
+		},
+		{
+			name:       "trailing slash trimmed",
+			flowbotURL: "https://flowbot.example.com/",
+			wantURL:    "https://flowbot.example.com/service/web/login",
+		},
+		{
+			name:     "missing flowbot.url returns TextMsg",
+			wantText: "flowbot.url is not configured",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := config.App.Flowbot.URL
+			config.App.Flowbot.URL = tt.flowbotURL
+			t.Cleanup(func() { config.App.Flowbot.URL = prev })
+
+			var webRule *command.Rule
+			for i := range commandRules {
+				if commandRules[i].Define == "web" {
+					webRule = &commandRules[i]
+					break
+				}
+			}
+			require.NotNil(t, webRule)
+
+			tokens, _ := parser.ParseString("web")
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+			payload := webRule.Handler(ctx, tokens)
+			require.NotNil(t, payload)
+
+			if tt.wantText != "" {
+				msg, ok := payload.(types.TextMsg)
+				require.True(t, ok)
+				assert.Equal(t, tt.wantText, msg.Text)
+				return
+			}
+
+			msg, ok := payload.(types.LinkMsg)
+			require.True(t, ok)
+			assert.Equal(t, "Web UI", msg.Title)
+			assert.Equal(t, tt.wantURL, msg.Url)
 		})
 	}
 }

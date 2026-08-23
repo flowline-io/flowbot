@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -113,6 +114,17 @@ var commandRules = []command.Rule{
 					"Build":   version.Buildstamp,
 				},
 			}
+		},
+	},
+	{
+		Define: "web",
+		Help:   `Web UI link`,
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
+			webURL, err := webUIURL()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			return types.LinkMsg{Title: "Web UI", Url: webURL}
 		},
 	},
 	{
@@ -387,6 +399,18 @@ func checkLifecycleOp(name, operation string) (homelab.App, error) {
 	}
 
 	return app, nil
+}
+
+func webUIURL() (string, error) {
+	base := strings.TrimRight(strings.TrimSpace(types.AppUrl()), "/")
+	if base == "" {
+		return "", fmt.Errorf("flowbot.url is not configured")
+	}
+	u, err := url.JoinPath(base, "service", "web", "login")
+	if err != nil {
+		return "", fmt.Errorf("web UI URL: %w", err)
+	}
+	return u, nil
 }
 
 func formatAppPorts(ports []homelab.PortMapping) string {
