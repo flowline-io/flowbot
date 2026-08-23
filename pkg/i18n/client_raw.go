@@ -61,9 +61,6 @@ func TClient(ctx context.Context, messageID string) string {
 }
 
 func clientRawLang(ctx context.Context) string {
-	if _, ok := ctx.Value(cookieLangKey{}).(string); ok {
-		return CookieLang(ctx)
-	}
 	if strings.HasPrefix(LangTag(ctx), "zh") {
 		return CookieZH
 	}
