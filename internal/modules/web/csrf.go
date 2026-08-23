@@ -2,7 +2,9 @@ package web
 
 import (
 	"context"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -12,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/csrf"
 
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
@@ -53,7 +56,7 @@ func csrfCookieNameFor(cfg AuthConfig) string {
 
 func newCSRFMiddleware() fiber.Handler {
 	secure := authConfig().cookieSecureEnabled()
-	return csrf.New(csrf.Config{
+	handler := csrf.New(csrf.Config{
 		CookieName:        csrfCookieNameFor(authConfig()),
 		CookiePath:        "/",
 		CookieSecure:      secure,
@@ -62,12 +65,78 @@ func newCSRFMiddleware() fiber.Handler {
 		CookieSessionOnly: true,
 		IdleTimeout:       csrfIdleTimeout,
 		Storage:           csrfStore(),
+		TrustedOrigins:    csrfTrustedOrigins(),
+		ErrorHandler:      csrfErrorHandler,
 		Extractor: extractors.Chain(
 			extractors.FromHeader(csrfHeaderName),
 			extractors.FromForm(csrfFormField),
 		),
 		Next: csrfSkip,
 	})
+	return func(ctx fiber.Ctx) error {
+		prepareCSRFOrigin(ctx)
+		return handler(ctx)
+	}
+}
+
+func csrfErrorHandler(c fiber.Ctx, err error) error {
+	flog.Warn("web csrf rejected error=%v path=%s method=%s origin=%s host=%s scheme=%s",
+		err, c.Path(), c.Method(), c.Get(fiber.HeaderOrigin), c.Host(), c.Scheme())
+	return fiber.ErrForbidden
+}
+
+func csrfTrustedOrigins() []string {
+	raw := strings.TrimSpace(pkgconfig.App.Flowbot.URL)
+	if raw == "" {
+		return nil
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Host == "" {
+		return nil
+	}
+	if !strings.EqualFold(u.Scheme, "http") && !strings.EqualFold(u.Scheme, "https") {
+		return nil
+	}
+	return []string{strings.ToLower(u.Scheme) + "://" + csrfHostWithoutDefaultPort(u.Host)}
+}
+
+func prepareCSRFOrigin(ctx fiber.Ctx) {
+	origin := strings.TrimSpace(ctx.Get(fiber.HeaderOrigin))
+	if origin == "" {
+		return
+	}
+	u, err := url.Parse(origin)
+	if err != nil || u.Host == "" {
+		return
+	}
+	scheme := strings.ToLower(u.Scheme)
+	host := csrfHostWithoutDefaultPort(u.Host)
+	if scheme == "https" && !strings.EqualFold(ctx.Scheme(), "https") && csrfHostsEqual(host, ctx.Host()) {
+		scheme = "http"
+		host = ctx.Host()
+	}
+	normalized := scheme + "://" + host
+	if normalized != origin {
+		ctx.Request().Header.Set(fiber.HeaderOrigin, normalized)
+	}
+}
+
+func csrfHostsEqual(a, b string) bool {
+	return strings.EqualFold(csrfHostWithoutDefaultPort(a), csrfHostWithoutDefaultPort(b))
+}
+
+func csrfHostWithoutDefaultPort(host string) string {
+	h, p, err := net.SplitHostPort(host)
+	if err != nil {
+		return host
+	}
+	if p != "80" && p != "443" {
+		return host
+	}
+	if strings.Contains(h, ":") {
+		return "[" + h + "]"
+	}
+	return h
 }
 
 // Login and setup POST always check CSRF. Other unauthenticated mutations skip

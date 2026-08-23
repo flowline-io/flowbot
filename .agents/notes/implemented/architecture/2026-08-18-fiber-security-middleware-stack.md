@@ -18,7 +18,7 @@ CSP is stripped on `/swagger/` only.
 
 CORS `AllowHeaders` includes `X-Csrf-Token`. Empty `allow_origins` still does not reflect Origin.
 
-Fiber CSRF uses the official production cookie flags (`CookieSecure`, `SameSite=Lax`, `CookieHTTPOnly: false`, `CookieSessionOnly`, `CookiePath=/`). Cookie name is `__Host-csrf_` when `modules.web.auth.cookie_secure` is enabled (the default) and `csrf_` when it is explicitly false so local HTTP can still set the cookie. Tokens are taken from `X-Csrf-Token` then the `csrf_token` form field (login HTML without JS). Unauthenticated non-login mutations still skip CSRF so `authenticateWeb` can redirect. `EnableIPValidation` is always on in `fiber.Config`.
+Fiber CSRF uses the official production cookie flags (`CookieSecure`, `SameSite=Lax`, `CookieHTTPOnly: false`, `CookieSessionOnly`, `CookiePath=/`). Cookie name is `__Host-csrf_` when `modules.web.auth.cookie_secure` is enabled (the default) and `csrf_` when it is explicitly false so local HTTP can still set the cookie. Tokens are taken from `X-Csrf-Token` then the `csrf_token` form field (login HTML without JS). Unauthenticated non-login mutations still skip CSRF so `authenticateWeb` can redirect. `EnableIPValidation` is always on in `fiber.Config`. TLS-terminating proxy Origin: [csrf-login-403-tls-proxy](../bug-fix/2026-08-23-csrf-login-403-tls-proxy.md).
 
 ## Alternatives considered
 

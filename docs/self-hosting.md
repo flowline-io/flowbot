@@ -80,6 +80,8 @@ location / {
 When Flowbot sits behind a trusted proxy, set in `flowbot.yaml`:
 
 ```yaml
+flowbot:
+  url: https://flowbot.example.com
 http:
   tls_behind_proxy: true
   trusted_proxies:
@@ -91,7 +93,7 @@ modules:
       cookie_secure: true
 ```
 
-`trusted_proxies` must list the reverse-proxy IPs/CIDRs; only then are `X-Forwarded-For` values used for login rate limiting.
+`trusted_proxies` must list the reverse-proxy IPs/CIDRs; only then are `X-Forwarded-For` values used for login rate limiting. Set `flowbot.url` to the public HTTPS origin.
 
 ## Security baseline checklist
 
@@ -100,6 +102,7 @@ modules:
 - [ ] Do not expose `/service/web/setup` on a public network before the first account exists
 - [ ] Lost TOTP: use backup codes, or `composer admin auth reset-2fa --username … --yes` on the host
 - [ ] `cookie_secure: true` when serving HTTPS
+- [ ] `flowbot.url` is the public HTTPS origin (e.g. `https://flowbot.example.com`)
 - [ ] Inject secrets via `${ENV}` rather than committing them to YAML
 - [ ] Restrict `/metrics` (`metrics.bearer_token` or scoped access token)
 - [ ] Single instance only — do not run multiple Flowbot replicas against one Redis consumer group without reviewing cron/scan duplication

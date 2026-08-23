@@ -10,7 +10,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 ## Entry points
 
 - Routes: `*_webservice.go` rule slices → aggregated in `rules.go` (`allWebserviceRules`) → `module.go` registers each group.
-- Auth: default route auth (cookie `accessToken` + scopes). Only login/setup/logout/`csrf-token` use `route.WithNotAuth()`. Handlers still call `authenticateWeb()` (KindFull + login redirect). CSRF is Fiber `csrf` middleware (cookie `csrf_` or `__Host-csrf_`, header `X-Csrf-Token` / form `csrf_token`); helpers in `public/js/app.js`.
+- Auth: default route auth (cookie `accessToken` + scopes). Only login/setup/logout/`csrf-token` use `route.WithNotAuth()`. Handlers still call `authenticateWeb()` (KindFull + login redirect). CSRF is Fiber `csrf` middleware (cookie `csrf_` or `__Host-csrf_`, header `X-Csrf-Token` / form `csrf_token`); helpers in `public/js/app.js`. [TLS proxy Origin](../../../.agents/notes/implemented/bug-fix/2026-08-23-csrf-login-403-tls-proxy.md).
 - Chatagent SSE: `chatagent_web_stream.go`. Shared service: `chatagent_service.go` (installed by `server.ChatAgentService`). Write rules: [server AGENTS.md](../../server/AGENTS.md).
 - Scripts order of truth: `pkg/views/partials/chatagent_scripts.templ`
   - Composer: `util → slash → chat`

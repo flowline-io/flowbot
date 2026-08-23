@@ -12,6 +12,60 @@ import (
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 )
 
+func TestCSRFTrustedOrigins(t *testing.T) {
+	tests := []struct {
+		name string
+		url  string
+		want []string
+	}{
+		{name: "empty", url: "", want: nil},
+		{name: "https origin strips path", url: "https://idev.ink/flowbot", want: []string{"https://idev.ink"}},
+		{name: "https strips default port", url: "https://idev.ink:443", want: []string{"https://idev.ink"}},
+		{name: "trailing slash", url: "https://bot.example/", want: []string{"https://bot.example"}},
+		{name: "http", url: "http://localhost:6060", want: []string{"http://localhost:6060"}},
+		{name: "not a url", url: "not-a-url", want: nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := pkgconfig.App.Flowbot.URL
+			pkgconfig.App.Flowbot.URL = tt.url
+			t.Cleanup(func() { pkgconfig.App.Flowbot.URL = prev })
+			got := csrfTrustedOrigins()
+			if len(got) != len(tt.want) {
+				t.Fatalf("csrfTrustedOrigins()=%v want %v", got, tt.want)
+			}
+			for i := range got {
+				if got[i] != tt.want[i] {
+					t.Fatalf("csrfTrustedOrigins()=%v want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func TestCSRFHostWithoutDefaultPort(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		in, want string
+	}{
+		{in: "idev.ink", want: "idev.ink"},
+		{in: "idev.ink:443", want: "idev.ink"},
+		{in: "idev.ink:80", want: "idev.ink"},
+		{in: "idev.ink:6060", want: "idev.ink:6060"},
+		{in: "[::1]", want: "[::1]"},
+		{in: "[::1]:443", want: "[::1]"},
+		{in: "[::1]:6060", want: "[::1]:6060"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			t.Parallel()
+			if got := csrfHostWithoutDefaultPort(tt.in); got != tt.want {
+				t.Fatalf("csrfHostWithoutDefaultPort(%q)=%q want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestCSRFCookieName(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -195,6 +249,96 @@ func TestEnsureCSRFCookieSetsCookie(t *testing.T) {
 			}
 			if tt.existing == "short" && found != "" && found == tt.existing {
 				t.Fatal("want rotated csrf cookie for unknown token")
+			}
+		})
+	}
+}
+
+func TestCSRFLoginPOSTHTTPSOriginBehindProxy(t *testing.T) {
+	const token = "browser-origin-csrf-token-32chrs"
+	tests := []struct {
+		name       string
+		origin     string
+		host       string
+		flowbotURL string
+		wantStatus int
+	}{
+		{
+			name:       "browser HTTPS origin vs plaintext Fiber same host",
+			origin:     "https://idev.ink",
+			host:       "idev.ink",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "HTTPS origin default port vs Host without port",
+			origin:     "https://idev.ink:443",
+			host:       "idev.ink",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "cross-site origin rejected",
+			origin:     "https://evil.example",
+			host:       "idev.ink",
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name:       "public origin vs internal Host allowed via Flowbot.URL",
+			origin:     "https://idev.ink",
+			host:       "flowbot:6060",
+			flowbotURL: "https://idev.ink",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "HTTPS origin default port vs internal Host via Flowbot.URL",
+			origin:     "https://idev.ink:443",
+			host:       "flowbot:6060",
+			flowbotURL: "https://idev.ink",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "IPv6 HTTPS origin default port vs Host without port",
+			origin:     "https://[::1]:443",
+			host:       "[::1]",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "public origin vs internal Host rejected without Flowbot.URL",
+			origin:     "https://idev.ink",
+			host:       "flowbot:6060",
+			wantStatus: http.StatusForbidden,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lockWebTestGlobals(t)
+			prevURL := pkgconfig.App.Flowbot.URL
+			pkgconfig.App.Flowbot.URL = tt.flowbotURL
+			t.Cleanup(func() { pkgconfig.App.Flowbot.URL = prevURL })
+
+			secure := true
+			handler = moduleHandler{authConfig: AuthConfig{CookieSecure: &secure}}
+			config = configType{Enabled: true, Auth: AuthConfig{CookieSecure: &secure}}
+
+			app := fiber.New()
+			app.Use("/service/web", newCSRFMiddleware())
+			app.Post("/service/web/login", func(c fiber.Ctx) error {
+				return c.SendStatus(http.StatusOK)
+			})
+
+			seedCSRFToken(token)
+			req := httptest.NewRequest(http.MethodPost, "http://"+tt.host+"/service/web/login", http.NoBody)
+			req.Host = tt.host
+			req.Header.Set("Origin", tt.origin)
+			req.AddCookie(&http.Cookie{Name: csrfCookieNameHost, Value: token})
+			req.Header.Set(csrfHeaderName, token)
+
+			resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != tt.wantStatus {
+				t.Fatalf("status=%d want %d", resp.StatusCode, tt.wantStatus)
 			}
 		})
 	}
