@@ -20,6 +20,8 @@ import (
 	karakeepAdapter "github.com/flowline-io/flowbot/pkg/capability/karakeep"
 	memosAdapter "github.com/flowline-io/flowbot/pkg/capability/memos"
 	minifluxAdapter "github.com/flowline-io/flowbot/pkg/capability/miniflux"
+	confluenceAdapter "github.com/flowline-io/flowbot/pkg/capability/confluence"
+	trelloAdapter "github.com/flowline-io/flowbot/pkg/capability/trello"
 	triliumAdapter "github.com/flowline-io/flowbot/pkg/capability/trilium"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -95,6 +97,10 @@ func (moduleHandler) Bootstrap() error {
 	flog.Info("hub: registered memos webhook on /webhook/provider/memos/events")
 	mgr.RegisterWebhook(kanboardAdapter.NewWebhook())
 	flog.Info("hub: registered kanboard webhook on /webhook/provider/kanboard/events")
+	mgr.RegisterWebhook(trelloAdapter.NewWebhook())
+	flog.Info("hub: registered trello webhook on /webhook/provider/trello/events")
+	mgr.RegisterWebhook(confluenceAdapter.NewWebhook())
+	flog.Info("hub: registered confluence webhook on /webhook/provider/confluence/events")
 
 	mgr.RegisterPolling(exampleAdapter.NewPoller())
 	flog.Info("hub: registered example poller")
@@ -118,6 +124,8 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	module.Webservice(app, "transmission", transmissionWebserviceRules)
 	module.Webservice(app, "email", emailWebserviceRules)
 	module.Webservice(app, "nocodb", nocodbWebserviceRules)
+	module.Webservice(app, "trello", trelloWebserviceRules)
+	module.Webservice(app, "confluence", confluenceWebserviceRules)
 	module.Webservice(app, "devops", devopsWebserviceRules)
 }
 

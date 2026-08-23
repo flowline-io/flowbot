@@ -27,6 +27,7 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
 			return c.SendStatus(fiber.StatusNotFound)
 		}
 
+		method := string(c.Request().Header.Method())
 		body := c.Body()
 
 		headers := make(map[string]string)
@@ -40,6 +41,10 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
 		if err := converter.VerifySignature(headers, body); err != nil {
 			flog.Warn("event_source: webhook %s signature failed: %v", path, err)
 			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+
+		if method == http.MethodHead {
+			return webhookHEADResponse(c, converter)
 		}
 
 		events, err := converter.Convert(body, headers)
@@ -87,6 +92,14 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
 
 		return c.SendStatus(fiber.StatusAccepted)
 	}
+}
+
+func webhookHEADResponse(c fiber.Ctx, converter WebhookConverter) error {
+	probe, ok := converter.(WebhookHEADProbe)
+	if !ok || !probe.SupportsWebhookHEAD() {
+		return c.SendStatus(fiber.StatusMethodNotAllowed)
+	}
+	return c.SendStatus(fiber.StatusOK)
 }
 
 // poolSubmit submits a function to the event pool, falling back to direct execution.

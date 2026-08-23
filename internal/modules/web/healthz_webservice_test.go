@@ -55,7 +55,6 @@ func TestHealthzPage(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			clearHealthzSnapshot()
 			app, _ := setupTestApp(t)
@@ -147,7 +146,6 @@ func TestGatherHealthzDataSnapshotCache(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			clearHealthzSnapshot()
 			defer clearHealthzSnapshot()

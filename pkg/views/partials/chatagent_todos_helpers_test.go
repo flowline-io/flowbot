@@ -33,7 +33,6 @@ func TestChatAgentSessionTodoLineLabel(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, chatAgentSessionTodoLineLabel(i18n.DefaultContext(), tt.summary))
 		})

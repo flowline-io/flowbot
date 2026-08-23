@@ -51,7 +51,6 @@ func TestViewPage_Render(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			url := "/service/web/view/" + tt.token
 			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
@@ -139,7 +138,6 @@ func TestCreateView(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/view", strings.NewReader(tt.body))
 			req.Header.Set("Content-Type", "application/json")
@@ -189,7 +187,6 @@ func TestDeleteView(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			url := "/service/web/view/" + tt.token
 			req := httptest.NewRequest(http.MethodDelete, url, http.NoBody)

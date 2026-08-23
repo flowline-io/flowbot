@@ -30,7 +30,6 @@ func TestChatAgentPermissionsPageUnauthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			req := httptest.NewRequest(http.MethodGet, "/service/web/chatagent-permissions", http.NoBody)
@@ -54,7 +53,6 @@ func TestChatAgentPermissionsPageAuthenticated(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
@@ -113,7 +111,6 @@ func TestChatAgentPermissionsSaveForm(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
@@ -187,7 +184,6 @@ func TestChatAgentPermissionsSaveJSON(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()

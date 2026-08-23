@@ -40,7 +40,6 @@ func TestParseTimeParam(t *testing.T) {
 		{name: "invalid format", raw: "not-a-time", wantErr: true},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := parseTimeParam(tt.raw)
@@ -68,7 +67,6 @@ func TestLifecycleScope(t *testing.T) {
 		{op: "unknown", want: ""},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.op, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, lifecycleScope(tt.op))
@@ -107,7 +105,6 @@ func TestPipelineStatusLabels(t *testing.T) {
 		{name: "run pending default", fn: pipelineRunStatusLabel, in: 0, want: "pending"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, tt.fn(tt.in))
@@ -128,7 +125,6 @@ func TestPipelineNameParamHandler(t *testing.T) {
 		{name: "underscore name", raw: "pipe_v2", want: "pipe_v2", wantStatus: http.StatusOK},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			app := fiber.New(fiber.Config{ErrorHandler: func(c fiber.Ctx, err error) error {
@@ -194,7 +190,6 @@ func TestHandleStreamRead(t *testing.T) {
 		{name: "generic error retries", err: errors.New("boom"), done: false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -234,7 +229,6 @@ func TestRenderFormError(t *testing.T) {
 		{name: "create form target", target: "#create-form", want: "#create-form"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			app := fiber.New()
@@ -286,7 +280,6 @@ func TestValidateThrottleAndAggregateParams(t *testing.T) {
 		{name: "aggregate missing window", params: map[string]any{"digest_template_id": "digest"}, wantKey: "window", wantSubstr: "Window is required", agg: true},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := testWebFiberCtx(t)
@@ -313,7 +306,6 @@ func TestParseIDHandler(t *testing.T) {
 		{name: "zero id allowed", param: "0", wantStatus: http.StatusOK},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			app := fiber.New(fiber.Config{ErrorHandler: func(c fiber.Ctx, err error) error {
@@ -370,7 +362,6 @@ func TestHtmlEscape(t *testing.T) {
 		{in: "a & b", want: "a &amp; b"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.in, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, htmlEscape(tt.in))
@@ -453,7 +444,6 @@ func TestValidateChannelForm(t *testing.T) {
 		{name: "missing uri", channel: "alerts", protocol: "webhook", uri: "", wantField: "uri", wantSub: "URI is required"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := testWebFiberCtx(t)
@@ -486,7 +476,6 @@ func TestValidateRuleForm(t *testing.T) {
 		{name: "missing action", rule: model.NotifyRule{Name: "demo", RuleID: "r1", EventPattern: "x", ChannelPattern: "y"}, wantField: "action", wantSub: "Action is required"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := testWebFiberCtx(t)
@@ -536,7 +525,6 @@ func TestNotifyFormErrorsFromStore(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := testWebFiberCtx(t)
@@ -583,7 +571,6 @@ func TestParseConfigValue(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.check(t, parseConfigValue(tt.raw))
@@ -604,7 +591,6 @@ func TestShowToastTrigger(t *testing.T) {
 		{name: "info toast", typ: "info", message: "hello", wantSub: "showToast"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := showToastTrigger(tt.typ, tt.message)
@@ -635,7 +621,6 @@ func TestHTMXResponseErrorMessage(t *testing.T) {
 		{name: "unknown status fallback", status: 418, body: "", want: "Request failed (418). Please try again."},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctx := i18n.DefaultContext()
@@ -655,7 +640,6 @@ func TestChatSessionStateLabelHelper(t *testing.T) {
 		{state: 999, want: "Unknown"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.want, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, chatSessionStateLabel(tt.state))

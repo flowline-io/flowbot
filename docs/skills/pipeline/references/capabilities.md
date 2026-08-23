@@ -18,6 +18,7 @@ Capability steps expose an `InvokeResult`-shaped payload readable via `{{step "n
 
 | Capability | Reference |
 |------------|-----------|
+| `confluence` | [capabilities/confluence.md](capabilities/confluence.md) — Confluence Cloud spaces and pages |
 | `core` | [capabilities/core.md](capabilities/core.md) — Core runtime primitives: notify, clip, agent, HTTP, sandboxed exec, and KV |
 | `devops` | [capabilities/devops.md](capabilities/devops.md) — DevOps aggregator for beszel, uptimekuma, traefik, grafana, wakapi, and dozzle |
 | `email` | [capabilities/email.md](capabilities/email.md) — Email capability for SMTP send and IMAP read |
@@ -32,4 +33,5 @@ Capability steps expose an `InvokeResult`-shaped payload readable via `{{step "n
 | `miniflux` | [capabilities/miniflux.md](capabilities/miniflux.md) — Reader capability |
 | `nocodb` | [capabilities/nocodb.md](capabilities/nocodb.md) — NocoDB bases, tables, and records |
 | `transmission` | [capabilities/transmission.md](capabilities/transmission.md) — Download capability for Transmission |
+| `trello` | [capabilities/trello.md](capabilities/trello.md) — Trello cloud boards, lists, and cards |
 | `trilium` | [capabilities/trilium.md](capabilities/trilium.md) — Note capability for note-taking systems |

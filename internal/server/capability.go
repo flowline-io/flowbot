@@ -15,6 +15,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability/miniflux"
 	"github.com/flowline-io/flowbot/pkg/capability/nocodb"
 	"github.com/flowline-io/flowbot/pkg/capability/transmission"
+	"github.com/flowline-io/flowbot/pkg/capability/trello"
+	"github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/capability/trilium"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
@@ -32,6 +34,8 @@ func initCapabilityHub() error {
 		nocodb.Register("nocodb", nocodb.New()),
 		gitea.Register("gitea", gitea.New()),
 		github.Register("github", github.New()),
+		trello.Register("trello", trello.New()),
+		confluence.Register("confluence", confluence.New()),
 		devops.Register("devops", devops.New()),
 	)
 	if err != nil {

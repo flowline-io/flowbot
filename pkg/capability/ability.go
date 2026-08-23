@@ -373,6 +373,66 @@ type DevopsGrafanaQueryField struct {
 	Values any    `json:"values,omitzero"`
 }
 
+// TrelloBoard is a Trello board resource.
+type TrelloBoard struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Desc   string `json:"desc,omitzero"`
+	Closed bool   `json:"closed"`
+	URL    string `json:"url,omitzero"`
+}
+
+// TrelloList is a list on a Trello board.
+type TrelloList struct {
+	ID      string  `json:"id"`
+	Name    string  `json:"name"`
+	Closed  bool    `json:"closed"`
+	IDBoard string  `json:"idBoard"`
+	Pos     float64 `json:"pos,omitzero"`
+}
+
+// TrelloCard is a card on a Trello board.
+type TrelloCard struct {
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Desc     string  `json:"desc,omitzero"`
+	IDBoard  string  `json:"idBoard"`
+	IDList   string  `json:"idList"`
+	Pos      float64 `json:"pos,omitzero"`
+	Closed   bool    `json:"closed"`
+	URL      string  `json:"url,omitzero"`
+	ShortURL string  `json:"shortUrl,omitzero"`
+}
+
+// TrelloWebhook is a registered Trello webhook.
+type TrelloWebhook struct {
+	ID          string `json:"id"`
+	Description string `json:"description,omitzero"`
+	IDModel     string `json:"idModel"`
+	CallbackURL string `json:"callbackURL"`
+	Active      bool   `json:"active"`
+}
+
+// ConfluenceSpace is a Confluence space.
+type ConfluenceSpace struct {
+	ID   int    `json:"id"`
+	Key  string `json:"key"`
+	Name string `json:"name"`
+	Type string `json:"type,omitzero"`
+}
+
+// ConfluencePage is a Confluence page.
+type ConfluencePage struct {
+	ID      string `json:"id"`
+	Type    string `json:"type"`
+	Status  string `json:"status,omitzero"`
+	Title   string `json:"title"`
+	SpaceKey string `json:"space_key,omitzero"`
+	Content string `json:"content,omitzero"`
+	Version int    `json:"version,omitzero"`
+	WebUI   string `json:"web_ui,omitzero"`
+}
+
 type InvokeResult struct {
 	Capability hub.CapabilityType `json:"capability"`
 	Operation  string             `json:"operation"`

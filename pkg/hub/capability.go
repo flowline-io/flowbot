@@ -16,6 +16,8 @@ const (
 	CapNocodb       CapabilityType = "nocodb"
 	CapGitea        CapabilityType = "gitea"
 	CapGithub       CapabilityType = "github"
+	CapTrello       CapabilityType = "trello"
+	CapConfluence   CapabilityType = "confluence"
 	CapDevops       CapabilityType = "devops"
 	CapExample      CapabilityType = "example"
 	// CapCore is the internal multi-op capability (notify, clip, agent, http, run_*, kv_*).

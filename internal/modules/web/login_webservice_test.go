@@ -76,7 +76,6 @@ func TestLoginPage(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _, client := setupTestAppWithDB(t)
 			if tt.seedAccount {
@@ -207,7 +206,6 @@ func TestLoginSubmit(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.paramSetErr != nil {
 				t.Skip("parameter set errors require mock adapter")

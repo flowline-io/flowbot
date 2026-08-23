@@ -31,7 +31,6 @@ func TestIsConnectivityTestTemplate(t *testing.T) {
 		{name: "empty", templateID: "", want: false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, notifypkg.IsConnectivityTestTemplate(tt.templateID))
@@ -71,7 +70,6 @@ func TestLookupNotifyChannelRawByName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{}
 			ensureTestStoreDB(t, ts)
@@ -168,7 +166,6 @@ func TestRetryNotificationConnectivityTest(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts, client := setupTestAppWithDB(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -235,7 +232,6 @@ func TestNotificationsTableHistoryGrouping(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/list"+tt.query, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
@@ -288,7 +284,6 @@ func TestMarkNotificationRead(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, tt.path, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})

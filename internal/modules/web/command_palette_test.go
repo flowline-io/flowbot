@@ -94,7 +94,6 @@ func TestBuildCommandPaletteResults(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			pls := pipelines
@@ -138,7 +137,6 @@ func TestCommandPaletteNavPages(t *testing.T) {
 		{name: "includes homelab registry", wantHref: "/service/web/homelab", wantTitle: "Registry"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			pages := commandPaletteNavPages(context.Background())

@@ -140,7 +140,6 @@ func TestValidateAgentKnowledgeForm(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := testWebFiberCtx(t)
@@ -166,7 +165,6 @@ func TestAgentKnowledgePageUnauthenticated(t *testing.T) {
 		{name: "create redirects to login", method: http.MethodPost, path: "/service/web/agent-knowledge"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -223,7 +221,6 @@ func TestAgentKnowledgeCreateAuthenticated(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentKnowledge: map[int64]*gen.AgentKnowledge{
@@ -295,7 +292,6 @@ func TestAgentKnowledgeUpdateAuthenticated(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentKnowledge: map[int64]*gen.AgentKnowledge{
@@ -330,7 +326,6 @@ func TestAgentKnowledgeDeleteAuthenticated(t *testing.T) {
 		{name: "missing document returns toast no content", id: "99", wantStatus: http.StatusNoContent},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentKnowledge: map[int64]*gen.AgentKnowledge{
@@ -366,7 +361,6 @@ func TestAgentKnowledgeListFilterAuthenticated(t *testing.T) {
 		{name: "no match shows empty state", q: "zzzz", wantBody: "No knowledge documents yet"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ts := &testStore{
 				agentKnowledge: map[int64]*gen.AgentKnowledge{

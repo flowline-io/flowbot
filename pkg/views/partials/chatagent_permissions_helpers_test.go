@@ -53,7 +53,6 @@ func TestBuildPermissionFormFields(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			view := model.PermissionsView{
 				Defaults: defaults,
@@ -96,7 +95,6 @@ func TestFormatRuleSetSummary(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, partials.FormatRuleSetSummary(i18n.DefaultContext(), tt.rs))
 		})

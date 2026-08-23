@@ -24,7 +24,6 @@ func TestCookieSecureEnabled(t *testing.T) {
 		{name: "explicit false", cfg: AuthConfig{CookieSecure: new(false)}, want: false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.cfg.cookieSecureEnabled(); got != tt.want {
 				t.Errorf("cookieSecureEnabled() = %v, want %v", got, tt.want)
@@ -46,7 +45,6 @@ func TestBruteForceEnabled(t *testing.T) {
 		{name: "explicit false", cfg: BruteForceConfig{Enabled: new(false)}, want: false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := tt.cfg.bruteForceEnabled(); got != tt.want {
@@ -101,7 +99,6 @@ func TestBruteForceApplyDefaults(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			cfg := tt.cfg
@@ -133,7 +130,6 @@ func TestSetLoginRateLimiterCache_BruteForceDefaultOn(t *testing.T) {
 		{name: "explicit true creates limiter", bf: BruteForceConfig{Enabled: new(true)}, wantLimit: true},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			prevConfig := config
 			prevLimiter := loginLimiter
@@ -186,7 +182,6 @@ func TestWireLoginRateLimiter_WaitsForInit(t *testing.T) {
 		{name: "init then rewire", initialized: true, wantLimit: true},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			prevConfig := config
 			prevLimiter := loginLimiter
@@ -284,7 +279,6 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp(t)
 			if tt.seedToken != nil {

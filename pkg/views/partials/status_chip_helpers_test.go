@@ -15,7 +15,6 @@ func TestRunsStatusClass(t *testing.T) {
 		{name: "started default", status: 0, want: "flowbot-chip flowbot-chip-muted"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := runsStatusClass(tt.status); got != tt.want {
@@ -37,7 +36,6 @@ func TestStatusBadgeClass(t *testing.T) {
 		{name: "other muted", status: "pending", want: "flowbot-chip flowbot-chip-muted"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := statusBadgeClass(tt.status); got != tt.want {
@@ -60,7 +58,6 @@ func TestActionBadgeClass(t *testing.T) {
 		{name: "mute muted", action: "mute", want: "flowbot-chip flowbot-chip-muted"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := actionBadgeClass(tt.action); got != tt.want {

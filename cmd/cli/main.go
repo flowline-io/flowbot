@@ -41,6 +41,8 @@ func main() {
 		command.GithubCommand(),
 		command.MemoCommand(),
 		command.TriliumCommand(),
+		command.TrelloCommand(),
+		command.ConfluenceCommand(),
 		command.FireflyiiiCommand(),
 		command.TransmissionCommand(),
 		command.EmailCommand(),

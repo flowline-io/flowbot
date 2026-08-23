@@ -51,7 +51,6 @@ func TestAgentSessionSummariesListAuthenticated(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
@@ -107,7 +106,6 @@ func TestAgentSessionSummaryRetry(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, tt.path, http.NoBody)
 			if tt.auth {

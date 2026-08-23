@@ -67,7 +67,6 @@ func TestNewSettingsPageData(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			data := NewSettingsPageData(i18n.DefaultContext(), tt.groups)
@@ -121,7 +120,6 @@ func TestSettingsGroupTitle(t *testing.T) {
 		{in: "api_path", want: "API Path"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.in, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, settingsGroupTitle(ctx, tt.in))

@@ -159,7 +159,6 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			err := PipelineStepRunsDetail(i18n.DefaultContext(), tt.steps).Render(i18n.DefaultContext(), &buf)
@@ -211,7 +210,6 @@ func TestSprintJSON(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := sprintJSON(tt.input)

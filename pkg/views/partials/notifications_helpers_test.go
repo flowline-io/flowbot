@@ -23,7 +23,6 @@ func TestNormalizeNotifyHistoryGroup(t *testing.T) {
 		{name: "unknown ignored", group: "status", want: ""},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NormalizeNotifyHistoryGroup(tt.group); got != tt.want {
 				t.Errorf("NormalizeNotifyHistoryGroup(%q) = %q, want %q", tt.group, got, tt.want)
@@ -62,7 +61,6 @@ func TestNotifyHistoryListURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := NotifyHistoryListURL(tt.group, tt.channel, tt.ruleID, tt.cursor)
 			if got != tt.want {
@@ -95,7 +93,6 @@ func TestNotifyJumpURLs(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.fn(); got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
@@ -115,7 +112,6 @@ func TestNotifyRecordRowClass(t *testing.T) {
 		{name: "dropped plain", status: "dropped", want: ""},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NotifyRecordRowClass(tt.status); got != tt.want {
 				t.Errorf("NotifyRecordRowClass(%q) = %q, want %q", tt.status, got, tt.want)
@@ -143,7 +139,6 @@ func TestGroupNotificationRecords(t *testing.T) {
 		{name: "unread flat", group: "unread", wantKeys: []string{""}, wantLens: []int{3}},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := GroupNotificationRecords(tt.group, recs)
 			if len(got) != len(tt.wantKeys) {
@@ -199,7 +194,6 @@ func TestNotificationsTableRuleFilterSelected(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			err := NotificationsTable(context.Background(), NotificationHistoryParams{

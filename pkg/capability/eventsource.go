@@ -31,6 +31,11 @@ type WebhookConverter interface {
 	Convert(body []byte, headers map[string]string) ([]types.DataEvent, error)
 }
 
+// WebhookHEADProbe marks converters whose provider probes the callback URL with HEAD during registration.
+type WebhookHEADProbe interface {
+	SupportsWebhookHEAD() bool
+}
+
 // PollingResource represents a single pollable resource type from a provider.
 // Each (provider, resource) pair registers one PollingResource.
 type PollingResource interface {

@@ -50,7 +50,6 @@ func TestDecodePathParam(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := decodePathParam(tt.raw)
@@ -82,7 +81,6 @@ func TestParseStatsTabQuery(t *testing.T) {
 		{name: "empty defaults to all", query: "", wantDays: 0, wantGroupBy: "day", wantSinceSet: false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			app := fiber.New()

@@ -19,6 +19,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability/miniflux"
 	"github.com/flowline-io/flowbot/pkg/capability/nocodb"
 	"github.com/flowline-io/flowbot/pkg/capability/transmission"
+	"github.com/flowline-io/flowbot/pkg/capability/trello"
+	"github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/capability/trilium"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
@@ -57,6 +59,8 @@ func workflowCapabilityCatalog() []capDoc {
 		devops.CatalogSpec(),
 		gitea.CatalogSpec(),
 		github.CatalogSpec(),
+		trello.CatalogSpec(),
+		confluence.CatalogSpec(),
 	}
 	docs := make([]capDoc, 0, len(specs))
 	for _, s := range specs {

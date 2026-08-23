@@ -42,7 +42,6 @@ func TestPipelineListPageIncludesStatsScripts(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -72,7 +71,6 @@ func TestPipelineRunsPageIncludesStatsScripts(t *testing.T) {
 		{name: "list back link", want: `data-testid="pipeline-runs-list-back"`},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer

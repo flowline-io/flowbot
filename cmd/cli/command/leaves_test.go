@@ -22,6 +22,8 @@ func TestAllLeafCommandsHaveRunE(t *testing.T) {
 		{name: "reader", fn: ReaderCommand},
 		{name: "memo", fn: MemoCommand},
 		{name: "trilium", fn: TriliumCommand},
+		{name: "trello", fn: TrelloCommand},
+		{name: "confluence", fn: ConfluenceCommand},
 		{name: "fireflyiii", fn: FireflyiiiCommand},
 		{name: "transmission", fn: TransmissionCommand},
 		{name: "email", fn: EmailCommand},

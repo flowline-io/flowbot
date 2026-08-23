@@ -456,6 +456,19 @@ vendors:
   trilium:
     endpoint: ""
     token: ""
+  # Trello cloud API (API key + token)
+  trello:
+    api_key: ""
+    token: ""
+    webhook_token: ""
+    default_board_id: ""
+  # Confluence Cloud (site URL + email + API token)
+  confluence:
+    site_url: ""
+    email: ""
+    api_token: ""
+    webhook_token: ""
+    default_space_key: ""
 
 # Ability invocation — omit for defaults.
 # ability:

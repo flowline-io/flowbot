@@ -60,7 +60,6 @@ func TestClipsListPage(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			if tt.withCookie {
@@ -96,7 +95,6 @@ func TestClipRowsToListItems(t *testing.T) {
 		{name: "maps url", rows: []*gen.Clip{{Slug: "abc", Title: "X"}}, want: 1},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			items := clipRowsToListItems(tt.rows)

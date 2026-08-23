@@ -59,7 +59,6 @@ func TestAgentMemoryFactsAPI(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var body io.Reader = http.NoBody
 			if tt.body != "" {
@@ -129,7 +128,6 @@ func TestAgentMemoryFactsFormSaveAndDelete(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, tt.path, strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Cookie", "accessToken=test-token")
@@ -161,7 +159,6 @@ func TestAgentMemoryFactsUnauthenticated(t *testing.T) {
 		{name: "summaries require auth", path: "/service/web/agent-session-summaries"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			resp, err := app.Test(req)

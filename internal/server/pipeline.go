@@ -493,8 +493,9 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 		},
 	})
 
-	// Register webhook provider route
+	// Register webhook provider routes (POST for all; HEAD only for Trello registration probe).
 	sharedAppPtr().Post("/webhook/provider/*", srcMgr.WebhookHandler())
+	sharedAppPtr().Head("/webhook/provider/trello/events", srcMgr.WebhookHandler())
 	flog.Info("event source manager initialized")
 
 	return nil

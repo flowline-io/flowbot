@@ -13,6 +13,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
 	capemail "github.com/flowline-io/flowbot/pkg/capability/email"
+	trelloCap "github.com/flowline-io/flowbot/pkg/capability/trello"
+	confluenceCap "github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
@@ -957,6 +959,252 @@ func invokeNote(ctx fiber.Ctx, operation string, params map[string]any) error {
 	return ctx.JSON(protocol.NewSuccessResponse(res))
 }
 
+// --- Trello routes (registered under /service/trello) ---
+
+var trelloWebserviceRules = []webservice.Rule{
+	webservice.Get("/health", trelloHealth),
+	webservice.Get("/boards", listTrelloBoards),
+	webservice.Get("/boards/:board_id", getTrelloBoard),
+	webservice.Get("/boards/:board_id/lists", listTrelloLists),
+	webservice.Get("/boards/:board_id/cards", listTrelloCards),
+	webservice.Get("/cards/:card_id", getTrelloCard),
+	webservice.Get("/search", searchTrelloCards),
+	webservice.Post("/cards", createTrelloCard),
+	webservice.Patch("/cards/:card_id", updateTrelloCard),
+	webservice.Post("/cards/:card_id/move", moveTrelloCard),
+	webservice.Delete("/cards/:card_id", deleteTrelloCard),
+	webservice.Post("/webhooks", registerTrelloWebhook),
+	webservice.Delete("/webhooks/:webhook_id", deleteTrelloWebhook),
+}
+
+func listTrelloBoards(ctx fiber.Ctx) error {
+	return invokeTrello(ctx, trelloCap.OpListBoards, pageParams(ctx))
+}
+
+func getTrelloBoard(ctx fiber.Ctx) error {
+	return invokeTrello(ctx, trelloCap.OpGetBoard, map[string]any{
+		"board_id": ctx.Params("board_id"),
+	})
+}
+
+func listTrelloLists(ctx fiber.Ctx) error {
+	return invokeTrello(ctx, trelloCap.OpListLists, map[string]any{
+		"board_id": ctx.Params("board_id"),
+	})
+}
+
+func listTrelloCards(ctx fiber.Ctx) error {
+	params := pageParams(ctx)
+	params["board_id"] = ctx.Params("board_id")
+	return invokeTrello(ctx, trelloCap.OpListCards, params)
+}
+
+func getTrelloCard(ctx fiber.Ctx) error {
+	return invokeTrello(ctx, trelloCap.OpGetCard, map[string]any{
+		"card_id": ctx.Params("card_id"),
+	})
+}
+
+func searchTrelloCards(ctx fiber.Ctx) error {
+	query := ctx.Query("q")
+	if query == "" {
+		return types.Errorf(types.ErrInvalidArgument, "query parameter 'q' is required")
+	}
+	params := map[string]any{"query": query}
+	if l := ctx.Query("limit"); l != "" {
+		params["limit"] = l
+	}
+	return invokeTrello(ctx, trelloCap.OpSearchCards, params)
+}
+
+func createTrelloCard(ctx fiber.Ctx) error {
+	var body struct {
+		ListID string `json:"list_id"`
+		Name   string `json:"name"`
+		Desc   string `json:"desc"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode trello card request", err)
+	}
+	if body.ListID == "" || body.Name == "" {
+		return types.Errorf(types.ErrInvalidArgument, "list_id and name are required")
+	}
+	return invokeTrello(ctx, trelloCap.OpCreateCard, map[string]any{
+		"list_id": body.ListID,
+		"name":    body.Name,
+		"desc":    body.Desc,
+	})
+}
+
+func updateTrelloCard(ctx fiber.Ctx) error {
+	var body struct {
+		Name string `json:"name"`
+		Desc string `json:"desc"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode trello card update request", err)
+	}
+	return invokeTrello(ctx, trelloCap.OpUpdateCard, map[string]any{
+		"card_id": ctx.Params("card_id"),
+		"name":    body.Name,
+		"desc":    body.Desc,
+	})
+}
+
+func moveTrelloCard(ctx fiber.Ctx) error {
+	var body struct {
+		ListID string `json:"list_id"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode trello move request", err)
+	}
+	if body.ListID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "list_id is required")
+	}
+	return invokeTrello(ctx, trelloCap.OpMoveCard, map[string]any{
+		"card_id": ctx.Params("card_id"),
+		"list_id": body.ListID,
+	})
+}
+
+func deleteTrelloCard(ctx fiber.Ctx) error {
+	return invokeTrello(ctx, trelloCap.OpDeleteCard, map[string]any{
+		"card_id": ctx.Params("card_id"),
+	})
+}
+
+func registerTrelloWebhook(ctx fiber.Ctx) error {
+	var body struct {
+		BoardID     string `json:"board_id"`
+		CallbackURL string `json:"callback_url"`
+		Description string `json:"description"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode trello webhook request", err)
+	}
+	return invokeTrello(ctx, trelloCap.OpRegisterWebhook, map[string]any{
+		"board_id":     body.BoardID,
+		"callback_url": body.CallbackURL,
+		"description":  body.Description,
+	})
+}
+
+func deleteTrelloWebhook(ctx fiber.Ctx) error {
+	return invokeTrello(ctx, trelloCap.OpDeleteWebhook, map[string]any{
+		"webhook_id": ctx.Params("webhook_id"),
+	})
+}
+
+func trelloHealth(ctx fiber.Ctx) error {
+	return invokeTrello(ctx, trelloCap.OpHealth, map[string]any{})
+}
+
+func invokeTrello(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := capability.Invoke(context.Background(), hub.CapTrello, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
+}
+
+// --- Confluence routes (registered under /service/confluence) ---
+
+var confluenceWebserviceRules = []webservice.Rule{
+	webservice.Get("/health", confluenceHealth),
+	webservice.Get("/spaces", listConfluenceSpaces),
+	webservice.Get("/spaces/:space_key/pages", listConfluencePages),
+	webservice.Get("/pages/:page_id", getConfluencePage),
+	webservice.Get("/pages/:page_id/content", getConfluencePageContent),
+	webservice.Get("/search", searchConfluencePages),
+	webservice.Post("/pages", createConfluencePage),
+	webservice.Patch("/pages/:page_id", updateConfluencePage),
+	webservice.Delete("/pages/:page_id", deleteConfluencePage),
+}
+
+func listConfluenceSpaces(ctx fiber.Ctx) error {
+	return invokeConfluence(ctx, confluenceCap.OpListSpaces, pageParams(ctx))
+}
+
+func listConfluencePages(ctx fiber.Ctx) error {
+	params := pageParams(ctx)
+	params["space_key"] = ctx.Params("space_key")
+	return invokeConfluence(ctx, confluenceCap.OpListPages, params)
+}
+
+func getConfluencePage(ctx fiber.Ctx) error {
+	return invokeConfluence(ctx, confluenceCap.OpGetPage, map[string]any{
+		"page_id": ctx.Params("page_id"),
+	})
+}
+
+func getConfluencePageContent(ctx fiber.Ctx) error {
+	return invokeConfluence(ctx, confluenceCap.OpGetPageContent, map[string]any{
+		"page_id": ctx.Params("page_id"),
+	})
+}
+
+func searchConfluencePages(ctx fiber.Ctx) error {
+	cql := ctx.Query("cql")
+	if cql == "" {
+		return types.Errorf(types.ErrInvalidArgument, "query parameter 'cql' is required")
+	}
+	params := pageParams(ctx)
+	params["cql"] = cql
+	return invokeConfluence(ctx, confluenceCap.OpSearchPages, params)
+}
+
+func createConfluencePage(ctx fiber.Ctx) error {
+	var body struct {
+		SpaceKey string `json:"space_key"`
+		Title    string `json:"title"`
+		Content  string `json:"content"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode confluence page request", err)
+	}
+	if body.Title == "" {
+		return types.Errorf(types.ErrInvalidArgument, "title is required")
+	}
+	return invokeConfluence(ctx, confluenceCap.OpCreatePage, map[string]any{
+		"space_key": body.SpaceKey,
+		"title":     body.Title,
+		"content":   body.Content,
+	})
+}
+
+func updateConfluencePage(ctx fiber.Ctx) error {
+	var body struct {
+		Title   string `json:"title"`
+		Content string `json:"content"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode confluence page update request", err)
+	}
+	return invokeConfluence(ctx, confluenceCap.OpUpdatePage, map[string]any{
+		"page_id": ctx.Params("page_id"),
+		"title":   body.Title,
+		"content": body.Content,
+	})
+}
+
+func deleteConfluencePage(ctx fiber.Ctx) error {
+	return invokeConfluence(ctx, confluenceCap.OpDeletePage, map[string]any{
+		"page_id": ctx.Params("page_id"),
+	})
+}
+
+func confluenceHealth(ctx fiber.Ctx) error {
+	return invokeConfluence(ctx, confluenceCap.OpHealth, map[string]any{})
+}
+
+func invokeConfluence(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := capability.Invoke(context.Background(), hub.CapConfluence, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
+}
+
 // --- Memos routes (registered under /service/memos) ---
 
 var memoWebserviceRules = []webservice.Rule{
@@ -1804,7 +2052,7 @@ func githubListReleases(ctx fiber.Ctx) error {
 
 // webserviceRules merges all sub-module webservice rule sets into a single
 // slice for registration via Rules().
-var webserviceRules = append(append(append(append(append(append(append(
+var webserviceRules = append(append(append(append(append(append(append(append(append(
 	hubWebserviceRules,
 	bookmarkWebserviceRules...),
 	kanbanWebserviceRules...),
@@ -1812,7 +2060,9 @@ var webserviceRules = append(append(append(append(append(append(append(
 	readerWebserviceRules...),
 	forgeWebserviceRules...),
 	githubWebserviceRules...),
-	memoWebserviceRules...)
+	memoWebserviceRules...),
+	trelloWebserviceRules...),
+	confluenceWebserviceRules...)
 
 func listFeeds(ctx fiber.Ctx) error {
 	res, err := capability.Invoke(ctx.Context(), hub.CapMiniflux, capability.OpReaderListFeeds, nil)

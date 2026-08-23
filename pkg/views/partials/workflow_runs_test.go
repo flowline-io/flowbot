@@ -134,7 +134,6 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
@@ -165,7 +164,6 @@ func TestWorkflowStepRunDuration(t *testing.T) {
 		{name: "completed", sr: model.WorkflowStepRun{StartedAt: now, CompletedAt: &done}, want: "2s"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, WorkflowStepRunDuration(tt.sr))

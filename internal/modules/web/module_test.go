@@ -18,7 +18,6 @@ func TestRegister(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			require.NotPanics(t, func() {
 				Register()
@@ -62,7 +61,6 @@ func TestInit(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			h := &moduleHandler{}
 			err := h.Init(json.RawMessage(tt.jsonCfg))
@@ -104,7 +102,6 @@ func TestIsReady(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			handler = moduleHandler{initialized: tt.initialized}
 			assert.Equal(t, tt.want, handler.IsReady())

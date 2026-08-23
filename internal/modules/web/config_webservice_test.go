@@ -29,7 +29,6 @@ func TestConfigsPage(t *testing.T) {
 		{name: "store error returns 500", storeErr: fmt.Errorf("db down"), wantStatus: http.StatusInternalServerError},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.storeErr != nil {
 				t.Skip("mock store errors not supported with SQLite adapter")
@@ -66,7 +65,6 @@ func TestListConfigs(t *testing.T) {
 		{name: "renders multiple rows", storeConfigs: []model.ConfigItem{createTestConfig("u1", "t1", "k1"), createTestConfig("u2", "t2", "k2")}, wantStatus: http.StatusOK, wantContains: "k2"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp(t)
 			ts.configs = tt.storeConfigs
@@ -127,7 +125,6 @@ func TestDeleteConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.delErr != nil {
 				t.Skip("mock delete errors not supported with SQLite adapter")
@@ -175,7 +172,6 @@ func TestGetConfig(t *testing.T) {
 		{name: "not found returns 404", wantStatus: http.StatusNotFound},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp(t)
 			if tt.seed {
@@ -222,7 +218,6 @@ func TestNewConfigFormIncludesCleanup(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
@@ -331,7 +326,6 @@ func TestCreateConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setConfigFn != nil {
 				t.Skip("mock config set errors not supported with SQLite adapter")
@@ -426,7 +420,6 @@ func TestUpdateConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setConfigFn != nil {
 				t.Skip("mock config set errors not supported with SQLite adapter")

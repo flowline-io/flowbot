@@ -55,6 +55,8 @@ type Client struct {
 	Transmission *TransmissionClient
 	Email        *EmailClient
 	Nocodb       *NocodbClient
+	Trello       *TrelloClient
+	Confluence   *ConfluenceClient
 	Devops       *DevopsClient
 }
 
@@ -95,6 +97,8 @@ func NewClient(serverURL, token string) *Client {
 	c.Transmission = &TransmissionClient{c: c}
 	c.Email = &EmailClient{c: c}
 	c.Nocodb = &NocodbClient{c: c}
+	c.Trello = &TrelloClient{c: c}
+	c.Confluence = &ConfluenceClient{c: c}
 	c.Devops = &DevopsClient{c: c}
 
 	return c

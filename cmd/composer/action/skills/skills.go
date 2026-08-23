@@ -227,6 +227,61 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
+		Name:         string(hub.CapTrello),
+		Title:        "Trello",
+		CommandFn:    command.TrelloCommand,
+		Description:  "Manage Trello boards, lists, and cards via flowbot trello.",
+		Keywords:     "trello, boards, lists, cards, kanban cloud, project management",
+		ScopesNote:   "`service:trello:read` / `service:trello:write`",
+		ResponseHint: "Board, list, and card ids are strings; use `-o json` `id` fields.",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Create a card on a board",
+				Description: "When a user wants to add a task to Trello:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot trello board list"},
+					{Step: 2, Command: "flowbot trello list list <board_id>"},
+					{Step: 3, Command: "flowbot trello card create --list-id <list_id> -n \"<title>\""},
+				},
+			},
+			{
+				Title:       "Review board cards",
+				Description: "When a user wants to see cards on a board:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot trello card list <board_id>"},
+					{Step: 2, Command: "flowbot trello card get <card_id>"},
+				},
+			},
+		},
+	},
+	{
+		Name:         string(hub.CapConfluence),
+		Title:        "Confluence",
+		CommandFn:    command.ConfluenceCommand,
+		Description:  "Manage Confluence Cloud spaces and pages via flowbot confluence.",
+		Keywords:     "confluence, atlassian, wiki, knowledge base, pages, spaces, cql",
+		ScopesNote:   "`service:confluence:read` / `service:confluence:write`",
+		ResponseHint: "Page and space ids are strings; page content uses Confluence storage XHTML.",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Create a wiki page",
+				Description: "When a user wants to add a Confluence page:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot confluence space list"},
+					{Step: 2, Command: "flowbot confluence page create --space-key <KEY> -t \"<title>\" -c \"<p>content</p>\""},
+				},
+			},
+			{
+				Title:       "Find and read a page",
+				Description: "When a user wants to open Confluence content:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot confluence page search --cql \"text ~ '<keywords>'\""},
+					{Step: 2, Command: "flowbot confluence page content <page_id>"},
+				},
+			},
+		},
+	},
+	{
 		Name:         string(hub.CapMiniflux),
 		Title:        "Miniflux",
 		CommandFn:    command.ReaderCommand,

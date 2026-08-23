@@ -60,6 +60,15 @@ const (
 	EventKanbanTaskOpened    = "kanban.task.opened"
 	EventKanbanTaskMoved     = "kanban.task.moved"
 
+	EventTrelloCardCreated = "trello.card.created"
+	EventTrelloCardUpdated = "trello.card.updated"
+	EventTrelloCardMoved   = "trello.card.moved"
+	EventTrelloCardDeleted = "trello.card.deleted"
+
+	EventConfluencePageCreated = "confluence.page.created"
+	EventConfluencePageUpdated = "confluence.page.updated"
+	EventConfluencePageDeleted = "confluence.page.deleted"
+
 	EventInfraHostDown = "infra.host.down"
 	EventInfraHostUp   = "infra.host.up"
 

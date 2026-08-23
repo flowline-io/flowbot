@@ -26,7 +26,6 @@ func TestAgentScheduledTaskStateOptions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := AgentScheduledTaskStateOptions()
 			for _, state := range tt.want {
@@ -51,7 +50,6 @@ func TestAgentScheduledTaskStateURL(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, string(AgentScheduledTaskStateURL(tt.taskID)))
 		})

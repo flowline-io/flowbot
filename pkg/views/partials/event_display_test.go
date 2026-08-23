@@ -25,7 +25,6 @@ func TestEventTypeChipClass(t *testing.T) {
 		{name: "empty muted", eventType: "", want: "flowbot-chip flowbot-chip-muted"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, EventTypeChipClass(tt.eventType))
 		})
@@ -49,7 +48,6 @@ func TestEventSourceChipClass(t *testing.T) {
 		{name: "stable for same source", source: "miniflux"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := EventSourceChipClass(tt.source)
 			if tt.source == "" {
@@ -77,7 +75,6 @@ func TestEventRunStatusChipClass(t *testing.T) {
 		{name: "empty", status: "", want: "flowbot-chip flowbot-chip-muted"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, EventRunStatusChipClass(tt.status))
 		})
@@ -100,7 +97,6 @@ func TestEventRunStatusText(t *testing.T) {
 		{name: "empty started", status: "", want: "Started"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, EventRunStatusText(ctx, tt.status))
 		})
@@ -147,7 +143,6 @@ func TestSimilarEventsURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, SimilarEventsURL(tt.source, tt.eventType))
 		})
@@ -167,7 +162,6 @@ func TestPipelineRunLiveURL(t *testing.T) {
 		{name: "zero id still builds", pipe: "p", id: 0, want: "/service/web/pipelines/p/runs/0/live"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, PipelineRunLiveURL(tt.pipe, tt.id))
 		})
@@ -212,7 +206,6 @@ func TestHighlightJSON(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := HighlightJSON(tt.input)
 			for _, sub := range tt.contain {
@@ -237,7 +230,6 @@ func TestPrettyJSON(t *testing.T) {
 		{name: "invalid returns original", input: `{bad`, want: `{bad`},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := PrettyJSON(tt.input)
 			require.Equal(t, tt.want, got)
@@ -261,7 +253,6 @@ func TestWebhookMethodChipClass(t *testing.T) {
 		{name: "empty muted", method: "", want: "flowbot-chip flowbot-chip-muted"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, WebhookMethodChipClass(tt.method))
 		})

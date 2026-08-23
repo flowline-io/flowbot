@@ -226,7 +226,6 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var body io.Reader = http.NoBody
 			if tt.body != nil {
@@ -326,7 +325,6 @@ func TestSetWorkflowEnabledDisableAndEnable(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			path := "/service/web/workflows/toggle-wf/enabled"
 			if tt.name == "missing workflow returns not found" {
@@ -405,7 +403,6 @@ func TestSetWorkflowTriggerEnabledDisableAndEnable(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			id := cronID
 			if tt.name == "foreign trigger returns not found" {
@@ -492,7 +489,6 @@ func TestWorkflowRunSteps(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
@@ -557,7 +553,6 @@ func TestParseWorkflowRunInputs(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := parseWorkflowRunJSONBody([]byte(tt.body), declared)
@@ -589,7 +584,6 @@ func TestCoerceWorkflowInputString(t *testing.T) {
 		{name: "bad json scalar", def: types.WorkflowInputDef{Name: "j", Type: types.WorkflowInputTypeJSON}, raw: `"x"`, wantErr: true},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := coerceWorkflowInputString(tt.def, tt.raw)
@@ -619,7 +613,6 @@ func TestWorkflowWebserviceRulesRegistered(t *testing.T) {
 		{name: "run", path: "/workflows/:name/run"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			found := false
