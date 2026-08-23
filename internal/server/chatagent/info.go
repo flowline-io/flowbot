@@ -69,8 +69,11 @@ func BuildAgentInfo(ctx context.Context) (AgentInfo, error) {
 		subagentInfos = append(subagentInfos, SubagentInfo{Name: sub.Name, Description: sub.Description})
 	}
 
-	chatModel := config.ChatAgentChatModel()
-	toolModel := config.App.ChatAgent.ToolModel
+	chatModel := EffectiveChatAgentChatModel(ctx)
+	_, toolModel, _, err := ResolveEffectiveChatAgentModels(ctx)
+	if err != nil {
+		toolModel = config.App.ChatAgent.ToolModel
+	}
 	provider := resolveModelProvider(chatModel)
 
 	return AgentInfo{
@@ -85,7 +88,7 @@ func BuildAgentInfo(ctx context.Context) (AgentInfo, error) {
 		ToolCount:        len(tools),
 		SkillCount:       len(skillInfos),
 		SubagentCount:    len(subagentInfos),
-		SelectableModels: BuildSelectableModels(),
+		SelectableModels: BuildSelectableModelsWithContext(ctx),
 	}, nil
 }
 

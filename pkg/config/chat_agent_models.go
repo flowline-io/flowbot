@@ -38,9 +38,14 @@ func providerForModelInList(models []Model, modelName string) string {
 // ResolveChatAgentModels resolves chat and tool model names and whether dual routing applies.
 // Dual mode is enabled when tool_model is non-empty.
 func ResolveChatAgentModels() (chat, tool string, dual bool, err error) {
-	chat = ChatAgentChatModel()
-	tool = App.ChatAgent.ToolModel
-	dual = tool != ""
+	return ResolveChatAgentModelPair(ChatAgentChatModel(), App.ChatAgent.ToolModel)
+}
+
+// ResolveChatAgentModelPair validates chat and tool model names and reports dual routing.
+func ResolveChatAgentModelPair(chat, tool string) (string, string, bool, error) {
+	chat = strings.TrimSpace(chat)
+	tool = strings.TrimSpace(tool)
+	dual := tool != ""
 	if !dual {
 		if chat != "" && !ModelRegistered(chat) {
 			return "", "", false, fmt.Errorf("chat model %q is not registered in models", chat)

@@ -56,6 +56,96 @@ templ ChatAgentPermissionsForm(ctx context.Context, data PermissionFormPageData)
 			</select>
 		</div>
 
+		<div class="space-y-3" data-testid="chatagent-server-defaults">
+			<div class="flex flex-wrap items-center gap-2">
+				<h2 class="text-lg font-semibold">{ i18n.T(ctx, "permissions.server_defaults.title") }</h2>
+				if data.ServerDefaults.ChatModelOverridden || data.ServerDefaults.ToolModelOverridden || data.ServerDefaults.ThinkingOverridden {
+					<span class="flowbot-chip flowbot-chip-warning">{ i18n.T(ctx, "common.overridden") }</span>
+				}
+			</div>
+			<p class="text-sm text-base-content/70">{ i18n.T(ctx, "permissions.server_defaults.hint") }</p>
+			<div class="grid gap-4 md:grid-cols-1 max-w-xl">
+				<div class="space-y-1">
+					<label class="text-sm font-medium" for="server-chat-model">{ i18n.T(ctx, "permissions.server_defaults.chat_model") }</label>
+					<select
+						id="server-chat-model"
+						name="server_chat_model"
+						class="select select-bordered select-sm w-full"
+						data-testid="server-chat-model"
+					>
+						<option
+							value={ data.ServerDefaults.InheritValue }
+							if data.ServerDefaults.SelectedChatModel == data.ServerDefaults.InheritValue { selected }
+						>{ ServerDefaultInheritLabel(ctx, data.ServerDefaults.YAMLChatModel) }</option>
+						for _, m := range data.ServerDefaults.SelectableModels {
+							if data.ServerDefaults.SelectedChatModel == m.ID {
+								<option value={ m.ID } selected>{ m.Name }</option>
+							} else {
+								<option value={ m.ID }>{ m.Name }</option>
+							}
+						}
+					</select>
+				</div>
+				<div class="space-y-1">
+					<label class="text-sm font-medium" for="server-tool-model">{ i18n.T(ctx, "permissions.server_defaults.tool_model") }</label>
+					<select
+						id="server-tool-model"
+						name="server_tool_model"
+						class="select select-bordered select-sm w-full"
+						data-testid="server-tool-model"
+					>
+						<option
+							value={ data.ServerDefaults.InheritValue }
+							if data.ServerDefaults.SelectedToolModel == data.ServerDefaults.InheritValue { selected }
+						>{ ServerDefaultToolInheritLabel(ctx, data.ServerDefaults.YAMLToolModel) }</option>
+						<option
+							value={ data.ServerDefaults.ToolNoneValue }
+							if data.ServerDefaults.SelectedToolModel == data.ServerDefaults.ToolNoneValue { selected }
+						>{ i18n.T(ctx, "permissions.server_defaults.tool_none") }</option>
+						for _, m := range data.ServerDefaults.SelectableModels {
+							if data.ServerDefaults.SelectedToolModel == m.ID {
+								<option value={ m.ID } selected>{ m.Name }</option>
+							} else {
+								<option value={ m.ID }>{ m.Name }</option>
+							}
+						}
+					</select>
+				</div>
+				<div class="space-y-1">
+					<label class="text-sm font-medium" for="server-thinking-level">{ i18n.T(ctx, "permissions.server_defaults.thinking_level") }</label>
+					<select
+						id="server-thinking-level"
+						name="server_thinking_level"
+						class="select select-bordered select-sm w-full"
+						data-testid="server-thinking-level"
+					>
+						<option
+							value={ data.ServerDefaults.InheritValue }
+							if data.ServerDefaults.SelectedThinkingLevel == data.ServerDefaults.InheritValue { selected }
+						>{ ServerDefaultThinkingInheritLabel(ctx) }</option>
+						@serverDefaultThinkingOption("default", i18n.T(ctx, "chatagent.settings.thinking.default"), data.ServerDefaults.SelectedThinkingLevel)
+						@serverDefaultThinkingOption("off", i18n.T(ctx, "chatagent.settings.thinking.off"), data.ServerDefaults.SelectedThinkingLevel)
+						@serverDefaultThinkingOption("low", i18n.T(ctx, "chatagent.settings.thinking.low"), data.ServerDefaults.SelectedThinkingLevel)
+						@serverDefaultThinkingOption("medium", i18n.T(ctx, "chatagent.settings.thinking.medium"), data.ServerDefaults.SelectedThinkingLevel)
+						@serverDefaultThinkingOption("high", i18n.T(ctx, "chatagent.settings.thinking.high"), data.ServerDefaults.SelectedThinkingLevel)
+					</select>
+				</div>
+			</div>
+			<button
+				type="submit"
+				formmethod="post"
+				formaction="/service/web/chatagent-permissions/reset-server-defaults"
+				class="btn btn-ghost btn-sm"
+				data-testid="chatagent-server-defaults-reset"
+				data-confirm={ i18n.T(ctx, "confirm.reset_server_defaults.message") }
+				data-confirm-title={ i18n.T(ctx, "confirm.reset_server_defaults.title") }
+				data-confirm-btn={ i18n.T(ctx, "confirm.reset_server_defaults.btn") }
+				data-confirm-class="btn-warning"
+			>
+				{ i18n.T(ctx, "permissions.server_defaults.reset") }
+			</button>
+		</div>
+
 		<div class="space-y-4">
 			<h2 class="text-lg font-semibold">{ i18n.T(ctx, "permissions.general.title") }</h2>
 			<div class="overflow-x-auto">
@@ -185,4 +275,12 @@ templ ChatAgentPermissionsForm(ctx context.Context, data PermissionFormPageData)
 			</button>
 		</div>
 	</form>
+}
+
+templ serverDefaultThinkingOption(value, label, selected string) {
+	if selected == value {
+		<option value={ value } selected>{ label }</option>
+	} else {
+		<option value={ value }>{ label }</option>
+	}
 }

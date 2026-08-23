@@ -65,8 +65,14 @@ func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsag
 		return ContextUsageReport{}, err
 	}
 
-	modelName := config.ChatAgentChatModel()
+	modelName := EffectiveChatAgentChatModel(ctx)
 	toolModel := config.App.ChatAgent.ToolModel
+	if _, effectiveTool, _, resolveErr := ResolveEffectiveChatAgentModels(ctx); resolveErr == nil {
+		toolModel = effectiveTool
+	}
+	if sessionID != "" {
+		modelName = ResolveEffectiveSessionSettings(ctx, sessionID).Model
+	}
 	contextWindow := config.ChatAgentContextWindow()
 	compaction := config.App.ChatAgent.Compaction.WithDefaults()
 

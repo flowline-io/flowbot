@@ -59,6 +59,15 @@ func TestClientJSON(t *testing.T) {
 	require.Contains(t, raw, "确认")
 }
 
+func TestClientJSONPreservesDurationTemplates(t *testing.T) {
+	t.Parallel()
+	ctx := i18n.WithCookieLang(context.Background(), i18n.CookieZH)
+	raw := i18n.ClientJSONString(ctx)
+	require.Contains(t, raw, `本轮 {{.Duration}}`)
+	require.Contains(t, raw, `{{.Duration}}内完成`)
+	require.NotContains(t, raw, "<no value>")
+}
+
 func TestTDataTemplate(t *testing.T) {
 	t.Parallel()
 	ctx := i18n.DefaultContext()

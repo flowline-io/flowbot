@@ -41,6 +41,22 @@ type PermissionFormPageData struct {
 	Errors            map[string]string
 	ApprovalMode      string
 	ApprovalServerDef string
+	ServerDefaults    ServerDefaultsFormData
+}
+
+// ServerDefaultsFormData is the server-wide model defaults section on the permissions page.
+type ServerDefaultsFormData struct {
+	YAMLChatModel         string
+	YAMLToolModel         string
+	InheritValue          string
+	ToolNoneValue         string
+	SelectableModels      []SelectableModelOption
+	SelectedChatModel     string
+	SelectedToolModel     string
+	SelectedThinkingLevel string
+	ChatModelOverridden   bool
+	ToolModelOverridden   bool
+	ThinkingOverridden    bool
 }
 
 // permissionKeyCatalog is the ordered list of user-editable permission keys.
@@ -205,4 +221,43 @@ func ApplySubmittedPermissionForm(fields []PermissionFormField, form permission.
 		}
 	}
 	return out
+}
+
+// ServerDefaultInheritLabel formats the inherit option for one YAML-backed field.
+func ServerDefaultInheritLabel(ctx context.Context, yamlValue string) string {
+	display := strings.TrimSpace(yamlValue)
+	if display == "" {
+		return i18n.T(ctx, "permissions.server_defaults.inherit_empty")
+	}
+	return i18n.TData(ctx, "permissions.server_defaults.inherit_yaml", map[string]any{"Value": display})
+}
+
+// ServerDefaultToolInheritLabel formats the inherit option for tool_model.
+func ServerDefaultToolInheritLabel(ctx context.Context, yamlTool string) string {
+	if strings.TrimSpace(yamlTool) == "" {
+		return i18n.T(ctx, "permissions.server_defaults.tool_inherit_single")
+	}
+	return i18n.TData(ctx, "permissions.server_defaults.inherit_yaml", map[string]any{"Value": yamlTool})
+}
+
+// ServerDefaultThinkingInheritLabel formats the inherit option for thinking_level.
+func ServerDefaultThinkingInheritLabel(ctx context.Context) string {
+	return i18n.T(ctx, "permissions.server_defaults.thinking_inherit")
+}
+
+// ApplySubmittedServerDefaults overlays submitted form values onto server defaults data.
+func ApplySubmittedServerDefaults(data ServerDefaultsFormData, inheritValue, chatModel, toolModel, thinking string) ServerDefaultsFormData {
+	if chat := strings.TrimSpace(chatModel); chat != "" {
+		data.SelectedChatModel = chat
+		data.ChatModelOverridden = chat != inheritValue
+	}
+	if tool := strings.TrimSpace(toolModel); tool != "" {
+		data.SelectedToolModel = tool
+		data.ToolModelOverridden = tool != inheritValue
+	}
+	if thinkingLevel := strings.TrimSpace(thinking); thinkingLevel != "" {
+		data.SelectedThinkingLevel = thinkingLevel
+		data.ThinkingOverridden = thinkingLevel != inheritValue
+	}
+	return data
 }

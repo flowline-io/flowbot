@@ -207,7 +207,7 @@ var clientMessageIDs = []string{
 func ClientMessages(ctx context.Context) map[string]string {
 	out := make(map[string]string, len(clientMessageIDs))
 	for _, id := range clientMessageIDs {
-		out[id] = T(ctx, id)
+		out[id] = TClient(ctx, id)
 	}
 	return out
 }

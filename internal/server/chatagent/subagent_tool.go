@@ -190,7 +190,7 @@ func (TaskTool) resolveModel(ctx context.Context, override string) (llms.Model, 
 		name = strings.TrimSpace(config.App.ChatAgent.SubagentDefaultModel)
 	}
 	if name == "" {
-		name = config.ChatAgentChatModel()
+		name = EffectiveChatAgentChatModel(ctx)
 	}
 	model, _, err := NewModelForTest(ctx, name)
 	if err != nil {

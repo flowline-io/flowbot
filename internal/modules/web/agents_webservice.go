@@ -69,6 +69,10 @@ func agentsEndpoints() (partials.ChatAgentEndpoints, error) {
 }
 
 func agentsEndpointsWithFilter(filter string, uid types.Uid, pendingCount int) partials.ChatAgentEndpoints {
+	return agentsEndpointsWithFilterContext(context.Background(), filter, uid, pendingCount)
+}
+
+func agentsEndpointsWithFilterContext(ctx context.Context, filter string, uid types.Uid, pendingCount int) partials.ChatAgentEndpoints {
 	return partials.ChatAgentEndpoints{
 		CreateURL:            "/service/web/agents",
 		ListURL:              "/service/web/agents/list",
@@ -79,8 +83,8 @@ func agentsEndpointsWithFilter(filter string, uid types.Uid, pendingCount int) p
 		PendingApprovalCount: pendingCount,
 		RenderMarkdownURL:    "/service/web/agents/render-markdown",
 		SkillsURL:            "/service/web/agents/skills",
-		SelectableModels:     selectableModelOptions(),
-		DefaultModel:         pkgconfig.ChatAgentChatModel(),
+		SelectableModels:     selectableModelOptions(ctx),
+		DefaultModel:         chatagentEffectiveDefaultModel(ctx),
 		DefaultApprovalMode:  webApprovalDefault(uid),
 		WorkspaceOptions:     workspaceOptions(),
 		WorkspaceRootLabel:   chatagent.ConfigWorkspaceRootLabel(),
@@ -96,6 +100,10 @@ func webApprovalDefault(uid types.Uid) string {
 		return pkgconfig.ChatAgentApprovalModeDefault()
 	}
 	return string(mode)
+}
+
+func chatagentEffectiveDefaultModel(ctx context.Context) string {
+	return chatagent.EffectiveChatAgentChatModel(ctx)
 }
 
 func webRequestUID(ctx fiber.Ctx) types.Uid {
@@ -116,6 +124,10 @@ func normalizeAgentsListFilter(filter string) string {
 }
 
 func agentChatEndpoints(sessionID string, uid types.Uid) partials.ChatAgentEndpoints {
+	return agentChatEndpointsWithContext(context.Background(), sessionID, uid)
+}
+
+func agentChatEndpointsWithContext(ctx context.Context, sessionID string, uid types.Uid) partials.ChatAgentEndpoints {
 	prefix := "/service/web/agents/" + sessionID
 	return partials.ChatAgentEndpoints{
 		DetailURLTemplate:   "/service/web/agents/{id}",
@@ -132,8 +144,8 @@ func agentChatEndpoints(sessionID string, uid types.Uid) partials.ChatAgentEndpo
 		TrajectoryURL:       prefix + "/trajectory",
 		TodosURL:            prefix + "/todos",
 		SkillsURL:           "/service/web/agents/skills",
-		SelectableModels:    selectableModelOptions(),
-		DefaultModel:        pkgconfig.ChatAgentChatModel(),
+		SelectableModels:    selectableModelOptions(ctx),
+		DefaultModel:        chatagentEffectiveDefaultModel(ctx),
 		DefaultApprovalMode: webApprovalDefault(uid),
 		WorkspaceRootLabel:  chatagent.ConfigWorkspaceRootLabel(),
 	}
@@ -154,8 +166,8 @@ func agentsSkillsList(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(agentsSkillsListData{Skills: skills}))
 }
 
-func selectableModelOptions() []partials.SelectableModelOption {
-	models := chatagent.BuildSelectableModels()
+func selectableModelOptions(ctx context.Context) []partials.SelectableModelOption {
+	models := chatagent.BuildSelectableModelsWithContext(ctx)
 	opts := make([]partials.SelectableModelOption, len(models))
 	for i, m := range models {
 		opts[i] = partials.SelectableModelOption{ID: m.ID, Name: m.Name, Multimodal: m.Multimodal}
@@ -213,7 +225,7 @@ func agentsPage(ctx fiber.Ctx) error {
 		}
 	}
 	ctx.Type("html")
-	return pages.AgentsPage(ctx.Context(), items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount), enabled).
+	return pages.AgentsPage(ctx.Context(), items, nextCursor, agentsEndpointsWithFilterContext(ctx.Context(), filter, webRequestUID(ctx), pendingCount), enabled).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -237,7 +249,7 @@ func agentsTable(ctx fiber.Ctx) error {
 		return err
 	}
 	ctx.Type("html")
-	endpoints := agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)
+	endpoints := agentsEndpointsWithFilterContext(ctx.Context(), filter, webRequestUID(ctx), pendingCount)
 	if cursor != "" {
 		return partials.ChatAgentSessionListAppend(ctx.Context(), items, nextCursor, endpoints).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -404,7 +416,7 @@ func agentChatPage(ctx fiber.Ctx) error {
 		session,
 		mapChatMessages(sessionID, messages),
 		todos,
-		agentChatEndpoints(sessionID, uid),
+		agentChatEndpointsWithContext(ctx.Context(), sessionID, uid),
 		pendingConfirmForSession(sessionID),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
@@ -922,7 +934,7 @@ func setAgentChatPinned(ctx fiber.Ctx, pinned bool) error {
 		return err
 	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(ctx.Context(), items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)).
+	return partials.ChatAgentSessionList(ctx.Context(), items, nextCursor, agentsEndpointsWithFilterContext(ctx.Context(), filter, webRequestUID(ctx), pendingCount)).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -959,7 +971,7 @@ func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
 		return err
 	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(ctx.Context(), items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx), pendingCount)).
+	return partials.ChatAgentSessionList(ctx.Context(), items, nextCursor, agentsEndpointsWithFilterContext(ctx.Context(), filter, webRequestUID(ctx), pendingCount)).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 

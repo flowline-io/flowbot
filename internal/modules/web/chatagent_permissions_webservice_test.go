@@ -16,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -50,6 +51,7 @@ func TestChatAgentPermissionsPageAuthenticated(t *testing.T) {
 		{name: "renders form page", wantStatus: http.StatusOK, contains: "Chat Agent Permissions"},
 		{name: "includes general permissions table", wantStatus: http.StatusOK, contains: "General Permissions"},
 		{name: "includes advanced json editor", wantStatus: http.StatusOK, contains: "Advanced JSON"},
+		{name: "includes server defaults section", wantStatus: http.StatusOK, contains: "data-testid=\"chatagent-server-defaults\""},
 	}
 
 	for _, tt := range tests {
@@ -213,4 +215,112 @@ func TestChatAgentPermissionsSaveJSON(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func TestChatAgentPermissionsSaveServerDefaults(t *testing.T) {
+	app, _ := setupTestApp(t)
+	chatagent.ResetPermissionCacheForTest()
+	chatagent.ResetServerDefaultsCacheForTest()
+	origCfg := pkgconfig.App
+	pkgconfig.App = pkgconfig.Type{
+		ChatAgent: pkgconfig.ChatAgentConfig{ChatModel: "gpt-default"},
+		Models: []pkgconfig.Model{
+			{Provider: "openai", ApiKey: "k", ModelNames: []string{"gpt-default", "gpt-alt"}},
+		},
+	}
+	t.Cleanup(func() {
+		pkgconfig.App = origCfg
+		chatagent.ResetServerDefaultsCacheForTest()
+	})
+
+	form := url.Values{
+		"submit_mode":           {"form"},
+		"approval_mode":         {"manual"},
+		"server_chat_model":     {"gpt-alt"},
+		"server_tool_model":     {"inherit"},
+		"server_thinking_level": {"inherit"},
+		"perm[websearch]":       {"inherit"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Cookie", "accessToken=test-token")
+	AttachCSRFForTest(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusSeeOther, resp.StatusCode)
+
+	stored, err := chatagent.LoadServerDefaults(context.Background())
+	require.NoError(t, err)
+	assert.True(t, stored.ChatModelSet)
+	assert.Equal(t, "gpt-alt", stored.ChatModel)
+	assert.Equal(t, "gpt-alt", chatagent.EffectiveChatAgentChatModel(context.Background()))
+}
+
+func TestChatAgentPermissionsResetServerDefaults(t *testing.T) {
+	app, _ := setupTestApp(t)
+	chatagent.ResetServerDefaultsCacheForTest()
+	origCfg := pkgconfig.App
+	pkgconfig.App = pkgconfig.Type{
+		ChatAgent: pkgconfig.ChatAgentConfig{ChatModel: "gpt-default"},
+		Models: []pkgconfig.Model{
+			{Provider: "openai", ApiKey: "k", ModelNames: []string{"gpt-default", "gpt-alt"}},
+		},
+	}
+	t.Cleanup(func() {
+		pkgconfig.App = origCfg
+		chatagent.ResetServerDefaultsCacheForTest()
+	})
+	ctx := context.Background()
+	require.NoError(t, chatagent.SaveServerDefaults(ctx, chatagent.ServerDefaultsFormInput{ChatModel: "gpt-alt"}))
+
+	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions/reset-server-defaults", http.NoBody)
+	req.Header.Set("Cookie", "accessToken=test-token")
+	AttachCSRFForTest(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusSeeOther, resp.StatusCode)
+
+	stored, err := chatagent.LoadServerDefaults(ctx)
+	require.NoError(t, err)
+	assert.False(t, stored.ChatModelSet)
+	assert.Equal(t, "gpt-default", chatagent.EffectiveChatAgentChatModel(ctx))
+}
+
+func TestChatAgentPermissionsSaveJSONPreservesServerDefaults(t *testing.T) {
+	app, _ := setupTestApp(t)
+	chatagent.ResetPermissionCacheForTest()
+	chatagent.ResetServerDefaultsCacheForTest()
+	origCfg := pkgconfig.App
+	pkgconfig.App = pkgconfig.Type{
+		ChatAgent: pkgconfig.ChatAgentConfig{ChatModel: "gpt-default"},
+		Models: []pkgconfig.Model{
+			{Provider: "openai", ApiKey: "k", ModelNames: []string{"gpt-default", "gpt-alt"}},
+		},
+	}
+	t.Cleanup(func() {
+		pkgconfig.App = origCfg
+		chatagent.ResetServerDefaultsCacheForTest()
+	})
+	ctx := context.Background()
+	require.NoError(t, chatagent.SaveServerDefaults(ctx, chatagent.ServerDefaultsFormInput{ChatModel: "gpt-alt"}))
+
+	form := url.Values{
+		"submit_mode": {"json"},
+		"rules":       {`{"websearch":"allow"}`},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Cookie", "accessToken=test-token")
+	AttachCSRFForTest(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusSeeOther, resp.StatusCode)
+
+	stored, err := chatagent.LoadServerDefaults(ctx)
+	require.NoError(t, err)
+	assert.True(t, stored.ChatModelSet)
+	assert.Equal(t, "gpt-alt", stored.ChatModel)
 }

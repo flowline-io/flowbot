@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/agent/approval"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	appconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -23,6 +25,7 @@ var chatAgentPermissionsWebserviceRules = []webservice.Rule{
 	webservice.Get("/chatagent-permissions", chatAgentPermissionsPage),
 	webservice.Post("/chatagent-permissions", chatAgentPermissionsSave),
 	webservice.Post("/chatagent-permissions/reset", chatAgentPermissionsReset),
+	webservice.Post("/chatagent-permissions/reset-server-defaults", chatAgentPermissionsResetServerDefaults),
 }
 
 func chatAgentPermissionsPage(ctx fiber.Ctx) error {
@@ -61,34 +64,9 @@ func chatAgentPermissionsSave(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "load permissions: %v", err)
 	}
 
-	submitMode := strings.TrimSpace(ctx.FormValue("submit_mode"))
-	if submitMode == "" {
-		submitMode = "form"
-	}
-
-	var (
-		cfg         permission.Config
-		fieldErrors map[string]string
-		submitted   permission.FormValues
-	)
-	switch submitMode {
-	case "json":
-		cfg, fieldErrors, err = parsePermissionJSON(ctx)
-	default:
-		submitted = permission.ParseFormPostArgs(collectFormArgs(ctx))
-		cfg, fieldErrors, err = permission.BuildUserConfigFromForm(view.Defaults, submitted)
-	}
-	if err != nil {
-		if len(fieldErrors) > 0 {
-			ctx.Status(http.StatusBadRequest)
-			return renderChatAgentPermissionsPage(ctx, uid, view, fieldErrors, submitted)
-		}
-		if errors.Is(err, types.ErrInvalidArgument) {
-			ctx.Status(http.StatusBadRequest)
-			return renderChatAgentPermissionsPage(ctx, uid, view, map[string]string{"_form": err.Error()}, submitted)
-		}
-		ctx.Status(http.StatusBadRequest)
-		return renderChatAgentPermissionsPage(ctx, uid, view, map[string]string{"_form": err.Error()}, submitted)
+	cfg, submitted, fieldErrors, err := parseChatAgentPermissionsSubmit(ctx, view)
+	if err != nil || len(fieldErrors) > 0 {
+		return renderChatAgentPermissionSubmitError(ctx, uid, view, fieldErrors, submitted, err)
 	}
 
 	mode, modeErr := chatagent.ParseApprovalMode(strings.TrimSpace(ctx.FormValue("approval_mode")))
@@ -97,6 +75,57 @@ func chatAgentPermissionsSave(ctx fiber.Ctx) error {
 		return renderChatAgentPermissionsPage(ctx, uid, view, map[string]string{"_form": modeErr.Error()}, submitted)
 	}
 
+	if err := persistChatAgentPermissionsSave(ctx, uid, view, cfg, mode, submitted); err != nil {
+		return err
+	}
+	ctx.Redirect().To("/service/web/chatagent-permissions")
+	return nil
+}
+
+func parseChatAgentPermissionsSubmit(ctx fiber.Ctx, view chatagent.PermissionsView) (permission.Config, permission.FormValues, map[string]string, error) {
+	submitMode := strings.TrimSpace(ctx.FormValue("submit_mode"))
+	if submitMode == "" {
+		submitMode = "form"
+	}
+	switch submitMode {
+	case "json":
+		cfg, fieldErrors, err := parsePermissionJSON(ctx)
+		return cfg, permission.FormValues{}, fieldErrors, err
+	default:
+		submitted := permission.ParseFormPostArgs(collectFormArgs(ctx))
+		cfg, fieldErrors, err := permission.BuildUserConfigFromForm(view.Defaults, submitted)
+		return cfg, submitted, fieldErrors, err
+	}
+}
+
+func renderChatAgentPermissionSubmitError(
+	ctx fiber.Ctx,
+	uid types.Uid,
+	view chatagent.PermissionsView,
+	fieldErrors map[string]string,
+	submitted permission.FormValues,
+	err error,
+) error {
+	if len(fieldErrors) > 0 {
+		ctx.Status(http.StatusBadRequest)
+		return renderChatAgentPermissionsPage(ctx, uid, view, fieldErrors, submitted)
+	}
+	formErr := map[string]string{"_form": err.Error()}
+	if err == nil {
+		formErr["_form"] = webMsg(ctx, "error.validation.permissions_form_invalid")
+	}
+	ctx.Status(http.StatusBadRequest)
+	return renderChatAgentPermissionsPage(ctx, uid, view, formErr, submitted)
+}
+
+func persistChatAgentPermissionsSave(
+	ctx fiber.Ctx,
+	uid types.Uid,
+	view chatagent.PermissionsView,
+	cfg permission.Config,
+	mode approval.Mode,
+	submitted permission.FormValues,
+) error {
 	if err := chatagent.SaveUserPermissions(ctx.Context(), uid, cfg); err != nil {
 		if errors.Is(err, types.ErrInvalidArgument) {
 			ctx.Status(http.StatusBadRequest)
@@ -107,7 +136,26 @@ func chatAgentPermissionsSave(ctx fiber.Ctx) error {
 	if err := chatagent.SaveUserApprovalMode(ctx.Context(), uid, mode); err != nil {
 		return types.Errorf(types.ErrInternal, "save approval mode: %v", err)
 	}
-	ctx.Redirect().To("/service/web/chatagent-permissions")
+	if strings.TrimSpace(ctx.FormValue("submit_mode")) != "json" {
+		if err := saveChatAgentServerDefaultsFromForm(ctx, view, uid, submitted); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func saveChatAgentServerDefaultsFromForm(ctx fiber.Ctx, view chatagent.PermissionsView, uid types.Uid, submitted permission.FormValues) error {
+	if err := chatagent.SaveServerDefaults(ctx.Context(), chatagent.ServerDefaultsFormInput{
+		ChatModel:     strings.TrimSpace(ctx.FormValue("server_chat_model")),
+		ToolModel:     strings.TrimSpace(ctx.FormValue("server_tool_model")),
+		ThinkingLevel: strings.TrimSpace(ctx.FormValue("server_thinking_level")),
+	}); err != nil {
+		if errors.Is(err, types.ErrInvalidArgument) {
+			ctx.Status(http.StatusBadRequest)
+			return renderChatAgentPermissionsPage(ctx, uid, view, map[string]string{"_form": err.Error()}, submitted)
+		}
+		return types.Errorf(types.ErrInternal, "save server defaults: %v", err)
+	}
 	return nil
 }
 
@@ -121,6 +169,17 @@ func chatAgentPermissionsReset(ctx fiber.Ctx) error {
 	}
 	if err := chatagent.DeleteUserPermissions(ctx.Context(), uid); err != nil {
 		return types.Errorf(types.ErrInternal, "reset permissions: %v", err)
+	}
+	ctx.Redirect().To("/service/web/chatagent-permissions")
+	return nil
+}
+
+func chatAgentPermissionsResetServerDefaults(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := chatagent.DeleteServerDefaults(ctx.Context()); err != nil {
+		return types.Errorf(types.ErrInternal, "reset server defaults: %v", err)
 	}
 	ctx.Redirect().To("/service/web/chatagent-permissions")
 	return nil
@@ -179,9 +238,55 @@ func renderChatAgentPermissionsPage(
 		Errors:            fieldErrors,
 		ApprovalMode:      string(mode),
 		ApprovalServerDef: appconfig.ChatAgentApprovalModeDefault(),
+		ServerDefaults:    buildServerDefaultsFormData(ctx.Context(), ctx),
 	}
 	ctx.Type("html")
 	return pages.ChatAgentPermissionsPage(ctx.Context(), data).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func buildServerDefaultsFormData(ctx context.Context, fiberCtx fiber.Ctx) partials.ServerDefaultsFormData {
+	yamlChat := appconfig.ChatAgentChatModel()
+	yamlTool := appconfig.App.ChatAgent.ToolModel
+	stored, err := chatagent.LoadServerDefaults(ctx)
+	if err != nil {
+		stored = chatagent.ServerDefaults{}
+	}
+	data := partials.ServerDefaultsFormData{
+		YAMLChatModel:         yamlChat,
+		YAMLToolModel:         yamlTool,
+		InheritValue:          chatagent.ServerDefaultFormInherit,
+		ToolNoneValue:         chatagent.ServerDefaultToolNone,
+		SelectableModels:      selectableModelOptions(ctx),
+		SelectedChatModel:     chatagent.ServerDefaultFormInherit,
+		SelectedToolModel:     chatagent.ServerDefaultFormInherit,
+		SelectedThinkingLevel: chatagent.ServerDefaultFormInherit,
+	}
+	if stored.ChatModelSet {
+		data.SelectedChatModel = stored.ChatModel
+		data.ChatModelOverridden = true
+	}
+	if stored.ToolModelSet {
+		if stored.ToolModel == "" {
+			data.SelectedToolModel = chatagent.ServerDefaultToolNone
+		} else {
+			data.SelectedToolModel = stored.ToolModel
+		}
+		data.ToolModelOverridden = true
+	}
+	if stored.ThinkingLevelSet {
+		data.SelectedThinkingLevel = stored.ThinkingLevel
+		data.ThinkingOverridden = true
+	}
+	if fiberCtx != nil {
+		data = partials.ApplySubmittedServerDefaults(
+			data,
+			chatagent.ServerDefaultFormInherit,
+			fiberCtx.FormValue("server_chat_model"),
+			fiberCtx.FormValue("server_tool_model"),
+			fiberCtx.FormValue("server_thinking_level"),
+		)
+	}
+	return data
 }
 
 func marshalUserPermissionsJSON(user permission.Config) (string, error) {

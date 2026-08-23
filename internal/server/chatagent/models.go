@@ -20,9 +20,9 @@ func agentLoopConfig() (cfg agent.Config, chatModel, toolModel string, dual bool
 
 // agentLoopConfigForSession resolves chat agent models for sessionID.
 // When the session has a non-empty model override that is registered, it
-// replaces the global chat_model; the tool_model is always taken from yaml.
+// replaces the effective server chat_model; tool_model uses server/YAML defaults unless session-specific routing applies.
 func agentLoopConfigForSession(ctx context.Context, sessionID string) (cfg agent.Config, chatModel, toolModel string, dual bool, err error) {
-	chatModel, toolModel, dual, err = config.ResolveChatAgentModels()
+	chatModel, toolModel, dual, err = ResolveEffectiveChatAgentModels(ctx)
 	if err != nil {
 		return agent.Config{}, "", "", false, fmt.Errorf("resolve chat agent models: %w", err)
 	}

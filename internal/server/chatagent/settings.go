@@ -80,8 +80,8 @@ func ResolveEffectiveSessionSettings(ctx context.Context, sessionID string) Effe
 		}
 	}
 	return EffectiveSessionSettings{
-		Model:         resolveChatModel(stored.Model),
-		ThinkingLevel: resolveThinkingLevel(stored.ThinkingLevel),
+		Model:         resolveChatModel(ctx, stored.Model),
+		ThinkingLevel: resolveThinkingLevel(ctx, stored.ThinkingLevel),
 		Stored:        stored,
 	}
 }
@@ -127,18 +127,21 @@ func ResolveSessionThinkingLevel(ctx context.Context, sessionID string) string {
 	return ResolveEffectiveSessionSettings(ctx, sessionID).ThinkingLevel
 }
 
-func resolveChatModel(stored string) string {
+func resolveChatModel(ctx context.Context, stored string) string {
 	model := strings.TrimSpace(stored)
 	if model != "" && config.ModelRegistered(model) {
 		return model
 	}
-	return config.ChatAgentChatModel()
+	return EffectiveChatAgentChatModel(ctx)
 }
 
-func resolveThinkingLevel(stored string) string {
+func resolveThinkingLevel(ctx context.Context, stored string) string {
 	level := agentllm.NormalizeThinkingLevel(stored)
-	if agentllm.ValidThinkingLevel(level) {
+	if strings.TrimSpace(stored) != "" && agentllm.ValidThinkingLevel(level) {
 		return level
+	}
+	if serverLevel, ok := effectiveServerThinkingLevel(ctx); ok {
+		return serverLevel
 	}
 	return agentllm.ThinkingLevelDefault
 }
@@ -148,9 +151,18 @@ func resolveThinkingLevel(stored string) string {
 // configured chat_model are included, because chat and tool models must use
 // the same provider.
 func BuildSelectableModels() []SelectableModel {
-	defaultModel := config.ChatAgentChatModel()
+	return BuildSelectableModelsWithContext(context.Background())
+}
+
+// BuildSelectableModelsWithContext returns the model picker list using effective server defaults.
+func BuildSelectableModelsWithContext(ctx context.Context) []SelectableModel {
+	defaultModel := EffectiveChatAgentChatModel(ctx)
+	_, toolModel, _, err := ResolveEffectiveChatAgentModels(ctx)
+	if err != nil {
+		toolModel = config.App.ChatAgent.ToolModel
+	}
 	defaultProvider := config.ModelProviderFor(defaultModel)
-	filterByProvider := config.App.ChatAgent.ToolModel != "" && defaultProvider != ""
+	filterByProvider := toolModel != "" && defaultProvider != ""
 
 	seen := make(map[string]bool)
 	out := make([]SelectableModel, 0)

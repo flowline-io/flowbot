@@ -3407,6 +3407,48 @@ other = "auto"
 [permissions.approval_mode.off]
 other = "off"
 
+[permissions.server_defaults.title]
+other = "Server Default Models"
+
+[permissions.server_defaults.hint]
+other = "Overrides flowbot.yaml for all users and sessions without their own model settings. Keys set to inherit use the YAML value shown in each dropdown."
+
+[permissions.server_defaults.chat_model]
+other = "Chat model"
+
+[permissions.server_defaults.tool_model]
+other = "Tool model"
+
+[permissions.server_defaults.thinking_level]
+other = "Thinking level"
+
+[permissions.server_defaults.inherit_yaml]
+other = "Use YAML default ({{.Value}})"
+
+[permissions.server_defaults.inherit_empty]
+other = "Use YAML default (not set)"
+
+[permissions.server_defaults.tool_inherit_single]
+other = "Use YAML default (single model mode)"
+
+[permissions.server_defaults.thinking_inherit]
+other = "Use provider default"
+
+[permissions.server_defaults.tool_none]
+other = "Single model mode (no tool model)"
+
+[permissions.server_defaults.reset]
+other = "Reset server defaults to YAML"
+
+[confirm.reset_server_defaults.title]
+other = "Reset Server Defaults"
+
+[confirm.reset_server_defaults.message]
+other = "Clear all server-wide chat agent model overrides? Sessions without their own model settings will fall back to flowbot.yaml."
+
+[confirm.reset_server_defaults.btn]
+other = "Reset"
+
 [permissions.key.websearch.label]
 other = "Web Search"
 
@@ -4750,6 +4792,9 @@ other = "Invalid JSON"
 
 [error.validation.invalid_json_detail]
 other = "Invalid JSON: {{.Error}}"
+
+[error.validation.permissions_form_invalid]
+other = "Invalid permissions form"
 
 [error.validation.path_required]
 other = "path is required"

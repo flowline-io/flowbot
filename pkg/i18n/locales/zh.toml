@@ -3407,6 +3407,48 @@ other = "自动"
 [permissions.approval_mode.off]
 other = "关闭"
 
+[permissions.server_defaults.title]
+other = "服务端默认模型"
+
+[permissions.server_defaults.hint]
+other = "覆盖 flowbot.yaml，对所有用户以及未单独设置模型的会话生效。选择“继承”时使用各下拉框中显示的 YAML 值。"
+
+[permissions.server_defaults.chat_model]
+other = "对话模型"
+
+[permissions.server_defaults.tool_model]
+other = "工具模型"
+
+[permissions.server_defaults.thinking_level]
+other = "推理强度"
+
+[permissions.server_defaults.inherit_yaml]
+other = "继承 YAML 默认（{{.Value}}）"
+
+[permissions.server_defaults.inherit_empty]
+other = "继承 YAML 默认（未设置）"
+
+[permissions.server_defaults.tool_inherit_single]
+other = "继承 YAML 默认（单模型模式）"
+
+[permissions.server_defaults.thinking_inherit]
+other = "使用 Provider 默认"
+
+[permissions.server_defaults.tool_none]
+other = "单模型模式（无 tool model）"
+
+[permissions.server_defaults.reset]
+other = "重置服务端默认为 YAML"
+
+[confirm.reset_server_defaults.title]
+other = "重置服务端默认"
+
+[confirm.reset_server_defaults.message]
+other = "清除所有服务端 Chat Agent 模型覆盖？未单独设置模型的会话将回退到 flowbot.yaml。"
+
+[confirm.reset_server_defaults.btn]
+other = "重置"
+
 [permissions.key.websearch.label]
 other = "网页搜索"
 
@@ -4750,6 +4792,9 @@ other = "JSON 无效"
 
 [error.validation.invalid_json_detail]
 other = "JSON 无效：{{.Error}}"
+
+[error.validation.permissions_form_invalid]
+other = "权限表单无效"
 
 [error.validation.path_required]
 other = "路径为必填"
