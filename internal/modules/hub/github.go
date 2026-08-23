@@ -1,6 +1,8 @@
 package hub
 
 import (
+	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/providers/drone"
@@ -33,14 +35,13 @@ func deploy(ctx types.Context) error {
 		return err
 	}
 
-	// send message
-	err = notify.GatewaySendDefaultChannel(ctx.Context(), ctx.AsUser, "github.deployment", map[string]any{
-		"user":      user.UserName,
-		"repo":      drone.DefaultDeployRepoName,
-		"build":     build.Number,
-		"drone_url": config.App.Search.UrlBaseMap[drone.ID],
-	})
-	if notify.WarnSkipNoDefault(err, "github deployment") {
+	err = notify.GatewaySendDefaults(ctx.Context(), ctx.AsUser, deployNotifyPayload(
+		user.UserName,
+		drone.DefaultDeployRepoName,
+		build.Number,
+		config.App.Search.UrlBaseMap[drone.ID],
+	))
+	if notify.WarnSkipNoDefault(err, "deploy") {
 		return nil
 	}
 	if err != nil {
@@ -48,4 +49,15 @@ func deploy(ctx types.Context) error {
 	}
 
 	return nil
+}
+
+func deployNotifyPayload(user, repo string, build int, droneURL string) map[string]any {
+	payload := map[string]any{
+		notify.PayloadKeyTitle:   "Deployment triggered",
+		notify.PayloadKeySummary: fmt.Sprintf("%s/%s #%d", user, repo, build),
+	}
+	if droneURL != "" {
+		payload[notify.PayloadKeyURL] = droneURL
+	}
+	return payload
 }

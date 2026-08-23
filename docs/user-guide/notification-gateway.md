@@ -420,7 +420,6 @@ Create matching rows in the Notifications UI (or seed `notify_templates`) to ena
 | `reader.news.summary` | Daily RSS news summary       | `body`                                                       |
 | `server.offline`      | Server offline detection     | `hostname`, `hostid`                                         |
 | `finance.transaction` | Finance webhook received     | `amount`, `currency`, `category`, `payee`, `account`, `date` |
-| `github.deployment`   | GitHub deployment triggered  | `user`, `repo`, `build`, `drone_url`                         |
 | `agent.status`        | Agent online/offline/message | `hostid`, `hostname`, `status`, `message`                    |
 | `cron.output`         | Generic cron job output      | `body`, `cron_job`                                           |
 
