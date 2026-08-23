@@ -81,3 +81,23 @@ func TestLocaleMiddlewareChineseCookie(t *testing.T) {
 		t.Fatalf("body: got %q want 收件箱", string(body))
 	}
 }
+
+func TestLocaleMiddlewareStoresCookieLang(t *testing.T) {
+	t.Parallel()
+	app := fiber.New()
+	app.Use(localeMiddleware())
+	app.Get("/", func(c fiber.Ctx) error {
+		return c.SendString(i18n.CookieLang(c.Context()))
+	})
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.AddCookie(&http.Cookie{Name: i18n.CookieName, Value: i18n.CookieZH})
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("request: %v", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if string(body) != i18n.CookieZH {
+		t.Fatalf("body: got %q want %s", string(body), i18n.CookieZH)
+	}
+}

@@ -16,70 +16,38 @@ function flowbotI18n(key, fallback) {
 }
 
 // Alpine.js shared data stores and utilities
-document.addEventListener('alpine:init', () => {
-  Alpine.store('toasts', []);
+(function () {
+  function registerAppAlpineData() {
+    Alpine.store('toasts', []);
 
-  Alpine.data('langPicker', () => ({
-    lang: 'en',
-    setLang(code) {
-      var body = 'lang=' + encodeURIComponent(code);
-      fetch('/service/web/locale', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: flowbotCSRFHeaders({
-          'Content-Type': 'application/x-www-form-urlencoded',
-        }),
-        body: body,
-      })
-        .then(function (resp) {
-          if (!resp.ok) {
-            throw new Error('locale switch failed: ' + resp.status);
-          }
-          window.location.reload();
-        })
-        .catch(function () {
-          showToast(
-            flowbotI18n(
-              'error.request_failed',
-              'Request failed. Please try again.',
-            ),
-            'error',
-          );
-        });
-    },
-    init() {
-      this.lang = flowbotGetCookie('flowbot-lang') || 'en';
-      if (this.lang !== 'en' && this.lang !== 'zh') {
-        this.lang = 'en';
-      }
-    },
-  }));
+    Alpine.data('themePicker', () => ({
+      theme: 'light',
+      open: false,
+      setTheme(name) {
+        document.documentElement.setAttribute('data-theme', name);
+        localStorage.setItem('flowbot-theme', name);
+        this.theme = name;
+        this.open = false;
+      },
+      toggleLightDark() {
+        this.setTheme(this.theme === 'light' ? 'dark' : 'light');
+      },
+      init() {
+        this.theme =
+          document.documentElement.getAttribute('data-theme') || 'light';
+      },
+    }));
 
-  Alpine.data('themePicker', () => ({
-    theme: 'light',
-    open: false,
-    setTheme(name) {
-      document.documentElement.setAttribute('data-theme', name);
-      localStorage.setItem('flowbot-theme', name);
-      this.theme = name;
-      this.open = false;
-    },
-    toggleLightDark() {
-      this.setTheme(this.theme === 'light' ? 'dark' : 'light');
-    },
-    init() {
-      this.theme =
-        document.documentElement.getAttribute('data-theme') || 'light';
-    },
-  }));
+    Alpine.data('lifeGoalCompose', () => ({
+      cat: 'Project',
+      get showArea() {
+        return this.cat === 'Project' || this.cat === 'Resource';
+      },
+    }));
+  }
 
-  Alpine.data('lifeGoalCompose', () => ({
-    cat: 'Project',
-    get showArea() {
-      return this.cat === 'Project' || this.cat === 'Resource';
-    },
-  }));
-});
+  document.addEventListener('alpine:init', registerAppAlpineData);
+})();
 
 // Toast notification system - used by pipeline-editor.js and other components
 // eslint-disable-next-line no-unused-vars
@@ -204,14 +172,18 @@ document.addEventListener('htmx:configRequest', function (evt) {
   // Prefer server-rendered form field when document.cookie is unavailable (proxies / Secure mismatch).
   if (!tok && evt.detail && evt.detail.elt) {
     var el = evt.detail.elt;
+    var field = null;
     var form =
       el.tagName === 'FORM' ? el : el.closest ? el.closest('form') : null;
     if (form) {
-      var field = form.querySelector('input[name="csrf_token"]');
-      if (field && field.value) {
-        tok = field.value;
-        window.flowbotCSRFCache = tok;
-      }
+      field = form.querySelector('input[name="csrf_token"]');
+    }
+    if ((!field || !field.value) && document.querySelector) {
+      field = document.querySelector('input[name="csrf_token"]');
+    }
+    if (field && field.value) {
+      tok = field.value;
+      window.flowbotCSRFCache = tok;
     }
   }
   if (tok) {

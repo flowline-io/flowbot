@@ -24,7 +24,7 @@ func TestBaseLayout(t *testing.T) {
 			body: templ.NopComponent,
 			check: func(t *testing.T, html string) {
 				t.Helper()
-				assertContainsAll(t, html, []string{"htmx.min.js", "app.js", "alpine.csp.min.js", "app.css", "theme-init.js"})
+				assertContainsAll(t, html, []string{"htmx.min.js", "app.js?v=", "alpine.csp.min.js", "app.css", "theme-init.js"})
 				assertContainsNone(t, html, []string{"tailwind-browser", "daisyui.css"}, "did not want %q in body")
 			},
 		},
@@ -98,7 +98,22 @@ func TestBaseLayout(t *testing.T) {
 					`data-testid="lang-switcher"`,
 					`data-testid="lang-switch-en"`,
 					`data-testid="lang-switch-zh"`,
+					`hx-post="/service/web/locale"`,
+					`hx-vals='{"lang":"zh"}'`,
+					`hx-include="[name='csrf_token']"`,
 				})
+				assertContainsNone(t, html, []string{
+					`x-data="langPicker"`,
+					`lang === 'zh'`,
+				}, "lang switcher must not use Alpine %q")
+				enBtn := switcherButton(t, html, "lang-switch-en")
+				if !strings.Contains(enBtn, "font-semibold") {
+					t.Fatalf("want active en button: %s", enBtn)
+				}
+				zhBtn := switcherButton(t, html, "lang-switch-zh")
+				if !strings.Contains(zhBtn, "text-base-content/50") {
+					t.Fatalf("want inactive zh button: %s", zhBtn)
+				}
 			},
 		},
 	}
@@ -118,7 +133,7 @@ func TestBaseLayout(t *testing.T) {
 
 func TestBaseLayoutChinese(t *testing.T) {
 	t.Parallel()
-	ctx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
+	ctx := i18n.WithCookieLang(context.Background(), i18n.CookieZH)
 	var buf bytes.Buffer
 	err := layout.Base(ctx, "Events").Render(templ.WithChildren(ctx, templ.NopComponent), &buf)
 	requireNoError(t, err)
@@ -128,6 +143,14 @@ func TestBaseLayoutChinese(t *testing.T) {
 	}
 	if !strings.Contains(html, "收件箱") {
 		t.Fatalf("want Chinese inbox nav label")
+	}
+	zhBtn := switcherButton(t, html, "lang-switch-zh")
+	if !strings.Contains(zhBtn, "font-semibold") {
+		t.Fatalf("want active zh button: %s", zhBtn)
+	}
+	enBtn := switcherButton(t, html, "lang-switch-en")
+	if !strings.Contains(enBtn, "text-base-content/50") {
+		t.Fatalf("want inactive en button: %s", enBtn)
 	}
 }
 
@@ -172,4 +195,19 @@ func assertAlpineFollowsPageScripts(t *testing.T, html string) {
 	if strings.Contains(html, `homelab-registry.js" defer`) {
 		t.Fatal("homelab-registry.js must load synchronously so Alpine.data registers before alpine:init")
 	}
+}
+
+func switcherButton(t *testing.T, html, testid string) string {
+	t.Helper()
+	marker := `data-testid="` + testid + `"`
+	i := strings.Index(html, marker)
+	if i < 0 {
+		t.Fatalf("missing %s", testid)
+	}
+	start := strings.LastIndex(html[:i], "<button")
+	end := strings.Index(html[i:], "</button>")
+	if start < 0 || end < 0 {
+		t.Fatalf("button bounds for %s", testid)
+	}
+	return html[start : i+end+len("</button>")]
 }

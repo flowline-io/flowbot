@@ -27,10 +27,22 @@ func TestTEnglish(t *testing.T) {
 
 func TestTChinese(t *testing.T) {
 	t.Parallel()
-	ctx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
+	ctx := i18n.WithCookieLang(context.Background(), i18n.CookieZH)
 	assert.Equal(t, "收件箱", i18n.T(ctx, "nav.inbox"))
 	assert.Equal(t, "登录", i18n.T(ctx, "auth.sign_in"))
 	assert.Equal(t, "zh-Hans", i18n.LangTag(ctx))
+	assert.Equal(t, i18n.CookieZH, i18n.CookieLang(ctx))
+}
+
+func TestCookieLangEnglish(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, i18n.CookieEN, i18n.CookieLang(i18n.DefaultContext()))
+}
+
+func TestCookieLangIgnoresLocalizerOnly(t *testing.T) {
+	t.Parallel()
+	ctx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
+	assert.Equal(t, i18n.CookieEN, i18n.CookieLang(ctx))
 }
 
 func TestTFallbackMissingKey(t *testing.T) {

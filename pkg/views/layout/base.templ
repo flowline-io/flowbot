@@ -6,6 +6,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
+	"github.com/flowline-io/flowbot/version"
 )
 
 templ Base(ctx context.Context, title string) {
@@ -23,7 +24,7 @@ templ Base(ctx context.Context, title string) {
 		<link href="/static/vendor/katex/katex.min.css" rel="stylesheet"/>
 		<script src="/static/vendor/htmx.min.js"></script>
 		@partials.I18nScript(ctx)
-		<script src="/static/js/app.js"></script>
+		<script src={ "/static/js/app.js?v=" + version.Buildtags }></script>
 		<script src="/static/js/confirm.js" defer></script>
 	</head>
 	<body class="bg-base-200 min-h-screen flowbot-shell">

@@ -33,7 +33,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 - **Locale**: cookie `flowbot-lang` (`en` | `zh`) → localizer tags `en` / `zh-Hans`. **Do not** reuse `flowbot.language` (ChatAgent reply language only).
 - **Default**: missing/invalid cookie → `en`.
 - **Middleware order** (`module.go`): `localeMiddleware` → CSRF on `/service/web`; `localeMiddleware` on `/c` for public clip pages.
-- **Switch**: `POST /service/web/locale` (unauthenticated OK); navbar + auth layouts use `partials.LangSwitcher`; reload after cookie write.
+- **Switch**: `POST /service/web/locale` (unauthenticated OK); navbar + auth layouts use `partials.LangSwitcher` (HTMX + server-rendered active state; not Alpine).
 - **Templ**: pass request `context.Context` into page/layout components that call `i18n.T`; `Render` must use `ctx.Context()` / `c.Context()` from Fiber — never `context.Background()` for HTML.
 - **Page titles**: `partials.PageHeader(ctx, titleKey, subtitleKey)` for static keys; `PageHeaderLiteral(ctx, title, subtitle)` for dynamic entity names; mix at call site (`PageHeaderLiteral(ctx, name, i18n.T(ctx, "page.workflow.subtitle"))`).
 - **Handler toasts**: `webMsg(c, id)`, `webMsgData`, `toastErrorKey`, `setShowToastKey`, `renderFormErrorKey`, `renderErrorKey` in `utils.go` — not raw English literals.

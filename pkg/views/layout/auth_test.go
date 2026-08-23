@@ -2,6 +2,7 @@ package layout_test
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 
@@ -23,13 +24,25 @@ func TestAuthLayout(t *testing.T) {
 		},
 		{
 			name:         "loads core assets",
-			wantContains: []string{"htmx.min.js", "app.js", "app.css", "alpine.csp.min.js"},
-			wantAbsent:   []string{"pipeline-editor.js", "chart.js.min.js", "tailwind-browser", "daisyui.css"},
+			wantContains: []string{"htmx.min.js", "app.js?v=", "app.css"},
+			wantAbsent:   []string{"pipeline-editor.js", "chart.js.min.js", "tailwind-browser", "daisyui.css", "alpine.csp.min.js"},
 		},
 		{
 			name:         "english lang",
 			wantContains: []string{`lang="en"`},
 			wantAbsent:   []string{"fonts.googleapis.com"},
+		},
+		{
+			name: "language switcher without Alpine",
+			wantContains: []string{
+				`data-testid="lang-switcher"`,
+				`data-testid="lang-switch-en"`,
+				`data-testid="lang-switch-zh"`,
+				`hx-post="/service/web/locale"`,
+				`hx-vals='{"lang":"zh"}'`,
+				`hx-include="[name='csrf_token']"`,
+			},
+			wantAbsent: []string{`x-data="langPicker"`, `lang === 'zh'`, "alpine.csp.min.js"},
 		},
 	}
 	for _, tt := range tests {
@@ -52,6 +65,34 @@ func TestAuthLayout(t *testing.T) {
 					t.Fatalf("did not want %q in body", w)
 				}
 			}
+			if tt.name == "language switcher without Alpine" {
+				enBtn := switcherButton(t, body, "lang-switch-en")
+				if !strings.Contains(enBtn, "font-semibold") {
+					t.Fatalf("want active en button: %s", enBtn)
+				}
+			}
 		})
+	}
+}
+
+func TestAuthLayoutChinese(t *testing.T) {
+	t.Parallel()
+	ctx := i18n.WithCookieLang(context.Background(), i18n.CookieZH)
+	var buf bytes.Buffer
+	err := layout.Auth(ctx, "Flowbot — Login").Render(ctx, &buf)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	if !strings.Contains(html, `lang="zh-Hans"`) {
+		t.Fatalf("want zh-Hans lang attribute")
+	}
+	zhBtn := switcherButton(t, html, "lang-switch-zh")
+	if !strings.Contains(zhBtn, "font-semibold") {
+		t.Fatalf("want active zh button: %s", zhBtn)
+	}
+	enBtn := switcherButton(t, html, "lang-switch-en")
+	if !strings.Contains(enBtn, "text-base-content/50") {
+		t.Fatalf("want inactive en button: %s", enBtn)
 	}
 }

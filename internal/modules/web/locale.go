@@ -15,8 +15,7 @@ const localeCookieMaxAge = 365 * 24 * time.Hour
 func localeMiddleware() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		cookie := i18n.ParseCookie(string(c.Cookies(i18n.CookieName)))
-		loc := i18n.LocalizerForCookie(cookie)
-		c.SetContext(i18n.WithLocalizer(c.Context(), loc))
+		c.SetContext(i18n.WithCookieLang(c.Context(), cookie))
 		return c.Next()
 	}
 }
