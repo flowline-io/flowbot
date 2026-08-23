@@ -6,6 +6,8 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"mime"
+	"mime/quotedprintable"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -73,7 +75,7 @@ func sanitizeSendInput(in SendInput) (SendInput, error) {
 	out := SendInput{
 		FromName: strings.TrimSpace(in.FromName),
 		Subject:  strings.TrimSpace(in.Subject),
-		Text:     sanitizeTextBody(in.Text),
+		Text:     stripBodyControls(in.Text),
 		HTML:     sanitizeHTMLBody(in.HTML),
 	}
 	if err := rejectHeaderValue(out.FromName, "from_name"); err != nil {
@@ -162,34 +164,65 @@ func rejectHeaderValue(v, field string) error {
 	return nil
 }
 
-func sanitizeTextBody(s string) string {
-	// Plain-text bodies may contain newlines; strip NUL only.
-	return strings.ReplaceAll(s, "\x00", "")
-}
-
 func sanitizeHTMLBody(s string) string {
 	if strings.TrimSpace(s) == "" {
 		return ""
 	}
-	return emailHTMLPolicy.Sanitize(strings.ReplaceAll(s, "\x00", ""))
+	return emailHTMLPolicy.Sanitize(stripBodyControls(s))
 }
 
-func buildMIMEMessage(fromHeader string, in SendInput) ([]byte, error) {
+func stripBodyControls(s string) string {
+	return strings.Map(func(r rune) rune {
+		if r == '\t' || r == '\n' || r == '\r' {
+			return r
+		}
+		if r < 0x20 || r == 0x7f {
+			return -1
+		}
+		return r
+	}, s)
+}
+
+func encodeQuotedPrintable(s string) (string, error) {
+	var buf strings.Builder
+	w := quotedprintable.NewWriter(&buf)
+	if _, err := w.Write([]byte(s)); err != nil {
+		return "", fmt.Errorf("email: quoted-printable: %w", err)
+	}
+	if err := w.Close(); err != nil {
+		return "", fmt.Errorf("email: quoted-printable: %w", err)
+	}
+	return buf.String(), nil
+}
+
+func rejectMIMEHeaders(fromHeader string, in SendInput) error {
 	if err := rejectHeaderValue(fromHeader, "from"); err != nil {
-		return nil, err
+		return err
 	}
 	if err := rejectHeaderValue(in.Subject, "subject"); err != nil {
-		return nil, err
+		return err
 	}
 	for _, addr := range in.To {
 		if err := rejectHeaderValue(addr, "to"); err != nil {
-			return nil, err
+			return err
 		}
 	}
 	for _, addr := range in.Cc {
 		if err := rejectHeaderValue(addr, "cc"); err != nil {
-			return nil, err
+			return err
 		}
+	}
+	for _, addr := range in.Bcc {
+		if err := rejectHeaderValue(addr, "bcc"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func buildMIMEMessage(fromHeader string, in SendInput) ([]byte, error) {
+	if err := rejectMIMEHeaders(fromHeader, in); err != nil {
+		return nil, err
 	}
 
 	var b strings.Builder
@@ -204,7 +237,7 @@ func buildMIMEMessage(fromHeader string, in SendInput) ([]byte, error) {
 	if len(in.Cc) > 0 {
 		writeHeader("Cc", strings.Join(in.Cc, ", "))
 	}
-	writeHeader("Subject", in.Subject)
+	writeHeader("Subject", mime.QEncoding.Encode("utf-8", in.Subject))
 	writeHeader("MIME-Version", "1.0")
 
 	hasText := strings.TrimSpace(in.Text) != ""
@@ -216,24 +249,37 @@ func buildMIMEMessage(fromHeader string, in SendInput) ([]byte, error) {
 			return nil, err
 		}
 		writeHeader("Content-Type", `multipart/alternative; boundary="`+boundary+`"`)
-		_, _ = b.WriteString("\r\n")
-		_, _ = b.WriteString("--" + boundary + "\r\n")
-		_, _ = b.WriteString("Content-Type: text/plain; charset=UTF-8\r\n\r\n")
-		_, _ = b.WriteString(in.Text)
 		_, _ = b.WriteString("\r\n--" + boundary + "\r\n")
-		_, _ = b.WriteString("Content-Type: text/html; charset=UTF-8\r\n\r\n")
-		_, _ = b.WriteString(in.HTML)
+		if err := writeQuotedPrintablePart(&b, "text/plain; charset=UTF-8", in.Text); err != nil {
+			return nil, err
+		}
+		_, _ = b.WriteString("\r\n--" + boundary + "\r\n")
+		if err := writeQuotedPrintablePart(&b, "text/html; charset=UTF-8", in.HTML); err != nil {
+			return nil, err
+		}
 		_, _ = b.WriteString("\r\n--" + boundary + "--\r\n")
 	case hasHTML:
-		writeHeader("Content-Type", "text/html; charset=UTF-8")
-		_, _ = b.WriteString("\r\n")
-		_, _ = b.WriteString(in.HTML)
+		if err := writeQuotedPrintablePart(&b, "text/html; charset=UTF-8", in.HTML); err != nil {
+			return nil, err
+		}
 	default:
-		writeHeader("Content-Type", "text/plain; charset=UTF-8")
-		_, _ = b.WriteString("\r\n")
-		_, _ = b.WriteString(in.Text)
+		if err := writeQuotedPrintablePart(&b, "text/plain; charset=UTF-8", in.Text); err != nil {
+			return nil, err
+		}
 	}
 	return []byte(b.String()), nil
+}
+
+func writeQuotedPrintablePart(b *strings.Builder, contentType, body string) error {
+	_, _ = b.WriteString("Content-Type: ")
+	_, _ = b.WriteString(contentType)
+	_, _ = b.WriteString("\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n")
+	encoded, err := encodeQuotedPrintable(body)
+	if err != nil {
+		return err
+	}
+	_, _ = b.WriteString(encoded)
+	return nil
 }
 
 func randomMIMEBoundary() (string, error) {
@@ -352,6 +398,7 @@ func smtpSend(client *smtp.Client, auth smtp.Auth, from string, to []string, msg
 	if err != nil {
 		return fmt.Errorf("email: smtp data: %w", err)
 	}
+	// codeql[go/email-injection]
 	if _, err := w.Write(msg); err != nil {
 		_ = w.Close()
 		return fmt.Errorf("email: smtp write: %w", err)

@@ -88,7 +88,11 @@ func TestBuildMIMEMessage(t *testing.T) {
 				"To: a@b.c",
 				"Subject: Hi",
 				"text/html",
+				"quoted-printable",
 				"<p>x</p>",
+			},
+			wantAbsent: []string{
+				"&lt;p&gt;",
 			},
 		},
 		{
@@ -97,8 +101,38 @@ func TestBuildMIMEMessage(t *testing.T) {
 			wantSubstr: []string{
 				"Cc: c@d.e",
 				"multipart/alternative",
+				"--flowbot-",
+				"quoted-printable",
 				"plain",
 				"<b>x</b>",
+			},
+		},
+		{
+			name: "utf-8 subject encoded",
+			in:   SendInput{To: []string{"a@b.c"}, Subject: "你好", Text: "body"},
+			wantSubstr: []string{
+				"=?utf-8?q?",
+			},
+			wantAbsent: []string{
+				"Subject: 你好",
+			},
+		},
+		{
+			name: "text equals-sign quoted-printable",
+			in:   SendInput{To: []string{"a@b.c"}, Subject: "Hi", Text: "a=b"},
+			wantSubstr: []string{
+				"a=3Db",
+			},
+		},
+		{
+			name: "text control chars stripped",
+			in:   SendInput{To: []string{"a@b.c"}, Subject: "Hi", Text: "ok\x01\x00there"},
+			wantSubstr: []string{
+				"okthere",
+			},
+			wantAbsent: []string{
+				"\x01",
+				"\x00",
 			},
 		},
 		{
@@ -115,6 +149,34 @@ func TestBuildMIMEMessage(t *testing.T) {
 			name:    "from name CRLF rejected",
 			in:      SendInput{To: []string{"a@b.c"}, Subject: "Hi", Text: "body", FromName: "Bot\r\nBcc: evil@x.y"},
 			wantErr: true,
+		},
+		{
+			name:    "cc CRLF rejected",
+			in:      SendInput{To: []string{"a@b.c"}, Cc: []string{"c@d.e\r\nBcc: evil@x.y"}, Subject: "Hi", Text: "body"},
+			wantErr: true,
+		},
+		{
+			name:    "bcc CRLF rejected",
+			in:      SendInput{To: []string{"a@b.c"}, Bcc: []string{"h@x.y\r\nTo: evil@z.z"}, Subject: "Hi", Text: "body"},
+			wantErr: true,
+		},
+		{
+			name: "from display name quoted",
+			in:   SendInput{To: []string{"a@b.c"}, Subject: "Hi", Text: "body", FromName: "Ops, Bot"},
+			wantSubstr: []string{
+				`"Ops, Bot"`,
+			},
+		},
+		{
+			name: "bcc omitted from mime",
+			in:   SendInput{To: []string{"a@b.c"}, Bcc: []string{"hidden@x.y"}, Subject: "Hi", Text: "body"},
+			wantSubstr: []string{
+				"To: a@b.c",
+			},
+			wantAbsent: []string{
+				"hidden@x.y",
+				"Bcc:",
+			},
 		},
 		{
 			name: "html script stripped",
@@ -148,6 +210,25 @@ func TestBuildMIMEMessage(t *testing.T) {
 			for _, absent := range tt.wantAbsent {
 				assert.NotContains(t, s, absent)
 			}
+		})
+	}
+}
+
+func TestBuildMIMEMessageRejectsUnsanitizedAddressCRLF(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		in   SendInput
+	}{
+		{name: "to", in: SendInput{To: []string{"a@b.c\r\nBcc: evil@x.y"}, Subject: "Hi", Text: "body"}},
+		{name: "cc", in: SendInput{To: []string{"a@b.c"}, Cc: []string{"c@d.e\r\nBcc: evil@x.y"}, Subject: "Hi", Text: "body"}},
+		{name: "bcc", in: SendInput{To: []string{"a@b.c"}, Bcc: []string{"h@x.y\r\nTo: evil@z"}, Subject: "Hi", Text: "body"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			_, err := buildMIMEMessage("u@example.com", tt.in)
+			require.Error(t, err)
 		})
 	}
 }
