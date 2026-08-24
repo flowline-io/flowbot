@@ -84,7 +84,7 @@ require (
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	miniflux.app/v2 v2.3.3
-	modernc.org/sqlite v1.56.0
+	modernc.org/sqlite v1.57.0
 	resty.dev/v3 v3.0.0-rc.3
 )
 
