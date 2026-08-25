@@ -21,7 +21,7 @@ require (
 	github.com/docker/go-units v0.5.0
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-message v0.18.2
-	github.com/flc1125/go-cron/v4 v4.11.0
+	github.com/flc1125/go-cron/v4 v4.12.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/goccy/go-yaml v1.19.2
