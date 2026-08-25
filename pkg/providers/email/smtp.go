@@ -76,7 +76,7 @@ func sanitizeSendInput(in SendInput) (SendInput, error) {
 		FromName: strings.TrimSpace(in.FromName),
 		Subject:  strings.TrimSpace(in.Subject),
 		Text:     stripBodyControls(in.Text),
-		HTML:     sanitizeHTMLBody(in.HTML),
+		HTML:     stripBodyControls(sanitizeHTMLBody(in.HTML)),
 	}
 	if err := rejectHeaderValue(out.FromName, "from_name"); err != nil {
 		return SendInput{}, err
