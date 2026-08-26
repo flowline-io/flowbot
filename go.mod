@@ -14,7 +14,7 @@ require (
 	github.com/adrg/xdg v0.5.3
 	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/bwmarrin/discordgo v0.29.0
-	github.com/bytedance/sonic v1.15.2
+	github.com/bytedance/sonic v1.15.3
 	github.com/containerd/errdefs v1.0.0
 	github.com/creachadair/jrpc2 v1.3.5
 	github.com/dgraph-io/ristretto/v2 v2.4.2
@@ -192,7 +192,7 @@ require (
 	github.com/boyter/scc/v3 v3.6.0 // indirect
 	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
-	github.com/bytedance/sonic/loader v0.5.1 // indirect
+	github.com/bytedance/sonic/loader v0.5.2 // indirect
 	github.com/caarlos0/env/v11 v11.4.1 // indirect
 	github.com/caarlos0/go-reddit/v3 v3.0.1 // indirect
 	github.com/caarlos0/go-version v0.2.2 // indirect
