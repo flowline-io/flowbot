@@ -7,7 +7,7 @@ require (
 	entgo.io/ent v0.14.6
 	github.com/FurqanSoftware/goldmark-katex v0.0.0-20260813161535-d0f6370693c2
 	github.com/Masterminds/sprig/v3 v3.3.0
-	github.com/ThreeDotsLabs/watermill v1.5.2
+	github.com/ThreeDotsLabs/watermill v1.5.3
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/XSAM/otelsql v0.43.0
 	github.com/a-h/templ v0.3.1020
