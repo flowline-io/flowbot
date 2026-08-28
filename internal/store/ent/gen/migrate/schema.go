@@ -334,26 +334,6 @@ var (
 		Columns:    AuditLogsColumns,
 		PrimaryKey: []*schema.Column{AuditLogsColumns[0]},
 	}
-	// AuthenticationsColumns holds the columns for the "authentications" table.
-	AuthenticationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "connection_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "type", Type: field.TypeString},
-		{Name: "credentials", Type: field.TypeJSON},
-		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
-		{Name: "enabled", Type: field.TypeBool, Default: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// AuthenticationsTable holds the schema information for the "authentications" table.
-	AuthenticationsTable = &schema.Table{
-		Name:       "authentications",
-		Columns:    AuthenticationsColumns,
-		PrimaryKey: []*schema.Column{AuthenticationsColumns[0]},
-	}
 	// BehaviorColumns holds the columns for the "behavior" table.
 	BehaviorColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -395,21 +375,6 @@ var (
 		Name:       "bots",
 		Columns:    BotsColumns,
 		PrimaryKey: []*schema.Column{BotsColumns[0]},
-	}
-	// CapabilityBindingsColumns holds the columns for the "capability_bindings" table.
-	CapabilityBindingsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "capability", Type: field.TypeString},
-		{Name: "app", Type: field.TypeString},
-		{Name: "healthy", Type: field.TypeBool, Default: false},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// CapabilityBindingsTable holds the schema information for the "capability_bindings" table.
-	CapabilityBindingsTable = &schema.Table{
-		Name:       "capability_bindings",
-		Columns:    CapabilityBindingsColumns,
-		PrimaryKey: []*schema.Column{CapabilityBindingsColumns[0]},
 	}
 	// ChannelsColumns holds the columns for the "channels" table.
 	ChannelsColumns = []*schema.Column{
@@ -606,24 +571,6 @@ var (
 				Columns: []*schema.Column{ConfigsColumns[1], ConfigsColumns[2]},
 			},
 		},
-	}
-	// ConnectionsColumns holds the columns for the "connections" table.
-	ConnectionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString},
-		{Name: "type", Type: field.TypeString},
-		{Name: "config", Type: field.TypeJSON},
-		{Name: "enabled", Type: field.TypeBool, Default: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// ConnectionsTable holds the schema information for the "connections" table.
-	ConnectionsTable = &schema.Table{
-		Name:       "connections",
-		Columns:    ConnectionsColumns,
-		PrimaryKey: []*schema.Column{ConnectionsColumns[0]},
 	}
 	// CountersColumns holds the columns for the "counters" table.
 	CountersColumns = []*schema.Column{
@@ -2200,33 +2147,6 @@ var (
 		Columns:    PlatformsColumns,
 		PrimaryKey: []*schema.Column{PlatformsColumns[0]},
 	}
-	// PlatformBotsColumns holds the columns for the "platform_bots" table.
-	PlatformBotsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "platform_id", Type: field.TypeInt64},
-		{Name: "bot_id", Type: field.TypeInt64},
-		{Name: "flag", Type: field.TypeString, Default: "0"},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// PlatformBotsTable holds the schema information for the "platform_bots" table.
-	PlatformBotsTable = &schema.Table{
-		Name:       "platform_bots",
-		Columns:    PlatformBotsColumns,
-		PrimaryKey: []*schema.Column{PlatformBotsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "platformbot_platform_id",
-				Unique:  false,
-				Columns: []*schema.Column{PlatformBotsColumns[1]},
-			},
-			{
-				Name:    "platformbot_bot_id",
-				Unique:  false,
-				Columns: []*schema.Column{PlatformBotsColumns[2]},
-			},
-		},
-	}
 	// PlatformChannelsColumns holds the columns for the "platform_channels" table.
 	PlatformChannelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2383,42 +2303,6 @@ var (
 				Columns: []*schema.Column{ResourceLinksColumns[2]},
 			},
 		},
-	}
-	// TopicsColumns holds the columns for the "topics" table.
-	TopicsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "flag", Type: field.TypeString},
-		{Name: "platform", Type: field.TypeString},
-		{Name: "owner", Type: field.TypeInt64},
-		{Name: "name", Type: field.TypeString},
-		{Name: "type", Type: field.TypeString},
-		{Name: "tags", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "touched_at", Type: field.TypeTime, Nullable: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// TopicsTable holds the schema information for the "topics" table.
-	TopicsTable = &schema.Table{
-		Name:       "topics",
-		Columns:    TopicsColumns,
-		PrimaryKey: []*schema.Column{TopicsColumns[0]},
-	}
-	// UrlsColumns holds the columns for the "urls" table.
-	UrlsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "flag", Type: field.TypeString},
-		{Name: "url", Type: field.TypeString},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "view_count", Type: field.TypeInt32, Default: 0},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// UrlsTable holds the schema information for the "urls" table.
-	UrlsTable = &schema.Table{
-		Name:       "urls",
-		Columns:    UrlsColumns,
-		PrimaryKey: []*schema.Column{UrlsColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -2617,10 +2501,8 @@ var (
 		AgentTodosTable,
 		AppsTable,
 		AuditLogsTable,
-		AuthenticationsTable,
 		BehaviorTable,
 		BotsTable,
-		CapabilityBindingsTable,
 		ChannelsTable,
 		ChatScheduledTasksTable,
 		ChatScheduledTaskRunsTable,
@@ -2628,7 +2510,6 @@ var (
 		ChatSessionEntriesTable,
 		ClipsTable,
 		ConfigsTable,
-		ConnectionsTable,
 		CountersTable,
 		CounterRecordsTable,
 		DataTable,
@@ -2681,14 +2562,11 @@ var (
 		PipelineRunsTable,
 		PipelineStepRunsTable,
 		PlatformsTable,
-		PlatformBotsTable,
 		PlatformChannelsTable,
 		PlatformChannelUsersTable,
 		PlatformUsersTable,
 		PollingStateTable,
 		ResourceLinksTable,
-		TopicsTable,
-		UrlsTable,
 		UsersTable,
 		WebAccountsTable,
 		WorkflowsTable,
@@ -2736,17 +2614,11 @@ func init() {
 	AuditLogsTable.Annotation = &entsql.Annotation{
 		Table: "audit_logs",
 	}
-	AuthenticationsTable.Annotation = &entsql.Annotation{
-		Table: "authentications",
-	}
 	BehaviorTable.Annotation = &entsql.Annotation{
 		Table: "behavior",
 	}
 	BotsTable.Annotation = &entsql.Annotation{
 		Table: "bots",
-	}
-	CapabilityBindingsTable.Annotation = &entsql.Annotation{
-		Table: "capability_bindings",
 	}
 	ChannelsTable.Annotation = &entsql.Annotation{
 		Table: "channels",
@@ -2768,9 +2640,6 @@ func init() {
 	}
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",
-	}
-	ConnectionsTable.Annotation = &entsql.Annotation{
-		Table: "connections",
 	}
 	CountersTable.Annotation = &entsql.Annotation{
 		Table: "counters",
@@ -2928,9 +2797,6 @@ func init() {
 	PlatformsTable.Annotation = &entsql.Annotation{
 		Table: "platforms",
 	}
-	PlatformBotsTable.Annotation = &entsql.Annotation{
-		Table: "platform_bots",
-	}
 	PlatformChannelsTable.Annotation = &entsql.Annotation{
 		Table: "platform_channels",
 	}
@@ -2945,12 +2811,6 @@ func init() {
 	}
 	ResourceLinksTable.Annotation = &entsql.Annotation{
 		Table: "resource_links",
-	}
-	TopicsTable.Annotation = &entsql.Annotation{
-		Table: "topics",
-	}
-	UrlsTable.Annotation = &entsql.Annotation{
-		Table: "urls",
 	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",

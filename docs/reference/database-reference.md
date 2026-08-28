@@ -14,8 +14,6 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 
 - `users` — User accounts
 - `oauth` — OAuth authentication tokens
-- `authentication` — Auxiliary authentication records
-- `topics` — Context/tenant management
 
 ### Platform Integration
 
@@ -23,7 +21,6 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 - `platform_users` — Platform user mappings
 - `platform_channels` — Platform channel mappings
 - `platform_channel_users` — Channel-user associations
-- `platform_bots` — Platform bot registrations
 
 ### Bot System
 
@@ -41,8 +38,6 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 ### Hub and Homelab
 
 - `apps` — Homelab scanned apps
-- `capability_bindings` — Capability-to-backend bindings
-- `connections` — Hub connection records
 
 ### Pipeline System
 
@@ -98,7 +93,6 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 - `page_data` — Page data payloads
 - `parameter` — Temporary parameter storage
 - `instruct` — Instruction records
-- `urls` — URL tracking
 - `file_uploads` — File upload records
 
 ### Analytics
@@ -113,6 +107,8 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 ## Database Schema Management
 
 Ent auto-migration via `client.Schema.Create()` on startup. No manual SQL migrations.
+
+Removing an Ent entity does **not** drop its PostgreSQL table. After upgrades that delete schemas, run the orphan-table `DROP` statements in [Database schema upgrades](../developer-guide/deployment.md#database-schema-upgrades).
 
 ## Code Generation
 

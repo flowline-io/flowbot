@@ -17,10 +17,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agenttodo"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtask"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
@@ -28,7 +26,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/clip"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counterrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
@@ -81,14 +78,11 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinesteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platform"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformbot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/webaccount"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
@@ -512,38 +506,6 @@ func init() {
 	auditlogDescCreatedAt := auditlogFields[6].Descriptor()
 	// auditlog.DefaultCreatedAt holds the default value on creation for the created_at field.
 	auditlog.DefaultCreatedAt = auditlogDescCreatedAt.Default.(func() time.Time)
-	authenticationFields := schema.Authentication{}.Fields()
-	_ = authenticationFields
-	// authenticationDescUID is the schema descriptor for uid field.
-	authenticationDescUID := authenticationFields[1].Descriptor()
-	// authentication.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	authentication.UIDValidator = authenticationDescUID.Validators[0].(func(string) error)
-	// authenticationDescTopic is the schema descriptor for topic field.
-	authenticationDescTopic := authenticationFields[2].Descriptor()
-	// authentication.TopicValidator is a validator for the "topic" field. It is called by the builders before save.
-	authentication.TopicValidator = authenticationDescTopic.Validators[0].(func(string) error)
-	// authenticationDescName is the schema descriptor for name field.
-	authenticationDescName := authenticationFields[4].Descriptor()
-	// authentication.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	authentication.NameValidator = authenticationDescName.Validators[0].(func(string) error)
-	// authenticationDescType is the schema descriptor for type field.
-	authenticationDescType := authenticationFields[5].Descriptor()
-	// authentication.TypeValidator is a validator for the "type" field. It is called by the builders before save.
-	authentication.TypeValidator = authenticationDescType.Validators[0].(func(string) error)
-	// authenticationDescEnabled is the schema descriptor for enabled field.
-	authenticationDescEnabled := authenticationFields[8].Descriptor()
-	// authentication.DefaultEnabled holds the default value on creation for the enabled field.
-	authentication.DefaultEnabled = authenticationDescEnabled.Default.(bool)
-	// authenticationDescCreatedAt is the schema descriptor for created_at field.
-	authenticationDescCreatedAt := authenticationFields[9].Descriptor()
-	// authentication.DefaultCreatedAt holds the default value on creation for the created_at field.
-	authentication.DefaultCreatedAt = authenticationDescCreatedAt.Default.(func() time.Time)
-	// authenticationDescUpdatedAt is the schema descriptor for updated_at field.
-	authenticationDescUpdatedAt := authenticationFields[10].Descriptor()
-	// authentication.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	authentication.DefaultUpdatedAt = authenticationDescUpdatedAt.Default.(func() time.Time)
-	// authentication.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	authentication.UpdateDefaultUpdatedAt = authenticationDescUpdatedAt.UpdateDefault.(func() time.Time)
 	behaviorFields := schema.Behavior{}.Fields()
 	_ = behaviorFields
 	// behaviorDescUID is the schema descriptor for uid field.
@@ -588,30 +550,6 @@ func init() {
 	bot.DefaultUpdatedAt = botDescUpdatedAt.Default.(func() time.Time)
 	// bot.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	bot.UpdateDefaultUpdatedAt = botDescUpdatedAt.UpdateDefault.(func() time.Time)
-	capabilitybindingFields := schema.CapabilityBinding{}.Fields()
-	_ = capabilitybindingFields
-	// capabilitybindingDescCapability is the schema descriptor for capability field.
-	capabilitybindingDescCapability := capabilitybindingFields[1].Descriptor()
-	// capabilitybinding.CapabilityValidator is a validator for the "capability" field. It is called by the builders before save.
-	capabilitybinding.CapabilityValidator = capabilitybindingDescCapability.Validators[0].(func(string) error)
-	// capabilitybindingDescApp is the schema descriptor for app field.
-	capabilitybindingDescApp := capabilitybindingFields[2].Descriptor()
-	// capabilitybinding.AppValidator is a validator for the "app" field. It is called by the builders before save.
-	capabilitybinding.AppValidator = capabilitybindingDescApp.Validators[0].(func(string) error)
-	// capabilitybindingDescHealthy is the schema descriptor for healthy field.
-	capabilitybindingDescHealthy := capabilitybindingFields[3].Descriptor()
-	// capabilitybinding.DefaultHealthy holds the default value on creation for the healthy field.
-	capabilitybinding.DefaultHealthy = capabilitybindingDescHealthy.Default.(bool)
-	// capabilitybindingDescCreatedAt is the schema descriptor for created_at field.
-	capabilitybindingDescCreatedAt := capabilitybindingFields[4].Descriptor()
-	// capabilitybinding.DefaultCreatedAt holds the default value on creation for the created_at field.
-	capabilitybinding.DefaultCreatedAt = capabilitybindingDescCreatedAt.Default.(func() time.Time)
-	// capabilitybindingDescUpdatedAt is the schema descriptor for updated_at field.
-	capabilitybindingDescUpdatedAt := capabilitybindingFields[5].Descriptor()
-	// capabilitybinding.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	capabilitybinding.DefaultUpdatedAt = capabilitybindingDescUpdatedAt.Default.(func() time.Time)
-	// capabilitybinding.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	capabilitybinding.UpdateDefaultUpdatedAt = capabilitybindingDescUpdatedAt.UpdateDefault.(func() time.Time)
 	channelFields := schema.Channel{}.Fields()
 	_ = channelFields
 	// channelDescName is the schema descriptor for name field.
@@ -842,38 +780,6 @@ func init() {
 	configdata.DefaultUpdatedAt = configdataDescUpdatedAt.Default.(func() time.Time)
 	// configdata.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	configdata.UpdateDefaultUpdatedAt = configdataDescUpdatedAt.UpdateDefault.(func() time.Time)
-	connectionFields := schema.Connection{}.Fields()
-	_ = connectionFields
-	// connectionDescUID is the schema descriptor for uid field.
-	connectionDescUID := connectionFields[1].Descriptor()
-	// connection.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	connection.UIDValidator = connectionDescUID.Validators[0].(func(string) error)
-	// connectionDescTopic is the schema descriptor for topic field.
-	connectionDescTopic := connectionFields[2].Descriptor()
-	// connection.TopicValidator is a validator for the "topic" field. It is called by the builders before save.
-	connection.TopicValidator = connectionDescTopic.Validators[0].(func(string) error)
-	// connectionDescName is the schema descriptor for name field.
-	connectionDescName := connectionFields[3].Descriptor()
-	// connection.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	connection.NameValidator = connectionDescName.Validators[0].(func(string) error)
-	// connectionDescType is the schema descriptor for type field.
-	connectionDescType := connectionFields[4].Descriptor()
-	// connection.TypeValidator is a validator for the "type" field. It is called by the builders before save.
-	connection.TypeValidator = connectionDescType.Validators[0].(func(string) error)
-	// connectionDescEnabled is the schema descriptor for enabled field.
-	connectionDescEnabled := connectionFields[6].Descriptor()
-	// connection.DefaultEnabled holds the default value on creation for the enabled field.
-	connection.DefaultEnabled = connectionDescEnabled.Default.(bool)
-	// connectionDescCreatedAt is the schema descriptor for created_at field.
-	connectionDescCreatedAt := connectionFields[7].Descriptor()
-	// connection.DefaultCreatedAt holds the default value on creation for the created_at field.
-	connection.DefaultCreatedAt = connectionDescCreatedAt.Default.(func() time.Time)
-	// connectionDescUpdatedAt is the schema descriptor for updated_at field.
-	connectionDescUpdatedAt := connectionFields[8].Descriptor()
-	// connection.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	connection.DefaultUpdatedAt = connectionDescUpdatedAt.Default.(func() time.Time)
-	// connection.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	connection.UpdateDefaultUpdatedAt = connectionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	counterFields := schema.Counter{}.Fields()
 	_ = counterFields
 	// counterDescUID is the schema descriptor for uid field.
@@ -2396,24 +2302,6 @@ func init() {
 	platform.DefaultUpdatedAt = platformDescUpdatedAt.Default.(func() time.Time)
 	// platform.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	platform.UpdateDefaultUpdatedAt = platformDescUpdatedAt.UpdateDefault.(func() time.Time)
-	platformbotFields := schema.PlatformBot{}.Fields()
-	_ = platformbotFields
-	// platformbotDescFlag is the schema descriptor for flag field.
-	platformbotDescFlag := platformbotFields[3].Descriptor()
-	// platformbot.DefaultFlag holds the default value on creation for the flag field.
-	platformbot.DefaultFlag = platformbotDescFlag.Default.(string)
-	// platformbot.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
-	platformbot.FlagValidator = platformbotDescFlag.Validators[0].(func(string) error)
-	// platformbotDescCreatedAt is the schema descriptor for created_at field.
-	platformbotDescCreatedAt := platformbotFields[4].Descriptor()
-	// platformbot.DefaultCreatedAt holds the default value on creation for the created_at field.
-	platformbot.DefaultCreatedAt = platformbotDescCreatedAt.Default.(func() time.Time)
-	// platformbotDescUpdatedAt is the schema descriptor for updated_at field.
-	platformbotDescUpdatedAt := platformbotFields[5].Descriptor()
-	// platformbot.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	platformbot.DefaultUpdatedAt = platformbotDescUpdatedAt.Default.(func() time.Time)
-	// platformbot.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	platformbot.UpdateDefaultUpdatedAt = platformbotDescUpdatedAt.UpdateDefault.(func() time.Time)
 	platformchannelFields := schema.PlatformChannel{}.Fields()
 	_ = platformchannelFields
 	// platformchannelDescFlag is the schema descriptor for flag field.
@@ -2546,70 +2434,6 @@ func init() {
 	resourcelinkDescCreatedAt := resourcelinkFields[11].Descriptor()
 	// resourcelink.DefaultCreatedAt holds the default value on creation for the created_at field.
 	resourcelink.DefaultCreatedAt = resourcelinkDescCreatedAt.Default.(func() time.Time)
-	topicFields := schema.Topic{}.Fields()
-	_ = topicFields
-	// topicDescFlag is the schema descriptor for flag field.
-	topicDescFlag := topicFields[1].Descriptor()
-	// topic.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
-	topic.FlagValidator = topicDescFlag.Validators[0].(func(string) error)
-	// topicDescPlatform is the schema descriptor for platform field.
-	topicDescPlatform := topicFields[2].Descriptor()
-	// topic.PlatformValidator is a validator for the "platform" field. It is called by the builders before save.
-	topic.PlatformValidator = topicDescPlatform.Validators[0].(func(string) error)
-	// topicDescName is the schema descriptor for name field.
-	topicDescName := topicFields[4].Descriptor()
-	// topic.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	topic.NameValidator = topicDescName.Validators[0].(func(string) error)
-	// topicDescType is the schema descriptor for type field.
-	topicDescType := topicFields[5].Descriptor()
-	// topic.TypeValidator is a validator for the "type" field. It is called by the builders before save.
-	topic.TypeValidator = topicDescType.Validators[0].(func(string) error)
-	// topicDescTags is the schema descriptor for tags field.
-	topicDescTags := topicFields[6].Descriptor()
-	// topic.DefaultTags holds the default value on creation for the tags field.
-	topic.DefaultTags = topicDescTags.Default.(string)
-	// topicDescState is the schema descriptor for state field.
-	topicDescState := topicFields[7].Descriptor()
-	// topic.DefaultState holds the default value on creation for the state field.
-	topic.DefaultState = topicDescState.Default.(int)
-	// topicDescCreatedAt is the schema descriptor for created_at field.
-	topicDescCreatedAt := topicFields[9].Descriptor()
-	// topic.DefaultCreatedAt holds the default value on creation for the created_at field.
-	topic.DefaultCreatedAt = topicDescCreatedAt.Default.(func() time.Time)
-	// topicDescUpdatedAt is the schema descriptor for updated_at field.
-	topicDescUpdatedAt := topicFields[10].Descriptor()
-	// topic.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	topic.DefaultUpdatedAt = topicDescUpdatedAt.Default.(func() time.Time)
-	// topic.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	topic.UpdateDefaultUpdatedAt = topicDescUpdatedAt.UpdateDefault.(func() time.Time)
-	urlFields := schema.Url{}.Fields()
-	_ = urlFields
-	// urlDescFlag is the schema descriptor for flag field.
-	urlDescFlag := urlFields[1].Descriptor()
-	// url.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
-	url.FlagValidator = urlDescFlag.Validators[0].(func(string) error)
-	// urlDescURL is the schema descriptor for url field.
-	urlDescURL := urlFields[2].Descriptor()
-	// url.URLValidator is a validator for the "url" field. It is called by the builders before save.
-	url.URLValidator = urlDescURL.Validators[0].(func(string) error)
-	// urlDescState is the schema descriptor for state field.
-	urlDescState := urlFields[3].Descriptor()
-	// url.DefaultState holds the default value on creation for the state field.
-	url.DefaultState = urlDescState.Default.(int)
-	// urlDescViewCount is the schema descriptor for view_count field.
-	urlDescViewCount := urlFields[4].Descriptor()
-	// url.DefaultViewCount holds the default value on creation for the view_count field.
-	url.DefaultViewCount = urlDescViewCount.Default.(int32)
-	// urlDescCreatedAt is the schema descriptor for created_at field.
-	urlDescCreatedAt := urlFields[5].Descriptor()
-	// url.DefaultCreatedAt holds the default value on creation for the created_at field.
-	url.DefaultCreatedAt = urlDescCreatedAt.Default.(func() time.Time)
-	// urlDescUpdatedAt is the schema descriptor for updated_at field.
-	urlDescUpdatedAt := urlFields[6].Descriptor()
-	// url.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	url.DefaultUpdatedAt = urlDescUpdatedAt.Default.(func() time.Time)
-	// url.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	url.UpdateDefaultUpdatedAt = urlDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescFlag is the schema descriptor for flag field.

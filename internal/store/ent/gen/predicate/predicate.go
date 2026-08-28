@@ -42,17 +42,11 @@ type App func(*sql.Selector)
 // AuditLog is the predicate function for auditlog builders.
 type AuditLog func(*sql.Selector)
 
-// Authentication is the predicate function for authentication builders.
-type Authentication func(*sql.Selector)
-
 // Behavior is the predicate function for behavior builders.
 type Behavior func(*sql.Selector)
 
 // Bot is the predicate function for bot builders.
 type Bot func(*sql.Selector)
-
-// CapabilityBinding is the predicate function for capabilitybinding builders.
-type CapabilityBinding func(*sql.Selector)
 
 // Channel is the predicate function for channel builders.
 type Channel func(*sql.Selector)
@@ -74,9 +68,6 @@ type Clip func(*sql.Selector)
 
 // ConfigData is the predicate function for configdata builders.
 type ConfigData func(*sql.Selector)
-
-// Connection is the predicate function for connection builders.
-type Connection func(*sql.Selector)
 
 // Counter is the predicate function for counter builders.
 type Counter func(*sql.Selector)
@@ -234,9 +225,6 @@ type PipelineStepRun func(*sql.Selector)
 // Platform is the predicate function for platform builders.
 type Platform func(*sql.Selector)
 
-// PlatformBot is the predicate function for platformbot builders.
-type PlatformBot func(*sql.Selector)
-
 // PlatformChannel is the predicate function for platformchannel builders.
 type PlatformChannel func(*sql.Selector)
 
@@ -251,12 +239,6 @@ type PollingState func(*sql.Selector)
 
 // ResourceLink is the predicate function for resourcelink builders.
 type ResourceLink func(*sql.Selector)
-
-// Topic is the predicate function for topic builders.
-type Topic func(*sql.Selector)
-
-// Url is the predicate function for url builders.
-type Url func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

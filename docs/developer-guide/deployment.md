@@ -98,3 +98,30 @@ curl http://localhost:6060/startupz # Startup
 - [ ] Redis server is running
 - [ ] Required ports are open (default: 6060)
 - [ ] Service starts and health checks pass
+- [ ] Orphan tables dropped after schema removals (see [Database schema upgrades](#database-schema-upgrades))
+
+## Database schema upgrades
+
+Ent auto-migration (`Schema.Create()` on startup) creates and alters tables but **does not drop** tables removed from the schema. After upgrading to a build that removed unused Ent entities, run the following on PostgreSQL once (safe when tables are empty or data is abandoned):
+
+```sql
+DROP TABLE IF EXISTS authentications;
+DROP TABLE IF EXISTS connections;
+DROP TABLE IF EXISTS capability_bindings;
+DROP TABLE IF EXISTS platform_bots;
+DROP TABLE IF EXISTS topics;
+DROP TABLE IF EXISTS urls;
+```
+
+Rationale and replacements: [Agent Note: Drop unused Ent tables](../../.agents/notes/implemented/simplification/2026-08-28-drop-unused-ent-tables.md).
+
+Verify before drop:
+
+```sql
+SELECT 'topics' AS t, COUNT(*) FROM topics
+UNION ALL SELECT 'urls', COUNT(*) FROM urls
+UNION ALL SELECT 'connections', COUNT(*) FROM connections
+UNION ALL SELECT 'authentications', COUNT(*) FROM authentications
+UNION ALL SELECT 'platform_bots', COUNT(*) FROM platform_bots
+UNION ALL SELECT 'capability_bindings', COUNT(*) FROM capability_bindings;
+```

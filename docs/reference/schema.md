@@ -301,17 +301,6 @@
 | values      | json            | NULL           | YES         |            |                |                |
 | version     | int             | NULL           | NO          |            |                |                |
 
-## platform_bots
-
-| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA          | COLUMN_COMMENT |
-| ----------- | ----------- | -------------- | ----------- | ---------- | -------------- | -------------- |
-| bot_id      | bigint      | 0              | NO          | MUL        |                |                |
-| created_at  | datetime    | NULL           | NO          |            |                |                |
-| flag        | varchar(50) | 0              | NO          |            |                |                |
-| id          | bigint      | NULL           | NO          | PRI        | auto_increment |                |
-| platform_id | bigint      | 0              | NO          | MUL        |                |                |
-| updated_at  | datetime    | NULL           | NO          |            |                |                |
-
 ## platform_channel_users
 
 | COLUMN_NAME  | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA          | COLUMN_COMMENT |
@@ -450,34 +439,6 @@
 | topic             | char(36)        | NULL           | NO          |            |                   |                |
 | uid               | char(36)        | NULL           | NO          | MUL        |                   |                |
 | updated_at        | datetime        | NULL           | NO          |            |                   |                |
-
-## topics
-
-| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA          | COLUMN_COMMENT |
-| ----------- | ----------- | -------------- | ----------- | ---------- | -------------- | -------------- |
-| created_at  | datetime    | NULL           | NO          |            |                |                |
-| flag        | char(36)    |                | NO          | UNI        |                |                |
-| id          | bigint      | NULL           | NO          | PRI        | auto_increment |                |
-| name        | char(25)    | NULL           | NO          |            |                |                |
-| owner       | bigint      | 0              | NO          | MUL        |                |                |
-| platform    | varchar(20) | NULL           | NO          | MUL        |                |                |
-| state       | smallint    | 0              | NO          |            |                |                |
-| tags        | json        | NULL           | YES         |            |                |                |
-| touched_at  | datetime    | NULL           | YES         |            |                |                |
-| type        | varchar(50) |                | NO          |            |                |                |
-| updated_at  | datetime    | NULL           | NO          |            |                |                |
-
-## urls
-
-| COLUMN_NAME | COLUMN_TYPE     | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA          | COLUMN_COMMENT |
-| ----------- | --------------- | -------------- | ----------- | ---------- | -------------- | -------------- |
-| created_at  | datetime        | NULL           | NO          |            |                |                |
-| flag        | varchar(100)    | NULL           | NO          | MUL        |                |                |
-| id          | bigint unsigned | NULL           | NO          | PRI        | auto_increment |                |
-| state       | tinyint         | NULL           | NO          |            |                |                |
-| updated_at  | datetime        | NULL           | NO          |            |                |                |
-| url         | varchar(256)    | NULL           | NO          |            |                |                |
-| view_count  | int             | 0              | NO          |            |                |                |
 
 ## users
 

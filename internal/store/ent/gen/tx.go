@@ -36,14 +36,10 @@ type Tx struct {
 	App *AppClient
 	// AuditLog is the client for interacting with the AuditLog builders.
 	AuditLog *AuditLogClient
-	// Authentication is the client for interacting with the Authentication builders.
-	Authentication *AuthenticationClient
 	// Behavior is the client for interacting with the Behavior builders.
 	Behavior *BehaviorClient
 	// Bot is the client for interacting with the Bot builders.
 	Bot *BotClient
-	// CapabilityBinding is the client for interacting with the CapabilityBinding builders.
-	CapabilityBinding *CapabilityBindingClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
 	// ChatScheduledTask is the client for interacting with the ChatScheduledTask builders.
@@ -58,8 +54,6 @@ type Tx struct {
 	Clip *ClipClient
 	// ConfigData is the client for interacting with the ConfigData builders.
 	ConfigData *ConfigDataClient
-	// Connection is the client for interacting with the Connection builders.
-	Connection *ConnectionClient
 	// Counter is the client for interacting with the Counter builders.
 	Counter *CounterClient
 	// CounterRecord is the client for interacting with the CounterRecord builders.
@@ -164,8 +158,6 @@ type Tx struct {
 	PipelineStepRun *PipelineStepRunClient
 	// Platform is the client for interacting with the Platform builders.
 	Platform *PlatformClient
-	// PlatformBot is the client for interacting with the PlatformBot builders.
-	PlatformBot *PlatformBotClient
 	// PlatformChannel is the client for interacting with the PlatformChannel builders.
 	PlatformChannel *PlatformChannelClient
 	// PlatformChannelUser is the client for interacting with the PlatformChannelUser builders.
@@ -176,10 +168,6 @@ type Tx struct {
 	PollingState *PollingStateClient
 	// ResourceLink is the client for interacting with the ResourceLink builders.
 	ResourceLink *ResourceLinkClient
-	// Topic is the client for interacting with the Topic builders.
-	Topic *TopicClient
-	// Url is the client for interacting with the Url builders.
-	Url *URLClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// WebAccount is the client for interacting with the WebAccount builders.
@@ -337,10 +325,8 @@ func (tx *Tx) init() {
 	tx.AgentTodo = NewAgentTodoClient(tx.config)
 	tx.App = NewAppClient(tx.config)
 	tx.AuditLog = NewAuditLogClient(tx.config)
-	tx.Authentication = NewAuthenticationClient(tx.config)
 	tx.Behavior = NewBehaviorClient(tx.config)
 	tx.Bot = NewBotClient(tx.config)
-	tx.CapabilityBinding = NewCapabilityBindingClient(tx.config)
 	tx.Channel = NewChannelClient(tx.config)
 	tx.ChatScheduledTask = NewChatScheduledTaskClient(tx.config)
 	tx.ChatScheduledTaskRun = NewChatScheduledTaskRunClient(tx.config)
@@ -348,7 +334,6 @@ func (tx *Tx) init() {
 	tx.ChatSessionEntry = NewChatSessionEntryClient(tx.config)
 	tx.Clip = NewClipClient(tx.config)
 	tx.ConfigData = NewConfigDataClient(tx.config)
-	tx.Connection = NewConnectionClient(tx.config)
 	tx.Counter = NewCounterClient(tx.config)
 	tx.CounterRecord = NewCounterRecordClient(tx.config)
 	tx.Data = NewDataClient(tx.config)
@@ -401,14 +386,11 @@ func (tx *Tx) init() {
 	tx.PipelineRun = NewPipelineRunClient(tx.config)
 	tx.PipelineStepRun = NewPipelineStepRunClient(tx.config)
 	tx.Platform = NewPlatformClient(tx.config)
-	tx.PlatformBot = NewPlatformBotClient(tx.config)
 	tx.PlatformChannel = NewPlatformChannelClient(tx.config)
 	tx.PlatformChannelUser = NewPlatformChannelUserClient(tx.config)
 	tx.PlatformUser = NewPlatformUserClient(tx.config)
 	tx.PollingState = NewPollingStateClient(tx.config)
 	tx.ResourceLink = NewResourceLinkClient(tx.config)
-	tx.Topic = NewTopicClient(tx.config)
-	tx.Url = NewURLClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.WebAccount = NewWebAccountClient(tx.config)
 	tx.Workflow = NewWorkflowClient(tx.config)

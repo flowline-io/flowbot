@@ -153,18 +153,6 @@ func (f AuditLogFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AuditLogMutation", m)
 }
 
-// The AuthenticationFunc type is an adapter to allow the use of ordinary
-// function as Authentication mutator.
-type AuthenticationFunc func(context.Context, *gen.AuthenticationMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f AuthenticationFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.AuthenticationMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AuthenticationMutation", m)
-}
-
 // The BehaviorFunc type is an adapter to allow the use of ordinary
 // function as Behavior mutator.
 type BehaviorFunc func(context.Context, *gen.BehaviorMutation) (gen.Value, error)
@@ -187,18 +175,6 @@ func (f BotFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.BotMutation", m)
-}
-
-// The CapabilityBindingFunc type is an adapter to allow the use of ordinary
-// function as CapabilityBinding mutator.
-type CapabilityBindingFunc func(context.Context, *gen.CapabilityBindingMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f CapabilityBindingFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.CapabilityBindingMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.CapabilityBindingMutation", m)
 }
 
 // The ChannelFunc type is an adapter to allow the use of ordinary
@@ -283,18 +259,6 @@ func (f ConfigDataFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ConfigDataMutation", m)
-}
-
-// The ConnectionFunc type is an adapter to allow the use of ordinary
-// function as Connection mutator.
-type ConnectionFunc func(context.Context, *gen.ConnectionMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ConnectionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.ConnectionMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ConnectionMutation", m)
 }
 
 // The CounterFunc type is an adapter to allow the use of ordinary
@@ -921,18 +885,6 @@ func (f PlatformFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PlatformMutation", m)
 }
 
-// The PlatformBotFunc type is an adapter to allow the use of ordinary
-// function as PlatformBot mutator.
-type PlatformBotFunc func(context.Context, *gen.PlatformBotMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f PlatformBotFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.PlatformBotMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PlatformBotMutation", m)
-}
-
 // The PlatformChannelFunc type is an adapter to allow the use of ordinary
 // function as PlatformChannel mutator.
 type PlatformChannelFunc func(context.Context, *gen.PlatformChannelMutation) (gen.Value, error)
@@ -991,30 +943,6 @@ func (f ResourceLinkFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ResourceLinkMutation", m)
-}
-
-// The TopicFunc type is an adapter to allow the use of ordinary
-// function as Topic mutator.
-type TopicFunc func(context.Context, *gen.TopicMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TopicFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.TopicMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.TopicMutation", m)
-}
-
-// The UrlFunc type is an adapter to allow the use of ordinary
-// function as Url mutator.
-type UrlFunc func(context.Context, *gen.URLMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f UrlFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.URLMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.URLMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

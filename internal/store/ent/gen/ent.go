@@ -24,10 +24,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agenttodo"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtask"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
@@ -35,7 +33,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/clip"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counterrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
@@ -88,14 +85,11 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinesteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platform"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformbot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/webaccount"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
@@ -175,10 +169,8 @@ func checkColumn(t, c string) error {
 			agenttodo.Table:                 agenttodo.ValidColumn,
 			app.Table:                       app.ValidColumn,
 			auditlog.Table:                  auditlog.ValidColumn,
-			authentication.Table:            authentication.ValidColumn,
 			behavior.Table:                  behavior.ValidColumn,
 			bot.Table:                       bot.ValidColumn,
-			capabilitybinding.Table:         capabilitybinding.ValidColumn,
 			channel.Table:                   channel.ValidColumn,
 			chatscheduledtask.Table:         chatscheduledtask.ValidColumn,
 			chatscheduledtaskrun.Table:      chatscheduledtaskrun.ValidColumn,
@@ -186,7 +178,6 @@ func checkColumn(t, c string) error {
 			chatsessionentry.Table:          chatsessionentry.ValidColumn,
 			clip.Table:                      clip.ValidColumn,
 			configdata.Table:                configdata.ValidColumn,
-			connection.Table:                connection.ValidColumn,
 			counter.Table:                   counter.ValidColumn,
 			counterrecord.Table:             counterrecord.ValidColumn,
 			data.Table:                      data.ValidColumn,
@@ -239,14 +230,11 @@ func checkColumn(t, c string) error {
 			pipelinerun.Table:               pipelinerun.ValidColumn,
 			pipelinesteprun.Table:           pipelinesteprun.ValidColumn,
 			platform.Table:                  platform.ValidColumn,
-			platformbot.Table:               platformbot.ValidColumn,
 			platformchannel.Table:           platformchannel.ValidColumn,
 			platformchanneluser.Table:       platformchanneluser.ValidColumn,
 			platformuser.Table:              platformuser.ValidColumn,
 			pollingstate.Table:              pollingstate.ValidColumn,
 			resourcelink.Table:              resourcelink.ValidColumn,
-			topic.Table:                     topic.ValidColumn,
-			url.Table:                       url.ValidColumn,
 			user.Table:                      user.ValidColumn,
 			webaccount.Table:                webaccount.ValidColumn,
 			workflow.Table:                  workflow.ValidColumn,

@@ -26,10 +26,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agenttodo"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtask"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
@@ -37,7 +35,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/clip"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counterrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
@@ -90,14 +87,11 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinesteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platform"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformbot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/webaccount"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
@@ -136,14 +130,10 @@ type Client struct {
 	App *AppClient
 	// AuditLog is the client for interacting with the AuditLog builders.
 	AuditLog *AuditLogClient
-	// Authentication is the client for interacting with the Authentication builders.
-	Authentication *AuthenticationClient
 	// Behavior is the client for interacting with the Behavior builders.
 	Behavior *BehaviorClient
 	// Bot is the client for interacting with the Bot builders.
 	Bot *BotClient
-	// CapabilityBinding is the client for interacting with the CapabilityBinding builders.
-	CapabilityBinding *CapabilityBindingClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
 	// ChatScheduledTask is the client for interacting with the ChatScheduledTask builders.
@@ -158,8 +148,6 @@ type Client struct {
 	Clip *ClipClient
 	// ConfigData is the client for interacting with the ConfigData builders.
 	ConfigData *ConfigDataClient
-	// Connection is the client for interacting with the Connection builders.
-	Connection *ConnectionClient
 	// Counter is the client for interacting with the Counter builders.
 	Counter *CounterClient
 	// CounterRecord is the client for interacting with the CounterRecord builders.
@@ -264,8 +252,6 @@ type Client struct {
 	PipelineStepRun *PipelineStepRunClient
 	// Platform is the client for interacting with the Platform builders.
 	Platform *PlatformClient
-	// PlatformBot is the client for interacting with the PlatformBot builders.
-	PlatformBot *PlatformBotClient
 	// PlatformChannel is the client for interacting with the PlatformChannel builders.
 	PlatformChannel *PlatformChannelClient
 	// PlatformChannelUser is the client for interacting with the PlatformChannelUser builders.
@@ -276,10 +262,6 @@ type Client struct {
 	PollingState *PollingStateClient
 	// ResourceLink is the client for interacting with the ResourceLink builders.
 	ResourceLink *ResourceLinkClient
-	// Topic is the client for interacting with the Topic builders.
-	Topic *TopicClient
-	// Url is the client for interacting with the Url builders.
-	Url *URLClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// WebAccount is the client for interacting with the WebAccount builders.
@@ -317,10 +299,8 @@ func (c *Client) init() {
 	c.AgentTodo = NewAgentTodoClient(c.config)
 	c.App = NewAppClient(c.config)
 	c.AuditLog = NewAuditLogClient(c.config)
-	c.Authentication = NewAuthenticationClient(c.config)
 	c.Behavior = NewBehaviorClient(c.config)
 	c.Bot = NewBotClient(c.config)
-	c.CapabilityBinding = NewCapabilityBindingClient(c.config)
 	c.Channel = NewChannelClient(c.config)
 	c.ChatScheduledTask = NewChatScheduledTaskClient(c.config)
 	c.ChatScheduledTaskRun = NewChatScheduledTaskRunClient(c.config)
@@ -328,7 +308,6 @@ func (c *Client) init() {
 	c.ChatSessionEntry = NewChatSessionEntryClient(c.config)
 	c.Clip = NewClipClient(c.config)
 	c.ConfigData = NewConfigDataClient(c.config)
-	c.Connection = NewConnectionClient(c.config)
 	c.Counter = NewCounterClient(c.config)
 	c.CounterRecord = NewCounterRecordClient(c.config)
 	c.Data = NewDataClient(c.config)
@@ -381,14 +360,11 @@ func (c *Client) init() {
 	c.PipelineRun = NewPipelineRunClient(c.config)
 	c.PipelineStepRun = NewPipelineStepRunClient(c.config)
 	c.Platform = NewPlatformClient(c.config)
-	c.PlatformBot = NewPlatformBotClient(c.config)
 	c.PlatformChannel = NewPlatformChannelClient(c.config)
 	c.PlatformChannelUser = NewPlatformChannelUserClient(c.config)
 	c.PlatformUser = NewPlatformUserClient(c.config)
 	c.PollingState = NewPollingStateClient(c.config)
 	c.ResourceLink = NewResourceLinkClient(c.config)
-	c.Topic = NewTopicClient(c.config)
-	c.Url = NewURLClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.WebAccount = NewWebAccountClient(c.config)
 	c.Workflow = NewWorkflowClient(c.config)
@@ -500,10 +476,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AgentTodo:                 NewAgentTodoClient(cfg),
 		App:                       NewAppClient(cfg),
 		AuditLog:                  NewAuditLogClient(cfg),
-		Authentication:            NewAuthenticationClient(cfg),
 		Behavior:                  NewBehaviorClient(cfg),
 		Bot:                       NewBotClient(cfg),
-		CapabilityBinding:         NewCapabilityBindingClient(cfg),
 		Channel:                   NewChannelClient(cfg),
 		ChatScheduledTask:         NewChatScheduledTaskClient(cfg),
 		ChatScheduledTaskRun:      NewChatScheduledTaskRunClient(cfg),
@@ -511,7 +485,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ChatSessionEntry:          NewChatSessionEntryClient(cfg),
 		Clip:                      NewClipClient(cfg),
 		ConfigData:                NewConfigDataClient(cfg),
-		Connection:                NewConnectionClient(cfg),
 		Counter:                   NewCounterClient(cfg),
 		CounterRecord:             NewCounterRecordClient(cfg),
 		Data:                      NewDataClient(cfg),
@@ -564,14 +537,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PipelineRun:               NewPipelineRunClient(cfg),
 		PipelineStepRun:           NewPipelineStepRunClient(cfg),
 		Platform:                  NewPlatformClient(cfg),
-		PlatformBot:               NewPlatformBotClient(cfg),
 		PlatformChannel:           NewPlatformChannelClient(cfg),
 		PlatformChannelUser:       NewPlatformChannelUserClient(cfg),
 		PlatformUser:              NewPlatformUserClient(cfg),
 		PollingState:              NewPollingStateClient(cfg),
 		ResourceLink:              NewResourceLinkClient(cfg),
-		Topic:                     NewTopicClient(cfg),
-		Url:                       NewURLClient(cfg),
 		User:                      NewUserClient(cfg),
 		WebAccount:                NewWebAccountClient(cfg),
 		Workflow:                  NewWorkflowClient(cfg),
@@ -610,10 +580,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AgentTodo:                 NewAgentTodoClient(cfg),
 		App:                       NewAppClient(cfg),
 		AuditLog:                  NewAuditLogClient(cfg),
-		Authentication:            NewAuthenticationClient(cfg),
 		Behavior:                  NewBehaviorClient(cfg),
 		Bot:                       NewBotClient(cfg),
-		CapabilityBinding:         NewCapabilityBindingClient(cfg),
 		Channel:                   NewChannelClient(cfg),
 		ChatScheduledTask:         NewChatScheduledTaskClient(cfg),
 		ChatScheduledTaskRun:      NewChatScheduledTaskRunClient(cfg),
@@ -621,7 +589,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ChatSessionEntry:          NewChatSessionEntryClient(cfg),
 		Clip:                      NewClipClient(cfg),
 		ConfigData:                NewConfigDataClient(cfg),
-		Connection:                NewConnectionClient(cfg),
 		Counter:                   NewCounterClient(cfg),
 		CounterRecord:             NewCounterRecordClient(cfg),
 		Data:                      NewDataClient(cfg),
@@ -674,14 +641,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PipelineRun:               NewPipelineRunClient(cfg),
 		PipelineStepRun:           NewPipelineStepRunClient(cfg),
 		Platform:                  NewPlatformClient(cfg),
-		PlatformBot:               NewPlatformBotClient(cfg),
 		PlatformChannel:           NewPlatformChannelClient(cfg),
 		PlatformChannelUser:       NewPlatformChannelUserClient(cfg),
 		PlatformUser:              NewPlatformUserClient(cfg),
 		PollingState:              NewPollingStateClient(cfg),
 		ResourceLink:              NewResourceLinkClient(cfg),
-		Topic:                     NewTopicClient(cfg),
-		Url:                       NewURLClient(cfg),
 		User:                      NewUserClient(cfg),
 		WebAccount:                NewWebAccountClient(cfg),
 		Workflow:                  NewWorkflowClient(cfg),
@@ -720,25 +684,24 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Agent, c.AgentKnowledge, c.AgentMemoryFact, c.AgentPlan,
 		c.AgentSessionSummary, c.AgentSkill, c.AgentSkillFile, c.AgentSubagent,
-		c.AgentSubagentTask, c.AgentTodo, c.App, c.AuditLog, c.Authentication,
-		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
-		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
-		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
-		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.FunctionDefinition,
-		c.FunctionDefinitionVersion, c.FunctionRun, c.GatewayJob, c.GatewayWorker,
-		c.Instruct, c.LLMUsageRecord, c.LifeAIContext, c.LifeAchievement,
-		c.LifeAchievementProgress, c.LifeAchievementUnlock, c.LifeActionDependency,
-		c.LifeActionLog, c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
-		c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots, c.LifeEvidence,
-		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
-		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeReward,
-		c.LifeRewardRedemption, c.LifeSkill, c.Message, c.NotificationRecord,
-		c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData,
-		c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
-		c.Url, c.User, c.WebAccount, c.Workflow, c.WorkflowRun, c.WorkflowStepRun,
-		c.WorkflowTask, c.WorkflowTrigger,
+		c.AgentSubagentTask, c.AgentTodo, c.App, c.AuditLog, c.Behavior, c.Bot,
+		c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun, c.ChatSession,
+		c.ChatSessionEntry, c.Clip, c.ConfigData, c.Counter, c.CounterRecord, c.Data,
+		c.DataEvent, c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form,
+		c.FunctionDefinition, c.FunctionDefinitionVersion, c.FunctionRun, c.GatewayJob,
+		c.GatewayWorker, c.Instruct, c.LLMUsageRecord, c.LifeAIContext,
+		c.LifeAchievement, c.LifeAchievementProgress, c.LifeAchievementUnlock,
+		c.LifeActionDependency, c.LifeActionLog, c.LifeActionOccurrence,
+		c.LifeActionSpec, c.LifeAdjudication, c.LifeCharacteristic, c.LifeEquipment,
+		c.LifeEquippedSlots, c.LifeEvidence, c.LifeGoal, c.LifeHabitCheckin,
+		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
+		c.LifeReward, c.LifeRewardRedemption, c.LifeSkill, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
+		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
+		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser, c.PollingState,
+		c.ResourceLink, c.User, c.WebAccount, c.Workflow, c.WorkflowRun,
+		c.WorkflowStepRun, c.WorkflowTask, c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -750,25 +713,24 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Agent, c.AgentKnowledge, c.AgentMemoryFact, c.AgentPlan,
 		c.AgentSessionSummary, c.AgentSkill, c.AgentSkillFile, c.AgentSubagent,
-		c.AgentSubagentTask, c.AgentTodo, c.App, c.AuditLog, c.Authentication,
-		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
-		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
-		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
-		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.FunctionDefinition,
-		c.FunctionDefinitionVersion, c.FunctionRun, c.GatewayJob, c.GatewayWorker,
-		c.Instruct, c.LLMUsageRecord, c.LifeAIContext, c.LifeAchievement,
-		c.LifeAchievementProgress, c.LifeAchievementUnlock, c.LifeActionDependency,
-		c.LifeActionLog, c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
-		c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots, c.LifeEvidence,
-		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
-		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeReward,
-		c.LifeRewardRedemption, c.LifeSkill, c.Message, c.NotificationRecord,
-		c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData,
-		c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
-		c.Url, c.User, c.WebAccount, c.Workflow, c.WorkflowRun, c.WorkflowStepRun,
-		c.WorkflowTask, c.WorkflowTrigger,
+		c.AgentSubagentTask, c.AgentTodo, c.App, c.AuditLog, c.Behavior, c.Bot,
+		c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun, c.ChatSession,
+		c.ChatSessionEntry, c.Clip, c.ConfigData, c.Counter, c.CounterRecord, c.Data,
+		c.DataEvent, c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form,
+		c.FunctionDefinition, c.FunctionDefinitionVersion, c.FunctionRun, c.GatewayJob,
+		c.GatewayWorker, c.Instruct, c.LLMUsageRecord, c.LifeAIContext,
+		c.LifeAchievement, c.LifeAchievementProgress, c.LifeAchievementUnlock,
+		c.LifeActionDependency, c.LifeActionLog, c.LifeActionOccurrence,
+		c.LifeActionSpec, c.LifeAdjudication, c.LifeCharacteristic, c.LifeEquipment,
+		c.LifeEquippedSlots, c.LifeEvidence, c.LifeGoal, c.LifeHabitCheckin,
+		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
+		c.LifeReward, c.LifeRewardRedemption, c.LifeSkill, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
+		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
+		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser, c.PollingState,
+		c.ResourceLink, c.User, c.WebAccount, c.Workflow, c.WorkflowRun,
+		c.WorkflowStepRun, c.WorkflowTask, c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -801,14 +763,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.App.mutate(ctx, m)
 	case *AuditLogMutation:
 		return c.AuditLog.mutate(ctx, m)
-	case *AuthenticationMutation:
-		return c.Authentication.mutate(ctx, m)
 	case *BehaviorMutation:
 		return c.Behavior.mutate(ctx, m)
 	case *BotMutation:
 		return c.Bot.mutate(ctx, m)
-	case *CapabilityBindingMutation:
-		return c.CapabilityBinding.mutate(ctx, m)
 	case *ChannelMutation:
 		return c.Channel.mutate(ctx, m)
 	case *ChatScheduledTaskMutation:
@@ -823,8 +781,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Clip.mutate(ctx, m)
 	case *ConfigDataMutation:
 		return c.ConfigData.mutate(ctx, m)
-	case *ConnectionMutation:
-		return c.Connection.mutate(ctx, m)
 	case *CounterMutation:
 		return c.Counter.mutate(ctx, m)
 	case *CounterRecordMutation:
@@ -929,8 +885,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PipelineStepRun.mutate(ctx, m)
 	case *PlatformMutation:
 		return c.Platform.mutate(ctx, m)
-	case *PlatformBotMutation:
-		return c.PlatformBot.mutate(ctx, m)
 	case *PlatformChannelMutation:
 		return c.PlatformChannel.mutate(ctx, m)
 	case *PlatformChannelUserMutation:
@@ -941,10 +895,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PollingState.mutate(ctx, m)
 	case *ResourceLinkMutation:
 		return c.ResourceLink.mutate(ctx, m)
-	case *TopicMutation:
-		return c.Topic.mutate(ctx, m)
-	case *URLMutation:
-		return c.Url.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *WebAccountMutation:
@@ -2560,139 +2510,6 @@ func (c *AuditLogClient) mutate(ctx context.Context, m *AuditLogMutation) (Value
 	}
 }
 
-// AuthenticationClient is a client for the Authentication schema.
-type AuthenticationClient struct {
-	config
-}
-
-// NewAuthenticationClient returns a client for the Authentication from the given config.
-func NewAuthenticationClient(c config) *AuthenticationClient {
-	return &AuthenticationClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `authentication.Hooks(f(g(h())))`.
-func (c *AuthenticationClient) Use(hooks ...Hook) {
-	c.hooks.Authentication = append(c.hooks.Authentication, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `authentication.Intercept(f(g(h())))`.
-func (c *AuthenticationClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Authentication = append(c.inters.Authentication, interceptors...)
-}
-
-// Create returns a builder for creating a Authentication entity.
-func (c *AuthenticationClient) Create() *AuthenticationCreate {
-	mutation := newAuthenticationMutation(c.config, OpCreate)
-	return &AuthenticationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Authentication entities.
-func (c *AuthenticationClient) CreateBulk(builders ...*AuthenticationCreate) *AuthenticationCreateBulk {
-	return &AuthenticationCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *AuthenticationClient) MapCreateBulk(slice any, setFunc func(*AuthenticationCreate, int)) *AuthenticationCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &AuthenticationCreateBulk{err: fmt.Errorf("calling to AuthenticationClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*AuthenticationCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &AuthenticationCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Authentication.
-func (c *AuthenticationClient) Update() *AuthenticationUpdate {
-	mutation := newAuthenticationMutation(c.config, OpUpdate)
-	return &AuthenticationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *AuthenticationClient) UpdateOne(_m *Authentication) *AuthenticationUpdateOne {
-	mutation := newAuthenticationMutation(c.config, OpUpdateOne, withAuthentication(_m))
-	return &AuthenticationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *AuthenticationClient) UpdateOneID(id int64) *AuthenticationUpdateOne {
-	mutation := newAuthenticationMutation(c.config, OpUpdateOne, withAuthenticationID(id))
-	return &AuthenticationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Authentication.
-func (c *AuthenticationClient) Delete() *AuthenticationDelete {
-	mutation := newAuthenticationMutation(c.config, OpDelete)
-	return &AuthenticationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *AuthenticationClient) DeleteOne(_m *Authentication) *AuthenticationDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AuthenticationClient) DeleteOneID(id int64) *AuthenticationDeleteOne {
-	builder := c.Delete().Where(authentication.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &AuthenticationDeleteOne{builder}
-}
-
-// Query returns a query builder for Authentication.
-func (c *AuthenticationClient) Query() *AuthenticationQuery {
-	return &AuthenticationQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeAuthentication},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Authentication entity by its id.
-func (c *AuthenticationClient) Get(ctx context.Context, id int64) (*Authentication, error) {
-	return c.Query().Where(authentication.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *AuthenticationClient) GetX(ctx context.Context, id int64) *Authentication {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *AuthenticationClient) Hooks() []Hook {
-	return c.hooks.Authentication
-}
-
-// Interceptors returns the client interceptors.
-func (c *AuthenticationClient) Interceptors() []Interceptor {
-	return c.inters.Authentication
-}
-
-func (c *AuthenticationClient) mutate(ctx context.Context, m *AuthenticationMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&AuthenticationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&AuthenticationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&AuthenticationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&AuthenticationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Authentication mutation op: %q", m.Op())
-	}
-}
-
 // BehaviorClient is a client for the Behavior schema.
 type BehaviorClient struct {
 	config
@@ -2956,139 +2773,6 @@ func (c *BotClient) mutate(ctx context.Context, m *BotMutation) (Value, error) {
 		return (&BotDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown Bot mutation op: %q", m.Op())
-	}
-}
-
-// CapabilityBindingClient is a client for the CapabilityBinding schema.
-type CapabilityBindingClient struct {
-	config
-}
-
-// NewCapabilityBindingClient returns a client for the CapabilityBinding from the given config.
-func NewCapabilityBindingClient(c config) *CapabilityBindingClient {
-	return &CapabilityBindingClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `capabilitybinding.Hooks(f(g(h())))`.
-func (c *CapabilityBindingClient) Use(hooks ...Hook) {
-	c.hooks.CapabilityBinding = append(c.hooks.CapabilityBinding, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `capabilitybinding.Intercept(f(g(h())))`.
-func (c *CapabilityBindingClient) Intercept(interceptors ...Interceptor) {
-	c.inters.CapabilityBinding = append(c.inters.CapabilityBinding, interceptors...)
-}
-
-// Create returns a builder for creating a CapabilityBinding entity.
-func (c *CapabilityBindingClient) Create() *CapabilityBindingCreate {
-	mutation := newCapabilityBindingMutation(c.config, OpCreate)
-	return &CapabilityBindingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of CapabilityBinding entities.
-func (c *CapabilityBindingClient) CreateBulk(builders ...*CapabilityBindingCreate) *CapabilityBindingCreateBulk {
-	return &CapabilityBindingCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *CapabilityBindingClient) MapCreateBulk(slice any, setFunc func(*CapabilityBindingCreate, int)) *CapabilityBindingCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &CapabilityBindingCreateBulk{err: fmt.Errorf("calling to CapabilityBindingClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*CapabilityBindingCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &CapabilityBindingCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for CapabilityBinding.
-func (c *CapabilityBindingClient) Update() *CapabilityBindingUpdate {
-	mutation := newCapabilityBindingMutation(c.config, OpUpdate)
-	return &CapabilityBindingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *CapabilityBindingClient) UpdateOne(_m *CapabilityBinding) *CapabilityBindingUpdateOne {
-	mutation := newCapabilityBindingMutation(c.config, OpUpdateOne, withCapabilityBinding(_m))
-	return &CapabilityBindingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *CapabilityBindingClient) UpdateOneID(id int64) *CapabilityBindingUpdateOne {
-	mutation := newCapabilityBindingMutation(c.config, OpUpdateOne, withCapabilityBindingID(id))
-	return &CapabilityBindingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for CapabilityBinding.
-func (c *CapabilityBindingClient) Delete() *CapabilityBindingDelete {
-	mutation := newCapabilityBindingMutation(c.config, OpDelete)
-	return &CapabilityBindingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *CapabilityBindingClient) DeleteOne(_m *CapabilityBinding) *CapabilityBindingDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *CapabilityBindingClient) DeleteOneID(id int64) *CapabilityBindingDeleteOne {
-	builder := c.Delete().Where(capabilitybinding.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &CapabilityBindingDeleteOne{builder}
-}
-
-// Query returns a query builder for CapabilityBinding.
-func (c *CapabilityBindingClient) Query() *CapabilityBindingQuery {
-	return &CapabilityBindingQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeCapabilityBinding},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a CapabilityBinding entity by its id.
-func (c *CapabilityBindingClient) Get(ctx context.Context, id int64) (*CapabilityBinding, error) {
-	return c.Query().Where(capabilitybinding.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *CapabilityBindingClient) GetX(ctx context.Context, id int64) *CapabilityBinding {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *CapabilityBindingClient) Hooks() []Hook {
-	return c.hooks.CapabilityBinding
-}
-
-// Interceptors returns the client interceptors.
-func (c *CapabilityBindingClient) Interceptors() []Interceptor {
-	return c.inters.CapabilityBinding
-}
-
-func (c *CapabilityBindingClient) mutate(ctx context.Context, m *CapabilityBindingMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&CapabilityBindingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&CapabilityBindingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&CapabilityBindingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&CapabilityBindingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown CapabilityBinding mutation op: %q", m.Op())
 	}
 }
 
@@ -4020,139 +3704,6 @@ func (c *ConfigDataClient) mutate(ctx context.Context, m *ConfigDataMutation) (V
 		return (&ConfigDataDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown ConfigData mutation op: %q", m.Op())
-	}
-}
-
-// ConnectionClient is a client for the Connection schema.
-type ConnectionClient struct {
-	config
-}
-
-// NewConnectionClient returns a client for the Connection from the given config.
-func NewConnectionClient(c config) *ConnectionClient {
-	return &ConnectionClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `connection.Hooks(f(g(h())))`.
-func (c *ConnectionClient) Use(hooks ...Hook) {
-	c.hooks.Connection = append(c.hooks.Connection, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `connection.Intercept(f(g(h())))`.
-func (c *ConnectionClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Connection = append(c.inters.Connection, interceptors...)
-}
-
-// Create returns a builder for creating a Connection entity.
-func (c *ConnectionClient) Create() *ConnectionCreate {
-	mutation := newConnectionMutation(c.config, OpCreate)
-	return &ConnectionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Connection entities.
-func (c *ConnectionClient) CreateBulk(builders ...*ConnectionCreate) *ConnectionCreateBulk {
-	return &ConnectionCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *ConnectionClient) MapCreateBulk(slice any, setFunc func(*ConnectionCreate, int)) *ConnectionCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &ConnectionCreateBulk{err: fmt.Errorf("calling to ConnectionClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*ConnectionCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &ConnectionCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Connection.
-func (c *ConnectionClient) Update() *ConnectionUpdate {
-	mutation := newConnectionMutation(c.config, OpUpdate)
-	return &ConnectionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ConnectionClient) UpdateOne(_m *Connection) *ConnectionUpdateOne {
-	mutation := newConnectionMutation(c.config, OpUpdateOne, withConnection(_m))
-	return &ConnectionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ConnectionClient) UpdateOneID(id int64) *ConnectionUpdateOne {
-	mutation := newConnectionMutation(c.config, OpUpdateOne, withConnectionID(id))
-	return &ConnectionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Connection.
-func (c *ConnectionClient) Delete() *ConnectionDelete {
-	mutation := newConnectionMutation(c.config, OpDelete)
-	return &ConnectionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ConnectionClient) DeleteOne(_m *Connection) *ConnectionDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ConnectionClient) DeleteOneID(id int64) *ConnectionDeleteOne {
-	builder := c.Delete().Where(connection.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ConnectionDeleteOne{builder}
-}
-
-// Query returns a query builder for Connection.
-func (c *ConnectionClient) Query() *ConnectionQuery {
-	return &ConnectionQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeConnection},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Connection entity by its id.
-func (c *ConnectionClient) Get(ctx context.Context, id int64) (*Connection, error) {
-	return c.Query().Where(connection.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ConnectionClient) GetX(ctx context.Context, id int64) *Connection {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *ConnectionClient) Hooks() []Hook {
-	return c.hooks.Connection
-}
-
-// Interceptors returns the client interceptors.
-func (c *ConnectionClient) Interceptors() []Interceptor {
-	return c.inters.Connection
-}
-
-func (c *ConnectionClient) mutate(ctx context.Context, m *ConnectionMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ConnectionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ConnectionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ConnectionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ConnectionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Connection mutation op: %q", m.Op())
 	}
 }
 
@@ -11072,139 +10623,6 @@ func (c *PlatformClient) mutate(ctx context.Context, m *PlatformMutation) (Value
 	}
 }
 
-// PlatformBotClient is a client for the PlatformBot schema.
-type PlatformBotClient struct {
-	config
-}
-
-// NewPlatformBotClient returns a client for the PlatformBot from the given config.
-func NewPlatformBotClient(c config) *PlatformBotClient {
-	return &PlatformBotClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `platformbot.Hooks(f(g(h())))`.
-func (c *PlatformBotClient) Use(hooks ...Hook) {
-	c.hooks.PlatformBot = append(c.hooks.PlatformBot, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `platformbot.Intercept(f(g(h())))`.
-func (c *PlatformBotClient) Intercept(interceptors ...Interceptor) {
-	c.inters.PlatformBot = append(c.inters.PlatformBot, interceptors...)
-}
-
-// Create returns a builder for creating a PlatformBot entity.
-func (c *PlatformBotClient) Create() *PlatformBotCreate {
-	mutation := newPlatformBotMutation(c.config, OpCreate)
-	return &PlatformBotCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of PlatformBot entities.
-func (c *PlatformBotClient) CreateBulk(builders ...*PlatformBotCreate) *PlatformBotCreateBulk {
-	return &PlatformBotCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *PlatformBotClient) MapCreateBulk(slice any, setFunc func(*PlatformBotCreate, int)) *PlatformBotCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &PlatformBotCreateBulk{err: fmt.Errorf("calling to PlatformBotClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*PlatformBotCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &PlatformBotCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for PlatformBot.
-func (c *PlatformBotClient) Update() *PlatformBotUpdate {
-	mutation := newPlatformBotMutation(c.config, OpUpdate)
-	return &PlatformBotUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PlatformBotClient) UpdateOne(_m *PlatformBot) *PlatformBotUpdateOne {
-	mutation := newPlatformBotMutation(c.config, OpUpdateOne, withPlatformBot(_m))
-	return &PlatformBotUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *PlatformBotClient) UpdateOneID(id int64) *PlatformBotUpdateOne {
-	mutation := newPlatformBotMutation(c.config, OpUpdateOne, withPlatformBotID(id))
-	return &PlatformBotUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for PlatformBot.
-func (c *PlatformBotClient) Delete() *PlatformBotDelete {
-	mutation := newPlatformBotMutation(c.config, OpDelete)
-	return &PlatformBotDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *PlatformBotClient) DeleteOne(_m *PlatformBot) *PlatformBotDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *PlatformBotClient) DeleteOneID(id int64) *PlatformBotDeleteOne {
-	builder := c.Delete().Where(platformbot.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &PlatformBotDeleteOne{builder}
-}
-
-// Query returns a query builder for PlatformBot.
-func (c *PlatformBotClient) Query() *PlatformBotQuery {
-	return &PlatformBotQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypePlatformBot},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a PlatformBot entity by its id.
-func (c *PlatformBotClient) Get(ctx context.Context, id int64) (*PlatformBot, error) {
-	return c.Query().Where(platformbot.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *PlatformBotClient) GetX(ctx context.Context, id int64) *PlatformBot {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *PlatformBotClient) Hooks() []Hook {
-	return c.hooks.PlatformBot
-}
-
-// Interceptors returns the client interceptors.
-func (c *PlatformBotClient) Interceptors() []Interceptor {
-	return c.inters.PlatformBot
-}
-
-func (c *PlatformBotClient) mutate(ctx context.Context, m *PlatformBotMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&PlatformBotCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&PlatformBotUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&PlatformBotUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&PlatformBotDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown PlatformBot mutation op: %q", m.Op())
-	}
-}
-
 // PlatformChannelClient is a client for the PlatformChannel schema.
 type PlatformChannelClient struct {
 	config
@@ -11867,272 +11285,6 @@ func (c *ResourceLinkClient) mutate(ctx context.Context, m *ResourceLinkMutation
 		return (&ResourceLinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown ResourceLink mutation op: %q", m.Op())
-	}
-}
-
-// TopicClient is a client for the Topic schema.
-type TopicClient struct {
-	config
-}
-
-// NewTopicClient returns a client for the Topic from the given config.
-func NewTopicClient(c config) *TopicClient {
-	return &TopicClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `topic.Hooks(f(g(h())))`.
-func (c *TopicClient) Use(hooks ...Hook) {
-	c.hooks.Topic = append(c.hooks.Topic, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `topic.Intercept(f(g(h())))`.
-func (c *TopicClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Topic = append(c.inters.Topic, interceptors...)
-}
-
-// Create returns a builder for creating a Topic entity.
-func (c *TopicClient) Create() *TopicCreate {
-	mutation := newTopicMutation(c.config, OpCreate)
-	return &TopicCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Topic entities.
-func (c *TopicClient) CreateBulk(builders ...*TopicCreate) *TopicCreateBulk {
-	return &TopicCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *TopicClient) MapCreateBulk(slice any, setFunc func(*TopicCreate, int)) *TopicCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &TopicCreateBulk{err: fmt.Errorf("calling to TopicClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*TopicCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &TopicCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Topic.
-func (c *TopicClient) Update() *TopicUpdate {
-	mutation := newTopicMutation(c.config, OpUpdate)
-	return &TopicUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *TopicClient) UpdateOne(_m *Topic) *TopicUpdateOne {
-	mutation := newTopicMutation(c.config, OpUpdateOne, withTopic(_m))
-	return &TopicUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *TopicClient) UpdateOneID(id int64) *TopicUpdateOne {
-	mutation := newTopicMutation(c.config, OpUpdateOne, withTopicID(id))
-	return &TopicUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Topic.
-func (c *TopicClient) Delete() *TopicDelete {
-	mutation := newTopicMutation(c.config, OpDelete)
-	return &TopicDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *TopicClient) DeleteOne(_m *Topic) *TopicDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TopicClient) DeleteOneID(id int64) *TopicDeleteOne {
-	builder := c.Delete().Where(topic.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TopicDeleteOne{builder}
-}
-
-// Query returns a query builder for Topic.
-func (c *TopicClient) Query() *TopicQuery {
-	return &TopicQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeTopic},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Topic entity by its id.
-func (c *TopicClient) Get(ctx context.Context, id int64) (*Topic, error) {
-	return c.Query().Where(topic.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *TopicClient) GetX(ctx context.Context, id int64) *Topic {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *TopicClient) Hooks() []Hook {
-	return c.hooks.Topic
-}
-
-// Interceptors returns the client interceptors.
-func (c *TopicClient) Interceptors() []Interceptor {
-	return c.inters.Topic
-}
-
-func (c *TopicClient) mutate(ctx context.Context, m *TopicMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&TopicCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&TopicUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&TopicUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&TopicDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Topic mutation op: %q", m.Op())
-	}
-}
-
-// URLClient is a client for the Url schema.
-type URLClient struct {
-	config
-}
-
-// NewURLClient returns a client for the Url from the given config.
-func NewURLClient(c config) *URLClient {
-	return &URLClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `url.Hooks(f(g(h())))`.
-func (c *URLClient) Use(hooks ...Hook) {
-	c.hooks.Url = append(c.hooks.Url, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `url.Intercept(f(g(h())))`.
-func (c *URLClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Url = append(c.inters.Url, interceptors...)
-}
-
-// Create returns a builder for creating a Url entity.
-func (c *URLClient) Create() *URLCreate {
-	mutation := newURLMutation(c.config, OpCreate)
-	return &URLCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Url entities.
-func (c *URLClient) CreateBulk(builders ...*URLCreate) *URLCreateBulk {
-	return &URLCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *URLClient) MapCreateBulk(slice any, setFunc func(*URLCreate, int)) *URLCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &URLCreateBulk{err: fmt.Errorf("calling to URLClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*URLCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &URLCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Url.
-func (c *URLClient) Update() *URLUpdate {
-	mutation := newURLMutation(c.config, OpUpdate)
-	return &URLUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *URLClient) UpdateOne(_m *Url) *URLUpdateOne {
-	mutation := newURLMutation(c.config, OpUpdateOne, withUrl(_m))
-	return &URLUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *URLClient) UpdateOneID(id int64) *URLUpdateOne {
-	mutation := newURLMutation(c.config, OpUpdateOne, withUrlID(id))
-	return &URLUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Url.
-func (c *URLClient) Delete() *URLDelete {
-	mutation := newURLMutation(c.config, OpDelete)
-	return &URLDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *URLClient) DeleteOne(_m *Url) *URLDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *URLClient) DeleteOneID(id int64) *URLDeleteOne {
-	builder := c.Delete().Where(url.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &URLDeleteOne{builder}
-}
-
-// Query returns a query builder for Url.
-func (c *URLClient) Query() *URLQuery {
-	return &URLQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeURL},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Url entity by its id.
-func (c *URLClient) Get(ctx context.Context, id int64) (*Url, error) {
-	return c.Query().Where(url.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *URLClient) GetX(ctx context.Context, id int64) *Url {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *URLClient) Hooks() []Hook {
-	return c.hooks.Url
-}
-
-// Interceptors returns the client interceptors.
-func (c *URLClient) Interceptors() []Interceptor {
-	return c.inters.Url
-}
-
-func (c *URLClient) mutate(ctx context.Context, m *URLMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&URLCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&URLUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&URLUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&URLDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Url mutation op: %q", m.Op())
 	}
 }
 
@@ -13072,10 +12224,9 @@ type (
 	hooks struct {
 		Agent, AgentKnowledge, AgentMemoryFact, AgentPlan, AgentSessionSummary,
 		AgentSkill, AgentSkillFile, AgentSubagent, AgentSubagentTask, AgentTodo, App,
-		AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
-		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, FunctionDefinition,
+		AuditLog, Behavior, Bot, Channel, ChatScheduledTask, ChatScheduledTaskRun,
+		ChatSession, ChatSessionEntry, Clip, ConfigData, Counter, CounterRecord, Data,
+		DataEvent, EventConsumption, EventOutbox, Fileupload, Form, FunctionDefinition,
 		FunctionDefinitionVersion, FunctionRun, GatewayJob, GatewayWorker, Instruct,
 		LLMUsageRecord, LifeAIContext, LifeAchievement, LifeAchievementProgress,
 		LifeAchievementUnlock, LifeActionDependency, LifeActionLog,
@@ -13085,17 +12236,16 @@ type (
 		LifeRewardRedemption, LifeSkill, Message, NotificationRecord, NotifyChannel,
 		NotifyRule, NotifyTemplate, OAuth, Page, PageData, Parameter,
 		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
-		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, ResourceLink, Topic, Url, User, WebAccount, Workflow,
-		WorkflowRun, WorkflowStepRun, WorkflowTask, WorkflowTrigger []ent.Hook
+		Platform, PlatformChannel, PlatformChannelUser, PlatformUser, PollingState,
+		ResourceLink, User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun,
+		WorkflowTask, WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, AgentKnowledge, AgentMemoryFact, AgentPlan, AgentSessionSummary,
 		AgentSkill, AgentSkillFile, AgentSubagent, AgentSubagentTask, AgentTodo, App,
-		AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
-		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, FunctionDefinition,
+		AuditLog, Behavior, Bot, Channel, ChatScheduledTask, ChatScheduledTaskRun,
+		ChatSession, ChatSessionEntry, Clip, ConfigData, Counter, CounterRecord, Data,
+		DataEvent, EventConsumption, EventOutbox, Fileupload, Form, FunctionDefinition,
 		FunctionDefinitionVersion, FunctionRun, GatewayJob, GatewayWorker, Instruct,
 		LLMUsageRecord, LifeAIContext, LifeAchievement, LifeAchievementProgress,
 		LifeAchievementUnlock, LifeActionDependency, LifeActionLog,
@@ -13105,8 +12255,8 @@ type (
 		LifeRewardRedemption, LifeSkill, Message, NotificationRecord, NotifyChannel,
 		NotifyRule, NotifyTemplate, OAuth, Page, PageData, Parameter,
 		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
-		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, ResourceLink, Topic, Url, User, WebAccount, Workflow,
-		WorkflowRun, WorkflowStepRun, WorkflowTask, WorkflowTrigger []ent.Interceptor
+		Platform, PlatformChannel, PlatformChannelUser, PlatformUser, PollingState,
+		ResourceLink, User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun,
+		WorkflowTask, WorkflowTrigger []ent.Interceptor
 	}
 )

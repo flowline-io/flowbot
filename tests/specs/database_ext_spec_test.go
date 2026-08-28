@@ -17,70 +17,6 @@ import (
 var _ = Describe("Database Extended Models", Label("database", "integration"), func() {
 	ctx := context.Background()
 
-	Describe("Topic", func() {
-		It("creates a new topic with valid data", func() {
-			t, err := EntClient.Topic.Create().
-				SetFlag("topic-" + types.Id()).
-				SetPlatform("test").
-				SetOwner(0).
-				SetName("Test Topic").
-				SetType("channel").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(t.ID).NotTo(BeZero())
-
-			EntClient.Topic.DeleteOne(t).Exec(ctx)
-		})
-
-		It("retrieves a topic by ID", func() {
-			t, err := EntClient.Topic.Create().
-				SetFlag("topic-get-" + types.Id()).
-				SetPlatform("test").
-				SetOwner(0).
-				SetName("Get Topic").
-				SetType("channel").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			got, err := EntClient.Topic.Get(ctx, t.ID)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(got.Name).To(Equal("Get Topic"))
-
-			EntClient.Topic.DeleteOne(t).Exec(ctx)
-		})
-
-		It("updates topic fields", func() {
-			t, err := EntClient.Topic.Create().
-				SetFlag("topic-upd-" + types.Id()).
-				SetPlatform("test").
-				SetOwner(0).
-				SetName("Original").
-				SetType("channel").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			updated, err := EntClient.Topic.UpdateOne(t).SetName("Updated").Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(updated.Name).To(Equal("Updated"))
-
-			EntClient.Topic.DeleteOne(t).Exec(ctx)
-		})
-
-		It("hard-deletes a topic", func() {
-			t, err := EntClient.Topic.Create().
-				SetFlag("topic-del-" + types.Id()).
-				SetPlatform("test").
-				SetOwner(0).
-				SetName("Delete Topic").
-				SetType("channel").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = EntClient.Topic.DeleteOne(t).Exec(ctx)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-
 	Describe("Fileupload", func() {
 		It("creates a new file upload record", func() {
 			f, err := EntClient.Fileupload.Create().
@@ -149,69 +85,6 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 		})
 	})
 
-	Describe("URL", func() {
-		It("creates a new URL record", func() {
-			u, err := EntClient.Url.Create().
-				SetFlag("url-" + types.Id()).
-				SetURL("https://example.com").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(u.ID).NotTo(BeZero())
-
-			EntClient.Url.DeleteOne(u).Exec(ctx)
-		})
-
-		It("defaults view count to zero on creation", func() {
-			u, err := EntClient.Url.Create().
-				SetFlag("url-view-" + types.Id()).
-				SetURL("https://example.com/page").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(u.ViewCount).To(Equal(int32(0)))
-
-			EntClient.Url.DeleteOne(u).Exec(ctx)
-		})
-
-		It("increments view count", func() {
-			u, err := EntClient.Url.Create().
-				SetFlag("url-inc-" + types.Id()).
-				SetURL("https://example.com/inc").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			updated, err := EntClient.Url.UpdateOne(u).SetViewCount(5).Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(updated.ViewCount).To(Equal(int32(5)))
-
-			EntClient.Url.DeleteOne(u).Exec(ctx)
-		})
-
-		It("updates URL fields", func() {
-			u, err := EntClient.Url.Create().
-				SetFlag("url-upd-" + types.Id()).
-				SetURL("https://example.com/old").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			updated, err := EntClient.Url.UpdateOne(u).SetURL("https://example.com/new").Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(updated.URL).To(Equal("https://example.com/new"))
-
-			EntClient.Url.DeleteOne(u).Exec(ctx)
-		})
-
-		It("deletes a URL record", func() {
-			u, err := EntClient.Url.Create().
-				SetFlag("url-del-" + types.Id()).
-				SetURL("https://example.com/del").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = EntClient.Url.DeleteOne(u).Exec(ctx)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-
 	Describe("App", func() {
 		It("creates a new app registration", func() {
 			a, err := EntClient.App.Create().
@@ -260,58 +133,6 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 			Expect(err).NotTo(HaveOccurred())
 
 			err = EntClient.App.DeleteOne(a).Exec(ctx)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-
-	Describe("CapabilityBinding", func() {
-		It("creates a new capability binding", func() {
-			cb, err := EntClient.CapabilityBinding.Create().
-				SetCapability("karakeep").
-				SetApp("test-app").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cb.ID).NotTo(BeZero())
-
-			EntClient.CapabilityBinding.DeleteOne(cb).Exec(ctx)
-		})
-
-		It("retrieves a binding by ID", func() {
-			cb, err := EntClient.CapabilityBinding.Create().
-				SetCapability("miniflux").
-				SetApp("reader-app").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			got, err := EntClient.CapabilityBinding.Get(ctx, cb.ID)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(got.Capability).To(Equal("miniflux"))
-
-			EntClient.CapabilityBinding.DeleteOne(cb).Exec(ctx)
-		})
-
-		It("updates binding fields", func() {
-			cb, err := EntClient.CapabilityBinding.Create().
-				SetCapability("kanboard").
-				SetApp("kanban-app").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			updated, err := EntClient.CapabilityBinding.UpdateOne(cb).SetHealthy(true).Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(updated.Healthy).To(BeTrue())
-
-			EntClient.CapabilityBinding.DeleteOne(cb).Exec(ctx)
-		})
-
-		It("deletes a binding", func() {
-			cb, err := EntClient.CapabilityBinding.Create().
-				SetCapability("archive").
-				SetApp("archive-app").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = EntClient.CapabilityBinding.DeleteOne(cb).Exec(ctx)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -427,70 +248,6 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 			Expect(err).NotTo(HaveOccurred())
 
 			err = EntClient.Parameter.DeleteOne(p).Exec(ctx)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-
-	Describe("Connection", func() {
-		It("creates a new connection", func() {
-			c, err := EntClient.Connection.Create().
-				SetUID("uid-" + types.Id()).
-				SetTopic("conn-topic").
-				SetName("test-conn").
-				SetType("slack").
-				SetConfig(map[string]any{"token": "xxx"}).
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(c.ID).NotTo(BeZero())
-
-			EntClient.Connection.DeleteOne(c).Exec(ctx)
-		})
-
-		It("retrieves a connection by ID", func() {
-			c, err := EntClient.Connection.Create().
-				SetUID("uid-" + types.Id()).
-				SetTopic("conn-get").
-				SetName("get-conn").
-				SetType("discord").
-				SetConfig(map[string]any{}).
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			got, err := EntClient.Connection.Get(ctx, c.ID)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(got.Name).To(Equal("get-conn"))
-
-			EntClient.Connection.DeleteOne(c).Exec(ctx)
-		})
-
-		It("updates connection fields", func() {
-			c, err := EntClient.Connection.Create().
-				SetUID("uid-" + types.Id()).
-				SetTopic("conn-upd").
-				SetName("upd-conn").
-				SetType("email").
-				SetConfig(map[string]any{}).
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			updated, err := EntClient.Connection.UpdateOne(c).SetEnabled(false).Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(updated.Enabled).To(BeFalse())
-
-			EntClient.Connection.DeleteOne(c).Exec(ctx)
-		})
-
-		It("deletes a connection", func() {
-			c, err := EntClient.Connection.Create().
-				SetUID("uid-" + types.Id()).
-				SetTopic("conn-del").
-				SetName("del-conn").
-				SetType("manual").
-				SetConfig(map[string]any{}).
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = EntClient.Connection.DeleteOne(c).Exec(ctx)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
