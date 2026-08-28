@@ -7,6 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func (h *chatAgentHTTP) getPermissions(c fiber.Ctx) error {
@@ -40,7 +41,7 @@ func (h *chatAgentHTTP) putPermissions(c fiber.Ctx) error {
 	}
 	cfg, err := chatagent.ParsePermissionsBody(c.Body())
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	if err := chatagent.SaveUserPermissions(c.Context(), rc.UID, cfg); err != nil {
 		return chatAgentError(c, err)

@@ -603,6 +603,15 @@ other = "暂停流水线"
 [confirm.pause_pipeline.btn]
 other = "暂停"
 
+[confirm.retry_pipeline_run.message]
+other = "从第一个失败步骤重试此运行？已成功的步骤不会再执行。如果该步骤其实已经成功，重试可能会产生重复结果。"
+
+[confirm.retry_pipeline_run.title]
+other = "重试运行"
+
+[confirm.retry_pipeline_run.btn]
+other = "重试"
+
 [confirm.delete_workflow.message]
 other = "删除此工作流？关联的运行记录也会一并移除。"
 
@@ -961,6 +970,24 @@ other = "工作流已禁用"
 
 [toast.workflow.enabled]
 other = "工作流已启用"
+
+[toast.pipeline.retry_not_failed]
+other = "只有失败的运行可以重试"
+
+[toast.pipeline.retry_unpublished]
+other = "此流水线已不再处于已发布状态"
+
+[toast.pipeline.retry_step_missing]
+other = "失败步骤已不在已发布定义中"
+
+[toast.pipeline.retry_event_missing]
+other = "原始事件已不可用"
+
+[toast.pipeline.retry_conflict]
+other = "此运行正在重试中"
+
+[toast.pipeline.retry_failed]
+other = "重试此运行失败"
 
 [toast.token.not_found]
 other = "未找到 Token"

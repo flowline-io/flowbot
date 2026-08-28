@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/pipeline/template"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/audit"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -266,6 +266,19 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 
 			err := eng.ResumePipeline(context.Background(), 99999)
 			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Describe("RetryFailedRun", func() {
+		It("refuses a run that is not failed", func() {
+			runStore := store.NewPipelineRunStoreAdapter(store.NewPipelineStore(EntClient))
+			run, err := runStore.CreateRun(context.Background(), "retry-spec-"+types.Id(), "evt-retry-spec-"+types.Id(), "test.event", "event")
+			Expect(err).NotTo(HaveOccurred())
+			eng := pipeline.NewEngine([]pipeline.Definition{{Name: run.PipelineName}}, runStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			DeferCleanup(eng.Stop)
+
+			err = eng.RetryFailedRun(context.Background(), run.ID, types.DataEvent{EventID: run.EventID})
+			Expect(err).To(MatchError(pipeline.ErrRetryNotFailed))
 		})
 	})
 

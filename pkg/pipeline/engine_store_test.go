@@ -1,11 +1,14 @@
 package pipeline
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -35,14 +38,17 @@ type mockPipelineStore struct {
 	hasConsumed          bool
 	hasConsumedErr       error
 	recordConsumptionErr error
+	stepRunOwner         map[int64]int64
+	claimErr             error
 }
 
 func newMockPipelineStore() *mockPipelineStore {
 	return &mockPipelineStore{
-		runs:        make(map[int64]*model.PipelineRun),
-		stepRuns:    make(map[int64]*model.PipelineStepRun),
-		checkpoints: make(map[int64]*CheckpointData),
-		consumed:    make(map[string]map[string]bool),
+		runs:         make(map[int64]*model.PipelineRun),
+		stepRuns:     make(map[int64]*model.PipelineStepRun),
+		checkpoints:  make(map[int64]*CheckpointData),
+		consumed:     make(map[string]map[string]bool),
+		stepRunOwner: make(map[int64]int64),
 	}
 }
 
@@ -75,7 +81,7 @@ func (m *mockPipelineStore) UpdateRunStatus(_ context.Context, runID int64, stat
 	return nil
 }
 
-func (m *mockPipelineStore) CreateStepRun(_ context.Context, _ int64, stepName, capName, operation string, params map[string]any, attempt int) (*model.PipelineStepRun, error) {
+func (m *mockPipelineStore) CreateStepRun(_ context.Context, runID int64, stepName, capName, operation string, params map[string]any, attempt int) (*model.PipelineStepRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextStepID++
@@ -89,6 +95,7 @@ func (m *mockPipelineStore) CreateStepRun(_ context.Context, _ int64, stepName, 
 		Status:     int(types.PipelineStart),
 	}
 	m.stepRuns[sr.ID] = sr
+	m.stepRunOwner[sr.ID] = runID
 	return sr, nil
 }
 
@@ -101,6 +108,52 @@ func (m *mockPipelineStore) UpdateStepRun(_ context.Context, stepRunID int64, st
 		sr.Error = errMsg
 		sr.Attempt = attempt
 	}
+	return nil
+}
+
+func (m *mockPipelineStore) ListStepRuns(_ context.Context, runID int64) ([]*model.PipelineStepRun, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([]*model.PipelineStepRun, 0)
+	for id, owner := range m.stepRunOwner {
+		if owner != runID {
+			continue
+		}
+		out = append(out, m.stepRuns[id])
+	}
+	slices.SortFunc(out, func(a, b *model.PipelineStepRun) int { return cmp.Compare(a.ID, b.ID) })
+	return out, nil
+}
+
+func (m *mockPipelineStore) ClaimFailedRun(_ context.Context, runID int64) error {
+	if m.claimErr != nil {
+		return m.claimErr
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	run, ok := m.runs[runID]
+	if !ok || run.Status != int(types.PipelineFailed) {
+		return types.ErrConflict
+	}
+	run.Status = int(types.PipelineStart)
+	run.Error = ""
+	run.CompletedAt = nil
+	return nil
+}
+
+func (m *mockPipelineStore) PrepareStepRetry(_ context.Context, stepRunID int64, params map[string]any, attempt int) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	sr, ok := m.stepRuns[stepRunID]
+	if !ok {
+		return errors.New("step run not found")
+	}
+	sr.Status = int(types.PipelineStart)
+	sr.Params = params
+	sr.Attempt = attempt
+	sr.Error = ""
+	sr.Result = nil
+	sr.CompletedAt = nil
 	return nil
 }
 
@@ -188,6 +241,8 @@ func (m *mockPipelineStore) RecordResourceLink(_ context.Context, link model.Res
 	m.links = append(m.links, link)
 	return nil
 }
+
+var _ RunStore = (*mockPipelineStore)(nil)
 
 func registerExampleInvoker(t *testing.T, operation string, fn capability.Invoker) {
 	t.Helper()
@@ -1019,4 +1074,308 @@ func TestCheckpointDataJSONRoundTrip(t *testing.T) {
 	var decoded CheckpointData
 	require.NoError(t, sonic.Unmarshal(raw, &decoded))
 	assert.Equal(t, cp.StepIndex, decoded.StepIndex)
+}
+
+func waitCallback(t *testing.T, cb *mockStepCallback, method string, runID int64) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		cb.mu.Lock()
+		defer cb.mu.Unlock()
+		for _, c := range cb.calls {
+			if c.method == method && c.runID == runID {
+				return true
+			}
+		}
+		return false
+	}, 2*time.Second, 10*time.Millisecond)
+}
+
+func seedFailedTwoStepRun(t *testing.T, store *mockPipelineStore, name, eventID string) *model.PipelineRun {
+	t.Helper()
+	ctx := context.Background()
+	run, err := store.CreateRun(ctx, name, eventID, "item.updated", "event")
+	require.NoError(t, err)
+	s1, err := store.CreateStepRun(ctx, run.ID, "s1", string(hub.CapExample), "retry-s1", map[string]any{"k": "1"}, 1)
+	require.NoError(t, err)
+	require.NoError(t, store.UpdateStepRun(ctx, s1.ID, int(types.PipelineDone), map[string]any{"v": "from-s1"}, "", 1))
+	s2, err := store.CreateStepRun(ctx, run.ID, "s2", string(hub.CapExample), "retry-s2", map[string]any{"x": "old"}, 1)
+	require.NoError(t, err)
+	require.NoError(t, store.UpdateStepRun(ctx, s2.ID, int(types.PipelineFailed), nil, "boom", 1))
+	require.NoError(t, store.UpdateRunStatus(ctx, run.ID, int(types.PipelineFailed), "step s2: boom"))
+	return run
+}
+
+func TestRetryStartIndex(t *testing.T) {
+	t.Parallel()
+	steps := []Step{{Name: "a"}, {Name: "b"}, {Name: "c"}}
+	tests := []struct {
+		name      string
+		steps     []Step
+		stepRuns  []*model.PipelineStepRun
+		wantIndex int
+		wantErr   error
+	}{
+		{
+			name:  "starts at first failed step when prefix is done",
+			steps: steps,
+			stepRuns: []*model.PipelineStepRun{
+				{StepName: "a", Status: int(types.PipelineDone), Result: map[string]any{"ok": true}},
+				{StepName: "b", Status: int(types.PipelineFailed), Attempt: 1},
+			},
+			wantIndex: 1,
+		},
+		{
+			name:  "starts at inserted step that has no done result",
+			steps: []Step{{Name: "new"}, {Name: "a"}, {Name: "b"}},
+			stepRuns: []*model.PipelineStepRun{
+				{StepName: "a", Status: int(types.PipelineDone), Result: map[string]any{"ok": true}},
+				{StepName: "b", Status: int(types.PipelineFailed)},
+			},
+			wantIndex: 0,
+		},
+		{
+			name:  "refuses when failed step name is gone",
+			steps: []Step{{Name: "other"}},
+			stepRuns: []*model.PipelineStepRun{
+				{StepName: "task", Status: int(types.PipelineFailed)},
+			},
+			wantErr: ErrRetryStepMissing,
+		},
+		{
+			name:     "refuses when no failed step exists",
+			steps:    steps,
+			stepRuns: []*model.PipelineStepRun{{StepName: "a", Status: int(types.PipelineDone)}},
+			wantErr:  ErrRetryNotFailed,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := retryStartIndex(tt.steps, tt.stepRuns)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantIndex, got)
+		})
+	}
+}
+
+func TestEngine_RetryFailedRun_skipsSuccessfulSteps(t *testing.T) {
+	t.Parallel()
+	op1 := "retry-s1-" + types.Id()
+	op2 := "retry-s2-" + types.Id()
+	var s1Calls, s2Calls atomic.Int32
+	registerExampleInvoker(t, op1, func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		s1Calls.Add(1)
+		return &capability.InvokeResult{Data: map[string]any{"v": "fresh-s1"}}, nil
+	})
+	registerExampleInvoker(t, op2, func(_ context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		s2Calls.Add(1)
+		assert.Equal(t, "from-s1", params["x"])
+		return &capability.InvokeResult{Data: map[string]any{"ok": true}}, nil
+	})
+
+	store := newMockPipelineStore()
+	run := seedFailedTwoStepRun(t, store, "retry-pl", "evt-retry-ok")
+	def := Definition{
+		Name:    "retry-pl",
+		Enabled: true,
+		Trigger: Trigger{Event: "item.updated"},
+		Steps: []Step{
+			{Name: "s1", Capability: hub.CapExample, Operation: op1},
+			{Name: "s2", Capability: hub.CapExample, Operation: op2, Params: map[string]any{"x": `{{step "s1" "v"}}`}},
+		},
+	}
+	cb := &mockStepCallback{}
+	e := NewEngine([]Definition{def}, store, nil, noopPC, noopEC)
+	defer e.Stop()
+	e.SetCallback(cb)
+
+	err := e.RetryFailedRun(context.Background(), run.ID, types.DataEvent{
+		EventID: "evt-retry-ok", EventType: "item.updated",
+	})
+	require.NoError(t, err)
+	waitCallback(t, cb, "OnRunComplete", run.ID)
+
+	got, err := store.GetRun(context.Background(), run.ID)
+	require.NoError(t, err)
+	assert.Equal(t, int(types.PipelineDone), got.Status)
+	assert.Equal(t, int32(0), s1Calls.Load())
+	assert.Equal(t, int32(1), s2Calls.Load())
+
+	steps, err := store.ListStepRuns(context.Background(), run.ID)
+	require.NoError(t, err)
+	require.Len(t, steps, 2)
+	assert.Equal(t, int(types.PipelineDone), steps[1].Status)
+	assert.Equal(t, 2, steps[1].Attempt)
+	assert.Empty(t, steps[1].Error)
+}
+
+func TestEngine_RetryFailedRun_skipsDoneStepsWhenEarlierStepInserted(t *testing.T) {
+	t.Parallel()
+	opNew := "retry-new-" + types.Id()
+	op1 := "retry-keep-" + types.Id()
+	op2 := "retry-fail-" + types.Id()
+	var newCalls, s1Calls, s2Calls atomic.Int32
+	registerExampleInvoker(t, opNew, func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		newCalls.Add(1)
+		return &capability.InvokeResult{Data: map[string]any{"v": "from-new"}}, nil
+	})
+	registerExampleInvoker(t, op1, func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		s1Calls.Add(1)
+		return &capability.InvokeResult{Data: map[string]any{"v": "fresh-s1"}}, nil
+	})
+	registerExampleInvoker(t, op2, func(_ context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		s2Calls.Add(1)
+		assert.Equal(t, "from-s1", params["x"])
+		return &capability.InvokeResult{Data: map[string]any{"ok": true}}, nil
+	})
+
+	store := newMockPipelineStore()
+	defs := ExpandDefinitions([]EditorDefinition{{
+		Name: "retry-insert", Enabled: true,
+		Triggers: []TriggerEntry{{Type: "event", Enabled: true, Event: "item.updated"}},
+		Steps: []Step{
+			{Name: "new", Capability: hub.CapExample, Operation: opNew},
+			{Name: "s1", Capability: hub.CapExample, Operation: op1},
+			{Name: "s2", Capability: hub.CapExample, Operation: op2, Params: map[string]any{"x": `{{step "s1" "v"}}`}},
+		},
+	}})
+	require.Len(t, defs, 1)
+	run := seedFailedTwoStepRun(t, store, defs[0].Name, "evt-retry-insert")
+	cb := &mockStepCallback{}
+	e := NewEngine(defs, store, nil, noopPC, noopEC)
+	defer e.Stop()
+	e.SetCallback(cb)
+
+	require.NoError(t, e.RetryFailedRun(context.Background(), run.ID, types.DataEvent{
+		EventID: "evt-retry-insert", EventType: "item.updated",
+	}))
+	waitCallback(t, cb, "OnRunComplete", run.ID)
+
+	assert.Equal(t, int32(1), newCalls.Load())
+	assert.Equal(t, int32(0), s1Calls.Load())
+	assert.Equal(t, int32(1), s2Calls.Load())
+
+	steps, err := store.ListStepRuns(context.Background(), run.ID)
+	require.NoError(t, err)
+	require.Len(t, steps, 3)
+	var s1Count int
+	for _, sr := range steps {
+		if sr.StepName == "s1" {
+			s1Count++
+			assert.Equal(t, int(types.PipelineDone), sr.Status)
+			assert.Equal(t, 1, sr.Attempt)
+		}
+	}
+	assert.Equal(t, 1, s1Count)
+}
+
+func TestEngine_RetryFailedRun_runsWhenPublishedDefinitionIsPaused(t *testing.T) {
+	t.Parallel()
+	op := "retry-paused-" + types.Id()
+	registerExampleInvoker(t, op, func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		return &capability.InvokeResult{Data: map[string]any{"ok": true}}, nil
+	})
+	store := newMockPipelineStore()
+	defs := ExpandDefinitions([]EditorDefinition{{
+		Name: "retry-paused", Enabled: false,
+		Triggers: []TriggerEntry{{Type: "event", Enabled: true, Event: "item.updated"}},
+		Steps: []Step{
+			{Name: "s1", Capability: hub.CapExample, Operation: op},
+			{Name: "s2", Capability: hub.CapExample, Operation: op},
+		},
+	}})
+	require.Len(t, defs, 1)
+	assert.False(t, defs[0].Enabled)
+	run := seedFailedTwoStepRun(t, store, defs[0].Name, "evt-retry-paused")
+	cb := &mockStepCallback{}
+	e := NewEngine(defs, store, nil, noopPC, noopEC)
+	defer e.Stop()
+	e.SetCallback(cb)
+
+	require.NoError(t, e.Handler()(context.Background(), types.DataEvent{
+		EventID: "evt-paused-fire", EventType: "item.updated",
+	}))
+	store.mu.Lock()
+	runCount := len(store.runs)
+	store.mu.Unlock()
+	assert.Equal(t, 1, runCount)
+
+	require.NoError(t, e.RetryFailedRun(context.Background(), run.ID, types.DataEvent{EventID: "evt-retry-paused"}))
+	waitCallback(t, cb, "OnRunComplete", run.ID)
+	got, err := store.GetRun(context.Background(), run.ID)
+	require.NoError(t, err)
+	assert.Equal(t, int(types.PipelineDone), got.Status)
+}
+
+func TestEngine_RetryFailedRun_Errors(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T) (*Engine, int64, types.DataEvent)
+		wantErr error
+	}{
+		{
+			name: "not failed",
+			setup: func(t *testing.T) (*Engine, int64, types.DataEvent) {
+				store := newMockPipelineStore()
+				run, err := store.CreateRun(context.Background(), "retry-pl", "evt-ok", "t", "event")
+				require.NoError(t, err)
+				e := NewEngine([]Definition{{Name: "retry-pl"}}, store, nil, noopPC, noopEC)
+				return e, run.ID, types.DataEvent{EventID: "evt-ok"}
+			},
+			wantErr: ErrRetryNotFailed,
+		},
+		{
+			name: "missing definition",
+			setup: func(t *testing.T) (*Engine, int64, types.DataEvent) {
+				store := newMockPipelineStore()
+				run := seedFailedTwoStepRun(t, store, "gone-pl", "evt-gone")
+				e := NewEngine(nil, store, nil, noopPC, noopEC)
+				return e, run.ID, types.DataEvent{EventID: "evt-gone"}
+			},
+			wantErr: ErrRetryDefMissing,
+		},
+		{
+			name: "missing failed step name",
+			setup: func(t *testing.T) (*Engine, int64, types.DataEvent) {
+				store := newMockPipelineStore()
+				run := seedFailedTwoStepRun(t, store, "rename-pl", "evt-rename")
+				def := Definition{
+					Name:  "rename-pl",
+					Steps: []Step{{Name: "renamed"}},
+				}
+				e := NewEngine([]Definition{def}, store, nil, noopPC, noopEC)
+				return e, run.ID, types.DataEvent{EventID: "evt-rename"}
+			},
+			wantErr: ErrRetryStepMissing,
+		},
+		{
+			name: "claim conflict",
+			setup: func(t *testing.T) (*Engine, int64, types.DataEvent) {
+				store := newMockPipelineStore()
+				store.claimErr = types.ErrConflict
+				run := seedFailedTwoStepRun(t, store, "conflict-pl", "evt-conflict")
+				def := Definition{
+					Name:  "conflict-pl",
+					Steps: []Step{{Name: "s1"}, {Name: "s2"}},
+				}
+				e := NewEngine([]Definition{def}, store, nil, noopPC, noopEC)
+				return e, run.ID, types.DataEvent{EventID: "evt-conflict"}
+			},
+			wantErr: types.ErrConflict,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e, runID, event := tt.setup(t)
+			defer e.Stop()
+			err := e.RetryFailedRun(context.Background(), runID, event)
+			require.ErrorIs(t, err, tt.wantErr)
+		})
+	}
 }

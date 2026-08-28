@@ -50,6 +50,7 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines/:name/runs", pipelineRunsPage),
 	webservice.Get("/pipelines/:name/runs/list", pipelineRunsTable),
 	webservice.Get("/pipelines/:name/runs/:runID/steps", pipelineRunSteps),
+	webservice.Post("/pipelines/:name/runs/:runID/retry", retryPipelineRun),
 	webservice.Get("/pipelines/:name/runs/:runID/live", pipelineRunLivePage),
 	webservice.Get("/pipelines/:name/runs/:runID/live/watch", watchPipelineRunLive),
 	webservice.Get("/pipelines/:name/stats", pipelineStats),
@@ -552,17 +553,104 @@ func pipelineRunsTable(c fiber.Ctx) error {
 }
 
 func pipelineRunSteps(c fiber.Ctx) error {
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	runID, err := strconv.ParseInt(c.Params("runID"), 10, 64)
 	if err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid run ID: %v", err)
 	}
 	s := getPipelineDefStore()
+	run, err := s.GetRunByID(context.Background(), runID)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return types.Errorf(types.ErrNotFound, "pipeline run %d", runID)
+		}
+		return types.Errorf(types.ErrInternal, "get run: %v", err)
+	}
+	if run == nil || !pipeline.RunBelongsToParent(run.PipelineName, name) {
+		return types.Errorf(types.ErrNotFound, "pipeline run %d", runID)
+	}
 	steps, err := s.GetStepRunsByRunID(context.Background(), runID)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "get step runs: %v", err)
 	}
+	retry := partials.PipelineRunRetry{
+		PipelineName: name,
+		RunID:        runID,
+		Enabled:      run.Status == int(types.PipelineFailed),
+	}
 	c.Type("html")
-	return partials.PipelineStepRunsDetail(c.Context(), mapPipelineStepRuns(steps)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineStepRunsDetail(c.Context(), mapPipelineStepRuns(steps), retry).Render(c.Context(), c.Response().BodyWriter())
+}
+
+func retryPipelineRun(c fiber.Ctx) error {
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
+	runID, err := strconv.ParseInt(c.Params("runID"), 10, 64)
+	if err != nil {
+		return toastErrorKey(c, "error.pipeline.invalid_run_id")
+	}
+	s := getPipelineDefStore()
+	if s == nil {
+		return toastErrorKey(c, "toast.pipeline.retry_failed")
+	}
+	run, err := s.GetRunByID(c.Context(), runID)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return toastErrorKey(c, "error.pipeline.run_not_found")
+		}
+		flog.Error(fmt.Errorf("retry pipeline run %d: %w", runID, err))
+		return toastErrorKey(c, "toast.pipeline.retry_failed")
+	}
+	if run == nil || !pipeline.RunBelongsToParent(run.PipelineName, name) {
+		return toastErrorKey(c, "error.pipeline.run_not_found")
+	}
+	if run.Status != int(types.PipelineFailed) {
+		return toastErrorKey(c, "toast.pipeline.retry_not_failed")
+	}
+
+	es := getEventStore()
+	if es == nil {
+		return toastErrorKey(c, "toast.pipeline.retry_failed")
+	}
+	row, err := es.GetDataEventByEventID(c.Context(), run.EventID)
+	if err != nil {
+		flog.Error(fmt.Errorf("retry pipeline run %d load event: %w", runID, err))
+		return toastErrorKey(c, "toast.pipeline.retry_failed")
+	}
+	if row == nil {
+		return toastErrorKey(c, "toast.pipeline.retry_event_missing")
+	}
+
+	eng := pipeline.ActiveEngine()
+	if eng == nil {
+		return toastErrorKey(c, "toast.pipeline.retry_failed")
+	}
+	if err := eng.RetryFailedRun(c.Context(), runID, store.DataEventFromRow(row)); err != nil {
+		return toastRetryPipelineError(c, err)
+	}
+	c.Response().Header.Set("HX-Redirect", partials.PipelineRunLivePath(name, runID))
+	return c.SendStatus(http.StatusOK)
+}
+
+func toastRetryPipelineError(c fiber.Ctx, err error) error {
+	switch {
+	case errors.Is(err, pipeline.ErrRetryNotFailed):
+		return toastErrorKey(c, "toast.pipeline.retry_not_failed")
+	case errors.Is(err, pipeline.ErrRetryDefMissing):
+		return toastErrorKey(c, "toast.pipeline.retry_unpublished")
+	case errors.Is(err, pipeline.ErrRetryStepMissing):
+		return toastErrorKey(c, "toast.pipeline.retry_step_missing")
+	case errors.Is(err, types.ErrConflict):
+		return toastErrorKey(c, "toast.pipeline.retry_conflict")
+	default:
+		flog.Error(fmt.Errorf("retry pipeline run: %w", err))
+		return toastErrorKey(c, "toast.pipeline.retry_failed")
+	}
 }
 
 // getCapabilities returns all registered capabilities with their operations

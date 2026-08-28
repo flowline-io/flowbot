@@ -274,18 +274,16 @@ func validateCronExpr(spec string) error {
 func ExpandDefinitions(defs []EditorDefinition) []Definition {
 	var expanded []Definition
 	for _, d := range defs {
-		if !d.Enabled {
-			continue
-		}
 		for i, t := range d.Triggers {
-			if !t.Enabled {
+			active := d.Enabled && t.Enabled
+			if !active && d.Enabled {
 				continue
 			}
 			compoundName := fmt.Sprintf("%s__trigger_%s_%d", d.Name, t.Type, i)
 			expanded = append(expanded, Definition{
 				Name:        compoundName,
 				Description: d.Description,
-				Enabled:     true,
+				Enabled:     active,
 				Resumable:   d.Resumable,
 				Trigger:     t.toEngineTrigger(),
 				Steps:       d.Steps,
@@ -294,6 +292,16 @@ func ExpandDefinitions(defs []EditorDefinition) []Definition {
 		}
 	}
 	return expanded
+}
+
+// RunBelongsToParent reports whether a run's engine name is the parent pipeline
+// or a compound trigger name (parent__trigger_*).
+func RunBelongsToParent(pipelineName, parent string) bool {
+	parent = strings.TrimSpace(parent)
+	if parent == "" {
+		return false
+	}
+	return pipelineName == parent || strings.HasPrefix(pipelineName, parent+"__trigger_")
 }
 
 func (t TriggerEntry) toEngineTrigger() Trigger {

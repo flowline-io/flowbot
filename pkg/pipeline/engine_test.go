@@ -322,6 +322,20 @@ func TestEngine_RegisterWebhooks(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "skips paused webhook definitions",
+			defs: []Definition{
+				{
+					Name: "wh-off", Enabled: false,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "paused", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+				{
+					Name: "wh-on", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "live", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+			},
+			wantPaths: []string{"live"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -334,6 +348,7 @@ func TestEngine_RegisterWebhooks(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
+			assert.Len(t, m, len(tt.wantPaths))
 			for _, p := range tt.wantPaths {
 				assert.Contains(t, m, p)
 			}
@@ -429,6 +444,17 @@ func TestEngine_LookupWebhook(t *testing.T) {
 			name: "skips non-webhook definitions",
 			defs: []Definition{
 				{Name: "ev1", Enabled: true, Trigger: Trigger{Event: "e1"}},
+			},
+			path:   "a",
+			wantOK: false,
+		},
+		{
+			name: "skips paused webhook",
+			defs: []Definition{
+				{
+					Name: "wh1", Enabled: false,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "a", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
 			},
 			path:   "a",
 			wantOK: false,

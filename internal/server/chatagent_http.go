@@ -83,7 +83,7 @@ func (*chatAgentHTTP) info(c fiber.Ctx) error {
 	}
 	info, err := chatagent.BuildAgentInfo(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	return c.JSON(info)
 }
@@ -121,16 +121,16 @@ func requireChatAgentEnabled() error {
 
 func chatAgentError(c fiber.Ctx, err error) error {
 	if errors.Is(err, chatagent.ErrChatAgentDisabled) {
-		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	if errors.Is(err, chatagent.ErrRunInFlight) {
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	if status, ok := domainErrorStatus(err); ok {
-		return c.Status(status).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(status).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	flog.Warn("[chat-agent] http error: %v", err)
-	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": types.ClientMessage(err)})
 }
 
 func writeChatAgentSSE(w *bufio.Writer, event chatagent.StreamEvent) bool {

@@ -144,7 +144,7 @@ func TestWrapError(t *testing.T) {
 		err := WrapError(ErrProvider, "provider failed", cause)
 
 		require.ErrorIs(t, err, ErrProvider)
-		assert.Equal(t, "provider failed", err.Error())
+		assert.Equal(t, "provider failed: root cause", err.Error())
 
 		var fe *Error
 		require.ErrorAs(t, err, &fe)
@@ -168,11 +168,64 @@ func TestErrorf(t *testing.T) {
 	})
 }
 
-func TestError_Error_MessageOverridesCause(t *testing.T) {
+func TestError_Error_JoinsCause(t *testing.T) {
 	t.Parallel()
-	t.Run("message overrides cause", func(t *testing.T) {
-		t.Parallel()
-		e := &Error{Message: "wrapped error", Cause: errors.New("root")}
-		assert.Equal(t, "wrapped error", e.Error())
-	})
+	tests := []struct {
+		name string
+		err  *Error
+		want string
+	}{
+		{
+			name: "message and cause",
+			err:  &Error{Message: "kanboard create task", Cause: errors.New("failed to create task, json: cannot unmarshal bool into Go value of type int64")},
+			want: "kanboard create task: failed to create task, json: cannot unmarshal bool into Go value of type int64",
+		},
+		{
+			name: "message already ends with cause",
+			err:  &Error{Message: "invalid yaml: already detailed", Cause: errors.New("already detailed")},
+			want: "invalid yaml: already detailed",
+		},
+		{
+			name: "kind and cause without message",
+			err:  &Error{Kind: ErrProvider, Cause: errors.New("api down")},
+			want: "provider error: api down",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, tt.err.Error())
+		})
+	}
+}
+
+func TestClientMessage_OmitsCause(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		err  error
+		want string
+	}{
+		{
+			name: "domain wrap omits cause",
+			err:  WrapError(ErrProvider, "kanboard create task", errors.New("json-rpc false")),
+			want: "kanboard create task",
+		},
+		{
+			name: "plain error falls back to Error",
+			err:  errors.New("plain"),
+			want: "plain",
+		},
+		{
+			name: "nil error",
+			err:  nil,
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, ClientMessage(tt.err))
+		})
+	}
 }

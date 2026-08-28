@@ -10,7 +10,7 @@ templ ViewPipelineRunContent(steps any) {
 		if steps == nil {
 			<div class="card-body text-sm text-base-content/30">{ i18n.T(ctx, "view.pipeline.no_steps") }</div>
 		} else if stepList, ok := steps.([]model.PipelineStepRun); ok {
-			@PipelineStepRunsDetail(ctx, stepList)
+			@PipelineStepRunsDetail(ctx, stepList, PipelineRunRetry{})
 		} else {
 			<div class="card-body text-sm text-base-content/30">{ i18n.T(ctx, "view.pipeline.render_failed") }</div>
 		}

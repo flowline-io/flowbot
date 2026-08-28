@@ -5,6 +5,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func (*chatAgentHTTP) getApproval(c fiber.Ctx) error {
@@ -32,7 +33,7 @@ func (*chatAgentHTTP) putApproval(c fiber.Ctx) error {
 	}
 	mode, err := chatagent.ParseApprovalBody(c.Body())
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	if err := chatagent.SaveUserApprovalMode(c.Context(), rc.UID, mode); err != nil {
 		return chatAgentError(c, err)

@@ -450,14 +450,15 @@ func TestExpandDefinitions(t *testing.T) {
 			wantName: "skip__trigger_cron_1",
 		},
 		{
-			name: "disabled editor definition produces empty",
+			name: "paused editor definition stays loaded disabled",
 			input: EditorDefinition{
 				Name: "off", Enabled: false,
 				Triggers: []TriggerEntry{
 					{Type: "event", Enabled: true, Event: "i.x"},
 				},
 			},
-			wantLen: 0,
+			wantLen:  1,
+			wantName: "off__trigger_event_0",
 		},
 	}
 	for _, tt := range tests {
@@ -468,7 +469,30 @@ func TestExpandDefinitions(t *testing.T) {
 			if tt.wantLen > 0 {
 				assert.Equal(t, tt.wantName, defs[0].Name)
 				assert.Equal(t, tt.input.Name, defs[0].ParentName)
+				assert.Equal(t, tt.input.Enabled, defs[0].Enabled)
 			}
+		})
+	}
+}
+
+func TestRunBelongsToParent(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		pipelineName string
+		parent       string
+		want         bool
+	}{
+		{name: "exact parent name", pipelineName: "p", parent: "p", want: true},
+		{name: "compound event trigger", pipelineName: "p__trigger_event_0", parent: "p", want: true},
+		{name: "other pipeline", pipelineName: "other", parent: "p", want: false},
+		{name: "prefix of another name", pipelineName: "parent-extra", parent: "parent", want: false},
+		{name: "empty parent", pipelineName: "p", parent: "", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, RunBelongsToParent(tt.pipelineName, tt.parent))
 		})
 	}
 }

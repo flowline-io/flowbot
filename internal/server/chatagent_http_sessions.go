@@ -40,7 +40,7 @@ func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
 	}
 	sessionID := types.Id()
 	if err := chatagent.CreateSession(c.Context(), rc.UID, sessionID); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	if err := chatagent.ApplyCreateWorkspace(c.Context(), sessionID, body.Workspace); err != nil {
 		chatagent.AbortCreatedSession(c.Context(), sessionID)
@@ -54,7 +54,7 @@ func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
 		}
 		if err := chatagent.SetSessionSettings(c.Context(), sessionID, s); err != nil {
 			chatagent.AbortCreatedSession(c.Context(), sessionID)
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": types.ClientMessage(err)})
 		}
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"session_id": sessionID})
@@ -95,7 +95,7 @@ func (h *chatAgentHTTP) closeSession(c fiber.Ctx) error {
 		return chatAgentError(c, err)
 	}
 	if err := h.service.CloseSession(c.Context(), sessionID); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	h.service.ClearAPIRunState(sessionID, nil)
 	return c.SendStatus(fiber.StatusNoContent)
@@ -111,7 +111,7 @@ func (h *chatAgentHTTP) listMessages(c fiber.Ctx) error {
 	}
 	messages, err := chatagent.ListSessionMessages(c.Context(), sessionID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	return c.JSON(fiber.Map{"messages": messages})
 }
@@ -126,7 +126,7 @@ func (h *chatAgentHTTP) listTrajectory(c fiber.Ctx) error {
 	}
 	view, err := chatagent.ListSessionTrajectory(c.Context(), sessionID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	return c.JSON(view)
 }
@@ -141,7 +141,7 @@ func (h *chatAgentHTTP) exportSession(c fiber.Ctx) error {
 	}
 	export, err := chatagent.ExportSession(c.Context(), sessionID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	return c.JSON(export)
 }

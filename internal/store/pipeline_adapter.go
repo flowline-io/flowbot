@@ -49,6 +49,25 @@ func (a PipelineRunStoreAdapter) UpdateStepRun(ctx context.Context, stepRunID in
 	return a.S.UpdateStepRun(ctx, stepRunID, status, result, errMsg, attempt)
 }
 
+// ListStepRuns implements pipeline.RunStore.
+func (a PipelineRunStoreAdapter) ListStepRuns(ctx context.Context, runID int64) ([]*model.PipelineStepRun, error) {
+	rows, err := a.S.ListStepRunsByRunID(ctx, runID)
+	if err != nil {
+		return nil, err
+	}
+	return mapPipelineStepRunDTOs(rows), nil
+}
+
+// ClaimFailedRun implements pipeline.RunStore.
+func (a PipelineRunStoreAdapter) ClaimFailedRun(ctx context.Context, runID int64) error {
+	return a.S.ClaimFailedRun(ctx, runID)
+}
+
+// PrepareStepRetry implements pipeline.RunStore.
+func (a PipelineRunStoreAdapter) PrepareStepRetry(ctx context.Context, stepRunID int64, params map[string]any, attempt int) error {
+	return a.S.PrepareStepRetry(ctx, stepRunID, params, attempt)
+}
+
 // SaveCheckpoint implements pipeline.RunStore.
 func (a PipelineRunStoreAdapter) SaveCheckpoint(ctx context.Context, runID int64, data any) error {
 	return a.S.SaveCheckpoint(ctx, runID, data)
@@ -239,4 +258,15 @@ func mapPipelineStepRunDTO(row *gen.PipelineStepRun) *model.PipelineStepRun {
 		Params:      row.Params,
 		Result:      row.Result,
 	}
+}
+
+func mapPipelineStepRunDTOs(rows []*gen.PipelineStepRun) []*model.PipelineStepRun {
+	out := make([]*model.PipelineStepRun, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		out = append(out, mapPipelineStepRunDTO(row))
+	}
+	return out
 }

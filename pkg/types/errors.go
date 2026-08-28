@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 var (
@@ -33,20 +34,37 @@ type Error struct {
 	Cause      error
 }
 
+// Error returns the operator-facing text: Message joined with Cause when both are set.
+// HTTP clients use Message via protocol.NewFailedResponse, not this string.
 func (e *Error) Error() string {
 	if e == nil {
 		return "error"
 	}
-	if e.Message != "" {
-		return e.Message
+	msg := e.Message
+	if msg == "" && e.Kind != nil {
+		msg = e.Kind.Error()
 	}
+	cause := ""
 	if e.Cause != nil {
-		return e.Cause.Error()
+		cause = e.Cause.Error()
 	}
-	if e.Kind != nil {
-		return e.Kind.Error()
+	if text := joinErrorText(msg, cause); text != "" {
+		return text
 	}
 	return "error"
+}
+
+func joinErrorText(message, cause string) string {
+	switch {
+	case message == "":
+		return cause
+	case cause == "" || cause == message:
+		return message
+	case strings.HasSuffix(message, cause):
+		return message
+	default:
+		return message + ": " + cause
+	}
 }
 
 func (e *Error) Unwrap() error {
@@ -54,6 +72,24 @@ func (e *Error) Unwrap() error {
 		return nil
 	}
 	return e.Cause
+}
+
+// ClientMessage returns the domain Message without Cause, for HTTP JSON bodies.
+// Non-domain errors fall back to err.Error().
+func ClientMessage(err error) string {
+	if err == nil {
+		return ""
+	}
+	var de *Error
+	if errors.As(err, &de) && de != nil {
+		if de.Message != "" {
+			return de.Message
+		}
+		if de.Kind != nil {
+			return de.Kind.Error()
+		}
+	}
+	return err.Error()
 }
 
 func (e *Error) Is(target error) bool {

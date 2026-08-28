@@ -603,6 +603,15 @@ other = "Pause Pipeline"
 [confirm.pause_pipeline.btn]
 other = "Pause"
 
+[confirm.retry_pipeline_run.message]
+other = "Retry this failed run from the first failed step? Successful steps will not run again. If a mutation already succeeded, retrying may create a duplicate."
+
+[confirm.retry_pipeline_run.title]
+other = "Retry run"
+
+[confirm.retry_pipeline_run.btn]
+other = "Retry"
+
 [confirm.delete_workflow.message]
 other = "Delete this workflow? Associated run records will also be removed."
 
@@ -961,6 +970,24 @@ other = "Workflow disabled"
 
 [toast.workflow.enabled]
 other = "Workflow enabled"
+
+[toast.pipeline.retry_not_failed]
+other = "Only failed runs can be retried"
+
+[toast.pipeline.retry_unpublished]
+other = "This pipeline is no longer published"
+
+[toast.pipeline.retry_step_missing]
+other = "The failed step is missing from the published definition"
+
+[toast.pipeline.retry_event_missing]
+other = "The original event is no longer available"
+
+[toast.pipeline.retry_conflict]
+other = "This run is already being retried"
+
+[toast.pipeline.retry_failed]
+other = "Failed to retry this run"
 
 [toast.token.not_found]
 other = "Token not found"

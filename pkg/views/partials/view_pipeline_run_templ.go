@@ -57,7 +57,7 @@ func ViewPipelineRunContent(steps any) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else if stepList, ok := steps.([]model.PipelineStepRun); ok {
-			templ_7745c5c3_Err = PipelineStepRunsDetail(ctx, stepList).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PipelineStepRunsDetail(ctx, stepList, PipelineRunRetry{}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

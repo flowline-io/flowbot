@@ -9,6 +9,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func (*chatAgentHTTP) listScheduledTasks(c fiber.Ctx) error {
@@ -39,7 +40,7 @@ func (*chatAgentHTTP) createScheduledTask(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 	}
 	if err := chatagent.ParseCreateScheduledTaskRequest(body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	sourceSessionID := strings.TrimSpace(c.Query("source_session_id"))
 	task, err := chatagent.CreateScheduledTaskForUID(c.Context(), rc.UID, sourceSessionID, body)

@@ -49,7 +49,7 @@ func TestSelectManualDef(t *testing.T) {
 
 func TestExecuteManual(t *testing.T) {
 	defs := []Definition{
-		{Name: "demo__trigger_event_0", ParentName: "demo", Trigger: Trigger{Event: "demo.created"}, Steps: nil},
+		{Name: "demo__trigger_event_0", ParentName: "demo", Enabled: true, Trigger: Trigger{Event: "demo.created"}, Steps: nil},
 	}
 	store := newMockPipelineStore()
 	eng := NewEngine(defs, store, nil, nil, nil)
@@ -77,5 +77,17 @@ func TestExecuteManual(t *testing.T) {
 	t.Run("not found parent", func(t *testing.T) {
 		_, err := eng.ExecuteManual(context.Background(), "missing", types.DataEvent{EventID: "x"})
 		require.ErrorIs(t, err, types.ErrNotFound)
+	})
+
+	t.Run("refuses paused definition", func(t *testing.T) {
+		paused := ExpandDefinitions([]EditorDefinition{{
+			Name: "paused-manual", Enabled: false,
+			Triggers: []TriggerEntry{{Type: "event", Enabled: true, Event: "demo.created"}},
+		}})
+		require.Len(t, paused, 1)
+		pausedEng := NewEngine(paused, newMockPipelineStore(), nil, nil, nil)
+		t.Cleanup(func() { go pausedEng.Stop() })
+		_, err := pausedEng.ExecuteManual(context.Background(), "paused-manual", types.DataEvent{EventID: "x"})
+		require.ErrorIs(t, err, types.ErrInvalidArgument)
 	})
 }

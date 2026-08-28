@@ -27,6 +27,16 @@ import (
 
 var pooledSonic = sonic.Config{}.Froze()
 
+// Sentinel errors for failed-run retry so HTTP handlers can map toasts without string matching.
+var (
+	// ErrRetryNotFailed is returned when RetryFailedRun is called on a non-failed run.
+	ErrRetryNotFailed = errors.New("pipeline run is not failed")
+	// ErrRetryDefMissing is returned when the run's pipeline is not in the loaded published defs.
+	ErrRetryDefMissing = errors.New("pipeline definition is not loaded")
+	// ErrRetryStepMissing is returned when the failed step name is gone from the published YAML.
+	ErrRetryStepMissing = errors.New("failed step is not in the published definition")
+)
+
 // CheckpointData is the intermediate state saved at each pipeline step boundary.
 type CheckpointData struct {
 	StepIndex   int                    `json:"step_index"`
@@ -73,6 +83,9 @@ type RunStore interface {
 	UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error
 	CreateStepRun(ctx context.Context, runID int64, stepName, capName, operation string, params map[string]any, attempt int) (*model.PipelineStepRun, error)
 	UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error
+	ListStepRuns(ctx context.Context, runID int64) ([]*model.PipelineStepRun, error)
+	ClaimFailedRun(ctx context.Context, runID int64) error
+	PrepareStepRetry(ctx context.Context, stepRunID int64, params map[string]any, attempt int) error
 	SaveCheckpoint(ctx context.Context, runID int64, data any) error
 	GetIncompleteRuns(ctx context.Context) ([]*model.PipelineRun, error)
 	GetCheckpoint(ctx context.Context, runID int64, target any) error
@@ -184,6 +197,9 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 	}
 
 	for _, def := range matched {
+		if !def.Enabled {
+			continue
+		}
 		if e.eventMetrics != nil {
 			e.eventMetrics.IncMatched(event.EventType, def.Name)
 		}
@@ -273,6 +289,9 @@ func (e *Engine) ExecuteManual(ctx context.Context, parentName string, event typ
 	if err != nil {
 		return 0, err
 	}
+	if !def.Enabled {
+		return 0, types.Errorf(types.ErrInvalidArgument, "pipeline %s is paused", parentName)
+	}
 
 	applyDefinitionUID(*def, &event)
 	e.auditPipelineEvent(ctx, def.Name, "pipeline.start", event.EventID, event.EventType)
@@ -302,6 +321,164 @@ func (e *Engine) ExecuteManual(ctx context.Context, parentName string, event typ
 	return runID, nil
 }
 
+// RetryFailedRun reclaims a failed run and continues from the first failed step
+// using the current published definition. Successful steps are not re-invoked.
+// Remaining steps run in a detached goroutine; the same run ID is kept.
+func (e *Engine) RetryFailedRun(ctx context.Context, runID int64, event types.DataEvent) error {
+	if e == nil {
+		return types.Errorf(types.ErrUnavailable, "pipeline engine not ready")
+	}
+	if e.store == nil {
+		return types.Errorf(types.ErrUnavailable, "pipeline store not available")
+	}
+
+	run, err := e.store.GetRun(ctx, runID)
+	if err != nil {
+		return fmt.Errorf("get run %d: %w", runID, err)
+	}
+	if run == nil {
+		return types.Errorf(types.ErrNotFound, "pipeline run %d", runID)
+	}
+	if run.Status != int(types.PipelineFailed) {
+		return types.WrapError(types.ErrInvalidArgument, ErrRetryNotFailed.Error(), ErrRetryNotFailed)
+	}
+
+	def := e.copyDefByName(run.PipelineName)
+	if def == nil {
+		return types.WrapError(types.ErrNotFound, ErrRetryDefMissing.Error(), ErrRetryDefMissing)
+	}
+
+	stepRuns, err := e.store.ListStepRuns(ctx, runID)
+	if err != nil {
+		return fmt.Errorf("list step runs for run %d: %w", runID, err)
+	}
+	startIdx, err := retryStartIndex(def.Steps, stepRuns)
+	if err != nil {
+		return err
+	}
+
+	if err := e.store.ClaimFailedRun(ctx, runID); err != nil {
+		if errors.Is(err, types.ErrConflict) {
+			return types.Errorf(types.ErrConflict, "pipeline run %d is already running", runID)
+		}
+		return fmt.Errorf("claim failed run %d: %w", runID, err)
+	}
+
+	applyDefinitionUID(*def, &event)
+	runCtx := trace.DetachContext(ctx)
+	go func() {
+		if stepErr := e.runRetrySteps(runCtx, *def, event, runID, startIdx, stepRuns); stepErr != nil {
+			flog.Error(fmt.Errorf("retry pipeline %s run %d: %w", def.Name, runID, stepErr))
+		}
+	}()
+	return nil
+}
+
+func (e *Engine) copyDefByName(name string) *Definition {
+	if e == nil {
+		return nil
+	}
+	e.reloadMu.Lock()
+	defer e.reloadMu.Unlock()
+	for i := range e.defs {
+		if e.defs[i].Name == name {
+			def := e.defs[i]
+			return &def
+		}
+	}
+	return nil
+}
+
+func retryStartIndex(steps []Step, stepRuns []*model.PipelineStepRun) (int, error) {
+	failed := firstFailedStepRun(stepRuns)
+	if failed == nil {
+		return 0, types.WrapError(types.ErrInvalidArgument, ErrRetryNotFailed.Error(), ErrRetryNotFailed)
+	}
+	failedIdx := -1
+	for i, step := range steps {
+		if step.Name == failed.StepName {
+			failedIdx = i
+			break
+		}
+	}
+	if failedIdx < 0 {
+		return 0, types.WrapError(types.ErrNotFound, ErrRetryStepMissing.Error(), ErrRetryStepMissing)
+	}
+	done := doneStepResults(stepRuns)
+	for i := 0; i < failedIdx; i++ {
+		if _, ok := done[steps[i].Name]; !ok {
+			return i, nil
+		}
+	}
+	return failedIdx, nil
+}
+
+func firstFailedStepRun(stepRuns []*model.PipelineStepRun) *model.PipelineStepRun {
+	for _, sr := range stepRuns {
+		if sr != nil && sr.Status == int(types.PipelineFailed) {
+			return sr
+		}
+	}
+	return nil
+}
+
+func doneStepResults(stepRuns []*model.PipelineStepRun) map[string]map[string]any {
+	out := make(map[string]map[string]any)
+	for _, sr := range stepRuns {
+		if sr == nil || sr.Status != int(types.PipelineDone) {
+			continue
+		}
+		out[sr.StepName] = sr.Result
+	}
+	return out
+}
+
+func failedStepRunsByName(stepRuns []*model.PipelineStepRun) map[string]*model.PipelineStepRun {
+	out := make(map[string]*model.PipelineStepRun)
+	for _, sr := range stepRuns {
+		if sr != nil && sr.Status == int(types.PipelineFailed) {
+			out[sr.StepName] = sr
+		}
+	}
+	return out
+}
+
+func (e *Engine) runRetrySteps(ctx context.Context, def Definition, event types.DataEvent, runID int64, startIdx int, stepRuns []*model.PipelineStepRun) error {
+	ctx, span := trace.StartSpan(ctx, "pipeline."+def.Name+".retry",
+		otelattr.String("pipeline.name", def.Name),
+		otelattr.String("event.id", event.EventID),
+		otelattr.String("event.type", event.EventType),
+	)
+	defer span.End()
+
+	runStart := time.Now()
+	e.emitRunStart(ctx, runID, &def)
+
+	rc := NewRenderContext(event)
+	done := doneStepResults(stepRuns)
+	for name, out := range done {
+		rc.RecordStepResult(name, out)
+	}
+
+	reuseByName := failedStepRunsByName(stepRuns)
+	failed := false
+	var finalErr error
+	for i := startIdx; i < len(def.Steps); i++ {
+		step := def.Steps[i]
+		if _, ok := done[step.Name]; ok {
+			continue
+		}
+		e.saveCheckpointIfResumable(ctx, def, event, rc, i, runID)
+		if err := e.executeStep(ctx, rc, step, runID, def.Name, i, def.Resumable, reuseByName[step.Name]); err != nil {
+			failed = true
+			finalErr = err
+			break
+		}
+	}
+
+	return e.completeRun(ctx, def, event, runID, runStart, failed, finalErr)
+}
+
 func (e *Engine) runPipelineSteps(ctx context.Context, def Definition, event types.DataEvent, runID int64) error {
 	ctx, span := trace.StartSpan(ctx, "pipeline."+def.Name+".execute",
 		otelattr.String("pipeline.name", def.Name),
@@ -320,13 +497,17 @@ func (e *Engine) runPipelineSteps(ctx context.Context, def Definition, event typ
 	for i, step := range def.Steps {
 		e.saveCheckpointIfResumable(ctx, def, event, rc, i, runID)
 
-		if err := e.executeStep(ctx, rc, step, runID, def.Name, i, def.Resumable); err != nil {
+		if err := e.executeStep(ctx, rc, step, runID, def.Name, i, def.Resumable, nil); err != nil {
 			failed = true
 			finalErr = err
 			break
 		}
 	}
 
+	return e.completeRun(ctx, def, event, runID, runStart, failed, finalErr)
+}
+
+func (e *Engine) completeRun(ctx context.Context, def Definition, event types.DataEvent, runID int64, runStart time.Time, failed bool, finalErr error) error {
 	if e.pipelineMetrics != nil {
 		status := "done"
 		if finalErr != nil {
@@ -337,7 +518,6 @@ func (e *Engine) runPipelineSteps(ctx context.Context, def Definition, event typ
 	}
 
 	e.finishRunRecord(ctx, runID, failed, finalErr)
-
 	if e.callback != nil {
 		elapsed := time.Since(runStart).Milliseconds()
 		var errMsg string
@@ -346,7 +526,6 @@ func (e *Engine) runPipelineSteps(ctx context.Context, def Definition, event typ
 		}
 		e.callback.OnRunComplete(ctx, runID, def.Name, elapsed, failed, errMsg)
 	}
-
 	if finalErr != nil {
 		e.auditPipelineEvent(ctx, def.Name, "pipeline.fail", event.EventID, event.EventType)
 		return finalErr
@@ -355,7 +534,7 @@ func (e *Engine) runPipelineSteps(ctx context.Context, def Definition, event typ
 	return nil
 }
 
-func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, runID int64, pipelineName string, stepIndex int, resumable bool) error {
+func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, runID int64, pipelineName string, stepIndex int, resumable bool, reuse *model.PipelineStepRun) error {
 	ctx, span := trace.StartSpan(ctx, "pipeline."+pipelineName+".step."+step.Name,
 		otelattr.String("pipeline.step.name", step.Name),
 		otelattr.String("pipeline.step.capability", string(step.Capability)),
@@ -379,25 +558,63 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		injectTags(rc, renderedParams)
 	}
 
-	attempt := 1
-	stepRunID, err := e.createStepRunRecord(ctx, runID, step.Name, string(step.Capability), step.Operation, renderedParams, attempt)
+	priorAttempt := reuseAttemptBase(reuse)
+	stepRunID, err := e.openStepRun(ctx, runID, step, renderedParams, reuse, priorAttempt)
 	if err != nil {
 		return err
 	}
-
-	// Start heartbeat goroutine for long-running steps.
-	var hbCtx context.Context
-	var hbCancel context.CancelFunc
-	if resumable && e.store != nil && runID != 0 {
-		hbCtx, hbCancel = context.WithCancel(ctx)
-		defer hbCancel()
-		go e.heartbeatLoop(hbCtx, runID, pipelineName)
-	}
+	hbCancel := e.startStepHeartbeat(ctx, resumable, runID, pipelineName)
+	defer hbCancel()
 
 	if e.pipelineMetrics != nil {
 		e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "start")
 	}
 
+	stepResult, stepResource, attempt, retryErr := invokeCapabilityStep(ctx, pipelineName, step, renderedParams)
+	recordedAttempt := recordedStepAttempt(priorAttempt, attempt)
+	if retryErr != nil {
+		stepErr := formatStepError(step.Name, retryErr, recordedAttempt)
+		e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), retryErr, recordedAttempt, stepStart)
+		if e.callback != nil {
+			e.callback.OnStepError(ctx, runID, pipelineName, stepIndex, step.Name, stepErr, time.Since(stepStart).Milliseconds())
+		}
+		return stepErr
+	}
+
+	rc.RecordStepResult(step.Name, stepResult)
+	e.saveResourceLink(ctx, rc, step, stepResource, runID, pipelineName)
+	e.recordStepSuccess(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), stepResult, recordedAttempt, stepStart)
+	if e.callback != nil {
+		e.callback.OnStepDone(ctx, runID, pipelineName, stepIndex, step.Name, stepResult, time.Since(stepStart).Milliseconds())
+	}
+	flog.Info("pipeline %s step %s completed (attempt %d)", pipelineName, step.Name, recordedAttempt)
+	return nil
+}
+
+func reuseAttemptBase(reuse *model.PipelineStepRun) int {
+	if reuse == nil {
+		return 0
+	}
+	return reuse.Attempt
+}
+
+func recordedStepAttempt(priorAttempt, attempt int) int {
+	if priorAttempt == 0 {
+		return attempt
+	}
+	return priorAttempt + attempt
+}
+
+func (e *Engine) startStepHeartbeat(ctx context.Context, resumable bool, runID int64, pipelineName string) func() {
+	if !resumable || e.store == nil || runID == 0 {
+		return func() {}
+	}
+	hbCtx, hbCancel := context.WithCancel(ctx)
+	go e.heartbeatLoop(hbCtx, runID, pipelineName)
+	return hbCancel
+}
+
+func invokeCapabilityStep(ctx context.Context, pipelineName string, step Step, renderedParams map[string]any) (map[string]any, *capability.ResourceMeta, int, error) {
 	retryCfg := step.Retry
 	if retryCfg == nil {
 		retryCfg = &backoff.Config{MaxAttempts: 0}
@@ -407,7 +624,6 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		flog.Info("pipeline %s step %s attempt %d failed, retrying in %v: %v",
 			pipelineName, step.Name, a, d, err)
 	}
-
 	var stepResult map[string]any
 	var stepResource *capability.ResourceMeta
 	attempt, retryErr := backoff.Do(ctx, boCfg, func(ctx context.Context) error {
@@ -420,24 +636,19 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		stepResource = res.Resource
 		return nil
 	})
+	return stepResult, stepResource, attempt, retryErr
+}
 
-	if retryErr != nil {
-		stepErr := formatStepError(step.Name, retryErr, attempt)
-		e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), retryErr, attempt, stepStart)
-		if e.callback != nil {
-			e.callback.OnStepError(ctx, runID, pipelineName, stepIndex, step.Name, stepErr, time.Since(stepStart).Milliseconds())
+func (e *Engine) openStepRun(ctx context.Context, runID int64, step Step, renderedParams map[string]any, reuse *model.PipelineStepRun, priorAttempt int) (int64, error) {
+	if reuse != nil {
+		if e.store != nil {
+			if err := e.store.PrepareStepRetry(ctx, reuse.ID, convertToTypesKV(renderedParams), priorAttempt+1); err != nil {
+				return 0, fmt.Errorf("prepare step retry %s: %w", step.Name, err)
+			}
 		}
-		return stepErr
+		return reuse.ID, nil
 	}
-
-	rc.RecordStepResult(step.Name, stepResult)
-	e.saveResourceLink(ctx, rc, step, stepResource, runID, pipelineName)
-	e.recordStepSuccess(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), stepResult, attempt, stepStart)
-	if e.callback != nil {
-		e.callback.OnStepDone(ctx, runID, pipelineName, stepIndex, step.Name, stepResult, time.Since(stepStart).Milliseconds())
-	}
-	flog.Info("pipeline %s step %s completed (attempt %d)", pipelineName, step.Name, attempt)
-	return nil
+	return e.createStepRunRecord(ctx, runID, step.Name, string(step.Capability), step.Operation, renderedParams, 1)
 }
 
 // injectTags merges event tags into rendered params for mutation steps.
@@ -831,7 +1042,7 @@ func (e *Engine) runResumeSteps(ctx context.Context, rc *RenderContext, def *Def
 			flog.Error(fmt.Errorf("save checkpoint during resume run %d step %d: %w", runID, i, cpErr))
 		}
 
-		if err := e.executeStep(ctx, rc, step, runID, def.Name, i, true); err != nil {
+		if err := e.executeStep(ctx, rc, step, runID, def.Name, i, true, nil); err != nil {
 			return true, err
 		}
 	}
@@ -843,7 +1054,7 @@ func (e *Engine) runResumeSteps(ctx context.Context, rc *RenderContext, def *Def
 func (e *Engine) RegisterWebhooks() (map[string]*Definition, error) {
 	result := make(map[string]*Definition)
 	for i := range e.defs {
-		if e.defs[i].Trigger.Webhook == nil {
+		if !e.defs[i].Enabled || e.defs[i].Trigger.Webhook == nil {
 			continue
 		}
 		path := normalizeWebhookPath(e.defs[i].Trigger.Webhook.Path)
@@ -872,6 +1083,9 @@ func (e *Engine) LookupWebhook(path string) (*Definition, bool) {
 	e.reloadMu.Lock()
 	defer e.reloadMu.Unlock()
 	for i := range e.defs {
+		if !e.defs[i].Enabled {
+			continue
+		}
 		wh := e.defs[i].Trigger.Webhook
 		if wh == nil {
 			continue

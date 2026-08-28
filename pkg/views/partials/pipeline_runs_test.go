@@ -15,6 +15,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 	tests := []struct {
 		name     string
 		steps    []model.PipelineStepRun
+		retry    PipelineRunRetry
 		contains []string
 		excludes []string
 	}{
@@ -134,7 +135,31 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 				"rotate-90",
 				`data-testid="run-waterfall"`,
 			},
-			excludes: []string{},
+			excludes: []string{
+				`data-testid="retry-failed-run"`,
+			},
+		},
+		{
+			name: "failed run retry button uses shared confirm attributes",
+			steps: []model.PipelineStepRun{
+				{
+					StepName:  "boom",
+					Status:    4,
+					Error:     "kanboard create task",
+					Attempt:   1,
+					StartedAt: now,
+					Params:    map[string]any{"title": "x"},
+				},
+			},
+			retry: PipelineRunRetry{PipelineName: "new-bookmark-task", RunID: 73, Enabled: true},
+			contains: []string{
+				`data-testid="retry-failed-run"`,
+				`hx-post="/service/web/pipelines/new-bookmark-task/runs/73/retry"`,
+				`data-confirm=`,
+				`data-confirm-title=`,
+				`data-confirm-btn=`,
+				`data-confirm-class="btn-warning"`,
+			},
 		},
 		{
 			name: "successful expandable step stays collapsed",
@@ -161,7 +186,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := PipelineStepRunsDetail(i18n.DefaultContext(), tt.steps).Render(i18n.DefaultContext(), &buf)
+			err := PipelineStepRunsDetail(i18n.DefaultContext(), tt.steps, tt.retry).Render(i18n.DefaultContext(), &buf)
 			if err != nil {
 				t.Fatalf("Render() error = %v", err)
 			}

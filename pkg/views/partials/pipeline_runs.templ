@@ -74,7 +74,22 @@ templ PipelineRunsTable(ctx context.Context, name string, runs []model.PipelineR
 	}
 }
 
-templ PipelineStepRunsDetail(ctx context.Context, steps []model.PipelineStepRun) {
+templ PipelineRunRetryButton(ctx context.Context, retry PipelineRunRetry) {
+	if retry.Enabled {
+		<button type="button"
+			hx-post={ templ.URL(PipelineRunRetryPath(retry.PipelineName, retry.RunID)) }
+			data-confirm={ i18n.T(ctx, "confirm.retry_pipeline_run.message") }
+			data-confirm-title={ i18n.T(ctx, "confirm.retry_pipeline_run.title") }
+			data-confirm-btn={ i18n.T(ctx, "confirm.retry_pipeline_run.btn") }
+			data-confirm-class="btn-warning"
+			data-testid="retry-failed-run"
+			class="btn btn-warning btn-xs">
+			{ i18n.T(ctx, "common.retry") }
+		</button>
+	}
+}
+
+templ PipelineStepRunsDetail(ctx context.Context, steps []model.PipelineStepRun, retry PipelineRunRetry) {
 	if len(steps) == 0 {
 		<div class="text-sm text-base-content/30 py-3 text-center">{ i18n.T(ctx, "pipeline.runs.no_step_runs") }</div>
 	} else {
@@ -90,6 +105,15 @@ templ PipelineStepRunsDetail(ctx context.Context, steps []model.PipelineStepRun)
 							</li>
 						}
 					</ul>
+					if retry.Enabled {
+						<div class="mt-2">
+							@PipelineRunRetryButton(ctx, retry)
+						</div>
+					}
+				</div>
+			} else if retry.Enabled {
+				<div class="mb-3">
+					@PipelineRunRetryButton(ctx, retry)
 				</div>
 			}
 			if bars := PipelineStepWaterfall(steps); len(bars) > 0 {

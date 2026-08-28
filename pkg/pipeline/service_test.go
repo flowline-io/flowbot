@@ -269,7 +269,7 @@ steps: []
 		require.NoError(t, err)
 
 		defs := []Definition{{
-			Name: "run_pipe__trigger_event_0", ParentName: "run_pipe",
+			Name: "run_pipe__trigger_event_0", ParentName: "run_pipe", Enabled: true,
 			Trigger: Trigger{Event: "run.created"}, UID: "owner-1",
 		}}
 		store := newMockPipelineStore()

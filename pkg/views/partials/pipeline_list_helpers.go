@@ -2,6 +2,7 @@ package partials
 
 import (
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/pipeline"
@@ -12,6 +13,23 @@ import (
 // PipelineWebPath returns the encoded web UI path for a pipeline name.
 func PipelineWebPath(name string) string {
 	return "/service/web/pipelines/" + url.PathEscape(name)
+}
+
+// PipelineRunLivePath is the live dashboard URL for a pipeline run.
+func PipelineRunLivePath(name string, runID int64) string {
+	return PipelineWebPath(name) + "/runs/" + strconv.FormatInt(runID, 10) + "/live"
+}
+
+// PipelineRunRetryPath is the POST URL to retry a failed pipeline run.
+func PipelineRunRetryPath(name string, runID int64) string {
+	return PipelineWebPath(name) + "/runs/" + strconv.FormatInt(runID, 10) + "/retry"
+}
+
+// PipelineRunRetry controls the failed-run retry button on step detail.
+type PipelineRunRetry struct {
+	PipelineName string
+	RunID        int64
+	Enabled      bool
 }
 
 // PipelineTriggerSummary describes one configured trigger for the pipelines list.

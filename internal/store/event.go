@@ -419,6 +419,28 @@ func (s *EventStore) GetDataEventByEventID(ctx context.Context, eventID string) 
 	return e, nil
 }
 
+// DataEventFromRow maps a persisted data_events row to the domain event.
+func DataEventFromRow(row *gen.DataEvent) types.DataEvent {
+	if row == nil {
+		return types.DataEvent{}
+	}
+	return types.DataEvent{
+		EventID:        row.EventID,
+		EventType:      row.EventType,
+		Source:         row.Source,
+		Capability:     row.Capability,
+		Operation:      row.Operation,
+		App:            row.App,
+		EntityID:       row.EntityID,
+		CreatedAt:      row.CreatedAt,
+		IdempotencyKey: row.IdempotencyKey,
+		UID:            row.UID,
+		Topic:          row.Topic,
+		Data:           types.KV(row.Data),
+		Tags:           types.KV(row.Tags),
+	}
+}
+
 // DeleteDataEventsOlderThan deletes data_events with created_at before cutoff
 // and related history (pipeline step runs, pipeline runs, event consumptions,
 // event outbox rows, and resource links that reference those events).

@@ -230,6 +230,32 @@ func TestEventStore_GetDataEventByEventID(t *testing.T) {
 	}
 }
 
+func TestDataEventFromRow(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, types.DataEvent{}, DataEventFromRow(nil))
+
+	row := &gen.DataEvent{
+		EventID:        "e1",
+		EventType:      "item.created",
+		Source:         "karakeep",
+		Capability:     "kanboard",
+		Operation:      "create_task",
+		App:            "flowbot",
+		EntityID:       "42",
+		IdempotencyKey: "idem",
+		UID:            "u1",
+		Topic:          "t1",
+		Data:           map[string]any{"url": "https://example.com"},
+		Tags:           map[string]any{"k": "v"},
+		CreatedAt:      time.Date(2026, 8, 28, 0, 0, 0, 0, time.UTC),
+	}
+	got := DataEventFromRow(row)
+	assert.Equal(t, "e1", got.EventID)
+	assert.Equal(t, "item.created", got.EventType)
+	assert.Equal(t, types.KV{"url": "https://example.com"}, got.Data)
+	assert.Equal(t, types.KV{"k": "v"}, got.Tags)
+}
+
 func TestEventStore_GetPipelineRunsForEvents(t *testing.T) {
 	t.Parallel()
 	client := sqlitetest.OpenClient(t, t.Name())
@@ -512,6 +538,93 @@ func TestPipelineStore_UpdateRunAndStepStatus(t *testing.T) {
 	loaded, err := store.GetRun(ctx, run.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int(schema.PipelineDone), loaded.Status)
+}
+
+func TestPipelineStore_ClaimFailedRun(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	ps := NewPipelineStore(client)
+	ctx := context.Background()
+
+	run, err := ps.CreateRun(ctx, "claim-pipe", "evt-claim", "test.event", "event")
+	require.NoError(t, err)
+	require.NoError(t, ps.UpdateRunStatus(ctx, run.ID, int(schema.PipelineFailed), "boom"))
+
+	loaded, err := ps.GetRun(ctx, run.ID)
+	require.NoError(t, err)
+	require.NotNil(t, loaded.CompletedAt)
+
+	require.NoError(t, ps.ClaimFailedRun(ctx, run.ID))
+	claimed, err := ps.GetRun(ctx, run.ID)
+	require.NoError(t, err)
+	assert.Equal(t, int(schema.PipelineStart), claimed.Status)
+	assert.Empty(t, claimed.Error)
+	assert.Nil(t, claimed.CompletedAt)
+
+	err = ps.ClaimFailedRun(ctx, run.ID)
+	require.ErrorIs(t, err, types.ErrConflict)
+}
+
+func TestPipelineStore_PrepareStepRetry(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	ps := NewPipelineStore(client)
+	ctx := context.Background()
+
+	run, err := ps.CreateRun(ctx, "prep-pipe", "evt-prep", "test.event", "event")
+	require.NoError(t, err)
+	step, err := ps.CreateStepRun(ctx, run.ID, "task", "example", "echo", map[string]any{"old": true}, 1)
+	require.NoError(t, err)
+	require.NoError(t, ps.UpdateStepRun(ctx, step.ID, int(schema.PipelineFailed), map[string]any{"leftover": true}, "rpc false", 1))
+
+	require.NoError(t, ps.PrepareStepRetry(ctx, step.ID, map[string]any{"title": "retry"}, 2))
+	rows, err := ps.ListStepRunsByRunID(ctx, run.ID)
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+	assert.Equal(t, int(schema.PipelineStart), rows[0].Status)
+	assert.Equal(t, 2, rows[0].Attempt)
+	assert.Empty(t, rows[0].Error)
+	assert.Nil(t, rows[0].CompletedAt)
+	assert.Equal(t, "retry", rows[0].Params["title"])
+	assert.Empty(t, rows[0].Result)
+}
+
+func TestPipelineStore_UpdateRunStatus_StartClearsCompletedAt(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	ps := NewPipelineStore(client)
+	ctx := context.Background()
+
+	run, err := ps.CreateRun(ctx, "start-pipe", "evt-start-clear", "test.event", "event")
+	require.NoError(t, err)
+	require.NoError(t, ps.UpdateRunStatus(ctx, run.ID, int(schema.PipelineFailed), "boom"))
+	require.NoError(t, ps.UpdateRunStatus(ctx, run.ID, int(schema.PipelineStart), ""))
+
+	loaded, err := ps.GetRun(ctx, run.ID)
+	require.NoError(t, err)
+	assert.Equal(t, int(schema.PipelineStart), loaded.Status)
+	assert.Empty(t, loaded.Error)
+	assert.Nil(t, loaded.CompletedAt)
+}
+
+func TestPipelineStore_UpdateStepRun_ClearsErrorOnDone(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	ps := NewPipelineStore(client)
+	ctx := context.Background()
+
+	run, err := ps.CreateRun(ctx, "step-clear", "evt-step-clear", "test.event", "event")
+	require.NoError(t, err)
+	step, err := ps.CreateStepRun(ctx, run.ID, "task", "example", "echo", nil, 1)
+	require.NoError(t, err)
+	require.NoError(t, ps.UpdateStepRun(ctx, step.ID, int(schema.PipelineFailed), nil, "boom", 1))
+	require.NoError(t, ps.UpdateStepRun(ctx, step.ID, int(schema.PipelineDone), map[string]any{"ok": true}, "", 2))
+
+	rows, err := ps.ListStepRunsByRunID(ctx, run.ID)
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+	assert.Empty(t, rows[0].Error)
+	assert.Equal(t, int(schema.PipelineDone), rows[0].Status)
 }
 
 func TestPipelineStore_GetIncompleteRuns(t *testing.T) {

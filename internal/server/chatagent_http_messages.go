@@ -12,6 +12,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type sendMessageBody struct {
@@ -138,13 +139,13 @@ func (h *chatAgentHTTP) confirm(c fiber.Ctx) error {
 	}
 	ok, err := h.service.ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
 	if errors.Is(err, chatagent.ErrConfirmNotFound) {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	if errors.Is(err, chatagent.ErrConfirmResolved) {
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": types.ClientMessage(err)})
 	}
 	if !ok {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "confirm not applied"})

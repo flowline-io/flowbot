@@ -64,11 +64,17 @@ func (s *PipelineStore) UpdateRunStatus(ctx context.Context, runID int64, status
 	if s == nil || s.client == nil {
 		return nil
 	}
-	upd := s.client.PipelineRun.UpdateOneID(runID).
-		SetStatus(int(status)).
-		SetCompletedAt(time.Now())
-	if errMsg != "" {
-		upd = upd.SetError(errMsg)
+	upd := s.client.PipelineRun.UpdateOneID(runID).SetStatus(status)
+	switch status {
+	case int(schema.PipelineStart):
+		upd = upd.ClearCompletedAt().SetError("")
+	case int(schema.PipelineDone):
+		upd = upd.SetCompletedAt(time.Now()).SetError("")
+	default:
+		upd = upd.SetCompletedAt(time.Now())
+		if errMsg != "" {
+			upd = upd.SetError(errMsg)
+		}
 	}
 	_, err := upd.Save(ctx)
 	return err
@@ -112,6 +118,52 @@ func (s *PipelineStore) UpdateStepRun(ctx context.Context, stepRunID int64, stat
 	}
 	if errMsg != "" {
 		upd = upd.SetError(errMsg)
+	} else if status == int(schema.PipelineDone) {
+		upd = upd.SetError("")
+	}
+	_, err := upd.Save(ctx)
+	return err
+}
+
+// ClaimFailedRun atomically moves a failed run back to start so a retry can proceed.
+// Returns types.ErrConflict when the row is missing or not failed.
+func (s *PipelineStore) ClaimFailedRun(ctx context.Context, runID int64) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
+	n, err := s.client.PipelineRun.Update().
+		Where(
+			pipelinerun.ID(runID),
+			pipelinerun.Status(int(schema.PipelineFailed)),
+		).
+		SetStatus(int(schema.PipelineStart)).
+		SetError("").
+		SetStartedAt(time.Now()).
+		ClearCompletedAt().
+		Save(ctx)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return types.ErrConflict
+	}
+	return nil
+}
+
+// PrepareStepRetry resets a failed step row for another attempt in place.
+func (s *PipelineStore) PrepareStepRetry(ctx context.Context, stepRunID int64, params map[string]any, attempt int) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
+	upd := s.client.PipelineStepRun.UpdateOneID(stepRunID).
+		SetStatus(int(schema.PipelineStart)).
+		SetAttempt(attempt).
+		SetStartedAt(time.Now()).
+		SetError("").
+		ClearResult().
+		ClearCompletedAt()
+	if params != nil {
+		upd = upd.SetParams(params)
 	}
 	_, err := upd.Save(ctx)
 	return err

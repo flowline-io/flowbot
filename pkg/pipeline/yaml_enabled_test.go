@@ -127,9 +127,10 @@ steps: []`,
 
 func TestExpandDefinitionsPausedCron(t *testing.T) {
 	tests := []struct {
-		name      string
-		yaml      string
-		wantCount int
+		name        string
+		yaml        string
+		wantCount   int
+		wantEnabled bool
 	}{
 		{
 			name: "active cron trigger expands",
@@ -140,10 +141,11 @@ triggers:
     enabled: true
     cron: "0 * * * *"
 steps: []`,
-			wantCount: 1,
+			wantCount:   1,
+			wantEnabled: true,
 		},
 		{
-			name: "paused pipeline skips cron",
+			name: "paused pipeline expands cron as disabled",
 			yaml: `name: cron-pl
 enabled: false
 triggers:
@@ -151,7 +153,8 @@ triggers:
     enabled: false
     cron: "0 * * * *"
 steps: []`,
-			wantCount: 0,
+			wantCount:   1,
+			wantEnabled: false,
 		},
 		{
 			name: "active pipeline with disabled cron trigger skips cron",
@@ -171,6 +174,9 @@ steps: []`,
 			require.NoError(t, err)
 			got := ExpandDefinitions([]EditorDefinition{*def})
 			assert.Len(t, got, tt.wantCount)
+			if tt.wantCount > 0 {
+				assert.Equal(t, tt.wantEnabled, got[0].Enabled)
+			}
 		})
 	}
 }
@@ -183,7 +189,12 @@ func TestEngine_ReloadDropsPausedCron(t *testing.T) {
 	active := []Definition{{
 		Name: "cron-pl", Enabled: true, Trigger: Trigger{Cron: "0 * * * *"},
 	}}
-	var paused []Definition
+	paused := ExpandDefinitions([]EditorDefinition{{
+		Name: "cron-pl", Enabled: false,
+		Triggers: []TriggerEntry{{Type: "cron", Enabled: false, Cron: "0 * * * *"}},
+	}})
+	require.Len(t, paused, 1)
+	assert.False(t, paused[0].Enabled)
 
 	e := NewEngineWithClock(active, nil, nil, noopPC, noopEC, clock)
 	defer e.Stop()
