@@ -2163,7 +2163,9 @@ var devopsWebserviceRules = []webservice.Rule{
 	webservice.Get("/grafana/datasources", devopsGrafanaListDatasources),
 	webservice.Get("/grafana/dashboards", devopsGrafanaSearchDashboards),
 	webservice.Post("/grafana/query", devopsGrafanaQuery),
+	webservice.Get("/wakapi/health", devopsWakapiHealth),
 	webservice.Get("/wakapi/summary", devopsWakapiSummary),
+	webservice.Get("/wakapi/all-time", devopsWakapiAllTime),
 	webservice.Get("/wakapi/projects", devopsWakapiListProjects),
 	webservice.Get("/dozzle/health", devopsDozzleHealth),
 	webservice.Get("/netalertx/health", devopsNetalertxHealth),
@@ -2258,16 +2260,31 @@ func devopsGrafanaQuery(ctx fiber.Ctx) error {
 	return invokeDevops(ctx, devops.OpGrafanaQuery, params)
 }
 
+func devopsWakapiHealth(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpWakapiHealth, map[string]any{})
+}
+
 func devopsWakapiSummary(ctx fiber.Ctx) error {
 	params := map[string]any{}
 	if interval := ctx.Query("interval"); interval != "" {
 		params["interval"] = interval
 	}
+	if project := ctx.Query("project"); project != "" {
+		params["project"] = project
+	}
 	return invokeDevops(ctx, devops.OpWakapiSummary, params)
 }
 
+func devopsWakapiAllTime(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpWakapiAllTime, map[string]any{})
+}
+
 func devopsWakapiListProjects(ctx fiber.Ctx) error {
-	return invokeDevops(ctx, devops.OpWakapiListProjects, map[string]any{})
+	params := map[string]any{}
+	if query := ctx.Query("query"); query != "" {
+		params["query"] = query
+	}
+	return invokeDevops(ctx, devops.OpWakapiListProjects, params)
 }
 
 func devopsDozzleHealth(ctx fiber.Ctx) error {

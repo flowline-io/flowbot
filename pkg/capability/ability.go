@@ -309,7 +309,23 @@ type DevopsDashboard struct {
 
 // DevopsWakapiSummary is a coding-stats summary.
 type DevopsWakapiSummary struct {
-	TotalSeconds int64 `json:"total_seconds"`
+	TotalSeconds       int64  `json:"total_seconds"`
+	HumanReadableTotal string `json:"human_readable_total,omitzero"`
+	HumanReadableRange string `json:"human_readable_range,omitzero"`
+	Range              string `json:"range,omitzero"`
+}
+
+// DevopsWakapiAllTime is cumulative Wakapi coding time.
+type DevopsWakapiAllTime struct {
+	TotalSeconds int64  `json:"total_seconds"`
+	Text         string `json:"text,omitzero"`
+	IsUpToDate   bool   `json:"is_up_to_date"`
+}
+
+// DevopsWakapiHealth reports Wakapi application health.
+type DevopsWakapiHealth struct {
+	AppOK bool `json:"app_ok"`
+	DBOK  bool `json:"db_ok"`
 }
 
 // DevopsWakapiProject is a Wakapi tracked project.

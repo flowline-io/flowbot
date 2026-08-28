@@ -391,7 +391,9 @@ func TestDevopsWebserviceRules_Structure(t *testing.T) {
 					"/grafana/datasources",
 					"/grafana/dashboards",
 					"/grafana/query",
+					"/wakapi/health",
 					"/wakapi/summary",
+					"/wakapi/all-time",
 					"/wakapi/projects",
 					"/dozzle/health",
 					"/netalertx/health",
@@ -404,10 +406,10 @@ func TestDevopsWebserviceRules_Structure(t *testing.T) {
 			},
 		},
 		{
-			name: "should have nineteen rules",
+			name: "should have twenty-one rules",
 			test: func(t *testing.T) {
 				t.Parallel()
-				assert.Len(t, devopsWebserviceRules, 19)
+				assert.Len(t, devopsWebserviceRules, 21)
 			},
 		},
 	}

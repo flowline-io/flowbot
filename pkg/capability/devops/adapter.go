@@ -42,8 +42,10 @@ type grafanaClient interface {
 }
 
 type wakapiClient interface {
-	GetSummary(ctx context.Context, interval string) (*wakapi.Summary, error)
-	ListProjects(ctx context.Context) ([]wakapi.Project, error)
+	Health(ctx context.Context) (*wakapi.HealthStatus, error)
+	GetStats(ctx context.Context, params wakapi.StatsParams) (*wakapi.Stats, error)
+	GetAllTime(ctx context.Context, user string) (*wakapi.AllTime, error)
+	ListProjects(ctx context.Context, query string) ([]wakapi.Project, error)
 }
 
 type dozzleClient interface {
@@ -214,10 +216,27 @@ func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 			return false, wrapProviderErr("netalertx health check failed", err)
 		}
 	}
+	if a.wakapi != nil {
+		probed++
+		if err := probeWakapiHealth(ctx, a.wakapi); err != nil {
+			return false, err
+		}
+	}
 	if probed == 0 {
 		return false, types.Errorf(types.ErrProvider, "no devops health backends configured")
 	}
 	return true, nil
+}
+
+func probeWakapiHealth(ctx context.Context, client wakapiClient) error {
+	status, err := client.Health(ctx)
+	if err != nil {
+		return wrapProviderErr("wakapi health check failed", err)
+	}
+	if status != nil && (!status.AppOK || !status.DBOK) {
+		return types.Errorf(types.ErrProvider, "wakapi unhealthy: app=%v db=%v", status.AppOK, status.DBOK)
+	}
+	return nil
 }
 
 // BeszelListSystems lists Beszel systems.
@@ -464,6 +483,26 @@ func (a *Adapter) GrafanaQuery(ctx context.Context, in GrafanaQueryInput) (*capa
 	return out, nil
 }
 
+// WakapiHealth checks Wakapi application health.
+func (a *Adapter) WakapiHealth(ctx context.Context) (*capability.DevopsWakapiHealth, error) {
+	if a.wakapi == nil {
+		return nil, notConfigured("wakapi")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	status, err := a.wakapi.Health(ctx)
+	if err != nil {
+		return nil, wrapProviderErr("wakapi health failed", err)
+	}
+	out := &capability.DevopsWakapiHealth{}
+	if status != nil {
+		out.AppOK = status.AppOK
+		out.DBOK = status.DBOK
+	}
+	return out, nil
+}
+
 // WakapiSummary returns a coding-stats summary.
 func (a *Adapter) WakapiSummary(ctx context.Context, in SummaryInput) (*capability.DevopsWakapiSummary, error) {
 	if a.wakapi == nil {
@@ -472,26 +511,57 @@ func (a *Adapter) WakapiSummary(ctx context.Context, in SummaryInput) (*capabili
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
-	s, err := a.wakapi.GetSummary(ctx, in.Interval)
+	rangeVal := in.Interval
+	if rangeVal == "" {
+		rangeVal = "today"
+	}
+	stats, err := a.wakapi.GetStats(ctx, wakapi.StatsParams{
+		Range:   rangeVal,
+		Project: in.Project,
+	})
 	if err != nil {
 		return nil, wrapProviderErr("wakapi summary failed", err)
 	}
 	out := &capability.DevopsWakapiSummary{}
-	if s != nil {
-		out.TotalSeconds = s.Total
+	if stats != nil {
+		out.TotalSeconds = int64(stats.TotalSeconds)
+		out.HumanReadableTotal = stats.HumanReadableTotal
+		out.HumanReadableRange = stats.HumanReadableRange
+		out.Range = stats.Range
 	}
 	return out, nil
 }
 
-// WakapiListProjects lists Wakapi projects.
-func (a *Adapter) WakapiListProjects(ctx context.Context) (*capability.ListResult[capability.DevopsWakapiProject], error) {
+// WakapiAllTime returns cumulative coding time since account creation.
+func (a *Adapter) WakapiAllTime(ctx context.Context) (*capability.DevopsWakapiAllTime, error) {
 	if a.wakapi == nil {
 		return nil, notConfigured("wakapi")
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
-	list, err := a.wakapi.ListProjects(ctx)
+	allTime, err := a.wakapi.GetAllTime(ctx, wakapi.CurrentUser)
+	if err != nil {
+		return nil, wrapProviderErr("wakapi all time failed", err)
+	}
+	out := &capability.DevopsWakapiAllTime{}
+	if allTime != nil {
+		out.TotalSeconds = int64(allTime.TotalSeconds)
+		out.Text = allTime.Text
+		out.IsUpToDate = allTime.IsUpToDate
+	}
+	return out, nil
+}
+
+// WakapiListProjects lists Wakapi projects.
+func (a *Adapter) WakapiListProjects(ctx context.Context, in ListProjectsInput) (*capability.ListResult[capability.DevopsWakapiProject], error) {
+	if a.wakapi == nil {
+		return nil, notConfigured("wakapi")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	list, err := a.wakapi.ListProjects(ctx, in.Query)
 	if err != nil {
 		return nil, wrapProviderErr("wakapi list projects failed", err)
 	}

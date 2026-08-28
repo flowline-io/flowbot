@@ -437,7 +437,37 @@ func devopsWakapiCommand() *cobra.Command {
 		Use:   "wakapi",
 		Short: "Wakapi coding stats",
 	}
-	cmd.AddCommand(devopsWakapiSummaryCommand(), devopsWakapiProjectsCommand())
+	cmd.AddCommand(
+		devopsWakapiHealthCommand(),
+		devopsWakapiSummaryCommand(),
+		devopsWakapiAllTimeCommand(),
+		devopsWakapiProjectsCommand(),
+	)
+	return cmd
+}
+
+func devopsWakapiHealthCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "health",
+		Short: "Check Wakapi health",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			health, err := c.Devops.WakapiHealth(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("wakapi health: %w", err)
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(health)
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "App: %v  DB: %v\n", health.AppOK, health.DBOK)
+			return nil
+		},
+	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -451,7 +481,8 @@ func devopsWakapiSummaryCommand() *cobra.Command {
 				return err
 			}
 			interval, _ := cmd.Flags().GetString("interval")
-			s, err := c.Devops.WakapiSummary(cmd.Context(), interval)
+			project, _ := cmd.Flags().GetString("project")
+			s, err := c.Devops.WakapiSummary(cmd.Context(), interval, project)
 			if err != nil {
 				return fmt.Errorf("wakapi summary: %w", err)
 			}
@@ -459,11 +490,45 @@ func devopsWakapiSummaryCommand() *cobra.Command {
 			if output == "json" {
 				return PrintJSON(s)
 			}
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Total seconds: %d\n", s.TotalSeconds)
+			if s.HumanReadableTotal != "" {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Total: %s (%d seconds)\n", s.HumanReadableTotal, s.TotalSeconds)
+			} else {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Total seconds: %d\n", s.TotalSeconds)
+			}
 			return nil
 		},
 	}
 	cmd.Flags().String("interval", "today", "Summary interval")
+	cmd.Flags().String("project", "", "Project filter")
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
+}
+
+func devopsWakapiAllTimeCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "all-time",
+		Short: "Show Wakapi all-time coding stats",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			allTime, err := c.Devops.WakapiAllTime(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("wakapi all-time: %w", err)
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(allTime)
+			}
+			if allTime.Text != "" {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "All time: %s (%d seconds)\n", allTime.Text, allTime.TotalSeconds)
+			} else {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "All time seconds: %d\n", allTime.TotalSeconds)
+			}
+			return nil
+		},
+	}
 	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
@@ -477,7 +542,8 @@ func devopsWakapiProjectsCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			result, err := c.Devops.WakapiListProjects(cmd.Context())
+			query, _ := cmd.Flags().GetString("query")
+			result, err := c.Devops.WakapiListProjects(cmd.Context(), query)
 			if err != nil {
 				return fmt.Errorf("list projects: %w", err)
 			}
@@ -495,6 +561,7 @@ func devopsWakapiProjectsCommand() *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().String("query", "", "Project name filter")
 	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }

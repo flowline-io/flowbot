@@ -79,6 +79,16 @@ type DevopsWakapiSummaryResult struct {
 	Summary capability.DevopsWakapiSummary `json:"data"`
 }
 
+// DevopsWakapiAllTimeResult holds Wakapi all-time stats from InvokeResult.
+type DevopsWakapiAllTimeResult struct {
+	AllTime capability.DevopsWakapiAllTime `json:"data"`
+}
+
+// DevopsWakapiHealthResult holds Wakapi health from InvokeResult.
+type DevopsWakapiHealthResult struct {
+	Health capability.DevopsWakapiHealth `json:"data"`
+}
+
 // DevopsWakapiProjectsResult holds Wakapi projects from InvokeResult.
 type DevopsWakapiProjectsResult struct {
 	Items []*capability.DevopsWakapiProject `json:"data"`
@@ -243,11 +253,27 @@ func (d *DevopsClient) GrafanaQuery(ctx context.Context, req DevopsGrafanaQueryR
 	return &result.Result, nil
 }
 
+// WakapiHealth checks Wakapi application health.
+func (d *DevopsClient) WakapiHealth(ctx context.Context) (*capability.DevopsWakapiHealth, error) {
+	var result DevopsWakapiHealthResult
+	if err := d.c.Get(ctx, "/service/devops/wakapi/health", &result); err != nil {
+		return nil, err
+	}
+	return &result.Health, nil
+}
+
 // WakapiSummary returns a coding-stats summary.
-func (d *DevopsClient) WakapiSummary(ctx context.Context, interval string) (*capability.DevopsWakapiSummary, error) {
-	path := "/service/devops/wakapi/summary"
+func (d *DevopsClient) WakapiSummary(ctx context.Context, interval, project string) (*capability.DevopsWakapiSummary, error) {
+	q := url.Values{}
 	if interval != "" {
-		path += "?interval=" + url.QueryEscape(interval)
+		q.Set("interval", interval)
+	}
+	if project != "" {
+		q.Set("project", project)
+	}
+	path := "/service/devops/wakapi/summary"
+	if encoded := q.Encode(); encoded != "" {
+		path += "?" + encoded
 	}
 	var result DevopsWakapiSummaryResult
 	if err := d.c.Get(ctx, path, &result); err != nil {
@@ -256,10 +282,23 @@ func (d *DevopsClient) WakapiSummary(ctx context.Context, interval string) (*cap
 	return &result.Summary, nil
 }
 
+// WakapiAllTime returns cumulative Wakapi coding time.
+func (d *DevopsClient) WakapiAllTime(ctx context.Context) (*capability.DevopsWakapiAllTime, error) {
+	var result DevopsWakapiAllTimeResult
+	if err := d.c.Get(ctx, "/service/devops/wakapi/all-time", &result); err != nil {
+		return nil, err
+	}
+	return &result.AllTime, nil
+}
+
 // WakapiListProjects lists Wakapi projects.
-func (d *DevopsClient) WakapiListProjects(ctx context.Context) (*DevopsWakapiProjectsResult, error) {
+func (d *DevopsClient) WakapiListProjects(ctx context.Context, query string) (*DevopsWakapiProjectsResult, error) {
+	path := "/service/devops/wakapi/projects"
+	if query != "" {
+		path += "?query=" + url.QueryEscape(query)
+	}
 	var result DevopsWakapiProjectsResult
-	if err := d.c.Get(ctx, "/service/devops/wakapi/projects", &result); err != nil {
+	if err := d.c.Get(ctx, path, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil

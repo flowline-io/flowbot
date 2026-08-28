@@ -59,11 +59,23 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeGrafanaQuery(svc),
 			},
 			{
+				Name: OpWakapiHealth, Description: "Wakapi health", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Handler: invokeWakapiHealth(svc),
+			},
+			{
 				Name: OpWakapiSummary, Description: "Wakapi activity summary", Scopes: []string{auth.ScopeServiceDevopsRead},
-				Input:   []hub.ParamDef{{Name: "interval", Type: "string", Description: "Interval (default today)"}},
+				Input: []hub.ParamDef{
+					{Name: "interval", Type: "string", Description: "Range interval (default today)"},
+					{Name: "project", Type: "string", Description: "Project filter"},
+				},
 				Handler: invokeWakapiSummary(svc),
 			},
-			{Name: OpWakapiListProjects, Description: "List Wakapi projects", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeWakapiListProjects(svc)},
+			{Name: OpWakapiAllTime, Description: "Wakapi all-time coding stats", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeWakapiAllTime(svc)},
+			{
+				Name: OpWakapiListProjects, Description: "List Wakapi projects", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Input:   []hub.ParamDef{{Name: "query", Type: "string", Description: "Project name filter"}},
+				Handler: invokeWakapiListProjects(svc),
+			},
 			{Name: OpDozzleHealth, Description: "Dozzle health and version", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeDozzleHealth(svc)},
 			{Name: OpNetalertxHealth, Description: "NetAlertX health", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeNetalertxHealth(svc)},
 			{Name: OpNetalertxListDevices, Description: "List NetAlertX devices", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeNetalertxListDevices(svc)},
@@ -253,11 +265,24 @@ func invokeGrafanaQuery(svc Service) capability.Invoker {
 	}
 }
 
+func invokeWakapiHealth(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		data, err := svc.WakapiHealth(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: data}, nil
+	}
+}
+
 func invokeWakapiSummary(svc Service) capability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 		in := SummaryInput{}
 		if interval, ok := capability.StringParam(params, "interval"); ok {
 			in.Interval = interval
+		}
+		if project, ok := capability.StringParam(params, "project"); ok {
+			in.Project = project
 		}
 		data, err := svc.WakapiSummary(ctx, in)
 		if err != nil {
@@ -267,9 +292,23 @@ func invokeWakapiSummary(svc Service) capability.Invoker {
 	}
 }
 
-func invokeWakapiListProjects(svc Service) capability.Invoker {
+func invokeWakapiAllTime(svc Service) capability.Invoker {
 	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
-		result, err := svc.WakapiListProjects(ctx)
+		data, err := svc.WakapiAllTime(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: data}, nil
+	}
+}
+
+func invokeWakapiListProjects(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		in := ListProjectsInput{}
+		if query, ok := capability.StringParam(params, "query"); ok {
+			in.Query = query
+		}
+		result, err := svc.WakapiListProjects(ctx, in)
 		if err != nil {
 			return nil, err
 		}

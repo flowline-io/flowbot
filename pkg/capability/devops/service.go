@@ -29,6 +29,12 @@ type GrafanaQueryInput struct {
 // SummaryInput holds parameters for Wakapi summary.
 type SummaryInput struct {
 	Interval string
+	Project  string
+}
+
+// ListProjectsInput holds parameters for Wakapi project list.
+type ListProjectsInput struct {
+	Query string
 }
 
 // SearchDevicesInput holds parameters for NetAlertX device search.
@@ -56,8 +62,10 @@ type Service interface {
 	GrafanaSearchDashboards(ctx context.Context, in SearchDashboardsInput) (*capability.ListResult[capability.DevopsDashboard], error)
 	GrafanaQuery(ctx context.Context, in GrafanaQueryInput) (*capability.DevopsGrafanaQueryResult, error)
 
+	WakapiHealth(ctx context.Context) (*capability.DevopsWakapiHealth, error)
 	WakapiSummary(ctx context.Context, in SummaryInput) (*capability.DevopsWakapiSummary, error)
-	WakapiListProjects(ctx context.Context) (*capability.ListResult[capability.DevopsWakapiProject], error)
+	WakapiAllTime(ctx context.Context) (*capability.DevopsWakapiAllTime, error)
+	WakapiListProjects(ctx context.Context, in ListProjectsInput) (*capability.ListResult[capability.DevopsWakapiProject], error)
 
 	DozzleHealth(ctx context.Context) (*capability.DevopsDozzleInfo, error)
 
