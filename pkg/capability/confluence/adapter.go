@@ -231,7 +231,7 @@ func eventRef(eventType, entityID string) capability.EventRef {
 	}
 }
 
-func mutationResult(page *capability.ConfluencePage, eventType, app string, text string) *capability.InvokeResult {
+func mutationResult(page *capability.ConfluencePage, eventType, app, text string) *capability.InvokeResult {
 	entityID := pageEntityID(page)
 	ev := eventRef(eventType, entityID)
 	return &capability.InvokeResult{

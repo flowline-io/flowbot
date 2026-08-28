@@ -267,7 +267,7 @@ func eventRef(eventType, entityID string) capability.EventRef {
 	}
 }
 
-func mutationResult(card *capability.TrelloCard, eventType, app string, text string) *capability.InvokeResult {
+func mutationResult(card *capability.TrelloCard, eventType, app, text string) *capability.InvokeResult {
 	entityID := cardEntityID(card)
 	ev := eventRef(eventType, entityID)
 	return &capability.InvokeResult{

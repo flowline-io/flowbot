@@ -155,7 +155,7 @@ type MoveCardRequest struct {
 }
 
 // MoveCard moves a card to another list.
-func (t *TrelloClient) MoveCard(ctx context.Context, cardID string, listID string) (*capability.TrelloCard, error) {
+func (t *TrelloClient) MoveCard(ctx context.Context, cardID, listID string) (*capability.TrelloCard, error) {
 	if cardID == "" || listID == "" {
 		return nil, fmt.Errorf("card_id and list_id are required")
 	}

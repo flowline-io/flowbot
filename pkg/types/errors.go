@@ -81,13 +81,17 @@ func ClientMessage(err error) string {
 		return ""
 	}
 	var de *Error
-	if errors.As(err, &de) && de != nil {
-		if de.Message != "" {
-			return de.Message
-		}
-		if de.Kind != nil {
-			return de.Kind.Error()
-		}
+	if !errors.As(err, &de) {
+		return err.Error()
+	}
+	if de == nil {
+		return err.Error()
+	}
+	if de.Message != "" {
+		return de.Message
+	}
+	if de.Kind != nil {
+		return de.Kind.Error()
 	}
 	return err.Error()
 }

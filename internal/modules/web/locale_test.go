@@ -51,7 +51,7 @@ func TestLocaleMiddlewareDefaultsEnglish(t *testing.T) {
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString(i18n.T(c.Context(), "nav.inbox"))
 	})
-	resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/", nil))
+	resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 	if err != nil {
 		t.Fatalf("request: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestLocaleMiddlewareChineseCookie(t *testing.T) {
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString(i18n.T(c.Context(), "nav.inbox"))
 	})
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	req.AddCookie(&http.Cookie{Name: i18n.CookieName, Value: i18n.CookieZH})
 	resp, err := app.Test(req)
 	if err != nil {
@@ -89,7 +89,7 @@ func TestLocaleMiddlewareStoresCookieLang(t *testing.T) {
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString(i18n.CookieLang(c.Context()))
 	})
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	req.AddCookie(&http.Cookie{Name: i18n.CookieName, Value: i18n.CookieZH})
 	resp, err := app.Test(req)
 	if err != nil {
