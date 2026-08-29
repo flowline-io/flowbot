@@ -39,6 +39,8 @@ var retryableSubstrings = []string{
 	"timed out",
 	"connection reset",
 	"connection refused",
+	"failed to reach api server",
+	"network error",
 	"temporary failure",
 	"service unavailable",
 	"bad gateway",

@@ -24,6 +24,7 @@ func TestIsRetryableLLMError(t *testing.T) {
 		{name: "nil", err: nil, want: false},
 		{name: "rate limit", err: errors.New("429 rate limit exceeded"), want: true},
 		{name: "timeout", err: errors.New("request timeout"), want: true},
+		{name: "langchaingo sanitized network error", err: errors.New("network error: failed to reach API server"), want: true},
 		{name: "503", err: errors.New("503 service unavailable"), want: true},
 		{name: "overflow", err: errors.New("exceeds the context window"), want: false},
 		{name: "auth", err: errors.New("unauthorized invalid api key"), want: false},
@@ -53,6 +54,15 @@ func TestStreamAssistantRetry(t *testing.T) {
 			name: "retries then succeeds",
 			scripts: []agentllm.ResponseScript{
 				{Err: errors.New("429 rate limit")},
+				{Content: "ok"},
+			},
+			wantCalls: 2,
+			wantText:  "ok",
+		},
+		{
+			name: "retries langchaingo sanitized network error",
+			scripts: []agentllm.ResponseScript{
+				{Err: errors.New("network error: failed to reach API server")},
 				{Content: "ok"},
 			},
 			wantCalls: 2,
