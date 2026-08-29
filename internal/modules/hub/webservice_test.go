@@ -400,16 +400,23 @@ func TestDevopsWebserviceRules_Structure(t *testing.T) {
 					"/netalertx/devices",
 					"/netalertx/totals",
 					"/netalertx/devices/search",
+					"/scanopy/health",
+					"/scanopy/version",
+					"/scanopy/networks",
+					"/scanopy/hosts",
+					"/scanopy/hosts/:id",
+					"/scanopy/services",
+					"/scanopy/daemons",
 				} {
 					assert.True(t, paths[expected], "expected path %q in devops webservice rules", expected)
 				}
 			},
 		},
 		{
-			name: "should have twenty-one rules",
+			name: "should have twenty-eight rules",
 			test: func(t *testing.T) {
 				t.Parallel()
-				assert.Len(t, devopsWebserviceRules, 21)
+				assert.Len(t, devopsWebserviceRules, 28)
 			},
 		},
 	}

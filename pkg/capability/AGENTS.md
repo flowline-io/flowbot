@@ -18,7 +18,7 @@ capability.Invoke(ctx, hub.CapCore, core.OpNotifySend, map[string]any{...})
 
 - CapType == provider ID for provider-backed caps
 - **Exceptions** (CapType ≠ single provider ID):
-  - `devops` (`hub.CapDevops`) aggregates beszel/uptimekuma/traefik/grafana/wakapi/dozzle/netalertx
+  - `devops` (`hub.CapDevops`) aggregates beszel/uptimekuma/traefik/grafana/wakapi/dozzle/netalertx/scanopy
   - `core` (`hub.CapCore`) aggregates notify/clip/agent plus runtime primitives (`http_request`, `run_code`, `run_terminal`, `kv_*`)
   - `functions` (`hub.CapFunctions`) named FaaS invoke/get/health
   - `life` (`hub.CapLife`) solo Life gamification AI

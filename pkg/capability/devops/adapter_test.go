@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/dozzle"
 	"github.com/flowline-io/flowbot/pkg/providers/grafana"
 	"github.com/flowline-io/flowbot/pkg/providers/netalertx"
+	"github.com/flowline-io/flowbot/pkg/providers/scanopy"
 	"github.com/flowline-io/flowbot/pkg/providers/traefik"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -100,6 +101,36 @@ func (s *stubNetalertx) SearchDevices(context.Context, string) ([]netalertx.Devi
 	return s.devices, s.err
 }
 
+type stubScanopy struct {
+	err      error
+	version  *scanopy.VersionInfo
+	networks *scanopy.Page[scanopy.Network]
+	hosts    *scanopy.Page[scanopy.Host]
+	host     *scanopy.Host
+	services *scanopy.Page[scanopy.Service]
+	daemons  *scanopy.Page[scanopy.Daemon]
+}
+
+func (s *stubScanopy) Health(context.Context) error { return s.err }
+func (s *stubScanopy) GetVersion(context.Context) (*scanopy.VersionInfo, error) {
+	return s.version, s.err
+}
+func (s *stubScanopy) ListNetworks(context.Context, scanopy.ListParams) (*scanopy.Page[scanopy.Network], error) {
+	return s.networks, s.err
+}
+func (s *stubScanopy) ListHosts(context.Context, scanopy.ListParams) (*scanopy.Page[scanopy.Host], error) {
+	return s.hosts, s.err
+}
+func (s *stubScanopy) GetHost(context.Context, string) (*scanopy.Host, error) {
+	return s.host, s.err
+}
+func (s *stubScanopy) ListServices(context.Context, scanopy.ListParams) (*scanopy.Page[scanopy.Service], error) {
+	return s.services, s.err
+}
+func (s *stubScanopy) ListDaemons(context.Context, scanopy.ListParams) (*scanopy.Page[scanopy.Daemon], error) {
+	return s.daemons, s.err
+}
+
 func TestNewWithClients(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -111,6 +142,7 @@ func TestNewWithClients(t *testing.T) {
 		{name: "beszel only", clients: Clients{Beszel: &stubBeszel{}}, wantNil: false},
 		{name: "dozzle only", clients: Clients{Dozzle: &stubDozzle{}}, wantNil: false},
 		{name: "netalertx only", clients: Clients{Netalertx: &stubNetalertx{}}, wantNil: false},
+		{name: "scanopy only", clients: Clients{Scanopy: &stubScanopy{}}, wantNil: false},
 		{name: "typed nil grafana alone is nil adapter", clients: Clients{Grafana: (*grafana.Grafana)(nil)}, wantNil: true},
 	}
 	for _, tt := range tests {
@@ -254,6 +286,29 @@ func TestAdapter_DozzleHealth(t *testing.T) {
 		require.Len(t, got.Items, 1)
 		assert.Equal(t, "Router", got.Items[0].Name)
 	})
+	t.Run("scanopy list hosts", func(t *testing.T) {
+		t.Parallel()
+		svc := NewWithClients(Clients{Scanopy: &stubScanopy{
+			hosts: &scanopy.Page[scanopy.Host]{
+				Items: []scanopy.Host{{
+					ID: "h1", Name: "web", NetworkID: "n1",
+					IPAddresses: []scanopy.IPAddress{{IPAddress: "10.0.0.1"}},
+				}},
+				Pagination: scanopy.PaginationMeta{TotalCount: 2, Limit: 1, Offset: 0, HasMore: true},
+			},
+		}})
+		got, err := svc.ScanopyListHosts(context.Background(), ScanopyListInput{Limit: 1})
+		require.NoError(t, err)
+		require.Len(t, got.Items, 1)
+		assert.Equal(t, "web", got.Items[0].Name)
+		assert.Equal(t, []string{"10.0.0.1"}, got.Items[0].IPs)
+		require.NotNil(t, got.Page)
+		assert.True(t, got.Page.HasMore)
+		assert.Equal(t, 1, got.Page.Limit)
+		assert.NotEmpty(t, got.Page.NextCursor)
+		require.NotNil(t, got.Page.Total)
+		assert.Equal(t, int64(2), *got.Page.Total)
+	})
 }
 
 func TestAdapter_HealthCheck(t *testing.T) {
@@ -265,6 +320,7 @@ func TestAdapter_HealthCheck(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "dozzle healthy", clients: Clients{Dozzle: &stubDozzle{}}, wantOK: true},
+		{name: "scanopy healthy", clients: Clients{Scanopy: &stubScanopy{}}, wantOK: true},
 		{name: "dozzle unhealthy", clients: Clients{Dozzle: &stubDozzle{err: assert.AnError}}, wantErr: true},
 		{name: "no health backends", clients: Clients{Beszel: &stubBeszel{}}, wantErr: true},
 		{

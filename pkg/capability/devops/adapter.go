@@ -4,6 +4,7 @@ package devops
 import (
 	"context"
 	"reflect"
+	"time"
 
 	dto "github.com/prometheus/client_model/go"
 
@@ -12,11 +13,16 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/dozzle"
 	"github.com/flowline-io/flowbot/pkg/providers/grafana"
 	"github.com/flowline-io/flowbot/pkg/providers/netalertx"
+	"github.com/flowline-io/flowbot/pkg/providers/scanopy"
 	"github.com/flowline-io/flowbot/pkg/providers/traefik"
 	"github.com/flowline-io/flowbot/pkg/providers/uptimekuma"
 	"github.com/flowline-io/flowbot/pkg/providers/wakapi"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
+
+var scanopyCursorSecret = []byte("flowbot-capability-devops-scanopy-cursor-v1")
+
+const scanopyCursorCap = "devops/scanopy"
 
 type beszelClient interface {
 	ListSystems(ctx context.Context) (*beszel.SystemList, error)
@@ -60,6 +66,16 @@ type netalertxClient interface {
 	SearchDevices(ctx context.Context, query string) ([]netalertx.Device, error)
 }
 
+type scanopyClient interface {
+	Health(ctx context.Context) error
+	GetVersion(ctx context.Context) (*scanopy.VersionInfo, error)
+	ListNetworks(ctx context.Context, params scanopy.ListParams) (*scanopy.Page[scanopy.Network], error)
+	ListHosts(ctx context.Context, params scanopy.ListParams) (*scanopy.Page[scanopy.Host], error)
+	GetHost(ctx context.Context, id string) (*scanopy.Host, error)
+	ListServices(ctx context.Context, params scanopy.ListParams) (*scanopy.Page[scanopy.Service], error)
+	ListDaemons(ctx context.Context, params scanopy.ListParams) (*scanopy.Page[scanopy.Daemon], error)
+}
+
 // Adapter implements Service using optional provider clients.
 type Adapter struct {
 	beszel     beszelClient
@@ -69,6 +85,8 @@ type Adapter struct {
 	wakapi     wakapiClient
 	dozzle     dozzleClient
 	netalertx  netalertxClient
+	scanopy    scanopyClient
+	now        func() time.Time
 }
 
 // Clients holds optional provider clients for constructing an Adapter in tests.
@@ -80,6 +98,7 @@ type Clients struct {
 	Wakapi     wakapiClient
 	Dozzle     dozzleClient
 	Netalertx  netalertxClient
+	Scanopy    scanopyClient
 }
 
 // New creates an Adapter from configured providers.
@@ -109,6 +128,9 @@ func New() Service {
 	if v := netalertx.GetClient(); v != nil {
 		c.Netalertx = v
 	}
+	if v := scanopy.GetClient(); v != nil {
+		c.Scanopy = v
+	}
 	return NewWithClients(c)
 }
 
@@ -122,9 +144,10 @@ func NewWithClients(c Clients) Service {
 	c.Wakapi = nilIfTypedNil(c.Wakapi)
 	c.Dozzle = nilIfTypedNil(c.Dozzle)
 	c.Netalertx = nilIfTypedNil(c.Netalertx)
+	c.Scanopy = nilIfTypedNil(c.Scanopy)
 
 	if c.Beszel == nil && c.Uptimekuma == nil && c.Traefik == nil &&
-		c.Grafana == nil && c.Wakapi == nil && c.Dozzle == nil && c.Netalertx == nil {
+		c.Grafana == nil && c.Wakapi == nil && c.Dozzle == nil && c.Netalertx == nil && c.Scanopy == nil {
 		return nil
 	}
 	return &Adapter{
@@ -135,6 +158,8 @@ func NewWithClients(c Clients) Service {
 		wakapi:     c.Wakapi,
 		dozzle:     c.Dozzle,
 		netalertx:  c.Netalertx,
+		scanopy:    c.Scanopy,
+		now:        time.Now,
 	}
 }
 
@@ -181,6 +206,7 @@ func (a *Adapter) Status(ctx context.Context) (*capability.DevopsStatus, error) 
 			"wakapi":     a.wakapi != nil,
 			"dozzle":     a.dozzle != nil,
 			"netalertx":  a.netalertx != nil,
+			"scanopy":    a.scanopy != nil,
 		},
 	}, nil
 }
@@ -214,6 +240,12 @@ func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 		probed++
 		if err := a.netalertx.Health(ctx); err != nil {
 			return false, wrapProviderErr("netalertx health check failed", err)
+		}
+	}
+	if a.scanopy != nil {
+		probed++
+		if err := a.scanopy.Health(ctx); err != nil {
+			return false, wrapProviderErr("scanopy health check failed", err)
 		}
 	}
 	if a.wakapi != nil {
@@ -681,6 +713,254 @@ func toNetalertxDevice(d netalertx.Device) *capability.DevopsNetalertxDevice {
 	return &capability.DevopsNetalertxDevice{
 		Name: d.Name, MAC: mac, IP: ip, Type: d.Type, Status: d.Status, Vendor: d.Vendor,
 	}
+}
+
+func toScanopyListParams(in ScanopyListInput, offset, limit int) scanopy.ListParams {
+	return scanopy.ListParams{
+		NetworkID: in.NetworkID,
+		HostID:    in.HostID,
+		Search:    in.Search,
+		Limit:     scanopy.LimitOf(limit),
+		Offset:    offset,
+	}
+}
+
+func (a *Adapter) scanopyOffsetLimit(in ScanopyListInput) (offset, limit int) {
+	limit = in.Limit
+	if limit <= 0 {
+		limit = 50
+	}
+	if limit > 1000 {
+		limit = 1000
+	}
+	offset = 0
+	if in.Cursor == "" {
+		return offset, limit
+	}
+	now := time.Now
+	if a.now != nil {
+		now = a.now
+	}
+	payload, err := capability.DecodeCursor(scanopyCursorSecret, in.Cursor, now())
+	if err != nil || payload.Capability != scanopyCursorCap {
+		return offset, limit
+	}
+	offset = payload.Offset
+	if payload.Limit > 0 {
+		limit = payload.Limit
+		if limit > 1000 {
+			limit = 1000
+		}
+	}
+	return offset, limit
+}
+
+func scanopyPageInfo(pag scanopy.PaginationMeta, itemCount int) *capability.PageInfo {
+	limit := pag.Limit
+	if limit <= 0 {
+		limit = itemCount
+	}
+	page := &capability.PageInfo{Limit: limit, HasMore: pag.HasMore}
+	if pag.TotalCount > 0 {
+		total := pag.TotalCount
+		page.Total = &total
+	}
+	if !pag.HasMore {
+		return page
+	}
+	nextOffset := pag.Offset + itemCount
+	if itemCount == 0 && limit > 0 {
+		nextOffset = pag.Offset + limit
+	}
+	cursor, err := capability.EncodeCursor(scanopyCursorSecret, capability.CursorPayload{
+		Capability: scanopyCursorCap,
+		Strategy:   "offset",
+		Offset:     nextOffset,
+		Limit:      limit,
+	})
+	if err == nil {
+		page.NextCursor = cursor
+	}
+	return page
+}
+
+func toScanopyHost(h scanopy.Host) *capability.DevopsScanopyHost {
+	ips := make([]string, 0, len(h.IPAddresses))
+	for _, ip := range h.IPAddresses {
+		if ip.IPAddress != "" {
+			ips = append(ips, ip.IPAddress)
+		}
+	}
+	return &capability.DevopsScanopyHost{
+		ID: h.ID, Name: h.Name, Hostname: h.Hostname, NetworkID: h.NetworkID,
+		LastSeenAt: h.LastSeenAt, IPs: ips, Hidden: h.Hidden,
+	}
+}
+
+// ScanopyHealth checks Scanopy reachability.
+func (a *Adapter) ScanopyHealth(ctx context.Context) error {
+	if a.scanopy == nil {
+		return notConfigured("scanopy")
+	}
+	if err := ctx.Err(); err != nil {
+		return types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	if err := a.scanopy.Health(ctx); err != nil {
+		return wrapProviderErr("scanopy health failed", err)
+	}
+	return nil
+}
+
+// ScanopyVersion returns Scanopy API and server versions.
+func (a *Adapter) ScanopyVersion(ctx context.Context) (*capability.DevopsScanopyVersion, error) {
+	if a.scanopy == nil {
+		return nil, notConfigured("scanopy")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	info, err := a.scanopy.GetVersion(ctx)
+	if err != nil {
+		return nil, wrapProviderErr("scanopy version failed", err)
+	}
+	out := &capability.DevopsScanopyVersion{}
+	if info != nil {
+		out.APIVersion = info.APIVersion
+		out.ServerVersion = info.ServerVersion
+	}
+	return out, nil
+}
+
+// ScanopyListNetworks lists Scanopy networks.
+func (a *Adapter) ScanopyListNetworks(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyNetwork], error) {
+	if a.scanopy == nil {
+		return nil, notConfigured("scanopy")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	offset, limit := a.scanopyOffsetLimit(in)
+	page, err := a.scanopy.ListNetworks(ctx, toScanopyListParams(in, offset, limit))
+	if err != nil {
+		return nil, wrapProviderErr("scanopy list networks failed", err)
+	}
+	if page == nil {
+		page = &scanopy.Page[scanopy.Network]{}
+	}
+	items := make([]*capability.DevopsScanopyNetwork, 0, len(page.Items))
+	for _, n := range page.Items {
+		items = append(items, &capability.DevopsScanopyNetwork{
+			ID: n.ID, Name: n.Name, OrganizationID: n.OrganizationID,
+		})
+	}
+	return &capability.ListResult[capability.DevopsScanopyNetwork]{
+		Items: items,
+		Page:  scanopyPageInfo(page.Pagination, len(items)),
+	}, nil
+}
+
+// ScanopyListHosts lists Scanopy hosts.
+func (a *Adapter) ScanopyListHosts(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyHost], error) {
+	if a.scanopy == nil {
+		return nil, notConfigured("scanopy")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	offset, limit := a.scanopyOffsetLimit(in)
+	page, err := a.scanopy.ListHosts(ctx, toScanopyListParams(in, offset, limit))
+	if err != nil {
+		return nil, wrapProviderErr("scanopy list hosts failed", err)
+	}
+	if page == nil {
+		page = &scanopy.Page[scanopy.Host]{}
+	}
+	items := make([]*capability.DevopsScanopyHost, 0, len(page.Items))
+	for _, h := range page.Items {
+		items = append(items, toScanopyHost(h))
+	}
+	return &capability.ListResult[capability.DevopsScanopyHost]{
+		Items: items,
+		Page:  scanopyPageInfo(page.Pagination, len(items)),
+	}, nil
+}
+
+// ScanopyGetHost returns a Scanopy host by ID.
+func (a *Adapter) ScanopyGetHost(ctx context.Context, in ScanopyGetHostInput) (*capability.DevopsScanopyHost, error) {
+	if a.scanopy == nil {
+		return nil, notConfigured("scanopy")
+	}
+	if in.ID == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	h, err := a.scanopy.GetHost(ctx, in.ID)
+	if err != nil {
+		return nil, wrapProviderErr("scanopy get host failed", err)
+	}
+	if h == nil {
+		return &capability.DevopsScanopyHost{}, nil
+	}
+	return toScanopyHost(*h), nil
+}
+
+// ScanopyListServices lists Scanopy services.
+func (a *Adapter) ScanopyListServices(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyService], error) {
+	if a.scanopy == nil {
+		return nil, notConfigured("scanopy")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	offset, limit := a.scanopyOffsetLimit(in)
+	page, err := a.scanopy.ListServices(ctx, toScanopyListParams(in, offset, limit))
+	if err != nil {
+		return nil, wrapProviderErr("scanopy list services failed", err)
+	}
+	if page == nil {
+		page = &scanopy.Page[scanopy.Service]{}
+	}
+	items := make([]*capability.DevopsScanopyService, 0, len(page.Items))
+	for _, s := range page.Items {
+		items = append(items, &capability.DevopsScanopyService{
+			ID: s.ID, Name: s.Name, HostID: s.HostID, NetworkID: s.NetworkID, ServiceDefinition: s.ServiceDefinition,
+		})
+	}
+	return &capability.ListResult[capability.DevopsScanopyService]{
+		Items: items,
+		Page:  scanopyPageInfo(page.Pagination, len(items)),
+	}, nil
+}
+
+// ScanopyListDaemons lists Scanopy daemons.
+func (a *Adapter) ScanopyListDaemons(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyDaemon], error) {
+	if a.scanopy == nil {
+		return nil, notConfigured("scanopy")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	offset, limit := a.scanopyOffsetLimit(in)
+	page, err := a.scanopy.ListDaemons(ctx, toScanopyListParams(in, offset, limit))
+	if err != nil {
+		return nil, wrapProviderErr("scanopy list daemons failed", err)
+	}
+	if page == nil {
+		page = &scanopy.Page[scanopy.Daemon]{}
+	}
+	items := make([]*capability.DevopsScanopyDaemon, 0, len(page.Items))
+	for _, d := range page.Items {
+		items = append(items, &capability.DevopsScanopyDaemon{
+			ID: d.ID, Name: d.Name, NetworkID: d.NetworkID, Version: d.Version,
+			IsUnreachable: d.IsUnreachable, LastSeen: d.LastSeen,
+		})
+	}
+	return &capability.ListResult[capability.DevopsScanopyDaemon]{
+		Items: items,
+		Page:  scanopyPageInfo(page.Pagination, len(items)),
+	}, nil
 }
 
 func wrapProviderErr(msg string, err error) error {

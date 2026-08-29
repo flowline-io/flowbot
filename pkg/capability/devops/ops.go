@@ -23,4 +23,11 @@ const (
 	OpNetalertxListDevices    = "netalertx_list_devices"
 	OpNetalertxTotals         = "netalertx_totals"
 	OpNetalertxSearchDevices  = "netalertx_search_devices"
+	OpScanopyHealth           = "scanopy_health"
+	OpScanopyVersion          = "scanopy_version"
+	OpScanopyListNetworks     = "scanopy_list_networks"
+	OpScanopyListHosts        = "scanopy_list_hosts"
+	OpScanopyGetHost          = "scanopy_get_host"
+	OpScanopyListServices     = "scanopy_list_services"
+	OpScanopyListDaemons      = "scanopy_list_daemons"
 )

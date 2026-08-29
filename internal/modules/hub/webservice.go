@@ -2172,6 +2172,13 @@ var devopsWebserviceRules = []webservice.Rule{
 	webservice.Get("/netalertx/devices", devopsNetalertxListDevices),
 	webservice.Get("/netalertx/totals", devopsNetalertxTotals),
 	webservice.Post("/netalertx/devices/search", devopsNetalertxSearchDevices),
+	webservice.Get("/scanopy/health", devopsScanopyHealth),
+	webservice.Get("/scanopy/version", devopsScanopyVersion),
+	webservice.Get("/scanopy/networks", devopsScanopyListNetworks),
+	webservice.Get("/scanopy/hosts", devopsScanopyListHosts),
+	webservice.Get("/scanopy/hosts/:id", devopsScanopyGetHost),
+	webservice.Get("/scanopy/services", devopsScanopyListServices),
+	webservice.Get("/scanopy/daemons", devopsScanopyListDaemons),
 }
 
 func devopsStatus(ctx fiber.Ctx) error {
@@ -2314,6 +2321,58 @@ func devopsNetalertxSearchDevices(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "query is required")
 	}
 	return invokeDevops(ctx, devops.OpNetalertxSearchDevices, map[string]any{"query": body.Query})
+}
+
+func devopsScanopyHealth(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpScanopyHealth, map[string]any{})
+}
+
+func devopsScanopyVersion(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpScanopyVersion, map[string]any{})
+}
+
+func devopsScanopyListParams(ctx fiber.Ctx) map[string]any {
+	params := map[string]any{}
+	if v := ctx.Query("network_id"); v != "" {
+		params["network_id"] = v
+	}
+	if v := ctx.Query("host_id"); v != "" {
+		params["host_id"] = v
+	}
+	if v := ctx.Query("search"); v != "" {
+		params["search"] = v
+	}
+	if v := ctx.Query("limit"); v != "" {
+		params["limit"] = v
+	}
+	if v := ctx.Query("cursor"); v != "" {
+		params["cursor"] = v
+	}
+	return params
+}
+
+func devopsScanopyListNetworks(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpScanopyListNetworks, devopsScanopyListParams(ctx))
+}
+
+func devopsScanopyListHosts(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpScanopyListHosts, devopsScanopyListParams(ctx))
+}
+
+func devopsScanopyGetHost(ctx fiber.Ctx) error {
+	id := ctx.Params("id")
+	if id == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	return invokeDevops(ctx, devops.OpScanopyGetHost, map[string]any{"id": id})
+}
+
+func devopsScanopyListServices(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpScanopyListServices, devopsScanopyListParams(ctx))
+}
+
+func devopsScanopyListDaemons(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpScanopyListDaemons, devopsScanopyListParams(ctx))
 }
 
 func invokeDevops(ctx fiber.Ctx, operation string, params map[string]any) error {

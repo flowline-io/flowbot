@@ -14,7 +14,7 @@ func DevopsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "devops",
 		Short: "Work with devops backends",
-		Long:  "Query beszel, uptimekuma, traefik, grafana, wakapi, dozzle, and netalertx via Flowbot server",
+		Long:  "Query beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx, and scanopy via Flowbot server",
 	}
 	cmd.AddCommand(
 		devopsStatusCommand(),
@@ -25,6 +25,7 @@ func DevopsCommand() *cobra.Command {
 		devopsWakapiCommand(),
 		devopsDozzleCommand(),
 		devopsNetalertxCommand(),
+		devopsScanopyCommand(),
 	)
 	return cmd
 }
@@ -729,5 +730,252 @@ func devopsNetalertxSearchCommand() *cobra.Command {
 	cmd.Flags().String("query", "", "Search query (MAC, name, or IP)")
 	_ = cmd.MarkFlagRequired("query")
 	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
+}
+
+func devopsScanopyCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "scanopy",
+		Short: "Scanopy network topology",
+	}
+	cmd.AddCommand(
+		devopsScanopyHealthCommand(),
+		devopsScanopyVersionCommand(),
+		devopsScanopyNetworksCommand(),
+		devopsScanopyHostsCommand(),
+		devopsScanopyGetHostCommand(),
+		devopsScanopyServicesCommand(),
+		devopsScanopyDaemonsCommand(),
+	)
+	return cmd
+}
+
+func devopsScanopyHealthCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "health",
+		Short: "Check Scanopy health",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			ok, err := c.Devops.ScanopyHealth(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("scanopy health: %w", err)
+			}
+			if ok {
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Scanopy backend is healthy")
+			} else {
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Scanopy backend is unhealthy")
+			}
+			return nil
+		},
+	}
+}
+
+func devopsScanopyVersionCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "version",
+		Short: "Show Scanopy API/server version",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			v, err := c.Devops.ScanopyVersion(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("scanopy version: %w", err)
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(v)
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "API: %d\nServer: %s\n", v.APIVersion, v.ServerVersion)
+			return nil
+		},
+	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
+}
+
+func devopsScanopyListOpts(cmd *cobra.Command) client.DevopsScanopyListOptions {
+	networkID, _ := cmd.Flags().GetString("network-id")
+	hostID, _ := cmd.Flags().GetString("host-id")
+	search, _ := cmd.Flags().GetString("search")
+	limit, _ := cmd.Flags().GetInt("limit")
+	cursor, _ := cmd.Flags().GetString("cursor")
+	return client.DevopsScanopyListOptions{
+		NetworkID: networkID, HostID: hostID, Search: search, Limit: limit, Cursor: cursor,
+	}
+}
+
+func addScanopyListFlags(cmd *cobra.Command, withHostID bool) {
+	cmd.Flags().String("network-id", "", "Filter by network UUID")
+	if withHostID {
+		cmd.Flags().String("host-id", "", "Filter by host UUID")
+	}
+	cmd.Flags().String("search", "", "Free-text search")
+	cmd.Flags().Int("limit", 0, "Page size (default 50, max 1000)")
+	cmd.Flags().String("cursor", "", "Opaque pagination cursor")
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+}
+
+func devopsScanopyNetworksCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "networks",
+		Short: "List Scanopy networks",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			result, err := c.Devops.ScanopyListNetworks(cmd.Context(), devopsScanopyListOpts(cmd))
+			if err != nil {
+				return fmt.Errorf("list networks: %w", err)
+			}
+			if len(result.Items) == 0 {
+				return PrintEmptyList(cmd, "No networks found")
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(result)
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-38s %s\n", "ID", "NAME")
+			for _, item := range result.Items {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-38s %s\n", item.ID, item.Name)
+			}
+			return nil
+		},
+	}
+	addScanopyListFlags(cmd, false)
+	return cmd
+}
+
+func devopsScanopyHostsCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "hosts",
+		Short: "List Scanopy hosts",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			result, err := c.Devops.ScanopyListHosts(cmd.Context(), devopsScanopyListOpts(cmd))
+			if err != nil {
+				return fmt.Errorf("list hosts: %w", err)
+			}
+			if len(result.Items) == 0 {
+				return PrintEmptyList(cmd, "No hosts found")
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(result)
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-16s %-38s %s\n", "NAME", "HOSTNAME", "NETWORK", "IPS")
+			for _, item := range result.Items {
+				ips := ""
+				if len(item.IPs) > 0 {
+					ips = item.IPs[0]
+					if len(item.IPs) > 1 {
+						ips = fmt.Sprintf("%s (+%d)", item.IPs[0], len(item.IPs)-1)
+					}
+				}
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-16s %-38s %s\n", item.Name, item.Hostname, item.NetworkID, ips)
+			}
+			return nil
+		},
+	}
+	addScanopyListFlags(cmd, false)
+	return cmd
+}
+
+func devopsScanopyGetHostCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "host",
+		Short: "Get a Scanopy host by ID",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			id, _ := cmd.Flags().GetString("id")
+			host, err := c.Devops.ScanopyGetHost(cmd.Context(), id)
+			if err != nil {
+				return fmt.Errorf("get host: %w", err)
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(host)
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "ID: %s\nName: %s\nHostname: %s\nNetwork: %s\nIPs: %v\nLast seen: %s\n",
+				host.ID, host.Name, host.Hostname, host.NetworkID, host.IPs, host.LastSeenAt)
+			return nil
+		},
+	}
+	cmd.Flags().String("id", "", "Host UUID")
+	_ = cmd.MarkFlagRequired("id")
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
+}
+
+func devopsScanopyServicesCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "services",
+		Short: "List Scanopy services",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			result, err := c.Devops.ScanopyListServices(cmd.Context(), devopsScanopyListOpts(cmd))
+			if err != nil {
+				return fmt.Errorf("list services: %w", err)
+			}
+			if len(result.Items) == 0 {
+				return PrintEmptyList(cmd, "No services found")
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(result)
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-20s %-38s %s\n", "NAME", "DEFINITION", "HOST", "NETWORK")
+			for _, item := range result.Items {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-20s %-38s %s\n", item.Name, item.ServiceDefinition, item.HostID, item.NetworkID)
+			}
+			return nil
+		},
+	}
+	addScanopyListFlags(cmd, true)
+	return cmd
+}
+
+func devopsScanopyDaemonsCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "daemons",
+		Short: "List Scanopy daemons",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			result, err := c.Devops.ScanopyListDaemons(cmd.Context(), devopsScanopyListOpts(cmd))
+			if err != nil {
+				return fmt.Errorf("list daemons: %w", err)
+			}
+			if len(result.Items) == 0 {
+				return PrintEmptyList(cmd, "No daemons found")
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(result)
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-12s %-10s %s\n", "NAME", "VERSION", "UNREACHABLE", "NETWORK")
+			for _, item := range result.Items {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-12s %-10v %s\n", item.Name, item.Version, item.IsUnreachable, item.NetworkID)
+			}
+			return nil
+		},
+	}
+	addScanopyListFlags(cmd, false)
 	return cmd
 }

@@ -23,7 +23,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 	return capability.Spec{
 		Type:        hub.CapDevops,
 		App:         app,
-		Description: "DevOps aggregator for beszel, uptimekuma, traefik, grafana, wakapi, and dozzle",
+		Description: "DevOps aggregator for beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx, and scanopy",
 		Instance:    svc,
 		Ops: []capability.OpDef{
 			{Name: OpHealth, Description: "Aggregate health of configured devops backends", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeHealth(svc)},
@@ -84,6 +84,51 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Name: OpNetalertxSearchDevices, Description: "Search NetAlertX devices", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input:   []hub.ParamDef{{Name: "query", Type: "string", Required: true, Description: "Search query"}},
 				Handler: invokeNetalertxSearchDevices(svc),
+			},
+			{Name: OpScanopyHealth, Description: "Scanopy health", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeScanopyHealth(svc)},
+			{Name: OpScanopyVersion, Description: "Scanopy API/server version", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeScanopyVersion(svc)},
+			{
+				Name: OpScanopyListNetworks, Description: "List Scanopy networks", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "number", Description: "Page size (default 50, max 1000)"},
+					{Name: "cursor", Type: "string", Description: "Opaque pagination cursor"},
+				},
+				Handler: invokeScanopyListNetworks(svc),
+			},
+			{
+				Name: OpScanopyListHosts, Description: "List Scanopy hosts", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Input: []hub.ParamDef{
+					{Name: "network_id", Type: "string", Description: "Filter by network UUID"},
+					{Name: "search", Type: "string", Description: "Free-text search"},
+					{Name: "limit", Type: "number", Description: "Page size (default 50, max 1000)"},
+					{Name: "cursor", Type: "string", Description: "Opaque pagination cursor"},
+				},
+				Handler: invokeScanopyListHosts(svc),
+			},
+			{
+				Name: OpScanopyGetHost, Description: "Get a Scanopy host", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "Host UUID"}},
+				Handler: invokeScanopyGetHost(svc),
+			},
+			{
+				Name: OpScanopyListServices, Description: "List Scanopy services", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Input: []hub.ParamDef{
+					{Name: "network_id", Type: "string", Description: "Filter by network UUID"},
+					{Name: "host_id", Type: "string", Description: "Filter by host UUID"},
+					{Name: "search", Type: "string", Description: "Free-text search"},
+					{Name: "limit", Type: "number", Description: "Page size (default 50, max 1000)"},
+					{Name: "cursor", Type: "string", Description: "Opaque pagination cursor"},
+				},
+				Handler: invokeScanopyListServices(svc),
+			},
+			{
+				Name: OpScanopyListDaemons, Description: "List Scanopy daemons", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Input: []hub.ParamDef{
+					{Name: "network_id", Type: "string", Description: "Filter by network UUID"},
+					{Name: "limit", Type: "number", Description: "Page size (default 50, max 1000)"},
+					{Name: "cursor", Type: "string", Description: "Opaque pagination cursor"},
+				},
+				Handler: invokeScanopyListDaemons(svc),
 			},
 		},
 	}
@@ -373,6 +418,111 @@ func invokeNetalertxSearchDevices(svc Service) capability.Invoker {
 		}
 		if result == nil {
 			result = &capability.ListResult[capability.DevopsNetalertxDevice]{Items: []*capability.DevopsNetalertxDevice{}}
+		}
+		return &capability.InvokeResult{Data: result.Items, Page: result.Page}, nil
+	}
+}
+
+func scanopyListInput(params map[string]any) ScanopyListInput {
+	in := ScanopyListInput{}
+	if v, ok := capability.StringParam(params, "network_id"); ok {
+		in.NetworkID = v
+	}
+	if v, ok := capability.StringParam(params, "host_id"); ok {
+		in.HostID = v
+	}
+	if v, ok := capability.StringParam(params, "search"); ok {
+		in.Search = v
+	}
+	if v, ok := capability.IntParam(params, "limit"); ok {
+		in.Limit = v
+	}
+	if v, ok := capability.StringParam(params, "cursor"); ok {
+		in.Cursor = v
+	}
+	return in
+}
+
+func invokeScanopyHealth(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		if err := svc.ScanopyHealth(ctx); err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: map[string]bool{"healthy": true}}, nil
+	}
+}
+
+func invokeScanopyVersion(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		data, err := svc.ScanopyVersion(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: data}, nil
+	}
+}
+
+func invokeScanopyListNetworks(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		result, err := svc.ScanopyListNetworks(ctx, scanopyListInput(params))
+		if err != nil {
+			return nil, err
+		}
+		if result == nil {
+			result = &capability.ListResult[capability.DevopsScanopyNetwork]{Items: []*capability.DevopsScanopyNetwork{}}
+		}
+		return &capability.InvokeResult{Data: result.Items, Page: result.Page}, nil
+	}
+}
+
+func invokeScanopyListHosts(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		result, err := svc.ScanopyListHosts(ctx, scanopyListInput(params))
+		if err != nil {
+			return nil, err
+		}
+		if result == nil {
+			result = &capability.ListResult[capability.DevopsScanopyHost]{Items: []*capability.DevopsScanopyHost{}}
+		}
+		return &capability.InvokeResult{Data: result.Items, Page: result.Page}, nil
+	}
+}
+
+func invokeScanopyGetHost(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		id, err := capability.RequiredString(params, "id")
+		if err != nil {
+			return nil, err
+		}
+		item, err := svc.ScanopyGetHost(ctx, ScanopyGetHostInput{ID: id})
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: item}, nil
+	}
+}
+
+func invokeScanopyListServices(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		result, err := svc.ScanopyListServices(ctx, scanopyListInput(params))
+		if err != nil {
+			return nil, err
+		}
+		if result == nil {
+			result = &capability.ListResult[capability.DevopsScanopyService]{Items: []*capability.DevopsScanopyService{}}
+		}
+		return &capability.InvokeResult{Data: result.Items, Page: result.Page}, nil
+	}
+}
+
+func invokeScanopyListDaemons(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		result, err := svc.ScanopyListDaemons(ctx, scanopyListInput(params))
+		if err != nil {
+			return nil, err
+		}
+		if result == nil {
+			result = &capability.ListResult[capability.DevopsScanopyDaemon]{Items: []*capability.DevopsScanopyDaemon{}}
 		}
 		return &capability.InvokeResult{Data: result.Items, Page: result.Page}, nil
 	}

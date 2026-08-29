@@ -42,6 +42,20 @@ type SearchDevicesInput struct {
 	Query string
 }
 
+// ScanopyListInput holds shared Scanopy list filters.
+type ScanopyListInput struct {
+	NetworkID string
+	HostID    string
+	Search    string
+	Limit     int
+	Cursor    string
+}
+
+// ScanopyGetHostInput holds parameters for fetching a Scanopy host.
+type ScanopyGetHostInput struct {
+	ID string
+}
+
 // Service defines the devops aggregator capability contract.
 type Service interface {
 	HealthCheck(ctx context.Context) (bool, error)
@@ -73,4 +87,12 @@ type Service interface {
 	NetalertxListDevices(ctx context.Context) (*capability.ListResult[capability.DevopsNetalertxDevice], error)
 	NetalertxTotals(ctx context.Context) (*capability.DevopsNetalertxTotals, error)
 	NetalertxSearchDevices(ctx context.Context, in SearchDevicesInput) (*capability.ListResult[capability.DevopsNetalertxDevice], error)
+
+	ScanopyHealth(ctx context.Context) error
+	ScanopyVersion(ctx context.Context) (*capability.DevopsScanopyVersion, error)
+	ScanopyListNetworks(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyNetwork], error)
+	ScanopyListHosts(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyHost], error)
+	ScanopyGetHost(ctx context.Context, in ScanopyGetHostInput) (*capability.DevopsScanopyHost, error)
+	ScanopyListServices(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyService], error)
+	ScanopyListDaemons(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyDaemon], error)
 }

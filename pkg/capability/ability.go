@@ -367,6 +367,49 @@ type DevopsNetalertxTotals struct {
 	Archived  int `json:"archived"`
 }
 
+// DevopsScanopyVersion is Scanopy API/server version info.
+type DevopsScanopyVersion struct {
+	APIVersion    int    `json:"api_version"`
+	ServerVersion string `json:"server_version"`
+}
+
+// DevopsScanopyNetwork is a Scanopy network container.
+type DevopsScanopyNetwork struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	OrganizationID string `json:"organization_id,omitzero"`
+}
+
+// DevopsScanopyHost is a Scanopy network host summary.
+type DevopsScanopyHost struct {
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Hostname   string   `json:"hostname,omitzero"`
+	NetworkID  string   `json:"network_id"`
+	LastSeenAt string   `json:"last_seen_at,omitzero"`
+	IPs        []string `json:"ips,omitzero"`
+	Hidden     bool     `json:"hidden"`
+}
+
+// DevopsScanopyService is a Scanopy discovered service.
+type DevopsScanopyService struct {
+	ID                string `json:"id"`
+	Name              string `json:"name"`
+	HostID            string `json:"host_id,omitzero"`
+	NetworkID         string `json:"network_id,omitzero"`
+	ServiceDefinition string `json:"service_definition,omitzero"`
+}
+
+// DevopsScanopyDaemon is a Scanopy scanning daemon.
+type DevopsScanopyDaemon struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	NetworkID     string `json:"network_id,omitzero"`
+	Version       string `json:"version,omitzero"`
+	IsUnreachable bool   `json:"is_unreachable"`
+	LastSeen      string `json:"last_seen,omitzero"`
+}
+
 // DevopsGrafanaQueryResult is a Grafana datasource query response summary.
 type DevopsGrafanaQueryResult struct {
 	Backend        string                    `json:"backend"`

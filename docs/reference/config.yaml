@@ -444,6 +444,10 @@ vendors:
   netalertx:
     endpoint: ""
     token: ""
+  # Scanopy network topology discovery (User API key: Bearer scp_u_...)
+  scanopy:
+    endpoint: ""
+    api_key: ""
   # Drone configuration
   drone:
     endpoint: ""

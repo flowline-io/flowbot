@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
@@ -129,6 +130,49 @@ type DevopsNetalertxTotalsResult struct {
 // DevopsNetalertxSearchRequest is the request body for NetAlertX device search.
 type DevopsNetalertxSearchRequest struct {
 	Query string `json:"query"`
+}
+
+// DevopsScanopyVersionResult holds Scanopy version from InvokeResult.
+type DevopsScanopyVersionResult struct {
+	Version capability.DevopsScanopyVersion `json:"data"`
+}
+
+// DevopsScanopyNetworksResult holds Scanopy networks from InvokeResult.
+type DevopsScanopyNetworksResult struct {
+	Items []*capability.DevopsScanopyNetwork `json:"data"`
+	Page  *capability.PageInfo               `json:"page"`
+}
+
+// DevopsScanopyHostsResult holds Scanopy hosts from InvokeResult.
+type DevopsScanopyHostsResult struct {
+	Items []*capability.DevopsScanopyHost `json:"data"`
+	Page  *capability.PageInfo            `json:"page"`
+}
+
+// DevopsScanopyHostResult holds a single Scanopy host from InvokeResult.
+type DevopsScanopyHostResult struct {
+	Host capability.DevopsScanopyHost `json:"data"`
+}
+
+// DevopsScanopyServicesResult holds Scanopy services from InvokeResult.
+type DevopsScanopyServicesResult struct {
+	Items []*capability.DevopsScanopyService `json:"data"`
+	Page  *capability.PageInfo               `json:"page"`
+}
+
+// DevopsScanopyDaemonsResult holds Scanopy daemons from InvokeResult.
+type DevopsScanopyDaemonsResult struct {
+	Items []*capability.DevopsScanopyDaemon `json:"data"`
+	Page  *capability.PageInfo              `json:"page"`
+}
+
+// DevopsScanopyListOptions holds optional Scanopy list query params.
+type DevopsScanopyListOptions struct {
+	NetworkID string
+	HostID    string
+	Search    string
+	Limit     int
+	Cursor    string
 }
 
 // Status returns which devops backends are configured.
@@ -347,6 +391,96 @@ func (d *DevopsClient) NetalertxSearchDevices(ctx context.Context, query string)
 	}
 	var result DevopsNetalertxDevicesResult
 	if err := d.c.Post(ctx, "/service/devops/netalertx/devices/search", &DevopsNetalertxSearchRequest{Query: query}, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func scanopyListQuery(opts DevopsScanopyListOptions) string {
+	q := url.Values{}
+	if opts.NetworkID != "" {
+		q.Set("network_id", opts.NetworkID)
+	}
+	if opts.HostID != "" {
+		q.Set("host_id", opts.HostID)
+	}
+	if opts.Search != "" {
+		q.Set("search", opts.Search)
+	}
+	if opts.Limit > 0 {
+		q.Set("limit", strconv.Itoa(opts.Limit))
+	}
+	if opts.Cursor != "" {
+		q.Set("cursor", opts.Cursor)
+	}
+	encoded := q.Encode()
+	if encoded == "" {
+		return ""
+	}
+	return "?" + encoded
+}
+
+// ScanopyHealth checks Scanopy reachability.
+func (d *DevopsClient) ScanopyHealth(ctx context.Context) (bool, error) {
+	var result DevopsHealthyResult
+	if err := d.c.Get(ctx, "/service/devops/scanopy/health", &result); err != nil {
+		return false, err
+	}
+	return result.Data["healthy"], nil
+}
+
+// ScanopyVersion returns Scanopy API/server versions.
+func (d *DevopsClient) ScanopyVersion(ctx context.Context) (*capability.DevopsScanopyVersion, error) {
+	var result DevopsScanopyVersionResult
+	if err := d.c.Get(ctx, "/service/devops/scanopy/version", &result); err != nil {
+		return nil, err
+	}
+	return &result.Version, nil
+}
+
+// ScanopyListNetworks lists Scanopy networks.
+func (d *DevopsClient) ScanopyListNetworks(ctx context.Context, opts DevopsScanopyListOptions) (*DevopsScanopyNetworksResult, error) {
+	var result DevopsScanopyNetworksResult
+	if err := d.c.Get(ctx, "/service/devops/scanopy/networks"+scanopyListQuery(opts), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// ScanopyListHosts lists Scanopy hosts.
+func (d *DevopsClient) ScanopyListHosts(ctx context.Context, opts DevopsScanopyListOptions) (*DevopsScanopyHostsResult, error) {
+	var result DevopsScanopyHostsResult
+	if err := d.c.Get(ctx, "/service/devops/scanopy/hosts"+scanopyListQuery(opts), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// ScanopyGetHost returns a Scanopy host by ID.
+func (d *DevopsClient) ScanopyGetHost(ctx context.Context, id string) (*capability.DevopsScanopyHost, error) {
+	if id == "" {
+		return nil, fmt.Errorf("id is required")
+	}
+	var result DevopsScanopyHostResult
+	if err := d.c.Get(ctx, "/service/devops/scanopy/hosts/"+url.PathEscape(id), &result); err != nil {
+		return nil, err
+	}
+	return &result.Host, nil
+}
+
+// ScanopyListServices lists Scanopy services.
+func (d *DevopsClient) ScanopyListServices(ctx context.Context, opts DevopsScanopyListOptions) (*DevopsScanopyServicesResult, error) {
+	var result DevopsScanopyServicesResult
+	if err := d.c.Get(ctx, "/service/devops/scanopy/services"+scanopyListQuery(opts), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// ScanopyListDaemons lists Scanopy daemons.
+func (d *DevopsClient) ScanopyListDaemons(ctx context.Context, opts DevopsScanopyListOptions) (*DevopsScanopyDaemonsResult, error) {
+	var result DevopsScanopyDaemonsResult
+	if err := d.c.Get(ctx, "/service/devops/scanopy/daemons"+scanopyListQuery(opts), &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
