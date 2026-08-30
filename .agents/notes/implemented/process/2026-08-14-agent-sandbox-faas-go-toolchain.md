@@ -29,6 +29,7 @@ Cloud Agents that need a different toolchain can override `GOTOOLCHAIN` when the
 - Image Go is hermetic by default; agents that want auto toolchain download must set `GOTOOLCHAIN=auto` (and have network)
 - FaaS Go functions remain stdlib-only; third-party imports still fail under `GOPROXY=off`
 - Sandbox releases that change `GO_VERSION` must keep the FaaS `go.mod` language line (`go 1.26`) compatible with the bundled compiler
+- Size packaging: [agent-sandbox image packaging](./2026-08-30-agent-sandbox-image-packaging.md)
 
 ## Verification
 

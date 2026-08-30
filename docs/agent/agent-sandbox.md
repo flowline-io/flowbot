@@ -158,7 +158,7 @@ docker run --rm --network=none -w /tmp \
 | -------- | ------- | ------ |
 | [`docker-agent-sandbox.yml`](../../.github/workflows/docker-agent-sandbox.yml) | Push tag `sandbox-v*`; manual `workflow_dispatch` | Pushes both `base` and `playwright` targets to GHCR |
 
-Each matrix job runs a post-build smoke test (`git`, `go`, `node`, `python3`, `dcg`; offline `go run main.go` under `--network=none`; plus `playwright --version` for the Playwright variant).
+Each matrix job runs a post-build smoke test (`git`, `go`, `node`, `python3`, `dcg`; offline `go run main.go` under `--network=none`; plus `playwright --version` for the Playwright variant) and prints `docker image inspect` Size ([packaging](../../.agents/notes/implemented/process/2026-08-30-agent-sandbox-image-packaging.md)).
 
 ## Orchestrator integration
 

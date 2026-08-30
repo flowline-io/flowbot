@@ -59,10 +59,24 @@ RUN apt-get update \
     && ln -sf /usr/bin/python3 /usr/local/bin/python \
     && curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
         | tar -C /usr/local -xz \
+    && rm -rf \
+        /usr/local/go/test \
+        /usr/local/go/doc \
+        /usr/local/go/api \
+        /usr/local/go/lib/wasm \
+    && find /usr/local/go -type d -name testdata -prune -exec rm -rf {} + \
     && curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && npm install -g oxfmt oxlint \
-    && rm -rf /var/lib/apt/lists/*
+    && npm cache clean --force \
+    && rm -rf \
+        /var/lib/apt/lists/* \
+        /var/cache/apt/archives/* \
+        /usr/share/man \
+        /usr/share/doc \
+        /usr/share/info \
+        /root/.npm \
+    && find /tmp -mindepth 1 -delete
 
 RUN set -eux; \
     if getent group 1000 >/dev/null; then \
@@ -106,14 +120,29 @@ RUN mkdir -p /tmp/faas-go-smoke \
     && printf '%s\n' 'package main' '' 'import "fmt"' '' 'func main() { fmt.Println("{}") }' > /tmp/faas-go-smoke/main.go \
     && cd /tmp/faas-go-smoke \
     && GOPROXY=off GOSUMDB=off CGO_ENABLED=0 go run main.go \
-    && rm -rf /tmp/faas-go-smoke
+    && rm -rf /home/agent/.cache/go-build \
+    && find /tmp -mindepth 1 -delete
 
 FROM base AS playwright
 
 USER root
 
-RUN npx --yes playwright install-deps chromium
+# install-deps re-runs apt; strip docs in this layer.
+RUN npx --yes playwright install-deps chromium \
+    && npm cache clean --force \
+    && rm -rf \
+        /var/lib/apt/lists/* \
+        /var/cache/apt/archives/* \
+        /usr/share/man \
+        /usr/share/doc \
+        /usr/share/info \
+        /root/.npm \
+    && find /tmp -mindepth 1 -delete
 
 USER agent
 
-RUN npx --yes playwright install chromium
+# Keep the Playwright browser cache; drop npx cache only.
+RUN npx --yes playwright install chromium \
+    && npm cache clean --force \
+    && rm -rf /home/agent/.npm \
+    && find /tmp -mindepth 1 -delete
