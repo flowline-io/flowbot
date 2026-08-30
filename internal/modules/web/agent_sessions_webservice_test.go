@@ -531,6 +531,15 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 			wantBody:   "Deploy flowbot",
 		},
 		{
+			name: "detail back link returns to thread ui",
+			path: "/service/web/agent-sessions/sess-detail",
+			sessions: map[string]*gen.ChatSession{
+				"sess-detail": {Flag: "sess-detail", Title: "Deploy flowbot", UID: "user:x", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `href="/service/web/agents/sess-detail"`,
+		},
+		{
 			name:       "missing session returns not found",
 			path:       "/service/web/agent-sessions/missing",
 			sessions:   map[string]*gen.ChatSession{},

@@ -4427,6 +4427,9 @@ other = "Add File"
 [agent.skill.files.empty]
 other = "No auxiliary files yet."
 
+[agent.session.back_to_thread]
+other = "← Back to session"
+
 [agent.session.session_id]
 other = "Session ID:"
 

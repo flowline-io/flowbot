@@ -4427,6 +4427,9 @@ other = "添加文件"
 [agent.skill.files.empty]
 other = "暂无辅助文件。"
 
+[agent.session.back_to_thread]
+other = "← 返回会话"
+
 [agent.session.session_id]
 other = "会话 ID："
 
