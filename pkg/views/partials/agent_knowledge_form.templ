@@ -7,8 +7,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ AgentKnowledgeForm(ctx context.Context, item model.AgentKnowledge, isNew bool, errors map[string]string, listQ string) {
-	<tr id={ agentKnowledgeFormID(item, isNew) }>
+templ AgentKnowledgeForm(ctx context.Context, item model.AgentKnowledge, isNew bool, errors map[string]string, listQ string, aiEnabled bool) {
+	<tr id={ agentKnowledgeFormID(item, isNew) } x-data="agentKnowledgeForm">
 		<td colspan="6" class="bg-base-200/50">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
 				<div class="md:col-span-2">
@@ -22,6 +22,27 @@ templ AgentKnowledgeForm(ctx context.Context, item model.AgentKnowledge, isNew b
 					<p class="text-xs text-base-content/50 mt-1">{ i18n.T(ctx, "agent.knowledge.path_hint") }</p>
 					<div class="text-error text-xs">{ errors["path"] }</div>
 				</div>
+				if aiEnabled {
+					<div class="md:col-span-2 flex items-center justify-between gap-3 border-t border-base-300/60 pt-3">
+						<p class="text-xs text-base-content/50">{ i18n.T(ctx, "agent.knowledge.generate_metadata_hint") }</p>
+						<button type="button"
+							if isNew {
+								hx-post="/service/web/agent-knowledge/generate-metadata"
+							} else {
+								hx-post={ agentKnowledgeURL(item) + "/generate-metadata" }
+							}
+							hx-target="closest tr"
+							hx-swap="outerHTML"
+							hx-include="closest tr"
+							hx-disabled-elt="this"
+							x-bind:disabled="!canGenerate"
+							data-testid="agent-knowledge-generate"
+							class="btn btn-outline btn-primary btn-sm shrink-0">
+							{ i18n.T(ctx, "agent.knowledge.generate_metadata") }
+							@HtmxIndicator()
+						</button>
+					</div>
+				}
 				<div>
 					<label class="label"><span class="label-text">{ i18n.T(ctx, "common.title") }</span></label>
 					<input type="text" name="title" value={ item.Title }
@@ -53,6 +74,7 @@ templ AgentKnowledgeForm(ctx context.Context, item model.AgentKnowledge, isNew b
 					<label class="label"><span class="label-text">{ i18n.T(ctx, "common.content") }</span></label>
 					<textarea name="content" rows="14"
 						data-testid="agent-knowledge-content"
+						x-model="content"
 						class={ "textarea textarea-bordered w-full font-mono text-sm " + fieldError(errors, "content") }
 						placeholder={ i18n.T(ctx, "agent.knowledge.content_placeholder") }>{ item.Content }</textarea>
 					<div class="text-error text-xs">{ errors["content"] }</div>

@@ -893,6 +893,15 @@ other = "Knowledge document not found"
 [toast.agent_knowledge.delete_failed]
 other = "Failed to delete knowledge document"
 
+[toast.agent_knowledge.generate_unavailable]
+other = "AI generation is unavailable (chat agent not configured)"
+
+[toast.agent_knowledge.generate_content_required]
+other = "Write content before generating metadata"
+
+[toast.agent_knowledge.generate_failed]
+other = "Failed to generate metadata"
+
 [toast.agents.not_enabled]
 other = "Chat agent is not enabled"
 
@@ -4387,6 +4396,12 @@ other = "/docs/develop/api-specs.md"
 
 [agent.knowledge.title_placeholder]
 other = "API Specs"
+
+[agent.knowledge.generate_metadata]
+other = "Generate metadata"
+
+[agent.knowledge.generate_metadata_hint]
+other = "Fill title, tags, and summary from content"
 
 [agent.session_summaries.filter_placeholder]
 other = "Filter title or summary"

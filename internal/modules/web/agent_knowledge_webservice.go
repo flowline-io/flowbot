@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -28,8 +29,10 @@ var agentKnowledgeWebserviceRules = []webservice.Rule{
 	webservice.Get("/agent-knowledge/list", agentKnowledgeTable),
 	webservice.Get("/agent-knowledge/new", agentKnowledgeNewForm),
 	webservice.Post("/agent-knowledge", agentKnowledgeCreate),
+	webservice.Post("/agent-knowledge/generate-metadata", agentKnowledgeGenerateMetadata),
 	webservice.Get("/agent-knowledge/:id/edit", agentKnowledgeEditForm),
 	webservice.Put("/agent-knowledge/:id", agentKnowledgeUpdate),
+	webservice.Post("/agent-knowledge/:id/generate-metadata", agentKnowledgeGenerateMetadata),
 	webservice.Delete("/agent-knowledge/:id", agentKnowledgeDelete),
 }
 
@@ -67,7 +70,7 @@ func agentKnowledgeNewForm(ctx fiber.Ctx) error {
 	q := strings.TrimSpace(ctx.Query("q"))
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-knowledge-form-new" hx-swap-oob="delete"></tr><tr id="agent-knowledge-empty" hx-swap-oob="delete"></tr>`))
-	return partials.AgentKnowledgeForm(ctx.Context(), model.AgentKnowledge{Tags: []string{}}, true, nil, q).
+	return partials.AgentKnowledgeForm(ctx.Context(), model.AgentKnowledge{Tags: []string{}}, true, nil, q, pkgconfig.ChatAgentEnabled()).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -81,7 +84,7 @@ func agentKnowledgeCreate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentKnowledgeForm(ctx.Context(), input, true, errs, "").Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentKnowledgeForm(ctx.Context(), input, true, errs, "", pkgconfig.ChatAgentEnabled()).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	now := time.Now().UTC()
 	row := &gen.AgentKnowledge{
@@ -97,7 +100,7 @@ func agentKnowledgeCreate(ctx fiber.Ctx) error {
 		if fieldErrs := mapAgentKnowledgeUniqueError(ctx, err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentKnowledgeForm(ctx.Context(), input, true, fieldErrs, "").Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentKnowledgeForm(ctx.Context(), input, true, fieldErrs, "", pkgconfig.ChatAgentEnabled()).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		return toastErrorKey(ctx, "toast.agent_knowledge.create_failed")
 	}
@@ -126,7 +129,40 @@ func agentKnowledgeEditForm(ctx fiber.Ctx) error {
 		return renderErrorKey(ctx, "toast.agent_knowledge.load_failed")
 	}
 	ctx.Type("html")
-	return partials.AgentKnowledgeForm(ctx.Context(), item, false, nil, "").Render(reqCtx, ctx.Response().BodyWriter())
+	return partials.AgentKnowledgeForm(ctx.Context(), item, false, nil, "", pkgconfig.ChatAgentEnabled()).Render(reqCtx, ctx.Response().BodyWriter())
+}
+
+func agentKnowledgeGenerateMetadata(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if !pkgconfig.ChatAgentEnabled() {
+		return toastErrorKey(ctx, "toast.agent_knowledge.generate_unavailable")
+	}
+	isNew := true
+	input := parseAgentKnowledgeForm(ctx)
+	if raw := strings.TrimSpace(ctx.Params("id")); raw != "" {
+		id, err := decodeAgentKnowledgeID(ctx)
+		if err != nil {
+			return err
+		}
+		isNew = false
+		input.ID = id
+	}
+	if strings.TrimSpace(input.Content) == "" {
+		return toastErrorKey(ctx, "toast.agent_knowledge.generate_content_required")
+	}
+	meta, err := chatagent.GenerateKnowledgeMetadata(ctx.Context(), input.Path, input.Content)
+	if err != nil {
+		flog.Warn("[web] agent knowledge metadata generate failed uid=%s: %v", getUID(ctx), err)
+		return toastErrorKey(ctx, "toast.agent_knowledge.generate_failed")
+	}
+	input.Title = meta.Title
+	input.Tags = meta.Tags
+	input.Summary = meta.Summary
+	ctx.Type("html")
+	return partials.AgentKnowledgeForm(ctx.Context(), input, isNew, nil, "", true).
+		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentKnowledgeUpdate(ctx fiber.Ctx) error {
@@ -153,7 +189,7 @@ func agentKnowledgeUpdate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentKnowledgeForm(ctx.Context(), input, false, errs, "").Render(reqCtx, ctx.Response().BodyWriter())
+		return partials.AgentKnowledgeForm(ctx.Context(), input, false, errs, "", pkgconfig.ChatAgentEnabled()).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	existing.Path = input.Path
 	existing.Title = input.Title
@@ -164,7 +200,7 @@ func agentKnowledgeUpdate(ctx fiber.Ctx) error {
 		if fieldErrs := mapAgentKnowledgeUniqueError(ctx, err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentKnowledgeForm(ctx.Context(), input, false, fieldErrs, "").Render(reqCtx, ctx.Response().BodyWriter())
+			return partials.AgentKnowledgeForm(ctx.Context(), input, false, fieldErrs, "", pkgconfig.ChatAgentEnabled()).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		return toastErrorKey(ctx, "toast.agent_knowledge.update_failed")
 	}

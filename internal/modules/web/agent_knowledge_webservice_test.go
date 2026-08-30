@@ -13,8 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -379,6 +381,153 @@ func TestAgentKnowledgeListFilterAuthenticated(t *testing.T) {
 			assert.Contains(t, string(respBody), tt.wantBody)
 			if tt.wantAbsent != "" {
 				assert.NotContains(t, string(respBody), tt.wantAbsent)
+			}
+		})
+	}
+}
+
+func TestAgentKnowledgeNewFormShowsGenerateWhenEnabled(t *testing.T) {
+	tests := []struct {
+		name       string
+		chatModel  string
+		wantButton bool
+	}{
+		{name: "enabled shows button", chatModel: "test-model", wantButton: true},
+		{name: "disabled hides button", chatModel: "", wantButton: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			orig := pkgconfig.App.ChatAgent.ChatModel
+			pkgconfig.App.ChatAgent.ChatModel = tt.chatModel
+			t.Cleanup(func() { pkgconfig.App.ChatAgent.ChatModel = orig })
+
+			app := setupAuthenticatedApp(t, &testStore{})
+			req := httptest.NewRequest(http.MethodGet, "/service/web/agent-knowledge/new", http.NoBody)
+			req.Header.Set("Cookie", "accessToken=test-token")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			body, _ := io.ReadAll(resp.Body)
+			if tt.wantButton {
+				assert.Contains(t, string(body), `data-testid="agent-knowledge-generate"`)
+			} else {
+				assert.NotContains(t, string(body), `data-testid="agent-knowledge-generate"`)
+			}
+		})
+	}
+}
+
+func TestAgentKnowledgeGenerateMetadataAuthenticated(t *testing.T) {
+	t.Cleanup(chatagent.SetKnowledgeMetadataGeneratorForTest(func(_ context.Context, path, content string) (chatagent.KnowledgeMetadata, error) {
+		assert.Equal(t, "/docs/ops/run.md", path)
+		assert.Equal(t, "# Hello\n\nBody", content)
+		return chatagent.KnowledgeMetadata{
+			Title:   "AI Title",
+			Tags:    []string{"ops", "run", "docs"},
+			Summary: "AI summary line",
+		}, nil
+	}))
+
+	tests := []struct {
+		name       string
+		chatModel  string
+		path       string
+		form       map[string]string
+		wantStatus int
+		wantBody   string
+		wantHX     string
+		wantNoPersist bool
+	}{
+		{
+			name:      "fills form without persisting",
+			chatModel: "test-model",
+			path:      "/service/web/agent-knowledge/generate-metadata",
+			form: map[string]string{
+				"path":    "/docs/ops/run.md",
+				"title":   "Old",
+				"tags":    "old",
+				"summary": "old summary",
+				"content": "# Hello\n\nBody",
+			},
+			wantStatus:    http.StatusOK,
+			wantBody:      "AI Title",
+			wantNoPersist: true,
+		},
+		{
+			name:      "rejects empty content",
+			chatModel: "test-model",
+			path:      "/service/web/agent-knowledge/generate-metadata",
+			form: map[string]string{
+				"path":    "/docs/ops/run.md",
+				"content": "   ",
+			},
+			wantStatus: http.StatusNoContent,
+			wantHX:     "Write content before generating metadata",
+		},
+		{
+			name:      "unavailable when chat agent disabled",
+			chatModel: "",
+			path:      "/service/web/agent-knowledge/generate-metadata",
+			form: map[string]string{
+				"path":    "/docs/ops/run.md",
+				"content": "body",
+			},
+			wantStatus: http.StatusNoContent,
+			wantHX:     "AI generation is unavailable",
+		},
+		{
+			name:      "edit path also fills form",
+			chatModel: "test-model",
+			path:      "/service/web/agent-knowledge/1/generate-metadata",
+			form: map[string]string{
+				"path":    "/docs/ops/run.md",
+				"title":   "Old",
+				"content": "# Hello\n\nBody",
+			},
+			wantStatus:    http.StatusOK,
+			wantBody:      "AI summary line",
+			wantNoPersist: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			orig := pkgconfig.App.ChatAgent.ChatModel
+			pkgconfig.App.ChatAgent.ChatModel = tt.chatModel
+			t.Cleanup(func() { pkgconfig.App.ChatAgent.ChatModel = orig })
+
+			ts := &testStore{
+				agentKnowledge: map[int64]*gen.AgentKnowledge{
+					1: {
+						ID: 1, Path: "/docs/ops/run.md", Title: "Stored", Content: "stored body",
+						Tags: []string{"stored"}, Summary: "stored summary",
+					},
+				},
+				agentKnowledgeSeq: 1,
+			}
+			app := setupAuthenticatedApp(t, ts)
+			body := buildFormBody(tt.form)
+			req := httptest.NewRequest(http.MethodPost, tt.path, strings.NewReader(body))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			respBody, _ := io.ReadAll(resp.Body)
+			if tt.wantBody != "" {
+				assert.Contains(t, string(respBody), tt.wantBody)
+				assert.Contains(t, string(respBody), "ops, run, docs")
+			}
+			if tt.wantHX != "" {
+				assert.Contains(t, resp.Header.Get("HX-Trigger"), tt.wantHX)
+			}
+			if tt.wantNoPersist {
+				got, err := store.AgentStoreFromDB().GetAgentKnowledgeByID(context.Background(), 1)
+				require.NoError(t, err)
+				assert.Equal(t, "Stored", got.Title)
+				assert.Equal(t, "stored summary", got.Summary)
 			}
 		})
 	}

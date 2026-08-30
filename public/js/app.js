@@ -44,6 +44,19 @@ function flowbotI18n(key, fallback) {
         return this.cat === 'Project' || this.cat === 'Resource';
       },
     }));
+
+    Alpine.data('agentKnowledgeForm', () => ({
+      content: '',
+      init() {
+        var ta = this.$el.querySelector('[data-testid="agent-knowledge-content"]');
+        if (ta) {
+          this.content = ta.value || '';
+        }
+      },
+      get canGenerate() {
+        return String(this.content || '').trim().length > 0;
+      },
+    }));
   }
 
   document.addEventListener('alpine:init', registerAppAlpineData);

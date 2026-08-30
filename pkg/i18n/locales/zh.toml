@@ -893,6 +893,15 @@ other = "未找到知识文档"
 [toast.agent_knowledge.delete_failed]
 other = "删除知识文档失败"
 
+[toast.agent_knowledge.generate_unavailable]
+other = "AI 生成不可用（未配置 chat agent）"
+
+[toast.agent_knowledge.generate_content_required]
+other = "请先填写正文再生成元数据"
+
+[toast.agent_knowledge.generate_failed]
+other = "生成元数据失败"
+
 [toast.agents.not_enabled]
 other = "Chat Agent 未启用"
 
@@ -4387,6 +4396,12 @@ other = "/docs/develop/api-specs.md"
 
 [agent.knowledge.title_placeholder]
 other = "API Specs"
+
+[agent.knowledge.generate_metadata]
+other = "生成元数据"
+
+[agent.knowledge.generate_metadata_hint]
+other = "根据正文填充标题、标签与摘要"
 
 [agent.session_summaries.filter_placeholder]
 other = "筛选标题或摘要"
