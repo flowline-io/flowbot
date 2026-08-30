@@ -18,6 +18,7 @@ templ ChatAgentApprovalScripts() {
 
 // ChatAgentThreadScripts loads the full chat thread stack (SSE, markdown, stream UI).
 templ ChatAgentThreadScripts() {
+	<link href={ "/static/vendor/microlighter/themes/github.css?v=" + version.Buildtags } rel="stylesheet"/>
 	<script src={ "/static/js/chatagent-util.js?v=" + version.Buildtags } defer></script>
 	<script src={ "/static/js/chatagent-sse.js?v=" + version.Buildtags } defer></script>
 	<script src={ "/static/js/chatagent-markdown.js?v=" + version.Buildtags } defer></script>

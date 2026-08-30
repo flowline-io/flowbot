@@ -10,6 +10,7 @@ ALPINE_VERSION=3.15.12
 JS_YAML_VERSION=4.1.0
 DAISYUI_VERSION=5.0.9
 QRCODEJS_VERSION=1.0.0
+MICROLIGHTER_VERSION=2.1.0
 
 VENDOR_DIR=public/vendor
 mkdir -p "$VENDOR_DIR"
@@ -34,6 +35,16 @@ curl -sL "https://cdn.jsdelivr.net/npm/daisyui@${DAISYUI_VERSION}/themes.css" -o
 
 echo "Downloading qrcodejs ${QRCODEJS_VERSION}..."
 curl -sL "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/${QRCODEJS_VERSION}/qrcode.min.js" -o "${VENDOR_DIR}/qrcode.min.js"
+
+echo "Downloading microlighter ${MICROLIGHTER_VERSION}..."
+MICROLIGHTER_TMP=$(mktemp -d)
+curl -sL "https://registry.npmjs.org/microlighter/-/microlighter-${MICROLIGHTER_VERSION}.tgz" \
+  -o "${MICROLIGHTER_TMP}/microlighter.tgz"
+tar -xzf "${MICROLIGHTER_TMP}/microlighter.tgz" -C "${MICROLIGHTER_TMP}"
+rm -rf "${VENDOR_DIR}/microlighter"
+mkdir -p "${VENDOR_DIR}/microlighter"
+cp -R "${MICROLIGHTER_TMP}/package/dist/." "${VENDOR_DIR}/microlighter/"
+rm -rf "${MICROLIGHTER_TMP}"
 
 echo ""
 echo "Vendor files downloaded to ${VENDOR_DIR}/"

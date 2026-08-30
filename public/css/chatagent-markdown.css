@@ -296,8 +296,16 @@
 .chatagent-thinking-body.chatagent-markdown.markdown-body
   .chatagent-codeblock.is-collapsed
   > pre {
-  max-height: 14rem;
+  max-height: 28rem;
   overflow: hidden;
+}
+
+/* Keep self-owned codeblock chrome; microlighter github theme sets pre:has(code) bg/fg. */
+#chatagent-messages[data-syntax-theme='github']
+  .chatagent-codeblock
+  > pre {
+  background: transparent;
+  color: inherit;
 }
 
 .chatagent-assistant-body.chatagent-markdown.markdown-body

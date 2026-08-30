@@ -3,10 +3,23 @@
 
   var ns = (window.FlowbotChatAgent = window.FlowbotChatAgent || {});
 
-  var COLLAPSE_LINE_THRESHOLD = 18;
+  var COLLAPSE_LINE_THRESHOLD = 30;
+  var MESSAGES_ROOT_ID = 'chatagent-messages';
+  var MICROLIGHTER_MODULE = '/static/vendor/microlighter/index.js';
+  var LANGUAGE_ALIASES = {
+    golang: 'go',
+    rs: 'rust',
+    kt: 'kotlin',
+    console: 'bash',
+    shellsession: 'bash',
+  };
 
   var copyIconSVG =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3 h-3" aria-hidden="true"><path d="M5 6.5A1.5 1.5 0 0 1 6.5 5h6A1.5 1.5 0 0 1 14 6.5v6a1.5 1.5 0 0 1-1.5 1.5h-6A1.5 1.5 0 0 1 5 12.5v-6Z"></path><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11V6.5a3 3 0 0 1 3-3H11A1.5 1.5 0 0 0 9.5 2h-6Z"></path></svg>';
+
+  var highlightGeneration = 0;
+  var highlightInFlight = null;
+  var highlightModulePromise = null;
 
   function languageFromCode(codeEl) {
     var classes = (codeEl.className || '').split(/\s+/);
@@ -90,6 +103,76 @@
     }
   }
 
+  function resolveMessagesRoot(root) {
+    if (!root) {
+      return null;
+    }
+    if (root.id === MESSAGES_ROOT_ID) {
+      return root;
+    }
+    if (root.closest) {
+      return root.closest('#' + MESSAGES_ROOT_ID);
+    }
+    if (root.querySelector) {
+      return root.querySelector('#' + MESSAGES_ROOT_ID);
+    }
+    return null;
+  }
+
+  function supportsHighlightAPI() {
+    return !!(window.CSS && CSS.highlights);
+  }
+
+  function loadHighlightModule() {
+    if (!highlightModulePromise) {
+      highlightModulePromise = import(MICROLIGHTER_MODULE).catch(function (err) {
+        highlightModulePromise = null;
+        throw err;
+      });
+    }
+    return highlightModulePromise;
+  }
+
+  function highlightCodeBlocks(messagesRoot) {
+    if (!messagesRoot || !supportsHighlightAPI()) {
+      return;
+    }
+    messagesRoot.setAttribute('data-syntax-theme', 'github');
+
+    highlightGeneration += 1;
+    var generation = highlightGeneration;
+
+    var run = function () {
+      return loadHighlightModule()
+        .then(function (mod) {
+          if (generation !== highlightGeneration) {
+            return;
+          }
+          if (!mod || typeof mod.highlightAll !== 'function') {
+            return;
+          }
+          return mod.highlightAll({
+            root: messagesRoot,
+            languageAliases: LANGUAGE_ALIASES,
+          });
+        })
+        .catch(function () {
+          // Soft-fail: leave fences uncolored; chrome already applied.
+        })
+        .then(function () {
+          if (generation === highlightGeneration) {
+            highlightInFlight = null;
+          }
+        });
+    };
+
+    if (highlightInFlight) {
+      highlightInFlight = highlightInFlight.then(run, run);
+    } else {
+      highlightInFlight = run();
+    }
+  }
+
   ns.enhanceCodeBlocks = function (root) {
     if (!root) {
       return;
@@ -100,5 +183,6 @@
     for (var i = 0; i < nodes.length; i++) {
       enhanceOne(nodes[i].parentElement);
     }
+    highlightCodeBlocks(resolveMessagesRoot(root));
   };
 })();

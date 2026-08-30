@@ -267,6 +267,9 @@ func TestChatAgentThreadScriptsIncludesClipCopy(t *testing.T) {
 	if !strings.Contains(html, "/static/js/chatagent-codeblocks.js") {
 		t.Fatalf("want chatagent-codeblocks.js in thread scripts\nhtml=%s", html)
 	}
+	if !strings.Contains(html, "/static/vendor/microlighter/themes/github.css") {
+		t.Fatalf("want microlighter github.css in thread scripts\nhtml=%s", html)
+	}
 	if !strings.Contains(html, "/static/js/chatagent-trajectory.js") {
 		t.Fatalf("want chatagent-trajectory.js in thread scripts\nhtml=%s", html)
 	}
