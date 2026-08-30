@@ -189,20 +189,8 @@ func sessionBadge(ctx fiber.Ctx) error {
 			username = uid
 		}
 	}
-	expires := ""
-	token := ctx.Cookies("accessToken")
-	if token != "" {
-		if p, err := route.LookupAccessToken(context.Background(), token); err == nil && p.ID > 0 && !p.ExpiredAt.IsZero() {
-			remaining := time.Until(p.ExpiredAt).Round(time.Minute)
-			if remaining > 0 {
-				expires = remaining.String() + " left"
-			} else {
-				expires = "expired"
-			}
-		}
-	}
 	ctx.Type("html")
-	return partials.SessionBadge(username, expires).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.SessionBadge(username).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // approvalBadge renders a compact navbar/home count for sessions awaiting tool approval.

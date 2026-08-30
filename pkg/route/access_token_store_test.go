@@ -45,6 +45,20 @@ func (m *memoryAccessTokenStore) Set(_ context.Context, flag string, params type
 	return nil
 }
 
+func (m *memoryAccessTokenStore) SetParams(_ context.Context, flag string, params types.KV) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	existing, ok := m.rows[flag]
+	if !ok {
+		return types.ErrNotFound
+	}
+	cp := map[string]any{}
+	maps.Copy(cp, params)
+	existing.Params = cp
+	m.rows[flag] = existing
+	return nil
+}
+
 func (m *memoryAccessTokenStore) Delete(_ context.Context, flag string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()

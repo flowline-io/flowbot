@@ -3,7 +3,7 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/i18n"
 
 // SessionBadge renders the signed-in operator identity as a link to Life.
-templ SessionBadge(username string, expiresLabel string) {
+templ SessionBadge(username string) {
 	<a
 		href="/service/web/life"
 		class="flowbot-nav-user-session"
@@ -15,9 +15,7 @@ templ SessionBadge(username string, expiresLabel string) {
 		</span>
 		<span class="flowbot-nav-user-meta">
 			<span class="flowbot-nav-user-name" data-testid="session-username">{ username }</span>
-			if expiresLabel != "" {
-				<span class="flowbot-nav-user-expires" data-testid="session-expires">{ expiresLabel }</span>
-			}
+			<span class="flowbot-nav-user-expires" data-testid="session-expires">{ i18n.T(ctx, "session.ttl_label") }</span>
 		</span>
 	</a>
 }

@@ -167,6 +167,7 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	app.Get("/c/:slug", clipPage)
 	app.Use("/service/web", localeMiddleware())
 	app.Use("/service/web", newCSRFMiddleware())
+	app.Use("/service/web", slideFullSessionMiddleware())
 	for _, rules := range allWebserviceRules {
 		module.Webservice(app, Name, rules)
 	}

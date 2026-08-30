@@ -577,6 +577,21 @@ func (s *ModuleDataStore) ParameterSet(ctx context.Context, flag string, params 
 	return nil
 }
 
+// ParameterUpdateParams updates params without changing expired_at.
+func (s *ModuleDataStore) ParameterUpdateParams(ctx context.Context, flag string, params types.KV) error {
+	n, err := s.client.Parameter.Update().Where(parameter.FlagEQ(flag)).
+		SetParams(map[string]any(params)).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: parameterupdateparams: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
 // ParameterGet get a parameter.
 func (s *ModuleDataStore) ParameterGet(ctx context.Context, flag string) (gen.Parameter, error) {
 	p, err := s.client.Parameter.Query().Where(parameter.FlagEQ(flag)).Only(ctx)

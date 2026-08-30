@@ -24,4 +24,4 @@ A new `Buildtags` value fetches new CSS immediately. The avatar has an intrinsic
 
 ## Verification
 
-`TestBaseLayout` / `TestAuthLayout` require `app.css?v=` and `custom.css?v=`. `TestSessionBadgeSVGHasIntrinsicSize` requires `width="14"` / `height="14"`. `TestCommittedCSSIncludesNavbarIconUtilities` requires `.w-3.5` / `.h-3.5` in `app.css` and `.flowbot-nav-user-avatar svg` in `custom.css`.
+`TestBaseLayout` / `TestAuthLayout` require `app.css?v=` and `custom.css?v=`. `TestSessionBadge` requires `width="14"` / `height="14"`. `TestCommittedCSSIncludesNavbarIconUtilities` requires `.w-3.5` / `.h-3.5` in `app.css` and `.flowbot-nav-user-avatar svg` in `custom.css`.

@@ -170,6 +170,44 @@ func issueFullSession(ctx fiber.Ctx, uid, username string) error {
 	return nil
 }
 
+func slideFullSession(ctx fiber.Ctx) {
+	token := ctx.Cookies(webauth.CookieAccessToken)
+	if token == "" {
+		return
+	}
+	p, err := route.LookupAccessToken(ctx.Context(), token)
+	if err != nil || p.ID <= 0 {
+		return
+	}
+	paramKV := types.KV(p.Params)
+	kind, _ := paramKV.String("kind")
+	topic, _ := paramKV.String("topic")
+	if !webauth.IsSlidableFullSession(kind, topic) {
+		return
+	}
+	now := time.Now()
+	if !webauth.ShouldSlideFullSession(p.ExpiredAt, now) {
+		return
+	}
+	mds := store.ModuleDataStoreFromDB()
+	if mds.Client() == nil {
+		return
+	}
+	expiredAt := now.Add(webauth.FullSessionTTL)
+	if err := mds.ParameterSet(ctx.Context(), p.Flag, paramKV, expiredAt); err != nil {
+		flog.Error(fmt.Errorf("web: slide full session: %w", err))
+		return
+	}
+	setAccessTokenCookie(ctx, token, int(webauth.FullSessionTTL.Seconds()), time.Time{})
+}
+
+func slideFullSessionMiddleware() fiber.Handler {
+	return func(ctx fiber.Ctx) error {
+		slideFullSession(ctx)
+		return ctx.Next()
+	}
+}
+
 func setPendingCookie(ctx fiber.Ctx, value string, maxAge int) {
 	c := &fiber.Cookie{
 		Name:     webauth.CookiePending,

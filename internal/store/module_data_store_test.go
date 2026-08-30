@@ -267,6 +267,20 @@ func TestOAuthFormAndParameter(t *testing.T) {
 				require.ErrorIs(t, err, types.ErrNotFound)
 			},
 		},
+		{
+			name: "parameter update params keeps expired_at",
+			run: func(t *testing.T, client *gen.Client) {
+				flag := "param-touch"
+				exp := now.Add(3 * time.Hour)
+				require.NoError(t, NewModuleDataStore(client).ParameterSet(ctx, flag, types.KV{"k": "v"}, exp))
+				require.NoError(t, NewModuleDataStore(client).ParameterUpdateParams(ctx, flag, types.KV{"k": "w"}))
+				row, err := NewModuleDataStore(client).ParameterGet(ctx, flag)
+				require.NoError(t, err)
+				assert.Equal(t, "w", types.KV(row.Params)["k"])
+				assert.Equal(t, exp.Unix(), row.ExpiredAt.Unix())
+				require.ErrorIs(t, NewModuleDataStore(client).ParameterUpdateParams(ctx, "missing", types.KV{"k": "x"}), types.ErrNotFound)
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -4612,6 +4612,9 @@ other = "Body truncated to 64KB"
 [session.open_life]
 other = "Open Life"
 
+[session.ttl_label]
+other = "24h session"
+
 [notify.rule.template_not_found]
 other = "Template not found"
 

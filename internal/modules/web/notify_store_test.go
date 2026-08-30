@@ -183,6 +183,13 @@ func (testAccessTokenStore) Set(ctx context.Context, flag string, params types.K
 	return store.ModuleDataStoreFromDB().ParameterSet(ctx, flag, params, expiredAt)
 }
 
+func (testAccessTokenStore) SetParams(ctx context.Context, flag string, params types.KV) error {
+	if store.Database == nil {
+		return types.ErrUnavailable
+	}
+	return store.ModuleDataStoreFromDB().ParameterUpdateParams(ctx, flag, params)
+}
+
 func (testAccessTokenStore) Delete(ctx context.Context, flag string) error {
 	if store.Database == nil {
 		return nil

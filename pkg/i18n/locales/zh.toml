@@ -4612,6 +4612,9 @@ other = "请求体已截断至 64KB"
 [session.open_life]
 other = "打开 Life"
 
+[session.ttl_label]
+other = "24 小时会话"
+
 [notify.rule.template_not_found]
 other = "未找到模板"
 

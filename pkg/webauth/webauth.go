@@ -32,8 +32,11 @@ const (
 	BackupCodeBytes = 5
 	// PendingSessionTTL is the max lifetime of pending_2fa / pending_enroll cookies.
 	PendingSessionTTL = 5 * time.Minute
-	// FullSessionTTL is the accessToken lifetime after successful 2FA.
+	// FullSessionTTL is the idle lifetime of a full web cookie session after login or slide.
 	FullSessionTTL = 24 * time.Hour
+	// SessionSlideThrottle skips persist and Set-Cookie when remaining TTL is still
+	// greater than FullSessionTTL minus this duration.
+	SessionSlideThrottle = 5 * time.Minute
 	defaultKeyFile = "web_auth_encryption.key"
 )
 
@@ -50,6 +53,20 @@ const (
 	CookieAccessToken = "accessToken"
 	CookiePending     = "pendingAuth"
 )
+
+// IsSlidableFullSession reports whether a persisted token is a browser web UI session.
+func IsSlidableFullSession(kind, topic string) bool {
+	return kind == KindFull && topic == "web"
+}
+
+// ShouldSlideFullSession reports whether expiredAt is stale enough to push to now+FullSessionTTL.
+func ShouldSlideFullSession(expiredAt, now time.Time) bool {
+	remaining := expiredAt.Sub(now)
+	if remaining <= 0 {
+		return false
+	}
+	return remaining <= FullSessionTTL-SessionSlideThrottle
+}
 
 // Encryptor holds the AES-256-GCM key used for TOTP secrets and backup-code pepper.
 type Encryptor struct {

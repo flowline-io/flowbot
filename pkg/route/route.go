@@ -177,7 +177,7 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 			auditAuthReject(ctx, "auth.token.validate.fail", "token has no scopes")
 			return protocol.ErrNotAuthorized.New("token has no scopes")
 		}
-		throttledUpdateLastUsed(paramKV, p.Flag, p.ExpiredAt)
+		throttledUpdateLastUsed(paramKV, p.Flag)
 
 		ctx.Locals(requestContextKey, &RequestContext{
 			UID:    uid,
@@ -299,7 +299,7 @@ func parseScopes(paramKV types.KV) []string {
 
 // throttledUpdateLastUsed updates last_used_at in params with a 60s throttle
 // to avoid a database write on every request. tokenFlag must be the storage key (hash).
-func throttledUpdateLastUsed(paramKV types.KV, tokenFlag string, expiredAt time.Time) {
+func throttledUpdateLastUsed(paramKV types.KV, tokenFlag string) {
 	if !shouldUpdateLastUsed(paramKV) {
 		return
 	}
@@ -308,7 +308,7 @@ func throttledUpdateLastUsed(paramKV types.KV, tokenFlag string, expiredAt time.
 		return
 	}
 	paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
-	if err := s.Set(context.Background(), tokenFlag, paramKV, expiredAt); err != nil {
+	if err := s.SetParams(context.Background(), tokenFlag, paramKV); err != nil {
 		flog.Warn("route: update token last_used_at: %v", err)
 	}
 }

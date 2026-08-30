@@ -97,6 +97,7 @@ func TestSessionBadge(t *testing.T) {
 		{name: "unauthenticated redirects", wantStatus: http.StatusSeeOther},
 		{name: "authenticated renders username", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "session-badge"},
 		{name: "authenticated shows testuser", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "testuser"},
+		{name: "authenticated shows 24h session label", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "24h session"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

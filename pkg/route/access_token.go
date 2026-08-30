@@ -26,6 +26,8 @@ func AccessTokenIsExpired(p AccessToken) bool {
 type AccessTokenStore interface {
 	Get(ctx context.Context, flag string) (AccessToken, error)
 	Set(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error
+	// SetParams updates params without changing expired_at.
+	SetParams(ctx context.Context, flag string, params types.KV) error
 	Delete(ctx context.Context, flag string) error
 }
 

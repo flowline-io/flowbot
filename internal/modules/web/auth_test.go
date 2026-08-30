@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -8,8 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
@@ -303,4 +308,118 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSlideFullSession(t *testing.T) {
+	fullWeb := testFullWebSessionParams("testuser")
+	tests := []struct {
+		name       string
+		path       string
+		token      string
+		remaining  time.Duration
+		params     map[string]any
+		cookie     bool
+		header     bool
+		wantStatus int
+		wantSlide  bool
+	}{
+		{
+			name:       "cookie full web with 1h remaining extends to 24h",
+			token:      "slide-stale-token",
+			remaining:  time.Hour,
+			params:     fullWeb,
+			cookie:     true,
+			wantStatus: http.StatusOK,
+			wantSlide:  true,
+		},
+		{
+			name:       "cookie full web with 24h remaining skips persist",
+			token:      "slide-fresh-token",
+			remaining:  webauth.FullSessionTTL,
+			params:     fullWeb,
+			cookie:     true,
+			wantStatus: http.StatusOK,
+			wantSlide:  false,
+		},
+		{
+			name:       "header only full web does not slide",
+			token:      "slide-header-token",
+			remaining:  time.Hour,
+			params:     fullWeb,
+			header:     true,
+			wantStatus: http.StatusOK,
+			wantSlide:  false,
+		},
+		{
+			name:      "cookie full session on other topic does not slide",
+			token:     "slide-cli-token",
+			remaining: time.Hour,
+			params: map[string]any{
+				"uid": "testuser", "topic": "cli", "kind": webauth.KindFull, "scopes": []any{"admin:*"},
+			},
+			cookie:     true,
+			wantStatus: http.StatusOK,
+			wantSlide:  false,
+		},
+		{
+			name:       "pipeline page without authenticateWeb still slides",
+			path:       "/service/web/pipelines",
+			token:      "slide-pipeline-token",
+			remaining:  time.Hour,
+			params:     fullWeb,
+			cookie:     true,
+			wantStatus: http.StatusOK,
+			wantSlide:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp(t)
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			originalExp := time.Now().Add(tt.remaining)
+			seedTestAccessToken(t, ts.dbClient, tt.token, tt.params, originalExp)
+
+			path := tt.path
+			if path == "" {
+				path = "/service/web/session-badge"
+			}
+			req := httptest.NewRequest(http.MethodGet, path, http.NoBody)
+			if tt.cookie {
+				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.token})
+				AttachCSRFForTest(req)
+			}
+			if tt.header {
+				req.Header.Set("X-AccessToken", tt.token)
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+
+			gotCookie := accessTokenSetCookie(resp)
+			if tt.wantSlide {
+				assert.Contains(t, gotCookie, "accessToken="+tt.token)
+				assert.Contains(t, gotCookie, "max-age=86400")
+			} else {
+				assert.Empty(t, gotCookie)
+			}
+
+			p, err := route.LookupAccessToken(context.Background(), tt.token)
+			require.NoError(t, err)
+			if tt.wantSlide {
+				assert.WithinDuration(t, time.Now().Add(webauth.FullSessionTTL), p.ExpiredAt, 3*time.Second)
+			} else {
+				assert.WithinDuration(t, originalExp, p.ExpiredAt, time.Second)
+			}
+		})
+	}
+}
+
+func accessTokenSetCookie(resp *http.Response) string {
+	for _, c := range resp.Header.Values("Set-Cookie") {
+		if strings.HasPrefix(c, "accessToken=") && !strings.Contains(c, "Max-Age=0") {
+			return c
+		}
+	}
+	return ""
 }
