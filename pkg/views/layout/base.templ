@@ -88,32 +88,7 @@ templ Base(ctx context.Context, title string) {
 					@partials.BrandMark("w-6 h-6 shrink-0 text-primary")
 					<span class="font-semibold tracking-tight">Flowbot</span>
 				</a>
-			</div>
-			<div class="navbar-end shrink-0 flex items-center gap-0.5 sm:gap-1">
-				<button
-					type="button"
-					id="nav-command-palette"
-					data-testid="nav-command-palette"
-					class="btn btn-ghost btn-sm gap-1.5"
-					aria-label={ i18n.T(ctx, "common.open_command_palette") }
-					title={ i18n.T(ctx, "common.search_hint") }
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-					<span class="hidden md:inline text-base-content/60 font-normal">{ i18n.T(ctx, "common.search") }</span>
-					<kbd class="kbd kbd-sm hidden lg:inline-flex text-base-content/50" data-testid="nav-command-palette-hint">Ctrl K</kbd>
-				</button>
-				<div class="hidden lg:flex items-center gap-1">
-					<a href="/service/web/inbox" data-testid="nav-inbox" class="btn btn-ghost btn-sm gap-1" aria-label={ i18n.T(ctx, "nav.inbox") }>
-						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-						<span class="hidden xl:inline">{ i18n.T(ctx, "nav.inbox") }</span>
-						<span
-							id={ partials.NavInboxBadgeID }
-							hx-get="/service/web/inbox-badge"
-							hx-trigger="load, every 20s"
-							hx-swap="innerHTML"
-							hx-sync="this:abort"
-							data-testid={ partials.NavInboxBadgeID }></span>
-					</a>
+				<div class="hidden lg:flex items-center gap-1 ml-1" data-testid="nav-primary">
 					<div class="dropdown dropdown-hover">
 						<div tabindex="0" role="button" data-testid="nav-group-operate" class="btn btn-ghost btn-sm gap-1">
 							{ i18n.T(ctx, "nav.group.agent") }
@@ -171,6 +146,33 @@ templ Base(ctx context.Context, title string) {
 							<li><a href="/service/web/about" data-testid="nav-about">{ i18n.T(ctx, "nav.about") }</a></li>
 						</ul>
 					</div>
+				</div>
+			</div>
+			<div class="navbar-end shrink-0 flex items-center gap-0.5 sm:gap-1">
+				<div class="flowbot-nav-tools">
+					<button
+						type="button"
+						id="nav-command-palette"
+						data-testid="nav-command-palette"
+						class="btn btn-ghost btn-sm gap-1.5"
+						aria-label={ i18n.T(ctx, "common.open_command_palette") }
+						title={ i18n.T(ctx, "common.search_hint") }
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+						<span class="hidden md:inline text-base-content/60 font-normal">{ i18n.T(ctx, "common.search") }</span>
+						<kbd class="kbd kbd-sm hidden lg:inline-flex text-base-content/50" data-testid="nav-command-palette-hint">Ctrl K</kbd>
+					</button>
+					<a href="/service/web/inbox" data-testid="nav-inbox" class="hidden lg:inline-flex btn btn-ghost btn-sm gap-1" aria-label={ i18n.T(ctx, "nav.inbox") }>
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+						<span class="hidden xl:inline">{ i18n.T(ctx, "nav.inbox") }</span>
+						<span
+							id={ partials.NavInboxBadgeID }
+							hx-get="/service/web/inbox-badge"
+							hx-trigger="load, every 20s"
+							hx-swap="innerHTML"
+							hx-sync="this:abort"
+							data-testid={ partials.NavInboxBadgeID }></span>
+					</a>
 				</div>
 				<div class="flowbot-nav-user">
 					<div hx-get="/service/web/session-badge" hx-trigger="load" hx-swap="outerHTML">

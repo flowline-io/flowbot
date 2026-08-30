@@ -106,7 +106,23 @@ body {
   );
 }
 
-/* Navbar user cluster: session identity + theme + logout */
+/* Navbar: primary groups sit after the brand; tools + user hug the right. */
+.flowbot-shell nav.navbar > .navbar-start {
+  width: auto;
+  flex: 1 1 auto;
+}
+
+.flowbot-shell nav.navbar > .navbar-end {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.flowbot-nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
 .flowbot-nav-user {
   display: flex;
   align-items: center;
@@ -192,6 +208,10 @@ body {
 .flowbot-nav-user-actions {
   display: flex;
   align-items: center;
+  margin-left: 0.25rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid
+    color-mix(in oklab, var(--color-base-content, #111) 12%, transparent);
 }
 
 .flowbot-nav-user-btn {

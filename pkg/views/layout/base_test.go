@@ -117,6 +117,40 @@ func TestBaseLayout(t *testing.T) {
 			},
 		},
 		{
+			name: "desktop navbar order is brand groups then tools then user",
+			body: templ.NopComponent,
+			check: func(t *testing.T, html string) {
+				t.Helper()
+				assertContainsAll(t, html, []string{
+					`data-testid="nav-primary"`,
+					`class="flowbot-nav-tools"`,
+				})
+				prev := -1
+				for _, needle := range []string{
+					`data-testid="nav-primary"`,
+					`data-testid="nav-group-operate"`,
+					`data-testid="nav-group-automate"`,
+					`data-testid="nav-group-integrate"`,
+					`data-testid="nav-group-system"`,
+					`data-testid="nav-command-palette"`,
+					`data-testid="nav-inbox"`,
+					`data-testid="lang-switcher"`,
+					`data-testid="theme-quick-toggle"`,
+					`data-testid="theme-picker"`,
+					`data-testid="nav-logout"`,
+				} {
+					i := strings.Index(html, needle)
+					if i < 0 {
+						t.Fatalf("want %q in navbar", needle)
+					}
+					if i < prev {
+						t.Fatalf("navbar order: %q appeared before the previous marker", needle)
+					}
+					prev = i
+				}
+			},
+		},
+		{
 			name: "nav badges poll each endpoint once",
 			body: templ.NopComponent,
 			check: func(t *testing.T, html string) {
