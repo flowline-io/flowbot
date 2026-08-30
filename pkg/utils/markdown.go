@@ -66,6 +66,8 @@ func MarkdownSanitizePolicy() *bluemonday.Policy {
 		p.AllowAttrs("xmlns").Matching(regexp.MustCompile(`^http://www\.w3\.org/1998/Math/MathML$`)).OnElements("math")
 		p.AllowAttrs("encoding").Matching(regexp.MustCompile(`^application/x-tex$`)).OnElements("annotation")
 		p.AllowAttrs("class").Matching(regexp.MustCompile(`^[a-zA-Z0-9_\- ]+$`)).OnElements("span")
+		// goldmark fences emit class="language-*" on <code>; required for chatagent chrome + microlighter.
+		p.AllowAttrs("class").Matching(regexp.MustCompile(`^[a-zA-Z0-9_\-+ ]+$`)).OnElements("code", "pre")
 		p.AllowAttrs("style").Matching(regexp.MustCompile(`^[-a-zA-Z0-9:;.%(), ]+$`)).OnElements("span")
 		p.AllowAttrs("aria-hidden").Matching(regexp.MustCompile(`^(?:true|false)$`)).OnElements("span")
 		markdownSanitize = p

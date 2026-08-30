@@ -98,6 +98,12 @@ func TestMarkdownToSafeHTML(t *testing.T) {
 			wantAbsent: []string{"onclick", "alert(1)"},
 		},
 		{
+			name:       "preserves fenced code language class",
+			source:     "```python\ndef quicksort(arr):\n    return arr\n```\n",
+			wantSubstr: []string{`<code class="language-python">`, "def quicksort"},
+			wantAbsent: []string{"<script>"},
+		},
+		{
 			name:       "preserves katex classes",
 			source:     "Exponent: $10^2 = 100$\n",
 			wantSubstr: []string{"katex", "katex-html"},
