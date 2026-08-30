@@ -62,9 +62,15 @@
     });
   }
 
+  var approvalByPanel = new WeakMap();
+
   ns.initApproval = function (panel) {
     if (!panel) {
       return null;
+    }
+    var existing = approvalByPanel.get(panel);
+    if (existing && typeof existing.destroy === 'function') {
+      existing.destroy();
     }
     var sessionID = panel.getAttribute('data-session-id');
     var confirmURL = panel.getAttribute('data-confirm-url');
@@ -89,6 +95,8 @@
     var reconnectAttempt = 0;
     var reconnectTimer = null;
     var permissionArmed = false;
+    var stopped = false;
+    var api;
     // Reload only when the turn fully ends. Timed reloads interrupt multi-tool
     // approval chains and wipe the page before finishStream persists history.
     var reloadOnComplete = false;
@@ -98,6 +106,39 @@
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
       }
+    }
+
+    function disconnect() {
+      clearReconnectTimer();
+      clearToastTimer();
+      if (source) {
+        source.close();
+        source = null;
+      }
+    }
+
+    function destroy() {
+      stopped = true;
+      disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('pageshow', onPageShow);
+      if (approvalByPanel.get(panel) === api) {
+        approvalByPanel.delete(panel);
+      }
+    }
+
+    function onPageHide() {
+      stopped = true;
+      disconnect();
+    }
+
+    function onPageShow(ev) {
+      if (!ev || !ev.persisted || panel.isConnected === false) {
+        return;
+      }
+      stopped = false;
+      connect();
     }
 
     function armNotifyPermission() {
@@ -480,14 +521,28 @@
       );
     }
     document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('pageshow', onPageShow);
 
     function connect() {
+      if (stopped) {
+        return;
+      }
       clearReconnectTimer();
-      if (source) {
-        source.close();
+      var prev = source;
+      source = null;
+      if (prev) {
+        prev.close();
+      }
+      if (stopped) {
+        return;
       }
       source = new EventSource(eventsURL);
-      source.addEventListener('open', function () {
+      var es = source;
+      es.addEventListener('open', function () {
+        if (stopped || source !== es) {
+          return;
+        }
         if (reconnectAttempt > 0) {
           showStatusToast(
             flowbotI18n('client.chatagent.connected', 'Connected'),
@@ -496,8 +551,8 @@
         }
         reconnectAttempt = 0;
       });
-      source.addEventListener('message', function (msg) {
-        if (!msg.data) {
+      es.addEventListener('message', function (msg) {
+        if (stopped || source !== es || !msg.data) {
           return;
         }
         var ev;
@@ -508,11 +563,12 @@
         }
         resolveConfirmEvent(ev);
       });
-      source.addEventListener('error', function () {
-        if (source) {
-          source.close();
-          source = null;
+      es.addEventListener('error', function () {
+        if (stopped || source !== es) {
+          return;
         }
+        es.close();
+        source = null;
         showStatusToast(
           flowbotI18n('client.chatagent.reconnecting', 'Reconnecting…'),
           'warning',
@@ -525,6 +581,8 @@
 
     hydratePendingFromPanel();
     connect();
-    return { handleStreamEvent: resolveConfirmEvent };
+    api = { handleStreamEvent: resolveConfirmEvent, destroy: destroy };
+    approvalByPanel.set(panel, api);
+    return api;
   };
 })();
