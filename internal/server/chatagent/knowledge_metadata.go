@@ -136,7 +136,7 @@ func truncateKnowledgeMetadataContent(content string) string {
 	}
 	truncated := content[:knowledgeMetadataContentMaxBytes]
 	if !utf8.ValidString(truncated) {
-		for len(truncated) > 0 && !utf8.ValidString(truncated) {
+		for truncated != "" && !utf8.ValidString(truncated) {
 			truncated = truncated[:len(truncated)-1]
 		}
 	}
