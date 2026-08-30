@@ -8,7 +8,7 @@ Thread UI (`Inspect entries`) and entry detail (`Back to session`) each open an 
 
 ## Decision
 
-Tear down the observer in `public/js/chatagent-approval.js`: close the EventSource and cancel reconnect on `pagehide` and on primary same-tab `<a href>` clicks (bubble phase, shared `flowbotIsPrimarySameTabNav` in `app.js`, so the next document GET can take the socket). Skip reconnect while stopped, replace a second `initApproval` on the same panel, and reconnect only on a bfcache `pageshow`. Navbar badge fan-out: [nav-badge-single-poller](2026-08-30-nav-badge-single-poller.md).
+Tear down the observer in `public/js/chatagent-approval.js`: close the EventSource and cancel reconnect on `pagehide` and on primary same-tab `<a href>` clicks (bubble phase, shared `flowbotIsPrimarySameTabNav` in `app.js`, so the next document GET can take the socket). Skip reconnect while stopped, replace a second `initApproval` on the same panel, and reconnect only on a bfcache `pageshow`. Navbar badge fan-out: [nav-badge-single-poller](2026-08-30-nav-badge-single-poller.md). Href schemes the helper does not treat as navigation: [nav-href-scheme-denylist](2026-08-30-nav-href-scheme-denylist.md).
 
 ## Alternatives considered
 

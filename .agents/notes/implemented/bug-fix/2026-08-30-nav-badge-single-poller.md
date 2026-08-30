@@ -8,7 +8,7 @@ The ops shell fired `hx-get` for `/inbox-badge` twice and `/approval-badge` thre
 
 ## Decision
 
-Keep one HTMX poller per badge URL (`nav-inbox-badge`, `nav-agent-approval-badge`) with `hx-sync="this:abort"`. Replica slots (`nav-mobile-*`, `nav-agents-approval-badge`) receive the same chip via `hx-swap-oob="innerHTML:#id"`. Free in-flight badge XHRs on primary same-tab navigation (bubble click, after `data-confirm` may `preventDefault`) and on `pagehide`. Observer SSE teardown lives in [chatagent-sse-pagehide-teardown](2026-08-30-chatagent-sse-pagehide-teardown.md).
+Keep one HTMX poller per badge URL (`nav-inbox-badge`, `nav-agent-approval-badge`) with `hx-sync="this:abort"`. Replica slots (`nav-mobile-*`, `nav-agents-approval-badge`) receive the same chip via `hx-swap-oob="innerHTML:#id"`. Free in-flight badge XHRs on primary same-tab navigation (bubble click, after `data-confirm` may `preventDefault`) and on `pagehide`. Observer SSE teardown lives in [chatagent-sse-pagehide-teardown](2026-08-30-chatagent-sse-pagehide-teardown.md). Href schemes the nav helper does not treat as navigation: [nav-href-scheme-denylist](2026-08-30-nav-href-scheme-denylist.md).
 
 ## Alternatives considered
 

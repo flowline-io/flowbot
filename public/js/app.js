@@ -548,7 +548,21 @@ window.flowbotIsPrimarySameTabNav = function (event) {
     return false;
   }
   var href = a.getAttribute('href');
-  if (!href || href.charAt(0) === '#' || href.indexOf('javascript:') === 0) {
+  if (!href) {
+    return false;
+  }
+  var scheme;
+  try {
+    scheme = decodeURI(href).trim().toLowerCase();
+  } catch {
+    scheme = href.trim().toLowerCase();
+  }
+  if (
+    scheme.charAt(0) === '#' ||
+    scheme.startsWith('javascript:') ||
+    scheme.startsWith('data:') ||
+    scheme.startsWith('vbscript:')
+  ) {
     return false;
   }
   var target = a.getAttribute('target');
