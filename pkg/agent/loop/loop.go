@@ -380,11 +380,6 @@ func emitAssistantEnd(emit func(agentevent.Event) error, assistant msg.Assistant
 	return emit(endEv)
 }
 
-func messageReasoningDeltaHandler(emit func(agentevent.Event) error) func(string) error {
-	var capture reasoningCapture
-	return capture.deltaHandler(emit)
-}
-
 type reasoningCapture struct {
 	start time.Time
 	end   time.Time

@@ -4,8 +4,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 )
 
-const defaultContextWindow = model.DefaultContextWindow
-
 const (
 	defaultReserveTokens    = 10000
 	defaultKeepRecentTokens = 20000

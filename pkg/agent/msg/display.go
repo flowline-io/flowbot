@@ -609,10 +609,6 @@ func IsAssistantToolSummary(text string) bool {
 	return strings.HasSuffix(text, ")")
 }
 
-func isToolCallSummary(text string) bool {
-	return IsAssistantToolSummary(text)
-}
-
 func toolSummaryScore(text string) int {
 	summary := text
 	if IsToolCallPayload(text) {

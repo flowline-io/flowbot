@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/flc1125/go-cron/v4"
 
 	"github.com/flowline-io/flowbot/pkg/backoff"
@@ -24,8 +23,6 @@ import (
 
 	otelattr "go.opentelemetry.io/otel/attribute"
 )
-
-var pooledSonic = sonic.Config{}.Froze()
 
 // Sentinel errors for failed-run retry so HTTP handlers can map toasts without string matching.
 var (

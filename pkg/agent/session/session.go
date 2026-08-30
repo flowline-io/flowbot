@@ -7,11 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 )
 
-const (
-	branchSummaryPrefix = "The following is a summary of a branch that this conversation came back from:\n\n<summary>\n"
-	branchSummarySuffix = "</summary>"
-)
-
 // CompactionResult carries data needed to append a compaction tree node.
 type CompactionResult struct {
 	EntryID          string

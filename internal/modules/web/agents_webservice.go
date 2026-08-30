@@ -60,18 +60,6 @@ const (
 	agentsListFilterArchived      = "archived"
 )
 
-func agentsEndpoints() (partials.ChatAgentEndpoints, error) {
-	pending, err := pendingApprovalSessionCount()
-	if err != nil {
-		return partials.ChatAgentEndpoints{}, err
-	}
-	return agentsEndpointsWithFilter("", types.Uid(""), pending), nil
-}
-
-func agentsEndpointsWithFilter(filter string, uid types.Uid, pendingCount int) partials.ChatAgentEndpoints {
-	return agentsEndpointsWithFilterContext(context.Background(), filter, uid, pendingCount)
-}
-
 func agentsEndpointsWithFilterContext(ctx context.Context, filter string, uid types.Uid, pendingCount int) partials.ChatAgentEndpoints {
 	return partials.ChatAgentEndpoints{
 		CreateURL:            "/service/web/agents",
@@ -121,10 +109,6 @@ func normalizeAgentsListFilter(filter string) string {
 	default:
 		return agentsListFilterAll
 	}
-}
-
-func agentChatEndpoints(sessionID string, uid types.Uid) partials.ChatAgentEndpoints {
-	return agentChatEndpointsWithContext(context.Background(), sessionID, uid)
 }
 
 func agentChatEndpointsWithContext(ctx context.Context, sessionID string, uid types.Uid) partials.ChatAgentEndpoints {

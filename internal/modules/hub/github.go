@@ -10,12 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// githubConfig holds the github module configuration set during Init.
-var githubConfig struct {
-	Enabled bool   `json:"enabled"`
-	Backend string `json:"backend"`
-}
-
 func deploy(ctx types.Context) error {
 	client, err := gitea.GetClient()
 	if err != nil {

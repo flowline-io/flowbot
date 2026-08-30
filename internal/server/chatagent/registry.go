@@ -135,10 +135,6 @@ func BaseToolNamesForRun(kind RunKind, explicitTools []string) []string {
 	return names
 }
 
-func omitToolName(names []string, drop string) []string {
-	return omitToolNames(names, drop)
-}
-
 func omitToolNames(names []string, drop ...string) []string {
 	skip := make(map[string]struct{}, len(drop))
 	for _, name := range drop {

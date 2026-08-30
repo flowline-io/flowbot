@@ -229,11 +229,6 @@ func hardPass(m Metrics, expect Expectation) bool {
 	return true
 }
 
-func scoreOutcome(m *Metrics, outcome OutcomeAsserts, workspaceRoot string) bool {
-	textOK, fileOK := scoreOutcomeParts(*m, outcome, workspaceRoot)
-	return textOK && fileOK
-}
-
 func scoreOutcomeParts(m Metrics, outcome OutcomeAsserts, workspaceRoot string) (textOK, fileOK bool) {
 	text := outcomeSearchText(m)
 	textOK = true

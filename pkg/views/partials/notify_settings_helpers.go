@@ -3,7 +3,6 @@ package partials
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"slices"
 	"strings"
 
@@ -144,10 +143,6 @@ func truncateString(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen-3] + "..."
-}
-
-func escapePath(s string) string {
-	return url.PathEscape(s)
 }
 
 func hasTemplateForRule(item model.NotifyRule, templateIDs []string) bool {

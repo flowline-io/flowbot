@@ -16,9 +16,6 @@ const commandPaletteMaxPerGroup = 8
 // commandPaletteRecentMax is the max recent visits kept in localStorage (mirrored in JS).
 const commandPaletteRecentMax = 8
 
-// commandPaletteRecentStorageKey is the localStorage key for recent visits (mirrored in JS).
-const commandPaletteRecentStorageKey = "flowbot-command-palette-recent"
-
 // commandPaletteItem is one jump target in the global command palette.
 type commandPaletteItem struct {
 	ID       string `json:"id"`

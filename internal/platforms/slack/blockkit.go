@@ -356,8 +356,6 @@ type ActionCardDef struct {
 	Footer      string
 }
 
-const actionCardMaxBlockLen = slackSectionTextMax
-
 // descriptionBlocks renders action-card body text as Slack mrkdwn sections.
 func descriptionBlocks(description string) []slack.Block {
 	return markdownTextBlocks(description)

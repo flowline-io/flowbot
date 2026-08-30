@@ -12,7 +12,6 @@ var (
 	errTaskIDRequired      = errors.New("task_id is required")
 	errNoUpdateFields      = errors.New("at least one updatable field is required")
 	errInvalidTaskState    = errors.New("state must be active or paused")
-	errKindImmutable       = errors.New("schedule kind cannot be changed; cancel and recreate the task")
 	errWrongKindCron       = errors.New("cron can only be updated on recurring tasks")
 	errWrongKindOnce       = errors.New("run_at can only be updated on one-shot tasks")
 )

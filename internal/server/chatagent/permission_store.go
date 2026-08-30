@@ -27,10 +27,7 @@ type permissionCacheEntry struct {
 	expiresAt time.Time
 }
 
-var (
-	permissionCache   sync.Map
-	permissionCacheMu sync.Mutex
-)
+var permissionCache sync.Map
 
 // LoadUserPermissions reads merged effective permission config for one user.
 func LoadUserPermissions(ctx context.Context, uid types.Uid) (permission.Config, error) {

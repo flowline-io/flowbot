@@ -29,10 +29,6 @@ const (
 	evaluatePromptLimit = 4000
 )
 
-var allowedDifficulties = map[string]struct{}{
-	"E": {}, "D": {}, "C": {}, "B": {}, "A": {}, "S": {}, "SS": {}, "SSS": {},
-}
-
 var allowedQuestTypes = map[string]struct{}{
 	"One-Time": {}, "Daily": {}, "Boss": {},
 }

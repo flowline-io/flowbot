@@ -69,10 +69,6 @@ func agentSubagentTaskDetailURL(item model.AgentSubagentTask) string {
 	return fmt.Sprintf("/service/web/agent-subagents/tasks/%d", item.ID)
 }
 
-func agentSubagentTasksListURL() string {
-	return "/service/web/agent-subagents/tasks"
-}
-
 func agentSubagentTaskDescriptionPreview(description string) string {
 	if strings.TrimSpace(description) == "" {
 		return "(no description)"

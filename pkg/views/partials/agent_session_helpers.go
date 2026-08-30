@@ -23,11 +23,6 @@ func AgentSessionPageTitle(session model.AgentSession) string {
 	return "Session " + session.Flag + " — Flowbot"
 }
 
-// agentSessionEntryPayloadURL builds the HTMX payload partial URL for an entry.
-func agentSessionEntryPayloadURL(sessionID, entryID string) templ.SafeURL {
-	return templ.URL("/service/web/agent-sessions/" + sessionID + "/entries/" + entryID + "/payload")
-}
-
 // AgentResourcePreviewURL builds the HTMX preview URL for a resource URI.
 func AgentResourcePreviewURL(sessionID, resourceURI string, full bool) templ.SafeURL {
 	q := url.Values{}

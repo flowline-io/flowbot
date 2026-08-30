@@ -186,14 +186,6 @@ func optionalStringField(payload map[string]any, key string) string {
 	return value
 }
 
-func boolField(payload map[string]any, key string) (bool, error) {
-	value, ok := payload[key].(bool)
-	if !ok {
-		return false, fmt.Errorf("session jsonl: missing bool field %q", key)
-	}
-	return value, nil
-}
-
 func usageFromRaw(raw map[string]any) *msg.Usage {
 	usage := &msg.Usage{}
 	if v, ok := raw["prompt_tokens"].(float64); ok {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
@@ -369,11 +368,4 @@ func sortPlanChildren(nodes []*PlanNodeView) {
 			sortPlanChildren(node.Children)
 		}
 	}
-}
-
-func confirmedAtValue(t *time.Time) string {
-	if t == nil {
-		return ""
-	}
-	return t.UTC().Format(time.RFC3339)
 }
