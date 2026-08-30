@@ -1,13 +1,5 @@
 version = 1
 
-[[issues]]
-id = "VET-V0010"
-paths = ["**/*.go"]
-
-[[issues]]
-id = "GO-W6007"
-paths = ["**/*.go"]
-
 [[analyzers]]
 name = "go"
 
