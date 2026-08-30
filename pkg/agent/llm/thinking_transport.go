@@ -193,7 +193,7 @@ func ThinkingHTTPClientForTest(base http.RoundTripper) *http.Client {
 		base = http.DefaultTransport
 	}
 	return &http.Client{
-		Transport: &streamIdleTransport{base: &thinkingTransport{base: base}},
+		Transport: &toolCallIndexTransport{base: &streamIdleTransport{base: &thinkingTransport{base: base}}},
 		Timeout:   llmHTTPTimeout(),
 	}
 }

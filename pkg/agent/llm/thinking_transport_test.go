@@ -14,7 +14,8 @@ import (
 )
 
 type roundTripRecorder struct {
-	req *http.Request
+	req          *http.Request
+	responseBody string
 }
 
 func (r *roundTripRecorder) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -28,9 +29,13 @@ func (r *roundTripRecorder) RoundTrip(req *http.Request) (*http.Response, error)
 		r.req.Body = io.NopCloser(bytes.NewReader(body))
 		r.req.ContentLength = int64(len(body))
 	}
+	body := r.responseBody
+	if body == "" {
+		body = `{}`
+	}
 	return &http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(`{}`)),
+		Body:       io.NopCloser(strings.NewReader(body)),
 		Header:     make(http.Header),
 	}, nil
 }

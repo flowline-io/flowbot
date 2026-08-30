@@ -301,9 +301,7 @@
 }
 
 /* Keep self-owned codeblock chrome; microlighter github theme sets pre:has(code) bg/fg. */
-#chatagent-messages[data-syntax-theme='github']
-  .chatagent-codeblock
-  > pre {
+#chatagent-messages[data-syntax-theme='github'] .chatagent-codeblock > pre {
   background: transparent;
   color: inherit;
 }

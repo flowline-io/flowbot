@@ -125,10 +125,12 @@
 
   function loadHighlightModule() {
     if (!highlightModulePromise) {
-      highlightModulePromise = import(MICROLIGHTER_MODULE).catch(function (err) {
-        highlightModulePromise = null;
-        throw err;
-      });
+      highlightModulePromise = import(MICROLIGHTER_MODULE).catch(
+        function (err) {
+          highlightModulePromise = null;
+          throw err;
+        },
+      );
     }
     return highlightModulePromise;
   }

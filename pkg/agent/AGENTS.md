@@ -44,7 +44,7 @@ External callers may keep importing `pkg/agent` for types (`AgentMessage`, `NewA
 
 ## Non-obvious rules
 
-- **langchaingo**: only `llms.Model` in `pkg/agent/llm` — no agents/chains.
+- **langchaingo**: only `llms.Model` in `pkg/agent/llm` — no agents/chains. Parallel tool-call SSE rewrite: [note](../../.agents/notes/implemented/bug-fix/2026-08-30-llm-parallel-toolcall-stream-index.md).
 - **Modules**: prefer `pkg/agent/llm` for single-shot LLM. Web may import already-wired packages (`permission`; tests: `model`/`msg`/`session`); do not import other `pkg/agent` packages from modules until wired.
 - Distinct from `pkg/types/agent.go` (instruct) and YAML `chat_agent` config.
 - JSON/JSONL: `sonic`. Metrics: `metrics.Agent()` — low-cardinality labels (`status`, `model`, `tool`, `level`); never `session_id`.
