@@ -3548,9 +3548,6 @@ other = "Import"
 [agent_skills.new]
 other = "New Skill"
 
-[chatagent.workspace]
-other = "Workspace:"
-
 [chatagent.session_view]
 other = "Session view"
 

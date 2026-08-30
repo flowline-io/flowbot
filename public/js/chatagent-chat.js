@@ -622,29 +622,17 @@
     return flowbotI18n('client.chatagent.model_default', 'Default');
   }
 
-  function settingsHeaderLabel(model, thinking, defaultModel) {
+  function setChipText(root, selector, text) {
+    var el = root.querySelector(selector);
+    if (el) {
+      el.textContent = text || '';
+    }
+  }
+
+  function updateSessionSettingsChips(root, model, thinking, defaultModel) {
     var m = (model || '').trim() || (defaultModel || '').trim();
-    var tl = thinkingLabel(thinking);
-    if (m && tl) {
-      return (
-        m +
-        ' \u00b7 ' +
-        flowbotI18n(
-          'client.chatagent.thinking_prefix',
-          'Thinking: {{.Level}}',
-        ).replace('{{.Level}}', tl)
-      );
-    }
-    if (m) {
-      return m;
-    }
-    if (tl) {
-      return flowbotI18n(
-        'client.chatagent.thinking_prefix',
-        'Thinking: {{.Level}}',
-      ).replace('{{.Level}}', tl);
-    }
-    return '';
+    setChipText(root, '[data-chatagent-model-text]', m);
+    setChipText(root, '[data-chatagent-thinking-text]', thinkingLabel(thinking));
   }
 
   function initThreadSettings(root, onModelChange) {
@@ -656,7 +644,6 @@
     var modelSel = root.querySelector('#chatagent-thread-model');
     var thinkingSel = root.querySelector('#chatagent-thread-thinking');
     var approvalSel = root.querySelector('#chatagent-thread-approval');
-    var modelLabel = root.querySelector('#chatagent-session-model-label');
     var errorEl = root.querySelector('#chatagent-thread-error');
 
     var currentModel = '';
@@ -741,13 +728,12 @@
           currentModel = (data && data.model) || '';
           currentThinking = (data && data.thinking_level) || 'default';
           currentApproval = (data && data.approval_mode) || currentApproval;
-          if (modelLabel) {
-            modelLabel.textContent = settingsHeaderLabel(
-              currentModel,
-              currentThinking,
-              defaultModel,
-            );
-          }
+          updateSessionSettingsChips(
+            root,
+            currentModel,
+            currentThinking,
+            defaultModel,
+          );
           ns.showError(errorEl, '');
           if (typeof onModelChange === 'function') {
             onModelChange();

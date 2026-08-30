@@ -1313,6 +1313,40 @@ body:has(.chatagent-page) > main {
   word-break: break-word;
 }
 
+.chatagent-page .chatagent-thread-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.chatagent-page .chatagent-thread-meta-item {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.chatagent-page .chatagent-thread-meta-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+  opacity: 0.72;
+}
+
+.chatagent-page .chatagent-thread-meta-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatagent-page .chatagent-thread-meta-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.6875rem;
+  max-width: 14rem;
+}
+
 @media (min-width: 640px) {
   .chatagent-page .chatagent-thread-header {
     border-bottom: 0;

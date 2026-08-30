@@ -1716,10 +1716,10 @@ other = "复制 Markdown"
 other = "思考：{{.Level}}"
 
 [client.chatagent.model_default]
-other = "Default"
+other = "默认"
 
 [client.chatagent.model_medium]
-other = "Medium"
+other = "中"
 
 [client.chatagent.start_agent]
 other = "启动 Agent"
@@ -3547,9 +3547,6 @@ other = "导入"
 
 [agent_skills.new]
 other = "新建技能"
-
-[chatagent.workspace]
-other = "工作区："
 
 [chatagent.session_view]
 other = "会话视图"

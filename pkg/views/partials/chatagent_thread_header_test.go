@@ -17,14 +17,16 @@ func TestChatAgentThreadHeaderMobile(t *testing.T) {
 		State:         "Active",
 		Model:         "deepseek-v4-flash",
 		ThinkingLevel: "default",
+		Workspace:     "chat-workspace",
 	}
 	endpoints := ChatAgentEndpoints{
-		ListURL:     "/service/web/agents/list",
-		MessagesURL: "/service/web/agents/sess-long-id/messages",
-		CancelURL:   "/service/web/agents/sess-long-id/cancel",
-		CloseURL:    "/service/web/agents/sess-long-id/close",
-		InspectURL:  "/service/web/agent-sessions/sess-long-id",
-		EventsURL:   "/service/web/agents/sess-long-id/events",
+		ListURL:            "/service/web/agents/list",
+		MessagesURL:        "/service/web/agents/sess-long-id/messages",
+		CancelURL:          "/service/web/agents/sess-long-id/cancel",
+		CloseURL:           "/service/web/agents/sess-long-id/close",
+		InspectURL:         "/service/web/agent-sessions/sess-long-id",
+		EventsURL:          "/service/web/agents/sess-long-id/events",
+		WorkspaceRootLabel: "chat-workspace",
 	}
 	tests := []struct {
 		name string
@@ -48,7 +50,22 @@ func TestChatAgentThreadHeaderMobile(t *testing.T) {
 			name: "session flag hidden below large screens",
 			want: []string{
 				`data-testid="chatagent-thread-session-id"`,
-				"hidden lg:flex",
+				"hidden lg:inline-flex",
+			},
+		},
+		{
+			name: "meta row uses chips for model thinking and workspace",
+			want: []string{
+				`data-testid="chatagent-thread-meta"`,
+				`data-testid="chatagent-session-model-label"`,
+				`data-chatagent-model-text`,
+				"deepseek-v4-flash",
+				`data-testid="chatagent-session-thinking-label"`,
+				`data-chatagent-thinking-text`,
+				`data-testid="chatagent-thread-workspace"`,
+				"flowbot-chip flowbot-chip-muted",
+				"chat-workspace",
+				"Default",
 			},
 		},
 		{

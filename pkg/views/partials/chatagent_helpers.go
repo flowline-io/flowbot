@@ -403,22 +403,6 @@ func chatAgentMultimodalAttr(v bool) string {
 	return "false"
 }
 
-// chatAgentSessionSettingsLabel returns the header line for model and thinking level.
-func chatAgentSessionSettingsLabel(session model.AgentSession, defaultModel string) string {
-	modelName := chatAgentModelLabel(session, defaultModel)
-	thinking := chatAgentThinkingLabel(session.ThinkingLevel)
-	switch {
-	case modelName != "" && thinking != "":
-		return modelName + " · Thinking: " + thinking
-	case modelName != "":
-		return modelName
-	case thinking != "":
-		return "Thinking: " + thinking
-	default:
-		return ""
-	}
-}
-
 // chatAgentWorkspaceDisplay returns the session workspace label (subdir name or config root basename).
 func chatAgentWorkspaceDisplay(rel, rootLabel string) string {
 	rel = strings.TrimSpace(rel)
@@ -432,19 +416,29 @@ func chatAgentWorkspaceDisplay(rel, rootLabel string) string {
 	return rootLabel
 }
 
-// chatAgentThinkingLabel returns a human-readable thinking level label.
-func chatAgentThinkingLabel(level string) string {
+// chatAgentThreadMetaChipClass returns chip classes, plus optional extra utilities.
+func chatAgentThreadMetaChipClass(extra string) string {
+	base := "flowbot-chip flowbot-chip-muted chatagent-thread-meta-item"
+	extra = strings.TrimSpace(extra)
+	if extra == "" {
+		return base
+	}
+	return base + " " + extra
+}
+
+// chatAgentThinkingI18nKey returns the catalog key for a thinking-level chip label.
+func chatAgentThinkingI18nKey(level string) string {
 	switch strings.ToLower(strings.TrimSpace(level)) {
 	case "off":
-		return "Off"
+		return "chatagent.settings.thinking.off"
 	case "low":
-		return "Low"
+		return "chatagent.settings.thinking.low"
 	case "medium":
-		return "Medium"
+		return "chatagent.settings.thinking.medium"
 	case "high":
-		return "High"
+		return "chatagent.settings.thinking.high"
 	default:
-		return "Default"
+		return "chatagent.settings.thinking.default"
 	}
 }
 

@@ -331,38 +331,32 @@ func TestFormatChatAgentDuration(t *testing.T) {
 	}
 }
 
-func TestChatAgentSessionSettingsLabel(t *testing.T) {
+func TestChatAgentThinkingI18nKey(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
-		name         string
-		session      model.AgentSession
-		defaultModel string
-		want         string
+		name  string
+		level string
+		want  string
 	}{
-		{
-			name:         "falls back to default model and default thinking",
-			session:      model.AgentSession{},
-			defaultModel: "gpt-test",
-			want:         "gpt-test · Thinking: Default",
-		},
-		{
-			name:         "shows stored model and thinking",
-			session:      model.AgentSession{Model: "claude", ThinkingLevel: "high"},
-			defaultModel: "gpt-test",
-			want:         "claude · Thinking: High",
-		},
-		{
-			name:         "empty everything",
-			session:      model.AgentSession{},
-			defaultModel: "",
-			want:         "Thinking: Default",
-		},
+		{name: "off", level: "off", want: "chatagent.settings.thinking.off"},
+		{name: "low case insensitive", level: "LOW", want: "chatagent.settings.thinking.low"},
+		{name: "medium", level: "medium", want: "chatagent.settings.thinking.medium"},
+		{name: "high", level: "high", want: "chatagent.settings.thinking.high"},
+		{name: "empty is default", level: "", want: "chatagent.settings.thinking.default"},
+		{name: "default", level: "default", want: "chatagent.settings.thinking.default"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.want, chatAgentSessionSettingsLabel(tt.session, tt.defaultModel))
+			assert.Equal(t, tt.want, chatAgentThinkingI18nKey(tt.level))
 		})
 	}
+}
+
+func TestChatAgentThreadMetaChipClass(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "flowbot-chip flowbot-chip-muted chatagent-thread-meta-item", chatAgentThreadMetaChipClass(""))
+	assert.Equal(t, "flowbot-chip flowbot-chip-muted chatagent-thread-meta-item hidden lg:inline-flex", chatAgentThreadMetaChipClass(" hidden lg:inline-flex "))
 }
 
 func TestChatAgentWorkspaceDisplay(t *testing.T) {

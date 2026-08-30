@@ -44,16 +44,44 @@ templ ChatAgentThread(ctx context.Context, session model.AgentSession, messages 
 				<div class="min-w-0 flex-1">
 					if session.Title != "" {
 						<h1 class="chatagent-thread-title text-lg sm:text-2xl font-semibold tracking-tight text-base-content" data-testid="chatagent-thread-title">{ session.Title }</h1>
-						<p class="hidden lg:flex font-mono text-xs sm:text-sm text-base-content/55 mt-0.5" data-testid="chatagent-thread-session-id">{ session.Flag }</p>
 					} else {
 						<h1 class="chatagent-thread-title text-lg sm:text-2xl font-semibold tracking-tight font-mono text-base-content" data-testid="chatagent-thread-title">{ session.Flag }</h1>
 					}
-					<p id="chatagent-session-model-label" class="text-xs text-base-content/50 mt-0.5 truncate" data-testid="chatagent-session-model-label">
-						{ chatAgentSessionSettingsLabel(session, endpoints.DefaultModel) }
-					</p>
-					<p class="text-xs text-base-content/50 mt-0.5 truncate" data-testid="chatagent-thread-workspace">
-						{ i18n.T(ctx, "chatagent.workspace") } { chatAgentWorkspaceDisplay(session.Workspace, endpoints.WorkspaceRootLabel) }
-					</p>
+					<div class="chatagent-thread-meta" data-testid="chatagent-thread-meta">
+						if session.Title != "" {
+							@chatAgentThreadMetaChip("", "chatagent-thread-session-id", session.Flag, "hidden lg:inline-flex") {
+								<svg xmlns="http://www.w3.org/2000/svg" class="chatagent-thread-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+									<line x1="4" x2="20" y1="9" y2="9"></line>
+									<line x1="4" x2="20" y1="15" y2="15"></line>
+									<line x1="10" x2="8" y1="3" y2="21"></line>
+									<line x1="16" x2="14" y1="3" y2="21"></line>
+								</svg>
+								<span class="chatagent-thread-meta-id">{ session.Flag }</span>
+							}
+						}
+						if modelName := chatAgentModelLabel(session, endpoints.DefaultModel); modelName != "" {
+							@chatAgentThreadMetaChip("chatagent-session-model-label", "chatagent-session-model-label", i18n.T(ctx, "chatagent.settings.model_aria"), "") {
+								<svg xmlns="http://www.w3.org/2000/svg" class="chatagent-thread-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+									<rect width="16" height="16" x="4" y="4" rx="2"></rect>
+									<rect width="6" height="6" x="9" y="9"></rect>
+									<path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"></path>
+								</svg>
+								<span data-chatagent-model-text>{ modelName }</span>
+							}
+						}
+						@chatAgentThreadMetaChip("chatagent-session-thinking-label", "chatagent-session-thinking-label", i18n.T(ctx, "chatagent.settings.thinking_aria"), "") {
+							<svg xmlns="http://www.w3.org/2000/svg" class="chatagent-thread-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
+							</svg>
+							<span data-chatagent-thinking-text>{ i18n.T(ctx, chatAgentThinkingI18nKey(session.ThinkingLevel)) }</span>
+						}
+						@chatAgentThreadMetaChip("", "chatagent-thread-workspace", i18n.T(ctx, "chatagent.settings.workspace_aria"), "") {
+							<svg xmlns="http://www.w3.org/2000/svg" class="chatagent-thread-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path>
+							</svg>
+							<span>{ chatAgentWorkspaceDisplay(session.Workspace, endpoints.WorkspaceRootLabel) }</span>
+						}
+					</div>
 					if endpoints.TrajectoryURL != "" {
 						<div class="chatagent-view-toggle mt-2 flex gap-1" data-testid="chatagent-view-toggle" role="tablist" aria-label={ i18n.T(ctx, "chatagent.session_view") }>
 							<button
@@ -247,4 +275,16 @@ templ ChatAgentThread(ctx context.Context, session model.AgentSession, messages 
 			<p class="text-xs text-error hidden mt-2" id="chatagent-thread-error" data-testid="chatagent-thread-error"></p>
 		</div>
 	</div>
+}
+
+templ chatAgentThreadMetaChip(id, testID, title, extraClass string) {
+	<span
+		class={ chatAgentThreadMetaChipClass(extraClass) }
+		if id != "" {
+			id={ id }
+		}
+		data-testid={ testID }
+		title={ title }>
+		{ children... }
+	</span>
 }
