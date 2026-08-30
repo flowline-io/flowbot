@@ -116,6 +116,29 @@ func TestBaseLayout(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "nav badges poll each endpoint once",
+			body: templ.NopComponent,
+			check: func(t *testing.T, html string) {
+				t.Helper()
+				assertPollCount(t, html, `hx-get="/service/web/inbox-badge"`, 1)
+				assertPollCount(t, html, `hx-get="/service/web/approval-badge"`, 1)
+				assertPollCount(t, html, `hx-get="/service/web/session-badge"`, 1)
+				assertPollCount(t, html, `hx-sync="this:abort"`, 2)
+				assertContainsAll(t, html, []string{
+					`id="nav-inbox-badge"`,
+					`id="nav-mobile-inbox-badge"`,
+					`id="nav-agent-approval-badge"`,
+					`id="nav-mobile-agents-approval-badge"`,
+					`id="nav-agents-approval-badge"`,
+					`data-testid="nav-inbox-badge"`,
+					`data-testid="nav-mobile-inbox-badge"`,
+					`data-testid="nav-agent-approval-badge"`,
+					`data-testid="nav-mobile-agents-approval-badge"`,
+					`data-testid="nav-agents-approval-badge"`,
+				})
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -178,6 +201,14 @@ func assertContainsNone(t *testing.T, html string, absents []string, msg string)
 		if strings.Contains(html, absent) {
 			t.Fatalf(msg, absent)
 		}
+	}
+}
+
+func assertPollCount(t *testing.T, html, needle string, want int) {
+	t.Helper()
+	got := strings.Count(html, needle)
+	if got != want {
+		t.Fatalf("want %d %q pollers, got %d", want, needle, got)
 	}
 }
 

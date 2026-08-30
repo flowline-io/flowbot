@@ -49,6 +49,14 @@ templ InboxCountBadge(count int) {
 	}
 }
 
+// InboxCountBadgeNav is the inbox-badge HTMX body: the poller swap plus mobile OOB.
+templ InboxCountBadgeNav(count int) {
+	@InboxCountBadge(count)
+	@navBadgeInnerHTML(NavMobileInboxBadgeID) {
+		@InboxCountBadge(count)
+	}
+}
+
 templ InboxList(p InboxListParams) {
 	<div class="space-y-3" id="inbox-list" data-testid="inbox-list">
 		<div class="flex flex-wrap items-center gap-2">

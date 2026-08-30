@@ -39,22 +39,14 @@ templ Base(ctx context.Context, title string) {
 						<li>
 							<a href="/service/web/inbox" class="justify-between" data-testid="nav-mobile-inbox">
 								{ i18n.T(ctx, "nav.inbox") }
-								<span
-									hx-get="/service/web/inbox-badge"
-									hx-trigger="load, every 20s"
-									hx-swap="innerHTML"
-									data-testid="nav-mobile-inbox-badge"></span>
+								<span id={ partials.NavMobileInboxBadgeID } data-testid={ partials.NavMobileInboxBadgeID }></span>
 							</a>
 						</li>
 						<li class="menu-title">{ i18n.T(ctx, "nav.group.agent") }</li>
 						<li>
 							<a href="/service/web/agents" class="justify-between">
 								{ i18n.T(ctx, "nav.agents") }
-								<span
-									hx-get="/service/web/approval-badge"
-									hx-trigger="load, every 20s"
-									hx-swap="innerHTML"
-									data-testid="nav-mobile-agents-approval-badge"></span>
+								<span id={ partials.NavMobileApprovalBadgeID } data-testid={ partials.NavMobileApprovalBadgeID }></span>
 							</a>
 						</li>
 						<li><a href="/service/web/agent-skills">{ i18n.T(ctx, "nav.skills") }</a></li>
@@ -115,29 +107,29 @@ templ Base(ctx context.Context, title string) {
 						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
 						<span class="hidden xl:inline">{ i18n.T(ctx, "nav.inbox") }</span>
 						<span
+							id={ partials.NavInboxBadgeID }
 							hx-get="/service/web/inbox-badge"
 							hx-trigger="load, every 20s"
 							hx-swap="innerHTML"
-							data-testid="nav-inbox-badge"></span>
+							hx-sync="this:abort"
+							data-testid={ partials.NavInboxBadgeID }></span>
 					</a>
 					<div class="dropdown dropdown-hover">
 						<div tabindex="0" role="button" data-testid="nav-group-operate" class="btn btn-ghost btn-sm gap-1">
 							{ i18n.T(ctx, "nav.group.agent") }
 							<span
+								id={ partials.NavApprovalBadgeID }
 								hx-get="/service/web/approval-badge"
 								hx-trigger="load, every 20s"
 								hx-swap="innerHTML"
-								data-testid="nav-agent-approval-badge"></span>
+								hx-sync="this:abort"
+								data-testid={ partials.NavApprovalBadgeID }></span>
 						</div>
 						<ul tabindex="0" class="dropdown-content menu p-2 shadow-sm border border-base-300 bg-base-100 rounded-box w-44 z-50">
 							<li>
 								<a href="/service/web/agents" data-testid="nav-agents" class="justify-between">
 									{ i18n.T(ctx, "nav.agents") }
-									<span
-										hx-get="/service/web/approval-badge"
-										hx-trigger="load, every 20s"
-										hx-swap="innerHTML"
-										data-testid="nav-agents-approval-badge"></span>
+									<span id={ partials.NavAgentsApprovalBadgeID } data-testid={ partials.NavAgentsApprovalBadgeID }></span>
 								</a>
 							</li>
 							<li><a href="/service/web/agent-skills" data-testid="nav-agent-skills">{ i18n.T(ctx, "nav.skills") }</a></li>

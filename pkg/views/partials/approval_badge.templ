@@ -2,6 +2,12 @@ package partials
 
 import "github.com/flowline-io/flowbot/pkg/i18n"
 
+templ navBadgeInnerHTML(targetID string) {
+	<span hx-swap-oob={ "innerHTML:#" + targetID }>
+		{ children... }
+	</span>
+}
+
 // ApprovalCountBadge renders a compact count chip for pending tool approvals.
 // Empty when count is zero so HTMX can clear previous badges.
 templ ApprovalCountBadge(count int) {
@@ -15,5 +21,16 @@ templ ApprovalCountBadge(count int) {
 		</span>
 	} else {
 		<span data-testid="approval-count-badge-empty" aria-hidden="true"></span>
+	}
+}
+
+// ApprovalCountBadgeNav is the approval-badge HTMX body: the poller swap plus replica OOB.
+templ ApprovalCountBadgeNav(count int) {
+	@ApprovalCountBadge(count)
+	@navBadgeInnerHTML(NavMobileApprovalBadgeID) {
+		@ApprovalCountBadge(count)
+	}
+	@navBadgeInnerHTML(NavAgentsApprovalBadgeID) {
+		@ApprovalCountBadge(count)
 	}
 }

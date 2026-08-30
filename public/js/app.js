@@ -499,6 +499,65 @@ function flowbotHTMXErrorMessage(status, body) {
   });
 })();
 
+window.flowbotAbortInFlightHTMX = function () {
+  if (typeof htmx === 'undefined' || typeof htmx.trigger !== 'function') {
+    return;
+  }
+  document.querySelectorAll('.htmx-request').forEach(function (el) {
+    htmx.trigger(el, 'htmx:abort');
+  });
+};
+
+window.flowbotIsPrimarySameTabNav = function (event) {
+  if (!event || event.defaultPrevented || event.button) {
+    return false;
+  }
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return false;
+  }
+  var a =
+    event.target && event.target.closest
+      ? event.target.closest('a[href]')
+      : null;
+  if (!a) {
+    return false;
+  }
+  if (a.closest && a.closest('[data-confirm]')) {
+    return false;
+  }
+  if (
+    a.getAttribute('hx-get') ||
+    a.getAttribute('hx-post') ||
+    a.getAttribute('hx-put') ||
+    a.getAttribute('hx-patch') ||
+    a.getAttribute('hx-delete')
+  ) {
+    return false;
+  }
+  var href = a.getAttribute('href');
+  if (!href || href.charAt(0) === '#' || href.indexOf('javascript:') === 0) {
+    return false;
+  }
+  var target = a.getAttribute('target');
+  if (target && target !== '_self') {
+    return false;
+  }
+  return !a.hasAttribute('download');
+};
+
+// Bubble phase so data-confirm capture can preventDefault first.
+// Intentionally silent: free HTTP/1.1 sockets before the next document GET.
+document.addEventListener('click', function (event) {
+  if (!window.flowbotIsPrimarySameTabNav(event)) {
+    return;
+  }
+  window.flowbotAbortInFlightHTMX();
+});
+
+window.addEventListener('pagehide', function () {
+  window.flowbotAbortInFlightHTMX();
+});
+
 // Scroll History deep-links into view after Channels/Rules table settle.
 document.addEventListener('htmx:afterSettle', function (evt) {
   var root = evt.target;

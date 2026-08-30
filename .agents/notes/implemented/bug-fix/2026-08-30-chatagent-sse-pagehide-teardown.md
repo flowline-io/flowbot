@@ -8,7 +8,7 @@ Thread UI (`Inspect entries`) and entry detail (`Back to session`) each open an 
 
 ## Decision
 
-Tear down the observer in `public/js/chatagent-approval.js`: close the EventSource and cancel reconnect on `pagehide`, skip reconnect while stopped, replace a second `initApproval` on the same panel, and reconnect only on a bfcache `pageshow`.
+Tear down the observer in `public/js/chatagent-approval.js`: close the EventSource and cancel reconnect on `pagehide` and on primary same-tab `<a href>` clicks (bubble phase, shared `flowbotIsPrimarySameTabNav` in `app.js`, so the next document GET can take the socket). Skip reconnect while stopped, replace a second `initApproval` on the same panel, and reconnect only on a bfcache `pageshow`. Navbar badge fan-out: [nav-badge-single-poller](2026-08-30-nav-badge-single-poller.md).
 
 ## Alternatives considered
 
@@ -22,4 +22,4 @@ Tear down the observer in `public/js/chatagent-approval.js`: close the EventSour
 
 ## Verification
 
-- `public/js/chatagent-approval.js` `initApproval` closes the EventSource on `pagehide`, ignores error-reconnect while stopped, destroys a previous observer on the same panel, and reconnects only on a persisted `pageshow`. There is no Go seam for this browser lifecycle.
+- `public/js/chatagent-approval.js` `initApproval` closes the EventSource on `pagehide` and primary same-tab link clicks (`flowbotIsPrimarySameTabNav` in `app.js`), ignores error-reconnect while stopped, destroys a previous observer on the same panel, and reconnects only on a persisted `pageshow`. There is no Go seam for this browser lifecycle.

@@ -215,5 +215,5 @@ func approvalBadge(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return partials.ApprovalCountBadge(count).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.ApprovalCountBadgeNav(count).Render(ctx.Context(), ctx.Response().BodyWriter())
 }

@@ -128,12 +128,45 @@ func TestApprovalBadge(t *testing.T) {
 		{name: "unauthenticated redirects", wantStatus: http.StatusSeeOther},
 		{name: "authenticated renders empty badge slot", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "approval-count-badge-empty"},
 		{name: "authenticated omits warning chip when idle", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: `data-testid="approval-count-badge-empty"`},
+		{name: "authenticated copies empty badge to replica slots", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: `hx-swap-oob="innerHTML:#nav-mobile-agents-approval-badge"`},
+		{name: "authenticated copies empty badge to agents menu slot", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: `hx-swap-oob="innerHTML:#nav-agents-approval-badge"`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/approval-badge", http.NoBody)
+			if tt.cookie != "" {
+				addWebAuth(req)
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantContains != "" {
+				body, _ := io.ReadAll(resp.Body)
+				assert.Contains(t, string(body), tt.wantContains)
+			}
+		})
+	}
+}
+
+func TestInboxBadge(t *testing.T) {
+	tests := []struct {
+		name         string
+		cookie       string
+		wantStatus   int
+		wantContains string
+	}{
+		{name: "unauthenticated redirects", wantStatus: http.StatusSeeOther},
+		{name: "authenticated renders empty badge slot", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "inbox-count-badge-empty"},
+		{name: "authenticated copies empty badge to mobile slot", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: `hx-swap-oob="innerHTML:#nav-mobile-inbox-badge"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp(t)
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(http.MethodGet, "/service/web/inbox-badge", http.NoBody)
 			if tt.cookie != "" {
 				addWebAuth(req)
 			}

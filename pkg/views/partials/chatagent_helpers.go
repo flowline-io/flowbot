@@ -262,6 +262,15 @@ func ChatAgentApproveDenyLabel(ctx context.Context) string {
 	return i18n.T(ctx, "chatagent.approval.deny")
 }
 
+// Navbar badge element IDs. Each endpoint has one HTMX poller; other slots are OOB targets.
+const (
+	NavInboxBadgeID          = "nav-inbox-badge"
+	NavMobileInboxBadgeID    = "nav-mobile-inbox-badge"
+	NavApprovalBadgeID       = "nav-agent-approval-badge"
+	NavMobileApprovalBadgeID = "nav-mobile-agents-approval-badge"
+	NavAgentsApprovalBadgeID = "nav-agents-approval-badge"
+)
+
 // FormatPendingApprovalBadgeText formats a compact count for nav / home badges.
 // Zero returns empty so callers can hide the badge.
 func FormatPendingApprovalBadgeText(count int) string {

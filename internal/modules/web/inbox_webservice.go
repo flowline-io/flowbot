@@ -62,7 +62,7 @@ func inboxBadge(ctx fiber.Ctx) error {
 		}
 	}
 	ctx.Type("html")
-	return partials.InboxCountBadge(count).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.InboxCountBadgeNav(count).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func inboxMarkRead(ctx fiber.Ctx) error {

@@ -18,7 +18,8 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
   - Thread: `microlighter github.css → util → sse → markdown → codeblocks → context → approval → todos → trajectory → thread → slash → chat → clip-copy`
   - Syntax highlight: vendored `public/vendor/microlighter` (CSS Highlight API); glue in `chatagent-codeblocks.js` (scans `#chatagent-messages`)
 - Namespace: `window.FlowbotChatAgent` only — no monolithic chatagent JS.
-- Observer EventSource (`chatagent-approval.js`): close on `pagehide`; do not reconnect after teardown ([note](../../../.agents/notes/implemented/bug-fix/2026-08-30-chatagent-sse-pagehide-teardown.md)).
+- Observer EventSource (`chatagent-approval.js`): close on `pagehide` and same-tab link clicks; do not reconnect after teardown ([note](../../../.agents/notes/implemented/bug-fix/2026-08-30-chatagent-sse-pagehide-teardown.md)).
+- Navbar badges: one `hx-get` poller per endpoint; replicas are OOB ([note](../../../.agents/notes/implemented/bug-fix/2026-08-30-nav-badge-single-poller.md)).
 
 ## Non-obvious rules
 

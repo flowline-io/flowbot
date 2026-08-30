@@ -63,6 +63,20 @@
   }
 
   var approvalByPanel = new WeakMap();
+  var stopOnNavigate = null;
+
+  document.addEventListener('click', function (event) {
+    if (!stopOnNavigate) {
+      return;
+    }
+    if (typeof window.flowbotIsPrimarySameTabNav !== 'function') {
+      return;
+    }
+    if (!window.flowbotIsPrimarySameTabNav(event)) {
+      return;
+    }
+    stopOnNavigate();
+  });
 
   ns.initApproval = function (panel) {
     if (!panel) {
@@ -121,14 +135,17 @@
       stopped = true;
       disconnect();
       document.removeEventListener('visibilitychange', onVisibilityChange);
-      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('pagehide', onLeavePage);
       window.removeEventListener('pageshow', onPageShow);
+      if (stopOnNavigate === onLeavePage) {
+        stopOnNavigate = null;
+      }
       if (approvalByPanel.get(panel) === api) {
         approvalByPanel.delete(panel);
       }
     }
 
-    function onPageHide() {
+    function onLeavePage() {
       stopped = true;
       disconnect();
     }
@@ -521,7 +538,7 @@
       );
     }
     document.addEventListener('visibilitychange', onVisibilityChange);
-    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('pagehide', onLeavePage);
     window.addEventListener('pageshow', onPageShow);
 
     function connect() {
@@ -581,6 +598,7 @@
 
     hydratePendingFromPanel();
     connect();
+    stopOnNavigate = onLeavePage;
     api = { handleStreamEvent: resolveConfirmEvent, destroy: destroy };
     approvalByPanel.set(panel, api);
     return api;
