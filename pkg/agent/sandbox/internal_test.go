@@ -3,6 +3,7 @@ package sandbox
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -46,6 +47,21 @@ func TestBuildCommand(t *testing.T) {
 		{name: "argv passthrough", opts: RunOptions{Argv: []string{"python", "main.py"}}, want: []string{"python", "main.py"}},
 		{name: "shell wraps command", opts: RunOptions{Command: "echo hi"}, want: []string{"sh", "-c", "echo hi"}},
 		{name: "empty command errors", opts: RunOptions{}, wantErr: "empty command"},
+		{
+			name: "cli dir prepends path on argv",
+			opts: RunOptions{Argv: []string{"python", "main.py"}, CLIBinaryDir: "/tmp/cli"},
+			want: []string{"sh", "-c", `PATH="/opt/flowbot-cli:$PATH" exec "$0" "$@"`, "python", "main.py"},
+		},
+		{
+			name: "cli dir prepends path on shell",
+			opts: RunOptions{Command: "echo hi", CLIBinaryDir: "/tmp/cli"},
+			want: []string{"sh", "-c", `PATH="/opt/flowbot-cli:$PATH" exec "$0" "$@"`, "sh", "-c", "echo hi"},
+		},
+		{
+			name: "cli path wrap keeps caller env unused",
+			opts: RunOptions{Argv: []string{"true"}, CLIBinaryDir: "/tmp/cli", Env: []string{"PATH=/custom"}},
+			want: []string{"sh", "-c", `PATH="/opt/flowbot-cli:$PATH" exec "$0" "$@"`, "true"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -107,20 +123,28 @@ func TestBuildHostConfig(t *testing.T) {
 			wantCLIBind:    true,
 		},
 		{
-			name: "cli binary bind",
+			name: "cli binary file path is not a bind",
 			opts: RunOptions{
 				Workspace: "/host/ws",
 				CLIBinary: "/opt/app/flowbot-cli_linux_amd64",
+			},
+			wantBinds: 1,
+		},
+		{
+			name: "cli binary dir bind",
+			opts: RunOptions{
+				Workspace:    "/host/ws",
+				CLIBinaryDir: "/tmp/cli-bin",
 			},
 			wantBinds:      2,
 			wantCLIBinBind: true,
 		},
 		{
-			name: "cli config and binary binds",
+			name: "cli config and binary dir binds",
 			opts: RunOptions{
 				Workspace:    "/host/ws",
 				CLIConfigDir: "/tmp/cli-cfg",
-				CLIBinary:    "/opt/app/flowbot-cli_linux_amd64",
+				CLIBinaryDir: "/tmp/cli-bin",
 			},
 			wantBinds:      3,
 			wantCLIBind:    true,
@@ -165,12 +189,15 @@ func TestBuildHostConfig(t *testing.T) {
 			if tt.wantCLIBinBind {
 				found := false
 				for _, b := range hc.Binds {
-					if strings.Contains(b, containerCLIBinaryPath+":ro") {
+					if strings.Contains(b, containerCLIDirPath+":ro") {
 						found = true
 						break
 					}
 				}
-				assert.True(t, found, "expected CLI binary bind")
+				assert.True(t, found, "expected CLI binary dir bind")
+			}
+			for _, b := range hc.Binds {
+				assert.NotContains(t, b, "/usr/local/bin/flowbot", "CLI inject bind target is /opt/flowbot-cli")
 			}
 		})
 	}
@@ -220,6 +247,93 @@ func TestResolveCLIBinary(t *testing.T) {
 		got := ResolvedCLIBinary(filepath.Join(t.TempDir(), "nope"))
 		assert.Empty(t, got)
 	})
+}
+
+func TestCLIBinaryStagingCopiesFile(t *testing.T) {
+	t.Parallel()
+	srcDir := t.TempDir()
+	src := filepath.Join(srcDir, "flowbot-cli_linux_amd64")
+	require.NoError(t, os.WriteFile(src, []byte("#!/bin/sh\necho ok\n"), 0o755))
+	srcBefore, err := os.Stat(src)
+	require.NoError(t, err)
+
+	dir, err := materializeCLIBinaryDir(src)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+
+	assert.Equal(t, filepath.Dir(src), filepath.Dir(dir))
+	dest := filepath.Join(dir, containerCLIName)
+	data, err := os.ReadFile(dest)
+	require.NoError(t, err)
+	assert.Equal(t, "#!/bin/sh\necho ok\n", string(data))
+	assertAgentExecutable(t, dest)
+	assertAgentExecutable(t, dir)
+
+	destInfo, err := os.Stat(dest)
+	require.NoError(t, err)
+	assert.False(t, os.SameFile(srcBefore, destInfo), "staging must copy, not hardlink")
+	srcAfter, err := os.Stat(src)
+	require.NoError(t, err)
+	assert.Equal(t, srcBefore.Mode(), srcAfter.Mode())
+}
+
+func TestCLIBinaryStagingMissingSrc(t *testing.T) {
+	t.Parallel()
+	_, err := materializeCLIBinaryDir(filepath.Join(t.TempDir(), "missing"))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "copy cli binary")
+}
+
+func TestCLIInjectDegradesWhenStagingFails(t *testing.T) {
+	t.Parallel()
+	opts := RunOptions{CLIBinary: filepath.Join(t.TempDir(), "missing")}
+	dir := injectCLIBinary(&opts)
+	assert.Empty(t, dir)
+	assert.Empty(t, opts.CLIBinaryDir)
+}
+
+func TestCLIInjectStagesWhenBinaryExists(t *testing.T) {
+	t.Parallel()
+	src := filepath.Join(t.TempDir(), "flowbot-cli_linux_amd64")
+	require.NoError(t, os.WriteFile(src, []byte("x"), 0o755))
+	opts := RunOptions{CLIBinary: src}
+	dir := injectCLIBinary(&opts)
+	require.NotEmpty(t, dir)
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	assert.Equal(t, dir, opts.CLIBinaryDir)
+	assert.Equal(t, filepath.Dir(src), filepath.Dir(dir))
+}
+
+func TestCLIInjectSkipsWhenDirAlreadySet(t *testing.T) {
+	t.Parallel()
+	src := filepath.Join(t.TempDir(), "flowbot-cli_linux_amd64")
+	require.NoError(t, os.WriteFile(src, []byte("x"), 0o755))
+	opts := RunOptions{CLIBinary: src, CLIBinaryDir: "/already"}
+	assert.Empty(t, injectCLIBinary(&opts))
+	assert.Equal(t, "/already", opts.CLIBinaryDir)
+}
+
+func assertAgentExecutable(t *testing.T, path string) {
+	t.Helper()
+	info, err := os.Stat(path)
+	require.NoError(t, err)
+	if runtime.GOOS == "windows" {
+		return
+	}
+	perm := info.Mode().Perm()
+	assert.True(t, perm == cliExecOwner || perm&0o111 != 0,
+		"path %s mode %o should be executable/traversable by sandbox agent", path, perm)
+}
+
+func TestEnsureSandboxAgentExecutable(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "flowbot")
+	require.NoError(t, os.WriteFile(path, []byte("x"), 0o600))
+	require.NoError(t, ensureSandboxAgentExecutable(path))
+	assertAgentExecutable(t, path)
+	require.NoError(t, ensureSandboxAgentExecutable(path))
+	assertAgentExecutable(t, path)
 }
 
 func TestMaterializeCLIConfig(t *testing.T) {
@@ -362,6 +476,16 @@ func TestBuildContainerEnv(t *testing.T) {
 		{
 			name: "token only",
 			opts: RunOptions{AccessToken: "tok"},
+			want: []string{"FLOWBOT_TOKEN=tok"},
+		},
+		{
+			name: "cli dir does not set path env",
+			opts: RunOptions{CLIBinaryDir: "/tmp/cli-bin"},
+			want: nil,
+		},
+		{
+			name: "cli dir and token",
+			opts: RunOptions{CLIBinaryDir: "/tmp/cli-bin", AccessToken: "tok"},
 			want: []string{"FLOWBOT_TOKEN=tok"},
 		},
 	}

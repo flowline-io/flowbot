@@ -10,7 +10,7 @@ Status: implemented
 
 New directories use mode `0750` or less (owner `rwx`, group `rx`, no world). Callers that pass a mode through `ExecutionEnv.MkdirAll` use the same cap.
 
-Documented exception: `pkg/agent/sandbox` `cliConfigDirWorldAccessible` (`0755`) is a `chmod` fallback when `chown` to the sandbox agent user fails, so uid 1000 can still traverse an ephemeral host temp dir. That path is not a `Mkdir` default.
+Documented exception: `pkg/agent/sandbox` `cliConfigDirWorldAccessible` and `cliExecWorld` (`0755`) are `chmod` fallbacks when `chown` to the sandbox agent user fails, so uid 1000 can still traverse/execute an ephemeral host temp dir. Those paths are not a `Mkdir` default.
 
 gosec G301 is enabled (`go tool task gosec`). G302 / G306 stay excluded (file `chmod` / `WriteFile` modes are a separate pass).
 
@@ -23,7 +23,7 @@ gosec G301 is enabled (`go tool task gosec`). G302 / G306 stay excluded (file `c
 ## Consequences
 
 - Report output, eval sandboxes, CLI export dirs, and agent-created parent dirs are group-readable and not world-traversable.
-- A new `Mkdir` / `MkdirAll` with mode `> 0750` fails `go tool task gosec` unless it is a documented exception (today: sandbox CLI config `chmod` fallback only).
+- A new `Mkdir` / `MkdirAll` with mode `> 0750` fails `go tool task gosec` unless it is a documented exception (today: sandbox CLI config and CLI binary staging `chmod` fallbacks only).
 
 ## Verification
 

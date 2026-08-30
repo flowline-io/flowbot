@@ -30,16 +30,21 @@ const (
 	defaultCreateWait       = 2 * time.Minute
 	maxLoggedCommandLen     = 200
 	containerCLIConfigPath  = "/home/agent/.config/flowbot"
-	containerCLIBinaryPath  = "/usr/local/bin/flowbot"
+	containerCLIDirPath     = "/opt/flowbot-cli"
+	containerCLIName        = "flowbot"
 	siblingCLIBinaryName    = "flowbot-cli_linux_amd64"
 	envFlowbotServerURL     = "FLOWBOT_SERVER_URL"
 	envFlowbotToken         = "FLOWBOT_TOKEN"
 	hostDockerInternal      = "host.docker.internal"
 	cliConfigTempDirPattern = "flowbot-sandbox-cli-*"
+	cliBinaryTempDirPattern = "flowbot-sandbox-cli-bin-*"
 	cliTokenFileName        = "token"
 	cliServerURLFileName    = "server_url"
-	labelComponentKey       = "flowbot.component"
-	labelComponentSandbox   = "agent-sandbox"
+	// cliExecOwner/cliExecWorld: execute/traverse; world 0755 is the chown-failed fallback.
+	cliExecOwner          = 0750
+	cliExecWorld          = 0755
+	labelComponentKey     = "flowbot.component"
+	labelComponentSandbox = "agent-sandbox"
 	// sandboxAgentUID/GID match the agent user in deployments/agent-sandbox/Dockerfile.
 	sandboxAgentUID = 1000
 	sandboxAgentGID = 1000
@@ -123,8 +128,12 @@ type RunOptions struct {
 	// CLIConfigDir is a host directory bind-mounted read-only at containerCLIConfigPath.
 	// When empty and AccessToken is set, DockerRunner materializes a temporary directory.
 	CLIConfigDir string
-	// CLIBinary is a host path bind-mounted read-only at containerCLIBinaryPath.
+	// CLIBinary is a host path to a linux/amd64 flowbot CLI file. DockerRunner copies it
+	// into a temporary directory (as "flowbot") and bind-mounts that directory.
 	CLIBinary string
+	// CLIBinaryDir is a host directory bind-mounted read-only at containerCLIDirPath.
+	// When empty and CLIBinary is set, DockerRunner materializes a temporary directory.
+	CLIBinaryDir string
 }
 
 // Env implements env.ExecutionEnv with host filesystem ops and sandboxed Exec.
@@ -330,21 +339,29 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	if err := validateRunOptions(opts); err != nil {
 		return env.Capture{}, err
 	}
-	cmd, err := buildCommand(opts)
-	if err != nil {
-		return env.Capture{}, err
-	}
 
-	cleanup := func() {}
+	var cleanupDirs []string
+	defer func() {
+		for _, d := range cleanupDirs {
+			_ = os.RemoveAll(d)
+		}
+	}()
 	if opts.AccessToken != "" && opts.CLIConfigDir == "" {
 		dir, matErr := materializeCLIConfig(opts.ServerURL, opts.AccessToken)
 		if matErr != nil {
 			return env.Capture{}, matErr
 		}
 		opts.CLIConfigDir = dir
-		cleanup = func() { _ = os.RemoveAll(dir) }
+		cleanupDirs = append(cleanupDirs, dir)
 	}
-	defer cleanup()
+	if dir := injectCLIBinary(&opts); dir != "" {
+		cleanupDirs = append(cleanupDirs, dir)
+	}
+
+	cmd, err := buildCommand(opts)
+	if err != nil {
+		return env.Capture{}, err
+	}
 
 	cli, err := client.New(client.FromEnv)
 	if err != nil {
@@ -429,9 +446,9 @@ func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
 		hostConfig.Binds = append(hostConfig.Binds,
 			fmt.Sprintf("%s:%s:ro", opts.CLIConfigDir, containerCLIConfigPath))
 	}
-	if opts.CLIBinary != "" {
+	if opts.CLIBinaryDir != "" {
 		hostConfig.Binds = append(hostConfig.Binds,
-			fmt.Sprintf("%s:%s:ro", opts.CLIBinary, containerCLIBinaryPath))
+			fmt.Sprintf("%s:%s:ro", opts.CLIBinaryDir, containerCLIDirPath))
 	}
 	if opts.Network != "" {
 		hostConfig.NetworkMode = container.NetworkMode(opts.Network)
@@ -488,6 +505,96 @@ func materializeCLIConfig(serverURL, token string) (string, error) {
 	return dir, nil
 }
 
+// injectCLIBinary stages opts.CLIBinary into a directory bind when CLIBinaryDir is empty.
+// Staging failure warns once and leaves CLIBinaryDir empty (shell/code still run).
+func injectCLIBinary(opts *RunOptions) string {
+	if opts.CLIBinary == "" || opts.CLIBinaryDir != "" {
+		return ""
+	}
+	dir, err := materializeCLIBinaryDir(opts.CLIBinary)
+	if err != nil {
+		warnMissingCLI("stage cli binary: %s", err.Error())
+		return ""
+	}
+	opts.CLIBinaryDir = dir
+	return dir
+}
+
+// materializeCLIBinaryDir copies src as "flowbot" into a temp dir beside src
+// (fallback: default temp) so a Docker daemon that can see the CLI file can see the stage dir.
+func materializeCLIBinaryDir(src string) (string, error) {
+	dir, err := os.MkdirTemp(filepath.Dir(src), cliBinaryTempDirPattern)
+	if err != nil {
+		dir, err = os.MkdirTemp("", cliBinaryTempDirPattern)
+	}
+	if err != nil {
+		return "", fmt.Errorf("sandbox: create cli binary dir: %w", err)
+	}
+	cleanupOnErr := true
+	defer func() {
+		if cleanupOnErr {
+			_ = os.RemoveAll(dir)
+		}
+	}()
+	dest := filepath.Join(dir, containerCLIName)
+	if err := copyFile(src, dest); err != nil {
+		return "", fmt.Errorf("sandbox: copy cli binary: %w", err)
+	}
+	if err := ensureSandboxAgentExecutable(dest); err != nil {
+		return "", err
+	}
+	if err := ensureSandboxAgentExecutable(dir); err != nil {
+		return "", err
+	}
+	cleanupOnErr = false
+	return dir, nil
+}
+
+func copyFile(src, dest string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if cerr := in.Close(); err == nil {
+			err = cerr
+		}
+	}()
+	out, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, cliExecWorld)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if cerr := out.Close(); err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	return out.Chmod(cliExecWorld)
+}
+
+func chownOrWorldChmod(path string, ownerOnly, world os.FileMode, what string) error {
+	if err := os.Chown(path, sandboxAgentUID, sandboxAgentGID); err != nil {
+		if chmodErr := os.Chmod(path, world); chmodErr != nil {
+			return fmt.Errorf("sandbox: make %s accessible (chown: %v; chmod: %w)", what, err, chmodErr)
+		}
+		return nil
+	}
+	if err := os.Chmod(path, ownerOnly); err != nil {
+		return fmt.Errorf("sandbox: chmod %s: %w", what, err)
+	}
+	return nil
+}
+
+func ensureSandboxAgentExecutable(path string) error {
+	if _, err := os.Stat(path); err != nil {
+		return fmt.Errorf("sandbox: stat cli binary: %w", err)
+	}
+	return chownOrWorldChmod(path, cliExecOwner, cliExecWorld, "cli binary")
+}
+
 // ensureSandboxAgentReadable makes path readable by the sandbox container user (uid 1000).
 // Prefer chown to the agent user with owner-only mode; if chown fails (non-root / Windows),
 // fall back to world-accessible mode for the ephemeral temp path.
@@ -503,16 +610,7 @@ func ensureSandboxAgentReadable(path string) error {
 		ownerOnly = cliConfigDirOwnerOnly
 		worldAccessible = cliConfigDirWorldAccessible
 	}
-	if err := os.Chown(path, sandboxAgentUID, sandboxAgentGID); err != nil {
-		if chmodErr := os.Chmod(path, worldAccessible); chmodErr != nil {
-			return fmt.Errorf("sandbox: make cli config readable (chown: %v; chmod: %w)", err, chmodErr)
-		}
-		return nil
-	}
-	if err := os.Chmod(path, ownerOnly); err != nil {
-		return fmt.Errorf("sandbox: chmod cli config: %w", err)
-	}
-	return nil
+	return chownOrWorldChmod(path, ownerOnly, worldAccessible, "cli config")
 }
 
 // buildContainerEnv returns Docker Env entries for the flowbot CLI and caller-supplied vars.
@@ -612,13 +710,24 @@ func truncateForLog(text string) string {
 }
 
 func buildCommand(opts RunOptions) ([]string, error) {
-	if len(opts.Argv) > 0 {
-		return append([]string(nil), opts.Argv...), nil
-	}
-	if strings.TrimSpace(opts.Command) == "" {
+	var cmd []string
+	switch {
+	case len(opts.Argv) > 0:
+		cmd = append([]string(nil), opts.Argv...)
+	case strings.TrimSpace(opts.Command) == "":
 		return nil, fmt.Errorf("sandbox: empty command")
+	default:
+		cmd = []string{"sh", "-c", opts.Command}
 	}
-	return []string{"sh", "-c", opts.Command}, nil
+	if opts.CLIBinaryDir != "" {
+		return wrapCommandWithCLIPath(cmd), nil
+	}
+	return cmd, nil
+}
+
+func wrapCommandWithCLIPath(cmd []string) []string {
+	script := `PATH="` + containerCLIDirPath + `:$PATH" exec "$0" "$@"`
+	return append([]string{"sh", "-c", script, cmd[0]}, cmd[1:]...)
 }
 
 func stripDockerLogHeaders(data []byte) string {

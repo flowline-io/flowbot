@@ -10,7 +10,9 @@ Giving chatagent access to provider capabilities via skill → `run_terminal` �
 
 Keep the skill → CLI contract. Do not bake the `flowbot` CLI into `flowbot-agent-sandbox`.
 
-Ship `flowbot-cli_linux_amd64` beside the Flowbot server binary (server image: `/opt/app/`). At runtime, `pkg/agent/sandbox` injects that binary (or `chat_agent.sandbox.cli_path`) into ephemeral containers. Missing CLI warns once and degrades: shell/code tools still run without `flowbot`. Host-native `task build:cli` is unchanged; `task build:cli:linux` builds the inject artifact.
+Ship `flowbot-cli_linux_amd64` beside the Flowbot server binary (server image: `/opt/app/`). At runtime, `pkg/agent/sandbox` copies that binary (or `chat_agent.sandbox.cli_path`) into a temporary directory as the file `flowbot` and bind-mounts the directory at `/opt/flowbot-cli`, prepending that dir to `PATH` in the container command. Missing CLI or a staging failure warns once and degrades: shell/code tools still run without `flowbot`. Host-native `task build:cli` is unchanged; `task build:cli:linux` builds the inject artifact.
+
+Mount path: [sandbox-cli-dir-bind](../bug-fix/2026-08-31-sandbox-cli-dir-bind.md).
 
 Contract details: [Agent Sandbox — Chat agent CLI injection](../../../../docs/agent/agent-sandbox.md#chat-agent-cli-injection-chat_agentsandbox).
 

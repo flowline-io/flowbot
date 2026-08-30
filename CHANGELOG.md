@@ -19,6 +19,7 @@
 - Fenced-code `language-*` class survives `MarkdownToSafeHTML` sanitization (labels and highlighting).
 - Chat-agent approval EventSource closes on `pagehide` / same-tab navigation so inspect ↔ thread round-trips do not exhaust HTTP/1.1 sockets. See [.agents/notes/implemented/bug-fix/2026-08-30-chatagent-sse-pagehide-teardown.md](.agents/notes/implemented/bug-fix/2026-08-30-chatagent-sse-pagehide-teardown.md).
 - Agent session inspect back link returns to the thread UI instead of the sessions list.
+- Chat-agent sandbox injects the CLI via a directory bind at `/opt/flowbot-cli` instead of a file bind onto `/usr/local/bin/flowbot`, so overlay2/runc can start the container. See [.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md](.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md).
 
 ## [0.99.8] - 2026-08-28
 

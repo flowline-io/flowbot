@@ -43,7 +43,7 @@ Versions are pinned in [`deployments/agent-sandbox/Dockerfile`](../../deployment
 | Shell / CLI | bash, jq, ripgrep, curl, wget, openssh-client, build-essential | Aligned with Flowbot server runtime packages |
 | `dcg` | GitHub release (`DCG_VERSION`, default `v0.6.7`) | Installed as `/usr/local/bin/dcg` (linux musl amd64) with SHA256 verify; config at `/etc/dcg/config.toml` (same as [`pkg/agent/dcg/config.toml`](../../pkg/agent/dcg/config.toml)). **Parity only** — Flowbot's Always-on DCG gate for `run_terminal` / `run_code` runs on the **host** before sandbox exec; the image does not re-check. |
 
-The image does **not** bake the `flowbot` CLI. Chat agent sandbox injects `flowbot-cli_linux_amd64` from beside the Flowbot server binary (or `chat_agent.sandbox.cli_path`) at runtime as `/usr/local/bin/flowbot`. See [Chat agent CLI injection](#chat-agent-cli-injection-chat_agentsandbox) below.
+The image does **not** bake the `flowbot` CLI. Chat agent sandbox copies `flowbot-cli_linux_amd64` from beside the Flowbot server binary (or `chat_agent.sandbox.cli_path`) into a host directory and bind-mounts that directory at `/opt/flowbot-cli` (on `PATH`). See [Chat agent CLI injection](#chat-agent-cli-injection-chat_agentsandbox) below.
 
 Credential files materialized by the chat agent sandbox runner are chowned to uid/gid `1000` (the image `agent` user) when possible; otherwise they are mode `0644` so the container can still read them when the host process cannot chown.
 
@@ -87,11 +87,13 @@ docker run --rm \
   -e FLOWBOT_TOKEN=your-access-token \
   --add-host=host.docker.internal:host-gateway \
   -v "$(pwd):/workspace" \
-  -v /path/to/flowbot-cli_linux_amd64:/usr/local/bin/flowbot:ro \
+  -v /path/to/cli-dir:/opt/flowbot-cli:ro \
   -w /workspace \
   ghcr.io/flowline-io/flowbot-agent-sandbox:1.0.0 \
-  bash -lc 'flowbot bookmark list'
+  bash -lc 'PATH=/opt/flowbot-cli:$PATH flowbot bookmark list'
 ```
+
+`/path/to/cli-dir` is a directory that contains an executable named `flowbot`.
 
 Older published CLI builds ignore `FLOWBOT_TOKEN` and only read `~/.config/flowbot/token`. Prefer mounting a materialized config directory (what Flowbot's sandbox runner does).
 
@@ -186,7 +188,7 @@ chat_agent:
 Behavior:
 
 1. The runner resolves a host linux/amd64 CLI: `cli_path` if set (absolute as-is; relative beside the server executable), otherwise `flowbot-cli_linux_amd64` next to the Flowbot server executable (the server image ships this sibling under `/opt/app/`).
-2. If that file exists, each Exec bind-mounts it read-only at `/usr/local/bin/flowbot`. If missing, the sandbox warns once and continues without `flowbot` (other shell/code tools still work).
+2. If that file exists, each Exec copies it into a temporary host directory as `flowbot` (beside the source file when possible), bind-mounts that directory read-only at `/opt/flowbot-cli`, and prepends `/opt/flowbot-cli` to `PATH` in the container command. If the file is missing or staging fails, the sandbox warns once and continues without `flowbot` (other shell/code tools still work). Mount shape: [.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md](../../.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md).
 3. If `access_token` is non-empty, each Exec materializes a temporary host directory with `token` + `server_url` (mode `0600`), bind-mounts it read-only at `/home/agent/.config/flowbot`, and sets `FLOWBOT_TOKEN` / `FLOWBOT_SERVER_URL`.
 4. The temp directory is outside the agent workspace and removed after the container exits.
 5. If `server_url` host is `host.docker.internal`, the runner adds `ExtraHosts: host.docker.internal:host-gateway`.
