@@ -26,9 +26,9 @@ type PaginationMeta struct {
 
 // VersionInfo is returned by GET /api/version.
 type VersionInfo struct {
-	APIVersion           int    `json:"api_version"`
-	ServerVersion        string `json:"server_version"`
-	MinCompatibleClient  string `json:"min_compatible_client,omitzero"`
+	APIVersion          int    `json:"api_version"`
+	ServerVersion       string `json:"server_version"`
+	MinCompatibleClient string `json:"min_compatible_client,omitzero"`
 }
 
 // ListParams holds shared list/filter/pagination options.
@@ -43,8 +43,10 @@ type ListParams struct {
 }
 
 // LimitOf returns a Limit pointer for ListParams.
+//
+//go:fix inline
 func LimitOf(n int) *int {
-	return &n
+	return new(n)
 }
 
 // Page is a typed list result with pagination metadata.
@@ -68,24 +70,24 @@ type Network struct {
 
 // Host is a discovered or manually created network host.
 type Host struct {
-	ID              string      `json:"id"`
-	Name            string      `json:"name"`
-	NameSource      string      `json:"name_source,omitzero"`
-	Hostname        string      `json:"hostname,omitzero"`
-	Description     string      `json:"description,omitzero"`
-	NetworkID       string      `json:"network_id"`
-	Hidden          bool        `json:"hidden"`
-	LastSeenAt      string      `json:"last_seen_at,omitzero"`
-	Manufacturer    string      `json:"manufacturer,omitzero"`
-	Model           string      `json:"model,omitzero"`
-	ManagementURL   string      `json:"management_url,omitzero"`
-	Source          EntitySource `json:"source,omitzero"`
-	Tags            []string    `json:"tags,omitzero"`
-	IPAddresses     []IPAddress `json:"ip_addresses,omitzero"`
-	Ports           []Port      `json:"ports,omitzero"`
-	Services        []Service   `json:"services,omitzero"`
-	CreatedAt       string      `json:"created_at,omitzero"`
-	UpdatedAt       string      `json:"updated_at,omitzero"`
+	ID            string       `json:"id"`
+	Name          string       `json:"name"`
+	NameSource    string       `json:"name_source,omitzero"`
+	Hostname      string       `json:"hostname,omitzero"`
+	Description   string       `json:"description,omitzero"`
+	NetworkID     string       `json:"network_id"`
+	Hidden        bool         `json:"hidden"`
+	LastSeenAt    string       `json:"last_seen_at,omitzero"`
+	Manufacturer  string       `json:"manufacturer,omitzero"`
+	Model         string       `json:"model,omitzero"`
+	ManagementURL string       `json:"management_url,omitzero"`
+	Source        EntitySource `json:"source,omitzero"`
+	Tags          []string     `json:"tags,omitzero"`
+	IPAddresses   []IPAddress  `json:"ip_addresses,omitzero"`
+	Ports         []Port       `json:"ports,omitzero"`
+	Services      []Service    `json:"services,omitzero"`
+	CreatedAt     string       `json:"created_at,omitzero"`
+	UpdatedAt     string       `json:"updated_at,omitzero"`
 }
 
 // EntitySource describes how an entity was created.
@@ -107,12 +109,12 @@ type IPAddress struct {
 
 // Port is an open port on a host.
 type Port struct {
-	ID       string `json:"id"`
-	HostID   string `json:"host_id,omitzero"`
+	ID        string `json:"id"`
+	HostID    string `json:"host_id,omitzero"`
 	NetworkID string `json:"network_id,omitzero"`
-	Number   int    `json:"number"`
-	Protocol string `json:"protocol,omitzero"`
-	Type     string `json:"type,omitzero"`
+	Number    int    `json:"number"`
+	Protocol  string `json:"protocol,omitzero"`
+	Type      string `json:"type,omitzero"`
 }
 
 // Service is a detected or manually added service on a host.
@@ -132,18 +134,18 @@ type Service struct {
 
 // Daemon is a scanning agent.
 type Daemon struct {
-	ID            string              `json:"id"`
-	Name          string              `json:"name"`
-	NetworkID     string              `json:"network_id,omitzero"`
-	HostID        string              `json:"host_id,omitzero"`
-	Mode          string              `json:"mode,omitzero"`
-	Version       string              `json:"version,omitzero"`
-	LastSeen      string              `json:"last_seen,omitzero"`
-	IsUnreachable bool                `json:"is_unreachable"`
-	URL           string              `json:"url,omitzero"`
+	ID            string               `json:"id"`
+	Name          string               `json:"name"`
+	NetworkID     string               `json:"network_id,omitzero"`
+	HostID        string               `json:"host_id,omitzero"`
+	Mode          string               `json:"mode,omitzero"`
+	Version       string               `json:"version,omitzero"`
+	LastSeen      string               `json:"last_seen,omitzero"`
+	IsUnreachable bool                 `json:"is_unreachable"`
+	URL           string               `json:"url,omitzero"`
 	VersionStatus *DaemonVersionStatus `json:"version_status,omitzero"`
-	CreatedAt     string              `json:"created_at,omitzero"`
-	UpdatedAt     string              `json:"updated_at,omitzero"`
+	CreatedAt     string               `json:"created_at,omitzero"`
+	UpdatedAt     string               `json:"updated_at,omitzero"`
 }
 
 // DaemonVersionStatus is computed daemon version health.

@@ -104,7 +104,7 @@ func TestScanopy_ListHosts(t *testing.T) {
 	}))
 	defer server.Close()
 	page, err := NewScanopy(server.URL, "tok").ListHosts(context.Background(), ListParams{
-		NetworkID: "net-1", Search: "router", Limit: LimitOf(10),
+		NetworkID: "net-1", Search: "router", Limit: new(10),
 	})
 	require.NoError(t, err)
 	require.Len(t, page.Items, 1)
@@ -124,7 +124,7 @@ func TestScanopy_LimitZeroMeansNoLimit(t *testing.T) {
 		})
 	}))
 	defer server.Close()
-	_, err := NewScanopy(server.URL, "tok").ListHosts(context.Background(), ListParams{Limit: LimitOf(0)})
+	_, err := NewScanopy(server.URL, "tok").ListHosts(context.Background(), ListParams{Limit: new(0)})
 	require.NoError(t, err)
 }
 

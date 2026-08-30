@@ -198,7 +198,7 @@ type sseToolCall struct {
 func sseToolCalls(t *testing.T, body string) []sseToolCall {
 	t.Helper()
 	var out []sseToolCall
-	for _, line := range strings.Split(body, "\n") {
+	for line := range strings.SplitSeq(body, "\n") {
 		out = append(out, sseToolCallsInLine(line)...)
 	}
 	return out
@@ -274,10 +274,10 @@ func sseToolCallFromRaw(rawCall any) (sseToolCall, bool) {
 func indexedParallelSSE(n int) string {
 	var b strings.Builder
 	_, _ = b.WriteString(`data: {"choices":[{"index":0,"delta":{"role":"assistant","reasoning_content":"plan"}}]}` + "\n")
-	for i := 0; i < n; i++ {
+	for i := range n {
 		_, _ = fmt.Fprintf(&b, `data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":%d,"id":%q,"type":"function","function":{"name":"read_file","arguments":""}}]}}]}`+"\n", i, indexedCallID(i))
 	}
-	for i := 0; i < n; i++ {
+	for i := range n {
 		args := strings.ReplaceAll(indexedCallArg(i), `"`, `\"`)
 		_, _ = fmt.Fprintf(&b, `data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":%d,"function":{"arguments":"%s"}}]}}]}`+"\n", i, args)
 	}
@@ -288,7 +288,7 @@ func indexedParallelSSE(n int) string {
 
 func indexedCallIDs(n int) []string {
 	out := make([]string, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		out[i] = indexedCallID(i)
 	}
 	return out
@@ -296,7 +296,7 @@ func indexedCallIDs(n int) []string {
 
 func indexedCallArgs(n int) []string {
 	out := make([]string, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		out[i] = indexedCallArg(i)
 	}
 	return out

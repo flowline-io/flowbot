@@ -720,7 +720,7 @@ func toScanopyListParams(in ScanopyListInput, offset, limit int) scanopy.ListPar
 		NetworkID: in.NetworkID,
 		HostID:    in.HostID,
 		Search:    in.Search,
-		Limit:     scanopy.LimitOf(limit),
+		Limit:     new(limit),
 		Offset:    offset,
 	}
 }
@@ -747,10 +747,7 @@ func (a *Adapter) scanopyOffsetLimit(in ScanopyListInput) (offset, limit int) {
 	}
 	offset = payload.Offset
 	if payload.Limit > 0 {
-		limit = payload.Limit
-		if limit > 1000 {
-			limit = 1000
-		}
+		limit = min(payload.Limit, 1000)
 	}
 	return offset, limit
 }
