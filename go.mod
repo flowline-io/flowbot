@@ -41,7 +41,7 @@ require (
 	github.com/moby/moby/client v0.5.1
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/onsi/ginkgo/v2 v2.32.1
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 	github.com/panjf2000/ants/v2 v2.12.1
 	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/prometheus/client_golang v1.24.1
