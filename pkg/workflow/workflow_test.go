@@ -41,6 +41,13 @@ func TestParseAction(t *testing.T) {
 			wantDetails:      "karakeep",
 		},
 		{
+			name: "kern",
+			action:           "kern:alpine:3.20",
+			wantIsCapability: false,
+			wantType:         "kern",
+			wantDetails:      "alpine:3.20",
+		},
+		{
 			name:             "docker",
 			action:           "docker:nginx:latest",
 			wantIsCapability: false,
@@ -111,6 +118,11 @@ func TestDetermineRuntimeType(t *testing.T) {
 			name: "capability",
 			task: &types.Task{Run: "capability:karakeep.list"},
 			want: "capability",
+		},
+		{
+			name: "kern",
+			task: &types.Task{Run: "kern:alpine:3.20", Image: "alpine:3.20"},
+			want: "kern",
 		},
 		{
 			name: "docker",

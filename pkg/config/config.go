@@ -374,6 +374,15 @@ type ExecutorMachineConfig struct {
 	HostKey string `json:"host_key" yaml:"host_key" mapstructure:"host_key" sensitive:"true"`
 }
 
+type ExecutorKernConfig struct {
+	// Binary is the kern executable path; empty uses kern on PATH.
+	Binary string `json:"binary" yaml:"binary" mapstructure:"binary"`
+	// SecurityProfile sets --security-profile on kern boxes (e.g. untrusted).
+	SecurityProfile string `json:"security_profile" yaml:"security_profile" mapstructure:"security_profile"`
+	// RequireLimits refuses to start boxes when cgroup limits cannot be enforced.
+	RequireLimits bool `json:"require_limits" yaml:"require_limits" mapstructure:"require_limits"`
+}
+
 type Executor struct {
 	// Executor type: docker
 	Type string `json:"type" yaml:"type" mapstructure:"type"`
@@ -381,6 +390,7 @@ type Executor struct {
 	Limits  ExecutorLimits        `json:"limits" yaml:"limits" mapstructure:"limits"`
 	Mounts  ExecutorMounts        `json:"mounts" yaml:"mounts" mapstructure:"mounts"`
 	Docker  ExecutorDockerConfig  `json:"docker" yaml:"docker" mapstructure:"docker"`
+	Kern    ExecutorKernConfig    `json:"kern" yaml:"kern" mapstructure:"kern"`
 	Shell   ExecutorShellConfig   `json:"shell" yaml:"shell" mapstructure:"shell"`
 	Machine ExecutorMachineConfig `json:"machine" yaml:"machine" mapstructure:"machine"`
 }
@@ -705,6 +715,10 @@ type ChatAgentLoopDetectionConfig struct {
 type ChatAgentSandboxConfig struct {
 	// Enabled turns on Docker sandbox execution when true.
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Runtime selects the sandbox backend (docker or kern). Empty defaults to docker.
+	Runtime string `json:"runtime" yaml:"runtime" mapstructure:"runtime"`
+	// SecurityProfile sets kern --security-profile when runtime is kern.
+	SecurityProfile string `json:"security_profile" yaml:"security_profile" mapstructure:"security_profile"`
 	// Image is the sandbox container image.
 	Image string `json:"image" yaml:"image" mapstructure:"image"`
 	// Network is the Docker network mode (empty uses default bridge isolation).

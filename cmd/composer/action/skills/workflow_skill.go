@@ -607,6 +607,31 @@ Workflow does **not** map mounts, env, or timeout from YAML params.`,
       from_docker: '{{step "run_tool" "result"}}'`,
 		},
 		{
+			Prefix:     "kern:",
+			Title:      "Kern",
+			Summary:    "Run a container image via the kern CLI on the workflow runner (Linux only)",
+			ActionForm: "kern:<image>",
+			Inputs: `- **Action details:** image reference after the prefix (e.g. ` + "`" + `alpine:3.20` + "`" + ` in ` + "`" + `kern:alpine:3.20` + "`" + `).
+- **Params:**
+  | Key | Type | Required | Meaning |
+  |-----|------|----------|---------|
+  | ` + "`" + `cmd` + "`" + ` | string or string list | no | Container command; overrides the image default CMD |
+
+Workflow does **not** map mounts, env, or timeout from YAML params.`,
+			Outputs: `Plain text written to the task output file inside the box (same contract as ` + "`" + `docker:` + "`" + `). Use ` + "`" + `run` + "`" + ` scripts that write to ` + "`" + `$OUTPUT` + "`" + ` or ` + "`" + `/flowbot/stdout` + "`" + `.`,
+			Usage: `- Prefer ` + "`" + `kern:` + "`" + ` when the host has the ` + "`" + `kern` + "`" + ` binary and you want a daemonless rootless box.
+- Chain stdout: ` + "`" + `{{step "run_kern" "result"}}` + "`" + `.`,
+			Notes: "Requires `kern` on PATH and `kern doctor` passing on Linux. No GPU, overlay networks, or workflow registry credentials (use public images or `kern login` on the host). Differs from `docker:` — see executor.kern in config.",
+			ExampleYAML: `  - id: run_kern
+    action: kern:alpine:3.20
+    params:
+      cmd: ["sh", "-c", "echo -n hello > /flowbot/stdout"]
+  - id: use_stdout
+    action: "mapper:"
+    params:
+      from_kern: '{{step "run_kern" "result"}}'`,
+		},
+		{
 			Prefix:     "shell:",
 			Title:      "Shell",
 			Summary:    "Run a shell command on the workflow runner host",

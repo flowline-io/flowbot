@@ -92,7 +92,7 @@ func marshalCapabilityParams(task *types.Task, params types.KV) error {
 
 func applyActionParams(task *types.Task, info ActionInfo, params types.KV) {
 	switch info.Type {
-	case "docker":
+	case "docker", "kern":
 		task.Image = info.Details
 		if len(params) > 0 {
 			if cmd, ok := params["cmd"]; ok {
@@ -138,6 +138,9 @@ func DetermineRuntimeType(t *types.Task) string {
 	if strings.HasPrefix(t.Run, capabilityruntime.Prefix) {
 		return runtime.Capability
 	}
+	if strings.HasPrefix(t.Run, "kern:") {
+		return runtime.Kern
+	}
 	if t.Image != "" {
 		return runtime.Docker
 	}
@@ -169,6 +172,7 @@ func NewRunnerWithStore(store WorkflowRunStore, auditor audit.Auditor, wc *metri
 			runtime.Capability: executor.New(runtime.Capability),
 			runtime.Shell:      executor.New(runtime.Shell),
 			runtime.Docker:     executor.New(runtime.Docker),
+			runtime.Kern:       executor.New(runtime.Kern),
 			runtime.Machine:    executor.New(runtime.Machine),
 		},
 		store:        store,

@@ -35,6 +35,7 @@ Teaching examples (load via read_skill with path):
 |--------|-----|
 | `capability:` | Invoke a Flowbot capability operation (provider or CapCore) |
 | `docker:` | Run a container image via the Docker runtime on the workflow runner |
+| `kern:` | Run a container image via the kern CLI on the workflow runner (Linux only) |
 | `shell:` | Run a shell command on the workflow runner host |
 | `machine:` | Intended for a named remote machine via SSH runtime |
 | `mapper:` | Inline data transform: render params and marshal to JSON (no external runtime) |

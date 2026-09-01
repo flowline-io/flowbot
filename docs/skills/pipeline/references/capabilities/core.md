@@ -106,6 +106,22 @@ _(none)_
     operation: clip_health
 ```
 
+## `health`
+
+Core runtime health
+
+**Inputs (params):**
+
+_(none)_
+
+**Usage:**
+
+```yaml
+  - name: health_step
+    capability: core
+    operation: health
+```
+
 ## `http_request`
 
 Perform an outbound HTTP request (**mutation**)

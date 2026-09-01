@@ -11,6 +11,7 @@ const (
 	Shell      = "shell"
 	Machine    = "machine"
 	Capability = "capability"
+	Kern       = "kern"
 )
 
 // Runtime is the actual runtime environment that executes a task.

@@ -153,6 +153,12 @@ other = "Memory 限制容器内存（例如 \"512m\"）；为空使用 Docker �
 ["settings.desc.chat_agent.sandbox.network"]
 other = "Network 是 Docker 网络模式（为空使用默认 bridge 隔离）。"
 
+["settings.desc.chat_agent.sandbox.runtime"]
+other = "Runtime 选择沙箱后端（docker 或 kern）。为空时默认为 docker。"
+
+["settings.desc.chat_agent.sandbox.security_profile"]
+other = "SecurityProfile 在 runtime 为 kern 时设置 kern 的 --security-profile（例如 untrusted）。"
+
 ["settings.desc.chat_agent.sandbox.server_url"]
 other = "ServerURL 是沙箱容器内可达的 Flowbot API URL。以 FLOWBOT_SERVER_URL 注入并写入挂载的 CLI 配置。"
 
@@ -212,6 +218,15 @@ other = "Executor"
 
 ["settings.desc.executor.docker.config"]
 other = "Docker 配置"
+
+["settings.desc.executor.kern.binary"]
+other = "Binary 是 kern 可执行文件路径；为空时使用 PATH 上的 kern。"
+
+["settings.desc.executor.kern.require_limits"]
+other = "RequireLimits 在 cgroup 限制无法生效时拒绝启动 box。"
+
+["settings.desc.executor.kern.security_profile"]
+other = "SecurityProfile 为 kern box 设置 --security-profile（例如 untrusted）。"
 
 ["settings.desc.executor.limits"]
 other = "资源限制"
@@ -620,3 +635,4 @@ other = "ServiceName 在 trace 中标识此服务"
 
 ["settings.desc.vendors"]
 other = "供应商配置"
+

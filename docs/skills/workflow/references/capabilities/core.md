@@ -111,6 +111,23 @@ _(none)_
     action: capability:core.clip_health
 ```
 
+## `capability:core.health`
+
+Core runtime health
+
+**Inputs (params):**
+
+_(none)_
+
+**Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
+
+**Usage:**
+
+```yaml
+  - id: health_step
+    action: capability:core.health
+```
+
 ## `capability:core.http_request`
 
 Perform an outbound HTTP request (**mutation**)

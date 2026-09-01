@@ -58,6 +58,44 @@ Flags: `--query` string, required — Search query (MAC, name, or IP)
 
 `flowbot devops netalertx totals`
 
+### List Scanopy daemons
+
+`flowbot devops scanopy daemons [flags]`
+
+Flags: `--cursor` string — Opaque pagination cursor; `--limit` int — Page size (default 50, max 1000); `--network-id` string — Filter by network UUID; `--search` string — Free-text search
+
+### Check Scanopy health
+
+`flowbot devops scanopy health`
+
+### Get a Scanopy host by ID
+
+`flowbot devops scanopy host --id <id>`
+
+Flags: `--id` string, required — Host UUID
+
+### List Scanopy hosts
+
+`flowbot devops scanopy hosts [flags]`
+
+Flags: `--cursor` string — Opaque pagination cursor; `--limit` int — Page size (default 50, max 1000); `--network-id` string — Filter by network UUID; `--search` string — Free-text search
+
+### List Scanopy networks
+
+`flowbot devops scanopy networks [flags]`
+
+Flags: `--cursor` string — Opaque pagination cursor; `--limit` int — Page size (default 50, max 1000); `--network-id` string — Filter by network UUID; `--search` string — Free-text search
+
+### List Scanopy services
+
+`flowbot devops scanopy services [flags]`
+
+Flags: `--cursor` string — Opaque pagination cursor; `--host-id` string — Filter by host UUID; `--limit` int — Page size (default 50, max 1000); `--network-id` string — Filter by network UUID; `--search` string — Free-text search
+
+### Show Scanopy API/server version
+
+`flowbot devops scanopy version`
+
 ### Show configured devops backends
 
 `flowbot devops status`
@@ -82,12 +120,22 @@ Flags: `--query` string, required — Search query (MAC, name, or IP)
 
 `flowbot devops uptimekuma metrics`
 
+### Show Wakapi all-time coding stats
+
+`flowbot devops wakapi all-time`
+
+### Check Wakapi health
+
+`flowbot devops wakapi health`
+
 ### List Wakapi projects
 
-`flowbot devops wakapi projects`
+`flowbot devops wakapi projects [flags]`
+
+Flags: `--query` string — Project name filter
 
 ### Show Wakapi activity summary
 
 `flowbot devops wakapi summary [flags]`
 
-Flags: `--interval` string — Summary interval
+Flags: `--interval` string — Summary interval; `--project` string — Project filter

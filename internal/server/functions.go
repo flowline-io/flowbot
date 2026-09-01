@@ -21,7 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// functionExecProvider builds a Docker sandbox exec config with Network=none and no Flowbot credentials.
+// functionExecProvider builds a sandbox exec config with Network=none and no Flowbot credentials.
 // Workspace is set per Invoke by Service; Exec uses opts.Dir as the bind-mounted workspace.
 type functionExecProvider struct{}
 
@@ -40,19 +40,23 @@ func (functionExecProvider) ExecConfig(_ context.Context) (pkgexec.Config, error
 			image:   image,
 			memory:  strings.TrimSpace(sb.Memory),
 			network: "none",
+			runtime: strings.TrimSpace(sb.Runtime),
+			profile: strings.TrimSpace(sb.SecurityProfile),
 		},
 		Timeout:   pkgfunctions.DefaultTimeout,
 		MaxOutput: pkgfunctions.MaxJSONBytes * 2,
 	}, nil
 }
 
-// functionSandboxEnv uses host FS for file ops and a Network=none Docker sandbox for Exec.
+// functionSandboxEnv uses host FS for file ops and a sandbox (docker or kern) for Exec.
 // Each Exec binds opts.Dir as the workspace (Service creates an ephemeral dir per Invoke).
 type functionSandboxEnv struct {
 	host    env.ExecutionEnv
 	image   string
 	memory  string
 	network string
+	runtime string
+	profile string
 }
 
 func (e *functionSandboxEnv) ReadFile(ctx context.Context, path string) result.Result[[]byte, result.FileError] {
@@ -83,12 +87,14 @@ func (e *functionSandboxEnv) Exec(ctx context.Context, opts env.ExecOptions) res
 		)
 	}
 	sb := sandbox.New(sandbox.Config{
-		Image:       e.image,
-		Network:     e.network,
-		Memory:      e.memory,
-		Workspace:   workspace,
-		ServerURL:   "",
-		AccessToken: "",
+		Runtime:         e.runtime,
+		SecurityProfile: e.profile,
+		Image:           e.image,
+		Network:         e.network,
+		Memory:          e.memory,
+		Workspace:       workspace,
+		ServerURL:       "",
+		AccessToken:     "",
 	}, e.host, nil)
 	return sb.Exec(ctx, opts)
 }

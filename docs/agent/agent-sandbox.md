@@ -196,6 +196,10 @@ Behavior:
 
 Local development on non-linux/amd64 hosts: build a linux CLI with `go tool task build:cli:linux` and either place `bin/flowbot-cli_linux_amd64` beside the running server binary or set `cli_path`.
 
+### Kern runtime (`chat_agent.sandbox.runtime`)
+
+Set `runtime: kern` to use the [kern](https://github.com/getkern/kern) CLI instead of Docker (Linux only; `kern` on PATH, `kern doctor` passing). Configure `security_profile: untrusted` for the hardened bundle. Use `server_url: http://127.0.0.1:6060` with `network: host` — `host.docker.internal` is not available under kern (Flowbot logs a warning). Workflow steps use the separate `kern:<image>` action; see [.agents/notes/implemented/architecture/2026-09-01-kern-executor-runtime.md](../../.agents/notes/implemented/architecture/2026-09-01-kern-executor-runtime.md).
+
 Network options for `server_url`:
 
 | Approach | When |

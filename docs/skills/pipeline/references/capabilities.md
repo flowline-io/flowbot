@@ -20,7 +20,7 @@ Capability steps expose an `InvokeResult`-shaped payload readable via `{{step "n
 |------------|-----------|
 | `confluence` | [capabilities/confluence.md](capabilities/confluence.md) — Confluence Cloud spaces and pages |
 | `core` | [capabilities/core.md](capabilities/core.md) — Core runtime primitives: notify, clip, agent, HTTP, sandboxed exec, and KV |
-| `devops` | [capabilities/devops.md](capabilities/devops.md) — DevOps aggregator for beszel, uptimekuma, traefik, grafana, wakapi, and dozzle |
+| `devops` | [capabilities/devops.md](capabilities/devops.md) — DevOps aggregator for beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx, and scanopy |
 | `email` | [capabilities/email.md](capabilities/email.md) — Email capability for SMTP send and IMAP read |
 | `fireflyiii` | [capabilities/fireflyiii.md](capabilities/fireflyiii.md) — Finance capability for Firefly III |
 | `functions` | [capabilities/functions.md](capabilities/functions.md) — Named functions (FaaS): pure transform invoke of published function versions. HTTP token/hmac on POST /service/functions/call only; Pipeline and capability.Invoke do not validate function HTTP secrets. |

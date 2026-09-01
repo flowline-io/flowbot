@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	capabilityruntime "github.com/flowline-io/flowbot/pkg/executor/runtime/capability"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/docker"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime/kern"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/machine"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/shell"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -149,6 +150,17 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		}))
 		if err != nil {
 			return nil, fmt.Errorf("failed to new machine runtime: %w", err)
+		}
+		e.runtime = rt
+	case runtime.Kern:
+		rt, err := kern.NewRuntime(kern.WithConfig(kern.Config{
+			Binary:          config.App.Executor.Kern.Binary,
+			SecurityProfile: config.App.Executor.Kern.SecurityProfile,
+			RequireLimits:   config.App.Executor.Kern.RequireLimits,
+			BindAllowed:     config.App.Executor.Mounts.Bind.Allowed,
+		}))
+		if err != nil {
+			return nil, fmt.Errorf("failed to new kern runtime: %w", err)
 		}
 		e.runtime = rt
 	case runtime.Capability:

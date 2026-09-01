@@ -70,6 +70,10 @@ var executableDir = func() (string, error) {
 
 // Config configures Docker sandbox execution.
 type Config struct {
+	// Runtime selects the sandbox backend (docker or kern). Empty defaults to docker.
+	Runtime string
+	// SecurityProfile sets kern --security-profile when Runtime is kern.
+	SecurityProfile string
 	// Image is the container image used for Exec.
 	Image string
 	// Network is the Docker network mode.
@@ -95,7 +99,9 @@ func ConfigFromChatAgent(cfg config.ChatAgentSandboxConfig, workspace string) Co
 		image = defaultImage
 	}
 	return Config{
-		Image:       image,
+		Runtime:         strings.TrimSpace(cfg.Runtime),
+		SecurityProfile: strings.TrimSpace(cfg.SecurityProfile),
+		Image:           image,
 		Network:     strings.TrimSpace(cfg.Network),
 		Memory:      strings.TrimSpace(cfg.Memory),
 		Workspace:   strings.TrimSpace(workspace),
@@ -150,7 +156,10 @@ func New(cfg Config, host env.ExecutionEnv, runner Runner) *Env {
 		host = env.Default()
 	}
 	if runner == nil {
-		runner = DockerRunner{}
+		runner = selectRunner(cfg)
+	}
+	if strings.EqualFold(strings.TrimSpace(cfg.Runtime), sandboxRuntimeKern) {
+		warnKernDockerInternal(cfg.ServerURL)
 	}
 	cliBinary := ResolvedCLIBinary(cfg.CLIPath)
 	creds := "none"
@@ -161,8 +170,8 @@ func New(cfg Config, host env.ExecutionEnv, runner Runner) *Env {
 	if cliBinary != "" {
 		cliBin = "injected"
 	}
-	flog.Info("[sandbox] env ready workspace=%s image=%s network=%s memory=%s cli_creds=%s cli_bin=%s",
-		cfg.Workspace, cfg.Image, cfg.Network, cfg.Memory, creds, cliBin)
+	flog.Info("[sandbox] env ready workspace=%s runtime=%s image=%s network=%s memory=%s cli_creds=%s cli_bin=%s",
+		cfg.Workspace, sandboxRuntimeLabel(cfg.Runtime), cfg.Image, cfg.Network, cfg.Memory, creds, cliBin)
 	return &Env{cfg: cfg, cliBinary: cliBinary, host: host, runner: runner}
 }
 

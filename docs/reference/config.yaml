@@ -70,9 +70,13 @@ log:
   # jsonOutput: false
   # fileLog: false
 
-# Executor — optional; expand when using docker/shell/machine runtimes.
+# Executor — optional; expand when using docker/shell/machine/kern runtimes.
 # executor:
 #   type: "docker"
+#   kern:
+#     binary: ""
+#     security_profile: untrusted
+#     require_limits: false
 
 # Metrics — prefer false unless VictoriaMetrics (or similar) is running.
 metrics:
@@ -159,6 +163,8 @@ chat_agent:
     # sign_secret: ""             # HMAC secret; falls back to media.sign_secret
   sandbox:
     enabled: false
+    # runtime: docker   # docker | kern (Linux only for kern)
+    # security_profile: untrusted  # kern --security-profile when runtime=kern
     image: ghcr.io/flowline-io/flowbot-agent-sandbox:latest
     # network: none
     # memory: 512m

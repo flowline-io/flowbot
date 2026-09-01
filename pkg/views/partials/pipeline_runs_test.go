@@ -300,7 +300,7 @@ func TestRunsDuration(t *testing.T) {
 			name: "falls back to created_at when started_at zero",
 			run: model.PipelineRun{
 				CreatedAt:   created,
-				CompletedAt: ptrTime(created.Add(2 * time.Second)),
+				CompletedAt: new(created.Add(2 * time.Second)),
 			},
 			want: "2s",
 		},
@@ -337,4 +337,5 @@ func TestStepRunsDuration(t *testing.T) {
 	}
 }
 
-func ptrTime(t time.Time) *time.Time { return &t }
+//go:fix inline
+func ptrTime(t time.Time) *time.Time { return new(t) }
