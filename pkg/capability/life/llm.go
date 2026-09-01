@@ -407,7 +407,7 @@ func (s *LLMService) resolveChatModel(ctx context.Context) (llms.Model, string, 
 		chatModel = s.ChatModel()
 	}
 	if chatModel == "" {
-		return nil, "", types.Errorf(types.ErrProvider, "chat agent model is not configured")
+		return nil, "", types.Errorf(types.ErrProvider, "agent model is not configured")
 	}
 	resolve := s.ResolveModel
 	if resolve == nil {

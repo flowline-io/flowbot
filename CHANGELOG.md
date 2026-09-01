@@ -10,6 +10,7 @@
 
 ### Changed
 
+- User-facing copy unifies "Chat Agent" / "chat agent" to "Agent" / "智能体" in navigation, settings, toasts, and API errors. See [.agents/notes/implemented/simplification/2026-09-01-agent-copy-unification.md](.agents/notes/implemented/simplification/2026-09-01-agent-copy-unification.md).
 - Navbar inbox/approval badges use one HTMX poller per endpoint; replica slots (mobile, Agents menu) update via OOB. See [.agents/notes/implemented/bug-fix/2026-08-30-nav-badge-single-poller.md](.agents/notes/implemented/bug-fix/2026-08-30-nav-badge-single-poller.md).
 
 ### Fixed

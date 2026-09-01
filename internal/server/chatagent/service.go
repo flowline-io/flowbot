@@ -143,7 +143,7 @@ func (s *Service) RunAPI(ctx context.Context, req RunRequest, opts *APIRunOption
 // CompactSession force-compacts the current session branch without sending a user turn.
 func (s *Service) CompactSession(ctx context.Context, sessionID string) (*ManualCompactionResult, error) {
 	if !agentllm.AgentEnabled(agentName) {
-		return nil, fmt.Errorf("chat agent is disabled or model is not configured")
+		return nil, fmt.Errorf("agent is disabled or model is not configured")
 	}
 	if err := ensureSessionActive(ctx, sessionID); err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 		return nil, err
 	}
 	if h == nil || h.ContextManager() == nil || h.Session() == nil {
-		return nil, fmt.Errorf("chat agent context manager unavailable")
+		return nil, fmt.Errorf("agent context manager unavailable")
 	}
 
 	branch, err := h.Session().GetBranch(ctx, "")
@@ -193,7 +193,7 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 func validateRunRequest(ctx context.Context, req RunRequest) error {
 	if !agentllm.AgentEnabled(agentName) {
 		flog.Warn("[chat-agent] run rejected: agent disabled or model not configured session=%s", req.SessionID)
-		return fmt.Errorf("chat agent is disabled or model is not configured")
+		return fmt.Errorf("agent is disabled or model is not configured")
 	}
 	if strings.TrimSpace(req.Text) == "" && len(req.Attachments) == 0 {
 		flog.Debug("[chat-agent] run rejected: empty message session=%s", req.SessionID)

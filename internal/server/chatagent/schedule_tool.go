@@ -53,7 +53,7 @@ type ScheduleTaskTool struct {
 func (ScheduleTaskTool) Name() string { return scheduleToolName }
 
 func (ScheduleTaskTool) Description() string {
-	return "Creates a scheduled chat agent task. Provide cron for recurring jobs or run_at (ISO8601 UTC) for one-shot jobs, plus name and prompt."
+	return "Creates a scheduled agent task. Provide cron for recurring jobs or run_at (ISO8601 UTC) for one-shot jobs, plus name and prompt."
 }
 
 func (ScheduleTaskTool) Parameters() map[string]any {

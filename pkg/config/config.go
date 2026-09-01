@@ -80,7 +80,7 @@ type Type struct {
 	// Models
 	Models []Model `json:"models" yaml:"models" mapstructure:"models"`
 
-	// ChatAgent configures the direct-message chat assistant agent.
+	// ChatAgent configures the direct-message agent.
 	ChatAgent ChatAgentConfig `json:"chat_agent" yaml:"chat_agent" mapstructure:"chat_agent"`
 
 	// Homelab app registry and lifecycle configuration
@@ -586,9 +586,9 @@ type WebhookTrigger struct {
 	EventType string             `json:"event_type" yaml:"event_type" mapstructure:"event_type"`
 }
 
-// ChatAgentConfig configures the direct-message chat assistant agent runtime.
+// ChatAgentConfig configures the direct-message agent runtime.
 type ChatAgentConfig struct {
-	// Workspace root for file and shell tools; required when the chat agent is enabled.
+	// Workspace root for file and shell tools; required when the agent is enabled.
 	Workspace string `json:"workspace" yaml:"workspace" mapstructure:"workspace"`
 	// ShellTimeout limits terminal and code execution duration.
 	ShellTimeout time.Duration `json:"shell_timeout" yaml:"shell_timeout" mapstructure:"shell_timeout"`
@@ -610,7 +610,7 @@ type ChatAgentConfig struct {
 	ContextFiles []string `json:"context_files" yaml:"context_files" mapstructure:"context_files"`
 	// Compaction configures automatic history compaction for long chat sessions.
 	Compaction CompactionConfig `json:"compaction" yaml:"compaction" mapstructure:"compaction"`
-	// ChatModel selects the chat agent model; non-empty enables the chat agent.
+	// ChatModel selects the agent model; non-empty enables the agent.
 	ChatModel string `json:"chat_model" yaml:"chat_model" mapstructure:"chat_model"`
 	// ToolModel enables dual-model routing when set; used after tool execution.
 	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
@@ -629,7 +629,7 @@ type ChatAgentConfig struct {
 	SubagentDefaultModel string `json:"subagent_default_model" yaml:"subagent_default_model" mapstructure:"subagent_default_model"`
 	// SubagentMaxSteps limits Observe-Think-Act iterations within one subagent run; defaults to MaxSteps.
 	SubagentMaxSteps int `json:"subagent_max_steps" yaml:"subagent_max_steps" mapstructure:"subagent_max_steps"`
-	// LLMRetry configures transient LLM call retries for the chat agent.
+	// LLMRetry configures transient LLM call retries for the agent.
 	LLMRetry LLMRetryConfig `json:"llm_retry" yaml:"llm_retry" mapstructure:"llm_retry"`
 	// Sensors configures post-tool computational sensors.
 	Sensors ChatAgentSensorsConfig `json:"sensors" yaml:"sensors" mapstructure:"sensors"`
@@ -643,7 +643,7 @@ type ChatAgentConfig struct {
 	Media ChatAgentMediaConfig `json:"media" yaml:"media" mapstructure:"media"`
 }
 
-// ChatAgentMediaConfig configures multimodal media delivery for the chat agent.
+// ChatAgentMediaConfig configures multimodal media delivery for the agent.
 type ChatAgentMediaConfig struct {
 	// PublicBaseURL is the absolute origin LLM providers use to fetch FS-signed media (e.g. https://bot.example.com).
 	PublicBaseURL string `json:"public_base_url" yaml:"public_base_url" mapstructure:"public_base_url"`
@@ -671,13 +671,13 @@ type LLMRetryConfig struct {
 	Multiplier float64 `json:"multiplier" yaml:"multiplier" mapstructure:"multiplier"`
 }
 
-// ChatAgentSensorsConfig configures post-tool sensors for the chat agent.
+// ChatAgentSensorsConfig configures post-tool sensors for the agent.
 type ChatAgentSensorsConfig struct {
 	// LintOnWrite enables observation-only lint logging after writing Go files.
 	LintOnWrite bool `json:"lint_on_write" yaml:"lint_on_write" mapstructure:"lint_on_write"`
 }
 
-// ChatAgentLoopDetectionConfig configures tool-loop detection for the chat agent.
+// ChatAgentLoopDetectionConfig configures tool-loop detection for the agent.
 type ChatAgentLoopDetectionConfig struct {
 	// Enabled master-switches all detectors including post-compaction. Nil defaults to true.
 	Enabled *bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`

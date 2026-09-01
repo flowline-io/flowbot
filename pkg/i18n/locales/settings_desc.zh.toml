@@ -16,7 +16,7 @@ other = "Size 是池中 goroutine 的最大数量（0 = ants 默认值）。"
 other = "流式传输与大文件 API 调用所服务的基础 URL 路径，默认为 '/'。可通过命令行覆盖，见 --api_path 选项。"
 
 ["settings.desc.chat_agent"]
-other = "ChatAgent 配置私信聊天助手 Agent。"
+other = "ChatAgent 配置私信智能体。"
 
 ["settings.desc.chat_agent.append_system_prompt"]
 other = "AppendSystemPrompt 会追加到 system prompt 正文末尾。"
@@ -34,7 +34,7 @@ other = "ApprovalModel 选择 auto 审批模式的辅助安全审查模型。为
 other = "ApprovalTimeout 限制单次辅助审查调用时长；为零时默认为 10s。"
 
 ["settings.desc.chat_agent.chat_model"]
-other = "ChatModel 选择 chat agent 模型；非空时启用 chat agent。"
+other = "ChatModel 选择智能体模型；非空时启用智能体。"
 
 ["settings.desc.chat_agent.compaction"]
 other = "Compaction 配置长会话的自动历史压缩。"
@@ -61,7 +61,7 @@ other = "Reserved 是在模型上下文窗口下方预留的 headroom。"
 other = "ContextFiles 列出相对 workspace 的项目说明文件；默认为 AGENTS.md 和 README.md。"
 
 ["settings.desc.chat_agent.llm_retry"]
-other = "LLMRetry 配置 chat agent 的 transient LLM 调用重试。"
+other = "LLMRetry 配置智能体的 transient LLM 调用重试。"
 
 ["settings.desc.chat_agent.llm_retry.initial_interval"]
 other = "InitialInterval 是首次重试前的延迟。零值使用 1s。"
@@ -190,7 +190,7 @@ other = "WebSearch 配置 web_search tool 的后端。"
 other = "APIKey 是 SerpApi 私钥（https://serpapi.com/search-api）。为空时使用无密钥 DuckDuckGo HTML 回退。"
 
 ["settings.desc.chat_agent.workspace"]
-other = "文件与 shell tool 的 workspace 根目录；启用 chat agent 时必填。"
+other = "文件与 shell tool 的 workspace 根目录；启用智能体时必填。"
 
 ["settings.desc.core"]
 other = "Core 配置 CapCore 运行时原语（HTTP SSRF 策略、workspace）。"

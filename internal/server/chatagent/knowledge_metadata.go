@@ -62,7 +62,7 @@ func GenerateKnowledgeMetadata(ctx context.Context, path, content string) (Knowl
 	}
 	chatModel := config.ChatAgentChatModel()
 	if chatModel == "" {
-		return KnowledgeMetadata{}, fmt.Errorf("chat agent not configured")
+		return KnowledgeMetadata{}, fmt.Errorf("agent not configured")
 	}
 	knowledgeMetadataLLMMu.RLock()
 	llmGen := generateKnowledgeMetadataLLM
@@ -101,7 +101,7 @@ func generateKnowledgeMetadataWithLLM(
 ) (KnowledgeMetadata, error) {
 	model, resolvedName, err := modelResolver(ctx, chatModel)
 	if err != nil {
-		return KnowledgeMetadata{}, fmt.Errorf("chat agent model: %w", err)
+		return KnowledgeMetadata{}, fmt.Errorf("agent model: %w", err)
 	}
 	prompt := buildKnowledgeMetadataPrompt(path, content)
 	raw, err := agentllm.Complete(ctx, model, knowledgeMetadataSystemPrompt, []llms.MessageContent{

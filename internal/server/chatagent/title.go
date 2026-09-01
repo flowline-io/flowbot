@@ -167,7 +167,7 @@ func generateSessionTitleWithLLM(
 ) (string, error) {
 	model, resolvedName, err := modelResolver(ctx, chatModel)
 	if err != nil {
-		return "", fmt.Errorf("chat agent model: %w", err)
+		return "", fmt.Errorf("agent model: %w", err)
 	}
 	prompt := buildSessionTitlePrompt(userText, reply)
 	return agentllm.Complete(ctx, model, sessionTitleSystemPrompt, []llms.MessageContent{

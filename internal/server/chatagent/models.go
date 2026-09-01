@@ -24,7 +24,7 @@ func agentLoopConfig() (cfg agent.Config, chatModel, toolModel string, dual bool
 func agentLoopConfigForSession(ctx context.Context, sessionID string) (cfg agent.Config, chatModel, toolModel string, dual bool, err error) {
 	chatModel, toolModel, dual, err = ResolveEffectiveChatAgentModels(ctx)
 	if err != nil {
-		return agent.Config{}, "", "", false, fmt.Errorf("resolve chat agent models: %w", err)
+		return agent.Config{}, "", "", false, fmt.Errorf("resolve agent models: %w", err)
 	}
 	cfg = agent.DefaultConfig()
 	cfg.ModelName = chatModel

@@ -124,10 +124,10 @@ func handleChatRunError(
 		flog.Warn("[chat-agent] run timed out uid=%s session=%s timeout=%s duration=%s",
 			uid, sessionID, runTimeout, time.Since(start).Round(time.Millisecond))
 		if streaming {
-			flushStreamSink(ctx, sink, "Chat agent timed out. Please try again.")
+			flushStreamSink(ctx, sink, "Agent timed out. Please try again.")
 			return
 		}
-		sendChatReply(caller, msg, types.TextMsg{Text: "Chat agent timed out. Please try again."})
+		sendChatReply(caller, msg, types.TextMsg{Text: "Agent timed out. Please try again."})
 		return
 	}
 	if errors.Is(err, context.Canceled) {
@@ -143,10 +143,10 @@ func handleChatRunError(
 	flog.Error(fmt.Errorf("[chat-agent] run failed uid=%s session=%s duration=%s: %w",
 		uid, sessionID, time.Since(start).Round(time.Millisecond), err))
 	if streaming {
-		flushStreamSink(ctx, sink, "Chat agent is unavailable. Please try again later.")
+		flushStreamSink(ctx, sink, "Agent is unavailable. Please try again later.")
 		return
 	}
-	sendChatReply(caller, msg, types.TextMsg{Text: "Chat agent is unavailable. Please try again later."})
+	sendChatReply(caller, msg, types.TextMsg{Text: "Agent is unavailable. Please try again later."})
 }
 
 func flushStreamSink(ctx context.Context, sink chatagent.StreamSink, text string) {

@@ -9,7 +9,7 @@ const (
 	defaultKeepRecentTokens = 20000
 )
 
-// CompactionConfig controls session history compaction for the chat agent.
+// CompactionConfig controls session history compaction for the agent.
 type CompactionConfig struct {
 	// Auto turns on threshold-based compaction before agent runs.
 	Auto *bool `json:"auto" yaml:"auto" mapstructure:"auto"`

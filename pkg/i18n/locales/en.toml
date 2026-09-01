@@ -894,7 +894,7 @@ other = "Knowledge document not found"
 other = "Failed to delete knowledge document"
 
 [toast.agent_knowledge.generate_unavailable]
-other = "AI generation is unavailable (chat agent not configured)"
+other = "AI generation is unavailable (agent not configured)"
 
 [toast.agent_knowledge.generate_content_required]
 other = "Write content before generating metadata"
@@ -903,7 +903,7 @@ other = "Write content before generating metadata"
 other = "Failed to generate metadata"
 
 [toast.agents.not_enabled]
-other = "Chat agent is not enabled"
+other = "Agent is not enabled"
 
 [toast.agents.session_not_found]
 other = "Session not found"
@@ -3477,7 +3477,7 @@ other = "Reset server defaults to YAML"
 other = "Reset Server Defaults"
 
 [confirm.reset_server_defaults.message]
-other = "Clear all server-wide chat agent model overrides? Sessions without their own model settings will fall back to flowbot.yaml."
+other = "Clear all server-wide agent model overrides? Sessions without their own model settings will fall back to flowbot.yaml."
 
 [confirm.reset_server_defaults.btn]
 other = "Reset"
@@ -3600,7 +3600,7 @@ other = "Preview"
 other = "Raw"
 
 [chatagent.disabled]
-other = "Chat agent is not enabled. Configure chat_agent.chat_model in flowbot.yaml."
+other = "Agent is not enabled. Configure chat_agent.chat_model in flowbot.yaml."
 
 [chatagent.state.needs_approval]
 other = "Needs approval"
@@ -5049,7 +5049,7 @@ other = "{{.Count}} keys"
 other = "Ability"
 
 [settings.group.chat_agent]
-other = "Chat Agent"
+other = "Agent"
 
 [settings.group.core]
 other = "Core"
@@ -5516,7 +5516,7 @@ other = "Session ID is required"
 other = "Session not found"
 
 [error.agents.not_enabled]
-other = "Chat agent is not enabled"
+other = "Agent is not enabled"
 
 [error.agents.forbidden]
 other = "Forbidden"

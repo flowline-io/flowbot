@@ -115,7 +115,7 @@ func TestSettingsGroupTitle(t *testing.T) {
 		in, want string
 	}{
 		{in: "root", want: "Root"},
-		{in: "chat_agent", want: "Chat Agent"},
+		{in: "chat_agent", want: "Agent"},
 		{in: "http", want: "HTTP"},
 		{in: "api_path", want: "API Path"},
 	}

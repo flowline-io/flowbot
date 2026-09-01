@@ -261,7 +261,7 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeFunctionRun, Description: "apply, delete, and manage named functions"},
 		{Value: ScopeWorkflowRead, Description: "read workflows"},
 		{Value: ScopeWorkflowRun, Description: "apply, delete, and run workflows"},
-		{Value: ScopeChatAgentChat, Description: "chat agent"},
+		{Value: ScopeChatAgentChat, Description: "agent"},
 		{Value: ScopeGatewayWorker, Description: "local CLI gateway worker"},
 		{Value: ScopeAgentHeadless, Description: "headless agent LLM proxy"},
 	}

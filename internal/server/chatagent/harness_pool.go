@@ -265,13 +265,13 @@ func (s *Service) buildRunHarness(ctx context.Context, req RunRequest, textLen i
 	cfg, chatModel, toolModel, dual, err := agentLoopConfigForSession(ctx, req.SessionID)
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] model config session=%s: %w", req.SessionID, err))
-		return nil, fmt.Errorf("chat agent models: %w", err)
+		return nil, fmt.Errorf("agent models: %w", err)
 	}
 
 	llmModel, resolvedName, err := NewModelForTest(ctx, chatModel)
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] model init session=%s model=%s: %w", req.SessionID, chatModel, err))
-		return nil, fmt.Errorf("chat agent model: %w", err)
+		return nil, fmt.Errorf("agent model: %w", err)
 	}
 
 	uid, uidErr := SessionOwnerUID(ctx, req.SessionID)

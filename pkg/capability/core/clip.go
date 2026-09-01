@@ -227,7 +227,7 @@ func clipHealthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeR
 func generateMetaWithLLM(ctx context.Context, content string, modelResolver metaModelFunc) (Meta, error) {
 	chatModel := config.ChatAgentChatModel()
 	if chatModel == "" {
-		return Meta{}, fmt.Errorf("chat agent model is not configured")
+		return Meta{}, fmt.Errorf("agent model is not configured")
 	}
 	model, resolvedName, err := modelResolver(ctx, chatModel)
 	if err != nil {

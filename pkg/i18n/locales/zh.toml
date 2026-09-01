@@ -894,7 +894,7 @@ other = "未找到知识文档"
 other = "删除知识文档失败"
 
 [toast.agent_knowledge.generate_unavailable]
-other = "AI 生成不可用（未配置 chat agent）"
+other = "AI 生成不可用（未配置智能体）"
 
 [toast.agent_knowledge.generate_content_required]
 other = "请先填写正文再生成元数据"
@@ -903,7 +903,7 @@ other = "请先填写正文再生成元数据"
 other = "生成元数据失败"
 
 [toast.agents.not_enabled]
-other = "Chat Agent 未启用"
+other = "智能体未启用"
 
 [toast.agents.session_not_found]
 other = "未找到会话"
@@ -3477,7 +3477,7 @@ other = "重置服务端默认为 YAML"
 other = "重置服务端默认"
 
 [confirm.reset_server_defaults.message]
-other = "清除所有服务端 Chat Agent 模型覆盖？未单独设置模型的会话将回退到 flowbot.yaml。"
+other = "清除所有服务端智能体模型覆盖？未单独设置模型的会话将回退到 flowbot.yaml。"
 
 [confirm.reset_server_defaults.btn]
 other = "重置"
@@ -3600,7 +3600,7 @@ other = "预览"
 other = "原始"
 
 [chatagent.disabled]
-other = "Chat Agent 未启用。请在 flowbot.yaml 中配置 chat_agent.chat_model。"
+other = "智能体未启用。请在 flowbot.yaml 中配置 chat_agent.chat_model。"
 
 [chatagent.state.needs_approval]
 other = "待审批"
@@ -5052,7 +5052,7 @@ other = "{{.Count}} 个键"
 other = "能力"
 
 [settings.group.chat_agent]
-other = "Chat Agent"
+other = "智能体"
 
 [settings.group.core]
 other = "核心"
@@ -5519,7 +5519,7 @@ other = "需要会话 ID"
 other = "未找到会话"
 
 [error.agents.not_enabled]
-other = "聊天代理未启用"
+other = "智能体未启用"
 
 [error.agents.forbidden]
 other = "禁止访问"

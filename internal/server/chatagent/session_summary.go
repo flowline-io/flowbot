@@ -216,7 +216,7 @@ func generateSessionSummaryForSession(ctx context.Context, sessionID, existingTi
 func generateSessionSummaryWithLLM(ctx context.Context, input, chatModel string, modelResolver sessionTitleModelFunc) (string, error) {
 	model, resolvedName, err := modelResolver(ctx, chatModel)
 	if err != nil {
-		return "", fmt.Errorf("chat agent model: %w", err)
+		return "", fmt.Errorf("agent model: %w", err)
 	}
 	return agentllm.Complete(ctx, model, sessionSummarySystemPrompt, []llms.MessageContent{
 		llms.TextParts(llms.ChatMessageTypeHuman, input),
