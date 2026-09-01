@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -18,6 +19,7 @@ import (
 var clipsListWebserviceRules = []webservice.Rule{
 	webservice.Get("/clips", clipsListPage),
 	webservice.Get("/clips/list", clipsListPartial),
+	webservice.Post("/clips/:slug/visibility", clipSetVisibility),
 }
 
 // clipsListPage renders the authenticated clips browser under Integrate.
@@ -48,6 +50,33 @@ func clipsListPartial(ctx fiber.Ctx) error {
 	return partials.ClipsTable(ctx.Context(), items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
+// clipSetVisibility toggles whether a clip is readable by anonymous visitors.
+func clipSetVisibility(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	slug := strings.TrimSpace(ctx.Params("slug"))
+	if slug == "" {
+		return toastErrorKey(ctx, "error.clip.missing_slug")
+	}
+	isPublic := ctx.FormValue("is_public") == "true"
+
+	if store.Database == nil || store.Database.GetClient() == nil {
+		return toastErrorKey(ctx, "empty.store_unavailable")
+	}
+	row, err := store.ClipStoreFromDB().UpdateClipVisibility(context.Background(), slug, isPublic)
+	if err != nil {
+		flog.Error(fmt.Errorf("clipSetVisibility: %w", err))
+		return toastErrorKey(ctx, "error.clip.update_visibility_failed")
+	}
+	if row == nil {
+		return toastErrorKey(ctx, "clip.not_found.title")
+	}
+
+	ctx.Type("html")
+	return partials.ClipRow(ctx.Context(), clipRowToListItem(row)).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
 func loadClipListItems(ctx context.Context) ([]partials.ClipListItem, error) {
 	if store.Database == nil || store.Database.GetClient() == nil {
 		return nil, fmt.Errorf("store not available")
@@ -65,14 +94,19 @@ func clipRowsToListItems(rows []*gen.Clip) []partials.ClipListItem {
 		if row == nil {
 			continue
 		}
-		items = append(items, partials.ClipListItem{
-			Slug:        row.Slug,
-			Title:       row.Title,
-			Description: row.Description,
-			CreatedBy:   row.CreatedBy,
-			CreatedAt:   row.CreatedAt,
-			URL:         "/c/" + row.Slug,
-		})
+		items = append(items, clipRowToListItem(row))
 	}
 	return items
+}
+
+func clipRowToListItem(row *gen.Clip) partials.ClipListItem {
+	return partials.ClipListItem{
+		Slug:        row.Slug,
+		Title:       row.Title,
+		Description: row.Description,
+		CreatedBy:   row.CreatedBy,
+		CreatedAt:   row.CreatedAt,
+		URL:         "/c/" + row.Slug,
+		IsPublic:    row.IsPublic,
+	}
 }

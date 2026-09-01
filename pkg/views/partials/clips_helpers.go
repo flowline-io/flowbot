@@ -10,3 +10,11 @@ func formatClipListTime(t time.Time) string {
 	}
 	return t.UTC().Format("2006-01-02 15:04 UTC")
 }
+
+func clipRowID(slug string) string {
+	return "clip-row-" + slug
+}
+
+func clipVisibilityURL(slug string) string {
+	return "/service/web/clips/" + slug + "/visibility"
+}

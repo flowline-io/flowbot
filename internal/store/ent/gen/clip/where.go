@@ -79,6 +79,11 @@ func CreatedBy(v string) predicate.Clip {
 	return predicate.Clip(sql.FieldEQ(FieldCreatedBy, v))
 }
 
+// IsPublic applies equality check predicate on the "is_public" field. It's identical to IsPublicEQ.
+func IsPublic(v bool) predicate.Clip {
+	return predicate.Clip(sql.FieldEQ(FieldIsPublic, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Clip {
 	return predicate.Clip(sql.FieldEQ(FieldCreatedAt, v))
@@ -407,6 +412,16 @@ func CreatedByEqualFold(v string) predicate.Clip {
 // CreatedByContainsFold applies the ContainsFold predicate on the "created_by" field.
 func CreatedByContainsFold(v string) predicate.Clip {
 	return predicate.Clip(sql.FieldContainsFold(FieldCreatedBy, v))
+}
+
+// IsPublicEQ applies the EQ predicate on the "is_public" field.
+func IsPublicEQ(v bool) predicate.Clip {
+	return predicate.Clip(sql.FieldEQ(FieldIsPublic, v))
+}
+
+// IsPublicNEQ applies the NEQ predicate on the "is_public" field.
+func IsPublicNEQ(v bool) predicate.Clip {
+	return predicate.Clip(sql.FieldNEQ(FieldIsPublic, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

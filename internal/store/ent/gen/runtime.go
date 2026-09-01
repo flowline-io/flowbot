@@ -752,8 +752,12 @@ func init() {
 	clipDescCreatedBy := clipFields[5].Descriptor()
 	// clip.DefaultCreatedBy holds the default value on creation for the created_by field.
 	clip.DefaultCreatedBy = clipDescCreatedBy.Default.(string)
+	// clipDescIsPublic is the schema descriptor for is_public field.
+	clipDescIsPublic := clipFields[6].Descriptor()
+	// clip.DefaultIsPublic holds the default value on creation for the is_public field.
+	clip.DefaultIsPublic = clipDescIsPublic.Default.(bool)
 	// clipDescCreatedAt is the schema descriptor for created_at field.
-	clipDescCreatedAt := clipFields[6].Descriptor()
+	clipDescCreatedAt := clipFields[7].Descriptor()
 	// clip.DefaultCreatedAt holds the default value on creation for the created_at field.
 	clip.DefaultCreatedAt = clipDescCreatedAt.Default.(func() time.Time)
 	configdataFields := schema.ConfigData{}.Fields()

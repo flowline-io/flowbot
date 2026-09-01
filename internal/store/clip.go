@@ -71,3 +71,20 @@ func (s *ClipStore) ListClips(ctx context.Context, limit int) ([]*gen.Clip, erro
 	}
 	return q.All(ctx)
 }
+
+// UpdateClipVisibility sets whether a clip is readable by anonymous visitors.
+func (s *ClipStore) UpdateClipVisibility(ctx context.Context, slug string, isPublic bool) (*gen.Clip, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	row, err := s.GetClipBySlug(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+	if row == nil {
+		return nil, nil
+	}
+	return s.client.Clip.UpdateOneID(row.ID).
+		SetIsPublic(isPublic).
+		Save(ctx)
+}

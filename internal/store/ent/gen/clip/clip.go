@@ -23,6 +23,8 @@ const (
 	FieldContent = "content"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
+	// FieldIsPublic holds the string denoting the is_public field in the database.
+	FieldIsPublic = "is_public"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// Table holds the table name of the clip in the database.
@@ -37,6 +39,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldContent,
 	FieldCreatedBy,
+	FieldIsPublic,
 	FieldCreatedAt,
 }
 
@@ -61,6 +64,8 @@ var (
 	ContentValidator func(string) error
 	// DefaultCreatedBy holds the default value on creation for the "created_by" field.
 	DefaultCreatedBy string
+	// DefaultIsPublic holds the default value on creation for the "is_public" field.
+	DefaultIsPublic bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
@@ -96,6 +101,11 @@ func ByContent(opts ...sql.OrderTermOption) OrderOption {
 // ByCreatedBy orders the results by the created_by field.
 func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
+}
+
+// ByIsPublic orders the results by the is_public field.
+func ByIsPublic(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsPublic, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

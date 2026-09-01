@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,6 +46,8 @@ func TestClipsListPage(t *testing.T) {
 				"listSlug1",
 				"/c/listSlug1",
 				`data-testid="nav-clips"`,
+				"Private",
+				"Make public",
 			},
 		},
 		{
@@ -83,6 +86,35 @@ func TestClipsListPage(t *testing.T) {
 	}
 }
 
+func TestClipSetVisibility(t *testing.T) {
+	app, _, dbClient := setupTestAppWithDB(t)
+	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
+	clipStore := store.NewClipStore(dbClient)
+	slug := "visSlug1"
+	require.NoError(t, clipStore.CreateClip(context.Background(), slug, "Vis Title", "desc", "# body", "tester"))
+
+	req := httptest.NewRequest(http.MethodPost, "/service/web/clips/"+slug+"/visibility", strings.NewReader("is_public=true"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
+	AttachCSRFForTest(req)
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	html := string(body)
+	assert.Contains(t, html, "Public")
+	assert.Contains(t, html, "Make private")
+
+	row, err := clipStore.GetClipBySlug(context.Background(), slug)
+	require.NoError(t, err)
+	require.NotNil(t, row)
+	assert.True(t, row.IsPublic)
+}
+
 func TestClipRowsToListItems(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -92,7 +124,7 @@ func TestClipRowsToListItems(t *testing.T) {
 	}{
 		{name: "nil rows", rows: nil, want: 0},
 		{name: "skips nil entry", rows: []*gen.Clip{nil, {Slug: "a", Title: "T"}}, want: 1},
-		{name: "maps url", rows: []*gen.Clip{{Slug: "abc", Title: "X"}}, want: 1},
+		{name: "maps url", rows: []*gen.Clip{{Slug: "abc", Title: "X", IsPublic: true}}, want: 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -101,6 +133,7 @@ func TestClipRowsToListItems(t *testing.T) {
 			assert.Len(t, items, tt.want)
 			if tt.want == 1 {
 				assert.Equal(t, "/c/"+tt.rows[len(tt.rows)-1].Slug, items[0].URL)
+				assert.Equal(t, tt.rows[len(tt.rows)-1].IsPublic, items[0].IsPublic)
 			}
 		})
 	}

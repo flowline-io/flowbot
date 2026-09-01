@@ -21,28 +21,31 @@ type ClipListItem struct {
 	CreatedAt time.Time
 	// URL is the public reader path (/c/{slug}).
 	URL string
+	// IsPublic is true when anonymous visitors may read the full clip body.
+	IsPublic bool
 }
 
 templ ClipsTable(ctx context.Context, items []ClipListItem) {
 	<div id="clips-table" class="flowbot-surface" data-testid="clips-table">
 		<div class="overflow-x-auto">
-			<table class="table flowbot-table-pin">
+			<table class="table w-full flowbot-table-pin">
 				<thead>
 					<tr>
-						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.title") }</th>
-						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.slug") }</th>
-						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.description") }</th>
-						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.created") }</th>
-						<th class="text-xs font-medium text-base-content/55">{ i18n.T(ctx, "table.col.by") }</th>
+						<th class="min-w-56">{ i18n.T(ctx, "table.col.title") }</th>
+						<th class="w-28">{ i18n.T(ctx, "table.col.slug") }</th>
+						<th class="w-40 whitespace-nowrap">{ i18n.T(ctx, "table.col.created") }</th>
+						<th class="w-32">{ i18n.T(ctx, "table.col.by") }</th>
+						<th class="w-24">{ i18n.T(ctx, "table.col.visibility") }</th>
+						<th class="w-28 text-right">{ i18n.T(ctx, "table.col.actions") }</th>
 					</tr>
 				</thead>
 				<tbody id="clips-rows">
 					for _, item := range items {
-						@ClipRow(item)
+						@ClipRow(ctx, item)
 					}
 					if len(items) == 0 {
 						<tr id="clips-empty">
-							<td colspan="5" class="p-0" data-testid="clips-empty">
+							<td colspan="6" class="p-0" data-testid="clips-empty">
 								@EmptyStateCTA(
 									i18n.T(ctx, "table.empty.clips"),
 									i18n.T(ctx, "table.empty.clips_detail"),
@@ -58,16 +61,66 @@ templ ClipsTable(ctx context.Context, items []ClipListItem) {
 	</div>
 }
 
-templ ClipRow(item ClipListItem) {
-	<tr data-testid="clip-row">
-		<td>
-			<a href={ templ.URL(item.URL) } class="link link-primary font-medium" data-testid="clip-row-title" target="_blank" rel="noopener noreferrer">
+templ ClipRow(ctx context.Context, item ClipListItem) {
+	<tr id={ clipRowID(item.Slug) } class="hover" hx-target="this" hx-swap="outerHTML" data-testid="clip-row">
+		<td class="min-w-0 max-w-lg align-top" data-label={ i18n.T(ctx, "table.col.title") }>
+			<a
+				href={ templ.URL(item.URL) }
+				class="link link-hover link-primary font-medium line-clamp-2"
+				data-testid="clip-row-title"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
 				{ item.Title }
 			</a>
+			if item.Description != "" {
+				<p class="mt-1 text-sm text-base-content/55 line-clamp-2" data-testid="clip-row-description">{ item.Description }</p>
+			}
 		</td>
-		<td class="font-mono text-sm" data-testid="clip-row-slug">{ item.Slug }</td>
-		<td class="text-sm text-base-content/70 max-w-md truncate" data-testid="clip-row-description">{ item.Description }</td>
-		<td class="text-sm whitespace-nowrap" data-testid="clip-row-created">{ formatClipListTime(item.CreatedAt) }</td>
-		<td class="text-sm" data-testid="clip-row-created-by">{ item.CreatedBy }</td>
+		<td class="align-top font-mono text-xs text-base-content/70 whitespace-nowrap" data-testid="clip-row-slug" data-label={ i18n.T(ctx, "table.col.slug") }>
+			{ item.Slug }
+		</td>
+		<td class="align-top text-sm text-base-content/60 whitespace-nowrap tabular-nums" data-testid="clip-row-created" data-label={ i18n.T(ctx, "table.col.created") }>
+			{ formatClipListTime(item.CreatedAt) }
+		</td>
+		<td class="align-top text-sm text-base-content/70 max-w-[8rem] truncate" data-testid="clip-row-created-by" data-label={ i18n.T(ctx, "table.col.by") }>
+			{ item.CreatedBy }
+		</td>
+		<td class="align-top" data-testid="clip-row-visibility" data-label={ i18n.T(ctx, "table.col.visibility") }>
+			if item.IsPublic {
+				<span class="flowbot-chip flowbot-chip-success">{ i18n.T(ctx, "clip.visibility.public") }</span>
+			} else {
+				<span class="flowbot-chip flowbot-chip-muted">{ i18n.T(ctx, "clip.visibility.private") }</span>
+			}
+		</td>
+		<td class="align-top text-right whitespace-nowrap" data-testid="clip-row-actions" data-label={ i18n.T(ctx, "table.col.actions") }>
+			if item.IsPublic {
+				<button
+					type="button"
+					hx-post={ templ.URL(clipVisibilityURL(item.Slug)) }
+					hx-vals='{"is_public": false}'
+					data-testid="clip-make-private"
+					class="btn btn-ghost btn-sm text-base-content/70"
+				>
+					{ i18n.T(ctx, "clip.action.make_private") }
+					@HtmxIndicator()
+				</button>
+			} else {
+				<button
+					type="button"
+					hx-post={ templ.URL(clipVisibilityURL(item.Slug)) }
+					hx-vals='{"is_public": true}'
+					data-confirm={ i18n.T(ctx, "confirm.make_clip_public.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.make_clip_public.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.make_clip_public.btn") }
+					data-confirm-class="btn-warning"
+					data-testid="clip-make-public"
+					class="btn btn-ghost btn-sm text-warning"
+				>
+					{ i18n.T(ctx, "clip.action.make_public") }
+					@HtmxIndicator()
+				</button>
+			}
+		</td>
 	</tr>
 }

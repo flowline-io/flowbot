@@ -10,7 +10,7 @@ import (
 
 templ ClipsPage(ctx context.Context, items []partials.ClipListItem) {
 	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.clips")) {
-		@partials.PageHeader(ctx, "nav.clips", "") {
+		@partials.PageHeader(ctx, "nav.clips", "page.clips.subtitle") {
 		}
 		@partials.ClipsTable(ctx, items)
 	}

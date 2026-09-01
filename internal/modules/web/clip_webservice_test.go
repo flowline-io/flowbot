@@ -18,10 +18,17 @@ func TestClipPage_AnonymousAndAuthed(t *testing.T) {
 	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 	clipStore := store.NewClipStore(dbClient)
-	slug := "KhpG3Hab"
-	secret := "SECRET_MARKDOWN_BODY_TOKEN"
-	err := clipStore.CreateClip(context.Background(), slug, "Clip Title", "Clip description for Slack",
-		"# Heading\n\n"+secret+"\n", "tester")
+	privateSlug := "KhpG3Hab"
+	publicSlug := "PubClip01"
+	secretPrivate := "SECRET_PRIVATE_BODY"
+	secretPublic := "SECRET_PUBLIC_BODY"
+	err := clipStore.CreateClip(context.Background(), privateSlug, "Private Clip", "Private description",
+		"# Private\n\n"+secretPrivate+"\n", "tester")
+	require.NoError(t, err)
+	err = clipStore.CreateClip(context.Background(), publicSlug, "Public Clip", "Public description",
+		"# Public\n\n"+secretPublic+"\n", "tester")
+	require.NoError(t, err)
+	_, err = clipStore.UpdateClipVisibility(context.Background(), publicSlug, true)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -33,30 +40,38 @@ func TestClipPage_AnonymousAndAuthed(t *testing.T) {
 		wantAbsent   []string
 	}{
 		{
-			name:       "anonymous sees meta not body",
-			slug:       slug,
+			name:       "anonymous private clip returns 404",
+			slug:       privateSlug,
+			withCookie: false,
+			wantStatus: http.StatusNotFound,
+			wantContains: []string{
+				"Clip not found",
+				`meta name="description"`,
+			},
+			wantAbsent: []string{secretPrivate, "Private Clip", "Log in to read"},
+		},
+		{
+			name:       "anonymous public clip sees body and copy",
+			slug:       publicSlug,
 			withCookie: false,
 			wantStatus: http.StatusOK,
 			wantContains: []string{
-				"Clip Title",
-				"Clip description for Slack",
-				`meta name="description"`,
-				`property="og:title"`,
-				`property="og:description"`,
-				"Log in to read",
-				"slug: KhpG3Hab",
+				"Public Clip",
+				secretPublic,
+				"Copy MD",
+				`<h1`,
 				`data-testid="clip-brand"`,
 			},
-			wantAbsent: []string{secret, `href="/"`},
+			wantAbsent: []string{"Log in to read"},
 		},
 		{
-			name:       "authenticated sees markdown body",
-			slug:       slug,
+			name:       "authenticated private clip sees body",
+			slug:       privateSlug,
 			withCookie: true,
 			wantStatus: http.StatusOK,
 			wantContains: []string{
-				"Clip Title",
-				secret,
+				"Private Clip",
+				secretPrivate,
 				"Copy MD",
 				"<h1",
 			},

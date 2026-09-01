@@ -541,6 +541,7 @@ var (
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "is_public", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 	}
 	// ClipsTable holds the schema information for the "clips" table.

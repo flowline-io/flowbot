@@ -76,6 +76,20 @@ func (_c *ClipCreate) SetNillableCreatedBy(v *string) *ClipCreate {
 	return _c
 }
 
+// SetIsPublic sets the "is_public" field.
+func (_c *ClipCreate) SetIsPublic(v bool) *ClipCreate {
+	_c.mutation.SetIsPublic(v)
+	return _c
+}
+
+// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
+func (_c *ClipCreate) SetNillableIsPublic(v *bool) *ClipCreate {
+	if v != nil {
+		_c.SetIsPublic(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *ClipCreate) SetCreatedAt(v time.Time) *ClipCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -143,6 +157,10 @@ func (_c *ClipCreate) defaults() {
 		v := clip.DefaultCreatedBy
 		_c.mutation.SetCreatedBy(v)
 	}
+	if _, ok := _c.mutation.IsPublic(); !ok {
+		v := clip.DefaultIsPublic
+		_c.mutation.SetIsPublic(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := clip.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -175,6 +193,9 @@ func (_c *ClipCreate) check() error {
 	}
 	if _, ok := _c.mutation.CreatedBy(); !ok {
 		return &ValidationError{Name: "created_by", err: errors.New(`gen: missing required field "Clip.created_by"`)}
+	}
+	if _, ok := _c.mutation.IsPublic(); !ok {
+		return &ValidationError{Name: "is_public", err: errors.New(`gen: missing required field "Clip.is_public"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "Clip.created_at"`)}
@@ -231,6 +252,10 @@ func (_c *ClipCreate) createSpec() (*Clip, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.CreatedBy(); ok {
 		_spec.SetField(clip.FieldCreatedBy, field.TypeString, value)
 		_node.CreatedBy = value
+	}
+	if value, ok := _c.mutation.IsPublic(); ok {
+		_spec.SetField(clip.FieldIsPublic, field.TypeBool, value)
+		_node.IsPublic = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(clip.FieldCreatedAt, field.TypeTime, value)
@@ -345,6 +370,18 @@ func (u *ClipUpsert) SetCreatedBy(v string) *ClipUpsert {
 // UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
 func (u *ClipUpsert) UpdateCreatedBy() *ClipUpsert {
 	u.SetExcluded(clip.FieldCreatedBy)
+	return u
+}
+
+// SetIsPublic sets the "is_public" field.
+func (u *ClipUpsert) SetIsPublic(v bool) *ClipUpsert {
+	u.Set(clip.FieldIsPublic, v)
+	return u
+}
+
+// UpdateIsPublic sets the "is_public" field to the value that was provided on create.
+func (u *ClipUpsert) UpdateIsPublic() *ClipUpsert {
+	u.SetExcluded(clip.FieldIsPublic)
 	return u
 }
 
@@ -466,6 +503,20 @@ func (u *ClipUpsertOne) SetCreatedBy(v string) *ClipUpsertOne {
 func (u *ClipUpsertOne) UpdateCreatedBy() *ClipUpsertOne {
 	return u.Update(func(s *ClipUpsert) {
 		s.UpdateCreatedBy()
+	})
+}
+
+// SetIsPublic sets the "is_public" field.
+func (u *ClipUpsertOne) SetIsPublic(v bool) *ClipUpsertOne {
+	return u.Update(func(s *ClipUpsert) {
+		s.SetIsPublic(v)
+	})
+}
+
+// UpdateIsPublic sets the "is_public" field to the value that was provided on create.
+func (u *ClipUpsertOne) UpdateIsPublic() *ClipUpsertOne {
+	return u.Update(func(s *ClipUpsert) {
+		s.UpdateIsPublic()
 	})
 }
 
@@ -753,6 +804,20 @@ func (u *ClipUpsertBulk) SetCreatedBy(v string) *ClipUpsertBulk {
 func (u *ClipUpsertBulk) UpdateCreatedBy() *ClipUpsertBulk {
 	return u.Update(func(s *ClipUpsert) {
 		s.UpdateCreatedBy()
+	})
+}
+
+// SetIsPublic sets the "is_public" field.
+func (u *ClipUpsertBulk) SetIsPublic(v bool) *ClipUpsertBulk {
+	return u.Update(func(s *ClipUpsert) {
+		s.SetIsPublic(v)
+	})
+}
+
+// UpdateIsPublic sets the "is_public" field to the value that was provided on create.
+func (u *ClipUpsertBulk) UpdateIsPublic() *ClipUpsertBulk {
+	return u.Update(func(s *ClipUpsert) {
+		s.UpdateIsPublic()
 	})
 }
 

@@ -23,6 +23,7 @@ func (Clip) Fields() []ent.Field {
 		field.String("description").Default(""),
 		field.Text("content").NotEmpty(),
 		field.String("created_by").Default(""),
+		field.Bool("is_public").Default(false),
 		field.Time("created_at").Immutable().Default(time.Now),
 	}
 }

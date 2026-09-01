@@ -14400,6 +14400,7 @@ type ClipMutation struct {
 	description   *string
 	content       *string
 	created_by    *string
+	is_public     *bool
 	created_at    *time.Time
 	clearedFields map[string]struct{}
 	done          bool
@@ -14691,6 +14692,42 @@ func (m *ClipMutation) ResetCreatedBy() {
 	m.created_by = nil
 }
 
+// SetIsPublic sets the "is_public" field.
+func (m *ClipMutation) SetIsPublic(b bool) {
+	m.is_public = &b
+}
+
+// IsPublic returns the value of the "is_public" field in the mutation.
+func (m *ClipMutation) IsPublic() (r bool, exists bool) {
+	v := m.is_public
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPublic returns the old "is_public" field's value of the Clip entity.
+// If the Clip object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClipMutation) OldIsPublic(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPublic is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPublic requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPublic: %w", err)
+	}
+	return oldValue.IsPublic, nil
+}
+
+// ResetIsPublic resets all changes to the "is_public" field.
+func (m *ClipMutation) ResetIsPublic() {
+	m.is_public = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *ClipMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -14761,7 +14798,7 @@ func (m *ClipMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClipMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.slug != nil {
 		fields = append(fields, clip.FieldSlug)
 	}
@@ -14776,6 +14813,9 @@ func (m *ClipMutation) Fields() []string {
 	}
 	if m.created_by != nil {
 		fields = append(fields, clip.FieldCreatedBy)
+	}
+	if m.is_public != nil {
+		fields = append(fields, clip.FieldIsPublic)
 	}
 	if m.created_at != nil {
 		fields = append(fields, clip.FieldCreatedAt)
@@ -14798,6 +14838,8 @@ func (m *ClipMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case clip.FieldCreatedBy:
 		return m.CreatedBy()
+	case clip.FieldIsPublic:
+		return m.IsPublic()
 	case clip.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -14819,6 +14861,8 @@ func (m *ClipMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldContent(ctx)
 	case clip.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
+	case clip.FieldIsPublic:
+		return m.OldIsPublic(ctx)
 	case clip.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
@@ -14864,6 +14908,13 @@ func (m *ClipMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedBy(v)
+		return nil
+	case clip.FieldIsPublic:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPublic(v)
 		return nil
 	case clip.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -14935,6 +14986,9 @@ func (m *ClipMutation) ResetField(name string) error {
 		return nil
 	case clip.FieldCreatedBy:
 		m.ResetCreatedBy()
+		return nil
+	case clip.FieldIsPublic:
+		m.ResetIsPublic()
 		return nil
 	case clip.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -62,6 +62,8 @@ type Record struct {
 	CreatedBy string
 	// CreatedAt is when the clip was created.
 	CreatedAt time.Time
+	// IsPublic is true when anonymous visitors may read the full clip body.
+	IsPublic bool
 }
 
 // Meta holds LLM-generated (or fallback) title and description.
@@ -163,6 +165,7 @@ func clipCreateInvoker(ctx context.Context, params map[string]any) (*capability.
 					"title":       meta.Title,
 					"description": meta.Description,
 					"url":         url,
+					"is_public":   false,
 				},
 				Text: fmt.Sprintf("clip created: %s", url),
 			}, nil
@@ -207,6 +210,7 @@ func clipGetInvoker(ctx context.Context, params map[string]any) (*capability.Inv
 			"created_by":  row.CreatedBy,
 			"created_at":  row.CreatedAt.UTC().Format(time.RFC3339),
 			"url":         url,
+			"is_public":   row.IsPublic,
 		},
 		Text: fmt.Sprintf("clip %s: %s", row.Slug, row.Title),
 	}, nil

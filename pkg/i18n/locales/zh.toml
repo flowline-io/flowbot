@@ -61,6 +61,9 @@ other = "能力"
 [nav.clips]
 other = "剪贴页"
 
+[page.clips.subtitle]
+other = "可分享的 Markdown 剪贴页。默认私有；设为公开后，匿名用户可通过链接阅读全文。"
+
 [nav.notifications]
 other = "通知"
 
@@ -701,6 +704,15 @@ other = "删除通道"
 
 [confirm.delete_channel.btn]
 other = "删除"
+
+[confirm.make_clip_public.message]
+other = "将此 Clip 设为公开？任何持有链接的人无需登录即可阅读全文。"
+
+[confirm.make_clip_public.title]
+other = "设为公开 Clip"
+
+[confirm.make_clip_public.btn]
+other = "设为公开"
 
 [confirm.delete_template.message]
 other = "删除此模板？"
@@ -1551,12 +1563,6 @@ other = "未找到 Clip"
 [clip.not_found.meta]
 other = "此 Clip 不存在或已被移除。"
 
-[clip.gated_hint]
-other = "使用 Flowbot 账户登录以查看完整 Markdown。"
-
-[clip.login_to_read]
-other = "登录后阅读"
-
 [clip.copy_md]
 other = "复制 MD"
 
@@ -1565,6 +1571,18 @@ other = "已复制"
 
 [clip.copy_failed]
 other = "复制失败"
+
+[clip.visibility.public]
+other = "公开"
+
+[clip.visibility.private]
+other = "私有"
+
+[clip.action.make_public]
+other = "设为公开"
+
+[clip.action.make_private]
+other = "设为私有"
 
 # --- client.* ---
 
@@ -2146,6 +2164,9 @@ other = "Scope"
 
 [table.col.actions]
 other = "操作"
+
+[table.col.visibility]
+other = "可见性"
 
 [table.col.name]
 other = "名称"
@@ -5601,6 +5622,9 @@ other = "缺少 slug"
 
 [error.clip.load_failed]
 other = "加载 Clip 失败"
+
+[error.clip.update_visibility_failed]
+other = "更新 Clip 可见性失败"
 
 [error.view.missing_token]
 other = "缺少 token"

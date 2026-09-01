@@ -15,25 +15,21 @@ type ClipPageData struct {
 	Slug string
 	// Title is the display and Open Graph title.
 	Title string
-	// Description is the preview text for meta tags and gated view.
+	// Description is the preview text for meta tags.
 	Description string
 	// CreatedAt is when the clip was created.
 	CreatedAt time.Time
 	// WordCount is a rough word count of the markdown body.
 	WordCount int
-	// Authed is true when the visitor has a valid web session cookie.
-	Authed bool
-	// BodyHTML is sanitized HTML rendered from markdown (authed only).
+	// BodyHTML is sanitized HTML rendered from markdown.
 	BodyHTML string
 	// ContentMD is the raw markdown used by Copy MD.
 	ContentMD string
-	// LoginURL is the web login URL with next redirect.
-	LoginURL string
-	// NotFound marks a missing clip.
+	// NotFound marks a missing or inaccessible clip.
 	NotFound bool
 }
 
-// ClipPage renders a shareable markdown clip with gated body for anonymous visitors.
+// ClipPage renders a shareable markdown clip.
 templ ClipPage(ctx context.Context, d ClipPageData) {
 	@layout.Clip(ctx, clipPageTitle(ctx, d), d.Description, clipHeaderActions(ctx, d)) {
 		if d.NotFound {
@@ -47,16 +43,9 @@ templ ClipPage(ctx context.Context, d ClipPageData) {
 				<p class="clip-meta" data-testid="clip-meta">
 					{ formatClipMeta(ctx, d.CreatedAt, d.WordCount) }
 				</p>
-				if d.Authed {
-					<article class="clip-markdown" data-testid="clip-body">
-						@templ.Raw(d.BodyHTML)
-					</article>
-				} else {
-					<div class="clip-gated" data-testid="clip-gated">
-						<p class="clip-description" data-testid="clip-description">{ d.Description }</p>
-						<p class="clip-gated-hint">{ i18n.T(ctx, "clip.gated_hint") }</p>
-					</div>
-				}
+				<article class="clip-markdown" data-testid="clip-body">
+					@templ.Raw(d.BodyHTML)
+				</article>
 				<footer class="clip-footer" data-testid="clip-footer">
 					<span class="clip-footer-slug">{ i18n.T(ctx, "clip.slug_label") } { d.Slug }</span>
 				</footer>
@@ -65,11 +54,11 @@ templ ClipPage(ctx context.Context, d ClipPageData) {
 	}
 }
 
-// clipHeaderActions renders Copy MD or Log in controls in the clip top bar.
+// clipHeaderActions renders Copy MD when the visitor may read the clip body.
 templ clipHeaderActions(ctx context.Context, d ClipPageData) {
 	if d.NotFound {
 		<span></span>
-	} else if d.Authed {
+	} else {
 		<button
 			type="button"
 			class="clip-btn clip-btn-secondary"
@@ -79,9 +68,5 @@ templ clipHeaderActions(ctx context.Context, d ClipPageData) {
 		>
 			{ i18n.T(ctx, "clip.copy_md") }
 		</button>
-	} else {
-		<a class="clip-btn clip-btn-primary" href={ templ.URL(d.LoginURL) } data-testid="clip-login">
-			{ i18n.T(ctx, "clip.login_to_read") }
-		</a>
 	}
 }

@@ -47,5 +47,6 @@ func (p *clipStorePersister) GetClipBySlug(ctx context.Context, slug string) (*c
 		Content:     row.Content,
 		CreatedBy:   row.CreatedBy,
 		CreatedAt:   row.CreatedAt,
+		IsPublic:    row.IsPublic,
 	}, nil
 }

@@ -61,6 +61,9 @@ other = "Capabilities"
 [nav.clips]
 other = "Clips"
 
+[page.clips.subtitle]
+other = "Shareable markdown clips. Private by default; make public to allow anonymous reading."
+
 [nav.notifications]
 other = "Notifications"
 
@@ -701,6 +704,15 @@ other = "Delete Channel"
 
 [confirm.delete_channel.btn]
 other = "Delete"
+
+[confirm.make_clip_public.message]
+other = "Make this clip public? Anyone with the link can read the full content without logging in."
+
+[confirm.make_clip_public.title]
+other = "Make Clip Public"
+
+[confirm.make_clip_public.btn]
+other = "Make public"
 
 [confirm.delete_template.message]
 other = "Delete this template?"
@@ -1551,12 +1563,6 @@ other = "Clip not found"
 [clip.not_found.meta]
 other = "This clip does not exist or was removed."
 
-[clip.gated_hint]
-other = "Sign in with your Flowbot account to view the full markdown."
-
-[clip.login_to_read]
-other = "Log in to read"
-
 [clip.copy_md]
 other = "Copy MD"
 
@@ -1565,6 +1571,18 @@ other = "Copied"
 
 [clip.copy_failed]
 other = "Copy failed"
+
+[clip.visibility.public]
+other = "Public"
+
+[clip.visibility.private]
+other = "Private"
+
+[clip.action.make_public]
+other = "Make public"
+
+[clip.action.make_private]
+other = "Make private"
 
 # --- client.* ---
 
@@ -2146,6 +2164,9 @@ other = "Scopes"
 
 [table.col.actions]
 other = "Actions"
+
+[table.col.visibility]
+other = "Visibility"
 
 [table.col.name]
 other = "Name"
@@ -5598,6 +5619,9 @@ other = "Missing slug"
 
 [error.clip.load_failed]
 other = "Failed to load clip"
+
+[error.clip.update_visibility_failed]
+other = "Failed to update clip visibility"
 
 [error.view.missing_token]
 other = "Missing token"

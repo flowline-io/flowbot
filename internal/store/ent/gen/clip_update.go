@@ -97,6 +97,20 @@ func (_u *ClipUpdate) SetNillableCreatedBy(v *string) *ClipUpdate {
 	return _u
 }
 
+// SetIsPublic sets the "is_public" field.
+func (_u *ClipUpdate) SetIsPublic(v bool) *ClipUpdate {
+	_u.mutation.SetIsPublic(v)
+	return _u
+}
+
+// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
+func (_u *ClipUpdate) SetNillableIsPublic(v *bool) *ClipUpdate {
+	if v != nil {
+		_u.SetIsPublic(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ClipMutation object of the builder.
 func (_u *ClipUpdate) Mutation() *ClipMutation {
 	return _u.mutation
@@ -170,6 +184,9 @@ func (_u *ClipUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.CreatedBy(); ok {
 		_spec.SetField(clip.FieldCreatedBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsPublic(); ok {
+		_spec.SetField(clip.FieldIsPublic, field.TypeBool, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -257,6 +274,20 @@ func (_u *ClipUpdateOne) SetCreatedBy(v string) *ClipUpdateOne {
 func (_u *ClipUpdateOne) SetNillableCreatedBy(v *string) *ClipUpdateOne {
 	if v != nil {
 		_u.SetCreatedBy(*v)
+	}
+	return _u
+}
+
+// SetIsPublic sets the "is_public" field.
+func (_u *ClipUpdateOne) SetIsPublic(v bool) *ClipUpdateOne {
+	_u.mutation.SetIsPublic(v)
+	return _u
+}
+
+// SetNillableIsPublic sets the "is_public" field if the given value is not nil.
+func (_u *ClipUpdateOne) SetNillableIsPublic(v *bool) *ClipUpdateOne {
+	if v != nil {
+		_u.SetIsPublic(*v)
 	}
 	return _u
 }
@@ -364,6 +395,9 @@ func (_u *ClipUpdateOne) sqlSave(ctx context.Context) (_node *Clip, err error) {
 	}
 	if value, ok := _u.mutation.CreatedBy(); ok {
 		_spec.SetField(clip.FieldCreatedBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsPublic(); ok {
+		_spec.SetField(clip.FieldIsPublic, field.TypeBool, value)
 	}
 	_node = &Clip{config: _u.config}
 	_spec.Assign = _node.assignValues

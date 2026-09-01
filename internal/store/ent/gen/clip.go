@@ -27,6 +27,8 @@ type Clip struct {
 	Content string `json:"content,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy string `json:"created_by,omitempty"`
+	// IsPublic holds the value of the "is_public" field.
+	IsPublic bool `json:"is_public,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt    time.Time `json:"created_at,omitempty"`
 	selectValues sql.SelectValues
@@ -37,6 +39,8 @@ func (*Clip) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case clip.FieldIsPublic:
+			values[i] = new(sql.NullBool)
 		case clip.FieldID:
 			values[i] = new(sql.NullInt64)
 		case clip.FieldSlug, clip.FieldTitle, clip.FieldDescription, clip.FieldContent, clip.FieldCreatedBy:
@@ -94,6 +98,12 @@ func (_m *Clip) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.CreatedBy = value.String
 			}
+		case clip.FieldIsPublic:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_public", values[i])
+			} else if value.Valid {
+				_m.IsPublic = value.Bool
+			}
 		case clip.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -150,6 +160,9 @@ func (_m *Clip) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(_m.CreatedBy)
+	builder.WriteString(", ")
+	builder.WriteString("is_public=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsPublic))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
