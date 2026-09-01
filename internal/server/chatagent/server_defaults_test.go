@@ -78,8 +78,8 @@ func TestServerDefaultsExplicitEmptyToolModel(t *testing.T) {
 
 	ctx := context.Background()
 	require.NoError(t, SaveServerDefaults(ctx, ServerDefaultsFormInput{
-		ChatModel: ServerDefaultFormInherit,
-		ToolModel: ServerDefaultToolNone,
+		ChatModel:     ServerDefaultFormInherit,
+		ToolModel:     ServerDefaultToolNone,
 		ThinkingLevel: ServerDefaultFormInherit,
 	}))
 

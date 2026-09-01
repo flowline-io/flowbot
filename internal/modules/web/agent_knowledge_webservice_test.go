@@ -430,13 +430,13 @@ func TestAgentKnowledgeGenerateMetadataAuthenticated(t *testing.T) {
 	}))
 
 	tests := []struct {
-		name       string
-		chatModel  string
-		path       string
-		form       map[string]string
-		wantStatus int
-		wantBody   string
-		wantHX     string
+		name          string
+		chatModel     string
+		path          string
+		form          map[string]string
+		wantStatus    int
+		wantBody      string
+		wantHX        string
 		wantNoPersist bool
 	}{
 		{

@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	ID                  = "confluence"
-	SiteURLKey          = "site_url"
-	EmailKey            = "email"
-	APITokenKey         = "api_token"
-	WebhookTokenKey     = "webhook_token"
-	DefaultSpaceKeyKey  = "default_space_key"
-	apiPathPrefix       = "/wiki/rest/api"
+	ID                 = "confluence"
+	SiteURLKey         = "site_url"
+	EmailKey           = "email"
+	APITokenKey        = "api_token"
+	WebhookTokenKey    = "webhook_token"
+	DefaultSpaceKeyKey = "default_space_key"
+	apiPathPrefix      = "/wiki/rest/api"
 )
 
 // Confluence is an HTTP client for the Confluence Cloud REST API.
@@ -238,9 +238,9 @@ func (c *Confluence) UpdatePage(ctx context.Context, pageID, title, content stri
 		updateTitle = current.Title
 	}
 	reqBody := UpdatePageRequest{
-		ID:    pageID,
-		Type:  "page",
-		Title: updateTitle,
+		ID:      pageID,
+		Type:    "page",
+		Title:   updateTitle,
 		Version: Version{Number: version},
 	}
 	if content != "" {

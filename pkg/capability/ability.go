@@ -482,14 +482,14 @@ type ConfluenceSpace struct {
 
 // ConfluencePage is a Confluence page.
 type ConfluencePage struct {
-	ID      string `json:"id"`
-	Type    string `json:"type"`
-	Status  string `json:"status,omitzero"`
-	Title   string `json:"title"`
+	ID       string `json:"id"`
+	Type     string `json:"type"`
+	Status   string `json:"status,omitzero"`
+	Title    string `json:"title"`
 	SpaceKey string `json:"space_key,omitzero"`
-	Content string `json:"content,omitzero"`
-	Version int    `json:"version,omitzero"`
-	WebUI   string `json:"web_ui,omitzero"`
+	Content  string `json:"content,omitzero"`
+	Version  int    `json:"version,omitzero"`
+	WebUI    string `json:"web_ui,omitzero"`
 }
 
 type InvokeResult struct {

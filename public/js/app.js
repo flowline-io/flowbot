@@ -48,7 +48,9 @@ function flowbotI18n(key, fallback) {
     Alpine.data('agentKnowledgeForm', () => ({
       content: '',
       init() {
-        var ta = this.$el.querySelector('[data-testid="agent-knowledge-content"]');
+        var ta = this.$el.querySelector(
+          '[data-testid="agent-knowledge-content"]',
+        );
         if (ta) {
           this.content = ta.value || '';
         }

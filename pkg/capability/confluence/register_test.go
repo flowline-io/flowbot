@@ -41,12 +41,18 @@ func (*mockService) ListSpaces(_ context.Context, _ *ListQuery) (*capability.Lis
 func (*mockService) ListPages(_ context.Context, _ string, _ *ListQuery) (*capability.ListResult[capability.ConfluencePage], error) {
 	return nil, nil
 }
-func (*mockService) GetPage(_ context.Context, _ string) (*capability.ConfluencePage, error) { return nil, nil }
+func (*mockService) GetPage(_ context.Context, _ string) (*capability.ConfluencePage, error) {
+	return nil, nil
+}
 func (*mockService) GetPageContent(_ context.Context, _ string) (string, error) { return "", nil }
 func (*mockService) SearchPages(_ context.Context, _ string, _ *ListQuery) (*capability.ListResult[capability.ConfluencePage], error) {
 	return nil, nil
 }
-func (*mockService) CreatePage(_ context.Context, _, _, _ string) (*capability.ConfluencePage, error) { return nil, nil }
-func (*mockService) UpdatePage(_ context.Context, _, _, _ string) (*capability.ConfluencePage, error) { return nil, nil }
+func (*mockService) CreatePage(_ context.Context, _, _, _ string) (*capability.ConfluencePage, error) {
+	return nil, nil
+}
+func (*mockService) UpdatePage(_ context.Context, _, _, _ string) (*capability.ConfluencePage, error) {
+	return nil, nil
+}
 func (*mockService) DeletePage(_ context.Context, _ string) error { return nil }
-func (*mockService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
+func (*mockService) HealthCheck(_ context.Context) (bool, error)  { return true, nil }

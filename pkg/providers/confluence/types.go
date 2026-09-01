@@ -18,13 +18,13 @@ type SpaceListResponse struct {
 
 // Page is a Confluence content page.
 type Page struct {
-	ID      string       `json:"id"`
-	Type    string       `json:"type"`
-	Status  string       `json:"status,omitempty"`
-	Title   string       `json:"title"`
-	Space   *SpaceRef    `json:"space,omitempty"`
-	Body    *Body        `json:"body,omitempty"`
-	Version *Version     `json:"version,omitempty"`
+	ID      string        `json:"id"`
+	Type    string        `json:"type"`
+	Status  string        `json:"status,omitempty"`
+	Title   string        `json:"title"`
+	Space   *SpaceRef     `json:"space,omitempty"`
+	Body    *Body         `json:"body,omitempty"`
+	Version *Version      `json:"version,omitempty"`
 	Links   *ContentLinks `json:"_links,omitempty"`
 }
 
@@ -78,20 +78,20 @@ type SearchResult struct {
 
 // CreatePageRequest is the API body for creating a page.
 type CreatePageRequest struct {
-	Type  string          `json:"type"`
-	Title string          `json:"title"`
-	Space map[string]string `json:"space"`
-	Body  map[string]StorageBody `json:"body"`
-	Ancestors []map[string]string `json:"ancestors,omitempty"`
+	Type      string                 `json:"type"`
+	Title     string                 `json:"title"`
+	Space     map[string]string      `json:"space"`
+	Body      map[string]StorageBody `json:"body"`
+	Ancestors []map[string]string    `json:"ancestors,omitempty"`
 }
 
 // UpdatePageRequest is the API body for updating a page.
 type UpdatePageRequest struct {
-	ID      string  `json:"id"`
-	Type    string  `json:"type"`
-	Title   string  `json:"title"`
+	ID      string                 `json:"id"`
+	Type    string                 `json:"type"`
+	Title   string                 `json:"title"`
 	Body    map[string]StorageBody `json:"body,omitempty"`
-	Version Version `json:"version"`
+	Version Version                `json:"version"`
 }
 
 // WebhookPayload is a normalized inbound automation webhook body.

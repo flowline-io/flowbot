@@ -16,12 +16,12 @@ import (
 )
 
 const (
-	ID                 = "trello"
-	APIKeyKey          = "api_key"
-	TokenKey           = "token"
-	WebhookTokenKey    = "webhook_token"
-	DefaultBoardIDKey  = "default_board_id"
-	defaultAPIBaseURL  = "https://api.trello.com/1"
+	ID                = "trello"
+	APIKeyKey         = "api_key"
+	TokenKey          = "token"
+	WebhookTokenKey   = "webhook_token"
+	DefaultBoardIDKey = "default_board_id"
+	defaultAPIBaseURL = "https://api.trello.com/1"
 )
 
 // Trello is an HTTP client for the Trello REST API.

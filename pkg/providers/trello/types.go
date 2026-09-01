@@ -11,11 +11,11 @@ type Board struct {
 
 // List is a Trello list on a board.
 type List struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Closed   bool   `json:"closed"`
-	IDBoard  string `json:"idBoard"`
-	Pos      float64 `json:"pos,omitempty"`
+	ID      string  `json:"id"`
+	Name    string  `json:"name"`
+	Closed  bool    `json:"closed"`
+	IDBoard string  `json:"idBoard"`
+	Pos     float64 `json:"pos,omitempty"`
 }
 
 // Card is a Trello card.
@@ -54,13 +54,13 @@ type SearchResult struct {
 
 // WebhookAction is the action object inside a Trello webhook payload.
 type WebhookAction struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	ID   string         `json:"id"`
+	Type string         `json:"type"`
 	Data map[string]any `json:"data"`
 }
 
 // WebhookPayload is the top-level Trello webhook body.
 type WebhookPayload struct {
-	Action WebhookAction `json:"action"`
+	Action WebhookAction  `json:"action"`
 	Model  map[string]any `json:"model"`
 }

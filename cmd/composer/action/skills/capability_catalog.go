@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
 	"github.com/flowline-io/flowbot/pkg/capability/email"
@@ -20,7 +21,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability/nocodb"
 	"github.com/flowline-io/flowbot/pkg/capability/transmission"
 	"github.com/flowline-io/flowbot/pkg/capability/trello"
-	"github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/capability/trilium"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )

@@ -70,6 +70,31 @@ func TestEndpointHealthChecker_Check(t *testing.T) {
 	}
 }
 
+func TestEndpointHealthChecker_Check_IgnoresDefaultTransportCloseIdle(t *testing.T) {
+	t.Parallel()
+
+	checker := NewEndpointHealthChecker(2 * time.Second)
+	require.NotNil(t, checker.client.Transport, "nil Transport shares DefaultTransport with httptest.Server.Close")
+	assert.NotSame(t, http.DefaultTransport, checker.client.Transport)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(srv.Close)
+
+	status, err := checker.Check(t.Context(), srv.URL)
+	require.NoError(t, err)
+	require.Equal(t, HealthHealthy, status)
+
+	if closer, ok := http.DefaultTransport.(interface{ CloseIdleConnections() }); ok {
+		closer.CloseIdleConnections()
+	}
+
+	status, err = checker.Check(t.Context(), srv.URL)
+	require.NoError(t, err)
+	assert.Equal(t, HealthHealthy, status)
+}
+
 func TestEndpointHealthChecker_CheckCapabilities(t *testing.T) {
 	okSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)

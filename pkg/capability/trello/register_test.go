@@ -38,21 +38,33 @@ type mockService struct{}
 func (*mockService) ListBoards(_ context.Context, _ *ListQuery) (*capability.ListResult[capability.TrelloBoard], error) {
 	return nil, nil
 }
-func (*mockService) GetBoard(_ context.Context, _ string) (*capability.TrelloBoard, error) { return nil, nil }
-func (*mockService) ListLists(_ context.Context, _ string) ([]*capability.TrelloList, error) { return nil, nil }
+func (*mockService) GetBoard(_ context.Context, _ string) (*capability.TrelloBoard, error) {
+	return nil, nil
+}
+func (*mockService) ListLists(_ context.Context, _ string) ([]*capability.TrelloList, error) {
+	return nil, nil
+}
 func (*mockService) ListCards(_ context.Context, _ string, _ *ListQuery) (*capability.ListResult[capability.TrelloCard], error) {
 	return nil, nil
 }
-func (*mockService) GetCard(_ context.Context, _ string) (*capability.TrelloCard, error) { return nil, nil }
+func (*mockService) GetCard(_ context.Context, _ string) (*capability.TrelloCard, error) {
+	return nil, nil
+}
 func (*mockService) SearchCards(_ context.Context, _ string, _ int) ([]*capability.TrelloCard, error) {
 	return nil, nil
 }
-func (*mockService) CreateCard(_ context.Context, _, _, _ string) (*capability.TrelloCard, error) { return nil, nil }
-func (*mockService) UpdateCard(_ context.Context, _, _, _ string) (*capability.TrelloCard, error) { return nil, nil }
-func (*mockService) MoveCard(_ context.Context, _, _ string) (*capability.TrelloCard, error) { return nil, nil }
+func (*mockService) CreateCard(_ context.Context, _, _, _ string) (*capability.TrelloCard, error) {
+	return nil, nil
+}
+func (*mockService) UpdateCard(_ context.Context, _, _, _ string) (*capability.TrelloCard, error) {
+	return nil, nil
+}
+func (*mockService) MoveCard(_ context.Context, _, _ string) (*capability.TrelloCard, error) {
+	return nil, nil
+}
 func (*mockService) DeleteCard(_ context.Context, _ string) error { return nil }
 func (*mockService) RegisterWebhook(_ context.Context, _, _, _ string) (*capability.TrelloWebhook, error) {
 	return nil, nil
 }
 func (*mockService) DeleteWebhook(_ context.Context, _ string) error { return nil }
-func (*mockService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
+func (*mockService) HealthCheck(_ context.Context) (bool, error)     { return true, nil }

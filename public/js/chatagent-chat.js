@@ -632,7 +632,11 @@
   function updateSessionSettingsChips(root, model, thinking, defaultModel) {
     var m = (model || '').trim() || (defaultModel || '').trim();
     setChipText(root, '[data-chatagent-model-text]', m);
-    setChipText(root, '[data-chatagent-thinking-text]', thinkingLabel(thinking));
+    setChipText(
+      root,
+      '[data-chatagent-thinking-text]',
+      thinkingLabel(thinking),
+    );
   }
 
   function initThreadSettings(root, onModelChange) {

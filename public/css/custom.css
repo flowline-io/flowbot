@@ -1380,8 +1380,9 @@ body:has(.chatagent-page) > main {
 }
 
 .chatagent-page .chatagent-thread-meta-id {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
   font-size: 0.6875rem;
   max-width: 14rem;
 }

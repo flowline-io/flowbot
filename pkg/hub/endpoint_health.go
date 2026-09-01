@@ -31,9 +31,19 @@ type EndpointHealthChecker struct {
 // request timeout.
 func NewEndpointHealthChecker(timeout time.Duration) *EndpointHealthChecker {
 	return &EndpointHealthChecker{
-		client:  &http.Client{Timeout: timeout},
+		client:  &http.Client{Timeout: timeout, Transport: cloneEndpointHealthTransport()},
 		timeout: timeout,
 	}
+}
+
+// cloneEndpointHealthTransport returns a private Transport. httptest.Server.Close
+// always calls DefaultTransport.CloseIdleConnections, which races in-flight
+// probes that share the default client transport.
+func cloneEndpointHealthTransport() http.RoundTripper {
+	if dt, ok := http.DefaultTransport.(*http.Transport); ok {
+		return dt.Clone()
+	}
+	return &http.Transport{}
 }
 
 // Check probes a single health URL and returns whether the endpoint is

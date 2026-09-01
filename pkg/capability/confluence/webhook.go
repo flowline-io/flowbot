@@ -13,7 +13,8 @@ import (
 
 // Webhook implements capability.WebhookConverter for Confluence automation webhooks.
 // Configure Confluence Automation to POST JSON with optional fields:
-//   {"event":"page_created","id":"evt-1","page":{"id":"123","title":"..."},"space":{"key":"DEV"}}
+//
+//	{"event":"page_created","id":"evt-1","page":{"id":"123","title":"..."},"space":{"key":"DEV"}}
 type Webhook struct {
 	getToken func() string
 }

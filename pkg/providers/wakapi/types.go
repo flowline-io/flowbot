@@ -71,18 +71,18 @@ func (s *Summary) TotalSeconds() int64 {
 
 // Stats is WakaTime-compatible activity statistics.
 type Stats struct {
-	TotalSeconds              float64     `json:"total_seconds"`
-	HumanReadableTotal        string      `json:"human_readable_total"`
-	HumanReadableRange        string      `json:"human_readable_range"`
-	HumanReadableDailyAverage string      `json:"human_readable_daily_average"`
-	DailyAverage              float64     `json:"daily_average"`
-	Range                     string      `json:"range"`
-	Start                     string      `json:"start"`
-	End                       string      `json:"end"`
-	Status                    string      `json:"status"`
-	Timezone                  string      `json:"timezone"`
-	UserID                    string      `json:"user_id"`
-	Username                  string      `json:"username"`
+	TotalSeconds              float64      `json:"total_seconds"`
+	HumanReadableTotal        string       `json:"human_readable_total"`
+	HumanReadableRange        string       `json:"human_readable_range"`
+	HumanReadableDailyAverage string       `json:"human_readable_daily_average"`
+	DailyAverage              float64      `json:"daily_average"`
+	Range                     string       `json:"range"`
+	Start                     string       `json:"start"`
+	End                       string       `json:"end"`
+	Status                    string       `json:"status"`
+	Timezone                  string       `json:"timezone"`
+	UserID                    string       `json:"user_id"`
+	Username                  string       `json:"username"`
 	Projects                  []StatsEntry `json:"projects"`
 	Languages                 []StatsEntry `json:"languages"`
 	Editors                   []StatsEntry `json:"editors"`
@@ -138,30 +138,30 @@ type ProjectsResponse struct {
 
 // Project is a Wakapi tracked project.
 type Project struct {
-	ID                          string `json:"id"`
-	Name                        string `json:"name"`
-	LastHeartbeatAt             string `json:"last_heartbeat_at"`
-	HumanReadableLastHeartbeat  string `json:"human_readable_last_heartbeat_at"`
-	URLEncodedName              string `json:"urlencoded_name"`
-	CreatedAt                   string `json:"created_at"`
+	ID                         string `json:"id"`
+	Name                       string `json:"name"`
+	LastHeartbeatAt            string `json:"last_heartbeat_at"`
+	HumanReadableLastHeartbeat string `json:"human_readable_last_heartbeat_at"`
+	URLEncodedName             string `json:"urlencoded_name"`
+	CreatedAt                  string `json:"created_at"`
 }
 
 // Heartbeat is a single Wakapi heartbeat entry.
 type Heartbeat struct {
-	ID              string  `json:"id"`
-	UserID          string  `json:"user_id"`
-	Time            float64 `json:"time"`
-	Project         string  `json:"project"`
-	Entity          string  `json:"entity"`
-	Language        string  `json:"language"`
-	Branch          string  `json:"branch"`
-	Category        string  `json:"category"`
-	IsWrite         bool    `json:"is_write"`
-	Type            string  `json:"type"`
-	CreatedAt       string  `json:"created_at"`
-	LineAdditions   int     `json:"line_additions"`
-	LineDeletions   int     `json:"line_deletions"`
-	HumanLineChanges int    `json:"human_line_changes"`
+	ID               string  `json:"id"`
+	UserID           string  `json:"user_id"`
+	Time             float64 `json:"time"`
+	Project          string  `json:"project"`
+	Entity           string  `json:"entity"`
+	Language         string  `json:"language"`
+	Branch           string  `json:"branch"`
+	Category         string  `json:"category"`
+	IsWrite          bool    `json:"is_write"`
+	Type             string  `json:"type"`
+	CreatedAt        string  `json:"created_at"`
+	LineAdditions    int     `json:"line_additions"`
+	LineDeletions    int     `json:"line_deletions"`
+	HumanLineChanges int     `json:"human_line_changes"`
 }
 
 // HeartbeatsResult wraps heartbeat list for a date.

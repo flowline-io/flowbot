@@ -11,10 +11,10 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/capability"
+	confluenceCap "github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
 	capemail "github.com/flowline-io/flowbot/pkg/capability/email"
 	trelloCap "github.com/flowline-io/flowbot/pkg/capability/trello"
-	confluenceCap "github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"

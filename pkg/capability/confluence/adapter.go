@@ -8,8 +8,8 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	provider "github.com/flowline-io/flowbot/pkg/providers/confluence"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	provider "github.com/flowline-io/flowbot/pkg/providers/confluence"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 

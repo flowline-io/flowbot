@@ -37,7 +37,7 @@ const (
 	// SessionSlideThrottle skips persist and Set-Cookie when remaining TTL is still
 	// greater than FullSessionTTL minus this duration.
 	SessionSlideThrottle = 5 * time.Minute
-	defaultKeyFile = "web_auth_encryption.key"
+	defaultKeyFile       = "web_auth_encryption.key"
 )
 
 // Session kinds stored in parameter params["kind"].

@@ -13,6 +13,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/capability"
+	confluenceAdapter "github.com/flowline-io/flowbot/pkg/capability/confluence"
 	emailAdapter "github.com/flowline-io/flowbot/pkg/capability/email"
 	exampleAdapter "github.com/flowline-io/flowbot/pkg/capability/example"
 	giteaAdapter "github.com/flowline-io/flowbot/pkg/capability/gitea"
@@ -20,7 +21,6 @@ import (
 	karakeepAdapter "github.com/flowline-io/flowbot/pkg/capability/karakeep"
 	memosAdapter "github.com/flowline-io/flowbot/pkg/capability/memos"
 	minifluxAdapter "github.com/flowline-io/flowbot/pkg/capability/miniflux"
-	confluenceAdapter "github.com/flowline-io/flowbot/pkg/capability/confluence"
 	trelloAdapter "github.com/flowline-io/flowbot/pkg/capability/trello"
 	triliumAdapter "github.com/flowline-io/flowbot/pkg/capability/trilium"
 	"github.com/flowline-io/flowbot/pkg/flog"
