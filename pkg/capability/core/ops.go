@@ -3,6 +3,8 @@
 package core
 
 const (
+	OpHealth = "health"
+
 	OpNotifySend   = "notify_send"
 	OpNotifyHealth = "notify_health"
 

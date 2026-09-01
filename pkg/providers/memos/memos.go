@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"resty.dev/v3"
 
@@ -47,12 +48,13 @@ func GetClient() *Memos {
 	if endpoint.String() == "" {
 		return nil
 	}
-	return NewMemos(endpoint.String(), token.String())
+	return NewMemos(normalizeEndpoint(endpoint.String()), token.String())
 }
 
 // NewMemos creates a Memos client with the given endpoint and access token.
 // If endpoint is empty, it returns nil.
 func NewMemos(endpoint, token string) *Memos {
+	endpoint = normalizeEndpoint(endpoint)
 	if endpoint == "" {
 		return nil
 	}
@@ -63,6 +65,16 @@ func NewMemos(endpoint, token string) *Memos {
 		v.c.SetAuthToken(token)
 	}
 	return v
+}
+
+// normalizeEndpoint trims trailing slashes and a mistaken /api/v1 suffix so paths like /api/v1/auth/me resolve once.
+func normalizeEndpoint(endpoint string) string {
+	endpoint = strings.TrimRight(strings.TrimSpace(endpoint), "/")
+	const suffix = "/api/v1"
+	if strings.HasSuffix(strings.ToLower(endpoint), suffix) {
+		endpoint = strings.TrimRight(endpoint[:len(endpoint)-len(suffix)], "/")
+	}
+	return endpoint
 }
 
 // CreateMemo creates a new memo via POST /api/v1/memos.

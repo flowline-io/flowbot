@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
@@ -18,6 +19,12 @@ func Register(svc Service) error {
 		Description: "Life AI dungeon master: quest evaluation and item lore",
 		Instance:    svc,
 		Ops: []capability.OpDef{
+			{
+				Name: OpHealth, Description: "Life AI subsystem health",
+				Handler: func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+					return &capability.InvokeResult{Data: config.ChatAgentEnabled()}, nil
+				},
+			},
 			{
 				Name:        OpEvaluateQuest,
 				Description: "Evaluate a free-text quest prompt",

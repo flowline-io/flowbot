@@ -81,6 +81,13 @@ func TestNewMemos(t *testing.T) {
 			wantNil:  false,
 			wantURL:  "https://memos.example.com",
 		},
+		{
+			name:     "strips trailing api v1 suffix",
+			endpoint: "https://memos.example.com/api/v1/",
+			token:    "test-token",
+			wantNil:  false,
+			wantURL:  "https://memos.example.com",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

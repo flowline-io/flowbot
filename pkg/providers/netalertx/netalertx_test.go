@@ -94,8 +94,14 @@ func TestNetAlertX_TotalsSearchTopology(t *testing.T) {
 	t.Run("totals success", func(t *testing.T) {
 		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "/devices/totals", r.URL.Path)
-			_ = sonic.ConfigDefault.NewEncoder(w).Encode([]int{10, 8, 1, 0, 1, 0})
+			switch r.URL.Path {
+			case "/devices/totals/named":
+				w.WriteHeader(http.StatusNotFound)
+			case "/devices/totals":
+				_ = sonic.ConfigDefault.NewEncoder(w).Encode([]int{10, 8, 1, 0, 1, 0})
+			default:
+				t.Fatalf("unexpected path %s", r.URL.Path)
+			}
 		}))
 		defer server.Close()
 		got, err := NewNetAlertX(server.URL, "tok").GetTotals(context.Background())
@@ -103,6 +109,42 @@ func TestNetAlertX_TotalsSearchTopology(t *testing.T) {
 		assert.Equal(t, 10, got.All)
 		assert.Equal(t, 8, got.Connected)
 		assert.Equal(t, 1, got.Down)
+	})
+	t.Run("totals named success", func(t *testing.T) {
+		t.Parallel()
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/devices/totals/named", r.URL.Path)
+			_ = sonic.ConfigDefault.NewEncoder(w).Encode(TotalsNamedResponse{
+				Success: true,
+				Totals: map[string]int{
+					"devices": 10, "connected": 8, "favorites": 1, "new": 0, "down": 1, "archived": 0,
+				},
+			})
+		}))
+		defer server.Close()
+		got, err := NewNetAlertX(server.URL, "tok").GetTotals(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, 10, got.All)
+		assert.Equal(t, 8, got.Connected)
+		assert.Equal(t, 1, got.Down)
+	})
+	t.Run("totals named falls back to legacy", func(t *testing.T) {
+		t.Parallel()
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/devices/totals/named":
+				w.WriteHeader(http.StatusNotFound)
+			case "/devices/totals":
+				_ = sonic.ConfigDefault.NewEncoder(w).Encode([]int{3, 2, 0, 0, 0, 1})
+			default:
+				t.Fatalf("unexpected path %s", r.URL.Path)
+			}
+		}))
+		defer server.Close()
+		got, err := NewNetAlertX(server.URL, "tok").GetTotals(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, 3, got.All)
+		assert.Equal(t, 1, got.Archived)
 	})
 	t.Run("search success", func(t *testing.T) {
 		t.Parallel()
@@ -127,8 +169,11 @@ func TestNetAlertX_TotalsSearchTopology(t *testing.T) {
 	t.Run("health success", func(t *testing.T) {
 		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "/devices/totals", r.URL.Path)
-			_ = sonic.ConfigDefault.NewEncoder(w).Encode([]int{1, 1, 0, 0, 0, 0})
+			assert.Equal(t, "/devices/totals/named", r.URL.Path)
+			_ = sonic.ConfigDefault.NewEncoder(w).Encode(TotalsNamedResponse{
+				Success: true,
+				Totals:  map[string]int{"devices": 1, "connected": 1},
+			})
 		}))
 		defer server.Close()
 		assert.NoError(t, NewNetAlertX(server.URL, "tok").Health(context.Background()))

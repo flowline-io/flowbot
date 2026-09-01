@@ -107,6 +107,5 @@ func getInvoker(ctx context.Context, params map[string]any) (*capability.InvokeR
 
 func healthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
 	svc := pkgfunctions.ActiveService()
-	healthy := svc != nil && svc.Ready()
-	return &capability.InvokeResult{Data: map[string]any{"healthy": healthy}}, nil
+	return &capability.InvokeResult{Data: svc != nil && svc.Ready()}, nil
 }

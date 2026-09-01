@@ -24,6 +24,7 @@ func buildSpec() capability.Spec {
 		Description: "Core runtime primitives: notify, clip, agent, HTTP, sandboxed exec, and KV",
 		Instance:    serviceMarker{},
 		Ops: []capability.OpDef{
+			{Name: OpHealth, Description: "Core runtime health", Handler: coreHealthInvoker},
 			{
 				Name: OpNotifySend, Description: "Send a notification using a template", Mutation: true,
 				Input: []hub.ParamDef{

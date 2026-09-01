@@ -36,7 +36,7 @@ func TestRegisterExposesCoreOps(t *testing.T) {
 		names[op.Name] = struct{}{}
 	}
 	for _, want := range []string{
-		core.OpNotifySend, core.OpClipCreate, core.OpAgentRun,
+		core.OpHealth, core.OpNotifySend, core.OpClipCreate, core.OpAgentRun,
 		core.OpHTTPRequest, core.OpRunCode, core.OpRunTerminal,
 		core.OpKVGet, core.OpKVSet, core.OpKVDelete,
 	} {

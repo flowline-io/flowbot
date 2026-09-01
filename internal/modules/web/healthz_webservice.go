@@ -261,7 +261,7 @@ func collectCapabilityHealth(ctx context.Context) []partials.HealthzCap {
 					info.Error = err.Error()
 				}
 			} else if result != nil && result.Data != nil {
-				if ok, isBool := result.Data.(bool); isBool && ok {
+				if capabilityHealthOK(result.Data) {
 					info.Status = "healthy"
 				} else {
 					info.Status = "unhealthy"
@@ -274,6 +274,18 @@ func collectCapabilityHealth(ctx context.Context) []partials.HealthzCap {
 	}
 	wg.Wait()
 	return caps
+}
+
+func capabilityHealthOK(data any) bool {
+	if ok, isBool := data.(bool); isBool {
+		return ok
+	}
+	m, ok := data.(map[string]any)
+	if !ok {
+		return false
+	}
+	h, ok := m["healthy"].(bool)
+	return ok && h
 }
 
 func waitHealthzRefresh() {

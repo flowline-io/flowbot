@@ -136,8 +136,7 @@ templ HealthzCapabilities(ctx context.Context, caps []HealthzCap) {
 		hx-swap="outerHTML show:none">
 		<div class="card-body">
 			<h2 class="text-base font-semibold tracking-tight m-0 mb-2">{ i18n.T(ctx, "healthz.capability_status") }</h2>
-			<div class="overflow-x-auto max-h-64 overflow-y-auto">
-				<table class="table table-sm">
+			<table class="table table-sm">
 					<thead>
 						<tr>
 							<th>{ i18n.T(ctx, "healthz.col.capability") }</th>
@@ -158,7 +157,7 @@ templ HealthzCapabilities(ctx context.Context, caps []HealthzCap) {
 									} else {
 										<span class="flowbot-chip flowbot-chip-error">{ cap.Status }</span>
 										if cap.Error != "" {
-											<span class="text-xs text-error ml-1">{ cap.Error }</span>
+											<span class="text-xs text-error ml-1 break-words">{ cap.Error }</span>
 										}
 									}
 								</td>
@@ -171,7 +170,6 @@ templ HealthzCapabilities(ctx context.Context, caps []HealthzCap) {
 						}
 					</tbody>
 				</table>
-			</div>
 		</div>
 	</div>
 }

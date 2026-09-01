@@ -15,6 +15,7 @@
 
 ### Fixed
 
+- Capability health on `/healthz`: `core` and `life` expose `health`; `functions` returns `bool`; NetAlertX uses `/devices/totals/named` with legacy fallback; Memos strips a mistaken `/api/v1` endpoint suffix. See [.agents/notes/implemented/bug-fix/2026-09-01-capability-health-probes.md](.agents/notes/implemented/bug-fix/2026-09-01-capability-health-probes.md).
 - Parallel LLM tool-call SSE is rewritten by `index` so OpenAI-compatible providers (e.g. MiMo) no longer reject multi-tool turns with empty arguments. See [.agents/notes/implemented/bug-fix/2026-08-30-llm-parallel-toolcall-stream-index.md](.agents/notes/implemented/bug-fix/2026-08-30-llm-parallel-toolcall-stream-index.md).
 - LLM network errors are logged with a redacted URL and retried when no stream delta has been delivered. See [.agents/notes/implemented/bug-fix/2026-08-29-llm-network-error-sanitized.md](.agents/notes/implemented/bug-fix/2026-08-29-llm-network-error-sanitized.md).
 - Fenced-code `language-*` class survives `MarkdownToSafeHTML` sanitization (labels and highlighting).

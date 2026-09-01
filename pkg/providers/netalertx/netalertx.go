@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/bytedance/sonic"
 	"resty.dev/v3"
@@ -49,16 +50,16 @@ func NewNetAlertX(endpoint, token string) *NetAlertX {
 	return v
 }
 
-// Health reports whether the devices totals endpoint is reachable.
+// Health reports whether the NetAlertX REST API is reachable.
 func (n *NetAlertX) Health(ctx context.Context) error {
 	if n == nil || n.c == nil {
 		return fmt.Errorf("netalertx: not configured")
 	}
-	resp, err := n.c.R().SetContext(ctx).Get("/devices/totals")
+	_, err := n.fetchTotals(ctx)
 	if err != nil {
 		return fmt.Errorf("netalertx health: %w", err)
 	}
-	return checkStatus(resp, "health")
+	return nil
 }
 
 // ListDevices returns all devices.
@@ -79,6 +80,36 @@ func (n *NetAlertX) ListDevices(ctx context.Context) ([]Device, error) {
 
 // GetTotals returns device category counts.
 func (n *NetAlertX) GetTotals(ctx context.Context) (*Totals, error) {
+	return n.fetchTotals(ctx)
+}
+
+func (n *NetAlertX) fetchTotals(ctx context.Context) (*Totals, error) {
+	totals, err := n.getTotalsNamed(ctx)
+	if err == nil {
+		return totals, nil
+	}
+	if !isStatusCode(err, http.StatusNotFound) {
+		return nil, err
+	}
+	return n.getTotalsLegacy(ctx)
+}
+
+func (n *NetAlertX) getTotalsNamed(ctx context.Context) (*Totals, error) {
+	resp, err := n.c.R().SetContext(ctx).Get("/devices/totals/named")
+	if err != nil {
+		return nil, fmt.Errorf("netalertx totals named: %w", err)
+	}
+	if err := checkStatus(resp, "totals named"); err != nil {
+		return nil, err
+	}
+	var result TotalsNamedResponse
+	if err := sonic.Unmarshal(resp.Bytes(), &result); err != nil {
+		return nil, fmt.Errorf("netalertx totals named decode: %w", err)
+	}
+	return totalsFromNamed(result.Totals), nil
+}
+
+func (n *NetAlertX) getTotalsLegacy(ctx context.Context) (*Totals, error) {
 	resp, err := n.c.R().SetContext(ctx).Get("/devices/totals")
 	if err != nil {
 		return nil, fmt.Errorf("netalertx totals: %w", err)
@@ -90,6 +121,28 @@ func (n *NetAlertX) GetTotals(ctx context.Context) (*Totals, error) {
 	if err := sonic.Unmarshal(resp.Bytes(), &raw); err != nil {
 		return nil, fmt.Errorf("netalertx totals decode: %w", err)
 	}
+	return totalsFromLegacy(raw), nil
+}
+
+func totalsFromNamed(m map[string]int) *Totals {
+	if len(m) == 0 {
+		return &Totals{}
+	}
+	all := m["devices"]
+	if all == 0 {
+		all = m["all"]
+	}
+	return &Totals{
+		All:       all,
+		Connected: m["connected"],
+		Favorites: m["favorites"],
+		New:       m["new"],
+		Down:      m["down"],
+		Archived:  m["archived"],
+	}
+}
+
+func totalsFromLegacy(raw []int) *Totals {
 	t := &Totals{}
 	if len(raw) > 0 {
 		t.All = raw[0]
@@ -109,7 +162,14 @@ func (n *NetAlertX) GetTotals(ctx context.Context) (*Totals, error) {
 	if len(raw) > 5 {
 		t.Archived = raw[5]
 	}
-	return t, nil
+	return t
+}
+
+func isStatusCode(err error, code int) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), fmt.Sprintf("status %d", code))
 }
 
 // SearchDevices searches devices by MAC, name, or IP.

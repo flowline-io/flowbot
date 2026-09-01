@@ -29,6 +29,12 @@ type SearchResponse struct {
 	Devices []Device `json:"devices"`
 }
 
+// TotalsNamedResponse is returned by GET /devices/totals/named.
+type TotalsNamedResponse struct {
+	Success bool           `json:"success"`
+	Totals  map[string]int `json:"totals"`
+}
+
 // Totals holds device counts: [all, connected, favorites, new, down, archived].
 type Totals struct {
 	All       int `json:"all"`
