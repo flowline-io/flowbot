@@ -332,7 +332,7 @@ other = "新的备份码"
 other = "请将这些一次性备份码保存在安全处，之后不会再显示。"
 
 [page.chatagent_permissions.title]
-other = "Chat Agent 设置"
+other = "智能体设置"
 
 [page.chatagent_permissions.subtitle]
 other = "配置账户下的权限规则、审批模式与默认模型。"
@@ -2432,9 +2432,6 @@ other = "← 返回注册表"
 
 [common.back_to_apps]
 other = "← 返回应用"
-
-[common.back_to_sessions]
-other = "← 返回会话"
 
 [common.back_to_list]
 other = "返回列表"

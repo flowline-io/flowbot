@@ -332,7 +332,7 @@ other = "New backup codes"
 other = "Store these one-time codes somewhere safe. They will not be shown again."
 
 [page.chatagent_permissions.title]
-other = "Chat Agent Settings"
+other = "Agent Settings"
 
 [page.chatagent_permissions.subtitle]
 other = "Configure permission rules, approval mode, and default models for your account."
@@ -2432,9 +2432,6 @@ other = "← Back to Registry"
 
 [common.back_to_apps]
 other = "← Back to Apps"
-
-[common.back_to_sessions]
-other = "← Back to Sessions"
 
 [common.back_to_list]
 other = "Back to list"

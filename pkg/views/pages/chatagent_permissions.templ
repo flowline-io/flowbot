@@ -3,7 +3,6 @@ package pages
 import (
 	"context"
 
-	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -11,9 +10,7 @@ import (
 templ ChatAgentPermissionsPage(ctx context.Context, data partials.PermissionFormPageData) {
 	@layout.Base(ctx, DocTitlePage(ctx, "page.chatagent_permissions.title")) {
 		<script src="/static/js/chatagent-permissions.js"></script>
-		@partials.PageHeader(ctx, "page.chatagent_permissions.title", "page.chatagent_permissions.subtitle") {
-			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm">{ i18n.T(ctx, "common.back_to_sessions") }</a>
-		}
+		@partials.PageHeader(ctx, "page.chatagent_permissions.title", "page.chatagent_permissions.subtitle")
 		<div class="flowbot-surface">
 			<div class="card-body">
 				if data.Errors["_form"] != "" {

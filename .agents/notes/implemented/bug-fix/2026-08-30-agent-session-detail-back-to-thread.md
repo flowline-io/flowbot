@@ -17,7 +17,7 @@ Point `data-testid="agent-session-back"` at `/service/web/agents/{flag}` via `pa
 
 ## Consequences
 
-- Permissions and other pages that still mean "sessions list" keep `common.back_to_sessions` → `/service/web/agent-sessions`.
+- Agent Settings no longer offers a sessions-list back link; operators use the Agent nav group.
 - Operators arriving at detail from the Sessions table use sidebar/nav to return to the list.
 
 ## Verification

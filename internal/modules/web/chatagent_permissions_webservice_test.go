@@ -48,7 +48,7 @@ func TestChatAgentPermissionsPageAuthenticated(t *testing.T) {
 		wantStatus int
 		contains   string
 	}{
-		{name: "renders form page", wantStatus: http.StatusOK, contains: "Chat Agent Settings"},
+		{name: "renders form page", wantStatus: http.StatusOK, contains: "Agent Settings"},
 		{name: "includes general permissions table", wantStatus: http.StatusOK, contains: "General Permissions"},
 		{name: "includes advanced json editor", wantStatus: http.StatusOK, contains: "Advanced JSON"},
 		{name: "includes server defaults section", wantStatus: http.StatusOK, contains: "data-testid=\"chatagent-server-defaults\""},
