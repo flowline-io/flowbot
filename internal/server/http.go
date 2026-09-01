@@ -60,6 +60,30 @@ var (
 	sharedApp       *fiber.App
 	sharedAppMu     sync.RWMutex
 	hstsHeaderValue = fmt.Sprintf("max-age=%d; includeSubDomains", hstsMaxAge)
+
+	httpQuietExactPaths = []string{
+		healthcheck.LivenessEndpoint,
+		healthcheck.ReadinessEndpoint,
+		healthcheck.StartupEndpoint,
+		"/",
+		"/metrics",
+		"/service/user/metrics",
+	}
+
+	accessLogPrefixes = []string{
+		"/service",
+		"/hub",
+		"/chatagent",
+		"/gateway",
+		"/static",
+		"/platform",
+		"/oauth",
+		"/webhook",
+		"/agent",
+		"/form",
+		"/c",
+		"/swagger",
+	}
 )
 
 // sharedAppPtr returns the current shared Fiber app instance.
@@ -178,17 +202,7 @@ func newHTTPServer() *fiber.App {
 		GetLogger: func(_ fiber.Ctx) zerolog.Logger {
 			return flog.GetLogger()
 		},
-		Next: func(c fiber.Ctx) bool {
-			skipPaths := []string{
-				healthcheck.LivenessEndpoint,
-				healthcheck.ReadinessEndpoint,
-				healthcheck.StartupEndpoint,
-				"/",
-				"/metrics",
-				"/service/user/metrics",
-			}
-			return utils.Contains(skipPaths, c.Path())
-		},
+		Next: shouldSkipAccessLog,
 	}))
 	// static asset caching
 	app.Use(staticCacheMiddleware)
@@ -263,15 +277,23 @@ func shouldSkipRateLimit(c fiber.Ctx) bool {
 	if strings.HasPrefix(c.Path(), "/static/") {
 		return true
 	}
-	skipPaths := []string{
-		healthcheck.LivenessEndpoint,
-		healthcheck.ReadinessEndpoint,
-		healthcheck.StartupEndpoint,
-		"/",
-		"/metrics",
-		"/service/user/metrics",
+	return utils.Contains(httpQuietExactPaths, c.Path())
+}
+
+func shouldSkipAccessLog(c fiber.Ctx) bool {
+	return skipAccessLogPath(c.Path())
+}
+
+func skipAccessLogPath(path string) bool {
+	if utils.Contains(httpQuietExactPaths, path) {
+		return true
 	}
-	return utils.Contains(skipPaths, c.Path())
+	for _, prefix := range accessLogPrefixes {
+		if path == prefix || strings.HasPrefix(path, prefix+"/") {
+			return false
+		}
+	}
+	return true
 }
 
 func mountSecurityMiddleware(app *fiber.App) {

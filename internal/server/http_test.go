@@ -239,6 +239,49 @@ func TestNewHTTPServer_ErrorHandler_UnknownError(t *testing.T) {
 	}
 }
 
+func TestSkipAccessLogPath(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		path string
+		want bool
+	}{
+		{name: "env probe skipped", path: "/.env.yml", want: true},
+		{name: "app env probe skipped", path: "/app/.env", want: true},
+		{name: "admin env probe skipped", path: "/admin/.env", want: true},
+		{name: "favicon skipped", path: "/favicon.ico", want: true},
+		{name: "robots skipped", path: "/robots.txt", want: true},
+		{name: "agentfoo is not agent prefix", path: "/agentfoo", want: true},
+		{name: "format is not form prefix", path: "/format", want: true},
+		{name: "root skipped", path: "/", want: true},
+		{name: "liveness skipped", path: "/livez", want: true},
+		{name: "readiness skipped", path: "/readyz", want: true},
+		{name: "startup skipped", path: "/startupz", want: true},
+		{name: "prometheus metrics skipped", path: "/metrics", want: true},
+		{name: "user metrics skipped", path: "/service/user/metrics", want: true},
+		{name: "service route logged", path: "/service/web/login", want: false},
+		{name: "hub route logged", path: "/hub/apps", want: false},
+		{name: "hub env still logged", path: "/hub/.env", want: false},
+		{name: "chatagent route logged", path: "/chatagent/sessions", want: false},
+		{name: "gateway route logged", path: "/gateway/v1/claim", want: false},
+		{name: "static asset logged", path: "/static/js/app.js", want: false},
+		{name: "platform callback logged", path: "/platform/slack", want: false},
+		{name: "oauth callback logged", path: "/oauth/github/flag", want: false},
+		{name: "webhook logged", path: "/webhook/provider/github/events", want: false},
+		{name: "agent exact logged", path: "/agent", want: false},
+		{name: "agent v1 logged", path: "/agent/v1/chat/completions", want: false},
+		{name: "form logged", path: "/form", want: false},
+		{name: "clip page logged", path: "/c/abc", want: false},
+		{name: "swagger logged", path: "/swagger/index.html", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, skipAccessLogPath(tt.path))
+		})
+	}
+}
+
 func TestShouldSkipRateLimit(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
