@@ -35,7 +35,7 @@ templ WorkflowRunsTable(ctx context.Context, name string, runs []model.WorkflowR
 								hx-get={ templ.URL(WorkflowWebPath(name) + "/runs/" + fmt.Sprint(r.ID) + "/steps") }
 								hx-trigger="click"
 								hx-target={ "#workflow-steps-" + fmt.Sprint(r.ID) + " td" }
-								hx-swap="innerHTML show:top"
+								hx-swap="innerHTML show:none"
 								data-run-id={ fmt.Sprint(r.ID) }
 								data-run-expand="1"
 								data-testid={ "workflow-run-row-" + fmt.Sprint(r.ID) }>
@@ -60,7 +60,7 @@ templ WorkflowRunsTable(ctx context.Context, name string, runs []model.WorkflowR
 								</td>
 							</tr>
 							<tr id={ "workflow-steps-" + fmt.Sprint(r.ID) } class="run-detail-row">
-								<td colspan="7" class="max-w-0 p-0"></td>
+								<td colspan="7" class="p-0 flowbot-table-expand-cell"></td>
 							</tr>
 						</tbody>
 					}
@@ -149,7 +149,7 @@ templ WorkflowStepRunsDetail(ctx context.Context, steps []model.WorkflowStepRun)
 								<td class="text-base-content/50">{ WorkflowStepRunDuration(s) }</td>
 							</tr>
 							<tr class={ "step-detail-row", templ.KV("hidden", !workflowStepDetailOpen(s)) } data-testid={ "workflow-step-detail-row-" + WorkflowStepKey(s) }>
-								<td colspan="7" class="max-w-0">
+								<td colspan="7" class="flowbot-table-expand-cell">
 									<div class="min-w-0 max-w-full space-y-1 py-1">
 										if s.Error != "" {
 											<div class="mb-1" data-testid={ "workflow-step-error-" + WorkflowStepKey(s) }>

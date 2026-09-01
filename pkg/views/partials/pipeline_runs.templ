@@ -42,7 +42,7 @@ templ PipelineRunsTable(ctx context.Context, name string, runs []model.PipelineR
 							hx-get={ templ.URL("/service/web/pipelines/" + name + "/runs/" + fmt.Sprint(r.ID) + "/steps") }
 							hx-trigger="click"
 							hx-target={ "#steps-" + fmt.Sprint(r.ID) + " td" }
-							hx-swap="innerHTML show:top"
+							hx-swap="innerHTML show:none"
 							data-run-id={ fmt.Sprint(r.ID) }
 							data-run-expand="1"
 							data-testid={ "run-row-" + fmt.Sprint(r.ID) }>
@@ -64,7 +64,7 @@ templ PipelineRunsTable(ctx context.Context, name string, runs []model.PipelineR
 							<td class="text-base-content/50 text-xs">{ runsDuration(r) }</td>
 						</tr>
 							<tr id={ "steps-" + fmt.Sprint(r.ID) } class="run-detail-row">
-							<td colspan="6" class="max-w-0 p-0"></td>
+							<td colspan="6" class="p-0 flowbot-table-expand-cell"></td>
 						</tr>
 					</tbody>
 				}
@@ -177,7 +177,7 @@ templ PipelineStepRunsDetail(ctx context.Context, steps []model.PipelineStepRun,
 								<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
 							</tr>
 							<tr class={ "step-detail-row", templ.KV("hidden", !pipelineStepDetailOpen(s)) } data-testid={ "step-detail-row-" + s.StepName }>
-								<td colspan="7" class="max-w-0">
+								<td colspan="7" class="flowbot-table-expand-cell">
 									<div class="min-w-0 max-w-full space-y-1 py-1">
 										if s.Error != "" {
 											<div class="mb-1" data-testid={ "step-error-" + s.StepName }>

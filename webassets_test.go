@@ -117,6 +117,11 @@ func TestCommittedCSSIncludesNavbarIconUtilities(t *testing.T) {
 			path:       "css/custom.css",
 			wantSubstr: []string{".flowbot-nav-user-avatar svg", "overflow: hidden"},
 		},
+		{
+			name:       "custom.css constrains expanded event table cells",
+			path:       "css/custom.css",
+			wantSubstr: []string{".flowbot-table-expand-cell", "min-width: 100%", "td:first-child:not([colspan])"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

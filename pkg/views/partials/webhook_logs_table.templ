@@ -66,7 +66,7 @@ templ WebhookLogsTable(ctx context.Context, sources, eventTypes []string, events
 							hx-get={ templ.URL("/service/web/events/payload/" + e.EventID) }
 							hx-trigger="click"
 							hx-target={ "#wh-detail-" + e.EventID + " td" }
-							hx-swap="innerHTML show:top"
+							hx-swap="innerHTML show:none"
 							data-testid={ "webhook-row-" + e.EventID }>
 							<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("2006-01-02 15:04:05") }</td>
 							<td><span class={ EventTypeChipClass(e.EventType) }>{ e.EventType }</span></td>
@@ -101,7 +101,7 @@ templ WebhookLogsTable(ctx context.Context, sources, eventTypes []string, events
 							</td>
 						</tr>
 						<tr id={ "wh-detail-" + e.EventID } class="event-detail-row">
-							<td colspan="8" class="p-0 max-w-0"></td>
+							<td colspan="8" class="p-0 flowbot-table-expand-cell"></td>
 						</tr>
 					</tbody>
 				}

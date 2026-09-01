@@ -57,6 +57,7 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 				"mapper:",
 				"run-json-preview",
 				`data-testid="workflow-step-output-json"`,
+				`flowbot-table-expand-cell`,
 			},
 		},
 		{
@@ -169,4 +170,22 @@ func TestWorkflowStepRunDuration(t *testing.T) {
 			assert.Equal(t, tt.want, WorkflowStepRunDuration(tt.sr))
 		})
 	}
+}
+
+func TestWorkflowRunsTable_expandConstrainsCellWithoutScroll(t *testing.T) {
+	t.Parallel()
+	runs := []model.WorkflowRun{{
+		ID:        9,
+		StartedAt: time.Date(2026, 8, 31, 8, 6, 7, 0, time.UTC),
+	}}
+	var buf bytes.Buffer
+	err := WorkflowRunsTable(context.Background(), "demo", runs).Render(context.Background(), &buf)
+	require.NoError(t, err)
+	assertExpandRowStaysInPlace(t, buf.String(),
+		`hx-target="#workflow-steps-9 td"`,
+		`hx-swap="innerHTML show:none"`,
+		`id="workflow-steps-9"`,
+		`class="run-detail-row"`,
+		`flowbot-table-expand-cell`,
+	)
 }

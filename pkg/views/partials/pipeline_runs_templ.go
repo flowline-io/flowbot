@@ -169,7 +169,7 @@ func PipelineRunsTable(ctx context.Context, name string, runs []model.PipelineRu
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-swap=\"innerHTML show:top\" data-run-id=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-swap=\"innerHTML show:none\" data-run-id=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -331,7 +331,7 @@ func PipelineRunsTable(ctx context.Context, name string, runs []model.PipelineRu
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"run-detail-row\"><td colspan=\"6\" class=\"max-w-0 p-0\"></td></tr></tbody>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"run-detail-row\"><td colspan=\"6\" class=\"p-0 flowbot-table-expand-cell\"></td></tr></tbody>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1059,7 +1059,7 @@ func PipelineStepRunsDetail(ctx context.Context, steps []model.PipelineStepRun, 
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "\"><td colspan=\"7\" class=\"max-w-0\"><div class=\"min-w-0 max-w-full space-y-1 py-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "\"><td colspan=\"7\" class=\"flowbot-table-expand-cell\"><div class=\"min-w-0 max-w-full space-y-1 py-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

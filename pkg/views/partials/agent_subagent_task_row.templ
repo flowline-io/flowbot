@@ -21,7 +21,7 @@ templ AgentSubagentTaskRow(ctx context.Context, item model.AgentSubagentTask) {
 		<td>
 			<button hx-get={ agentSubagentTaskDetailURL(item) }
 				hx-target={ "#" + agentSubagentTaskDetailID(item) }
-				hx-swap="innerHTML"
+				hx-swap="innerHTML show:none"
 				data-testid="agent-subagent-task-detail"
 				class="btn btn-ghost btn-xs text-primary">
 				{ i18n.T(ctx, "common.details") }
@@ -32,7 +32,7 @@ templ AgentSubagentTaskRow(ctx context.Context, item model.AgentSubagentTask) {
 }
 
 templ AgentSubagentTaskDetail(ctx context.Context, item model.AgentSubagentTask) {
-	<td colspan="8" class="bg-base-200/50">
+	<td colspan="8" class="bg-base-200/50 flowbot-table-expand-cell">
 		<div class="p-4 space-y-4">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 				<div>

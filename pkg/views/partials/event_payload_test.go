@@ -10,6 +10,18 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
+func assertExpandRowStaysInPlace(t *testing.T, html string, want ...string) {
+	t.Helper()
+	for _, sub := range want {
+		if !strings.Contains(html, sub) {
+			t.Fatalf("want %q in html\n%s", sub, html)
+		}
+	}
+	if strings.Contains(html, `show:top`) {
+		t.Fatalf("expand must not scroll with show:top\n%s", html)
+	}
+}
+
 func TestEventPayloadDetail_highlightAndCopy(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -78,7 +90,7 @@ func TestDataEventsTable_expandTarget(t *testing.T) {
 			want:   []string{"Actions", "No events yet", `data-testid="data-events-table"`},
 		},
 		{
-			name: "row targets detail td and is not hidden",
+			name: "expand constrains cell and does not scroll",
 			events: []model.DataEvent{{
 				EventID:   "evt-1",
 				EventType: "bookmark.created",
@@ -87,11 +99,13 @@ func TestDataEventsTable_expandTarget(t *testing.T) {
 			}},
 			want: []string{
 				`hx-target="#detail-evt-1 td"`,
+				`hx-swap="innerHTML show:none"`,
 				`id="detail-evt-1"`,
 				`class="event-detail-row"`,
+				`flowbot-table-expand-cell`,
 				`data-testid="event-similar-link"`,
 			},
-			absent: []string{`class="hidden"`, `class="event-detail-row hidden"`},
+			absent: []string{`class="hidden"`, `class="event-detail-row hidden"`, `show:top`},
 		},
 	}
 	for _, tt := range tests {
@@ -114,4 +128,26 @@ func TestDataEventsTable_expandTarget(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestWebhookLogsTable_expandConstrainsCellWithoutScroll(t *testing.T) {
+	t.Parallel()
+	events := []model.DataEvent{{
+		EventID:   "wh-1",
+		EventType: "reader.entry.new",
+		Source:    "miniflux_webhook",
+		CreatedAt: time.Date(2026, 8, 31, 8, 6, 7, 0, time.UTC),
+	}}
+	var buf bytes.Buffer
+	err := WebhookLogsTable(context.Background(), nil, nil, events, PageInfo{}, nil).Render(context.Background(), &buf)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	assertExpandRowStaysInPlace(t, buf.String(),
+		`hx-target="#wh-detail-wh-1 td"`,
+		`hx-swap="innerHTML show:none"`,
+		`id="wh-detail-wh-1"`,
+		`class="event-detail-row"`,
+		`flowbot-table-expand-cell`,
+	)
 }

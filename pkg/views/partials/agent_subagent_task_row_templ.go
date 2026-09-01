@@ -188,7 +188,7 @@ func AgentSubagentTaskRow(ctx context.Context, item model.AgentSubagentTask) tem
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-task-detail\" class=\"btn btn-ghost btn-xs text-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-swap=\"innerHTML show:none\" data-testid=\"agent-subagent-task-detail\" class=\"btn btn-ghost btn-xs text-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -243,7 +243,7 @@ func AgentSubagentTaskDetail(ctx context.Context, item model.AgentSubagentTask) 
 			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<td colspan=\"8\" class=\"bg-base-200/50\"><div class=\"p-4 space-y-4\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4 text-sm\"><div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<td colspan=\"8\" class=\"bg-base-200/50 flowbot-table-expand-cell\"><div class=\"p-4 space-y-4\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4 text-sm\"><div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

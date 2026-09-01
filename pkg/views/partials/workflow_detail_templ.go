@@ -174,7 +174,7 @@ func WorkflowRunsTable(ctx context.Context, name string, runs []model.WorkflowRu
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-swap=\"innerHTML show:top\" data-run-id=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-swap=\"innerHTML show:none\" data-run-id=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -367,7 +367,7 @@ func WorkflowRunsTable(ctx context.Context, name string, runs []model.WorkflowRu
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"run-detail-row\"><td colspan=\"7\" class=\"max-w-0 p-0\"></td></tr></tbody>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"run-detail-row\"><td colspan=\"7\" class=\"p-0 flowbot-table-expand-cell\"></td></tr></tbody>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -968,7 +968,7 @@ func WorkflowStepRunsDetail(ctx context.Context, steps []model.WorkflowStepRun) 
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "\"><td colspan=\"7\" class=\"max-w-0\"><div class=\"min-w-0 max-w-full space-y-1 py-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "\"><td colspan=\"7\" class=\"flowbot-table-expand-cell\"><div class=\"min-w-0 max-w-full space-y-1 py-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

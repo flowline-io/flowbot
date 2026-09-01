@@ -356,6 +356,12 @@ body {
 }
 
 /* JSON syntax highlighting for event payloads */
+.flowbot-json {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
 .flowbot-json .flowbot-json-key {
   color: var(--color-primary, #0f766e);
 }
@@ -674,12 +680,14 @@ body {
   background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
 }
 
-/* Sticky first column while the table scrolls horizontally (own class; avoid DaisyUI table-pin-cols). */
+/* Sticky first column while the table scrolls horizontally (own class; avoid DaisyUI table-pin-cols).
+   Skip colspan cells — an expanded-row payload is the row's only td, so pinning it
+   paints a full-width sticky layer over the rest of the columns. */
 .table.flowbot-table-pin
   :where(
     thead tr th:first-child,
     tfoot tr th:first-child,
-    tbody tr td:first-child,
+    tbody tr td:first-child:not([colspan]),
     tbody tr th:first-child
   ) {
   position: sticky;
@@ -689,6 +697,17 @@ body {
 }
 .table.flowbot-table-pin thead tr th:first-child {
   z-index: 3;
+}
+
+/* Expanded-row payload must not contribute min-content width to column sizing.
+   width:0 + min-width:100% on the swapped child keeps JSON inside the existing table. */
+.flowbot-table-expand-cell {
+  max-width: 0;
+}
+.flowbot-table-expand-cell > * {
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Settings page */

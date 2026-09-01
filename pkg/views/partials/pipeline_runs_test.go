@@ -47,6 +47,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 				"<details ",
 				"Input",
 				"Output",
+				`flowbot-table-expand-cell`,
 			},
 		},
 		{
@@ -256,4 +257,24 @@ func TestSprintJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPipelineRunsTable_expandConstrainsCellWithoutScroll(t *testing.T) {
+	t.Parallel()
+	runs := []model.PipelineRun{{
+		ID:        7,
+		EventID:   "evt-7",
+		CreatedAt: time.Date(2026, 8, 31, 8, 6, 7, 0, time.UTC),
+	}}
+	var buf bytes.Buffer
+	if err := PipelineRunsTable(i18n.DefaultContext(), "demo", runs).Render(i18n.DefaultContext(), &buf); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	assertExpandRowStaysInPlace(t, buf.String(),
+		`hx-target="#steps-7 td"`,
+		`hx-swap="innerHTML show:none"`,
+		`id="steps-7"`,
+		`class="run-detail-row"`,
+		`flowbot-table-expand-cell`,
+	)
 }
