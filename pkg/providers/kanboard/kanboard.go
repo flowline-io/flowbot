@@ -5,9 +5,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
+	"unicode/utf8"
 
+	"github.com/bytedance/sonic"
 	"github.com/creachadair/jrpc2"
 	"github.com/creachadair/jrpc2/jhttp"
 
@@ -37,7 +42,11 @@ type AuthTransport struct {
 
 func (t *AuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	setAuthHeader(req.Header, t.Username, t.Password)
-	return t.Transport.RoundTrip(req)
+	base := t.Transport
+	if base == nil {
+		base = http.DefaultTransport
+	}
+	return base.RoundTrip(req)
 }
 
 func setAuthHeader(header http.Header, username, password string) {
@@ -48,6 +57,107 @@ func setAuthHeader(header http.Header, username, password string) {
 	_ = encoder.Close()
 
 	header.Set("Authorization", fmt.Sprintf("Basic %s", buf.String()))
+}
+
+const maxHTTPErrorBody = 512
+
+// nonOKAsRPCError converts non-OK HTTP responses into JSON-RPC error bodies with
+// StatusOK so jrpc2's HTTP channel does not permanently stop the shared client.
+type nonOKAsRPCError struct {
+	Transport http.RoundTripper
+}
+
+func (t *nonOKAsRPCError) RoundTrip(req *http.Request) (*http.Response, error) {
+	base := t.Transport
+	if base == nil {
+		base = http.DefaultTransport
+	}
+
+	var reqBody []byte
+	if req.Body != nil {
+		var err error
+		reqBody, err = io.ReadAll(req.Body)
+		_ = req.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+		req.Body = io.NopCloser(bytes.NewReader(reqBody))
+		req.ContentLength = int64(len(reqBody))
+		req.GetBody = func() (io.ReadCloser, error) {
+			return io.NopCloser(bytes.NewReader(reqBody)), nil
+		}
+	}
+
+	resp, err := base.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent {
+		return resp, nil
+	}
+
+	body, readErr := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if readErr != nil {
+		body = nil
+	}
+
+	msg := fmt.Sprintf("unexpected HTTP status %s", resp.Status)
+	if snippet := truncateForError(body, maxHTTPErrorBody); snippet != "" {
+		msg = msg + ": " + snippet
+	}
+
+	id := json.RawMessage("null")
+	var envelope struct {
+		ID json.RawMessage `json:"id"`
+	}
+	if err := sonic.Unmarshal(reqBody, &envelope); err == nil && len(envelope.ID) > 0 {
+		id = envelope.ID
+	}
+
+	payload, err := sonic.Marshal(struct {
+		JSONRPC string          `json:"jsonrpc"`
+		ID      json.RawMessage `json:"id"`
+		Error   map[string]any  `json:"error"`
+	}{
+		JSONRPC: "2.0",
+		ID:      id,
+		Error: map[string]any{
+			"code":    -32000,
+			"message": msg,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s", msg)
+	}
+
+	return &http.Response{
+		Status:        "200 OK",
+		StatusCode:    http.StatusOK,
+		Proto:         resp.Proto,
+		ProtoMajor:    resp.ProtoMajor,
+		ProtoMinor:    resp.ProtoMinor,
+		Header:        http.Header{"Content-Type": []string{"application/json"}},
+		Body:          io.NopCloser(bytes.NewReader(payload)),
+		ContentLength: int64(len(payload)),
+		Request:       req,
+	}, nil
+}
+
+func truncateForError(body []byte, limit int) string {
+	if len(body) == 0 || limit <= 0 {
+		return ""
+	}
+	s := strings.ToValidUTF8(string(body), "")
+	s = strings.Join(strings.Fields(s), " ")
+	if s == "" {
+		return ""
+	}
+	if utf8.RuneCountInString(s) <= limit {
+		return s
+	}
+	runes := []rune(s)
+	return string(runes[:limit]) + "…"
 }
 
 // GetWebhookToken reads the webhook token from the kanboard provider config.
@@ -76,7 +186,7 @@ func NewKanboard(endpoint, username, password string) (*Kanboard, error) {
 	v.channel = jhttp.NewChannel(endpoint, &jhttp.ChannelOptions{
 		Client: &http.Client{
 			Transport: &AuthTransport{
-				Transport: utils.HTTPTransport(),
+				Transport: &nonOKAsRPCError{Transport: utils.HTTPTransport()},
 				Username:  username,
 				Password:  password,
 			},
@@ -96,10 +206,22 @@ func (v *Kanboard) Close() error {
 }
 
 // GetMe returns the currently authenticated Kanboard user via JSON-RPC getMe.
+// Application API credentials (username jsonrpc) cannot call getMe; use GetVersion for health probes.
 func (v *Kanboard) GetMe(ctx context.Context) (user *User, err error) {
 	err = v.c.CallResult(ctx, "getMe", nil, &user)
 	if err != nil {
 		err = fmt.Errorf("failed to get me, %w", err)
+		return
+	}
+	return
+}
+
+// GetVersion returns the Kanboard server version via JSON-RPC getVersion.
+// Works with both Application API and User API credentials.
+func (v *Kanboard) GetVersion(ctx context.Context) (version string, err error) {
+	err = v.c.CallResult(ctx, "getVersion", nil, &version)
+	if err != nil {
+		err = fmt.Errorf("failed to get version, %w", err)
 		return
 	}
 	return

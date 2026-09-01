@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/bytedance/sonic"
@@ -518,4 +519,64 @@ func TestKanboard_RemainingMethods(t *testing.T) {
 	spent, err := kb.GetSubtaskTimeSpent(ctx, 10, 1)
 	require.NoError(t, err)
 	assert.InDelta(t, 1.5, spent, 0.001)
+}
+
+func TestKanboard_GetVersion(t *testing.T) {
+	t.Parallel()
+	srv := newKanboardRPCServer(t, map[string]func(json.RawMessage) any{
+		"getVersion": func(_ json.RawMessage) any { return "1.2.46" },
+	})
+	t.Cleanup(srv.Close)
+
+	kb, err := NewKanboard(srv.URL, "jsonrpc", "token")
+	require.NoError(t, err)
+
+	version, err := kb.GetVersion(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, "1.2.46", version)
+}
+
+func TestKanboard_HTTPForbiddenDoesNotPoisonClient(t *testing.T) {
+	t.Parallel()
+	var calls atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		assert.NoError(t, err)
+		var req jsonRPCRequest
+		assert.NoError(t, sonic.Unmarshal(body, &req))
+		n := calls.Add(1)
+		w.Header().Set("Content-Type", "application/json")
+		if req.Method == "getMe" {
+			http.Error(w, `{"jsonrpc":"2.0","error":{"code":403,"message":"Forbidden"},"id":null}`, http.StatusForbidden)
+			return
+		}
+		assert.Equal(t, "getTask", req.Method)
+		assert.Greater(t, n, int32(1))
+		resp := map[string]any{
+			"jsonrpc": "2.0",
+			"result":  &Task{ID: 596, Title: "ok"},
+			"id":      req.ID,
+		}
+		assert.NoError(t, sonic.ConfigDefault.NewEncoder(w).Encode(resp))
+	}))
+	t.Cleanup(srv.Close)
+
+	kb, err := NewKanboard(srv.URL, "jsonrpc", "token")
+	require.NoError(t, err)
+
+	_, err = kb.GetMe(context.Background())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "403")
+
+	task, err := kb.GetTask(context.Background(), 596)
+	require.NoError(t, err)
+	assert.Equal(t, 596, task.ID)
+	assert.Equal(t, "ok", task.Title)
+}
+
+func TestTruncateForError(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "", truncateForError(nil, 10))
+	assert.Equal(t, "hello world", truncateForError([]byte("  hello\nworld  "), 64))
+	assert.Equal(t, "abcd…", truncateForError([]byte("abcdefgh"), 4))
 }

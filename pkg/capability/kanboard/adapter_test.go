@@ -14,8 +14,8 @@ import (
 )
 
 type fakeClient struct {
-	me           *provider.User
-	meErr        error
+	version      string
+	versionErr   error
 	tasks        []*provider.Task
 	tasksErr     error
 	task         *provider.Task
@@ -36,14 +36,14 @@ type fakeClient struct {
 	searchErr    error
 }
 
-func (f *fakeClient) GetMe(_ context.Context) (*provider.User, error) {
-	if f.meErr != nil {
-		return nil, f.meErr
+func (f *fakeClient) GetVersion(_ context.Context) (string, error) {
+	if f.versionErr != nil {
+		return "", f.versionErr
 	}
-	if f.me == nil {
-		return &provider.User{ID: 1, Username: "admin"}, nil
+	if f.version == "" {
+		return "1.2.0", nil
 	}
-	return f.me, nil
+	return f.version, nil
 }
 
 func (f *fakeClient) GetAllTasks(_ context.Context, _ int, _ provider.StatusId) ([]*provider.Task, error) {
@@ -330,8 +330,8 @@ func TestAdapter_HealthCheck(t *testing.T) {
 		wantOK  bool
 		wantErr bool
 	}{
-		{name: "healthy", client: &fakeClient{me: &provider.User{ID: 1, Username: "admin"}}, wantOK: true},
-		{name: "provider error", client: &fakeClient{meErr: assert.AnError}, wantErr: true},
+		{name: "healthy", client: &fakeClient{version: "1.2.46"}, wantOK: true},
+		{name: "provider error", client: &fakeClient{versionErr: assert.AnError}, wantErr: true},
 		{name: "canceled context", client: &fakeClient{}, wantErr: true},
 	}
 	for _, tt := range tests {
