@@ -201,22 +201,35 @@ func (v *Memos) DeleteMemo(ctx context.Context, name string) error {
 	return fmt.Errorf("memos delete memo %s: unexpected status %d: %s", name, httpResp.StatusCode(), httpResp.String())
 }
 
-// GetCurrentUser retrieves the currently authenticated user via GET /api/v1/auth/me.
+// GetCurrentUser retrieves the currently authenticated user.
+// Memos 0.26+ serves GET /api/v1/auth/me; 0.25.x serves GET /api/v1/auth/sessions/current.
 func (v *Memos) GetCurrentUser(ctx context.Context) (*User, error) {
+	user, status, err := v.fetchCurrentUser(ctx, "/api/v1/auth/me")
+	if err == nil {
+		return user, nil
+	}
+	if status != http.StatusNotFound {
+		return nil, err
+	}
+	user, _, err = v.fetchCurrentUser(ctx, "/api/v1/auth/sessions/current")
+	return user, err
+}
+
+func (v *Memos) fetchCurrentUser(ctx context.Context, path string) (*User, int, error) {
 	resp := &struct {
 		User User `json:"user"`
 	}{}
 	httpResp, err := v.c.R().
 		SetContext(ctx).
 		SetResult(resp).
-		Get("/api/v1/auth/me")
+		Get(path)
 	if err != nil {
-		return nil, fmt.Errorf("memos get current user: %w", err)
+		return nil, 0, fmt.Errorf("memos get current user: %w", err)
 	}
 	if httpResp.StatusCode() == http.StatusOK {
-		return &resp.User, nil
+		return &resp.User, httpResp.StatusCode(), nil
 	}
-	return nil, fmt.Errorf("memos get current user: unexpected status %d: %s", httpResp.StatusCode(), httpResp.String())
+	return nil, httpResp.StatusCode(), fmt.Errorf("memos get current user: unexpected status %d: %s", httpResp.StatusCode(), httpResp.String())
 }
 
 // ListRawEvents lists memos as raw events for polling support.

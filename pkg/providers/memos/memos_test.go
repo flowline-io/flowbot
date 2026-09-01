@@ -449,6 +449,60 @@ func TestGetCurrentUser(t *testing.T) {
 	}
 }
 
+func TestGetCurrentUserFallsBackToSession(t *testing.T) {
+	t.Parallel()
+	const grpcNotFound = `{"code":5,"message":"Not Found","details":[]}`
+	t.Run("uses 0.25 session path after auth/me 404", func(t *testing.T) {
+		t.Parallel()
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodGet, r.Method)
+			w.Header().Set("Content-Type", "application/json")
+			switch r.URL.Path {
+			case "/api/v1/auth/me":
+				w.WriteHeader(http.StatusNotFound)
+				_, _ = w.Write([]byte(grpcNotFound))
+			case "/api/v1/auth/sessions/current":
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte(`{"user":{"name":"users/1","username":"admin","role":"HOST"}}`))
+			default:
+				t.Fatalf("unexpected path %s", r.URL.Path)
+			}
+		}))
+		defer srv.Close()
+
+		resp, err := NewMemos(srv.URL, "tok").GetCurrentUser(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, "admin", resp.Username)
+		assert.Equal(t, "users/1", resp.Name)
+	})
+	t.Run("does not fall back on unauthorized", func(t *testing.T) {
+		t.Parallel()
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/api/v1/auth/me", r.URL.Path)
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(`{"code":16,"message":"user not found","details":[]}`))
+		}))
+		defer srv.Close()
+
+		_, err := NewMemos(srv.URL, "tok").GetCurrentUser(context.Background())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "401")
+	})
+	t.Run("both paths missing returns 404", func(t *testing.T) {
+		t.Parallel()
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(grpcNotFound))
+		}))
+		defer srv.Close()
+
+		_, err := NewMemos(srv.URL, "tok").GetCurrentUser(context.Background())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "404")
+	})
+}
+
 func TestListRawEvents(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
