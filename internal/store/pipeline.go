@@ -64,14 +64,17 @@ func (s *PipelineStore) UpdateRunStatus(ctx context.Context, runID int64, status
 	if s == nil || s.client == nil {
 		return nil
 	}
+	now := time.Now()
 	upd := s.client.PipelineRun.UpdateOneID(runID).SetStatus(status)
 	switch status {
 	case int(schema.PipelineStart):
-		upd = upd.ClearCompletedAt().SetError("")
+		// Refresh started_at so UI duration (completed − started) measures this attempt,
+		// not wall time since the original create (retry / resume).
+		upd = upd.ClearCompletedAt().SetError("").SetStartedAt(now)
 	case int(schema.PipelineDone):
-		upd = upd.SetCompletedAt(time.Now()).SetError("")
+		upd = upd.SetCompletedAt(now).SetError("")
 	default:
-		upd = upd.SetCompletedAt(time.Now())
+		upd = upd.SetCompletedAt(now)
 		if errMsg != "" {
 			upd = upd.SetError(errMsg)
 		}
@@ -109,9 +112,8 @@ func (s *PipelineStore) UpdateStepRun(ctx context.Context, stepRunID int64, stat
 	upd := s.client.PipelineStepRun.UpdateOneID(stepRunID).
 		SetStatus(int(status)).
 		SetAttempt(attempt)
-	if status == int(schema.PipelineDone) || status == int(schema.PipelineCancel) {
-		now := time.Now()
-		upd = upd.SetCompletedAt(now)
+	if status == int(schema.PipelineDone) || status == int(schema.PipelineFailed) || status == int(schema.PipelineCancel) {
+		upd = upd.SetCompletedAt(time.Now())
 	}
 	if result != nil {
 		upd = upd.SetResult(result)

@@ -548,18 +548,21 @@ func TestPipelineStore_ClaimFailedRun(t *testing.T) {
 
 	run, err := ps.CreateRun(ctx, "claim-pipe", "evt-claim", "test.event", "event")
 	require.NoError(t, err)
+	originalStart := run.StartedAt
 	require.NoError(t, ps.UpdateRunStatus(ctx, run.ID, int(schema.PipelineFailed), "boom"))
 
 	loaded, err := ps.GetRun(ctx, run.ID)
 	require.NoError(t, err)
 	require.NotNil(t, loaded.CompletedAt)
 
+	time.Sleep(2 * time.Millisecond)
 	require.NoError(t, ps.ClaimFailedRun(ctx, run.ID))
 	claimed, err := ps.GetRun(ctx, run.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int(schema.PipelineStart), claimed.Status)
 	assert.Empty(t, claimed.Error)
 	assert.Nil(t, claimed.CompletedAt)
+	assert.True(t, claimed.StartedAt.After(originalStart), "claim should refresh started_at")
 
 	err = ps.ClaimFailedRun(ctx, run.ID)
 	require.ErrorIs(t, err, types.ErrConflict)
@@ -576,6 +579,11 @@ func TestPipelineStore_PrepareStepRetry(t *testing.T) {
 	step, err := ps.CreateStepRun(ctx, run.ID, "task", "example", "echo", map[string]any{"old": true}, 1)
 	require.NoError(t, err)
 	require.NoError(t, ps.UpdateStepRun(ctx, step.ID, int(schema.PipelineFailed), map[string]any{"leftover": true}, "rpc false", 1))
+
+	failedRows, err := ps.ListStepRunsByRunID(ctx, run.ID)
+	require.NoError(t, err)
+	require.Len(t, failedRows, 1)
+	require.NotNil(t, failedRows[0].CompletedAt, "failed step must stamp completed_at for duration")
 
 	require.NoError(t, ps.PrepareStepRetry(ctx, step.ID, map[string]any{"title": "retry"}, 2))
 	rows, err := ps.ListStepRunsByRunID(ctx, run.ID)
@@ -597,7 +605,9 @@ func TestPipelineStore_UpdateRunStatus_StartClearsCompletedAt(t *testing.T) {
 
 	run, err := ps.CreateRun(ctx, "start-pipe", "evt-start-clear", "test.event", "event")
 	require.NoError(t, err)
+	originalStart := run.StartedAt
 	require.NoError(t, ps.UpdateRunStatus(ctx, run.ID, int(schema.PipelineFailed), "boom"))
+	time.Sleep(2 * time.Millisecond)
 	require.NoError(t, ps.UpdateRunStatus(ctx, run.ID, int(schema.PipelineStart), ""))
 
 	loaded, err := ps.GetRun(ctx, run.ID)
@@ -605,6 +615,7 @@ func TestPipelineStore_UpdateRunStatus_StartClearsCompletedAt(t *testing.T) {
 	assert.Equal(t, int(schema.PipelineStart), loaded.Status)
 	assert.Empty(t, loaded.Error)
 	assert.Nil(t, loaded.CompletedAt)
+	assert.True(t, loaded.StartedAt.After(originalStart), "start status should refresh started_at")
 }
 
 func TestPipelineStore_UpdateStepRun_ClearsErrorOnDone(t *testing.T) {

@@ -60,7 +60,7 @@ templ PipelineRunsTable(ctx context.Context, name string, runs []model.PipelineR
 									</a>
 								}
 							</td>
-							<td class="text-base-content/50 text-xs">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
+							<td class="text-base-content/50 text-xs">{ runsStartedAt(r).Format("2006-01-02 15:04:05") }</td>
 							<td class="text-base-content/50 text-xs">{ runsDuration(r) }</td>
 						</tr>
 							<tr id={ "steps-" + fmt.Sprint(r.ID) } class="run-detail-row">
@@ -246,11 +246,18 @@ func runsStatusText(ctx context.Context, status int) string {
 	}
 }
 
+func runsStartedAt(r model.PipelineRun) time.Time {
+	if !r.StartedAt.IsZero() {
+		return r.StartedAt
+	}
+	return r.CreatedAt
+}
+
 func runsDuration(r model.PipelineRun) string {
 	if r.CompletedAt == nil {
 		return "-"
 	}
-	d := r.CompletedAt.Sub(r.CreatedAt)
+	d := r.CompletedAt.Sub(runsStartedAt(r))
 	if d < time.Second {
 		return fmt.Sprintf("%dms", d.Milliseconds())
 	}

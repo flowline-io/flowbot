@@ -18,7 +18,7 @@ Failed-run **manual retry** lives on the run detail page (`POST /service/web/pip
 - After confirm: `HX-Redirect` to the existing live page.
 - Unpublished definition, renamed/deleted failed step, or purged event: toast and refuse. Paused (`enabled: false`) still retries: `ExpandDefinitions` keeps the published def loaded with `Enabled: false`. Event/webhook/cron fire paths skip `!Enabled`; `ExecuteManual` refuses a paused def. Salvage is retry-only.
 - `RetryFailedRun` does not call `IncResume` (that metric is for resume-from-checkpoint).
-- `UpdateRunStatus` to start clears `completed_at` and error (also needed for `ResumePipeline`). Done also `SetError("")` so a successful retry does not keep the previous run error.
+- `UpdateRunStatus` to start clears `completed_at` and error, and refreshes `started_at` (also needed for `ResumePipeline`). Done also `SetError("")` so a successful retry does not keep the previous run error.
 - Web UI only. No YAML automatic `retry` and no CLI.
 
 `ClaimFailedRun` is a CAS (`status = failed`). Parent matching uses `pipeline.RunBelongsToParent`. Event envelope mapping uses `store.DataEventFromRow`.

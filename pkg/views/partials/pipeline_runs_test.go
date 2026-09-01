@@ -264,6 +264,7 @@ func TestPipelineRunsTable_expandConstrainsCellWithoutScroll(t *testing.T) {
 	runs := []model.PipelineRun{{
 		ID:        7,
 		EventID:   "evt-7",
+		StartedAt: time.Date(2026, 8, 31, 8, 6, 7, 0, time.UTC),
 		CreatedAt: time.Date(2026, 8, 31, 8, 6, 7, 0, time.UTC),
 	}}
 	var buf bytes.Buffer
@@ -278,3 +279,62 @@ func TestPipelineRunsTable_expandConstrainsCellWithoutScroll(t *testing.T) {
 		`flowbot-table-expand-cell`,
 	)
 }
+
+func TestRunsDuration(t *testing.T) {
+	t.Parallel()
+	created := time.Date(2026, 8, 16, 2, 44, 22, 0, time.UTC)
+	started := time.Date(2026, 8, 28, 19, 40, 0, 0, time.UTC)
+	done := started.Add(250 * time.Millisecond)
+	tests := []struct {
+		name string
+		run  model.PipelineRun
+		want string
+	}{
+		{name: "incomplete", run: model.PipelineRun{StartedAt: started, CreatedAt: created}, want: "-"},
+		{
+			name: "uses started_at not created_at after retry",
+			run:  model.PipelineRun{StartedAt: started, CreatedAt: created, CompletedAt: &done},
+			want: "250ms",
+		},
+		{
+			name: "falls back to created_at when started_at zero",
+			run: model.PipelineRun{
+				CreatedAt:   created,
+				CompletedAt: ptrTime(created.Add(2 * time.Second)),
+			},
+			want: "2s",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := runsDuration(tt.run); got != tt.want {
+				t.Fatalf("runsDuration() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestStepRunsDuration(t *testing.T) {
+	t.Parallel()
+	now := time.Date(2026, 9, 1, 14, 0, 0, 0, time.UTC)
+	done := now.Add(13 * time.Millisecond)
+	tests := []struct {
+		name string
+		sr   model.PipelineStepRun
+		want string
+	}{
+		{name: "incomplete", sr: model.PipelineStepRun{StartedAt: now}, want: "-"},
+		{name: "completed", sr: model.PipelineStepRun{StartedAt: now, CompletedAt: &done}, want: "13ms"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := stepRunsDuration(tt.sr); got != tt.want {
+				t.Fatalf("stepRunsDuration() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func ptrTime(t time.Time) *time.Time { return &t }

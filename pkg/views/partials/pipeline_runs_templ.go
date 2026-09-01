@@ -297,9 +297,9 @@ func PipelineRunsTable(ctx context.Context, name string, runs []model.PipelineRu
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var19 string
-				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(r.CreatedAt.Format("2006-01-02 15:04:05"))
+				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(runsStartedAt(r).Format("2006-01-02 15:04:05"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 63, Col: 91}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 63, Col: 96}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -1251,11 +1251,18 @@ func runsStatusText(ctx context.Context, status int) string {
 	}
 }
 
+func runsStartedAt(r model.PipelineRun) time.Time {
+	if !r.StartedAt.IsZero() {
+		return r.StartedAt
+	}
+	return r.CreatedAt
+}
+
 func runsDuration(r model.PipelineRun) string {
 	if r.CompletedAt == nil {
 		return "-"
 	}
-	d := r.CompletedAt.Sub(r.CreatedAt)
+	d := r.CompletedAt.Sub(runsStartedAt(r))
 	if d < time.Second {
 		return fmt.Sprintf("%dms", d.Milliseconds())
 	}
