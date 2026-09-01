@@ -576,7 +576,7 @@ func TestKanboard_HTTPForbiddenDoesNotPoisonClient(t *testing.T) {
 
 func TestTruncateForError(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, "", truncateForError(nil, 10))
+	assert.Empty(t, truncateForError(nil, 10))
 	assert.Equal(t, "hello world", truncateForError([]byte("  hello\nworld  "), 64))
 	assert.Equal(t, "abcd…", truncateForError([]byte("abcdefgh"), 4))
 }
