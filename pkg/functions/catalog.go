@@ -28,3 +28,9 @@ type Catalog interface {
 type ExecProvider interface {
 	ExecConfig(ctx context.Context) (pkgexec.Config, error)
 }
+
+// WorkspacePreparer optionally prepares an ephemeral invoke workspace on the host
+// (for example sandbox uid/gid and directory permissions).
+type WorkspacePreparer interface {
+	PrepareWorkspace(workspace string) error
+}

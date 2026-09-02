@@ -40,13 +40,27 @@ func (p *webFnExecProvider) ExecConfig(_ context.Context) (pkgexec.Config, error
 type webFnScriptedEnv struct {
 	env.OSExecutionEnv
 	stdout string
+	stderr string
+	exit   int
 }
 
 func (e *webFnScriptedEnv) Exec(_ context.Context, _ env.ExecOptions) result.Result[env.Capture, result.ExecutionError] {
 	return result.Ok[env.Capture, result.ExecutionError](env.Capture{
 		Stdout:   e.stdout,
-		ExitCode: 0,
+		Stderr:   e.stderr,
+		ExitCode: e.exit,
 	})
+}
+
+type webFnFailingExecProvider struct {
+	exit   int
+	stderr string
+}
+
+func (p *webFnFailingExecProvider) ExecConfig(_ context.Context) (pkgexec.Config, error) {
+	return pkgexec.Config{
+		Env: &webFnScriptedEnv{exit: p.exit, stderr: p.stderr},
+	}, nil
 }
 
 func wireFunctionServiceForTest(t *testing.T, client *store.Client, stdout string) *pkgfunctions.Service {
@@ -218,6 +232,58 @@ func TestFunctionWebCreateDraftPublishTry(t *testing.T) {
 	raw, err := io.ReadAll(tryResp.Body)
 	require.NoError(t, err)
 	assert.Contains(t, string(raw), `"ok"`)
+}
+
+func TestFunctionWebTryInvokeRunFailed(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+	wireFunctionServiceForTest(t, client, "")
+
+	form := url.Values{}
+	form.Set("name", "try-fail-fn")
+	form.Set("entrypoint", "main.py")
+	createReq := httptest.NewRequest(http.MethodPost, "/service/web/functions", strings.NewReader(form.Encode()))
+	createReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	addWebAuth(createReq)
+	createResp, err := app.Test(createReq)
+	require.NoError(t, err)
+	defer createResp.Body.Close()
+	require.Equal(t, http.StatusOK, createResp.StatusCode)
+
+	svc := pkgfunctions.ActiveService()
+	draft, err := svc.GetDraft(context.Background(), "try-fail-fn")
+	require.NoError(t, err)
+	pubBody, err := sonic.MarshalString(map[string]any{"version": draft.Version})
+	require.NoError(t, err)
+	pubReq := httptest.NewRequest(http.MethodPost, "/service/web/functions/try-fail-fn/publish", strings.NewReader(pubBody))
+	pubReq.Header.Set("Content-Type", "application/json")
+	addWebAuth(pubReq)
+	pubResp, err := app.Test(pubReq)
+	require.NoError(t, err)
+	defer pubResp.Body.Close()
+	require.Equal(t, http.StatusOK, pubResp.StatusCode)
+
+	pkgfunctions.SetActiveService(nil)
+	fs := store.NewFunctionStore(client)
+	catalog := store.NewFunctionCatalogAdapter(fs)
+	failSvc := pkgfunctions.NewService(catalog, &webFnFailingExecProvider{exit: 2, stderr: "permission denied"})
+	failSvc.SetChecker(dcg.AllowAllChecker{})
+	pkgfunctions.SetActiveService(failSvc)
+
+	tryBody, err := sonic.MarshalString(map[string]any{"event": map[string]any{}})
+	require.NoError(t, err)
+	tryReq := httptest.NewRequest(http.MethodPost, "/service/web/functions/try-fail-fn/try", strings.NewReader(tryBody))
+	tryReq.Header.Set("Content-Type", "application/json")
+	addWebAuth(tryReq)
+	tryResp, err := app.Test(tryReq)
+	require.NoError(t, err)
+	defer tryResp.Body.Close()
+	require.Equal(t, http.StatusUnprocessableEntity, tryResp.StatusCode)
+	raw, err := io.ReadAll(tryResp.Body)
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), "INVOKE_FAILED")
+	assert.Contains(t, string(raw), "exited with code 2")
+	assert.Contains(t, string(raw), "permission denied")
 }
 
 func TestFunctionWebTrySandboxUnavailable(t *testing.T) {

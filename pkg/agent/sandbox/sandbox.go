@@ -313,6 +313,10 @@ func (e *Env) applyStdinRedirect(ctx context.Context, opts env.ExecOptions, runO
 		err := result.NewExecutionError("spawn_error", ferr.Error(), nil)
 		return &err
 	}
+	if err := ensureSandboxAgentReadable(stdinPath); err != nil {
+		execErr := result.NewExecutionError("spawn_error", err.Error(), err)
+		return &execErr
+	}
 	if len(opts.Argv) > 0 {
 		runOpts.Command = shellJoin(opts.Argv) + " < .flowbot-stdin"
 		runOpts.Argv = nil
@@ -604,10 +608,14 @@ func ensureSandboxAgentExecutable(path string) error {
 	return chownOrWorldChmod(path, cliExecOwner, cliExecWorld, "cli binary")
 }
 
-// ensureSandboxAgentReadable makes path readable by the sandbox container user (uid 1000).
+// EnsureAgentReadable makes path readable by the sandbox container user (uid 1000).
 // Prefer chown to the agent user with owner-only mode; if chown fails (non-root / Windows),
 // fall back to world-accessible mode for the ephemeral temp path.
 // Directories use modes with the execute bit so the agent can traverse into them.
+func EnsureAgentReadable(path string) error {
+	return ensureSandboxAgentReadable(path)
+}
+
 func ensureSandboxAgentReadable(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {

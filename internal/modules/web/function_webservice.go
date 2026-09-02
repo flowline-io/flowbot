@@ -353,6 +353,14 @@ func functionTryJSONError(c fiber.Ctx, err error) error {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
 			"error": fiber.Map{"code": "UNAVAILABLE", "message": webMsg(c, "error.function.unavailable")},
 		})
+	case errors.Is(err, types.ErrInvokeRun):
+		msg := strings.TrimSpace(types.ClientMessage(err))
+		if msg == "" {
+			msg = webMsg(c, "error.function.invoke_failed")
+		}
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVOKE_FAILED", "message": msg},
+		})
 	case errors.Is(err, types.ErrInvalidArgument):
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
 			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.validation")},

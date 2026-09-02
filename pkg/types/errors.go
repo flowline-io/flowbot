@@ -19,6 +19,8 @@ var (
 	ErrNotImplemented  = errors.New("not implemented")
 	ErrProvider        = errors.New("provider error")
 	ErrInternal        = errors.New("internal error")
+	// ErrInvokeRun marks a published function entrypoint that exited non-zero or returned invalid stdout JSON.
+	ErrInvokeRun = errors.New("function invoke run failed")
 )
 
 // Error carries machine-readable domain error metadata across ability, hub,

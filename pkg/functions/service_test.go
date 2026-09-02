@@ -20,6 +20,36 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestInvokeRunExitCodeAndStdoutJSON(t *testing.T) {
+	t.Parallel()
+	cat := newFakeCatalog()
+	seedPublished(t, cat, "exit-fn", "main.py", "ignored")
+	ver := 1
+
+	exitSvc := functions.NewService(cat, &fakeExecProvider{exit: 2, stderr: "can't open file"})
+	exitSvc.SetChecker(dcg.AllowAllChecker{})
+	_, err := exitSvc.Invoke(context.Background(), functions.InvokeRequest{
+		Name:    "exit-fn",
+		Version: &ver,
+		Event:   map[string]any{},
+	})
+	require.Error(t, err)
+	require.ErrorIs(t, err, types.ErrInvokeRun)
+	assert.Contains(t, err.Error(), "exited with code 2")
+	assert.Contains(t, err.Error(), "can't open file")
+
+	jsonSvc := functions.NewService(cat, &fakeExecProvider{stdout: "not-json", exit: 0})
+	jsonSvc.SetChecker(dcg.AllowAllChecker{})
+	_, err = jsonSvc.Invoke(context.Background(), functions.InvokeRequest{
+		Name:    "exit-fn",
+		Version: &ver,
+		Event:   map[string]any{},
+	})
+	require.Error(t, err)
+	require.ErrorIs(t, err, types.ErrInvokeRun)
+	assert.Contains(t, err.Error(), "valid JSON")
+}
+
 func TestParseStdoutJSON(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -338,7 +368,7 @@ func TestInvokeIdempotency(t *testing.T) {
 			IdempotencyKey: "k-fail",
 		})
 		require.Error(t, err)
-		require.ErrorIs(t, err, types.ErrInvalidArgument)
+		require.ErrorIs(t, err, types.ErrInvokeRun)
 		require.NotNil(t, second)
 		assert.True(t, second.Replayed)
 		assert.Equal(t, string(types.FunctionRunFailed), second.Status)

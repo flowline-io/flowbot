@@ -397,6 +397,23 @@ func assertAgentReadable(t *testing.T, path string) {
 		"path %s mode %o should be readable by sandbox agent", path, perm)
 }
 
+func TestEnsureAgentReadableOpensRestrictiveWorkspace(t *testing.T) {
+	t.Parallel()
+	dir, err := os.MkdirTemp("", "flowbot-sandbox-ws-*")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	require.NoError(t, os.Chmod(dir, 0o700))
+
+	require.NoError(t, EnsureAgentReadable(dir))
+	info, err := os.Stat(dir)
+	require.NoError(t, err)
+	perm := info.Mode().Perm()
+	assert.True(t,
+		perm == cliConfigDirOwnerOnly || perm&0o001 != 0 || perm&0o010 != 0,
+		"workspace dir %s mode %o should be traversable by sandbox agent", dir, perm,
+	)
+}
+
 func TestEnsureSandboxAgentReadable(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

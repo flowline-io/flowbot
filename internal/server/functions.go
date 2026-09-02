@@ -25,6 +25,12 @@ import (
 // Workspace is set per Invoke by Service; Exec uses opts.Dir as the bind-mounted workspace.
 type functionExecProvider struct{}
 
+var _ pkgfunctions.WorkspacePreparer = functionExecProvider{}
+
+func (functionExecProvider) PrepareWorkspace(workspace string) error {
+	return sandbox.EnsureAgentReadable(workspace)
+}
+
 func (functionExecProvider) ExecConfig(_ context.Context) (pkgexec.Config, error) {
 	sb := config.App.ChatAgent.Sandbox
 	if !sb.Enabled {
@@ -64,11 +70,25 @@ func (e *functionSandboxEnv) ReadFile(ctx context.Context, path string) result.R
 }
 
 func (e *functionSandboxEnv) WriteFile(ctx context.Context, path string, data []byte, perm os.FileMode) result.Result[struct{}, result.FileError] {
-	return e.host.WriteFile(ctx, path, data, perm)
+	res := e.host.WriteFile(ctx, path, data, perm)
+	if !res.IsOk() {
+		return res
+	}
+	if err := sandbox.EnsureAgentReadable(path); err != nil {
+		return result.Err[struct{}, result.FileError](result.NewFileError("chmod", path, err))
+	}
+	return res
 }
 
 func (e *functionSandboxEnv) MkdirAll(ctx context.Context, path string, perm os.FileMode) result.Result[struct{}, result.FileError] {
-	return e.host.MkdirAll(ctx, path, perm)
+	res := e.host.MkdirAll(ctx, path, perm)
+	if !res.IsOk() {
+		return res
+	}
+	if err := sandbox.EnsureAgentReadable(path); err != nil {
+		return result.Err[struct{}, result.FileError](result.NewFileError("chmod", path, err))
+	}
+	return res
 }
 
 func (e *functionSandboxEnv) Remove(ctx context.Context, path string) result.Result[struct{}, result.FileError] {

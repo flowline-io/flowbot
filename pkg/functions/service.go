@@ -692,6 +692,11 @@ func (s *Service) executeRun(ctx context.Context, ver *model.FunctionDefinitionV
 		return nil, types.WrapError(types.ErrInternal, "create temp workspace", err)
 	}
 	defer func() { _ = os.RemoveAll(tmp) }()
+	if prep, ok := s.execProvider.(WorkspacePreparer); ok {
+		if err := prep.PrepareWorkspace(tmp); err != nil {
+			return nil, types.WrapError(types.ErrInternal, "prepare function workspace", err)
+		}
+	}
 
 	cfg, err := s.execConfigForWorkspace(ctx, tmp)
 	if err != nil {
@@ -792,9 +797,9 @@ func parseEntrypointResult(res pkgexec.Result) (any, error) {
 	if res.ExitCode != 0 {
 		code := res.ExitCode
 		return nil, &functionRunError{
-			msg:      fmt.Sprintf("function exited with code %d", res.ExitCode),
+			msg:      entrypointFailureMessage(res),
 			exitCode: &code,
-			kind:     types.ErrInvalidArgument,
+			kind:     types.ErrInvokeRun,
 		}
 	}
 	parsed, err := ParseStdoutJSON(res.Stdout)
@@ -803,10 +808,21 @@ func parseEntrypointResult(res pkgexec.Result) (any, error) {
 		return nil, &functionRunError{
 			msg:      err.Error(),
 			exitCode: &code,
-			kind:     types.ErrInvalidArgument,
+			kind:     types.ErrInvokeRun,
 		}
 	}
 	return parsed, nil
+}
+
+func entrypointFailureMessage(res pkgexec.Result) string {
+	msg := fmt.Sprintf("function exited with code %d", res.ExitCode)
+	if detail := strings.TrimSpace(res.Stderr); detail != "" {
+		return msg + ": " + detail
+	}
+	if detail := strings.TrimSpace(res.Stdout); detail != "" {
+		return msg + ": " + detail
+	}
+	return msg
 }
 
 func replayRun(run *model.FunctionRun) (*InvokeResult, error) {
@@ -838,7 +854,7 @@ func replayRun(run *model.FunctionRun) (*InvokeResult, error) {
 			if msg == "" {
 				msg = "function run failed"
 			}
-			return out, types.Errorf(types.ErrInvalidArgument, "%s", msg)
+			return out, types.Errorf(types.ErrInvokeRun, "%s", msg)
 		}
 		return out, nil
 	default:
