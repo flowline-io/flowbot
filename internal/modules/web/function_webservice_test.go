@@ -195,6 +195,17 @@ func TestFunctionWebCreateDraftPublishTry(t *testing.T) {
 	require.NoError(t, sonic.ConfigDefault.NewDecoder(pubResp.Body).Decode(&published))
 	require.NotNil(t, published["version"])
 
+	editAfterPubReq := httptest.NewRequest(http.MethodGet, "/service/web/functions/web-fn", http.NoBody)
+	addWebAuth(editAfterPubReq)
+	editAfterPubResp, err := app.Test(editAfterPubReq)
+	require.NoError(t, err)
+	defer editAfterPubResp.Body.Close()
+	require.Equal(t, http.StatusOK, editAfterPubResp.StatusCode)
+	editAfterPubBody, err := io.ReadAll(editAfterPubResp.Body)
+	require.NoError(t, err)
+	assert.Contains(t, string(editAfterPubBody), `data-testid="function-call-url-version"`)
+	assert.Contains(t, string(editAfterPubBody), "/service/functions/call/web-fn/v/")
+
 	tryBody, err := sonic.MarshalString(map[string]any{"event": map[string]any{"x": 1}})
 	require.NoError(t, err)
 	tryReq := httptest.NewRequest(http.MethodPost, "/service/web/functions/web-fn/try", strings.NewReader(tryBody))

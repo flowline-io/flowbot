@@ -149,9 +149,19 @@ func (s *FunctionStore) PublishDefinition(ctx context.Context, name string, vers
 		return nil, types.ErrConflict
 	}
 
+	nextPublishedVersion := 1
+	if latest, latestErr := tx.FunctionDefinitionVersion.Query().
+		Where(functiondefinitionversion.FunctionName(name)).
+		Order(gen.Desc(functiondefinitionversion.FieldVersion)).
+		First(ctx); latestErr == nil {
+		nextPublishedVersion = latest.Version + 1
+	} else if !gen.IsNotFound(latestErr) {
+		return nil, fmt.Errorf("publish: resolve next version: %w", latestErr)
+	}
+
 	if _, err := tx.FunctionDefinitionVersion.Create().
 		SetFunctionName(name).
-		SetVersion(version + 1).
+		SetVersion(nextPublishedVersion).
 		SetMetadata(def.MetadataDraft).
 		SetEntrypoint(def.EntrypointDraft).
 		SetSource(def.SourceDraft).

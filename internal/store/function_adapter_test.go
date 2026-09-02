@@ -38,7 +38,7 @@ func TestFunctionCatalogAdapter(t *testing.T) {
 
 				ver, err := catalog.GetLatestPublished(ctx, "adapter-fn")
 				require.NoError(t, err)
-				assert.Equal(t, 2, ver.Version)
+				assert.Equal(t, 1, ver.Version)
 				assert.Equal(t, "main.py", ver.Entrypoint)
 
 				n, err := catalog.Delete(ctx, "adapter-fn")
@@ -57,14 +57,14 @@ func TestFunctionCatalogAdapter(t *testing.T) {
 				_, err := catalog.Publish(ctx, "idem-fn", 1)
 				require.NoError(t, err)
 
-				run, err := catalog.CreateRun(ctx, "idem-fn", 2, nil)
+				run, err := catalog.CreateRun(ctx, "idem-fn", 1, nil)
 				require.NoError(t, err)
 				assert.Equal(t, string(types.FunctionRunRunning), run.Status)
 
 				key := "idem-1"
-				_, err = catalog.CreateRun(ctx, "idem-fn", 2, &key)
+				_, err = catalog.CreateRun(ctx, "idem-fn", 1, &key)
 				require.NoError(t, err)
-				_, err = catalog.CreateRun(ctx, "idem-fn", 2, &key)
+				_, err = catalog.CreateRun(ctx, "idem-fn", 1, &key)
 				require.ErrorIs(t, err, types.ErrConflict)
 			},
 		},
@@ -76,7 +76,7 @@ func TestFunctionCatalogAdapter(t *testing.T) {
 				require.NoError(t, catalog.Create(ctx, "complete-fn", meta, "main.py", "print(1)", "uid-1"))
 				_, err := catalog.Publish(ctx, "complete-fn", 1)
 				require.NoError(t, err)
-				run, err := catalog.CreateRun(ctx, "complete-fn", 2, nil)
+				run, err := catalog.CreateRun(ctx, "complete-fn", 1, nil)
 				require.NoError(t, err)
 				result := `{"ok":true}`
 				exit := 0

@@ -74,7 +74,7 @@ func TestFunctionStore_DefinitionCRUD(t *testing.T) {
 				require.NoError(t, err)
 				_, err = fs.PublishDefinition(ctx, "del-fn", 2)
 				require.NoError(t, err)
-				_, err = fs.CreateRun(ctx, "del-fn", 3, "running", "")
+				_, err = fs.CreateRun(ctx, "del-fn", 1, "running", "")
 				require.NoError(t, err)
 
 				_, err = fs.DeleteDefinitionByName(ctx, "del-fn")
@@ -120,14 +120,14 @@ func TestFunctionStore_PublishAndVersions(t *testing.T) {
 				require.NotNil(t, def.SourcePublished)
 				assert.Equal(t, "print(1)", *def.SourcePublished)
 
-				ver, err := fs.GetPublishedVersion(ctx, "pub-fn", 3)
+				ver, err := fs.GetPublishedVersion(ctx, "pub-fn", 1)
 				require.NoError(t, err)
 				assert.Equal(t, "main.py", ver.Entrypoint)
 				assert.Equal(t, "print(1)", ver.Source)
 
 				latest, err := fs.GetLatestPublished(ctx, "pub-fn")
 				require.NoError(t, err)
-				assert.Equal(t, 3, latest.Version)
+				assert.Equal(t, 1, latest.Version)
 
 				listed, err := fs.ListPublishedDefinitions(ctx)
 				require.NoError(t, err)
@@ -181,11 +181,11 @@ func TestFunctionStore_PublishAndVersions(t *testing.T) {
 
 				latest, err := fs.GetLatestPublished(ctx, "repub-fn")
 				require.NoError(t, err)
-				assert.Equal(t, 5, latest.Version)
+				assert.Equal(t, 2, latest.Version)
 				assert.Equal(t, "main.sh", latest.Entrypoint)
 				assert.Equal(t, "v2", latest.Source)
 
-				old, err := fs.GetPublishedVersion(ctx, "repub-fn", 3)
+				old, err := fs.GetPublishedVersion(ctx, "repub-fn", 1)
 				require.NoError(t, err)
 				assert.Equal(t, "v1", old.Source)
 			},

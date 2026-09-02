@@ -27,6 +27,7 @@
       hmacSet: false,
       publishedVersion: null,
       hasUnpublishedChanges: false,
+      callURL: '',
       dirty: false,
       tab: 'code',
       tryEvent: '{}',
@@ -46,6 +47,13 @@
           root.getAttribute('data-has-unpublished') === 'true';
         var pub = root.getAttribute('data-published-version') || '';
         this.publishedVersion = pub ? parseInt(pub, 10) : null;
+        this.callURL = root.getAttribute('data-call-url') || '';
+        if (!this.callURL) {
+          var callEl = root.querySelector('[data-testid="function-call-url"]');
+          if (callEl) {
+            this.callURL = String(callEl.textContent || '').trim();
+          }
+        }
         var sourceEl = root.querySelector('[data-testid="input-source"]');
         if (sourceEl) {
           this.source = sourceEl.value;
@@ -62,37 +70,23 @@
         if (hmacEl && this.hmacSet) {
           this.hmacSecret = hmacEl.getAttribute('placeholder') || '••••••••';
         }
-        this.syncCallVersionLink();
+      },
+
+      callVersionURL() {
+        if (!this.publishedVersion) {
+          return '';
+        }
+        var base = String(this.callURL || '')
+          .trim()
+          .replace(/\/$/, '');
+        if (!base) {
+          return '';
+        }
+        return base + '/v/' + this.publishedVersion;
       },
 
       baseURL() {
         return '/service/web/functions/' + encodeURIComponent(this.name);
-      },
-
-      syncCallVersionLink() {
-        var root = this.$el;
-        if (!root) return;
-        var baseEl = root.querySelector('[data-testid="function-call-url"]');
-        var verEl = root.querySelector(
-          '[data-testid="function-call-url-version"]',
-        );
-        var copyBtn = root.querySelector(
-          '[data-testid="btn-copy-call-url-version"]',
-        );
-        if (!baseEl || !verEl || !this.publishedVersion) {
-          return;
-        }
-        var base = String(baseEl.textContent || '')
-          .trim()
-          .replace(/\/$/, '');
-        if (!base) {
-          return;
-        }
-        var url = base + '/v/' + this.publishedVersion;
-        verEl.textContent = url;
-        if (copyBtn) {
-          copyBtn.setAttribute('data-copy-url', url);
-        }
       },
 
       copyCallLink(event) {
@@ -269,7 +263,6 @@
           this.publishedVersion = data.version || this.publishedVersion;
           this.hasUnpublishedChanges = false;
           this.dirty = false;
-          this.syncCallVersionLink();
           window.dispatchEvent(
             new CustomEvent('flowbot:toast', {
               detail: {

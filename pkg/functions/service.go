@@ -358,15 +358,22 @@ func (s *Service) ApplyBundle(ctx context.Context, metadata, entrypoint, source,
 		def = updated
 	}
 
-	published, err := s.catalog.Publish(ctx, name, def.Version)
+	if _, err := s.catalog.Publish(ctx, name, def.Version); err != nil {
+		return nil, err
+	}
+	ver, err := s.catalog.GetLatestPublished(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	def, err = s.catalog.GetByName(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 	return &ApplyResult{
-		Name:    published.Name,
-		ID:      published.ID,
-		Version: published.Version,
-		Status:  published.Status,
+		Name:    def.Name,
+		ID:      def.ID,
+		Version: ver.Version,
+		Status:  def.Status,
 	}, nil
 }
 

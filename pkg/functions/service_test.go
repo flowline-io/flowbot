@@ -484,20 +484,23 @@ func (c *fakeCatalog) Publish(_ context.Context, name string, version int) (*mod
 	def.EntrypointPublished = &entry
 	def.SourcePublished = &src
 	def.Status = string(types.FunctionDefinitionPublished)
-	publishedVersion := def.Version
+	nextPublished := 1
+	for _, ver := range c.versions {
+		if ver != nil && ver.FunctionName == name && ver.Version >= nextPublished {
+			nextPublished = ver.Version + 1
+		}
+	}
 	c.nextID++
-	c.versions[nameVersionKey(name, publishedVersion)] = &model.FunctionDefinitionVersion{
+	c.versions[nameVersionKey(name, nextPublished)] = &model.FunctionDefinitionVersion{
 		ID:           c.nextID,
 		FunctionName: name,
-		Version:      publishedVersion,
+		Version:      nextPublished,
 		Metadata:     meta,
 		Entrypoint:   entry,
 		Source:       src,
 	}
 	def.Version++
-	cp := *def
-	cp.Version = publishedVersion
-	return &cp, nil
+	return def, nil
 }
 
 func (c *fakeCatalog) Delete(_ context.Context, name string) (int64, error) {
