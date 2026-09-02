@@ -402,7 +402,8 @@ func TestEnsureAgentReadableOpensRestrictiveWorkspace(t *testing.T) {
 	dir, err := os.MkdirTemp("", "flowbot-sandbox-ws-*")
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = os.RemoveAll(dir) })
-	require.NoError(t, os.Chmod(dir, 0o700))
+	// Directories need owner-execute to be traversable; 0600 would break the fixture.
+	require.NoError(t, os.Chmod(dir, 0o700)) // #nosec G302 -- dir mode, not a file
 
 	require.NoError(t, EnsureAgentReadable(dir))
 	info, err := os.Stat(dir)

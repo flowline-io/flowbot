@@ -126,7 +126,7 @@ func agentSessionExport(ctx fiber.Ctx) error {
 
 	filename := fmt.Sprintf("session-%s.json", sessionID)
 	ctx.Set("Content-Type", "application/json; charset=utf-8")
-	ctx.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	ctx.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
 	return ctx.Send(data)
 }
 
