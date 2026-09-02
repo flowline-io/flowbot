@@ -20,6 +20,11 @@ func AgentSessionThreadURL(flag string) templ.SafeURL {
 	return templ.URL("/service/web/agents/" + strings.TrimSpace(flag))
 }
 
+// AgentSessionExportURL builds the session export download URL for a session flag.
+func AgentSessionExportURL(flag string) templ.SafeURL {
+	return templ.URL("/service/web/agent-sessions/" + strings.TrimSpace(flag) + "/export")
+}
+
 // AgentSessionPageTitle returns the browser title for a session detail page.
 func AgentSessionPageTitle(session model.AgentSession) string {
 	if strings.TrimSpace(session.Title) != "" {

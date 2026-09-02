@@ -4463,6 +4463,9 @@ other = "No auxiliary files yet."
 [agent.session.back_to_thread]
 other = "← Back to session"
 
+[agent.session.export]
+other = "Export"
+
 [agent.session.session_id]
 other = "Session ID:"
 

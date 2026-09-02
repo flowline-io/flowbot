@@ -63,7 +63,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue("/static/js/function-editor.js?v=" + version.Buildtags)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 17, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 17, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -76,7 +76,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(draft.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 23, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 23, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 			if templ_7745c5c3_Err != nil {
@@ -89,7 +89,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(strconv.Itoa(draft.Version))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 24, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 24, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
@@ -102,7 +102,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(draft.Status)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 25, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 25, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 			if templ_7745c5c3_Err != nil {
@@ -115,7 +115,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(draft.Entrypoint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 26, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 26, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 			if templ_7745c5c3_Err != nil {
@@ -128,7 +128,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(strconv.FormatBool(draft.TokenSet))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 27, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 27, Col: 54}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 			if templ_7745c5c3_Err != nil {
@@ -141,7 +141,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(strconv.FormatBool(draft.HMACSet))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 28, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 28, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 			if templ_7745c5c3_Err != nil {
@@ -154,7 +154,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(strconv.FormatBool(draft.HasUnpublishedChanges))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 29, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 29, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 			if templ_7745c5c3_Err != nil {
@@ -167,7 +167,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(partials.PublishedVersionAttr(draft.PublishedVersion))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 30, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 30, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 			if templ_7745c5c3_Err != nil {
@@ -180,7 +180,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(draft.CallURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 31, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 31, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 			if templ_7745c5c3_Err != nil {
@@ -209,7 +209,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.back_to_functions"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 34, Col: 140}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 34, Col: 140}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -222,7 +222,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.save_draft"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 35, Col: 139}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 35, Col: 139}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -235,7 +235,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.publish"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 36, Col: 133}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 36, Col: 133}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -248,7 +248,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/functions/" + draft.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 40, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 40, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 				if templ_7745c5c3_Err != nil {
@@ -261,7 +261,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.TData(ctx, "confirm.delete_function.message", map[string]any{"Name": draft.Name}))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 42, Col: 106}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 42, Col: 106}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 				if templ_7745c5c3_Err != nil {
@@ -274,7 +274,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "confirm.delete_function.title"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 43, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 43, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
 				if templ_7745c5c3_Err != nil {
@@ -287,7 +287,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "confirm.delete_function.btn"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 44, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 44, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 				if templ_7745c5c3_Err != nil {
@@ -300,7 +300,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.delete"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 46, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 46, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 				if templ_7745c5c3_Err != nil {
@@ -323,7 +323,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.definition_version"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 49, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 49, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -336,7 +336,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.published"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 51, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 51, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {
@@ -349,7 +349,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.draft"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 54, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 54, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -362,7 +362,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.latest_published"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 57, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 57, Col: 89}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -375,7 +375,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.unpublished_changes"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 60, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 60, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
@@ -388,7 +388,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.unsaved"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 63, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 63, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
@@ -401,7 +401,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var28 string
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.latest"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 69, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 69, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -414,7 +414,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var29 string
 			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(draft.CallURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 70, Col: 109}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 70, Col: 109}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
@@ -427,7 +427,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var30 string
 			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.ResolveAttributeValue(draft.CallURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 74, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 74, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var30)
 			if templ_7745c5c3_Err != nil {
@@ -440,7 +440,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var31 string
 			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.copy"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 77, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 77, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 			if templ_7745c5c3_Err != nil {
@@ -453,7 +453,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var32 string
 			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(draft.CallVersionURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 87, Col: 150}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 87, Col: 150}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 			if templ_7745c5c3_Err != nil {
@@ -466,7 +466,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.copy"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 93, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 93, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -479,7 +479,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.auth_hint"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 95, Col: 128}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 95, Col: 128}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -492,7 +492,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.code"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 98, Col: 164}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 98, Col: 164}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
@@ -505,7 +505,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.runs"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 99, Col: 164}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 99, Col: 164}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -518,7 +518,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var37 string
 			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.stats"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 100, Col: 168}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 100, Col: 168}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
@@ -531,7 +531,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var38 string
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.try"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 101, Col: 160}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 101, Col: 160}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 			if templ_7745c5c3_Err != nil {
@@ -544,7 +544,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.entrypoint"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 106, Col: 95}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 106, Col: 95}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -557,7 +557,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var40 string
 			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.http_token"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 112, Col: 95}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 112, Col: 95}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 			if templ_7745c5c3_Err != nil {
@@ -570,7 +570,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var41 string
 			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.hmac_secret"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 114, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 114, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 			if templ_7745c5c3_Err != nil {
@@ -583,7 +583,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var42 string
 			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.env"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 116, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 116, Col: 88}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 			if templ_7745c5c3_Err != nil {
@@ -596,7 +596,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var43 string
 			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(draft.EnvText)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 117, Col: 159}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 117, Col: 159}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 			if templ_7745c5c3_Err != nil {
@@ -609,7 +609,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.source"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 120, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 120, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
@@ -622,7 +622,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var45 string
 			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(draft.Source)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 121, Col: 160}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 121, Col: 160}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 			if templ_7745c5c3_Err != nil {
@@ -635,7 +635,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/functions/" + draft.Name + "/runs")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 126, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 126, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var46)
 			if templ_7745c5c3_Err != nil {
@@ -656,7 +656,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var47 string
 			templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.ResolveAttributeValue(partials.FunctionStatsURL(draft.Name, 30, "day"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 132, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 132, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var47)
 			if templ_7745c5c3_Err != nil {
@@ -677,7 +677,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var48 string
 			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.try_disabled"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 139, Col: 109}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 139, Col: 109}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 			if templ_7745c5c3_Err != nil {
@@ -690,7 +690,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var49 string
 			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.event_json"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 143, Col: 95}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 143, Col: 95}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 			if templ_7745c5c3_Err != nil {
@@ -703,7 +703,7 @@ func FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) t
 			var templ_7745c5c3_Var50 string
 			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "function_editor.run_published"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `.`, Line: 145, Col: 155}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/function_editor.templ`, Line: 145, Col: 155}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 			if templ_7745c5c3_Err != nil {

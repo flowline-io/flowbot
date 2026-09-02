@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -24,6 +25,7 @@ var agentSessionsWebserviceRules = []webservice.Rule{
 	webservice.Get("/agent-sessions", agentSessionsPage),
 	webservice.Get("/agent-sessions/list", agentSessionsTable),
 	webservice.Get("/agent-sessions/:id", agentSessionDetailPage),
+	webservice.Get("/agent-sessions/:id/export", agentSessionExport),
 	webservice.Get("/agent-sessions/:id/resources", agentSessionResourcePreview),
 	webservice.Get("/agent-sessions/:id/entries/:entryID/payload", agentSessionEntryPayload),
 	webservice.Get("/agent-sessions/:id/events", agentSessionEvents),
@@ -98,6 +100,34 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 		todos,
 		pendingConfirmForSession(sessionID),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func agentSessionExport(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	sessionID := ctx.Params("id")
+	if sessionID == "" {
+		return ctx.Status(http.StatusBadRequest).SendString(webMsg(ctx, "error.agents.session_id_required"))
+	}
+
+	export, err := chatagent.ExportSession(ctx.Context(), sessionID)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).SendString(webMsg(ctx, "error.agents.session_not_found"))
+		}
+		return types.Errorf(types.ErrInternal, "export chat session: %v", err)
+	}
+
+	data, err := sonic.Marshal(export)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "marshal chat session export: %v", err)
+	}
+
+	filename := fmt.Sprintf("session-%s.json", sessionID)
+	ctx.Set("Content-Type", "application/json; charset=utf-8")
+	ctx.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	return ctx.Send(data)
 }
 
 func agentSessionResourcePreview(ctx fiber.Ctx) error {

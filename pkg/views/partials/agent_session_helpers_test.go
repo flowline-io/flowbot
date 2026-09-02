@@ -5,6 +5,25 @@ import (
 	"testing"
 )
 
+func TestAgentSessionExportURL(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		flag string
+		want string
+	}{
+		{name: "session flag", flag: "sess-1", want: "/service/web/agent-sessions/sess-1/export"},
+		{name: "trims spaces", flag: " sess-2 ", want: "/service/web/agent-sessions/sess-2/export"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := string(AgentSessionExportURL(tt.flag)); got != tt.want {
+				t.Fatalf("got %q want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestAgentSessionThreadURL(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

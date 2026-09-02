@@ -13,10 +13,12 @@ templ AgentSessionDetailPage(ctx context.Context, session model.AgentSession, en
 	@layout.Base(ctx, DocTitleAgentSession(ctx, session)) {
 		if session.Title != "" {
 			@partials.PageHeaderLiteral(ctx, session.Title, session.Flag) {
+				<a href={ partials.AgentSessionExportURL(session.Flag) } class="btn btn-ghost btn-sm" data-testid="agent-session-export">{ i18n.T(ctx, "agent.session.export") }</a>
 				<a href={ partials.AgentSessionThreadURL(session.Flag) } class="btn btn-ghost btn-sm" data-testid="agent-session-back">{ i18n.T(ctx, "agent.session.back_to_thread") }</a>
 			}
 		} else {
 			@partials.PageHeaderLiteral(ctx, session.Flag, "") {
+				<a href={ partials.AgentSessionExportURL(session.Flag) } class="btn btn-ghost btn-sm" data-testid="agent-session-export">{ i18n.T(ctx, "agent.session.export") }</a>
 				<a href={ partials.AgentSessionThreadURL(session.Flag) } class="btn btn-ghost btn-sm" data-testid="agent-session-back">{ i18n.T(ctx, "agent.session.back_to_thread") }</a>
 			}
 		}

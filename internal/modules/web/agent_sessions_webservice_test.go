@@ -357,6 +357,7 @@ func TestAgentSessionsPageUnauthenticated(t *testing.T) {
 		{name: "page redirects to login", path: "/service/web/agent-sessions"},
 		{name: "list redirects to login", path: "/service/web/agent-sessions/list"},
 		{name: "detail redirects to login", path: "/service/web/agent-sessions/sess-1"},
+		{name: "export redirects to login", path: "/service/web/agent-sessions/sess-1/export"},
 	}
 
 	for _, tt := range tests {
@@ -531,6 +532,15 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 			wantBody:   "Deploy flowbot",
 		},
 		{
+			name: "detail renders export button",
+			path: "/service/web/agent-sessions/sess-detail",
+			sessions: map[string]*gen.ChatSession{
+				"sess-detail": {Flag: "sess-detail", Title: "Deploy flowbot", UID: "user:x", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `data-testid="agent-session-export"`,
+		},
+		{
 			name: "detail back link returns to thread ui",
 			path: "/service/web/agent-sessions/sess-detail",
 			sessions: map[string]*gen.ChatSession{
@@ -576,6 +586,77 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			body, _ := io.ReadAll(resp.Body)
 			assert.Contains(t, string(body), tt.wantBody)
+		})
+	}
+}
+
+func TestAgentSessionExportAuthenticated(t *testing.T) {
+	now := time.Now().UTC()
+	tests := []struct {
+		name       string
+		path       string
+		sessions   map[string]*gen.ChatSession
+		entries    map[string][]*gen.ChatSessionEntry
+		wantStatus int
+		wantBody   string
+		wantDisp   string
+	}{
+		{
+			name: "export returns session json attachment",
+			path: "/service/web/agent-sessions/sess-export/export",
+			sessions: map[string]*gen.ChatSession{
+				"sess-export": {Flag: "sess-export", UID: "user:x", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			entries: map[string][]*gen.ChatSessionEntry{
+				"sess-export": {
+					{Flag: "entry-1", SessionID: "sess-export", EntryType: "message", CreatedAt: now, Payload: map[string]any{"type": "message", "id": "entry-1"}},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `"session_id":"sess-export"`,
+			wantDisp:   `attachment; filename="session-sess-export.json"`,
+		},
+		{
+			name:       "missing session returns not found",
+			path:       "/service/web/agent-sessions/missing/export",
+			sessions:   map[string]*gen.ChatSession{},
+			wantStatus: http.StatusNotFound,
+			wantBody:   i18n.T(i18n.DefaultContext(), "error.agents.session_not_found"),
+		},
+		{
+			name: "closed session exports",
+			path: "/service/web/agent-sessions/sess-closed/export",
+			sessions: map[string]*gen.ChatSession{
+				"sess-closed": {Flag: "sess-closed", UID: "user:y", State: int(schema.ChatSessionClosed), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `"state":"closed"`,
+			wantDisp:   `attachment; filename="session-sess-closed.json"`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ts := &testStore{
+				chatSessionsByFlag: tt.sessions,
+				chatSessionEntries: tt.entries,
+			}
+			app := setupAuthenticatedApp(t, ts)
+
+			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
+			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			body, _ := io.ReadAll(resp.Body)
+			assert.Contains(t, string(body), tt.wantBody)
+			if tt.wantDisp != "" {
+				assert.Equal(t, "application/json; charset=utf-8", resp.Header.Get("Content-Type"))
+				assert.Equal(t, tt.wantDisp, resp.Header.Get("Content-Disposition"))
+			}
 		})
 	}
 }
