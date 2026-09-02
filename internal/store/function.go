@@ -258,6 +258,40 @@ func (s *FunctionStore) GetPublishedVersion(ctx context.Context, name string, ve
 	return row, nil
 }
 
+// ListPublishedVersionNumbers returns published version numbers for a function, newest first.
+func (s *FunctionStore) ListPublishedVersionNumbers(ctx context.Context, name string) ([]int, error) {
+	byName, err := s.ListPublishedVersionNumbersByNames(ctx, []string{name})
+	if err != nil {
+		return nil, err
+	}
+	return byName[name], nil
+}
+
+// ListPublishedVersionNumbersByNames returns published version numbers per function name, newest first.
+func (s *FunctionStore) ListPublishedVersionNumbersByNames(ctx context.Context, names []string) (map[string][]int, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	if len(names) == 0 {
+		return map[string][]int{}, nil
+	}
+	rows, err := s.client.FunctionDefinitionVersion.Query().
+		Where(functiondefinitionversion.FunctionNameIn(names...)).
+		Order(
+			gen.Asc(functiondefinitionversion.FieldFunctionName),
+			gen.Desc(functiondefinitionversion.FieldVersion),
+		).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list published versions: %w", err)
+	}
+	out := make(map[string][]int, len(names))
+	for _, row := range rows {
+		out[row.FunctionName] = append(out[row.FunctionName], row.Version)
+	}
+	return out, nil
+}
+
 // GetLatestPublished returns the newest published version snapshot for a function name.
 func (s *FunctionStore) GetLatestPublished(ctx context.Context, name string) (*gen.FunctionDefinitionVersion, error) {
 	if s == nil || s.client == nil {

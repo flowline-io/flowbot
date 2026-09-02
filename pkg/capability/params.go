@@ -48,10 +48,22 @@ func IntParam(params map[string]any, key string) (int, bool) {
 	if !ok || value == nil {
 		return 0, false
 	}
+	return intFromAny(value)
+}
+
+func intFromAny(value any) (int, bool) {
 	switch v := value.(type) {
 	case int:
 		return v, true
 	case int64:
+		return int(v), true
+	case int32:
+		return int(v), true
+	case uint:
+		return int(v), true
+	case uint64:
+		return int(v), true
+	case uint32:
 		return int(v), true
 	case float64:
 		return int(v), true
@@ -79,15 +91,34 @@ func Int64Param(params map[string]any, key string) (int64, bool) {
 	if !ok || value == nil {
 		return 0, false
 	}
+	return int64FromAny(value)
+}
+
+func int64FromAny(value any) (int64, bool) {
 	switch v := value.(type) {
 	case int64:
 		return v, true
 	case int:
 		return int64(v), true
+	case int32:
+		return int64(v), true
+	case uint:
+		return int64(v), true
+	case uint64:
+		return int64(v), true
+	case uint32:
+		return int64(v), true
 	case float64:
 		return int64(v), true
+	case string:
+		parsed, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return 0, false
+		}
+		return parsed, true
+	default:
+		return 0, false
 	}
-	return 0, false
 }
 
 func RequiredInt64(params map[string]any, key string) (int64, error) {

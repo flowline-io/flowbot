@@ -253,6 +253,50 @@ func TestGetAgentRunOptions(t *testing.T) {
 	assert.NotEmpty(t, payload.Data.Tools)
 }
 
+type functionInvokeOptionsTestFunction struct {
+	Name              string `json:"name"`
+	PublishedVersions []int  `json:"published_versions"`
+}
+
+type functionInvokeOptionsTestData struct {
+	Functions []functionInvokeOptionsTestFunction `json:"functions"`
+}
+
+type functionInvokeOptionsTestPayload struct {
+	Status string                        `json:"status"`
+	Data   functionInvokeOptionsTestData `json:"data"`
+}
+
+func TestGetFunctionInvokeOptions(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+	wireFunctionServiceForTest(t, client, `{"ok":true}`)
+
+	ctx := context.Background()
+	fs := store.NewFunctionStore(client)
+	require.NoError(t, fs.CreateDefinition(ctx, "pipe-fn", ""))
+	_, err := fs.UpdateDefinitionDraft(ctx, "pipe-fn", "name: pipe-fn\n", "main.py", "print(1)", 1)
+	require.NoError(t, err)
+	_, err = fs.PublishDefinition(ctx, "pipe-fn", 2)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/function-invoke-options", http.NoBody)
+	addWebAuth(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	var payload functionInvokeOptionsTestPayload
+	require.NoError(t, sonic.Unmarshal(body, &payload))
+	assert.Equal(t, "ok", string(payload.Status))
+	require.Len(t, payload.Data.Functions, 1)
+	assert.Equal(t, "pipe-fn", payload.Data.Functions[0].Name)
+	assert.Equal(t, []int{1}, payload.Data.Functions[0].PublishedVersions)
+}
+
 func TestCreatePipelineUnicodeName(t *testing.T) {
 	app, _, client := setupTestAppWithDB(t)
 	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })

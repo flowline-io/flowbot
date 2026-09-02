@@ -503,14 +503,14 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div></div></div></div><!-- Drawer Backdrop --><div x-show=\"drawerOpen\" class=\"fixed inset-0 bg-black/30 z-40\" @click=\"closeDrawer\" data-testid=\"drawer-backdrop\"></div><!-- Configuration Drawer --><div x-show=\"drawerOpen\" :class=\"drawerExpanded ? 'w-4/5' : 'w-2/5'\" class=\"fixed right-0 top-0 h-full bg-base-100 z-50 transition-all duration-200 overflow-y-auto border-l border-base-300\" @click.stop data-testid=\"config-drawer\"><div class=\"p-6\"><div class=\"flex items-center justify-between mb-4\"><div class=\"flex gap-1\"><button type=\"button\" @click=\"drawerTab = 'setup'\" :class=\"drawerTab === 'setup' ? 'btn-active' : ''\" class=\"btn btn-ghost btn-sm\" data-testid=\"tab-setup\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div></div></div></div><!-- Drawer Backdrop --><template x-if=\"drawerOpen\"><div><div class=\"fixed inset-0 bg-black/30 z-40\" @click=\"closeDrawer\" data-testid=\"drawer-backdrop\"></div><!-- Configuration Drawer --><div :class=\"drawerExpanded ? 'w-4/5' : 'w-2/5'\" class=\"fixed right-0 top-0 h-full bg-base-100 z-50 transition-all duration-200 overflow-y-auto border-l border-base-300\" @click.stop data-testid=\"config-drawer\"><div class=\"p-6\"><div class=\"flex items-center justify-between mb-4\"><div class=\"flex gap-1\"><button type=\"button\" @click=\"drawerTab = 'setup'\" :class=\"drawerTab === 'setup' ? 'btn-active' : ''\" class=\"btn btn-ghost btn-sm\" data-testid=\"tab-setup\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.tab_setup"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 261, Col: 108}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 263, Col: 108}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -523,7 +523,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var37 string
 			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.tab_test"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 264, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 266, Col: 106}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
@@ -536,7 +536,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var38 string
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.expand"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 268, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 270, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 			if templ_7745c5c3_Err != nil {
@@ -549,7 +549,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.type"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 278, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 280, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -562,7 +562,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var40 string
 			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.trigger_type_event"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 282, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 284, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 			if templ_7745c5c3_Err != nil {
@@ -575,7 +575,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var41 string
 			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.trigger_type_webhook"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 283, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 285, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 			if templ_7745c5c3_Err != nil {
@@ -588,7 +588,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var42 string
 			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.trigger_type_cron"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 284, Col: 85}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 286, Col: 85}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 			if templ_7745c5c3_Err != nil {
@@ -601,7 +601,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var43 string
 			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.event_type"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 287, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 289, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 			if templ_7745c5c3_Err != nil {
@@ -614,7 +614,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.select_event"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 292, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 294, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
@@ -627,7 +627,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var45 string
 			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.custom_group"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 301, Col: 77}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 303, Col: 77}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var45)
 			if templ_7745c5c3_Err != nil {
@@ -640,7 +640,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.path"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 308, Col: 97}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 310, Col: 97}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 			if templ_7745c5c3_Err != nil {
@@ -653,7 +653,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var47 string
 			templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.method"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 313, Col: 99}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 315, Col: 99}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 			if templ_7745c5c3_Err != nil {
@@ -666,7 +666,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var48 string
 			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.token"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 321, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 323, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 			if templ_7745c5c3_Err != nil {
@@ -679,7 +679,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var49 string
 			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.hmac_secret"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 325, Col: 104}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 327, Col: 104}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 			if templ_7745c5c3_Err != nil {
@@ -692,7 +692,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var50 string
 			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.webhook_url"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 330, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 332, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 			if templ_7745c5c3_Err != nil {
@@ -705,7 +705,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var51 string
 			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.copy_webhook_url"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 338, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 340, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var51)
 			if templ_7745c5c3_Err != nil {
@@ -718,7 +718,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.copy_webhook_url"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 339, Col: 77}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 341, Col: 77}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var52)
 			if templ_7745c5c3_Err != nil {
@@ -731,7 +731,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var53 string
 			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.webhook_publish_hint"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 350, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 352, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 			if templ_7745c5c3_Err != nil {
@@ -744,7 +744,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var54 string
 			templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.copy_curl"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 355, Col: 94}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 357, Col: 94}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 			if templ_7745c5c3_Err != nil {
@@ -757,85 +757,85 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var55 string
 			templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.cron_expression"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 359, Col: 108}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 361, Col: 108}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</label> <input type=\"text\" x-model=\"selectedTrigger().cron\" class=\"input input-bordered w-full mb-3\" placeholder=\"*/5 * * * *\" data-testid=\"cron-expr-input\" @input=\"drawerDirty = true\"></div></div></template><template x-if=\"selectedStep()\"><div><label class=\"block text-sm font-medium mb-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</label> <input type=\"text\" x-model=\"selectedTrigger().cron\" class=\"input input-bordered w-full mb-3\" placeholder=\"*/5 * * * *\" data-testid=\"cron-expr-input\" @input=\"drawerDirty = true\"></div></div></template><template x-if=\"drawerStepFormReady\"><div data-testid=\"step-setup-form\"><label class=\"block text-sm font-medium mb-1\" for=\"step-name-input\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var56 string
 			templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.step_name"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 369, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 371, Col: 123}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</label> <input type=\"text\" x-model=\"selectedStep().name\" class=\"input input-bordered w-full mb-3\" placeholder=\"my-step\" data-testid=\"step-name-input\" @input=\"drawerDirty = true\"> <label class=\"block text-sm font-medium mb-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</label> <input type=\"text\" id=\"step-name-input\" name=\"step-name\" x-model=\"drawerStep.name\" @input=\"onDrawerStepNameInput()\" class=\"input input-bordered w-full mb-3\" placeholder=\"my-step\" data-testid=\"step-name-input\"> <label class=\"block text-sm font-medium mb-1\" for=\"step-capability-select\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var57 string
 			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.capability"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 374, Col: 102}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 379, Col: 131}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</label> <select x-model=\"selectedStep().capability\" @change=\"onCapabilityChange(selectedStepIndex())\" class=\"select select-bordered w-full mb-3\" data-testid=\"step-capability-select\"><option value=\"\" disabled>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</label> <select id=\"step-capability-select\" name=\"step-capability\" x-init=\"fillCapabilitySelect($el)\" @change=\"onDrawerCapabilityChange($event.target.value)\" class=\"select select-bordered w-full mb-3\" data-placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var58 string
-			templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.select_capability"))
+			templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.select_capability"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 379, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 386, Col: 81}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var58)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</option><template x-for=\"cap in capabilities\" :key=\"cap.type\"><option :value=\"cap.type\" x-text=\"cap.type\" :title=\"cap.description\"></option></template></select> <label class=\"block text-sm font-medium mb-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\" data-testid=\"step-capability-select\"></select> <label class=\"block text-sm font-medium mb-1\" for=\"step-operation-select\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var59 string
 			templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.operation"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 384, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 389, Col: 129}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</label> <select x-model=\"selectedStep().operation\" @change=\"onOperationChange(selectedStepIndex())\" class=\"select select-bordered w-full mb-3\" data-testid=\"step-operation-select\"><option value=\"\" disabled>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</label> <select id=\"step-operation-select\" name=\"step-operation\" x-init=\"fillOperationSelect($el)\" @change=\"onDrawerOperationChange($event.target.value)\" class=\"select select-bordered w-full mb-3\" data-placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var60 string
-			templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.select_operation"))
+			templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.select_operation"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 389, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 396, Col: 80}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var60)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</option><template x-for=\"op in selectedStepOperations()\" :key=\"op.name\"><option :value=\"op.name\" x-text=\"op.name\" :title=\"op.description\"></option></template></select><div x-show=\"isAgentRunStep(selectedStepIndex())\" class=\"mb-3\" data-testid=\"agent-run-options\"><label class=\"block text-sm font-medium mb-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\" data-testid=\"step-operation-select\"></select><div x-show=\"isAgentRunStep(drawerStepIndex)\" class=\"mb-3\" data-testid=\"agent-run-options\"><label class=\"block text-sm font-medium mb-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var61 string
 			templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.tools"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 395, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 400, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 			if templ_7745c5c3_Err != nil {
@@ -848,20 +848,20 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var62 string
 			templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.tools_hint"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 396, Col: 102}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 401, Col: 102}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</p><div class=\"grid grid-cols-2 md:grid-cols-3 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 mb-3\"><template x-for=\"toolName in agentRunOptions.tools\" :key=\"toolName\"><label class=\"flex items-center gap-2 text-sm cursor-pointer\"><input type=\"checkbox\" :checked=\"isAgentRunOptionSelected(selectedStepIndex(), 'tools', toolName)\" @change=\"toggleAgentRunOption(selectedStepIndex(), 'tools', toolName)\" class=\"checkbox checkbox-xs\" :data-testid=\"'agent-run-tool-' + toolName\"> <span class=\"font-mono text-xs\" x-text=\"toolName\"></span></label></template></div><label class=\"block text-sm font-medium mb-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</p><div class=\"grid grid-cols-2 md:grid-cols-3 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 mb-3\"><template x-for=\"toolName in agentRunOptions.tools\" :key=\"toolName\"><label class=\"flex items-center gap-2 text-sm cursor-pointer\"><input type=\"checkbox\" :checked=\"isAgentRunOptionSelected(drawerStepIndex, 'tools', toolName)\" @change=\"toggleAgentRunOption(drawerStepIndex, 'tools', toolName)\" class=\"checkbox checkbox-xs\" :data-testid=\"'agent-run-tool-' + toolName\"> <span class=\"font-mono text-xs\" x-text=\"toolName\"></span></label></template></div><label class=\"block text-sm font-medium mb-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var63 string
 			templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.skills"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 409, Col: 99}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 414, Col: 99}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 			if templ_7745c5c3_Err != nil {
@@ -874,7 +874,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var64 string
 			templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.skills_hint"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 410, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 415, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 			if templ_7745c5c3_Err != nil {
@@ -887,312 +887,455 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			var templ_7745c5c3_Var65 string
 			templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.no_skills"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 412, Col: 102}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 417, Col: 102}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</p></template><template x-if=\"agentRunOptions.skills.length > 0\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 max-h-48 overflow-y-auto mb-3\"><template x-for=\"skill in agentRunOptions.skills\" :key=\"skill.name\"><label class=\"flex items-start gap-2 text-sm cursor-pointer\"><input type=\"checkbox\" :checked=\"isAgentRunOptionSelected(selectedStepIndex(), 'skills', skill.name)\" @change=\"toggleAgentRunOption(selectedStepIndex(), 'skills', skill.name)\" class=\"checkbox checkbox-xs mt-0.5\" :data-testid=\"'agent-run-skill-' + skill.name\"> <span><span class=\"font-mono text-xs\" x-text=\"skill.name\"></span> <span class=\"block text-xs text-base-content/50\" x-text=\"skill.description\" x-show=\"skill.description\"></span></span></label></template></div></template></div><template x-if=\"getFormOperationInput(selectedStepIndex()).length > 0\"><div class=\"mb-3\" data-testid=\"params-form\"><label class=\"block text-sm font-medium mb-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</p></template><template x-if=\"agentRunOptions.skills.length > 0\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 max-h-48 overflow-y-auto mb-3\"><template x-for=\"skill in agentRunOptions.skills\" :key=\"skill.name\"><label class=\"flex items-start gap-2 text-sm cursor-pointer\"><input type=\"checkbox\" :checked=\"isAgentRunOptionSelected(drawerStepIndex, 'skills', skill.name)\" @change=\"toggleAgentRunOption(drawerStepIndex, 'skills', skill.name)\" class=\"checkbox checkbox-xs mt-0.5\" :data-testid=\"'agent-run-skill-' + skill.name\"> <span><span class=\"font-mono text-xs\" x-text=\"skill.name\"></span> <span class=\"block text-xs text-base-content/50\" x-text=\"skill.description\" x-show=\"skill.description\"></span></span></label></template></div></template></div><div x-show=\"isFunctionsInvokeStep(drawerStepIndex)\" class=\"mb-3\" data-testid=\"function-invoke-options\"><label class=\"block text-sm font-medium mb-1\" for=\"function-invoke-name-select\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var66 string
-			templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.parameters"))
+			templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.function_name"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 434, Col: 104}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 438, Col: 140}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</label><div class=\"space-y-4\"><template x-for=\"p in getFormOperationInput(selectedStepIndex())\" :key=\"p.name\"><div class=\"border border-base-300 rounded-box p-3 bg-base-100\"><div class=\"flex items-center gap-2 mb-1\"><span class=\"text-sm font-mono font-medium\" x-text=\"p.name\"></span> <span class=\"text-xs font-mono text-base-content/30 bg-base-200 rounded-box px-1.5 py-0.5\" x-text=\"p.type\"></span> <span x-show=\"p.required\" class=\"flowbot-chip flowbot-chip-error\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</label><p class=\"text-xs text-base-content/50 mb-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var67 string
-			templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.required"))
+			templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.function_name_hint"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 441, Col: 112}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 439, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var67))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</span> <span x-show=\"!p.required\" class=\"flowbot-chip flowbot-chip-muted\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</p><template x-if=\"isFunctionInvokeNameExpr(drawerStepIndex)\"><div class=\"flex gap-2 items-start mb-3\"><input type=\"text\" :value=\"getFunctionInvokeName(drawerStepIndex)\" @input=\"setStepParamString(drawerStepIndex, 'name', $event.target.value)\" class=\"input input-bordered input-sm w-full font-mono\" data-param-field=\"name\" data-testid=\"function-invoke-name-expr\"> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, 'name')\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" data-testid=\"btn-var-name\">&#123;x&#125;</button></div></template><template x-if=\"!isFunctionInvokeNameExpr(drawerStepIndex) && (functionInvokeOptions.functions || []).length === 0 && !getFunctionInvokeName(drawerStepIndex)\"><p class=\"text-xs text-base-content/50 mb-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var68 string
-			templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.optional"))
+			templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.no_published_functions"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 442, Col: 113}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 455, Col: 115}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</span> <button type=\"button\" x-show=\"!p.required\" @click=\"clearStepParam(selectedStepIndex(), p.name)\" class=\"btn btn-ghost btn-xs ml-auto text-base-content/50\" :data-testid=\"'btn-clear-param-' + p.name\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</p></template><template x-if=\"!isFunctionInvokeNameExpr(drawerStepIndex) && ((functionInvokeOptions.functions || []).length > 0 || getFunctionInvokeName(drawerStepIndex))\"><div class=\"flex gap-2 items-start mb-3\"><select id=\"function-invoke-name-select\" name=\"function-name\" x-init=\"fillFunctionNameSelect($el)\" @change=\"setFunctionInvokeName(drawerStepIndex, $event.target.value)\" class=\"select select-bordered w-full font-mono\" data-placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var69 string
-			templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.clear"))
+			templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.select_function"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 447, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 465, Col: 82}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var69)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</button></div><p x-show=\"p.description\" class=\"text-xs text-base-content/50 mb-2\" x-text=\"p.description\"></p><template x-if=\"isParamTypeString(p)\"><div class=\"flex gap-2 items-start\"><textarea rows=\"3\" :value=\"getStepParamString(selectedStepIndex(), p.name)\" @input=\"setStepParamString(selectedStepIndex(), p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" :placeholder=\"paramFieldPlaceholder(p)\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea> <button type=\"button\" @click=\"openVariablePicker(selectedStepIndex(), p.name)\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" :data-testid=\"'btn-var-' + p.name\">&#123;x&#125;</button></div></template><template x-if=\"isParamTypeNumber(p)\"><div class=\"flex gap-2 items-start\"><input type=\"text\" inputmode=\"numeric\" :value=\"getStepParamNumber(selectedStepIndex(), p.name)\" @input=\"setStepParamNumber(selectedStepIndex(), p.name, $event.target.value, p.type)\" class=\"input input-bordered input-sm w-full font-mono\" :placeholder=\"numberParamPlaceholder(p)\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"> <button type=\"button\" @click=\"openVariablePicker(selectedStepIndex(), p.name)\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" :data-testid=\"'btn-var-' + p.name\">&#123;x&#125;</button></div></template><template x-if=\"isParamTypeBool(p)\"><div><select :value=\"getStepParamBoolMode(selectedStepIndex(), p.name)\" @change=\"setStepParamBoolMode(selectedStepIndex(), p.name, $event.target.value)\" class=\"select select-bordered select-sm w-full\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"><option value=\"unset\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "\" data-testid=\"function-invoke-name-select\"></select> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, 'name')\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" data-testid=\"btn-var-name\">&#123;x&#125;</button></div></template><label class=\"block text-sm font-medium mb-1\" for=\"function-invoke-version-select\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var70 string
-			templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.not_set"))
+			templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.function_version"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 489, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 474, Col: 146}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var70))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</option> <option value=\"true\">true</option> <option value=\"false\">false</option></select></div></template><template x-if=\"isParamTypeStringList(p)\"><div><textarea rows=\"3\" :value=\"getStepParamStringList(selectedStepIndex(), p.name)\" @input=\"setStepParamStringList(selectedStepIndex(), p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" placeholder=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</label><p class=\"text-xs text-base-content/50 mb-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var71 string
-			templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.placeholder_comma_values"))
+			templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.function_version_hint"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 501, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 475, Col: 113}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var71)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var71))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea></div></template><template x-if=\"isParamTypeIntList(p)\"><div class=\"flex gap-2 items-start\"><textarea rows=\"3\" :value=\"getStepParamIntList(selectedStepIndex(), p.name)\" @input=\"setStepParamIntList(selectedStepIndex(), p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" placeholder=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "</p><template x-if=\"showFunctionInvokeVersionExpr(drawerStepIndex)\"><div class=\"flex gap-2 items-start mb-3\"><input type=\"text\" inputmode=\"numeric\" :value=\"getFunctionInvokeVersion(drawerStepIndex)\" @input=\"setFunctionInvokeVersionExpr(drawerStepIndex, $event.target.value)\" class=\"input input-bordered input-sm w-full font-mono\" :placeholder=\"numberParamPlaceholder({ required: true, type: 'number' })\" data-param-field=\"version\" data-testid=\"function-invoke-version-expr\"> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, 'version')\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" data-testid=\"btn-var-version\">&#123;x&#125;</button></div></template><template x-if=\"!showFunctionInvokeVersionExpr(drawerStepIndex) && !showFunctionInvokeVersionSelect(drawerStepIndex)\"><p class=\"text-xs text-base-content/50 mb-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var72 string
-			templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.placeholder_comma_ids"))
+			templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.select_function_first"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 512, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 493, Col: 114}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var72)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea> <button type=\"button\" @click=\"openVariablePicker(selectedStepIndex(), p.name)\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" :data-testid=\"'btn-var-' + p.name\">&#123;x&#125;</button></div></template><template x-if=\"isParamTypeMap(p)\"><div><textarea rows=\"4\" :value=\"getStepParamMapJSON(selectedStepIndex(), p.name)\" @input=\"setStepParamMapJSON(selectedStepIndex(), p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" :class=\"isParamFieldError(selectedStepIndex(), p.name) ? 'textarea-error' : ''\" placeholder=\"{}\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea><p x-show=\"isParamFieldError(selectedStepIndex(), p.name)\" class=\"text-xs text-error mt-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "</p></template><template x-if=\"showFunctionInvokeVersionSelect(drawerStepIndex)\"><div class=\"flex gap-2 items-start mb-3\"><select id=\"function-invoke-version-select\" name=\"function-version\" x-init=\"fillFunctionVersionSelect($el)\" @change=\"setFunctionInvokeVersion(drawerStepIndex, $event.target.value)\" class=\"select select-bordered w-full font-mono\" data-placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var73 string
-			templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.invalid_json_object"))
+			templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.select_version"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 532, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 503, Col: 81}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var73)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "</p></div></template></div></template></div></div></template><template x-if=\"getExtraParamKeys(selectedStepIndex()).length > 0\"><p class=\"text-xs text-base-content/50 mb-3\" data-testid=\"params-extra-keys-info\" x-text=\"extraFieldsHint(selectedStepIndex())\"></p></template><div class=\"collapse collapse-arrow border border-base-300 rounded-box bg-base-200 mb-3\"><input type=\"checkbox\" x-model=\"paramsAdvancedOpen\" data-testid=\"params-advanced-toggle\"><div class=\"collapse-title text-sm font-medium min-h-0 py-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\" data-testid=\"function-invoke-version-select\"></select> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, 'version')\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" data-testid=\"btn-var-version\">&#123;x&#125;</button></div></template></div><template x-if=\"getFormOperationInput(drawerStepIndex).length > 0\"><div class=\"mb-3\" data-testid=\"params-form\"><label class=\"block text-sm font-medium mb-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var74 string
-			templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.advanced_json"))
+			templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.parameters"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 547, Col: 121}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 515, Col: 104}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</div><div class=\"collapse-content\"><textarea rows=\"8\" x-model=\"selectedStep().paramsText\" class=\"textarea textarea-bordered w-full font-mono\" placeholder='{ \"title\": \"event.title\" }' @input=\"drawerDirty = true; onParamsTextInput(selectedStepIndex())\" data-testid=\"params-editor\"></textarea> <button type=\"button\" @click=\"openVariablePicker(selectedStepIndex(), null)\" class=\"btn btn-ghost btn-sm text-primary mt-2\" data-testid=\"btn-open-var-picker\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</label><div class=\"space-y-4\"><template x-for=\"p in getFormOperationInput(drawerStepIndex)\" :key=\"p.name\"><div class=\"border border-base-300 rounded-box p-3 bg-base-100\"><div class=\"flex items-center gap-2 mb-1\"><span class=\"text-sm font-mono font-medium\" x-text=\"p.name\"></span> <span class=\"text-xs font-mono text-base-content/30 bg-base-200 rounded-box px-1.5 py-0.5\" x-text=\"p.type\"></span> <span x-show=\"p.required\" class=\"flowbot-chip flowbot-chip-error\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var75 string
-			templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.insert_variable"))
+			templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.required"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 556, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 522, Col: 112}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "</button></div></div></div></template></div><div x-show=\"drawerTab === 'setup' && (selectedStep() || selectedTrigger())\" class=\"sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-base-300 bg-base-100 px-6 py-4 flex justify-end gap-2\" data-testid=\"drawer-setup-actions\"><button type=\"button\" @click=\"closeDrawer\" class=\"btn btn-ghost btn-sm\" data-testid=\"btn-drawer-cancel\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "</span> <span x-show=\"!p.required\" class=\"flowbot-chip flowbot-chip-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var76 string
-			templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.cancel"))
+			templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.optional"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 568, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 523, Col: 113}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</button> <button type=\"button\" @click.stop=\"saveDrawer()\" :disabled=\"saving\" class=\"btn btn-primary btn-sm\" data-testid=\"btn-drawer-save\"><span x-show=\"!saving\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</span> <button type=\"button\" x-show=\"!p.required\" @click=\"clearStepParam(drawerStepIndex, p.name)\" class=\"btn btn-ghost btn-xs ml-auto text-base-content/50\" :data-testid=\"'btn-clear-param-' + p.name\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var77 string
-			templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.save"))
+			templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.clear"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 573, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 528, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var77))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "</span> <span x-show=\"saving\" class=\"flex items-center gap-1\"><span class=\"inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin\"></span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "</button></div><p x-show=\"p.description\" class=\"text-xs text-base-content/50 mb-2\" x-text=\"p.description\"></p><template x-if=\"isParamTypeString(p)\"><div class=\"flex gap-2 items-start\"><textarea rows=\"3\" :value=\"getStepParamString(drawerStepIndex, p.name)\" @input=\"setStepParamString(drawerStepIndex, p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" :placeholder=\"paramFieldPlaceholder(p)\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, p.name)\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" :data-testid=\"'btn-var-' + p.name\">&#123;x&#125;</button></div></template><template x-if=\"isParamTypeNumber(p)\"><div class=\"flex gap-2 items-start\"><input type=\"text\" inputmode=\"numeric\" :value=\"getStepParamNumber(drawerStepIndex, p.name)\" @input=\"setStepParamNumber(drawerStepIndex, p.name, $event.target.value, p.type)\" class=\"input input-bordered input-sm w-full font-mono\" :placeholder=\"numberParamPlaceholder(p)\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, p.name)\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" :data-testid=\"'btn-var-' + p.name\">&#123;x&#125;</button></div></template><template x-if=\"isParamTypeBool(p)\"><div><select :value=\"getStepParamBoolMode(drawerStepIndex, p.name)\" @change=\"setStepParamBoolMode(drawerStepIndex, p.name, $event.target.value)\" class=\"select select-bordered select-sm w-full\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"><option value=\"unset\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var78 string
-			templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.saving"))
+			templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.not_set"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 576, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 570, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var78))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</span></button></div><!-- Test Tab --><div x-show=\"drawerTab === 'test'\" data-testid=\"drawer-test\"><template x-if=\"selectedStep()\"><div><label class=\"block text-sm font-medium mb-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</option> <option value=\"true\">true</option> <option value=\"false\">false</option></select></div></template><template x-if=\"isParamTypeStringList(p)\"><div><textarea rows=\"3\" :value=\"getStepParamStringList(drawerStepIndex, p.name)\" @input=\"setStepParamStringList(drawerStepIndex, p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var79 string
-			templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_trigger_source"))
+			templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.placeholder_comma_values"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 585, Col: 111}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 582, Col: 90}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var79)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "</label> <select x-model=\"testTriggerSource\" class=\"select select-bordered w-full mb-3\" data-testid=\"test-trigger-select\"><template x-for=\"t in enabledTriggers\" :key=\"t.type\"><option :value=\"t.type\" x-text=\"t.type\"></option></template></select> <label class=\"block text-sm font-medium mb-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea></div></template><template x-if=\"isParamTypeIntList(p)\"><div class=\"flex gap-2 items-start\"><textarea rows=\"3\" :value=\"getStepParamIntList(drawerStepIndex, p.name)\" @input=\"setStepParamIntList(drawerStepIndex, p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var80 string
-			templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_mock_payload"))
+			templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.placeholder_comma_ids"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 592, Col: 109}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 593, Col: 87}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var80)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "</label> <textarea x-model=\"testMockPayload\" rows=\"4\" class=\"textarea textarea-bordered w-full font-mono mb-3\" placeholder=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, p.name)\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" :data-testid=\"'btn-var-' + p.name\">&#123;x&#125;</button></div></template><template x-if=\"isParamTypeMap(p)\"><div><textarea rows=\"4\" :value=\"getStepParamMapJSON(drawerStepIndex, p.name)\" @input=\"setStepParamMapJSON(drawerStepIndex, p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" :class=\"isParamFieldError(drawerStepIndex, p.name) ? 'textarea-error' : ''\" placeholder=\"{}\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea><p x-show=\"isParamFieldError(drawerStepIndex, p.name)\" class=\"text-xs text-error mt-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var81 string
-			templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.test_mock_placeholder"))
+			templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.invalid_json_object"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 595, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 613, Col: 105}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var81)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "\" data-testid=\"mock-payload\"></textarea> <button type=\"button\" @click=\"loadMockPayload\" class=\"btn btn-ghost btn-sm text-primary mb-3\" data-testid=\"btn-load-mock\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "</p></div></template><template x-if=\"isParamTypeAny(p)\"><div><div class=\"flex gap-2 items-start\"><textarea rows=\"4\" :value=\"getStepParamAnyJSON(drawerStepIndex, p.name)\" @input=\"setStepParamAnyJSON(drawerStepIndex, p.name, $event.target.value)\" class=\"textarea textarea-bordered textarea-sm w-full font-mono\" :class=\"isParamFieldError(drawerStepIndex, p.name) ? 'textarea-error' : ''\" placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var82 string
-			templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_load_sample"))
+			templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.placeholder_any_json"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 598, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 624, Col: 87}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var82))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var82)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "</button> <button type=\"button\" @click=\"runTest\" :disabled=\"testing\" class=\"btn btn-primary btn-block mb-4\" data-testid=\"btn-run-test\"><span x-show=\"!testing\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "\" :data-param-field=\"p.name\" :data-testid=\"'param-field-' + p.name\"></textarea> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, p.name)\" class=\"btn btn-ghost btn-sm text-primary shrink-0 mt-1\" :data-testid=\"'btn-var-' + p.name\">&#123;x&#125;</button></div><p x-show=\"isParamFieldError(drawerStepIndex, p.name)\" class=\"text-xs text-error mt-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var83 string
-			templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_run"))
+			templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.invalid_json_value"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 603, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 633, Col: 104}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "</span> <span x-show=\"testing\" class=\"flex items-center justify-center gap-1\"><span class=\"inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin\"></span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "</p></div></template></div></template></div></div></template><template x-if=\"getExtraParamKeys(drawerStepIndex).length > 0\"><p class=\"text-xs text-base-content/50 mb-3\" data-testid=\"params-extra-keys-info\" x-text=\"extraFieldsHint(drawerStepIndex)\"></p></template><div class=\"collapse collapse-arrow border border-base-300 rounded-box bg-base-200 mb-3\"><input type=\"checkbox\" x-model=\"paramsAdvancedOpen\" name=\"params-advanced\" aria-label=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var84 string
-			templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_testing"))
+			templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.advanced_json"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 606, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 647, Col: 146}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var84))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var84)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</span></button><div x-show=\"testResults\" data-testid=\"test-results\" class=\"border-t border-base-300 pt-4\"><template x-if=\"hasTestResultSteps()\"><template x-for=\"r in testResults.steps\" :key=\"r.name\"><div class=\"mb-3 text-sm\"><div class=\"flex items-center gap-2\"><span x-show=\"r.status === 'ok'\" class=\"text-success font-bold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "\" data-testid=\"params-advanced-toggle\"><div class=\"collapse-title text-sm font-medium min-h-0 py-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var85 string
-			templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_status_ok"))
+			templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.advanced_json"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 614, Col: 128}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 648, Col: 121}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var85))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</span> <span x-show=\"r.status === 'error'\" class=\"text-error font-bold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</div><div class=\"collapse-content\"><textarea rows=\"8\" id=\"step-params-editor\" name=\"step-params\" x-model=\"drawerStep.paramsText\" @input=\"onDrawerParamsTextInput()\" class=\"textarea textarea-bordered w-full font-mono\" placeholder='{ \"title\": \"event.title\" }' data-testid=\"params-editor\"></textarea> <button type=\"button\" @click=\"openVariablePicker(drawerStepIndex, null)\" class=\"btn btn-ghost btn-sm text-primary mt-2\" data-testid=\"btn-open-var-picker\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var86 string
-			templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_status_err"))
+			templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.insert_variable"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 615, Col: 130}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 660, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var86))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "</span> <span class=\"font-medium\" x-text=\"r.name\"></span> <span class=\"text-xs text-base-content/30\" x-text=\"r.duration_ms + 'ms'\"></span></div><pre x-show=\"r.output\" class=\"text-xs bg-base-200 p-2 rounded-box mt-1 overflow-x-auto\" x-text=\"JSON.stringify(r.output, null, 2)\"></pre><div x-show=\"r.error\" class=\"text-error text-xs mt-1\" x-text=\"r.error\"></div></div></template></template></div></div></template></div></div></div><!-- Variable Picker Modal --><div x-show=\"variablePickerOpen\" class=\"fixed inset-0 z-60 flex items-center justify-center\" @click.self=\"variablePickerOpen = false\"><div class=\"bg-base-100 rounded-box border border-base-300 p-6 w-96 max-h-96 overflow-y-auto\" data-testid=\"var-picker\"><h4 class=\"font-medium text-base-content mb-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "</button></div></div><span class=\"hidden\" aria-hidden=\"true\" x-init=\"fillDrawerSelects()\"></span></div></template></div><div x-show=\"drawerTab === 'setup' && (drawerStepFormReady || selectedTrigger())\" class=\"sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-base-300 bg-base-100 px-6 py-4 flex justify-end gap-2\" data-testid=\"drawer-setup-actions\"><button type=\"button\" @click=\"closeDrawer\" class=\"btn btn-ghost btn-sm\" data-testid=\"btn-drawer-cancel\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var87 string
-			templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.var_picker_title"))
+			templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.cancel"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 636, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 673, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var87))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "</h4><div class=\"text-sm space-y-1\"><div class=\"text-xs text-base-content/30 uppercase mb-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "</button> <button type=\"button\" @click.stop=\"saveDrawer()\" :disabled=\"saving\" class=\"btn btn-primary btn-sm\" data-testid=\"btn-drawer-save\"><span x-show=\"!saving\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var88 string
-			templ_7745c5c3_Var88, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.var_picker_event_data"))
+			templ_7745c5c3_Var88, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.save"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 638, Col: 122}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 678, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var88))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</div><button @click=\"insertVariable('event.event_id')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.event_id</button> <button @click=\"insertVariable('event.event_type')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.event_type</button> <button @click=\"insertVariable('event.title')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.title</button> <button @click=\"insertVariable('event.entity_id')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.entity_id</button> <button @click=\"insertVariable('event.source')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.source</button> <button @click=\"insertVariable('event.capability')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.capability</button><template x-for=\"idx in priorStepIndexes()\" :key=\"idx\"><div x-show=\"steps[idx]\"><div class=\"text-xs text-base-content/30 uppercase mt-2 mb-1\" x-text=\"'steps.' + stepNameAt(idx)\"></div><button type=\"button\" @click=\"insertStepVariable(idx, 'id')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\"><span x-text=\"stepVarPath(idx, 'id')\"></span></button> <button type=\"button\" @click=\"insertStepVariable(idx, 'result')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\"><span x-text=\"stepVarPath(idx, 'result')\"></span></button></div></template></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</span> <span x-show=\"saving\" class=\"flex items-center gap-1\"><span class=\"inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin\"></span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var89 string
+			templ_7745c5c3_Var89, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.saving"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 681, Col: 52}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var89))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "</span></button></div><!-- Test Tab --><div x-show=\"drawerTab === 'test'\" data-testid=\"drawer-test\"><template x-if=\"selectedStep()\"><div><label class=\"block text-sm font-medium mb-1\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var90 string
+			templ_7745c5c3_Var90, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_trigger_source"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 690, Col: 111}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var90))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "</label> <select x-model=\"testTriggerSource\" class=\"select select-bordered w-full mb-3\" data-testid=\"test-trigger-select\"><template x-for=\"t in enabledTriggers\" :key=\"t.type\"><option :value=\"t.type\" x-text=\"t.type\"></option></template></select> <label class=\"block text-sm font-medium mb-1\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var91 string
+			templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_mock_payload"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 697, Col: 109}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var91))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "</label> <textarea x-model=\"testMockPayload\" rows=\"4\" class=\"textarea textarea-bordered w-full font-mono mb-3\" placeholder=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var92 string
+			templ_7745c5c3_Var92, templ_7745c5c3_Err = templ.ResolveAttributeValue(i18n.T(ctx, "page.pipeline_editor.test_mock_placeholder"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 700, Col: 80}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var92)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "\" data-testid=\"mock-payload\"></textarea> <button type=\"button\" @click=\"loadMockPayload\" class=\"btn btn-ghost btn-sm text-primary mb-3\" data-testid=\"btn-load-mock\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var93 string
+			templ_7745c5c3_Var93, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_load_sample"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 703, Col: 91}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var93))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "</button> <button type=\"button\" @click=\"runTest\" :disabled=\"testing\" class=\"btn btn-primary btn-block mb-4\" data-testid=\"btn-run-test\"><span x-show=\"!testing\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var94 string
+			templ_7745c5c3_Var94, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_run"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 708, Col: 79}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var94))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "</span> <span x-show=\"testing\" class=\"flex items-center justify-center gap-1\"><span class=\"inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin\"></span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var95 string
+			templ_7745c5c3_Var95, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_testing"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 711, Col: 60}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var95))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "</span></button><div x-show=\"testResults\" data-testid=\"test-results\" class=\"border-t border-base-300 pt-4\"><template x-if=\"hasTestResultSteps()\"><template x-for=\"r in testResults.steps\" :key=\"r.name\"><div class=\"mb-3 text-sm\"><div class=\"flex items-center gap-2\"><span x-show=\"r.status === 'ok'\" class=\"text-success font-bold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var96 string
+			templ_7745c5c3_Var96, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_status_ok"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 719, Col: 128}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var96))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "</span> <span x-show=\"r.status === 'error'\" class=\"text-error font-bold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var97 string
+			templ_7745c5c3_Var97, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.test_status_err"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 720, Col: 130}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var97))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "</span> <span class=\"font-medium\" x-text=\"r.name\"></span> <span class=\"text-xs text-base-content/30\" x-text=\"formatTestStepDuration(r.duration_ms)\"></span></div><pre x-show=\"r.output\" class=\"text-xs bg-base-200 p-2 rounded-box mt-1 overflow-x-auto\" x-text=\"formatTestStepOutput(r.output)\"></pre><div x-show=\"r.error\" class=\"text-error text-xs mt-1\" x-text=\"r.error\"></div></div></template></template></div></div></template></div></div></div></div></template><!-- Variable Picker Modal --><div x-show=\"variablePickerOpen\" class=\"fixed inset-0 z-60 flex items-center justify-center\" @click.self=\"variablePickerOpen = false\"><div class=\"bg-base-100 rounded-box border border-base-300 p-6 w-96 max-h-96 overflow-y-auto\" data-testid=\"var-picker\"><h4 class=\"font-medium text-base-content mb-3\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var98 string
+			templ_7745c5c3_Var98, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.var_picker_title"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 743, Col: 106}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var98))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</h4><div class=\"text-sm space-y-1\"><div class=\"text-xs text-base-content/30 uppercase mb-2\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var99 string
+			templ_7745c5c3_Var99, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "page.pipeline_editor.var_picker_event_data"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 745, Col: 122}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var99))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "</div><button @click=\"insertVariable('event.event_id')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.event_id</button> <button @click=\"insertVariable('event.event_type')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.event_type</button> <button @click=\"insertVariable('event.title')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.title</button> <button @click=\"insertVariable('event.entity_id')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.entity_id</button> <button @click=\"insertVariable('event.source')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.source</button> <button @click=\"insertVariable('event.capability')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\">event.capability</button><template x-for=\"idx in priorStepIndexes()\" :key=\"idx\"><div x-show=\"steps[idx]\"><div class=\"text-xs text-base-content/30 uppercase mt-2 mb-1\" x-text=\"'steps.' + stepNameAt(idx)\"></div><button type=\"button\" @click=\"insertStepVariable(idx, 'id')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\"><span x-text=\"stepVarPath(idx, 'id')\"></span></button> <button type=\"button\" @click=\"insertStepVariable(idx, 'result')\" class=\"block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content\"><span x-text=\"stepVarPath(idx, 'result')\"></span></button></div></template></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1200,7 +1343,7 @@ func PipelineEditorPage(ctx context.Context, name string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

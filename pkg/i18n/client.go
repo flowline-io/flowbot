@@ -24,6 +24,8 @@ var clientMessageIDs = []string{
 	"client.pipeline.rename_failed",
 	"client.pipeline.renamed",
 	"client.pipeline.agent_options_failed",
+	"client.pipeline.function_options_failed",
+	"client.pipeline.function_unavailable",
 	"client.pipeline.capabilities_failed",
 	"client.pipeline.remove_trigger.title",
 	"client.pipeline.remove_trigger.message",

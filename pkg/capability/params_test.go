@@ -68,6 +68,7 @@ func TestIntParam(t *testing.T) {
 		wantOk bool
 	}{
 		{"int value", map[string]any{"key": 42}, "key", 42, true},
+		{"uint64 value", map[string]any{"key": uint64(42)}, "key", 42, true},
 		{"float value", map[string]any{"key": float64(42)}, "key", 42, true},
 		{"string value", map[string]any{"key": "42"}, "key", 42, true},
 		{"invalid string", map[string]any{"key": "abc"}, "key", 0, false},

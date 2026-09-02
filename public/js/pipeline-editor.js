@@ -53,6 +53,9 @@
       drawerTab: 'setup',
       drawerDirty: false,
       drawerSnapshot: null,
+      drawerStepIndex: -1,
+      drawerStep: null,
+      drawerStepFormReady: false,
       codeView: false,
       yamlText: '',
       variablePickerOpen: false,
@@ -68,6 +71,7 @@
       testResults: null,
       capabilities: [],
       agentRunOptions: { tools: [], skills: [] },
+      functionInvokeOptions: { functions: [] },
       memoryModalOpen: false,
       memoryKeys: [],
       memorySelectedKey: '',
@@ -99,6 +103,7 @@
         if (pipelineName) this.loadPipeline(pipelineName);
         this.fetchCapabilities();
         this.fetchAgentRunOptions();
+        this.fetchFunctionInvokeOptions();
         this.pushUndo();
         this.loadVersions();
       },
@@ -233,6 +238,29 @@
         }
       },
 
+      async fetchFunctionInvokeOptions() {
+        try {
+          const resp = await fetch(
+            '/service/web/pipelines/function-invoke-options',
+          );
+          if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+          }
+          const json = await resp.json();
+          this.functionInvokeOptions = json.data || { functions: [] };
+          this.fillDrawerSelects();
+        } catch (e) {
+          console.error('Failed to load function invoke options:', e);
+          showToast(
+            flowbotI18n(
+              'client.pipeline.function_options_failed',
+              'Failed to load function options',
+            ),
+            'error',
+          );
+        }
+      },
+
       async fetchCapabilities() {
         try {
           const resp = await fetch('/service/web/pipelines/capabilities');
@@ -251,6 +279,7 @@
           }
           set.add('{}');
           this.defaultTemplateSet = set;
+          this.fillDrawerSelects();
         } catch (e) {
           console.error('Failed to load capabilities:', e);
           showToast(
@@ -324,8 +353,237 @@
         return this.getOperationsFor(this.selectedStepCapability());
       },
 
+      drawerStepOperations() {
+        if (!this.drawerStep) {
+          return [];
+        }
+        return this.getOperationsFor(this.drawerStep.capability);
+      },
+
+      resetDrawerStep(idx) {
+        const step = this.steps[idx];
+        if (!step) {
+          this.drawerStep = null;
+          return;
+        }
+        this.drawerStep = {
+          name: step.name || '',
+          capability: step.capability || '',
+          operation: step.operation || '',
+          paramsText: step.paramsText || '{}',
+        };
+      },
+
+      syncDrawerStepParamsText(idx) {
+        if (idx !== this.drawerStepIndex || !this.drawerStep) {
+          return;
+        }
+        const step = this.steps[idx];
+        if (!step) {
+          return;
+        }
+        this.drawerStep.paramsText = step.paramsText || '{}';
+      },
+
+      onDrawerParamsTextInput() {
+        const idx = this.drawerStepIndex;
+        if (idx < 0 || !this.drawerStep) {
+          return;
+        }
+        const step = this.steps[idx];
+        if (!step) {
+          return;
+        }
+        step.paramsText = this.drawerStep.paramsText;
+        this.onParamsTextInput(idx);
+      },
+
+      onDrawerStepNameInput() {
+        const idx = this.drawerStepIndex;
+        if (idx < 0 || !this.drawerStep) {
+          return;
+        }
+        this.steps[idx].name = this.drawerStep.name;
+        this.drawerDirty = true;
+      },
+
+      onDrawerCapabilityChange(value) {
+        if (this.fillingDrawerSelects) {
+          return;
+        }
+        const idx = this.drawerStepIndex;
+        if (idx < 0 || !this.drawerStep) {
+          return;
+        }
+        this.drawerStep.capability = value;
+        this.steps[idx].capability = value;
+        this.onCapabilityChange(idx);
+        this.drawerStep.operation = this.steps[idx].operation;
+        this.syncDrawerStepParamsText(idx);
+        this.fillDrawerSelects();
+      },
+
+      onDrawerOperationChange(value) {
+        if (this.fillingDrawerSelects) {
+          return;
+        }
+        const idx = this.drawerStepIndex;
+        if (idx < 0 || !this.drawerStep) {
+          return;
+        }
+        this.drawerStep.operation = value;
+        this.steps[idx].operation = value;
+        this.onOperationChange(idx);
+        this.syncDrawerStepParamsText(idx);
+        this.fillDrawerSelects();
+      },
+
+      fillSelect(el, placeholder, items, selected) {
+        if (!el) {
+          return;
+        }
+        this.fillingDrawerSelects = true;
+        try {
+          const selectedStr =
+            selected === undefined || selected === null ? '' : String(selected);
+          const opts = [];
+          const placeholderOpt = document.createElement('option');
+          placeholderOpt.value = '';
+          placeholderOpt.disabled = true;
+          placeholderOpt.textContent = placeholder || '';
+          opts.push(placeholderOpt);
+          let found = false;
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const opt = document.createElement('option');
+            opt.value = item.value;
+            opt.textContent = item.label;
+            if (item.title) {
+              opt.title = item.title;
+            }
+            if (item.value === selectedStr) {
+              opt.selected = true;
+              found = true;
+            }
+            opts.push(opt);
+          }
+          if (selectedStr && !found) {
+            const orphan = document.createElement('option');
+            orphan.value = selectedStr;
+            orphan.textContent = selectedStr;
+            orphan.selected = true;
+            opts.push(orphan);
+          }
+          el.replaceChildren(...opts);
+          el.value = selectedStr;
+        } finally {
+          this.fillingDrawerSelects = false;
+        }
+      },
+
+      fillCapabilitySelect(el) {
+        const items = (this.capabilities || []).map((cap) => ({
+          value: cap.type,
+          label: cap.type,
+          title: cap.description || '',
+        }));
+        const selected = this.drawerStep ? this.drawerStep.capability : '';
+        this.fillSelect(el, el.dataset.placeholder, items, selected);
+      },
+
+      fillOperationSelect(el) {
+        const items = this.drawerStepOperations().map((op) => ({
+          value: op.name,
+          label: op.name,
+          title: op.description || '',
+        }));
+        const selected = this.drawerStep ? this.drawerStep.operation : '';
+        this.fillSelect(el, el.dataset.placeholder, items, selected);
+      },
+
+      fillFunctionNameSelect(el) {
+        const idx = this.drawerStepIndex;
+        const items = this.getFunctionInvokeNameOptions(idx).map((fn) => ({
+          value: fn.name,
+          label: this.functionInvokeNameLabel(fn.name, fn.orphaned),
+        }));
+        this.fillSelect(
+          el,
+          el.dataset.placeholder,
+          items,
+          this.getFunctionInvokeName(idx),
+        );
+      },
+
+      fillFunctionVersionSelect(el) {
+        const idx = this.drawerStepIndex;
+        const items = this.getFunctionInvokeVersions(idx).map((ver) => ({
+          value: String(ver),
+          label: String(ver),
+        }));
+        this.fillSelect(
+          el,
+          el.dataset.placeholder,
+          items,
+          this.getFunctionInvokeVersion(idx),
+        );
+      },
+
+      fillDrawerSelects() {
+        if (!this.drawerStepFormReady || !this.drawerStep || !this.$el) {
+          return;
+        }
+        const root = this.$el;
+        const cap = root.querySelector('[data-testid="step-capability-select"]');
+        if (cap) {
+          this.fillCapabilitySelect(cap);
+        }
+        const op = root.querySelector('[data-testid="step-operation-select"]');
+        if (op) {
+          this.fillOperationSelect(op);
+        }
+        const name = root.querySelector(
+          '[data-testid="function-invoke-name-select"]',
+        );
+        if (name) {
+          this.fillFunctionNameSelect(name);
+        }
+        const ver = root.querySelector(
+          '[data-testid="function-invoke-version-select"]',
+        );
+        if (ver) {
+          this.fillFunctionVersionSelect(ver);
+        }
+      },
+
+      isCapabilityInList(capType) {
+        return (this.capabilities || []).some((cap) => cap.type === capType);
+      },
+
       hasTestResultSteps() {
         return !!(this.testResults && this.testResults.steps);
+      },
+
+      formatTestStepOutput(output) {
+        if (output === undefined || output === null) {
+          return '';
+        }
+        try {
+          return JSON.stringify(output, null, 2);
+        } catch {
+          return String(output);
+        }
+      },
+
+      formatTestStepDuration(durationMs) {
+        if (durationMs === undefined || durationMs === null || durationMs === '') {
+          return '';
+        }
+        const num = Number(durationMs);
+        if (!Number.isFinite(num)) {
+          return '';
+        }
+        return num + 'ms';
       },
 
       priorStepIndexes() {
@@ -394,6 +652,7 @@
             return '<string>';
           case 'int':
           case 'int64':
+          case 'number':
             return 0;
           case 'bool':
             return false;
@@ -402,6 +661,8 @@
             return [];
           case 'map[string]any':
             return {};
+          case 'any':
+            return null;
           default:
             console.warn('Unknown ParamDef type:', type);
             return '<string>';
@@ -457,7 +718,36 @@
             this.steps[idx].operation,
           );
         }
+        this.syncDrawerStepParamsText(idx);
         this.drawerDirty = true;
+      },
+
+      setStepCapability(idx, value) {
+        const step = this.steps[idx];
+        if (!step) {
+          return;
+        }
+        step.capability = value;
+        this.onCapabilityChange(idx);
+      },
+
+      setStepName(idx, value) {
+        const step = this.steps[idx];
+        if (!step) {
+          return;
+        }
+        step.name = value;
+        this.drawerDirty = true;
+      },
+
+      setStepParamsText(idx, value) {
+        const step = this.steps[idx];
+        if (!step) {
+          return;
+        }
+        step.paramsText = value;
+        this.syncDrawerStepParamsText(idx);
+        this.onParamsTextInput(idx);
       },
 
       onOperationChange(idx) {
@@ -466,7 +756,17 @@
           step.capability,
           step.operation,
         );
+        this.syncDrawerStepParamsText(idx);
         this.drawerDirty = true;
+      },
+
+      setStepOperation(idx, value) {
+        const step = this.steps[idx];
+        if (!step) {
+          return;
+        }
+        step.operation = value;
+        this.onOperationChange(idx);
       },
 
       getCurrentOperationInput(idx) {
@@ -482,6 +782,9 @@
           if (this.isAgentRunStringListParam(idx, p.name)) {
             return false;
           }
+          if (this.isFunctionsInvokeReservedParam(idx, p.name)) {
+            return false;
+          }
           return true;
         });
       },
@@ -491,7 +794,11 @@
       },
 
       isParamTypeNumber(p) {
-        return p?.type === 'int' || p?.type === 'int64';
+        return (
+          p?.type === 'int' ||
+          p?.type === 'int64' ||
+          p?.type === 'number'
+        );
       },
 
       isParamTypeBool(p) {
@@ -508,6 +815,10 @@
 
       isParamTypeMap(p) {
         return p?.type === 'map[string]any';
+      },
+
+      isParamTypeAny(p) {
+        return p?.type === 'any';
       },
 
       // True when value is a pipeline {{...}} expression (not a schema default placeholder).
@@ -605,6 +916,7 @@
             return String(value).trim() === String(def).trim();
           case 'int':
           case 'int64':
+          case 'number':
             return Number(value) === Number(def);
           case 'bool':
             return value === def;
@@ -623,6 +935,8 @@
               !Array.isArray(value) &&
               Object.keys(value).length === 0
             );
+          case 'any':
+            return value === null || value === undefined;
           default:
             return false;
         }
@@ -631,6 +945,11 @@
       isAgentRunStep(idx) {
         const step = this.steps[idx];
         return step?.capability === 'agent' && step?.operation === 'run';
+      },
+
+      isFunctionsInvokeStep(idx) {
+        const step = this.steps[idx];
+        return step?.capability === 'functions' && step?.operation === 'invoke';
       },
 
       pipelineMemoryEnabled() {
@@ -670,6 +989,7 @@
       writeStepParams(idx, params) {
         const normalized = this.normalizeStepParams(idx, params);
         this.steps[idx].paramsText = JSON.stringify(normalized, null, 2);
+        this.syncDrawerStepParamsText(idx);
         this.drawerDirty = true;
       },
 
@@ -718,6 +1038,7 @@
             );
           case 'int':
           case 'int64':
+          case 'number':
             return value === '' || Number.isNaN(Number(value));
           case 'bool':
             return value === 'unset';
@@ -731,6 +1052,8 @@
               Array.isArray(value) ||
               Object.keys(value).length === 0
             );
+          case 'any':
+            return value === null || value === undefined;
           default:
             return value === '' || value === undefined || value === null;
         }
@@ -742,6 +1065,7 @@
         }
         switch (type) {
           case 'int':
+          case 'number':
             return parseInt(value, 10);
           case 'int64':
             return Number(value);
@@ -1000,6 +1324,58 @@
         }
       },
 
+      getStepParamAnyJSON(idx, name) {
+        const val = this.getStepParam(idx, name);
+        if (val === undefined || val === null) {
+          return '';
+        }
+        if (this.isParamTemplateValue(val, 'any')) {
+          return '';
+        }
+        if (typeof val === 'string' && this.isPipelineExpr(val)) {
+          return val;
+        }
+        try {
+          return JSON.stringify(val, null, 2);
+        } catch {
+          return '';
+        }
+      },
+
+      setStepParamAnyJSON(idx, name, text) {
+        const pDef = this.getParamDef(idx, name);
+        const required = pDef?.required ?? false;
+        const trimmed = (text || '').trim();
+        const errKey = idx + ':' + name;
+        if (!trimmed) {
+          const next = { ...this.paramFieldErrors };
+          delete next[errKey];
+          this.paramFieldErrors = next;
+          this.setStepParam(idx, name, null, 'any', required);
+          return;
+        }
+        if (this.isPipelineExpr(trimmed)) {
+          const next = { ...this.paramFieldErrors };
+          delete next[errKey];
+          this.paramFieldErrors = next;
+          this.setStepParam(idx, name, trimmed, 'any', required);
+          return;
+        }
+        try {
+          const parsed = JSON.parse(trimmed);
+          const next = { ...this.paramFieldErrors };
+          delete next[errKey];
+          this.paramFieldErrors = next;
+          this.setStepParam(idx, name, parsed, 'any', required);
+        } catch (e) {
+          this.paramFieldErrors = {
+            ...this.paramFieldErrors,
+            [errKey]: e.message || 'Invalid JSON',
+          };
+          this.drawerDirty = true;
+        }
+      },
+
       isParamFieldError(idx, name) {
         return Boolean(this.paramFieldErrors[idx + ':' + name]);
       },
@@ -1019,6 +1395,146 @@
         );
       },
 
+      isFunctionsInvokeReservedParam(idx, paramName) {
+        return (
+          this.isFunctionsInvokeStep(idx) &&
+          (paramName === 'name' || paramName === 'version')
+        );
+      },
+
+      getFunctionInvokeOption(name) {
+        const functions = this.functionInvokeOptions.functions || [];
+        return functions.find((item) => item.name === name) || null;
+      },
+
+      isFunctionInvokeNameExpr(idx) {
+        return this.isPipelineExpr(this.getStepParam(idx, 'name'));
+      },
+
+      isFunctionInvokeVersionExpr(idx) {
+        const val = this.getStepParam(idx, 'version');
+        return this.isPipelineExpr(val);
+      },
+
+      showFunctionInvokeVersionSelect(idx) {
+        if (
+          this.isFunctionInvokeNameExpr(idx) ||
+          this.isFunctionInvokeVersionExpr(idx)
+        ) {
+          return false;
+        }
+        return this.getFunctionInvokeVersions(idx).length > 0;
+      },
+
+      showFunctionInvokeVersionExpr(idx) {
+        return (
+          this.isFunctionInvokeNameExpr(idx) ||
+          this.isFunctionInvokeVersionExpr(idx)
+        );
+      },
+
+      functionInvokeNameLabel(name, orphaned) {
+        if (!orphaned) {
+          return name;
+        }
+        return flowbotI18n(
+          'client.pipeline.function_unavailable',
+          '{{.Name}} (unavailable)',
+        ).replace('{{.Name}}', name);
+      },
+
+      getFunctionInvokeNameOptions(idx) {
+        const functions = this.functionInvokeOptions.functions || [];
+        const current = this.getFunctionInvokeName(idx);
+        if (
+          !current ||
+          this.isFunctionInvokeNameExpr(idx) ||
+          this.getFunctionInvokeOption(current)
+        ) {
+          return functions;
+        }
+        return [{ name: current, orphaned: true }, ...functions];
+      },
+
+      getSelectedFunctionInvokeOption(idx) {
+        const name = this.getFunctionInvokeName(idx);
+        if (!name || this.isFunctionInvokeNameExpr(idx)) {
+          return null;
+        }
+        return this.getFunctionInvokeOption(name);
+      },
+
+      getFunctionInvokeVersions(idx) {
+        const selected = this.getSelectedFunctionInvokeOption(idx);
+        const versions = [...(selected?.published_versions || [])];
+        if (this.isFunctionInvokeVersionExpr(idx)) {
+          return versions;
+        }
+        const current = this.getStepParam(idx, 'version');
+        if (
+          current === undefined ||
+          current === null ||
+          current === '' ||
+          this.isPipelineExpr(current)
+        ) {
+          return versions;
+        }
+        const versionNum = Number(current);
+        if (Number.isFinite(versionNum) && !versions.includes(versionNum)) {
+          versions.unshift(versionNum);
+        }
+        return versions;
+      },
+
+      getFunctionInvokeName(idx) {
+        return this.getStepParamString(idx, 'name');
+      },
+
+      setFunctionInvokeName(idx, name) {
+        if (this.fillingDrawerSelects) {
+          return;
+        }
+        const option = this.getFunctionInvokeOption(name);
+        this.setStepParamString(idx, 'name', name);
+        if (!option) {
+          return;
+        }
+        const currentVersion = this.getStepParam(idx, 'version');
+        const versions = option.published_versions || [];
+        const latest = option.latest_version || versions[0];
+        const versionNum = Number(currentVersion);
+        if (
+          currentVersion === undefined ||
+          currentVersion === null ||
+          currentVersion === '' ||
+          !versions.includes(versionNum)
+        ) {
+          if (latest !== undefined && latest !== null) {
+            this.setStepParamNumber(idx, 'version', String(latest), 'number');
+          }
+        }
+        this.fillDrawerSelects();
+      },
+
+      getFunctionInvokeVersion(idx) {
+        const val = this.getStepParam(idx, 'version');
+        if (val === undefined || val === null || val === '') {
+          return '';
+        }
+        return String(val);
+      },
+
+      setFunctionInvokeVersion(idx, version) {
+        if (this.fillingDrawerSelects) {
+          return;
+        }
+        this.setStepParamNumber(idx, 'version', version, 'number');
+      },
+
+      setFunctionInvokeVersionExpr(idx, val) {
+        this.setStepParamNumber(idx, 'version', val, 'number');
+      },
+
       isParamValueMissing(val, type) {
         if (val === undefined || val === null) {
           return true;
@@ -1034,6 +1550,7 @@
             return String(val).trim() === '';
           case 'int':
           case 'int64':
+          case 'number':
             return val === '' || Number.isNaN(Number(val));
           case 'bool':
             return false;
@@ -1047,6 +1564,8 @@
               Array.isArray(val) ||
               Object.keys(val).length === 0
             );
+          case 'any':
+            return val === null || val === undefined;
           default:
             return (
               val === undefined || val === null || String(val).trim() === ''
@@ -1077,7 +1596,7 @@
             ).replace('{{.Name}}', p.name);
           }
           if (
-            p.type === 'map[string]any' &&
+            (p.type === 'map[string]any' || p.type === 'any') &&
             this.isParamFieldError(idx, p.name)
           ) {
             return flowbotI18n(
@@ -1267,6 +1786,14 @@
         if (selIdx > removedIdx) {
           const newIdx = selIdx - 1;
           this.selectedNode = { type, index: newIdx };
+          this.drawerStepIndex = type === 'step' ? newIdx : -1;
+          if (type === 'step') {
+            this.resetDrawerStep(newIdx);
+            this.fillDrawerSelects();
+          } else {
+            this.drawerStep = null;
+            this.drawerStepFormReady = false;
+          }
           this.drawerSnapshot = this.captureDrawerSnapshot(type, newIdx);
         }
       },
@@ -1395,6 +1922,8 @@
         const { type, index } = this.selectedNode;
         if (type === 'step') {
           this.steps[index] = JSON.parse(JSON.stringify(this.drawerSnapshot));
+          this.resetDrawerStep(index);
+          this.fillDrawerSelects();
         } else if (type === 'trigger') {
           this.triggers[index] = JSON.parse(
             JSON.stringify(this.drawerSnapshot),
@@ -1411,12 +1940,40 @@
         this.paramsAdvancedOpen = false;
         this.paramFieldErrors = {};
         this.drawerSnapshot = this.captureDrawerSnapshot(type, idx);
+
+        if (type !== 'step') {
+          this.drawerStepFormReady = false;
+          this.drawerStep = null;
+          this.drawerStepIndex = -1;
+          return;
+        }
+
+        this.drawerStepFormReady = false;
+        this.drawerStep = null;
+        this.drawerStepIndex = idx;
+        const applyStepForm = () => {
+          this.resetDrawerStep(idx);
+          this.drawerStepFormReady = true;
+          if (typeof this.$nextTick === 'function') {
+            this.$nextTick(() => this.fillDrawerSelects());
+            return;
+          }
+          queueMicrotask(() => this.fillDrawerSelects());
+        };
+        if (typeof this.$nextTick === 'function') {
+          this.$nextTick(applyStepForm);
+          return;
+        }
+        queueMicrotask(applyStepForm);
       },
 
       finishDrawerSession() {
         this.drawerDirty = false;
         this.drawerSnapshot = null;
         this.selectedNode = null;
+        this.drawerStepFormReady = false;
+        this.drawerStep = null;
+        this.drawerStepIndex = -1;
         this.drawerOpen = false;
       },
 
@@ -1490,11 +2047,27 @@
 
         if (paramName) {
           const pDef = this.getParamDef(stepIdx, paramName);
+          const isFunctionsInvokeField =
+            this.isFunctionsInvokeStep(stepIdx) &&
+            (paramName === 'name' || paramName === 'version');
           const isNumber =
-            pDef && (pDef.type === 'int' || pDef.type === 'int64');
-          const current = isNumber
-            ? this.getStepParamNumber(stepIdx, paramName)
-            : this.getStepParamString(stepIdx, paramName);
+            pDef &&
+            (pDef.type === 'int' ||
+              pDef.type === 'int64' ||
+              pDef.type === 'number');
+          const isAny = pDef && pDef.type === 'any';
+          let current;
+          if (isFunctionsInvokeField && paramName === 'name') {
+            current = this.getFunctionInvokeName(stepIdx);
+          } else if (isFunctionsInvokeField && paramName === 'version') {
+            current = this.getFunctionInvokeVersion(stepIdx);
+          } else if (isNumber) {
+            current = this.getStepParamNumber(stepIdx, paramName);
+          } else if (isAny) {
+            current = this.getStepParamAnyJSON(stepIdx, paramName);
+          } else {
+            current = this.getStepParamString(stepIdx, paramName);
+          }
           const input = document.querySelector(
             '[data-param-field="' + paramName + '"]',
           );
@@ -1504,8 +2077,14 @@
             const end = input.selectionEnd;
             next =
               current.substring(0, start) + template + current.substring(end);
-            if (isNumber) {
+            if (isFunctionsInvokeField && paramName === 'name') {
+              this.setStepParamString(stepIdx, paramName, next);
+            } else if (isFunctionsInvokeField && paramName === 'version') {
+              this.setFunctionInvokeVersionExpr(stepIdx, next);
+            } else if (isNumber) {
               this.setStepParamNumber(stepIdx, paramName, next, pDef.type);
+            } else if (isAny) {
+              this.setStepParamAnyJSON(stepIdx, paramName, next);
             } else {
               this.setStepParamString(stepIdx, paramName, next);
             }
@@ -1518,8 +2097,14 @@
             }, 50);
           } else {
             next = current + template;
-            if (isNumber) {
+            if (isFunctionsInvokeField && paramName === 'name') {
+              this.setStepParamString(stepIdx, paramName, next);
+            } else if (isFunctionsInvokeField && paramName === 'version') {
+              this.setFunctionInvokeVersionExpr(stepIdx, next);
+            } else if (isNumber) {
               this.setStepParamNumber(stepIdx, paramName, next, pDef.type);
+            } else if (isAny) {
+              this.setStepParamAnyJSON(stepIdx, paramName, next);
             } else {
               this.setStepParamString(stepIdx, paramName, next);
             }
@@ -1536,6 +2121,7 @@
               (step.paramsText || '').substring(0, start) +
               template +
               (step.paramsText || '').substring(end);
+            this.syncDrawerStepParamsText(stepIdx);
             setTimeout(() => {
               textarea.focus();
               textarea.setSelectionRange(
@@ -1546,6 +2132,7 @@
           } else {
             step.paramsText = (step.paramsText || '') + template;
           }
+          this.syncDrawerStepParamsText(stepIdx);
         }
         this.drawerDirty = true;
         this.variablePickerOpen = false;

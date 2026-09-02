@@ -535,6 +535,36 @@ other = "Selected skills are injected into the agent prompt and enabled via read
 [page.pipeline_editor.no_skills]
 other = "No enabled skills. Create skills under Agent → Skills."
 
+[page.pipeline_editor.function_name]
+other = "Function"
+
+[page.pipeline_editor.function_name_hint]
+other = "Select a published function to invoke."
+
+[page.pipeline_editor.no_published_functions]
+other = "No published functions. Publish a function under Functions first."
+
+[page.pipeline_editor.select_function]
+other = "Select function"
+
+[page.pipeline_editor.function_version]
+other = "Version"
+
+[page.pipeline_editor.function_version_hint]
+other = "Published version to invoke."
+
+[page.pipeline_editor.select_function_first]
+other = "Select a function first."
+
+[page.pipeline_editor.select_version]
+other = "Select version"
+
+[page.pipeline_editor.placeholder_any_json]
+other = "optional JSON value"
+
+[page.pipeline_editor.invalid_json_value]
+other = "Invalid JSON value"
+
 [page.pipeline_editor.parameters]
 other = "Parameters"
 
@@ -1600,6 +1630,12 @@ other = "Pipeline renamed"
 
 [client.pipeline.agent_options_failed]
 other = "Failed to load agent run options"
+
+[client.pipeline.function_options_failed]
+other = "Failed to load function options"
+
+[client.pipeline.function_unavailable]
+other = "{{.Name}} (unavailable)"
 
 [client.pipeline.capabilities_failed]
 other = "Failed to load capabilities"

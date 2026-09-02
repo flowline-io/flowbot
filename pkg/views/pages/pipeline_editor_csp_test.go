@@ -22,6 +22,9 @@ func TestPipelineEditorPageCSPSafeExpressions(t *testing.T) {
 		{name: "no array spread in x-for", bad: "...Array"},
 		{name: "no number input for template params", bad: `type="number"`},
 		{name: "no enabledTriggers method call in x-for", bad: "enabledTriggers()"},
+		{name: "no array literal remount x-for", bad: "drawerStepMountToken"},
+		{name: "no x-model on dynamic capability select", bad: `x-model="drawerStep.capability"`},
+		{name: "no x-model on dynamic operation select", bad: `x-model="drawerStep.operation"`},
 	}
 	var buf bytes.Buffer
 	if err := pages.PipelineEditorPage(i18n.DefaultContext(), "demo").Render(context.Background(), &buf); err != nil {
@@ -36,6 +39,18 @@ func TestPipelineEditorPageCSPSafeExpressions(t *testing.T) {
 			}
 		})
 	}
+	t.Run("step form remounts without array literal", func(t *testing.T) {
+		t.Parallel()
+		if !strings.Contains(html, `x-if="drawerStepFormReady"`) {
+			t.Fatal("want drawerStepFormReady x-if remount")
+		}
+		if !strings.Contains(html, `x-init="fillDrawerSelects()"`) {
+			t.Fatal("want post-option select fill")
+		}
+		if !strings.Contains(html, `x-init="fillCapabilitySelect($el)"`) {
+			t.Fatal("want JS-built capability options")
+		}
+	})
 	t.Run("uses enabledTriggers property in x-for", func(t *testing.T) {
 		t.Parallel()
 		if !strings.Contains(html, `x-for="t in enabledTriggers"`) {

@@ -245,14 +245,16 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 		</div>
 
 		<!-- Drawer Backdrop -->
-			<div x-show="drawerOpen" class="fixed inset-0 bg-black/30 z-40" @click="closeDrawer" data-testid="drawer-backdrop"></div>
+			<template x-if="drawerOpen">
+				<div>
+					<div class="fixed inset-0 bg-black/30 z-40" @click="closeDrawer" data-testid="drawer-backdrop"></div>
 
-			<!-- Configuration Drawer -->
-			<div x-show="drawerOpen"
-				:class="drawerExpanded ? 'w-4/5' : 'w-2/5'"
-				class="fixed right-0 top-0 h-full bg-base-100 z-50 transition-all duration-200 overflow-y-auto border-l border-base-300"
-				@click.stop
-				data-testid="config-drawer">
+					<!-- Configuration Drawer -->
+					<div
+						:class="drawerExpanded ? 'w-4/5' : 'w-2/5'"
+						class="fixed right-0 top-0 h-full bg-base-100 z-50 transition-all duration-200 overflow-y-auto border-l border-base-300"
+						@click.stop
+						data-testid="config-drawer">
 				<div class="p-6">
 					<div class="flex items-center justify-between mb-4">
 						<div class="flex gap-1">
@@ -364,42 +366,45 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 								</div>
 							</div>
 						</template>
-						<template x-if="selectedStep()">
-							<div>
-								<label class="block text-sm font-medium mb-1">{ i18n.T(ctx, "page.pipeline_editor.step_name") }</label>
-								<input type="text" x-model="selectedStep().name"
+						<template x-if="drawerStepFormReady">
+								<div data-testid="step-setup-form">
+								<label class="block text-sm font-medium mb-1" for="step-name-input">{ i18n.T(ctx, "page.pipeline_editor.step_name") }</label>
+								<input type="text"
+									id="step-name-input"
+									name="step-name"
+									x-model="drawerStep.name"
+									@input="onDrawerStepNameInput()"
 									class="input input-bordered w-full mb-3"
-									placeholder="my-step" data-testid="step-name-input"
-									@input="drawerDirty = true">
-								<label class="block text-sm font-medium mb-1">{ i18n.T(ctx, "page.pipeline_editor.capability") }</label>
-								<select x-model="selectedStep().capability"
-									@change="onCapabilityChange(selectedStepIndex())"
+									placeholder="my-step" data-testid="step-name-input">
+								<label class="block text-sm font-medium mb-1" for="step-capability-select">{ i18n.T(ctx, "page.pipeline_editor.capability") }</label>
+								<select
+									id="step-capability-select"
+									name="step-capability"
+									x-init="fillCapabilitySelect($el)"
+									@change="onDrawerCapabilityChange($event.target.value)"
 									class="select select-bordered w-full mb-3"
+									data-placeholder={ i18n.T(ctx, "page.pipeline_editor.select_capability") }
 									data-testid="step-capability-select">
-									<option value="" disabled>{ i18n.T(ctx, "page.pipeline_editor.select_capability") }</option>
-									<template x-for="cap in capabilities" :key="cap.type">
-										<option :value="cap.type" x-text="cap.type" :title="cap.description"></option>
-									</template>
 								</select>
-								<label class="block text-sm font-medium mb-1">{ i18n.T(ctx, "page.pipeline_editor.operation") }</label>
-								<select x-model="selectedStep().operation"
-									@change="onOperationChange(selectedStepIndex())"
+								<label class="block text-sm font-medium mb-1" for="step-operation-select">{ i18n.T(ctx, "page.pipeline_editor.operation") }</label>
+								<select
+									id="step-operation-select"
+									name="step-operation"
+									x-init="fillOperationSelect($el)"
+									@change="onDrawerOperationChange($event.target.value)"
 									class="select select-bordered w-full mb-3"
+									data-placeholder={ i18n.T(ctx, "page.pipeline_editor.select_operation") }
 									data-testid="step-operation-select">
-									<option value="" disabled>{ i18n.T(ctx, "page.pipeline_editor.select_operation") }</option>
-									<template x-for="op in selectedStepOperations()" :key="op.name">
-										<option :value="op.name" x-text="op.name" :title="op.description"></option>
-									</template>
 								</select>
-								<div x-show="isAgentRunStep(selectedStepIndex())" class="mb-3" data-testid="agent-run-options">
+								<div x-show="isAgentRunStep(drawerStepIndex)" class="mb-3" data-testid="agent-run-options">
 									<label class="block text-sm font-medium mb-1">{ i18n.T(ctx, "page.pipeline_editor.tools") }</label>
 									<p class="text-xs text-base-content/50 mb-2">{ i18n.T(ctx, "page.pipeline_editor.tools_hint") }</p>
 									<div class="grid grid-cols-2 md:grid-cols-3 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 mb-3">
 										<template x-for="toolName in agentRunOptions.tools" :key="toolName">
 											<label class="flex items-center gap-2 text-sm cursor-pointer">
 												<input type="checkbox"
-													:checked="isAgentRunOptionSelected(selectedStepIndex(), 'tools', toolName)"
-													@change="toggleAgentRunOption(selectedStepIndex(), 'tools', toolName)"
+													:checked="isAgentRunOptionSelected(drawerStepIndex, 'tools', toolName)"
+													@change="toggleAgentRunOption(drawerStepIndex, 'tools', toolName)"
 													class="checkbox checkbox-xs"
 													:data-testid="'agent-run-tool-' + toolName">
 												<span class="font-mono text-xs" x-text="toolName"></span>
@@ -416,8 +421,8 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 											<template x-for="skill in agentRunOptions.skills" :key="skill.name">
 												<label class="flex items-start gap-2 text-sm cursor-pointer">
 													<input type="checkbox"
-														:checked="isAgentRunOptionSelected(selectedStepIndex(), 'skills', skill.name)"
-														@change="toggleAgentRunOption(selectedStepIndex(), 'skills', skill.name)"
+														:checked="isAgentRunOptionSelected(drawerStepIndex, 'skills', skill.name)"
+														@change="toggleAgentRunOption(drawerStepIndex, 'skills', skill.name)"
 														class="checkbox checkbox-xs mt-0.5"
 														:data-testid="'agent-run-skill-' + skill.name">
 													<span>
@@ -429,11 +434,87 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 										</div>
 									</template>
 								</div>
-								<template x-if="getFormOperationInput(selectedStepIndex()).length > 0">
+								<div x-show="isFunctionsInvokeStep(drawerStepIndex)" class="mb-3" data-testid="function-invoke-options">
+									<label class="block text-sm font-medium mb-1" for="function-invoke-name-select">{ i18n.T(ctx, "page.pipeline_editor.function_name") }</label>
+									<p class="text-xs text-base-content/50 mb-2">{ i18n.T(ctx, "page.pipeline_editor.function_name_hint") }</p>
+									<template x-if="isFunctionInvokeNameExpr(drawerStepIndex)">
+										<div class="flex gap-2 items-start mb-3">
+											<input type="text"
+												:value="getFunctionInvokeName(drawerStepIndex)"
+												@input="setStepParamString(drawerStepIndex, 'name', $event.target.value)"
+												class="input input-bordered input-sm w-full font-mono"
+												data-param-field="name"
+												data-testid="function-invoke-name-expr">
+											<button type="button"
+												@click="openVariablePicker(drawerStepIndex, 'name')"
+												class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
+												data-testid="btn-var-name">&#123;x&#125;</button>
+										</div>
+									</template>
+									<template x-if="!isFunctionInvokeNameExpr(drawerStepIndex) && (functionInvokeOptions.functions || []).length === 0 && !getFunctionInvokeName(drawerStepIndex)">
+										<p class="text-xs text-base-content/50 mb-3">{ i18n.T(ctx, "page.pipeline_editor.no_published_functions") }</p>
+									</template>
+									<template x-if="!isFunctionInvokeNameExpr(drawerStepIndex) && ((functionInvokeOptions.functions || []).length > 0 || getFunctionInvokeName(drawerStepIndex))">
+										<div class="flex gap-2 items-start mb-3">
+											<select
+												id="function-invoke-name-select"
+												name="function-name"
+												x-init="fillFunctionNameSelect($el)"
+												@change="setFunctionInvokeName(drawerStepIndex, $event.target.value)"
+												class="select select-bordered w-full font-mono"
+												data-placeholder={ i18n.T(ctx, "page.pipeline_editor.select_function") }
+												data-testid="function-invoke-name-select">
+											</select>
+											<button type="button"
+												@click="openVariablePicker(drawerStepIndex, 'name')"
+												class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
+												data-testid="btn-var-name">&#123;x&#125;</button>
+										</div>
+									</template>
+									<label class="block text-sm font-medium mb-1" for="function-invoke-version-select">{ i18n.T(ctx, "page.pipeline_editor.function_version") }</label>
+									<p class="text-xs text-base-content/50 mb-2">{ i18n.T(ctx, "page.pipeline_editor.function_version_hint") }</p>
+									<template x-if="showFunctionInvokeVersionExpr(drawerStepIndex)">
+										<div class="flex gap-2 items-start mb-3">
+											<input type="text"
+												inputmode="numeric"
+												:value="getFunctionInvokeVersion(drawerStepIndex)"
+												@input="setFunctionInvokeVersionExpr(drawerStepIndex, $event.target.value)"
+												class="input input-bordered input-sm w-full font-mono"
+												:placeholder="numberParamPlaceholder({ required: true, type: 'number' })"
+												data-param-field="version"
+												data-testid="function-invoke-version-expr">
+											<button type="button"
+												@click="openVariablePicker(drawerStepIndex, 'version')"
+												class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
+												data-testid="btn-var-version">&#123;x&#125;</button>
+										</div>
+									</template>
+									<template x-if="!showFunctionInvokeVersionExpr(drawerStepIndex) && !showFunctionInvokeVersionSelect(drawerStepIndex)">
+										<p class="text-xs text-base-content/50 mb-3">{ i18n.T(ctx, "page.pipeline_editor.select_function_first") }</p>
+									</template>
+									<template x-if="showFunctionInvokeVersionSelect(drawerStepIndex)">
+										<div class="flex gap-2 items-start mb-3">
+											<select
+												id="function-invoke-version-select"
+												name="function-version"
+												x-init="fillFunctionVersionSelect($el)"
+												@change="setFunctionInvokeVersion(drawerStepIndex, $event.target.value)"
+												class="select select-bordered w-full font-mono"
+												data-placeholder={ i18n.T(ctx, "page.pipeline_editor.select_version") }
+												data-testid="function-invoke-version-select">
+											</select>
+											<button type="button"
+												@click="openVariablePicker(drawerStepIndex, 'version')"
+												class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
+												data-testid="btn-var-version">&#123;x&#125;</button>
+										</div>
+									</template>
+								</div>
+								<template x-if="getFormOperationInput(drawerStepIndex).length > 0">
 									<div class="mb-3" data-testid="params-form">
 										<label class="block text-sm font-medium mb-2">{ i18n.T(ctx, "page.pipeline_editor.parameters") }</label>
 										<div class="space-y-4">
-											<template x-for="p in getFormOperationInput(selectedStepIndex())" :key="p.name">
+											<template x-for="p in getFormOperationInput(drawerStepIndex)" :key="p.name">
 												<div class="border border-base-300 rounded-box p-3 bg-base-100">
 													<div class="flex items-center gap-2 mb-1">
 														<span class="text-sm font-mono font-medium" x-text="p.name"></span>
@@ -442,7 +523,7 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 														<span x-show="!p.required" class="flowbot-chip flowbot-chip-muted">{ i18n.T(ctx, "common.optional") }</span>
 														<button type="button"
 															x-show="!p.required"
-															@click="clearStepParam(selectedStepIndex(), p.name)"
+															@click="clearStepParam(drawerStepIndex, p.name)"
 															class="btn btn-ghost btn-xs ml-auto text-base-content/50"
 															:data-testid="'btn-clear-param-' + p.name">{ i18n.T(ctx, "common.clear") }</button>
 													</div>
@@ -450,14 +531,14 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 													<template x-if="isParamTypeString(p)">
 														<div class="flex gap-2 items-start">
 															<textarea rows="3"
-																:value="getStepParamString(selectedStepIndex(), p.name)"
-																@input="setStepParamString(selectedStepIndex(), p.name, $event.target.value)"
+																:value="getStepParamString(drawerStepIndex, p.name)"
+																@input="setStepParamString(drawerStepIndex, p.name, $event.target.value)"
 																class="textarea textarea-bordered textarea-sm w-full font-mono"
 																:placeholder="paramFieldPlaceholder(p)"
 																:data-param-field="p.name"
 																:data-testid="'param-field-' + p.name"></textarea>
 															<button type="button"
-																@click="openVariablePicker(selectedStepIndex(), p.name)"
+																@click="openVariablePicker(drawerStepIndex, p.name)"
 																class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
 																:data-testid="'btn-var-' + p.name">&#123;x&#125;</button>
 														</div>
@@ -466,14 +547,14 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 														<div class="flex gap-2 items-start">
 															<input type="text"
 																inputmode="numeric"
-																:value="getStepParamNumber(selectedStepIndex(), p.name)"
-																@input="setStepParamNumber(selectedStepIndex(), p.name, $event.target.value, p.type)"
+																:value="getStepParamNumber(drawerStepIndex, p.name)"
+																@input="setStepParamNumber(drawerStepIndex, p.name, $event.target.value, p.type)"
 																class="input input-bordered input-sm w-full font-mono"
 																:placeholder="numberParamPlaceholder(p)"
 																:data-param-field="p.name"
 																:data-testid="'param-field-' + p.name">
 															<button type="button"
-																@click="openVariablePicker(selectedStepIndex(), p.name)"
+																@click="openVariablePicker(drawerStepIndex, p.name)"
 																class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
 																:data-testid="'btn-var-' + p.name">&#123;x&#125;</button>
 														</div>
@@ -481,8 +562,8 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 													<template x-if="isParamTypeBool(p)">
 														<div>
 															<select
-																:value="getStepParamBoolMode(selectedStepIndex(), p.name)"
-																@change="setStepParamBoolMode(selectedStepIndex(), p.name, $event.target.value)"
+																:value="getStepParamBoolMode(drawerStepIndex, p.name)"
+																@change="setStepParamBoolMode(drawerStepIndex, p.name, $event.target.value)"
 																class="select select-bordered select-sm w-full"
 																:data-param-field="p.name"
 																:data-testid="'param-field-' + p.name">
@@ -495,8 +576,8 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 													<template x-if="isParamTypeStringList(p)">
 														<div>
 															<textarea rows="3"
-																:value="getStepParamStringList(selectedStepIndex(), p.name)"
-																@input="setStepParamStringList(selectedStepIndex(), p.name, $event.target.value)"
+																:value="getStepParamStringList(drawerStepIndex, p.name)"
+																@input="setStepParamStringList(drawerStepIndex, p.name, $event.target.value)"
 																class="textarea textarea-bordered textarea-sm w-full font-mono"
 																placeholder={ i18n.T(ctx, "page.pipeline_editor.placeholder_comma_values") }
 																:data-param-field="p.name"
@@ -506,14 +587,14 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 													<template x-if="isParamTypeIntList(p)">
 														<div class="flex gap-2 items-start">
 															<textarea rows="3"
-																:value="getStepParamIntList(selectedStepIndex(), p.name)"
-																@input="setStepParamIntList(selectedStepIndex(), p.name, $event.target.value)"
+																:value="getStepParamIntList(drawerStepIndex, p.name)"
+																@input="setStepParamIntList(drawerStepIndex, p.name, $event.target.value)"
 																class="textarea textarea-bordered textarea-sm w-full font-mono"
 																placeholder={ i18n.T(ctx, "page.pipeline_editor.placeholder_comma_ids") }
 																:data-param-field="p.name"
 																:data-testid="'param-field-' + p.name"></textarea>
 															<button type="button"
-																@click="openVariablePicker(selectedStepIndex(), p.name)"
+																@click="openVariablePicker(drawerStepIndex, p.name)"
 																class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
 																:data-testid="'btn-var-' + p.name">&#123;x&#125;</button>
 														</div>
@@ -521,15 +602,35 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 													<template x-if="isParamTypeMap(p)">
 														<div>
 															<textarea rows="4"
-																:value="getStepParamMapJSON(selectedStepIndex(), p.name)"
-																@input="setStepParamMapJSON(selectedStepIndex(), p.name, $event.target.value)"
+																:value="getStepParamMapJSON(drawerStepIndex, p.name)"
+																@input="setStepParamMapJSON(drawerStepIndex, p.name, $event.target.value)"
 																class="textarea textarea-bordered textarea-sm w-full font-mono"
-																:class="isParamFieldError(selectedStepIndex(), p.name) ? 'textarea-error' : ''"
+																:class="isParamFieldError(drawerStepIndex, p.name) ? 'textarea-error' : ''"
 																placeholder="{}"
 																:data-param-field="p.name"
 																:data-testid="'param-field-' + p.name"></textarea>
-															<p x-show="isParamFieldError(selectedStepIndex(), p.name)"
+															<p x-show="isParamFieldError(drawerStepIndex, p.name)"
 																class="text-xs text-error mt-1">{ i18n.T(ctx, "page.pipeline_editor.invalid_json_object") }</p>
+														</div>
+													</template>
+													<template x-if="isParamTypeAny(p)">
+														<div>
+															<div class="flex gap-2 items-start">
+																<textarea rows="4"
+																	:value="getStepParamAnyJSON(drawerStepIndex, p.name)"
+																	@input="setStepParamAnyJSON(drawerStepIndex, p.name, $event.target.value)"
+																	class="textarea textarea-bordered textarea-sm w-full font-mono"
+																	:class="isParamFieldError(drawerStepIndex, p.name) ? 'textarea-error' : ''"
+																	placeholder={ i18n.T(ctx, "page.pipeline_editor.placeholder_any_json") }
+																	:data-param-field="p.name"
+																	:data-testid="'param-field-' + p.name"></textarea>
+																<button type="button"
+																	@click="openVariablePicker(drawerStepIndex, p.name)"
+																	class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
+																	:data-testid="'btn-var-' + p.name">&#123;x&#125;</button>
+															</div>
+															<p x-show="isParamFieldError(drawerStepIndex, p.name)"
+																class="text-xs text-error mt-1">{ i18n.T(ctx, "page.pipeline_editor.invalid_json_value") }</p>
 														</div>
 													</template>
 												</div>
@@ -537,30 +638,34 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 										</div>
 									</div>
 								</template>
-								<template x-if="getExtraParamKeys(selectedStepIndex()).length > 0">
+								<template x-if="getExtraParamKeys(drawerStepIndex).length > 0">
 									<p class="text-xs text-base-content/50 mb-3"
 										data-testid="params-extra-keys-info"
-										x-text="extraFieldsHint(selectedStepIndex())"></p>
+										x-text="extraFieldsHint(drawerStepIndex)"></p>
 								</template>
 								<div class="collapse collapse-arrow border border-base-300 rounded-box bg-base-200 mb-3">
-									<input type="checkbox" x-model="paramsAdvancedOpen" data-testid="params-advanced-toggle">
+									<input type="checkbox" x-model="paramsAdvancedOpen" name="params-advanced" aria-label={ i18n.T(ctx, "page.pipeline_editor.advanced_json") } data-testid="params-advanced-toggle">
 									<div class="collapse-title text-sm font-medium min-h-0 py-3">{ i18n.T(ctx, "page.pipeline_editor.advanced_json") }</div>
 									<div class="collapse-content">
-										<textarea rows="8" x-model="selectedStep().paramsText"
+										<textarea rows="8"
+											id="step-params-editor"
+											name="step-params"
+											x-model="drawerStep.paramsText"
+											@input="onDrawerParamsTextInput()"
 											class="textarea textarea-bordered w-full font-mono"
 											placeholder='{ "title": "event.title" }'
-											@input="drawerDirty = true; onParamsTextInput(selectedStepIndex())"
 											data-testid="params-editor"></textarea>
-										<button type="button" @click="openVariablePicker(selectedStepIndex(), null)"
+										<button type="button" @click="openVariablePicker(drawerStepIndex, null)"
 											class="btn btn-ghost btn-sm text-primary mt-2"
 											data-testid="btn-open-var-picker">{ i18n.T(ctx, "page.pipeline_editor.insert_variable") }</button>
 									</div>
 								</div>
-							</div>
+								<span class="hidden" aria-hidden="true" x-init="fillDrawerSelects()"></span>
+								</div>
 						</template>
 					</div>
 
-					<div x-show="drawerTab === 'setup' && (selectedStep() || selectedTrigger())"
+					<div x-show="drawerTab === 'setup' && (drawerStepFormReady || selectedTrigger())"
 						class="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-base-300 bg-base-100 px-6 py-4 flex justify-end gap-2"
 						data-testid="drawer-setup-actions">
 						<button type="button" @click="closeDrawer"
@@ -614,10 +719,10 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 												<span x-show="r.status === 'ok'" class="text-success font-bold">{ i18n.T(ctx, "page.pipeline_editor.test_status_ok") }</span>
 												<span x-show="r.status === 'error'" class="text-error font-bold">{ i18n.T(ctx, "page.pipeline_editor.test_status_err") }</span>
 												<span class="font-medium" x-text="r.name"></span>
-												<span class="text-xs text-base-content/30" x-text="r.duration_ms + 'ms'"></span>
+												<span class="text-xs text-base-content/30" x-text="formatTestStepDuration(r.duration_ms)"></span>
 											</div>
 											<pre x-show="r.output" class="text-xs bg-base-200 p-2 rounded-box mt-1 overflow-x-auto"
-												x-text="JSON.stringify(r.output, null, 2)"></pre>
+												x-text="formatTestStepOutput(r.output)"></pre>
 											<div x-show="r.error" class="text-error text-xs mt-1" x-text="r.error"></div>
 										</div>
 									</template>
@@ -628,6 +733,8 @@ templ PipelineEditorPage(ctx context.Context, name string) {
 					</div>
 				</div>
 			</div>
+				</div>
+			</template>
 
 			<!-- Variable Picker Modal -->
 			<div x-show="variablePickerOpen" class="fixed inset-0 z-60 flex items-center justify-center"

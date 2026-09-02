@@ -188,6 +188,15 @@ func TestFunctionStore_PublishAndVersions(t *testing.T) {
 				old, err := fs.GetPublishedVersion(ctx, "repub-fn", 1)
 				require.NoError(t, err)
 				assert.Equal(t, "v1", old.Source)
+
+				versions, err := fs.ListPublishedVersionNumbers(ctx, "repub-fn")
+				require.NoError(t, err)
+				assert.Equal(t, []int{2, 1}, versions)
+
+				byName, err := fs.ListPublishedVersionNumbersByNames(ctx, []string{"repub-fn", "missing-fn"})
+				require.NoError(t, err)
+				assert.Equal(t, []int{2, 1}, byName["repub-fn"])
+				assert.Empty(t, byName["missing-fn"])
 			},
 		},
 	}

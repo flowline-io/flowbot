@@ -535,6 +535,36 @@ other = "所选技能将注入 agent 提示词并通过 read_skill 启用。"
 [page.pipeline_editor.no_skills]
 other = "无已启用技能。请在 Agent → Skills 下创建。"
 
+[page.pipeline_editor.function_name]
+other = "函数"
+
+[page.pipeline_editor.function_name_hint]
+other = "选择要调用的已发布函数。"
+
+[page.pipeline_editor.no_published_functions]
+other = "暂无已发布函数。请先在 Functions 中发布函数。"
+
+[page.pipeline_editor.select_function]
+other = "选择函数"
+
+[page.pipeline_editor.function_version]
+other = "版本"
+
+[page.pipeline_editor.function_version_hint]
+other = "要调用的已发布版本。"
+
+[page.pipeline_editor.select_function_first]
+other = "请先选择函数。"
+
+[page.pipeline_editor.select_version]
+other = "选择版本"
+
+[page.pipeline_editor.placeholder_any_json]
+other = "可选 JSON 值"
+
+[page.pipeline_editor.invalid_json_value]
+other = "JSON 值无效"
+
 [page.pipeline_editor.parameters]
 other = "参数"
 
@@ -1600,6 +1630,12 @@ other = "流水线已重命名"
 
 [client.pipeline.agent_options_failed]
 other = "加载 Agent 运行选项失败"
+
+[client.pipeline.function_options_failed]
+other = "加载函数选项失败"
+
+[client.pipeline.function_unavailable]
+other = "{{.Name}}（不可用）"
 
 [client.pipeline.capabilities_failed]
 other = "加载能力列表失败"

@@ -36,6 +36,7 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines/list", pipelineListTable),
 	webservice.Get("/pipelines/capabilities", getCapabilities),
 	webservice.Get("/pipelines/agent-run-options", getAgentRunOptions),
+	webservice.Get("/pipelines/function-invoke-options", getFunctionInvokeOptions),
 	webservice.Get("/pipelines/stats", pipelineStats),
 	webservice.Get("/pipelines/:name", pipelineEditorPage),
 	webservice.Post("/pipelines", createPipeline),
@@ -504,14 +505,14 @@ func testPipelineStep(c fiber.Ctx) error {
 		start := time.Now()
 		rendered, rErr := rc.RenderParams(step.Params)
 		if rErr != nil {
-			results = append(results, stepResult{Name: step.Name, Status: "error", Error: fmt.Sprintf("render params: %v", rErr)})
+			results = append(results, stepResult{Name: step.Name, Status: "error", DurationMs: time.Since(start).Milliseconds(), Error: fmt.Sprintf("render params: %v", rErr)})
 			return c.JSON(fiber.Map{"success": false, "error": "Step " + step.Name + " failed", "steps": results})
 		}
 		pipeline.InjectAgentRunDefaults(step, rendered, rc, name)
 		res, iErr := capability.Invoke(context.Background(), step.Capability, step.Operation, rendered)
 		duration := time.Since(start).Milliseconds()
 		if iErr != nil {
-			results = append(results, stepResult{Name: step.Name, Status: "error", Error: fmt.Sprintf("invoke: %v", iErr)})
+			results = append(results, stepResult{Name: step.Name, Status: "error", DurationMs: duration, Error: fmt.Sprintf("invoke: %v", iErr)})
 			return c.JSON(fiber.Map{"success": false, "error": "Step " + step.Name + " failed", "steps": results})
 		}
 		stepOutput := pipeline.StepResultFromInvoke(res)
@@ -673,6 +674,65 @@ func getAgentRunOptions(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(agentRunOptionsResponse{
 		Tools:  chatagent.SelectableSubagentTools(),
 		Skills: skills,
+	}))
+}
+
+type functionInvokeOption struct {
+	Name               string `json:"name"`
+	PublishedVersions  []int  `json:"published_versions"`
+	LatestVersion      int    `json:"latest_version,omitempty"`
+}
+
+type functionInvokeOptionsResponse struct {
+	Functions []functionInvokeOption `json:"functions"`
+}
+
+// getFunctionInvokeOptions returns published functions and versions for pipeline functions.invoke steps.
+func getFunctionInvokeOptions(c fiber.Ctx) error {
+	svc := getFunctionService()
+	if svc == nil {
+		return c.JSON(protocol.NewSuccessResponse(functionInvokeOptionsResponse{
+			Functions: []functionInvokeOption{},
+		}))
+	}
+	reqCtx := c.Context()
+	items, err := svc.ListAll(reqCtx)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list functions: %v", err)
+	}
+	fnStore := getFunctionStore()
+	names := make([]string, 0, len(items))
+	for _, item := range items {
+		if item.PublishedVersion != nil {
+			names = append(names, item.Name)
+		}
+	}
+	versionLists := map[string][]int{}
+	if fnStore != nil && len(names) > 0 {
+		listed, listErr := fnStore.ListPublishedVersionNumbersByNames(reqCtx, names)
+		if listErr != nil {
+			flog.Error(fmt.Errorf("list function published versions: %w", listErr))
+		} else {
+			versionLists = listed
+		}
+	}
+	options := make([]functionInvokeOption, 0, len(names))
+	for _, item := range items {
+		if item.PublishedVersion == nil {
+			continue
+		}
+		versions := versionLists[item.Name]
+		if len(versions) == 0 {
+			versions = []int{*item.PublishedVersion}
+		}
+		options = append(options, functionInvokeOption{
+			Name:              item.Name,
+			PublishedVersions: versions,
+			LatestVersion:     versions[0],
+		})
+	}
+	return c.JSON(protocol.NewSuccessResponse(functionInvokeOptionsResponse{
+		Functions: options,
 	}))
 }
 
