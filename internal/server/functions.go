@@ -22,7 +22,7 @@ import (
 )
 
 // functionExecProvider builds a sandbox exec config with Network=none and no Flowbot credentials.
-// Workspace is set per Invoke by Service; Exec uses opts.Dir as the bind-mounted workspace.
+// Workspace is set per Invoke by Service; Exec enables WorkspaceInject for the Docker runtime.
 type functionExecProvider struct{}
 
 var _ pkgfunctions.WorkspacePreparer = functionExecProvider{}
@@ -55,7 +55,7 @@ func (functionExecProvider) ExecConfig(_ context.Context) (pkgexec.Config, error
 }
 
 // functionSandboxEnv uses host FS for file ops and a sandbox (docker or kern) for Exec.
-// Each Exec binds opts.Dir as the workspace (Service creates an ephemeral dir per Invoke).
+// Each Exec uses opts.Dir as the ephemeral workspace root.
 type functionSandboxEnv struct {
 	host    env.ExecutionEnv
 	image   string
@@ -113,6 +113,7 @@ func (e *functionSandboxEnv) Exec(ctx context.Context, opts env.ExecOptions) res
 		Network:         e.network,
 		Memory:          e.memory,
 		Workspace:       workspace,
+		WorkspaceInject: true,
 		ServerURL:       "",
 		AccessToken:     "",
 	}, e.host, nil)

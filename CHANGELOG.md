@@ -11,6 +11,7 @@
 
 ### Fixed
 
+- Function sandbox copies ephemeral workspaces into the container via Docker API (`WorkspaceInject`) instead of bind-mounting `/tmp/flowbot-fn-*`, so Try/Invoke works when Flowbot uses `docker.sock` from a container. See [.agents/notes/implemented/bug-fix/2026-09-04-function-sandbox-workspace-inject.md](.agents/notes/implemented/bug-fix/2026-09-04-function-sandbox-workspace-inject.md).
 - Function sandbox workspaces are prepared readable by uid 1000; Try maps runtime exit failures to `INVOKE_FAILED` instead of `VALIDATION_ERROR`. See [.agents/notes/implemented/bug-fix/2026-09-02-function-sandbox-workspace-permissions.md](.agents/notes/implemented/bug-fix/2026-09-02-function-sandbox-workspace-permissions.md).
 - Function publish versions start at v1 and increment by publish count, not draft revision. See [.agents/notes/implemented/bug-fix/2026-09-02-function-publish-version-starts-at-v1.md](.agents/notes/implemented/bug-fix/2026-09-02-function-publish-version-starts-at-v1.md).
 - Endpoint health checker uses a private HTTP transport so parallel probes are not poisoned by `DefaultTransport.CloseIdleConnections`. See [.agents/notes/implemented/bug-fix/2026-09-01-endpoint-health-default-transport.md](.agents/notes/implemented/bug-fix/2026-09-01-endpoint-health-default-transport.md).

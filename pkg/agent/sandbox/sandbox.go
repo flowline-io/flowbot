@@ -2,11 +2,13 @@
 package sandbox
 
 import (
+	"archive/tar"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -45,6 +47,8 @@ const (
 	cliExecWorld          = 0755
 	labelComponentKey     = "flowbot.component"
 	labelComponentSandbox = "agent-sandbox"
+	// containerInjectWorkDir is the container path used when WorkspaceInject copies the host workspace.
+	containerInjectWorkDir = "/workspace"
 	// sandboxAgentUID/GID match the agent user in deployments/agent-sandbox/Dockerfile.
 	sandboxAgentUID = 1000
 	sandboxAgentGID = 1000
@@ -80,8 +84,12 @@ type Config struct {
 	Network string
 	// Memory limits container memory (e.g. "512m").
 	Memory string
-	// Workspace is the host workspace path bind-mounted at the same path inside the container.
+	// Workspace is the host workspace path. By default it is bind-mounted at the same path
+	// inside the container; when WorkspaceInject is set (Docker only), it is copied to /workspace.
 	Workspace string
+	// WorkspaceInject copies the host Workspace into /workspace via the Docker API instead of
+	// bind-mounting. Ignored when Runtime is kern (bind mount remains).
+	WorkspaceInject bool
 	// ServerURL is the Flowbot API URL injected for the flowbot CLI inside the container.
 	ServerURL string
 	// AccessToken is the Hub access token injected for the flowbot CLI inside the container.
@@ -131,6 +139,8 @@ type RunOptions struct {
 	Env []string
 	// Stdin is process input; non-empty values are written to .flowbot-stdin under the host workdir.
 	Stdin []byte
+	// WorkspaceInject copies opts.Workspace into /workspace instead of bind-mounting (Docker only).
+	WorkspaceInject bool
 	// CLIConfigDir is a host directory bind-mounted read-only at containerCLIConfigPath.
 	// When empty and AccessToken is set, DockerRunner materializes a temporary directory.
 	CLIConfigDir string
@@ -247,26 +257,34 @@ func (e *Env) ReadDir(ctx context.Context, path string) result.Result[[]env.DirE
 	return e.host.ReadDir(ctx, path)
 }
 
-// Exec runs the command inside a sandbox container with the workspace mounted.
+// Exec runs the command inside a sandbox container (bind-mounted or inject-copied workspace).
 func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.Capture, result.ExecutionError] {
 	runCtx := ctx
 	if opts.Timeout != nil {
 		runCtx = opts.Timeout
 	}
+	inject := workspaceInjectActive(e.cfg)
 	workDir := resolveContainerWorkDir(e.cfg.Workspace, opts.Dir)
+	if inject {
+		workDir = containerInjectWorkDir
+	}
 	runOpts := RunOptions{
-		Image:       e.cfg.Image,
-		Network:     e.cfg.Network,
-		Memory:      e.cfg.Memory,
-		Workspace:   e.cfg.Workspace,
-		WorkDir:     workDir,
-		Command:     opts.Command,
-		Argv:        append([]string(nil), opts.Argv...),
-		ServerURL:   e.cfg.ServerURL,
-		AccessToken: e.cfg.AccessToken,
-		Env:         append([]string(nil), opts.Env...),
-		Stdin:       append([]byte(nil), opts.Stdin...),
-		CLIBinary:   e.cliBinary,
+		Image:           e.cfg.Image,
+		Network:         e.cfg.Network,
+		Memory:          e.cfg.Memory,
+		Workspace:       e.cfg.Workspace,
+		WorkDir:         workDir,
+		Command:         opts.Command,
+		Argv:            append([]string(nil), opts.Argv...),
+		ServerURL:       e.cfg.ServerURL,
+		AccessToken:     e.cfg.AccessToken,
+		Env:             append([]string(nil), opts.Env...),
+		Stdin:           append([]byte(nil), opts.Stdin...),
+		WorkspaceInject: inject,
+		CLIBinary:       e.cliBinary,
+	}
+	if inject {
+		runOpts.Env = remapHostPathsInEnv(runOpts.Env, e.cfg.Workspace, containerInjectWorkDir)
 	}
 	if ferr := e.applyStdinRedirect(ctx, opts, &runOpts); ferr != nil {
 		return result.Err[env.Capture, result.ExecutionError](*ferr)
@@ -287,6 +305,13 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 	return result.Ok[env.Capture, result.ExecutionError](capture)
 }
 
+func workspaceInjectActive(cfg Config) bool {
+	if !cfg.WorkspaceInject {
+		return false
+	}
+	return !strings.EqualFold(strings.TrimSpace(cfg.Runtime), sandboxRuntimeKern)
+}
+
 func resolveContainerWorkDir(workspace, optsDir string) string {
 	containerRoot := containerWorkspacePath(workspace)
 	if optsDir == "" || workspace == "" {
@@ -297,6 +322,31 @@ func resolveContainerWorkDir(workspace, optsDir string) string {
 		return containerRoot
 	}
 	return containerWorkspacePath(filepath.Join(workspace, rel))
+}
+
+func remapHostPathsInEnv(envVars []string, hostRoot, containerRoot string) []string {
+	if len(envVars) == 0 || strings.TrimSpace(hostRoot) == "" {
+		return envVars
+	}
+	hostRoot = containerWorkspacePath(hostRoot)
+	out := make([]string, len(envVars))
+	for i, entry := range envVars {
+		key, val, ok := strings.Cut(entry, "=")
+		if !ok {
+			out[i] = entry
+			continue
+		}
+		valNorm := containerWorkspacePath(val)
+		switch {
+		case valNorm == hostRoot:
+			out[i] = key + "=" + containerRoot
+		case strings.HasPrefix(valNorm, hostRoot+"/"):
+			out[i] = key + "=" + containerRoot + strings.TrimPrefix(valNorm, hostRoot)
+		default:
+			out[i] = entry
+		}
+	}
+	return out
 }
 
 func (e *Env) applyStdinRedirect(ctx context.Context, opts env.ExecOptions, runOpts *RunOptions) *result.ExecutionError {
@@ -317,11 +367,15 @@ func (e *Env) applyStdinRedirect(ctx context.Context, opts env.ExecOptions, runO
 		execErr := result.NewExecutionError("spawn_error", err.Error(), err)
 		return &execErr
 	}
+	stdinRedirect := ".flowbot-stdin"
+	if runOpts.WorkspaceInject {
+		stdinRedirect = shellQuote(containerInjectWorkDir + "/.flowbot-stdin")
+	}
 	if len(opts.Argv) > 0 {
-		runOpts.Command = shellJoin(opts.Argv) + " < .flowbot-stdin"
+		runOpts.Command = shellJoin(opts.Argv) + " < " + stdinRedirect
 		runOpts.Argv = nil
 	} else {
-		runOpts.Command = "(" + opts.Command + ") < .flowbot-stdin"
+		runOpts.Command = "(" + opts.Command + ") < " + stdinRedirect
 	}
 	return nil
 }
@@ -411,6 +465,11 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	if err := ctx.Err(); err != nil {
 		return env.Capture{}, err
 	}
+	if opts.WorkspaceInject {
+		if err := injectWorkspace(ctx, cli, id, opts.Workspace); err != nil {
+			return env.Capture{}, err
+		}
+	}
 	return waitAndCollectLogs(ctx, cli, id, opts.Workspace, workDir)
 }
 
@@ -451,9 +510,10 @@ func validateRunOptions(opts RunOptions) error {
 }
 
 func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
-	containerPath := containerWorkspacePath(opts.Workspace)
-	hostConfig := &container.HostConfig{
-		Binds: []string{fmt.Sprintf("%s:%s", opts.Workspace, containerPath)},
+	hostConfig := &container.HostConfig{}
+	if !opts.WorkspaceInject {
+		containerPath := containerWorkspacePath(opts.Workspace)
+		hostConfig.Binds = append(hostConfig.Binds, fmt.Sprintf("%s:%s", opts.Workspace, containerPath))
 	}
 	if opts.CLIConfigDir != "" {
 		hostConfig.Binds = append(hostConfig.Binds,
@@ -477,6 +537,106 @@ func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
 		hostConfig.ExtraHosts = []string{hostDockerInternal + ":host-gateway"}
 	}
 	return hostConfig, nil
+}
+
+func injectWorkspace(ctx context.Context, cli *client.Client, containerID, hostWorkspace string) error {
+	destName := strings.TrimPrefix(containerInjectWorkDir, "/")
+	tarStream, err := tarWorkspace(hostWorkspace, destName)
+	if err != nil {
+		return fmt.Errorf("sandbox: tar workspace: %w", err)
+	}
+	flog.Info("[sandbox] workspace inject id=%s host=%s dest=%s", containerID, hostWorkspace, containerInjectWorkDir)
+	if _, err := cli.CopyToContainer(ctx, containerID, client.CopyToContainerOptions{
+		DestinationPath: "/",
+		Content:         tarStream,
+	}); err != nil {
+		return fmt.Errorf("sandbox: copy workspace into container: %w", err)
+	}
+	return nil
+}
+
+func tarWorkspace(root, destName string) (io.Reader, error) {
+	root = filepath.Clean(root)
+	info, err := os.Stat(root)
+	if err != nil {
+		return nil, err
+	}
+	if !info.IsDir() {
+		return nil, fmt.Errorf("workspace is not a directory")
+	}
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&buf)
+	dirHdr := &tar.Header{
+		Typeflag: tar.TypeDir,
+		Name:     destName + "/",
+		Mode:     0755,
+		Uid:      sandboxAgentUID,
+		Gid:      sandboxAgentGID,
+	}
+	if err := tw.WriteHeader(dirHdr); err != nil {
+		_ = tw.Close()
+		return nil, err
+	}
+	err = filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
+		return writeWorkspaceTarEntry(tw, root, destName, path, d, walkErr)
+	})
+	if err != nil {
+		_ = tw.Close()
+		return nil, err
+	}
+	if err := tw.Close(); err != nil {
+		return nil, err
+	}
+	return &buf, nil
+}
+
+func writeWorkspaceTarEntry(tw *tar.Writer, root, destName, path string, d fs.DirEntry, walkErr error) error {
+	if walkErr != nil {
+		return walkErr
+	}
+	rel, relErr := filepath.Rel(root, path)
+	if relErr != nil {
+		return relErr
+	}
+	if rel == "." {
+		return nil
+	}
+	fi, statErr := d.Info()
+	if statErr != nil {
+		return statErr
+	}
+	hdr, hdrErr := tar.FileInfoHeader(fi, "")
+	if hdrErr != nil {
+		return hdrErr
+	}
+	hdr.Name = destName + "/" + filepath.ToSlash(rel)
+	hdr.Uid = sandboxAgentUID
+	hdr.Gid = sandboxAgentGID
+	if d.IsDir() {
+		hdr.Name = strings.TrimSuffix(hdr.Name, "/") + "/"
+		hdr.Typeflag = tar.TypeDir
+		hdr.Mode = int64(hdr.Mode&0777 | 0755)
+	}
+	if err := tw.WriteHeader(hdr); err != nil {
+		return err
+	}
+	if d.IsDir() || !fi.Mode().IsRegular() {
+		return nil
+	}
+	return copyFileToTar(tw, path)
+}
+
+func copyFileToTar(tw *tar.Writer, path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	_, copyErr := io.Copy(tw, f)
+	closeErr := f.Close()
+	if copyErr != nil {
+		return copyErr
+	}
+	return closeErr
 }
 
 // materializeCLIConfig writes CLI token/server_url files into a temporary host directory

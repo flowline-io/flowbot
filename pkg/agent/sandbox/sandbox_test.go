@@ -250,6 +250,57 @@ func TestEnvExecForwardsCLICredentials(t *testing.T) {
 	}
 }
 
+func TestEnvExecWorkspaceInject(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	runner := &mockRunner{cap: env.Capture{ExitCode: 0}}
+	e := sandbox.New(sandbox.Config{
+		Image:           "img",
+		Workspace:       dir,
+		WorkspaceInject: true,
+	}, env.Default(), runner)
+
+	got := e.Exec(context.Background(), env.ExecOptions{
+		Argv:  []string{"go", "run", "main.go"},
+		Dir:   dir,
+		Stdin: []byte(`{"event":{}}`),
+		Env:   []string{"GOCACHE=" + filepath.Join(dir, ".gocache")},
+	})
+	require.True(t, got.IsOk())
+	assert.True(t, runner.last.WorkspaceInject)
+	assert.Equal(t, "/workspace", runner.last.WorkDir)
+	assert.Contains(t, runner.last.Command, "< '/workspace/.flowbot-stdin'")
+	assert.Equal(t, []string{"GOCACHE=/workspace/.gocache"}, runner.last.Env)
+	_, err := os.Stat(filepath.Join(dir, ".flowbot-stdin"))
+	require.NoError(t, err)
+}
+
+func TestEnvExecWorkspaceInjectIgnoredOnKern(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	runner := &mockRunner{cap: env.Capture{ExitCode: 0}}
+	e := sandbox.New(sandbox.Config{
+		Runtime:         "kern",
+		Image:           "img",
+		Workspace:       dir,
+		WorkspaceInject: true,
+	}, env.Default(), runner)
+
+	gocache := filepath.Join(dir, ".gocache")
+	got := e.Exec(context.Background(), env.ExecOptions{
+		Argv:  []string{"go", "run", "main.go"},
+		Dir:   dir,
+		Stdin: []byte(`{"event":{}}`),
+		Env:   []string{"GOCACHE=" + gocache},
+	})
+	require.True(t, got.IsOk())
+	assert.False(t, runner.last.WorkspaceInject)
+	assert.Equal(t, filepath.ToSlash(dir), runner.last.WorkDir)
+	assert.Contains(t, runner.last.Command, "< .flowbot-stdin")
+	assert.NotContains(t, runner.last.Command, "/workspace/.flowbot-stdin")
+	assert.Equal(t, []string{"GOCACHE=" + gocache}, runner.last.Env)
+}
+
 func TestEnvExecForwardsCLIBinary(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()

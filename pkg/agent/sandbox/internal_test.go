@@ -1,6 +1,8 @@
 package sandbox
 
 import (
+	"archive/tar"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -10,6 +12,51 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestTarWorkspace(t *testing.T) {
+	t.Parallel()
+	root := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\n"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(root, ".flowbot-stdin"), []byte(`{}`), 0o644))
+	sub := filepath.Join(root, "sub")
+	require.NoError(t, os.Mkdir(sub, 0o750))
+	require.NoError(t, os.WriteFile(filepath.Join(sub, "x.txt"), []byte("x"), 0o644))
+
+	r, err := tarWorkspace(root, "workspace")
+	require.NoError(t, err)
+	tr := tar.NewReader(r)
+	names := map[string]bool{}
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		require.NoError(t, err)
+		names[hdr.Name] = true
+		assert.Equal(t, sandboxAgentUID, hdr.Uid)
+		assert.Equal(t, sandboxAgentGID, hdr.Gid)
+	}
+	assert.True(t, names["workspace/"] || names["workspace"])
+	assert.True(t, names["workspace/main.go"])
+	assert.True(t, names["workspace/.flowbot-stdin"])
+	assert.True(t, names["workspace/sub/x.txt"])
+}
+
+func TestRemapHostPathsInEnv(t *testing.T) {
+	t.Parallel()
+	got := remapHostPathsInEnv([]string{
+		"GOCACHE=/tmp/ws/.gocache",
+		"GOPATH=/tmp/ws/.gopath",
+		"OTHER=/elsewhere",
+		"BARE",
+	}, "/tmp/ws", "/workspace")
+	assert.Equal(t, []string{
+		"GOCACHE=/workspace/.gocache",
+		"GOPATH=/workspace/.gopath",
+		"OTHER=/elsewhere",
+		"BARE",
+	}, got)
+}
 
 func TestValidateRunOptions(t *testing.T) {
 	t.Parallel()
@@ -109,6 +156,7 @@ func TestBuildHostConfig(t *testing.T) {
 		wantCLIBinBind bool
 	}{
 		{name: "binds workspace", opts: RunOptions{Workspace: "/host/ws"}, wantBinds: 1},
+		{name: "inject skips workspace bind", opts: RunOptions{Workspace: "/host/ws", WorkspaceInject: true}, wantBinds: 0},
 		{name: "sets network mode", opts: RunOptions{Workspace: "/host/ws", Network: "bridge"}, wantBinds: 1},
 		{name: "invalid memory", opts: RunOptions{Workspace: "/host/ws", Memory: "not-memory"}, wantErr: "memory"},
 		{
@@ -121,6 +169,18 @@ func TestBuildHostConfig(t *testing.T) {
 			wantBinds:      2,
 			wantExtraHosts: true,
 			wantCLIBind:    true,
+		},
+		{
+			name: "inject keeps cli binds without workspace",
+			opts: RunOptions{
+				Workspace:       "/host/ws",
+				WorkspaceInject: true,
+				CLIConfigDir:    "/tmp/cli-cfg",
+				CLIBinaryDir:    "/tmp/cli-bin",
+			},
+			wantBinds:      2,
+			wantCLIBind:    true,
+			wantCLIBinBind: true,
 		},
 		{
 			name: "cli binary file path is not a bind",

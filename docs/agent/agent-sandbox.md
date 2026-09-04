@@ -169,7 +169,7 @@ Cloud Agent orchestrators should reference a pinned semver tag in production, fo
 
 ### Named FaaS (`go run main.go`)
 
-Functions invoke the sandbox with `Network=none` and no Flowbot CLI credentials. Go entrypoints write a minimal `go.mod` (`module flowbotfn` / `go 1.26`) and run `go run main.go` with `GOPROXY=off`, `GOSUMDB=off`, `GOTOOLCHAIN=local`, and `CGO_ENABLED=0` (stdlib only; no module download). The image pins `GOTOOLCHAIN=local` so the bundled Go 1.26.6 compiler cannot attempt a toolchain fetch when the proxy is off.
+Functions invoke the sandbox with `Network=none` and no Flowbot CLI credentials. On Docker, the ephemeral host workspace is copied into `/workspace` (`WorkspaceInject`); see [.agents/notes/implemented/bug-fix/2026-09-04-function-sandbox-workspace-inject.md](../../.agents/notes/implemented/bug-fix/2026-09-04-function-sandbox-workspace-inject.md). Go entrypoints write a minimal `go.mod` (`module flowbotfn` / `go 1.26`) and run `go run main.go` with `GOPROXY=off`, `GOSUMDB=off`, `GOTOOLCHAIN=local`, and `CGO_ENABLED=0` (stdlib only; no module download). The image pins `GOTOOLCHAIN=local` so the bundled Go 1.26.6 compiler cannot attempt a toolchain fetch when the proxy is off.
 
 ### Chat agent CLI injection (`chat_agent.sandbox`)
 
