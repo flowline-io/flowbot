@@ -4,25 +4,69 @@
 
 ### Added
 
-- **Scanopy** provider for network topology discovery (hosts, services, daemons) under the devops aggregator, with HTTP and CLI. See [.agents/notes/implemented/feature/2026-08-28-scanopy-provider.md](.agents/notes/implemented/feature/2026-08-28-scanopy-provider.md).
-- Wakapi provider aligned with OpenAPI: WakaTime-compatible stats (`total_seconds`), health, all-time totals, and project search. See [.agents/notes/implemented/feature/2026-08-28-wakapi-provider-swagger.md](.agents/notes/implemented/feature/2026-08-28-wakapi-provider-swagger.md).
-- Chat agent: microlighter syntax highlighting for markdown fences, and thread header meta chips (session, model, thinking, workspace). See [.agents/notes/implemented/feature/2026-08-30-chatagent-microlighter-codeblocks.md](.agents/notes/implemented/feature/2026-08-30-chatagent-microlighter-codeblocks.md).
+- Optional **kern** executor runtime alongside Docker: workflow `kern:<image>` and `chat_agent.sandbox.runtime: docker | kern`. See [.agents/notes/implemented/architecture/2026-09-01-kern-executor-runtime.md](.agents/notes/implemented/architecture/2026-09-01-kern-executor-runtime.md).
+- Clip public/private visibility (`is_public`); private clips return 404 to anonymous visitors; operators toggle from the clips UI. See [.agents/notes/implemented/feature/2026-09-02-clip-public-private-visibility.md](.agents/notes/implemented/feature/2026-09-02-clip-public-private-visibility.md).
+- Agent session detail **Export** downloads compact JSON (`session-{id}.json`). See [.agents/notes/implemented/feature/2026-09-02-agent-session-export.md](.agents/notes/implemented/feature/2026-09-02-agent-session-export.md).
+- Pipeline editor `functions.invoke` step: published name/version selectors, `number`/`any` param controls, and expression support. See [.agents/notes/implemented/bug-fix/2026-09-02-pipeline-functions-invoke-step-ui.md](.agents/notes/implemented/bug-fix/2026-09-02-pipeline-functions-invoke-step-ui.md).
+
+### Fixed
+
+- Function sandbox workspaces are prepared readable by uid 1000; Try maps runtime exit failures to `INVOKE_FAILED` instead of `VALIDATION_ERROR`. See [.agents/notes/implemented/bug-fix/2026-09-02-function-sandbox-workspace-permissions.md](.agents/notes/implemented/bug-fix/2026-09-02-function-sandbox-workspace-permissions.md).
+- Function publish versions start at v1 and increment by publish count, not draft revision. See [.agents/notes/implemented/bug-fix/2026-09-02-function-publish-version-starts-at-v1.md](.agents/notes/implemented/bug-fix/2026-09-02-function-publish-version-starts-at-v1.md).
+- Endpoint health checker uses a private HTTP transport so parallel probes are not poisoned by `DefaultTransport.CloseIdleConnections`. See [.agents/notes/implemented/bug-fix/2026-09-01-endpoint-health-default-transport.md](.agents/notes/implemented/bug-fix/2026-09-01-endpoint-health-default-transport.md).
+- Pipeline run duration and Started column use `started_at` (refresh on start/retry); failed steps stamp `completed_at`. See [.agents/notes/implemented/bug-fix/2026-09-01-pipeline-run-duration-started-at.md](.agents/notes/implemented/bug-fix/2026-09-01-pipeline-run-duration-started-at.md).
+- Memos health (`GetCurrentUser`) falls back from `GET /api/v1/auth/me` (0.26+) to `GET /api/v1/auth/sessions/current` (0.25.x) on 404. See [.agents/notes/implemented/bug-fix/2026-09-01-memos-current-user-path.md](.agents/notes/implemented/bug-fix/2026-09-01-memos-current-user-path.md).
+
+## [0.99.11] - 2026-09-01
 
 ### Changed
 
 - User-facing copy unifies "Chat Agent" / "chat agent" to "Agent" / "智能体" in navigation, settings, toasts, and API errors. See [.agents/notes/implemented/simplification/2026-09-01-agent-copy-unification.md](.agents/notes/implemented/simplification/2026-09-01-agent-copy-unification.md).
-- Navbar inbox/approval badges use one HTMX poller per endpoint; replica slots (mobile, Agents menu) update via OOB. See [.agents/notes/implemented/bug-fix/2026-08-30-nav-badge-single-poller.md](.agents/notes/implemented/bug-fix/2026-08-30-nav-badge-single-poller.md).
+- Agent nav order (Agents → Knowledge → Skills → Scheduled Tasks → Subagents → Sessions → Agent Settings); settings page title aligned and header back link removed. See [.agents/notes/implemented/simplification/2026-09-01-agent-nav-order-and-settings-copy.md](.agents/notes/implemented/simplification/2026-09-01-agent-nav-order-and-settings-copy.md).
+- Agent sandbox image packaging strips non-contract docs/caches from Go/apt/npm layers. See [.agents/notes/implemented/process/2026-08-30-agent-sandbox-image-packaging.md](.agents/notes/implemented/process/2026-08-30-agent-sandbox-image-packaging.md).
 
 ### Fixed
 
 - Capability health on `/healthz`: `core` and `life` expose `health`; `functions` returns `bool`; NetAlertX uses `/devices/totals/named` with legacy fallback; Memos strips a mistaken `/api/v1` endpoint suffix. See [.agents/notes/implemented/bug-fix/2026-09-01-capability-health-probes.md](.agents/notes/implemented/bug-fix/2026-09-01-capability-health-probes.md).
-- Memos health (`GetCurrentUser`) falls back from `GET /api/v1/auth/me` (0.26+) to `GET /api/v1/auth/sessions/current` (0.25.x) on 404. See [.agents/notes/implemented/bug-fix/2026-09-01-memos-current-user-path.md](.agents/notes/implemented/bug-fix/2026-09-01-memos-current-user-path.md).
+- Kanboard health probes with `getVersion` and wraps non-OK HTTP so a 403 cannot permanently poison the shared JSON-RPC client. See [.agents/notes/implemented/bug-fix/2026-09-01-kanboard-health-getme-poisons-rpc-client.md](.agents/notes/implemented/bug-fix/2026-09-01-kanboard-health-getme-poisons-rpc-client.md).
+- HTTP access logs emit only for known surface path prefixes, cutting scanner noise. See [.agents/notes/implemented/bug-fix/2026-09-01-http-access-log-path-whitelist.md](.agents/notes/implemented/bug-fix/2026-09-01-http-access-log-path-whitelist.md).
+- Table row expand no longer scrolls the viewport; expanded cells constrain width so sibling columns stay visible. See [.agents/notes/implemented/bug-fix/2026-09-01-table-expand-no-scroll.md](.agents/notes/implemented/bug-fix/2026-09-01-table-expand-no-scroll.md) and [.agents/notes/implemented/bug-fix/2026-09-01-event-table-expand-column-collapse.md](.agents/notes/implemented/bug-fix/2026-09-01-event-table-expand-column-collapse.md).
+- Chat-agent sandbox injects the CLI via a directory bind at `/opt/flowbot-cli` instead of a file bind onto `/usr/local/bin/flowbot`, so overlay2/runc can start the container. See [.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md](.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md).
+
+### Security
+
+- Same-tab nav helper rejects `javascript:`, `data:`, and `vbscript:` hrefs before aborting in-flight HTMX / EventSource. See [.agents/notes/implemented/bug-fix/2026-08-30-nav-href-scheme-denylist.md](.agents/notes/implemented/bug-fix/2026-08-30-nav-href-scheme-denylist.md).
+
+## [0.99.10] - 2026-08-30
+
+### Added
+
+- Knowledge form **Generate metadata** fills Title, Tags, and Summary from Path + Content via a single-shot LLM call (not persisted until Save). See [.agents/notes/implemented/feature/2026-08-30-knowledge-ai-metadata.md](.agents/notes/implemented/feature/2026-08-30-knowledge-ai-metadata.md).
+- Web UI full sessions use a sliding 24h idle TTL; navbar shows a fixed session label instead of a countdown. See [.agents/notes/implemented/feature/2026-08-30-web-session-sliding-idle.md](.agents/notes/implemented/feature/2026-08-30-web-session-sliding-idle.md).
+
+### Changed
+
+- Navbar splits into brand/groups, tools (search then inbox), and user cluster. See [.agents/notes/implemented/feature/2026-08-30-navbar-cluster-order.md](.agents/notes/implemented/feature/2026-08-30-navbar-cluster-order.md).
+
+## [0.99.9] - 2026-08-30
+
+### Added
+
+- **Scanopy** provider for network topology discovery (hosts, services, daemons) under the devops aggregator, with HTTP and CLI. See [.agents/notes/implemented/feature/2026-08-28-scanopy-provider.md](.agents/notes/implemented/feature/2026-08-28-scanopy-provider.md).
+- Wakapi provider aligned with OpenAPI: WakaTime-compatible stats (`total_seconds`), health, all-time totals, and project search. See [.agents/notes/implemented/feature/2026-08-28-wakapi-provider-swagger.md](.agents/notes/implemented/feature/2026-08-28-wakapi-provider-swagger.md).
+- Chat agent: microlighter syntax highlighting for markdown fences, and thread header meta chips (session, model, thinking, workspace). See [.agents/notes/implemented/feature/2026-08-30-chatagent-microlighter-codeblocks.md](.agents/notes/implemented/feature/2026-08-30-chatagent-microlighter-codeblocks.md) and [.agents/notes/implemented/feature/2026-08-30-chatagent-thread-header-meta.md](.agents/notes/implemented/feature/2026-08-30-chatagent-thread-header-meta.md).
+
+### Changed
+
+- Navbar inbox/approval badges use one HTMX poller per endpoint; replica slots (mobile, Agents menu) update via OOB. See [.agents/notes/implemented/bug-fix/2026-08-30-nav-badge-single-poller.md](.agents/notes/implemented/bug-fix/2026-08-30-nav-badge-single-poller.md).
+
+### Fixed
+
 - Parallel LLM tool-call SSE is rewritten by `index` so OpenAI-compatible providers (e.g. MiMo) no longer reject multi-tool turns with empty arguments. See [.agents/notes/implemented/bug-fix/2026-08-30-llm-parallel-toolcall-stream-index.md](.agents/notes/implemented/bug-fix/2026-08-30-llm-parallel-toolcall-stream-index.md).
 - LLM network errors are logged with a redacted URL and retried when no stream delta has been delivered. See [.agents/notes/implemented/bug-fix/2026-08-29-llm-network-error-sanitized.md](.agents/notes/implemented/bug-fix/2026-08-29-llm-network-error-sanitized.md).
-- Fenced-code `language-*` class survives `MarkdownToSafeHTML` sanitization (labels and highlighting).
+- Fenced-code `language-*` class survives `MarkdownToSafeHTML` sanitization (labels and highlighting). See [.agents/notes/implemented/bug-fix/2026-08-30-markdown-safehtml-code-language-class.md](.agents/notes/implemented/bug-fix/2026-08-30-markdown-safehtml-code-language-class.md).
 - Chat-agent approval EventSource closes on `pagehide` / same-tab navigation so inspect ↔ thread round-trips do not exhaust HTTP/1.1 sockets. See [.agents/notes/implemented/bug-fix/2026-08-30-chatagent-sse-pagehide-teardown.md](.agents/notes/implemented/bug-fix/2026-08-30-chatagent-sse-pagehide-teardown.md).
-- Agent session inspect back link returns to the thread UI instead of the sessions list.
-- Chat-agent sandbox injects the CLI via a directory bind at `/opt/flowbot-cli` instead of a file bind onto `/usr/local/bin/flowbot`, so overlay2/runc can start the container. See [.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md](.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md).
+- Agent session inspect back link returns to the thread UI instead of the sessions list. See [.agents/notes/implemented/bug-fix/2026-08-30-agent-session-detail-back-to-thread.md](.agents/notes/implemented/bug-fix/2026-08-30-agent-session-detail-back-to-thread.md).
 
 ## [0.99.8] - 2026-08-28
 
