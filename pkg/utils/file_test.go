@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -122,4 +124,63 @@ func TestDownloadFileBasic(t *testing.T) {
 			require.Error(t, err, "DownloadFile() should return error for %s", tt.name)
 		})
 	}
+}
+
+func TestToAbsolutePath(t *testing.T) {
+	t.Parallel()
+	// Use filepath.Join to create platform-appropriate paths
+	tests := []struct {
+		name string
+		base string
+		path string
+		want string
+	}{
+		{
+			name: "relative_path",
+			base: filepath.Join("home", "user"),
+			path: filepath.Join("documents", "file.txt"),
+			want: filepath.Join("home", "user", "documents", "file.txt"),
+		},
+		{
+			name: "current_directory",
+			base: filepath.Join("home", "user"),
+			path: "./file.txt",
+			want: filepath.Join("home", "user", "file.txt"),
+		},
+		{
+			name: "parent_directory",
+			base: filepath.Join("home", "user", "projects"),
+			path: filepath.Join("..", "documents", "file.txt"),
+			want: filepath.Join("home", "user", "documents", "file.txt"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := ToAbsolutePath(tt.base, tt.path)
+			// Clean both paths to handle platform differences
+			got = filepath.Clean(got)
+			want := filepath.Clean(tt.want)
+			assert.Equal(t, want, got)
+		})
+	}
+
+	// Test absolute path separately since it behaves differently on Windows vs Unix
+	t.Run("absolute_path", func(t *testing.T) {
+		t.Parallel()
+		if runtime.GOOS == "windows" {
+			base := `C:\home\user`
+			path := `C:\etc\config`
+			want := `C:\etc\config`
+			got := ToAbsolutePath(base, path)
+			assert.Equal(t, want, got)
+		} else {
+			base := "/home/user"
+			path := "/etc/config"
+			want := "/etc/config"
+			got := ToAbsolutePath(base, path)
+			assert.Equal(t, want, got)
+		}
+	})
 }

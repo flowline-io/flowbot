@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/schollz/progressbar/v3"
 )
@@ -12,6 +13,14 @@ import (
 func FileExist(name string) bool {
 	_, err := os.Stat(name)
 	return err == nil
+}
+
+// ToAbsolutePath Convert relative filepath to absolute.
+func ToAbsolutePath(base, path string) string {
+	if filepath.IsAbs(path) {
+		return path
+	}
+	return filepath.Clean(filepath.Join(base, path))
 }
 
 func DownloadFile(url, filename string) error {

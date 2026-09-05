@@ -4,7 +4,7 @@ General-purpose helpers with co-located tests.
 
 ## Entry points
 
-Package root (`utils.go`, `file.go`, …) plus `reexec/`, `sets/`, `syncx/`.
+Package root (`file.go`, `slice.go`, …) plus `reexec/`, `sets/`, `syncx/`.
 
 ## Non-obvious rules
 
