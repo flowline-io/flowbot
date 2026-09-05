@@ -155,22 +155,21 @@ func isWriteHTTPMethod(method string) bool {
 }
 
 // MinimumServiceScope returns the default minimum scope for /service/{group} routes.
-// Web and pipeline module routes map to pipeline:*; functions module routes map to function:*;
-// workflow module routes map to workflow:*; hub module routes map to hub:capabilities:read;
-// provider modules use service:{group}:read|write.
+// Web module routes map to pipeline:*; automate REST groups map to function:*/pipeline:*/workflow:*;
+// hub module routes map to hub:capabilities:read; provider modules use service:{group}:read|write.
 func MinimumServiceScope(group, method string) string {
 	switch group {
-	case "web", "pipeline":
+	case "web", "automate/pipeline":
 		if isWriteHTTPMethod(method) {
 			return ScopePipelineRun
 		}
 		return ScopePipelineRead
-	case "functions":
+	case "automate/functions":
 		if isWriteHTTPMethod(method) {
 			return ScopeFunctionRun
 		}
 		return ScopeFunctionRead
-	case "workflow":
+	case "automate/workflow":
 		if isWriteHTTPMethod(method) {
 			return ScopeWorkflowRun
 		}
@@ -195,11 +194,11 @@ func HasMinimumServiceScope(scopes []string, group, method string) bool {
 	}
 	if !isWriteHTTPMethod(method) {
 		switch group {
-		case "web", "pipeline":
+		case "web", "automate/pipeline":
 			return HasScope(scopes, ScopePipelineRun)
-		case "functions":
+		case "automate/functions":
 			return HasScope(scopes, ScopeFunctionRun)
-		case "workflow":
+		case "automate/workflow":
 			return HasScope(scopes, ScopeWorkflowRun)
 		case "hub":
 			return false

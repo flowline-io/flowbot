@@ -47,7 +47,7 @@ func FunctionCallPath(name string) string {
 	if name == "" {
 		return ""
 	}
-	return "/service/functions/call/" + url.PathEscape(name)
+	return "/service/automate/functions/call/" + url.PathEscape(name)
 }
 
 // FunctionCallVersionPath returns the HTTP invoke path for a specific published version.

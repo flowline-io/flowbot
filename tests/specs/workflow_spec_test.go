@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	workflowmod "github.com/flowline-io/flowbot/internal/modules/workflow"
+	automatemod "github.com/flowline-io/flowbot/internal/modules/automate"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 
@@ -21,12 +21,12 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 
 	Describe("Webservice — apply / list / run", func() {
 		BeforeEach(func() {
-			workflowmod.MountForE2E(App)
+			automatemod.MountForE2E(App)
 		})
 
 		It("rejects apply without yaml", func() {
 			body, _ := sonic.Marshal(map[string]any{})
-			req := JSONRequest(http.MethodPost, "/service/workflow/apply", body)
+			req := JSONRequest(http.MethodPost, "/service/automate/workflow/apply", body)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Or(
@@ -38,7 +38,7 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 
 		It("rejects run without workflow name", func() {
 			body, _ := sonic.Marshal(map[string]any{"input": map[string]any{}})
-			req := JSONRequest(http.MethodPost, "/service/workflow/run", body)
+			req := JSONRequest(http.MethodPost, "/service/automate/workflow/run", body)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Or(
@@ -49,7 +49,7 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 		})
 
 		It("lists workflows or reports unavailable", func() {
-			req := JSONRequest(http.MethodGet, "/service/workflow/list", nil)
+			req := JSONRequest(http.MethodGet, "/service/automate/workflow/list", nil)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Or(

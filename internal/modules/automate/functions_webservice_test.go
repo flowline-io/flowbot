@@ -1,4 +1,4 @@
-package functions
+package automate
 
 import (
 	"context"
@@ -138,8 +138,8 @@ func TestCallEndpointAuth(t *testing.T) {
 	t.Cleanup(func() { pkgfunctions.SetActiveService(prev) })
 
 	app := newFunctionsHandlerApp()
-	app.Post("/service/functions/call/:name", callFunction)
-	app.Post("/service/functions/call/:name/v/:version", callFunctionVersion)
+	app.Post("/service/automate/functions/call/:name", callFunction)
+	app.Post("/service/automate/functions/call/:name/v/:version", callFunctionVersion)
 
 	body := `{"hello":"world"}`
 	mac := hmac.New(sha256.New, []byte("hmac-secret"))
@@ -154,35 +154,35 @@ func TestCallEndpointAuth(t *testing.T) {
 	}{
 		{
 			name:       "valid token header",
-			path:       "/service/functions/call/echo-fn",
+			path:       "/service/automate/functions/call/echo-fn",
 			headers:    map[string]string{"X-Webhook-Token": "secret-token"},
 			wantStatus: fiber.StatusServiceUnavailable, // auth ok, exec unavailable
 		},
 		{
 			name:       "valid query token",
-			path:       "/service/functions/call/echo-fn?token=secret-token",
+			path:       "/service/automate/functions/call/echo-fn?token=secret-token",
 			wantStatus: fiber.StatusServiceUnavailable,
 		},
 		{
 			name:       "valid hmac",
-			path:       "/service/functions/call/echo-fn",
+			path:       "/service/automate/functions/call/echo-fn",
 			headers:    map[string]string{"X-Hub-Signature-256": hmacSig},
 			wantStatus: fiber.StatusServiceUnavailable,
 		},
 		{
 			name:       "missing auth",
-			path:       "/service/functions/call/echo-fn",
+			path:       "/service/automate/functions/call/echo-fn",
 			wantStatus: fiber.StatusUnauthorized,
 		},
 		{
 			name:       "wrong token",
-			path:       "/service/functions/call/echo-fn",
+			path:       "/service/automate/functions/call/echo-fn",
 			headers:    map[string]string{"X-Webhook-Token": "wrong"},
 			wantStatus: fiber.StatusUnauthorized,
 		},
 		{
 			name:       "versioned path with token",
-			path:       "/service/functions/call/echo-fn/v/2",
+			path:       "/service/automate/functions/call/echo-fn/v/2",
 			headers:    map[string]string{"X-Webhook-Token": "secret-token"},
 			wantStatus: fiber.StatusServiceUnavailable,
 		},

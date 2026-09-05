@@ -1,4 +1,4 @@
-package workflow
+package automate
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
-var webserviceRules = []webservice.Rule{
+var workflowRules = []webservice.Rule{
 	webservice.Post("/apply", applyWorkflow),
 	webservice.Get("/list", listWorkflows),
 	webservice.Get("/get/:name", getWorkflow),
@@ -36,7 +36,7 @@ func applyWorkflow(ctx fiber.Ctx) error {
 	if strings.TrimSpace(yamlText) == "" {
 		return types.Errorf(types.ErrInvalidArgument, "yaml is required")
 	}
-	svc, err := activeService()
+	svc, err := activeWorkflowService()
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func applyWorkflow(ctx fiber.Ctx) error {
 }
 
 func listWorkflows(ctx fiber.Ctx) error {
-	svc, err := activeService()
+	svc, err := activeWorkflowService()
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func getWorkflow(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "workflow name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeWorkflowService()
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func exportWorkflow(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "workflow name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeWorkflowService()
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func deleteWorkflow(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "workflow name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeWorkflowService()
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func runWorkflow(ctx fiber.Ctx) error {
 	if strings.TrimSpace(body.Name) == "" {
 		return types.Errorf(types.ErrInvalidArgument, "workflow name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeWorkflowService()
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func listWorkflowRuns(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "workflow name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeWorkflowService()
 	if err != nil {
 		return err
 	}

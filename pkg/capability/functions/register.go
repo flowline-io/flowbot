@@ -26,7 +26,7 @@ func CatalogSpec() capability.Spec {
 func buildSpec() capability.Spec {
 	return capability.Spec{
 		Type:        hub.CapFunctions,
-		Description: "Named functions (FaaS): pure transform invoke of published function versions. HTTP token/hmac on POST /service/functions/call only; Pipeline and capability.Invoke do not validate function HTTP secrets.",
+		Description: "Named functions (FaaS): pure transform invoke of published function versions. HTTP token/hmac on POST /service/automate/functions/call only; Pipeline and capability.Invoke do not validate function HTTP secrets.",
 		Instance:    serviceMarker{},
 		Ops: []capability.OpDef{
 			{

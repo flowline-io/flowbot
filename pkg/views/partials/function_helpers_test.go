@@ -10,9 +10,9 @@ func TestFunctionCallURL(t *testing.T) {
 		origin string
 		want   string
 	}{
-		{name: "path only", fn: "demo", origin: "", want: "/service/functions/call/demo"},
-		{name: "absolute origin", fn: "demo", origin: "http://127.0.0.1:6060", want: "http://127.0.0.1:6060/service/functions/call/demo"},
-		{name: "origin trailing slash", fn: "demo", origin: "http://127.0.0.1:6060/", want: "http://127.0.0.1:6060/service/functions/call/demo"},
+		{name: "path only", fn: "demo", origin: "", want: "/service/automate/functions/call/demo"},
+		{name: "absolute origin", fn: "demo", origin: "http://127.0.0.1:6060", want: "http://127.0.0.1:6060/service/automate/functions/call/demo"},
+		{name: "origin trailing slash", fn: "demo", origin: "http://127.0.0.1:6060/", want: "http://127.0.0.1:6060/service/automate/functions/call/demo"},
 		{name: "empty name", fn: "  ", origin: "http://x", want: ""},
 	}
 	for _, tt := range tests {
@@ -29,7 +29,7 @@ func TestFunctionCallURL(t *testing.T) {
 func TestFunctionCallVersionURL(t *testing.T) {
 	t.Parallel()
 	got := FunctionCallVersionURL("demo", 2, "http://127.0.0.1:6060")
-	want := "http://127.0.0.1:6060/service/functions/call/demo/v/2"
+	want := "http://127.0.0.1:6060/service/automate/functions/call/demo/v/2"
 	if got != want {
 		t.Fatalf("FunctionCallVersionURL = %q, want %q", got, want)
 	}
@@ -38,7 +38,7 @@ func TestFunctionCallVersionURL(t *testing.T) {
 func TestFunctionCallVersionPath(t *testing.T) {
 	t.Parallel()
 	got := FunctionCallVersionPath("demo", 2)
-	want := "/service/functions/call/demo/v/2"
+	want := "/service/automate/functions/call/demo/v/2"
 	if got != want {
 		t.Fatalf("FunctionCallVersionPath = %q, want %q", got, want)
 	}

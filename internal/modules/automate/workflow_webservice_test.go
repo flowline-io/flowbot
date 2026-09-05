@@ -1,4 +1,4 @@
-package workflow
+package automate
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,12 +20,12 @@ import (
 	pkgworkflow "github.com/flowline-io/flowbot/pkg/workflow"
 )
 
-type handlerCatalog struct {
+type workflowHandlerCatalog struct {
 	meta map[string]*types.WorkflowMetadata
 	defs []*model.Workflow
 }
 
-func (c *handlerCatalog) GetMetadata(_ context.Context, name string) (*types.WorkflowMetadata, error) {
+func (c *workflowHandlerCatalog) GetMetadata(_ context.Context, name string) (*types.WorkflowMetadata, error) {
 	meta, ok := c.meta[name]
 	if !ok {
 		return nil, types.Errorf(types.ErrNotFound, "workflow %s", name)
@@ -34,7 +33,7 @@ func (c *handlerCatalog) GetMetadata(_ context.Context, name string) (*types.Wor
 	return meta, nil
 }
 
-func (c *handlerCatalog) ApplyDefinition(_ context.Context, meta *types.WorkflowMetadata) (*model.Workflow, error) {
+func (c *workflowHandlerCatalog) ApplyDefinition(_ context.Context, meta *types.WorkflowMetadata) (*model.Workflow, error) {
 	if meta == nil || meta.Name == "" {
 		return nil, errors.New("invalid meta")
 	}
@@ -44,11 +43,11 @@ func (c *handlerCatalog) ApplyDefinition(_ context.Context, meta *types.Workflow
 	return row, nil
 }
 
-func (c *handlerCatalog) ListDefinitions(context.Context) ([]*model.Workflow, error) {
+func (c *workflowHandlerCatalog) ListDefinitions(context.Context) ([]*model.Workflow, error) {
 	return c.defs, nil
 }
 
-func (c *handlerCatalog) DeleteDefinitionByName(_ context.Context, name string) error {
+func (c *workflowHandlerCatalog) DeleteDefinitionByName(_ context.Context, name string) error {
 	delete(c.meta, name)
 	out := c.defs[:0]
 	for _, d := range c.defs {
@@ -60,7 +59,7 @@ func (c *handlerCatalog) DeleteDefinitionByName(_ context.Context, name string) 
 	return nil
 }
 
-func (*handlerCatalog) ListRunsByName(context.Context, string) ([]*model.WorkflowRun, error) {
+func (*workflowHandlerCatalog) ListRunsByName(context.Context, string) ([]*model.WorkflowRun, error) {
 	return nil, nil
 }
 
@@ -133,13 +132,13 @@ func newWorkflowHandlerApp() *fiber.App {
 		},
 	})
 	// Mount handlers without Authorize so unit tests cover request/response mapping.
-	app.Post("/service/workflow/apply", applyWorkflow)
-	app.Get("/service/workflow/list", listWorkflows)
-	app.Get("/service/workflow/get/:name", getWorkflow)
-	app.Get("/service/workflow/export/:name", exportWorkflow)
-	app.Delete("/service/workflow/delete/:name", deleteWorkflow)
-	app.Post("/service/workflow/run", runWorkflow)
-	app.Get("/service/workflow/runs/:name", listWorkflowRuns)
+	app.Post("/service/automate/workflow/apply", applyWorkflow)
+	app.Get("/service/automate/workflow/list", listWorkflows)
+	app.Get("/service/automate/workflow/get/:name", getWorkflow)
+	app.Get("/service/automate/workflow/export/:name", exportWorkflow)
+	app.Delete("/service/automate/workflow/delete/:name", deleteWorkflow)
+	app.Post("/service/automate/workflow/run", runWorkflow)
+	app.Get("/service/automate/workflow/runs/:name", listWorkflowRuns)
 	return app
 }
 func TestWorkflowHandlers(t *testing.T) {
@@ -155,7 +154,7 @@ tasks:
     params:
       message: hello
 `
-	catalog := &handlerCatalog{
+	catalog := &workflowHandlerCatalog{
 		meta: map[string]*types.WorkflowMetadata{},
 	}
 	runs := &handlerRunStore{}
@@ -174,7 +173,7 @@ tasks:
 		{
 			name:       "apply requires yaml",
 			method:     http.MethodPost,
-			path:       "/service/workflow/apply",
+			path:       "/service/automate/workflow/apply",
 			body:       `{}`,
 			wantStatus: http.StatusBadRequest,
 			wantSubstr: "yaml",
@@ -182,7 +181,7 @@ tasks:
 		{
 			name:       "apply stores definition",
 			method:     http.MethodPost,
-			path:       "/service/workflow/apply",
+			path:       "/service/automate/workflow/apply",
 			body:       `{"yaml":` + mustJSONString(t, echoYAML) + `}`,
 			wantStatus: http.StatusOK,
 			wantSubstr: `"name":"handler-echo"`,
@@ -190,28 +189,28 @@ tasks:
 		{
 			name:       "list includes applied workflow",
 			method:     http.MethodGet,
-			path:       "/service/workflow/list",
+			path:       "/service/automate/workflow/list",
 			wantStatus: http.StatusOK,
 			wantSubstr: "handler-echo",
 		},
 		{
 			name:       "get returns metadata",
 			method:     http.MethodGet,
-			path:       "/service/workflow/get/handler-echo",
+			path:       "/service/automate/workflow/get/handler-echo",
 			wantStatus: http.StatusOK,
 			wantSubstr: "handler-echo",
 		},
 		{
 			name:       "export returns yaml",
 			method:     http.MethodGet,
-			path:       "/service/workflow/export/handler-echo",
+			path:       "/service/automate/workflow/export/handler-echo",
 			wantStatus: http.StatusOK,
 			wantSubstr: "yaml",
 		},
 		{
 			name:       "run requires name",
 			method:     http.MethodPost,
-			path:       "/service/workflow/run",
+			path:       "/service/automate/workflow/run",
 			body:       `{"input":{}}`,
 			wantStatus: http.StatusBadRequest,
 			wantSubstr: "name",
@@ -219,7 +218,7 @@ tasks:
 		{
 			name:       "run accepted",
 			method:     http.MethodPost,
-			path:       "/service/workflow/run",
+			path:       "/service/automate/workflow/run",
 			body:       `{"name":"handler-echo","input":{}}`,
 			wantStatus: http.StatusAccepted,
 			wantSubstr: "run_id",
@@ -227,21 +226,21 @@ tasks:
 		{
 			name:       "runs list ok",
 			method:     http.MethodGet,
-			path:       "/service/workflow/runs/handler-echo",
+			path:       "/service/automate/workflow/runs/handler-echo",
 			wantStatus: http.StatusOK,
 			wantSubstr: "runs",
 		},
 		{
 			name:       "delete removes definition",
 			method:     http.MethodDelete,
-			path:       "/service/workflow/delete/handler-echo",
+			path:       "/service/automate/workflow/delete/handler-echo",
 			wantStatus: http.StatusOK,
 			wantSubstr: "deleted",
 		},
 		{
 			name:       "get missing after delete",
 			method:     http.MethodGet,
-			path:       "/service/workflow/get/handler-echo",
+			path:       "/service/automate/workflow/get/handler-echo",
 			wantStatus: http.StatusNotFound,
 			wantSubstr: "handler-echo",
 		},
@@ -276,9 +275,9 @@ func TestWorkflowHandlersServiceUnavailable(t *testing.T) {
 		path   string
 		body   string
 	}{
-		{name: "list", method: http.MethodGet, path: "/service/workflow/list"},
-		{name: "get", method: http.MethodGet, path: "/service/workflow/get/x"},
-		{name: "run", method: http.MethodPost, path: "/service/workflow/run", body: `{"name":"x"}`},
+		{name: "list", method: http.MethodGet, path: "/service/automate/workflow/list"},
+		{name: "get", method: http.MethodGet, path: "/service/automate/workflow/get/x"},
+		{name: "run", method: http.MethodPost, path: "/service/automate/workflow/run", body: `{"name":"x"}`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -295,11 +294,4 @@ func TestWorkflowHandlersServiceUnavailable(t *testing.T) {
 			assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 		})
 	}
-}
-
-func mustJSONString(t *testing.T, s string) string {
-	t.Helper()
-	b, err := sonic.Marshal(s)
-	require.NoError(t, err)
-	return string(b)
 }

@@ -1,6 +1,6 @@
 # `functions` capability actions
 
-Named functions (FaaS): pure transform invoke of published function versions. HTTP token/hmac on POST /service/functions/call only; Pipeline and capability.Invoke do not validate function HTTP secrets.
+Named functions (FaaS): pure transform invoke of published function versions. HTTP token/hmac on POST /service/automate/functions/call only; Pipeline and capability.Invoke do not validate function HTTP secrets.
 
 Part of the workflow capability catalog. Result envelope and usage patterns: [../capabilities.md](../capabilities.md).
 

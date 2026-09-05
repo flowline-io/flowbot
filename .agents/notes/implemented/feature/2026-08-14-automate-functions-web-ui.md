@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-Named FaaS already has CLI and `/service/functions` REST (apply/list/get/export/delete/runs/call), but Automate nav had no Functions page. Operators could not draft/publish, inspect runs, or try a published version from the ops console without leaving the browser.
+Named FaaS already has CLI and `/service/automate/functions` REST (apply/list/get/export/delete/runs/call), but Automate nav had no Functions page. Operators could not draft/publish, inspect runs, or try a published version from the ops console without leaving the browser.
 
 ## Decision
 
@@ -13,12 +13,12 @@ Named FaaS already has CLI and `/service/functions` REST (apply/list/get/export/
 - **ListAll** shows draft and published rows with status / unpublished-changes chips; list panel refreshes via HTMX `GET /functions/list` every 30s
 - **Create** takes name + entrypoint; the server generates an HTTP token and writes a language-specific stub source (draft only)
 - **Editor** is metadata form + single-file source (`main.py` | `main.sh` | `main.go`); Save draft / Publish use optimistic definition `version` (CONFLICT → toast + page reload)
-- **Call URLs** on the editor show `POST /service/functions/call/{name}` and optional `/v/{n}` for ops copy (token stays out of the URL; auth via header/query)
+- **Call URLs** on the editor show `POST /service/automate/functions/call/{name}` and optional `/v/{n}` for ops copy (token stays out of the URL; auth via header/query)
 - **Secrets** use `config.MaskedSecret` in reads; SaveDraft merges mask/empty to keep prior values
 - **Try** invokes the latest published version via `capability.Invoke(hub.CapFunctions, invoke)` using `LatestPublishedVersion` (platform path; no function HTTP token)
 - **Runs** tab lists run history; **Stats** tab loads per-function charts; Delete confirms then redirects to the list
 - **List stats** load via HTMX (`GET /functions/stats`) with Pipeline-style summary cards + charts (success trend, duration, version pie); per-function `GET /functions/:name/stats` powers the editor Stats tab (no global summary cards). Aggregation reads `FunctionStore` (same pattern as pipeline/workflow stats); existence checks and lifecycle use `ActiveService()`
-- No Web Export, no historical published-version browser, and no new `/service/functions` REST create/draft/publish endpoints (CLI `apply` stays draft+publish)
+- No Web Export, no historical published-version browser, and no new `/service/automate/functions` REST create/draft/publish endpoints (CLI `apply` stays draft+publish)
 
 Domain surface: `pkg/functions` `Create`, `ListAll`, `GetDraft`, `SaveDraft`, `Publish`, `LatestPublishedVersion`; Catalog/store `ListAll`. Web handlers live in `internal/modules/web/function_webservice.go`.
 

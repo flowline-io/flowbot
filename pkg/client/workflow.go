@@ -60,21 +60,21 @@ type WorkflowRunsResult struct {
 // Apply upserts a workflow definition from YAML bytes.
 func (w *WorkflowClient) Apply(ctx context.Context, yamlBytes []byte) (*WorkflowApplyResult, error) {
 	var result WorkflowApplyResult
-	err := w.c.Post(ctx, "/service/workflow/apply", map[string]string{"yaml": string(yamlBytes)}, &result)
+	err := w.c.Post(ctx, "/service/automate/workflow/apply", map[string]string{"yaml": string(yamlBytes)}, &result)
 	return &result, err
 }
 
 // List returns stored workflow definitions.
 func (w *WorkflowClient) List(ctx context.Context) (*WorkflowListResult, error) {
 	var result WorkflowListResult
-	err := w.c.Get(ctx, "/service/workflow/list", &result)
+	err := w.c.Get(ctx, "/service/automate/workflow/list", &result)
 	return &result, err
 }
 
 // Get returns a workflow definition by name.
 func (w *WorkflowClient) Get(ctx context.Context, name string) (map[string]any, error) {
 	var result map[string]any
-	path := "/service/workflow/get/" + url.PathEscape(name)
+	path := "/service/automate/workflow/get/" + url.PathEscape(name)
 	err := w.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -82,14 +82,14 @@ func (w *WorkflowClient) Get(ctx context.Context, name string) (map[string]any, 
 // Export returns the YAML representation of a workflow.
 func (w *WorkflowClient) Export(ctx context.Context, name string) (*WorkflowExportResult, error) {
 	var result WorkflowExportResult
-	path := "/service/workflow/export/" + url.PathEscape(name)
+	path := "/service/automate/workflow/export/" + url.PathEscape(name)
 	err := w.c.Get(ctx, path, &result)
 	return &result, err
 }
 
 // Delete removes a workflow definition by name.
 func (w *WorkflowClient) Delete(ctx context.Context, name string) error {
-	path := "/service/workflow/delete/" + url.PathEscape(name)
+	path := "/service/automate/workflow/delete/" + url.PathEscape(name)
 	var result map[string]any
 	return w.c.Delete(ctx, path, nil, &result)
 }
@@ -103,7 +103,7 @@ func (w *WorkflowClient) Run(ctx context.Context, name string, input map[string]
 		input = map[string]any{}
 	}
 	var result WorkflowRunResult
-	err := w.c.Post(ctx, "/service/workflow/run", map[string]any{
+	err := w.c.Post(ctx, "/service/automate/workflow/run", map[string]any{
 		"name":  name,
 		"input": input,
 	}, &result)
@@ -113,7 +113,7 @@ func (w *WorkflowClient) Run(ctx context.Context, name string, input map[string]
 // Runs lists recent runs for a workflow.
 func (w *WorkflowClient) Runs(ctx context.Context, name string) (*WorkflowRunsResult, error) {
 	var result WorkflowRunsResult
-	path := "/service/workflow/runs/" + url.PathEscape(name)
+	path := "/service/automate/workflow/runs/" + url.PathEscape(name)
 	err := w.c.Get(ctx, path, &result)
 	return &result, err
 }

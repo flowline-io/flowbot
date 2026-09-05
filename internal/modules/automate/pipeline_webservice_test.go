@@ -1,4 +1,4 @@
-package pipeline
+package automate
 
 import (
 	"context"
@@ -21,19 +21,19 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
-type handlerCatalog struct {
+type pipelineHandlerCatalog struct {
 	defs map[string]*model.PipelineDefinition
 	runs map[string][]*model.PipelineRun
 }
 
-func newHandlerCatalog() *handlerCatalog {
-	return &handlerCatalog{
+func newpipelineHandlerCatalog() *pipelineHandlerCatalog {
+	return &pipelineHandlerCatalog{
 		defs: map[string]*model.PipelineDefinition{},
 		runs: map[string][]*model.PipelineRun{},
 	}
 }
 
-func (c *handlerCatalog) CreateDefinition(_ context.Context, name, description, createdBy string) error {
+func (c *pipelineHandlerCatalog) CreateDefinition(_ context.Context, name, description, createdBy string) error {
 	if _, ok := c.defs[name]; ok {
 		return types.ErrAlreadyExists
 	}
@@ -43,7 +43,7 @@ func (c *handlerCatalog) CreateDefinition(_ context.Context, name, description, 
 	return nil
 }
 
-func (c *handlerCatalog) GetDefinitionByName(_ context.Context, name string) (*model.PipelineDefinition, error) {
+func (c *pipelineHandlerCatalog) GetDefinitionByName(_ context.Context, name string) (*model.PipelineDefinition, error) {
 	def, ok := c.defs[name]
 	if !ok {
 		return nil, types.ErrNotFound
@@ -52,7 +52,7 @@ func (c *handlerCatalog) GetDefinitionByName(_ context.Context, name string) (*m
 	return &cp, nil
 }
 
-func (c *handlerCatalog) UpdateDefinitionDraft(_ context.Context, name, yamlDraft string, version int) (*model.PipelineDefinition, error) {
+func (c *pipelineHandlerCatalog) UpdateDefinitionDraft(_ context.Context, name, yamlDraft string, version int) (*model.PipelineDefinition, error) {
 	def, ok := c.defs[name]
 	if !ok {
 		return nil, types.ErrNotFound
@@ -66,7 +66,7 @@ func (c *handlerCatalog) UpdateDefinitionDraft(_ context.Context, name, yamlDraf
 	return &cp, nil
 }
 
-func (c *handlerCatalog) PublishDefinition(_ context.Context, name string, version int) (*model.PipelineDefinition, error) {
+func (c *pipelineHandlerCatalog) PublishDefinition(_ context.Context, name string, version int) (*model.PipelineDefinition, error) {
 	def, ok := c.defs[name]
 	if !ok {
 		return nil, types.ErrNotFound
@@ -82,7 +82,7 @@ func (c *handlerCatalog) PublishDefinition(_ context.Context, name string, versi
 	return &cp, nil
 }
 
-func (c *handlerCatalog) EnsureDefinitionCreatedBy(_ context.Context, name, createdBy string) error {
+func (c *pipelineHandlerCatalog) EnsureDefinitionCreatedBy(_ context.Context, name, createdBy string) error {
 	def, ok := c.defs[name]
 	if !ok {
 		return types.ErrNotFound
@@ -93,7 +93,7 @@ func (c *handlerCatalog) EnsureDefinitionCreatedBy(_ context.Context, name, crea
 	return nil
 }
 
-func (c *handlerCatalog) DeleteDefinitionByName(_ context.Context, name string) (int64, error) {
+func (c *pipelineHandlerCatalog) DeleteDefinitionByName(_ context.Context, name string) (int64, error) {
 	if _, ok := c.defs[name]; !ok {
 		return 0, nil
 	}
@@ -103,7 +103,7 @@ func (c *handlerCatalog) DeleteDefinitionByName(_ context.Context, name string) 
 	return n, nil
 }
 
-func (c *handlerCatalog) ListPublishedDefinitions(context.Context) ([]pkgpipeline.DefinitionRecord, error) {
+func (c *pipelineHandlerCatalog) ListPublishedDefinitions(context.Context) ([]pkgpipeline.DefinitionRecord, error) {
 	out := make([]pkgpipeline.DefinitionRecord, 0, len(c.defs))
 	for _, def := range c.defs {
 		if def.YamlPublished == nil {
@@ -116,7 +116,7 @@ func (c *handlerCatalog) ListPublishedDefinitions(context.Context) ([]pkgpipelin
 	return out, nil
 }
 
-func (c *handlerCatalog) GetRunsByParentName(_ context.Context, parentName string) ([]*model.PipelineRun, error) {
+func (c *pipelineHandlerCatalog) GetRunsByParentName(_ context.Context, parentName string) ([]*model.PipelineRun, error) {
 	return c.runs[parentName], nil
 }
 
@@ -148,14 +148,14 @@ func newPipelineHandlerApp() *fiber.App {
 }
 
 func mountPipelineHandlers(app *fiber.App) {
-	app.Post("/service/pipeline/apply", applyPipeline)
-	app.Get("/service/pipeline/list", listPipelines)
-	app.Get("/service/pipeline/get/:name", getPipeline)
-	app.Get("/service/pipeline/export/:name", exportPipeline)
-	app.Delete("/service/pipeline/delete/:name", deletePipeline)
-	app.Post("/service/pipeline/run", runPipeline)
-	app.Get("/service/pipeline/runs/:name", listPipelineRuns)
-	app.Get("/service/pipeline/runs", listPipelineRuns)
+	app.Post("/service/automate/pipeline/apply", applyPipeline)
+	app.Get("/service/automate/pipeline/list", listPipelines)
+	app.Get("/service/automate/pipeline/get/:name", getPipeline)
+	app.Get("/service/automate/pipeline/export/:name", exportPipeline)
+	app.Delete("/service/automate/pipeline/delete/:name", deletePipeline)
+	app.Post("/service/automate/pipeline/run", runPipeline)
+	app.Get("/service/automate/pipeline/runs/:name", listPipelineRuns)
+	app.Get("/service/automate/pipeline/runs", listPipelineRuns)
 }
 
 func samplePipelineYAML(name string) string {
@@ -177,7 +177,7 @@ steps:
 }
 
 func TestPipelineHandlers(t *testing.T) {
-	cat := newHandlerCatalog()
+	cat := newpipelineHandlerCatalog()
 	completed := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 	cat.runs["handler_pipe"] = []*model.PipelineRun{
 		nil,
@@ -204,7 +204,7 @@ func TestPipelineHandlers(t *testing.T) {
 		{
 			name:       "apply requires yaml",
 			method:     http.MethodPost,
-			path:       "/service/pipeline/apply",
+			path:       "/service/automate/pipeline/apply",
 			body:       `{}`,
 			wantStatus: http.StatusBadRequest,
 			wantSubstr: "yaml",
@@ -212,7 +212,7 @@ func TestPipelineHandlers(t *testing.T) {
 		{
 			name:       "apply accepts file_content fallback",
 			method:     http.MethodPost,
-			path:       "/service/pipeline/apply",
+			path:       "/service/automate/pipeline/apply",
 			body:       `{"file_content":` + mustJSONString(t, yamlText) + `}`,
 			wantStatus: http.StatusOK,
 			wantSubstr: `"name":"handler_pipe"`,
@@ -220,28 +220,28 @@ func TestPipelineHandlers(t *testing.T) {
 		{
 			name:       "list includes applied pipeline",
 			method:     http.MethodGet,
-			path:       "/service/pipeline/list",
+			path:       "/service/automate/pipeline/list",
 			wantStatus: http.StatusOK,
 			wantSubstr: "handler_pipe",
 		},
 		{
 			name:       "get returns metadata",
 			method:     http.MethodGet,
-			path:       "/service/pipeline/get/handler_pipe",
+			path:       "/service/automate/pipeline/get/handler_pipe",
 			wantStatus: http.StatusOK,
 			wantSubstr: "handler_pipe",
 		},
 		{
 			name:       "export returns yaml",
 			method:     http.MethodGet,
-			path:       "/service/pipeline/export/handler_pipe",
+			path:       "/service/automate/pipeline/export/handler_pipe",
 			wantStatus: http.StatusOK,
 			wantSubstr: "yaml",
 		},
 		{
 			name:       "run requires name",
 			method:     http.MethodPost,
-			path:       "/service/pipeline/run",
+			path:       "/service/automate/pipeline/run",
 			body:       `{"event":{}}`,
 			wantStatus: http.StatusBadRequest,
 			wantSubstr: "pipeline name is required",
@@ -249,14 +249,14 @@ func TestPipelineHandlers(t *testing.T) {
 		{
 			name:       "runs requires name",
 			method:     http.MethodGet,
-			path:       "/service/pipeline/runs",
+			path:       "/service/automate/pipeline/runs",
 			wantStatus: http.StatusBadRequest,
 			wantSubstr: "pipeline name is required",
 		},
 		{
 			name:       "run without engine is unavailable",
 			method:     http.MethodPost,
-			path:       "/service/pipeline/run",
+			path:       "/service/automate/pipeline/run",
 			body:       `{"name":"handler_pipe"}`,
 			wantStatus: http.StatusServiceUnavailable,
 			wantSubstr: "pipeline engine not ready",
@@ -264,14 +264,14 @@ func TestPipelineHandlers(t *testing.T) {
 		{
 			name:       "runs list skips nil and shapes fields",
 			method:     http.MethodGet,
-			path:       "/service/pipeline/runs/handler_pipe",
+			path:       "/service/automate/pipeline/runs/handler_pipe",
 			wantStatus: http.StatusOK,
 			wantSubstr: `"error":"boom"`,
 		},
 		{
 			name:       "delete removes definition",
 			method:     http.MethodDelete,
-			path:       "/service/pipeline/delete/handler_pipe",
+			path:       "/service/automate/pipeline/delete/handler_pipe",
 			wantStatus: http.StatusOK,
 			wantSubstr: "deleted",
 		},
@@ -312,9 +312,9 @@ func TestPipelineHandlersServiceUnavailable(t *testing.T) {
 		path   string
 		body   string
 	}{
-		{name: "list", method: http.MethodGet, path: "/service/pipeline/list"},
-		{name: "get", method: http.MethodGet, path: "/service/pipeline/get/x"},
-		{name: "run", method: http.MethodPost, path: "/service/pipeline/run", body: `{"name":"x"}`},
+		{name: "list", method: http.MethodGet, path: "/service/automate/pipeline/list"},
+		{name: "get", method: http.MethodGet, path: "/service/automate/pipeline/get/x"},
+		{name: "run", method: http.MethodPost, path: "/service/automate/pipeline/run", body: `{"name":"x"}`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

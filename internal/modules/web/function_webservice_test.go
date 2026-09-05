@@ -147,7 +147,7 @@ func TestFunctionWebCreateDraftPublishTry(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, string(editBody), "function-editor")
 	assert.Contains(t, string(editBody), "function-call-links")
-	assert.Contains(t, string(editBody), "/service/functions/call/web-fn")
+	assert.Contains(t, string(editBody), "/service/automate/functions/call/web-fn")
 	assert.Contains(t, string(editBody), `data-testid="function-call-url"`)
 	assert.NotContains(t, string(editBody), `x-text="callURL"`)
 	assert.Contains(t, string(editBody), "/static/js/function-stats.js")
@@ -218,7 +218,7 @@ func TestFunctionWebCreateDraftPublishTry(t *testing.T) {
 	editAfterPubBody, err := io.ReadAll(editAfterPubResp.Body)
 	require.NoError(t, err)
 	assert.Contains(t, string(editAfterPubBody), `data-testid="function-call-url-version"`)
-	assert.Contains(t, string(editAfterPubBody), "/service/functions/call/web-fn/v/")
+	assert.Contains(t, string(editAfterPubBody), "/service/automate/functions/call/web-fn/v/")
 
 	tryBody, err := sonic.MarshalString(map[string]any{"event": map[string]any{"x": 1}})
 	require.NoError(t, err)

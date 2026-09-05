@@ -17,13 +17,13 @@ flowbot workflow apply --file wf.yaml
         ▼
 ParseYAML → ApplyDefinition (DB) → ReloadTriggers (cron/webhook)
         │
-POST /service/workflow/run { "name", "input" }
+POST /service/automate/workflow/run { "name", "input" }
         │
         ▼
 StartRunAsync → ValidateInputs → CreateRun → Execute (goroutine)
         │
         ▼
-GET /service/workflow/runs/:name  (inspect status)
+GET /service/automate/workflow/runs/:name  (inspect status)
 ```
 
 ## YAML Schema
@@ -173,18 +173,18 @@ Scopes: `workflow:read` (list/get/export/runs), `workflow:run` (apply/delete/run
 ### From HTTP
 
 ```
-POST /service/workflow/apply
+POST /service/automate/workflow/apply
 {"yaml": "..."}
 
-POST /service/workflow/run
+POST /service/automate/workflow/run
 {"name": "save_and_track", "input": {"url": "...", "title": "..."}}
 → 202 {"status":"ok","data":{"run_id":123}}
 
-GET /service/workflow/list
-GET /service/workflow/get/:name
-GET /service/workflow/export/:name
-DELETE /service/workflow/delete/:name
-GET /service/workflow/runs/:name
+GET /service/automate/workflow/list
+GET /service/automate/workflow/get/:name
+GET /service/automate/workflow/export/:name
+DELETE /service/automate/workflow/delete/:name
+GET /service/automate/workflow/runs/:name
 ```
 
 Webhook triggers are served at `/webhook/workflow/{path}` with the same token/HMAC auth fields as pipeline webhooks.

@@ -326,10 +326,7 @@ modules:
     enabled: true
     default_class: Architect
 
-  - name: workflow
-    enabled: true
-
-  - name: pipeline
+  - name: automate
     enabled: true
 
 # Third-party service configuration

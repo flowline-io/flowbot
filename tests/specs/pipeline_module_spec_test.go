@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/bytedance/sonic"
-	pipelinemod "github.com/flowline-io/flowbot/internal/modules/pipeline"
+	automatemod "github.com/flowline-io/flowbot/internal/modules/automate"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -17,12 +17,12 @@ var _ = Describe("Pipeline Module", Label("module", "pipeline"), func() {
 
 	Describe("Webservice — apply / list / run", func() {
 		BeforeEach(func() {
-			pipelinemod.MountForE2E(App)
+			automatemod.MountForE2E(App)
 		})
 
 		It("rejects apply without yaml", func() {
 			body, _ := sonic.Marshal(map[string]any{})
-			req := JSONRequest(http.MethodPost, "/service/pipeline/apply", body)
+			req := JSONRequest(http.MethodPost, "/service/automate/pipeline/apply", body)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Or(
@@ -34,7 +34,7 @@ var _ = Describe("Pipeline Module", Label("module", "pipeline"), func() {
 
 		It("rejects run without pipeline name", func() {
 			body, _ := sonic.Marshal(map[string]any{"event": map[string]any{}})
-			req := JSONRequest(http.MethodPost, "/service/pipeline/run", body)
+			req := JSONRequest(http.MethodPost, "/service/automate/pipeline/run", body)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Or(
@@ -45,7 +45,7 @@ var _ = Describe("Pipeline Module", Label("module", "pipeline"), func() {
 		})
 
 		It("lists pipelines or reports unavailable", func() {
-			req := JSONRequest(http.MethodGet, "/service/pipeline/list", nil)
+			req := JSONRequest(http.MethodGet, "/service/automate/pipeline/list", nil)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Or(
@@ -56,7 +56,7 @@ var _ = Describe("Pipeline Module", Label("module", "pipeline"), func() {
 		})
 
 		It("rejects get without name", func() {
-			req := JSONRequest(http.MethodGet, "/service/pipeline/get/", nil)
+			req := JSONRequest(http.MethodGet, "/service/automate/pipeline/get/", nil)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Or(
@@ -68,7 +68,7 @@ var _ = Describe("Pipeline Module", Label("module", "pipeline"), func() {
 		})
 
 		It("rejects delete without name", func() {
-			req := JSONRequest(http.MethodDelete, "/service/pipeline/delete/", nil)
+			req := JSONRequest(http.MethodDelete, "/service/automate/pipeline/delete/", nil)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Or(

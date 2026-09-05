@@ -1,4 +1,4 @@
-package functions
+package automate
 
 import (
 	"strconv"
@@ -14,7 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
-var webserviceRules = []webservice.Rule{
+var functionsRules = []webservice.Rule{
 	webservice.Post("/apply", applyFunction),
 	webservice.Get("/list", listFunctions),
 	webservice.Get("/get/:name", getFunction),
@@ -37,7 +37,7 @@ func applyFunction(ctx fiber.Ctx) error {
 	if strings.TrimSpace(body.Metadata) == "" || strings.TrimSpace(body.Entrypoint) == "" || strings.TrimSpace(body.Source) == "" {
 		return types.Errorf(types.ErrInvalidArgument, "metadata, entrypoint, and source are required")
 	}
-	svc, err := activeService()
+	svc, err := activeFunctionService()
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func applyFunction(ctx fiber.Ctx) error {
 }
 
 func listFunctions(ctx fiber.Ctx) error {
-	svc, err := activeService()
+	svc, err := activeFunctionService()
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func getFunction(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "function name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeFunctionService()
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func exportFunction(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "function name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeFunctionService()
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func deleteFunction(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "function name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeFunctionService()
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func listFunctionRuns(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "function name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeFunctionService()
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func invokeCall(ctx fiber.Ctx, version *int) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "function name is required")
 	}
-	svc, err := activeService()
+	svc, err := activeFunctionService()
 	if err != nil {
 		return err
 	}
@@ -220,12 +220,4 @@ func functionNameParam(ctx fiber.Ctx) string {
 		name = strings.TrimSpace(ctx.Query("name"))
 	}
 	return name
-}
-
-func requestUID(ctx fiber.Ctx) string {
-	rc := route.GetRequestContext(ctx)
-	if rc == nil || rc.UID.IsZero() {
-		return ""
-	}
-	return rc.UID.String()
 }

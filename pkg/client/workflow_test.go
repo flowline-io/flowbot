@@ -22,7 +22,7 @@ func TestWorkflowClient_ApplyListGetExportDeleteRunRuns(t *testing.T) {
 		{
 			name:       "apply yaml",
 			method:     http.MethodPost,
-			pathPrefix: "/service/workflow/apply",
+			pathPrefix: "/service/automate/workflow/apply",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":1,"name":"demo","enabled":true}}`))
@@ -37,7 +37,7 @@ func TestWorkflowClient_ApplyListGetExportDeleteRunRuns(t *testing.T) {
 		{
 			name:       "list workflows",
 			method:     http.MethodGet,
-			pathPrefix: "/service/workflow/list",
+			pathPrefix: "/service/automate/workflow/list",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(`{"status":"ok","data":{"workflows":[{"id":1,"name":"demo","enabled":true}]}}`))
@@ -52,7 +52,7 @@ func TestWorkflowClient_ApplyListGetExportDeleteRunRuns(t *testing.T) {
 		{
 			name:       "run returns run_id",
 			method:     http.MethodPost,
-			pathPrefix: "/service/workflow/run",
+			pathPrefix: "/service/automate/workflow/run",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusAccepted)
@@ -67,7 +67,7 @@ func TestWorkflowClient_ApplyListGetExportDeleteRunRuns(t *testing.T) {
 		{
 			name:       "export yaml",
 			method:     http.MethodGet,
-			pathPrefix: "/service/workflow/export/",
+			pathPrefix: "/service/automate/workflow/export/",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(`{"status":"ok","data":{"yaml":"name: demo\n"}}`))
@@ -81,7 +81,7 @@ func TestWorkflowClient_ApplyListGetExportDeleteRunRuns(t *testing.T) {
 		{
 			name:       "delete workflow",
 			method:     http.MethodDelete,
-			pathPrefix: "/service/workflow/delete/",
+			pathPrefix: "/service/automate/workflow/delete/",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(`{"status":"ok","data":{"deleted":"demo"}}`))
@@ -94,7 +94,7 @@ func TestWorkflowClient_ApplyListGetExportDeleteRunRuns(t *testing.T) {
 		{
 			name:       "list runs",
 			method:     http.MethodGet,
-			pathPrefix: "/service/workflow/runs/",
+			pathPrefix: "/service/automate/workflow/runs/",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(`{"status":"ok","data":{"runs":[{"id":7,"workflow_name":"demo","status":1,"trigger_type":"manual"}]}}`))
@@ -109,7 +109,7 @@ func TestWorkflowClient_ApplyListGetExportDeleteRunRuns(t *testing.T) {
 		{
 			name:       "get workflow",
 			method:     http.MethodGet,
-			pathPrefix: "/service/workflow/get/",
+			pathPrefix: "/service/automate/workflow/get/",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(`{"status":"ok","data":{"name":"demo","enabled":true,"pipeline":["a"]}}`))
@@ -123,7 +123,7 @@ func TestWorkflowClient_ApplyListGetExportDeleteRunRuns(t *testing.T) {
 		{
 			name:       "run validation error",
 			method:     http.MethodPost,
-			pathPrefix: "/service/workflow/run",
+			pathPrefix: "/service/automate/workflow/run",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusBadRequest)

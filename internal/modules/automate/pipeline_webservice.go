@@ -1,4 +1,4 @@
-package pipeline
+package automate
 
 import (
 	"fmt"
@@ -6,13 +6,12 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
-var webserviceRules = []webservice.Rule{
+var pipelineRules = []webservice.Rule{
 	webservice.Post("/apply", applyPipeline),
 	webservice.Get("/list", listPipelines),
 	webservice.Get("/get/:name", getPipeline),
@@ -37,7 +36,7 @@ func applyPipeline(ctx fiber.Ctx) error {
 	if strings.TrimSpace(yamlText) == "" {
 		return types.Errorf(types.ErrInvalidArgument, "yaml is required")
 	}
-	svc, err := activeService()
+	svc, err := activePipelineService()
 	if err != nil {
 		return err
 	}
@@ -54,7 +53,7 @@ func applyPipeline(ctx fiber.Ctx) error {
 }
 
 func listPipelines(ctx fiber.Ctx) error {
-	svc, err := activeService()
+	svc, err := activePipelineService()
 	if err != nil {
 		return err
 	}
@@ -70,7 +69,7 @@ func getPipeline(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "pipeline name is required")
 	}
-	svc, err := activeService()
+	svc, err := activePipelineService()
 	if err != nil {
 		return err
 	}
@@ -86,7 +85,7 @@ func exportPipeline(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "pipeline name is required")
 	}
-	svc, err := activeService()
+	svc, err := activePipelineService()
 	if err != nil {
 		return err
 	}
@@ -102,7 +101,7 @@ func deletePipeline(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "pipeline name is required")
 	}
-	svc, err := activeService()
+	svc, err := activePipelineService()
 	if err != nil {
 		return err
 	}
@@ -123,7 +122,7 @@ func runPipeline(ctx fiber.Ctx) error {
 	if strings.TrimSpace(body.Name) == "" {
 		return types.Errorf(types.ErrInvalidArgument, "pipeline name is required")
 	}
-	svc, err := activeService()
+	svc, err := activePipelineService()
 	if err != nil {
 		return err
 	}
@@ -141,7 +140,7 @@ func listPipelineRuns(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "pipeline name is required")
 	}
-	svc, err := activeService()
+	svc, err := activePipelineService()
 	if err != nil {
 		return err
 	}
@@ -181,12 +180,4 @@ func pipelineNameParam(ctx fiber.Ctx) string {
 		name = strings.TrimSpace(ctx.Query("name"))
 	}
 	return name
-}
-
-func requestUID(ctx fiber.Ctx) string {
-	rc := route.GetRequestContext(ctx)
-	if rc == nil || rc.UID.IsZero() {
-		return ""
-	}
-	return rc.UID.String()
 }

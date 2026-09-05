@@ -62,21 +62,21 @@ type PipelineRunsResult struct {
 // Apply upserts a pipeline definition from YAML bytes (draft + publish).
 func (p *PipelineClient) Apply(ctx context.Context, yamlBytes []byte) (*PipelineApplyResult, error) {
 	var result PipelineApplyResult
-	err := p.c.Post(ctx, "/service/pipeline/apply", map[string]string{"yaml": string(yamlBytes)}, &result)
+	err := p.c.Post(ctx, "/service/automate/pipeline/apply", map[string]string{"yaml": string(yamlBytes)}, &result)
 	return &result, err
 }
 
 // List returns published pipeline definitions.
 func (p *PipelineClient) List(ctx context.Context) (*PipelineListResult, error) {
 	var result PipelineListResult
-	err := p.c.Get(ctx, "/service/pipeline/list", &result)
+	err := p.c.Get(ctx, "/service/automate/pipeline/list", &result)
 	return &result, err
 }
 
 // Get returns a pipeline definition by name.
 func (p *PipelineClient) Get(ctx context.Context, name string) (map[string]any, error) {
 	var result map[string]any
-	path := "/service/pipeline/get/" + url.PathEscape(name)
+	path := "/service/automate/pipeline/get/" + url.PathEscape(name)
 	err := p.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -84,14 +84,14 @@ func (p *PipelineClient) Get(ctx context.Context, name string) (map[string]any, 
 // Export returns the published YAML representation of a pipeline.
 func (p *PipelineClient) Export(ctx context.Context, name string) (*PipelineExportResult, error) {
 	var result PipelineExportResult
-	path := "/service/pipeline/export/" + url.PathEscape(name)
+	path := "/service/automate/pipeline/export/" + url.PathEscape(name)
 	err := p.c.Get(ctx, path, &result)
 	return &result, err
 }
 
 // Delete removes a pipeline definition by name.
 func (p *PipelineClient) Delete(ctx context.Context, name string) error {
-	path := "/service/pipeline/delete/" + url.PathEscape(name)
+	path := "/service/automate/pipeline/delete/" + url.PathEscape(name)
 	var result map[string]any
 	return p.c.Delete(ctx, path, nil, &result)
 }
@@ -105,14 +105,14 @@ func (p *PipelineClient) Run(ctx context.Context, name string, event map[string]
 		event = map[string]any{}
 	}
 	var result PipelineRunResult
-	err := p.c.Post(ctx, "/service/pipeline/run", map[string]any{"name": name, "event": event}, &result)
+	err := p.c.Post(ctx, "/service/automate/pipeline/run", map[string]any{"name": name, "event": event}, &result)
 	return &result, err
 }
 
 // Runs returns run history for a pipeline.
 func (p *PipelineClient) Runs(ctx context.Context, name string) (*PipelineRunsResult, error) {
 	var result PipelineRunsResult
-	path := "/service/pipeline/runs/" + url.PathEscape(name)
+	path := "/service/automate/pipeline/runs/" + url.PathEscape(name)
 	err := p.c.Get(ctx, path, &result)
 	return &result, err
 }

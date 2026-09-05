@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 
-	functionsmod "github.com/flowline-io/flowbot/internal/modules/functions"
+	automatemod "github.com/flowline-io/flowbot/internal/modules/automate"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
@@ -58,8 +58,8 @@ var _ = Describe("Named Functions Module", Label("module", "functions"), func() 
 	var prev *pkgfunctions.Service
 
 	BeforeEach(func() {
-		functionsmod.MountForE2E(App)
-		gomega.Expect(functionsmod.InitForE2E(nil)).To(gomega.Succeed())
+		automatemod.MountForE2E(App)
+		gomega.Expect(automatemod.InitForE2E(nil)).To(gomega.Succeed())
 
 		prev = pkgfunctions.ActiveService()
 		catalog := store.NewFunctionCatalogAdapter(store.NewFunctionStore(EntClient))
@@ -78,7 +78,7 @@ var _ = Describe("Named Functions Module", Label("module", "functions"), func() 
 			"entrypoint": "main.py",
 			"source":     "print(1)",
 		})
-		req := functionsAuthRequest(http.MethodPost, "/service/functions/apply", "", body)
+		req := functionsAuthRequest(http.MethodPost, "/service/automate/functions/apply", "", body)
 		resp, err := App.Test(req)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		gomega.Expect(resp.StatusCode).To(gomega.Equal(http.StatusUnauthorized))
@@ -94,7 +94,7 @@ var _ = Describe("Named Functions Module", Label("module", "functions"), func() 
 			"entrypoint": "main.py",
 			"source":     source,
 		})
-		applyReq := functionsAuthRequest(http.MethodPost, "/service/functions/apply", token, body)
+		applyReq := functionsAuthRequest(http.MethodPost, "/service/automate/functions/apply", token, body)
 		applyResp, err := App.Test(applyReq)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		gomega.Expect(applyResp.StatusCode).To(gomega.Equal(http.StatusOK))
@@ -103,7 +103,7 @@ var _ = Describe("Named Functions Module", Label("module", "functions"), func() 
 		gomega.Expect(applyOut.Status).To(gomega.Equal(protocol.Success))
 
 		eventBody, _ := sonic.Marshal(map[string]any{"n": 1})
-		unauthReq := JSONRequest(http.MethodPost, "/service/functions/call/"+name, eventBody)
+		unauthReq := JSONRequest(http.MethodPost, "/service/automate/functions/call/"+name, eventBody)
 		unauthResp, err := App.Test(unauthReq)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		gomega.Expect(unauthResp.StatusCode).To(gomega.Or(
@@ -122,13 +122,13 @@ var _ = Describe("Named Functions Module", Label("module", "functions"), func() 
 			"entrypoint": "main.py",
 			"source":     source,
 		})
-		applyReq := functionsAuthRequest(http.MethodPost, "/service/functions/apply", token, body)
+		applyReq := functionsAuthRequest(http.MethodPost, "/service/automate/functions/apply", token, body)
 		applyResp, err := App.Test(applyReq)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		gomega.Expect(applyResp.StatusCode).To(gomega.Equal(http.StatusOK))
 
 		eventBody, _ := sonic.Marshal(map[string]any{"n": 7})
-		callReq := JSONRequest(http.MethodPost, "/service/functions/call/"+name, eventBody)
+		callReq := JSONRequest(http.MethodPost, "/service/automate/functions/call/"+name, eventBody)
 		callReq.Header.Set("X-Webhook-Token", "secret-token")
 		callResp, err := App.Test(callReq, fiber.TestConfig{Timeout: 45 * time.Second})
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
@@ -184,7 +184,7 @@ var _ = Describe("Named Functions Module", Label("module", "functions"), func() 
 		}
 
 		// management get still works with user token (HTTP secrets unused on capability path)
-		getReq := functionsAuthRequest(http.MethodGet, "/service/functions/get/"+name, token, nil)
+		getReq := functionsAuthRequest(http.MethodGet, "/service/automate/functions/get/"+name, token, nil)
 		getResp, err := App.Test(getReq)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		gomega.Expect(getResp.StatusCode).To(gomega.Equal(http.StatusOK))
@@ -200,12 +200,12 @@ var _ = Describe("Named Functions Module", Label("module", "functions"), func() 
 			"entrypoint": "main.py",
 			"source":     source,
 		})
-		applyReq := functionsAuthRequest(http.MethodPost, "/service/functions/apply", token, body)
+		applyReq := functionsAuthRequest(http.MethodPost, "/service/automate/functions/apply", token, body)
 		applyResp, err := App.Test(applyReq)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		gomega.Expect(applyResp.StatusCode).To(gomega.Equal(http.StatusOK))
 
-		getReq := functionsAuthRequest(http.MethodGet, "/service/functions/get/"+name, token, nil)
+		getReq := functionsAuthRequest(http.MethodGet, "/service/automate/functions/get/"+name, token, nil)
 		getResp, err := App.Test(getReq)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		gomega.Expect(getResp.StatusCode).To(gomega.Equal(http.StatusOK))

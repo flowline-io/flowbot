@@ -73,7 +73,7 @@ type FunctionCallResult struct {
 // Apply upserts a function definition from metadata, entrypoint, and source (draft + publish).
 func (f *FunctionClient) Apply(ctx context.Context, metadata, entrypoint, source string) (*FunctionApplyResult, error) {
 	var result FunctionApplyResult
-	err := f.c.Post(ctx, "/service/functions/apply", map[string]string{
+	err := f.c.Post(ctx, "/service/automate/functions/apply", map[string]string{
 		"metadata":   metadata,
 		"entrypoint": entrypoint,
 		"source":     source,
@@ -84,14 +84,14 @@ func (f *FunctionClient) Apply(ctx context.Context, metadata, entrypoint, source
 // List returns published function definitions.
 func (f *FunctionClient) List(ctx context.Context) (*FunctionListResult, error) {
 	var result FunctionListResult
-	err := f.c.Get(ctx, "/service/functions/list", &result)
+	err := f.c.Get(ctx, "/service/automate/functions/list", &result)
 	return &result, err
 }
 
 // Get returns function metadata by name.
 func (f *FunctionClient) Get(ctx context.Context, name string) (map[string]any, error) {
 	var result map[string]any
-	path := "/service/functions/get/" + url.PathEscape(name)
+	path := "/service/automate/functions/get/" + url.PathEscape(name)
 	err := f.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -99,14 +99,14 @@ func (f *FunctionClient) Get(ctx context.Context, name string) (map[string]any, 
 // Export returns the published function snapshot including secrets and source.
 func (f *FunctionClient) Export(ctx context.Context, name string) (*FunctionExportResult, error) {
 	var result FunctionExportResult
-	path := "/service/functions/export/" + url.PathEscape(name)
+	path := "/service/automate/functions/export/" + url.PathEscape(name)
 	err := f.c.Get(ctx, path, &result)
 	return &result, err
 }
 
 // Delete removes a function definition by name.
 func (f *FunctionClient) Delete(ctx context.Context, name string) error {
-	path := "/service/functions/delete/" + url.PathEscape(name)
+	path := "/service/automate/functions/delete/" + url.PathEscape(name)
 	var result map[string]any
 	return f.c.Delete(ctx, path, nil, &result)
 }
@@ -114,7 +114,7 @@ func (f *FunctionClient) Delete(ctx context.Context, name string) error {
 // Runs returns run history for a function.
 func (f *FunctionClient) Runs(ctx context.Context, name string) (*FunctionRunsResult, error) {
 	var result FunctionRunsResult
-	path := "/service/functions/runs/" + url.PathEscape(name)
+	path := "/service/automate/functions/runs/" + url.PathEscape(name)
 	err := f.c.Get(ctx, path, &result)
 	return &result, err
 }
@@ -124,7 +124,7 @@ func (f *FunctionClient) Call(ctx context.Context, name string, version *int, ev
 	if name == "" {
 		return nil, fmt.Errorf("function name is required")
 	}
-	path := "/service/functions/call/" + url.PathEscape(name)
+	path := "/service/automate/functions/call/" + url.PathEscape(name)
 	if version != nil {
 		path += "/v/" + strconv.Itoa(*version)
 	}
