@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.99.12]
+
 ### Added
 
 - Optional **kern** executor runtime alongside Docker: workflow `kern:<image>` and `chat_agent.sandbox.runtime: docker | kern`. See [.agents/notes/implemented/architecture/2026-09-01-kern-executor-runtime.md](.agents/notes/implemented/architecture/2026-09-01-kern-executor-runtime.md).
@@ -18,7 +20,7 @@
 - Pipeline run duration and Started column use `started_at` (refresh on start/retry); failed steps stamp `completed_at`. See [.agents/notes/implemented/bug-fix/2026-09-01-pipeline-run-duration-started-at.md](.agents/notes/implemented/bug-fix/2026-09-01-pipeline-run-duration-started-at.md).
 - Memos health (`GetCurrentUser`) falls back from `GET /api/v1/auth/me` (0.26+) to `GET /api/v1/auth/sessions/current` (0.25.x) on 404. See [.agents/notes/implemented/bug-fix/2026-09-01-memos-current-user-path.md](.agents/notes/implemented/bug-fix/2026-09-01-memos-current-user-path.md).
 
-## [0.99.11] - 2026-09-01
+## [0.99.11]
 
 ### Changed
 
@@ -38,7 +40,7 @@
 
 - Same-tab nav helper rejects `javascript:`, `data:`, and `vbscript:` hrefs before aborting in-flight HTMX / EventSource. See [.agents/notes/implemented/bug-fix/2026-08-30-nav-href-scheme-denylist.md](.agents/notes/implemented/bug-fix/2026-08-30-nav-href-scheme-denylist.md).
 
-## [0.99.10] - 2026-08-30
+## [0.99.10]
 
 ### Added
 
@@ -49,7 +51,7 @@
 
 - Navbar splits into brand/groups, tools (search then inbox), and user cluster. See [.agents/notes/implemented/feature/2026-08-30-navbar-cluster-order.md](.agents/notes/implemented/feature/2026-08-30-navbar-cluster-order.md).
 
-## [0.99.9] - 2026-08-30
+## [0.99.9]
 
 ### Added
 
@@ -69,7 +71,7 @@
 - Chat-agent approval EventSource closes on `pagehide` / same-tab navigation so inspect ↔ thread round-trips do not exhaust HTTP/1.1 sockets. See [.agents/notes/implemented/bug-fix/2026-08-30-chatagent-sse-pagehide-teardown.md](.agents/notes/implemented/bug-fix/2026-08-30-chatagent-sse-pagehide-teardown.md).
 - Agent session inspect back link returns to the thread UI instead of the sessions list. See [.agents/notes/implemented/bug-fix/2026-08-30-agent-session-detail-back-to-thread.md](.agents/notes/implemented/bug-fix/2026-08-30-agent-session-detail-back-to-thread.md).
 
-## [0.99.8] - 2026-08-28
+## [0.99.8]
 
 ### Added
 
@@ -88,7 +90,7 @@
 
 - SMTP send sanitizes untrusted MIME fields (CRLF/header injection, HTML UGC policy, quoted-printable bodies). See [.agents/notes/implemented/bug-fix/2026-08-23-email-content-injection.md](.agents/notes/implemented/bug-fix/2026-08-23-email-content-injection.md).
 
-## [0.99.7] - 2026-08-23
+## [0.99.7]
 
 ### Added
 
@@ -100,7 +102,7 @@
 - Layout CSS is cache-busted with `version.Buildtags`; session-badge SVG has intrinsic size so production navbar no longer inflates after deploy. See [.agents/notes/implemented/bug-fix/2026-08-23-navbar-prod-css-cache.md](.agents/notes/implemented/bug-fix/2026-08-23-navbar-prod-css-cache.md).
 - Client i18n templates no longer render `<no value>` in chat-agent duration labels.
 
-## [0.99.6] - 2026-08-23
+## [0.99.6]
 
 ### Changed
 
@@ -110,26 +112,26 @@
 
 - Login POST 403 behind a TLS-terminating proxy: CSRF Origin rewritten when Fiber sees plaintext HTTP. See [.agents/notes/implemented/bug-fix/2026-08-23-csrf-login-403-tls-proxy.md](.agents/notes/implemented/bug-fix/2026-08-23-csrf-login-403-tls-proxy.md).
 
-## [0.99.5] - 2026-08-23
+## [0.99.5]
 
 ### Added
 
 - **Trello** provider and capability (`hub.CapTrello`): boards/cards, webhooks, and `trello.card.*` events. See [.agents/notes/implemented/architecture/2026-08-23-trello-provider-capability.md](.agents/notes/implemented/architecture/2026-08-23-trello-provider-capability.md).
 - **Confluence Cloud** provider and capability (`hub.CapConfluence`): pages/spaces, inbound webhooks, and `confluence.page.*` events. See [.agents/notes/implemented/architecture/2026-08-23-confluence-provider-capability.md](.agents/notes/implemented/architecture/2026-08-23-confluence-provider-capability.md).
 
-## [0.99.4] - 2026-08-22
+## [0.99.4]
 
 ### Fixed
 
 - Settings description locale generator writes into an explicit output directory.
 
-## [0.99.3] - 2026-08-22
+## [0.99.3]
 
 ### Added
 
 - Web UI i18n (en/zh) for `/service/web` and public clip pages via embedded go-i18n catalogs. UI locale is cookie-based and separate from `flowbot.language` (ChatAgent / LLM replies). See [.agents/notes/implemented/feature/2026-08-22-web-ui-i18n.md](.agents/notes/implemented/feature/2026-08-22-web-ui-i18n.md).
 
-## [0.99.2] - 2026-08-22
+## [0.99.2]
 
 ### Added
 
@@ -146,7 +148,7 @@
 
 - Helmet sets `X-Frame-Options: DENY`, HSTS `max-age=63072000; includeSubDomains` (no preload), and a camera/microphone/geolocation Permissions-Policy.
 
-## [0.99.1] - 2026-08-17
+## [0.99.1]
 
 ### Added
 
@@ -157,7 +159,7 @@
 
 - Dockerfile entrypoint syntax; `TestResolveCLIBinary` race under parallel execution.
 
-## [0.99.0] - 2026-08-15
+## [0.99.0]
 
 ### Added
 
@@ -194,7 +196,7 @@
 
 - Web route-group counts, Agent LLM proxy / race-test timeouts, docs link targets (`master`), and assorted auth/CSRF/login test isolation issues.
 
-## [0.98.3] - 2026-07-26
+## [0.98.3]
 
 Notable changes through this tag that were previously listed under Unreleased:
 
