@@ -224,14 +224,17 @@ Notable changes through this tag that were previously listed under Unreleased:
 - Notify capability no longer advertises unimplemented `digest` op (use aggregate rules).
 - Karakeep `delete` archives; Miniflux star/unstar via API.
 
-[Unreleased]: https://github.com/flowline-io/flowbot/compare/v0.99.8...HEAD
-[0.99.8]: https://github.com/flowline-io/flowbot/compare/v0.99.7...v0.99.8
-[0.99.7]: https://github.com/flowline-io/flowbot/compare/v0.99.6...v0.99.7
-[0.99.6]: https://github.com/flowline-io/flowbot/compare/v0.99.5...v0.99.6
-[0.99.5]: https://github.com/flowline-io/flowbot/compare/v0.99.4...v0.99.5
-[0.99.4]: https://github.com/flowline-io/flowbot/compare/v0.99.3...v0.99.4
-[0.99.3]: https://github.com/flowline-io/flowbot/compare/v0.99.2...v0.99.3
-[0.99.2]: https://github.com/flowline-io/flowbot/compare/v0.99.1...v0.99.2
-[0.99.1]: https://github.com/flowline-io/flowbot/compare/v0.99.0...v0.99.1
-[0.99.0]: https://github.com/flowline-io/flowbot/compare/v0.98.3...v0.99.0
+[0.99.12]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.12
+[0.99.11]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.11
+[0.99.10]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.10
+[0.99.9]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.9
+[0.99.8]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.8
+[0.99.7]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.7
+[0.99.6]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.6
+[0.99.5]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.5
+[0.99.4]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.4
+[0.99.3]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.3
+[0.99.2]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.2
+[0.99.1]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.1
+[0.99.0]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.0
 [0.98.3]: https://github.com/flowline-io/flowbot/releases/tag/v0.98.3
