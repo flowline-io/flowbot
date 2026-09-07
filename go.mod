@@ -12,7 +12,7 @@ require (
 	github.com/XSAM/otelsql v0.43.0
 	github.com/a-h/templ v0.3.1020
 	github.com/adrg/xdg v0.5.3
-	github.com/alicebob/miniredis/v2 v2.38.0
+	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/bytedance/sonic v1.15.3
 	github.com/containerd/errdefs v1.0.0
