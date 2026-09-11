@@ -1,5 +1,11 @@
 version = 1
 
+exclude_patterns = [
+  "public/vendor/**",
+  "public/css/app.css",
+  "docs/website/**",
+]
+
 [[analyzers]]
 name = "go"
 
@@ -8,3 +14,47 @@ name = "go"
 
 [[analyzers]]
 name = "shell"
+
+[[analyzers]]
+name = "javascript"
+enabled = true
+
+  [analyzers.meta]
+  environment = ["browser"]
+  cyclomatic_complexity_threshold = "very-high"
+  skip_doc_coverage = [
+    "function-declaration",
+    "function-expression",
+    "arrow-function-expression",
+    "class-declaration",
+    "class-expression",
+    "method-definition",
+  ]
+  globals = [
+    "Alpine",
+    "htmx",
+    "jsyaml",
+    "Chart",
+    "QRCode",
+    "Diff",
+    "FlowbotChatAgent",
+    "FlowbotPipelineRunLive",
+    "flowbotI18n",
+    "showConfirmModal",
+    "flowbotNextReconnectDelay",
+    "flowbotCSRFCache",
+    "flowbotAbortInFlightHTMX",
+    "flowbotIsPrimarySameTabNav",
+    "flowbotCaptureBaseTitle",
+    "flowbotSetPageStatus",
+    "flowbotClearPageStatus",
+    "flowbotFormatNeedsApprovalTitle",
+    "flowbotFormatLiveFinishedTitle",
+    "flowbotRequestNotifyPermission",
+    "flowbotNotifyIfHidden",
+    "flowbotResetNotifyDedupe",
+  ]
+
+[[analyzers]]
+name = "css"
+enabled = true
