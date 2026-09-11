@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+### Breaking
+
+- Functions, pipeline, and workflow REST modules merge into one `automate` module: paths are `/service/automate/{functions|pipeline|workflow}`; config is `modules.automate.enabled` (orphan `modules.workflow` / `modules.pipeline` keys are ignored). Token scopes stay `function:*` / `pipeline:*` / `workflow:*`. See [.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md](.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md).
+- DeepSeek catalog id is `deepseek-flash` only (DeepSeek V4.1 Flash, vision + thinking). `deepseek-v4-flash` / `deepseek-v4-pro` are removed; configs still using those ids get unknown-model defaults. See [.agents/notes/implemented/feature/2026-09-11-deepseek-v41-flash.md](.agents/notes/implemented/feature/2026-09-11-deepseek-v41-flash.md).
+
 ### Added
 
+- Chat agent `present_html` tool: interactive HTML artifacts with sandboxed iframe preview (`sandbox="allow-scripts"`, CSP `connect-src 'none'`), Preview/Source tabs, and transcript-only persistence (256KB cap). See [.agents/notes/implemented/feature/2026-09-11-chat-html-artifacts.md](.agents/notes/implemented/feature/2026-09-11-chat-html-artifacts.md).
 - GitHub community onboarding: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, PR template, and issue templates (bug / feature / provider / docs / UI). See [.agents/notes/implemented/process/2026-09-11-github-community-onboarding.md](.agents/notes/implemented/process/2026-09-11-github-community-onboarding.md).
 
 ### Changed
