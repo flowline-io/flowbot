@@ -242,17 +242,13 @@ homelab:
     exec: false
   # Endpoint and auth discovery configuration
   discovery:
-    # Enable runtime HTTP probing of running containers
+    # Enable runtime HTTP probing of host-published ports (optional best-effort)
     probe_enabled: false
     # Per-request timeout for probe HTTP calls
     probe_timeout: "5s"
     # Maximum concurrent probe goroutines
     probe_concurrency: 4
-    # Docker network names for container resolution (reserved)
-    # probe_networks: []
-    # Port resolution strategy: published, container, both
-    probe_port_strategy: "published"
-    # Enable service fingerprint matching
+    # Enable path-based service fingerprint matching
     fingerprint_enabled: true
     # When true, label-derived data overrides probe results
     label_priority: true

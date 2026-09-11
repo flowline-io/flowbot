@@ -60,12 +60,12 @@ type AppCapability struct {
 }
 
 // DiscoveryConfig controls the behaviour of runtime endpoint discovery probing.
+// Probes always target host-published TCP ports (localhost / explicit Host);
+// container-network resolution is intentionally out of scope.
 type DiscoveryConfig struct {
 	ProbeEnabled       bool          `json:"probe_enabled"`
 	ProbeTimeout       time.Duration `json:"probe_timeout"`
 	ProbeConcurrency   int           `json:"probe_concurrency"`
-	ProbeNetworks      []string      `json:"probe_networks,omitzero"`
-	ProbePortStrategy  string        `json:"probe_port_strategy"`
 	FingerprintEnabled bool          `json:"fingerprint_enabled"`
 	LabelPriority      bool          `json:"label_priority"`
 }

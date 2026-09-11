@@ -481,13 +481,11 @@ type HomelabPermissions struct {
 }
 
 type HomelabDiscovery struct {
-	ProbeEnabled       bool     `json:"probe_enabled" yaml:"probe_enabled" mapstructure:"probe_enabled"`
-	ProbeTimeout       string   `json:"probe_timeout" yaml:"probe_timeout" mapstructure:"probe_timeout"`
-	ProbeConcurrency   int      `json:"probe_concurrency" yaml:"probe_concurrency" mapstructure:"probe_concurrency"`
-	ProbeNetworks      []string `json:"probe_networks" yaml:"probe_networks" mapstructure:"probe_networks"`
-	ProbePortStrategy  string   `json:"probe_port_strategy" yaml:"probe_port_strategy" mapstructure:"probe_port_strategy"`
-	FingerprintEnabled bool     `json:"fingerprint_enabled" yaml:"fingerprint_enabled" mapstructure:"fingerprint_enabled"`
-	LabelPriority      bool     `json:"label_priority" yaml:"label_priority" mapstructure:"label_priority"`
+	ProbeEnabled       bool   `json:"probe_enabled" yaml:"probe_enabled" mapstructure:"probe_enabled"`
+	ProbeTimeout       string `json:"probe_timeout" yaml:"probe_timeout" mapstructure:"probe_timeout"`
+	ProbeConcurrency   int    `json:"probe_concurrency" yaml:"probe_concurrency" mapstructure:"probe_concurrency"`
+	FingerprintEnabled bool   `json:"fingerprint_enabled" yaml:"fingerprint_enabled" mapstructure:"fingerprint_enabled"`
+	LabelPriority      bool   `json:"label_priority" yaml:"label_priority" mapstructure:"label_priority"`
 }
 
 // AbilityEventPool configures the goroutine pool for event emission.

@@ -75,8 +75,6 @@ func homelabConfig(cfg config.Homelab) homelab.Config {
 	discovery := homelab.DiscoveryConfig{
 		ProbeEnabled:       cfg.Discovery.ProbeEnabled,
 		ProbeConcurrency:   cfg.Discovery.ProbeConcurrency,
-		ProbeNetworks:      cfg.Discovery.ProbeNetworks,
-		ProbePortStrategy:  cfg.Discovery.ProbePortStrategy,
 		FingerprintEnabled: cfg.Discovery.FingerprintEnabled,
 		LabelPriority:      cfg.Discovery.LabelPriority,
 	}
@@ -90,9 +88,6 @@ func homelabConfig(cfg config.Homelab) homelab.Config {
 	}
 	if discovery.ProbeConcurrency <= 0 {
 		discovery.ProbeConcurrency = 4
-	}
-	if discovery.ProbePortStrategy == "" {
-		discovery.ProbePortStrategy = "published"
 	}
 	return homelab.Config{
 		Root:        cfg.Root,

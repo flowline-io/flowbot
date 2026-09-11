@@ -19,13 +19,12 @@ func TestHomelabConfig(t *testing.T) {
 		want homelab.Config
 	}{
 		{
-			name: "empty config returns defaults for timeout/concurrency/port strategy",
+			name: "empty config returns defaults for timeout/concurrency",
 			cfg:  config.Homelab{},
 			want: homelab.Config{
 				Discovery: homelab.DiscoveryConfig{
-					ProbeTimeout:      5 * time.Second,
-					ProbeConcurrency:  4,
-					ProbePortStrategy: "published",
+					ProbeTimeout:     5 * time.Second,
+					ProbeConcurrency: 4,
 				},
 			},
 		},
@@ -60,8 +59,6 @@ func TestHomelabConfig(t *testing.T) {
 					ProbeEnabled:       true,
 					ProbeTimeout:       "10s",
 					ProbeConcurrency:   8,
-					ProbeNetworks:      []string{"traefik"},
-					ProbePortStrategy:  "internal",
 					FingerprintEnabled: true,
 					LabelPriority:      true,
 				},
@@ -95,8 +92,6 @@ func TestHomelabConfig(t *testing.T) {
 					ProbeEnabled:       true,
 					ProbeTimeout:       10 * time.Second,
 					ProbeConcurrency:   8,
-					ProbeNetworks:      []string{"traefik"},
-					ProbePortStrategy:  "internal",
 					FingerprintEnabled: true,
 					LabelPriority:      true,
 				},
@@ -111,9 +106,8 @@ func TestHomelabConfig(t *testing.T) {
 			},
 			want: homelab.Config{
 				Discovery: homelab.DiscoveryConfig{
-					ProbeTimeout:      5 * time.Second,
-					ProbeConcurrency:  4,
-					ProbePortStrategy: "published",
+					ProbeTimeout:     5 * time.Second,
+					ProbeConcurrency: 4,
 				},
 			},
 		},

@@ -1,61 +1,39 @@
 package probe
 
-// FingerprintPattern describes a single detection pattern for a known service.
-type FingerprintPattern struct {
-	Field string // "header", "body_key", "path", "title"
-	Key   string // header name / JSON key / URL path
-	Value string // regex pattern to match
-}
-
 // ServiceFingerprint associates a capability (provider ID) and detection
-// patterns for known services.
+// paths for known services. Matching is path-reachability only.
 type ServiceFingerprint struct {
 	Capability string
 	Provider   string
-	Patterns   []FingerprintPattern
+	Paths      []string
 }
 
 // KnownServices contains fingerprints for services that the probe engine can
-// identify by response patterns.
+// identify by reachable API paths.
 var KnownServices = []ServiceFingerprint{
 	{
 		Capability: "karakeep",
 		Provider:   "karakeep",
-		Patterns: []FingerprintPattern{
-			{Field: "header", Key: "Server", Value: "LinkWarden"},
-			{Field: "path", Key: "/api/v1/health", Value: ""},
-		},
+		Paths:      []string{"/api/v1/health"},
 	},
 	{
 		Capability: "kanboard",
 		Provider:   "kanboard",
-		Patterns: []FingerprintPattern{
-			{Field: "title", Key: "", Value: "Kanboard"},
-			{Field: "path", Key: "/jsonrpc.php", Value: ""},
-		},
+		Paths:      []string{"/jsonrpc.php"},
 	},
 	{
 		Capability: "miniflux",
 		Provider:   "miniflux",
-		Patterns: []FingerprintPattern{
-			{Field: "header", Key: "X-Auth-Token", Value: ""},
-			{Field: "path", Key: "/v1/healthcheck", Value: ""},
-		},
+		Paths:      []string{"/v1/healthcheck"},
 	},
 	{
 		Capability: "finance",
 		Provider:   "fireflyiii",
-		Patterns: []FingerprintPattern{
-			{Field: "header", Key: "X-Firefly-III-Version", Value: ""},
-			{Field: "path", Key: "/api/v1/about", Value: ""},
-		},
+		Paths:      []string{"/api/v1/about"},
 	},
 	{
 		Capability: "archive",
 		Provider:   "archivebox",
-		Patterns: []FingerprintPattern{
-			{Field: "title", Key: "", Value: "ArchiveBox"},
-			{Field: "path", Key: "/admin", Value: ""},
-		},
+		Paths:      []string{"/admin"},
 	},
 }

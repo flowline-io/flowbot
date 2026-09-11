@@ -1,141 +1,12 @@
 package probe
 
 import (
-	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/flowline-io/flowbot/pkg/homelab"
 )
-
-func TestMatchHeader(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name    string
-		headers http.Header
-		key     string
-		pattern string
-		want    bool
-	}{
-		{
-			name:    "header contains pattern",
-			headers: http.Header{"Server": []string{"nginx/1.25"}},
-			key:     "Server",
-			pattern: "nginx",
-			want:    true,
-		},
-		{
-			name:    "empty pattern matches present header",
-			headers: http.Header{"X-App": []string{"flowbot"}},
-			key:     "X-App",
-			pattern: "",
-			want:    true,
-		},
-		{
-			name:    "missing header does not match",
-			headers: http.Header{},
-			key:     "Server",
-			pattern: "nginx",
-			want:    false,
-		},
-		{
-			name:    "pattern mismatch",
-			headers: http.Header{"Server": []string{"apache"}},
-			key:     "Server",
-			pattern: "nginx",
-			want:    false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tt.want, matchHeader(tt.headers, tt.key, tt.pattern))
-		})
-	}
-}
-
-func TestMatchTitle(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name    string
-		body    string
-		pattern string
-		want    bool
-	}{
-		{
-			name:    "title contains pattern",
-			body:    "<html><head><title>Gitea</title></head></html>",
-			pattern: "Gitea",
-			want:    true,
-		},
-		{
-			name:    "empty pattern does not match",
-			body:    "<title>Gitea</title>",
-			pattern: "",
-			want:    false,
-		},
-		{
-			name:    "missing title does not match",
-			body:    "<html><body>no title</body></html>",
-			pattern: "Gitea",
-			want:    false,
-		},
-		{
-			name:    "title mismatch",
-			body:    "<title>GitLab</title>",
-			pattern: "Gitea",
-			want:    false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tt.want, matchTitle([]byte(tt.body), tt.pattern))
-		})
-	}
-}
-
-func TestMatchBodyKey(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		body string
-		key  string
-		want bool
-	}{
-		{
-			name: "json key present",
-			body: `{"version":"1.0","status":"ok"}`,
-			key:  "version",
-			want: true,
-		},
-		{
-			name: "empty key does not match",
-			body: `{"version":"1.0"}`,
-			key:  "",
-			want: false,
-		},
-		{
-			name: "missing key does not match",
-			body: `{"status":"ok"}`,
-			key:  "version",
-			want: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tt.want, matchBodyKey([]byte(tt.body), tt.key))
-		})
-	}
-}
 
 func TestDeduplicateCapabilities(t *testing.T) {
 	t.Parallel()
@@ -203,80 +74,45 @@ func TestAuthTypeLabel(t *testing.T) {
 	}
 }
 
-func TestResolveHostAndHostPort(t *testing.T) {
+func TestResolveHost(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		strategy     string
-		port         homelab.PortMapping
-		wantHost     string
-		wantHostPort string
+		name string
+		port homelab.PortMapping
+		want string
 	}{
 		{
-			name:     "explicit host and host port",
-			strategy: "host",
+			name: "explicit host",
 			port: homelab.PortMapping{
-				Protocol:  "tcp",
-				Host:      "192.168.1.10",
-				HostPort:  "3000",
-				Container: "80",
+				Protocol: "tcp",
+				Host:     "192.168.1.10",
+				HostPort: "3000",
 			},
-			wantHost:     "192.168.1.10",
-			wantHostPort: "3000",
+			want: "192.168.1.10",
 		},
 		{
-			name:     "missing host falls back to localhost when host port set",
-			strategy: "host",
+			name: "missing host falls back to localhost when host port set",
 			port: homelab.PortMapping{
 				Protocol: "tcp",
 				HostPort: "8080",
 			},
-			wantHost:     "localhost",
-			wantHostPort: "8080",
+			want: "localhost",
 		},
 		{
-			name:     "container strategy prefers container port",
-			strategy: "container",
-			port: homelab.PortMapping{
-				Protocol:  "tcp",
-				Host:      "127.0.0.1",
-				HostPort:  "3000",
-				Container: "80",
-			},
-			wantHost:     "127.0.0.1",
-			wantHostPort: "80",
-		},
-		{
-			name:     "both strategy prefers host port",
-			strategy: "both",
-			port: homelab.PortMapping{
-				Protocol:  "tcp",
-				Host:      "127.0.0.1",
-				HostPort:  "3000",
-				Container: "80",
-			},
-			wantHost:     "127.0.0.1",
-			wantHostPort: "3000",
-		},
-		{
-			name:     "no host and no host port yields empty host",
-			strategy: "host",
+			name: "no host and no host port yields empty host",
 			port: homelab.PortMapping{
 				Protocol:  "tcp",
 				Container: "80",
 			},
-			wantHost:     "",
-			wantHostPort: "80",
+			want: "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			e := &Engine{config: homelab.DiscoveryConfig{ProbePortStrategy: tt.strategy}}
-			assert.Equal(t, tt.wantHost, e.resolveHost(tt.port))
-			assert.Equal(t, tt.wantHostPort, e.resolveHostPort(tt.port))
+			assert.Equal(t, tt.want, resolveHost(tt.port))
 		})
 	}
 }
@@ -285,14 +121,12 @@ func TestResolveTargets(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		strategy string
-		app      homelab.App
-		want     []string
+		name string
+		app  homelab.App
+		want []string
 	}{
 		{
-			name:     "tcp ports produce http and https targets",
-			strategy: "host",
+			name: "tcp published ports produce http and https targets",
 			app: homelab.App{
 				Ports: []homelab.PortMapping{
 					{Protocol: "tcp", Host: "127.0.0.1", HostPort: "3000"},
@@ -301,8 +135,7 @@ func TestResolveTargets(t *testing.T) {
 			want: []string{"http://127.0.0.1:3000", "https://127.0.0.1:3000"},
 		},
 		{
-			name:     "udp ports are skipped",
-			strategy: "host",
+			name: "udp ports are skipped",
 			app: homelab.App{
 				Ports: []homelab.PortMapping{
 					{Protocol: "udp", Host: "127.0.0.1", HostPort: "53"},
@@ -311,8 +144,7 @@ func TestResolveTargets(t *testing.T) {
 			want: nil,
 		},
 		{
-			name:     "ports without host info are skipped",
-			strategy: "host",
+			name: "ports without published host port are skipped",
 			app: homelab.App{
 				Ports: []homelab.PortMapping{
 					{Protocol: "tcp", Container: "80"},
@@ -320,12 +152,21 @@ func TestResolveTargets(t *testing.T) {
 			},
 			want: nil,
 		},
+		{
+			name: "localhost used when host omitted but host port present",
+			app: homelab.App{
+				Ports: []homelab.PortMapping{
+					{Protocol: "tcp", HostPort: "8080", Container: "80"},
+				},
+			},
+			want: []string{"http://localhost:8080", "https://localhost:8080"},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			e := &Engine{config: homelab.DiscoveryConfig{ProbePortStrategy: tt.strategy}}
+			e := &Engine{}
 			assert.Equal(t, tt.want, e.resolveTargets(tt.app))
 		})
 	}

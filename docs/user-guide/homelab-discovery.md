@@ -2,7 +2,8 @@
 
 Automatic identification of API endpoints and authentication mechanisms for self-hosted
 apps registered through the Homelab Scanner. The system uses two complementary strategies:
-**label-based static discovery** and **runtime probe-based detection**.
+**label-based static discovery** (authoritative) and **runtime probe-based detection**
+(optional best-effort).
 
 ## Overview
 
@@ -25,19 +26,24 @@ docker-compose labels     runtime HTTP probes
         hub.EndpointHealthChecker
 ```
 
+Flowbot is assumed to run on the **host**. Probes only target **published** TCP ports
+(`Host` / `localhost` + host port). Labels must use URLs that the Flowbot process can
+reach. One compose file binds **one** capability.
+
 ## Strategy 1: Label-Based Discovery (Static)
 
-Define capabilities, endpoints, and auth mechanisms directly in your
+Define the capability, endpoint, and auth mechanism directly in your
 `docker-compose.yaml` using the `flowbot.*` label convention. Labels are parsed
-during filesystem scanning with zero runtime cost.
+during filesystem scanning with zero runtime cost and take precedence over probes
+when `label_priority` is true.
 
 ### Label Convention
 
 | Label                         | Required | Description                                               | Example                         |
 | ----------------------------- | -------- | --------------------------------------------------------- | ------------------------------- |
-| `flowbot.capability`          | Yes      | Capability type the app provides                          | `bookmark`                      |
-| `flowbot.backend`             | No       | Backend provider name (defaults to capability)            | `karakeep`                      |
-| `flowbot.endpoint.base`       | No       | Base URL for the API                                      | `http://linkwarden:3000/api/v1` |
+| `flowbot.capability`          | Yes      | Capability type the app provides                          | `karakeep`                      |
+| `flowbot.backend`             | No       | Deprecated; ignored                                       | —                               |
+| `flowbot.endpoint.base`       | No       | Base URL reachable from the Flowbot process               | `http://127.0.0.1:3000/api/v1`  |
 | `flowbot.endpoint.health`     | No       | Health check path (relative to base)                      | `/health`                       |
 | `flowbot.endpoint.health_ttl` | No       | Health check cache TTL (duration string)                  | `30s`                           |
 | `flowbot.auth.type`           | No       | Auth type: `api_token`, `basic`, `oauth2`, `oidc`, `none` | `api_token`                     |
@@ -46,17 +52,24 @@ during filesystem scanning with zero runtime cost.
 | `flowbot.auth.token_key`      | No       | Environment variable name holding the token               | `LW_API_KEY`                    |
 | `flowbot.auth.token_source`   | No       | Where to read the token: `env`, `file`, `config`          | `env`                           |
 
+`flowbot.endpoint.base` must be reachable by the Flowbot process (typically
+`http://127.0.0.1:<published-port>/...`). Do not use container DNS names unless you
+know that name resolves from where Flowbot runs.
+
 ### Supported Capabilities
 
 | Label Value     | Capability Type | Typical Backend |
 | --------------- | --------------- | --------------- |
-| `bookmark`      | Bookmark        | karakeep        |
+| `karakeep`      | Bookmark        | karakeep        |
 | `archive`       | Archive         | archivebox      |
-| `reader`        | Reader (RSS)    | miniflux        |
-| `kanban`        | Kanban          | kanboard        |
+| `miniflux`      | Reader (RSS)    | miniflux        |
+| `kanboard`      | Kanban          | kanboard        |
 | `finance`       | Finance         | fireflyiii      |
 | `infra`         | Infrastructure  | —               |
 | `shell_history` | Shell History   | atuin           |
+
+Legacy domain labels (`bookmark`, `reader`, `kanban`, `note`, `memo`, `forge`) map to
+the canonical provider IDs above and log a deprecation warning.
 
 ### Example
 
@@ -69,9 +82,8 @@ services:
     ports:
       - "3000:3000"
     labels:
-      flowbot.capability: "bookmark"
-      flowbot.backend: "karakeep"
-      flowbot.endpoint.base: "http://linkwarden:3000/api/v1"
+      flowbot.capability: "karakeep"
+      flowbot.endpoint.base: "http://127.0.0.1:3000/api/v1"
       flowbot.endpoint.health: "/health"
       flowbot.endpoint.health_ttl: "30s"
       flowbot.auth.type: "api_token"
@@ -83,15 +95,16 @@ services:
 
 With this label configuration, the scanner automatically:
 
-1. Registers `bookmark` as a discovered capability for this app.
+1. Registers `karakeep` as the discovered capability for this app.
 2. Records the base URL, health path, and auth metadata.
 3. The hub logs the discovery and exposes it through `/hub/capabilities` responses.
-4. The health checker probes `http://linkwarden:3000/api/v1/health` on each check cycle.
+4. The health checker probes `http://127.0.0.1:3000/api/v1/health` on each check cycle.
 
 ## Strategy 2: Runtime Probe Engine (Dynamic)
 
 When labels are absent or incomplete, an optional HTTP probe engine can discover
-endpoints and auth mechanisms by making requests to running containers.
+endpoints and auth mechanisms by making requests to **host-published** ports on
+running containers. Probes are best-effort; they do not replace labels.
 
 ### What It Detects
 
@@ -116,23 +129,23 @@ endpoints and auth mechanisms by making requests to running containers.
 
 ### Fingerprint Database
 
-The probe engine maintains a fingerprint database of known self-hosted services.
-When a service's API paths match a fingerprint, the capability type is automatically
-inferred. Currently supported fingerprints:
+The probe engine matches known self-hosted services by **path reachability only**.
+When a detection path responds successfully, the capability type is inferred.
 
 | Service     | Capability | Detection Path    |
 | ----------- | ---------- | ----------------- |
-| LinkWarden  | bookmark   | `/api/v1/health`  |
+| LinkWarden  | karakeep   | `/api/v1/health`  |
 | ArchiveBox  | archive    | `/admin`          |
-| Miniflux    | reader     | `/v1/healthcheck` |
-| Kanboard    | kanban     | `/jsonrpc.php`    |
+| Miniflux    | miniflux   | `/v1/healthcheck` |
+| Kanboard    | kanboard   | `/jsonrpc.php`    |
 | Firefly III | finance    | `/api/v1/about`   |
 
 ### Probe Behavior
 
 - Probes only run when `homelab.discovery.probe_enabled` is `true`.
 - Non-running apps are skipped (probes require an active container).
-- Both HTTP and HTTPS are attempted for each TCP port.
+- Only TCP ports with a **published host port** are probed; unpublished container ports are skipped.
+- Both HTTP and HTTPS are attempted for each published port.
 - A configurable concurrency limit controls simultaneous probes.
 - Each probe respects a configurable per-request timeout.
 - Probes do not follow redirects (to avoid false positives on login pages).
@@ -164,37 +177,26 @@ homelab:
     probe_enabled: true
     probe_timeout: "5s"
     probe_concurrency: 4
-    probe_port_strategy: "published"
     fingerprint_enabled: true
     label_priority: true
 ```
 
 ### Discovery Configuration Reference
 
-| Field                 | Type     | Default       | Description                                                   |
-| --------------------- | -------- | ------------- | ------------------------------------------------------------- |
-| `probe_enabled`       | bool     | `false`       | Enable runtime HTTP probing of running containers             |
-| `probe_timeout`       | duration | `"5s"`        | Per-request timeout for probe HTTP calls                      |
-| `probe_concurrency`   | int      | `4`           | Maximum number of parallel probe goroutines                   |
-| `probe_networks`      | []string | `[]`          | Docker network names to resolve (reserved for future use)     |
-| `probe_port_strategy` | string   | `"published"` | Port resolution strategy: `published`, `container`, or `both` |
-| `fingerprint_enabled` | bool     | `true`        | Enable service fingerprint matching against known patterns    |
-| `label_priority`      | bool     | `true`        | When true, label-derived data takes precedence over probes    |
-
-### Port Strategy
-
-| Strategy    | Behaviour                                                              |
-| ----------- | ---------------------------------------------------------------------- |
-| `published` | Probe the host-published port (e.g., `8080:3000` probes `8080`)        |
-| `container` | Probe the container-internal port (e.g., probes `3000` on `localhost`) |
-| `both`      | Try published first, fall back to container port                       |
+| Field                 | Type     | Default | Description                                    |
+| --------------------- | -------- | ------- | ---------------------------------------------- |
+| `probe_enabled`       | bool     | `false` | Enable runtime HTTP probing of published ports |
+| `probe_timeout`       | duration | `"5s"`  | Per-request timeout for probe HTTP calls       |
+| `probe_concurrency`   | int      | `4`     | Maximum number of parallel probe goroutines    |
+| `fingerprint_enabled` | bool     | `true`  | Enable service fingerprint matching by path    |
+| `label_priority`      | bool     | `true`  | When true, label-derived data takes precedence |
 
 ## How Discovery Feeds Into the Hub
 
 ### Scanning Phase
 
 1. `Scanner.Scan()` reads `apps/*/docker-compose.yaml` files.
-2. `ParseLabels()` extracts `AppCapability` entries from labels.
+2. `ParseLabels()` extracts at most one `AppCapability` from labels.
 3. If discovery probes are enabled, `ProbeEngine.ProbeAll()` enriches apps with runtime data.
 4. Results are merged into `App.Capabilities[]` and persisted to PostgreSQL via `hub_store`.
 
@@ -216,14 +218,21 @@ homelab:
 
 ## Design Decisions
 
-| Decision                                                                | Rationale                                                      |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Label convention uses a flat namespace (`flowbot.*`)                    | Matches docker-compose label conventions; discoverable by grep |
-| Labels take priority over probe results when `label_priority` is true   | User intent is authoritative; probes are best-effort           |
-| Probe engine returns `nil` when disabled (not an empty engine)          | Avoids unnecessary allocations; callers check for nil          |
-| Homelab capability types use string constants, not `hub.CapabilityType` | Breaks import cycle between `homelab` and `hub` packages       |
-| Only TCP ports are probed (UDP skipped)                                 | Self-hosted APIs are HTTP-based; UDP probing adds noise        |
-| Probes do not follow redirects                                          | Avoids probing login pages that return 200 on redirect         |
+Rationale for the host-side discovery contracts:
+[.agents/notes/implemented/simplification/2026-09-11-homelab-discovery-host-contracts.md](../../.agents/notes/implemented/simplification/2026-09-11-homelab-discovery-host-contracts.md).
+
+| Contract | Behaviour |
+| -------- | --------- |
+| Host-published ports only | Probes use `Host` or `localhost` plus the published host port; unpublished ports are skipped |
+| Path-only fingerprints | Matching uses reachable detection paths only |
+| One compose = one capability | `ParseLabels` accepts a single `flowbot.capability` per compose file |
+| Reachable `endpoint.base` | Label URLs must be reachable from the Flowbot process |
+| Labels beat probes | When `label_priority` is true, label data wins over probe enrichment |
+| Flat `flowbot.*` labels | Compose label convention for static discovery |
+| Probe engine nil when disabled | Callers check for nil instead of an empty engine |
+| Homelab cap strings, not `hub.CapabilityType` | Avoids an import cycle between `homelab` and `hub` |
+| TCP only; no redirects | UDP skipped; redirects not followed |
+| Auth header names via labels | Probes may infer `api_token` from 401/403 without `WWW-Authenticate`, but not the exact header name |
 
 ## Adding New Service Fingerprints
 
@@ -232,17 +241,14 @@ To add fingerprint support for a new service, edit
 
 ```go
 {
-    Capability: "bookmark",
+    Capability: "your-capability",
     Provider:   "your-provider",
-    Patterns: []FingerprintPattern{
-        {Field: "path", Key: "/api/v1/health", Value: ""},
-    },
+    Paths:      []string{"/api/v1/health"},
 }
 ```
 
-Each pattern contributes a confidence score. When the cumulative confidence exceeds
-zero, the engine emits a match. Currently only the `path` field type is implemented;
-future work may add `header` and `body_key` field types with regex `Value` patterns.
+Each reachable path contributes to the confidence score. When the cumulative score
+exceeds zero, the engine emits a match.
 
 ## Testing
 
@@ -259,18 +265,3 @@ go test ./pkg/hub/ -run TestAutoBind
 # Full homelab suite
 go test ./pkg/homelab/...
 ```
-
-## Limitations
-
-- **No container network resolution**: Probes use `localhost` for published ports.
-  Docker network-level resolution (e.g., `docker inspect` for container IPs) is not
-  yet implemented. This means probes may fail for containers on isolated networks.
-- **Fingerprint engine is path-only**: Header pattern matching and body-key JSON
-  parsing are defined in the type system but not yet implemented in the matcher.
-- **Auth detection is heuristic**: API key header detection is inferred from the
-  absence of a `WWW-Authenticate` header on 401/403 responses. The exact header
-  name (e.g., `X-API-Key` vs `X-Auth-Token`) cannot be determined from the
-  response alone.
-- **Single capability per app**: The current label convention supports one
-  capability per compose file. Multi-service apps with different capabilities
-  require separate compose files or manual hub registration.

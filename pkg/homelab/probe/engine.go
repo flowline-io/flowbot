@@ -104,30 +104,29 @@ func (e *Engine) ProbeAll(ctx context.Context, apps []homelab.App) []ProbeResult
 	return all
 }
 
-// resolveTargets figures out which URLs to probe for a given app, based on
-// its port mappings and the configured port strategy. Both http and https
-// schemes are attempted for each target.
-func (e *Engine) resolveTargets(app homelab.App) []string {
+// resolveTargets builds probe URLs from host-published TCP ports.
+// Both http and https schemes are attempted for each target.
+// Ports without a published host port are skipped.
+func (*Engine) resolveTargets(app homelab.App) []string {
 	var targets []string
 	for _, port := range app.Ports {
 		if port.Protocol != "tcp" {
 			continue
 		}
-		host := e.resolveHost(port)
+		host := resolveHost(port)
 		if host == "" {
 			continue
 		}
-		hostPort := e.resolveHostPort(port)
-		if hostPort == "" {
+		if port.HostPort == "" {
 			continue
 		}
-		address := net.JoinHostPort(host, hostPort)
+		address := net.JoinHostPort(host, port.HostPort)
 		targets = append(targets, fmt.Sprintf("http://%s", address), fmt.Sprintf("https://%s", address))
 	}
 	return targets
 }
 
-func (*Engine) resolveHost(port homelab.PortMapping) string {
+func resolveHost(port homelab.PortMapping) string {
 	if port.Host != "" {
 		return port.Host
 	}
@@ -135,21 +134,6 @@ func (*Engine) resolveHost(port homelab.PortMapping) string {
 		return "localhost"
 	}
 	return ""
-}
-
-func (e *Engine) resolveHostPort(port homelab.PortMapping) string {
-	switch e.config.ProbePortStrategy {
-	case "container":
-		if port.Container != "" {
-			return port.Container
-		}
-		return port.HostPort
-	default:
-		if port.HostPort != "" {
-			return port.HostPort
-		}
-		return port.Container
-	}
 }
 
 // probeApp probes a single target URL and returns discovered capabilities.
