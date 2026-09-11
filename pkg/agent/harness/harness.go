@@ -94,8 +94,7 @@ func New(opts Options) *Harness {
 	}
 
 	agentInstance := loop.NewAgent(opts.AgentOptions)
-
-	return &Harness{
+	h := &Harness{
 		agent:                agentInstance,
 		session:              opts.Session,
 		registry:             registry,
@@ -109,6 +108,53 @@ func New(opts Options) *Harness {
 		idleCh:               make(chan struct{}),
 		persistedToolCallIDs: make(map[string]struct{}),
 	}
+	h.wireSessionHooks()
+	return h
+}
+
+func (h *Harness) wireSessionHooks() {
+	if h == nil || h.ctxMgr == nil || h.hookRegistry == nil || !h.hookRegistry.HasSessionHandlers() {
+		return
+	}
+	reg := h.hookRegistry
+	h.ctxMgr.SetBeforeCompact(func(ctx context.Context, event ctxmgr.BeforeCompactEvent) (*ctxmgr.BeforeCompactOutcome, error) {
+		result, err := reg.EmitSessionBeforeCompact(ctx, hooks.SessionBeforeCompactEvent{
+			Preparation:   event.Preparation,
+			BranchEntries: event.BranchEntries,
+			Reason:        event.Reason,
+			WillRetry:     event.WillRetry,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if result == nil {
+			return nil, nil
+		}
+		return &ctxmgr.BeforeCompactOutcome{
+			Cancel:     result.Cancel,
+			Compaction: result.Compaction,
+		}, nil
+	})
+	h.ctxMgr.SetBeforeTree(func(ctx context.Context, event ctxmgr.BeforeTreeEvent) (*ctxmgr.BeforeTreeOutcome, error) {
+		result, err := reg.EmitSessionBeforeTree(ctx, hooks.SessionBeforeTreeEvent{
+			TargetEntryID:      event.TargetEntryID,
+			OldLeafID:          event.OldLeafID,
+			CommonAncestorID:   event.CommonAncestorID,
+			EntriesToSummarize: event.EntriesToSummarize,
+			UserWantsSummary:   event.UserWantsSummary,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if result == nil {
+			return nil, nil
+		}
+		outcome := &ctxmgr.BeforeTreeOutcome{Cancel: result.Cancel}
+		if result.Summary != nil {
+			outcome.Summary = *result.Summary
+		}
+		return outcome, nil
+	})
 }
 
 // Hooks exposes the typed hook registry for this harness instance.
@@ -149,7 +195,7 @@ func (h *Harness) MoveTo(ctx context.Context, entryID, summary string) error {
 	}
 	if h.ctxMgr != nil {
 		if err := h.ctxMgr.MoveTo(ctx, h.session, entryID, summary); err != nil {
-			if agentresult.IsCode(err, "aborted") {
+			if agentresult.IsCode(err, "aborted") || errors.Is(err, ctxmgr.ErrTreeNavigationCancelled) {
 				return nil
 			}
 			return normalizeHarnessError("branch_summary", "branch navigation failed", err)
@@ -376,7 +422,11 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, pr
 		metrics.Agent().IncOverflowRetry(fmt.Sprintf("%d", nextLevel))
 		ctx, span := trace.StartSpan(ctx, "agent.compact")
 		h.syncCompactionTools()
-		report, compactErr := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{Force: force})
+		report, compactErr := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{
+			Force:     force,
+			Reason:    ctxmgr.CompactReasonOverflow,
+			WillRetry: true,
+		})
 		if report.Changed() {
 			if compactErr != nil {
 				flog.Warn("harness: compaction warning after surface change code=%s: %v", agentresult.CodeOf(compactErr), compactErr)

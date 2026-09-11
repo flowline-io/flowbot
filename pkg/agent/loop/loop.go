@@ -215,6 +215,13 @@ func streamAssistant(
 	var capture reasoningCapture
 	streamOpts := buildStreamOptions(cfg, modelName, llmTools, emit, &capture)
 	streamOpts.AssistantToolReasoning = toolReasoning
+	streamOpts, err = applyBeforeProviderRequest(cfg, modelName, streamOpts)
+	if err != nil {
+		if abortErr := abortLoopError(err); abortErr != err {
+			return msg.AssistantMessage{}, abortErr
+		}
+		return msg.AssistantMessage{}, fmt.Errorf("agent loop: before provider request: %w", err)
+	}
 
 	start := time.Now()
 	llmModel, err := resolveTurnModel(ctx, deps, modelName)
@@ -335,6 +342,51 @@ func buildStreamOptions(cfg msg.Config, modelName string, llmTools []llms.Tool, 
 		streamOpts.OnReasoningDelta = capture.deltaHandler(emit)
 	}
 	return streamOpts
+}
+
+func applyBeforeProviderRequest(cfg msg.Config, modelName string, opts agentllm.StreamOptions) (agentllm.StreamOptions, error) {
+	if cfg.BeforeProviderRequest == nil {
+		return opts, nil
+	}
+	patched, err := cfg.BeforeProviderRequest(modelName, providerRequestOptionsFromStream(opts))
+	if err != nil {
+		return opts, err
+	}
+	if patched == nil {
+		return opts, nil
+	}
+	return applyProviderRequestOptions(opts, *patched), nil
+}
+
+func providerRequestOptionsFromStream(opts agentllm.StreamOptions) msg.ProviderRequestOptions {
+	return msg.ProviderRequestOptions{
+		Temperature:             opts.Temperature,
+		MaxTokens:               opts.MaxTokens,
+		ThinkingLevel:           opts.ThinkingLevel,
+		LLMRetryMaxAttempts:     opts.Retry.MaxAttempts,
+		LLMRetryInitialInterval: opts.Retry.InitialInterval,
+		LLMRetryMaxInterval:     opts.Retry.MaxInterval,
+		LLMRetryMultiplier:      opts.Retry.Multiplier,
+	}
+}
+
+func applyProviderRequestOptions(opts agentllm.StreamOptions, patch msg.ProviderRequestOptions) agentllm.StreamOptions {
+	opts.Temperature = patch.Temperature
+	opts.MaxTokens = patch.MaxTokens
+	opts.ThinkingLevel = patch.ThinkingLevel
+	if patch.LLMRetryMaxAttempts > 0 {
+		opts.Retry.MaxAttempts = patch.LLMRetryMaxAttempts
+	}
+	if patch.LLMRetryInitialInterval > 0 {
+		opts.Retry.InitialInterval = patch.LLMRetryInitialInterval
+	}
+	if patch.LLMRetryMaxInterval > 0 {
+		opts.Retry.MaxInterval = patch.LLMRetryMaxInterval
+	}
+	if patch.LLMRetryMultiplier > 0 {
+		opts.Retry.Multiplier = patch.LLMRetryMultiplier
+	}
+	return opts
 }
 
 func assistantFromStreamResult(result agentllm.AssistantResult, capture reasoningCapture) msg.AssistantMessage {

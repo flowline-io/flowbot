@@ -17,6 +17,7 @@ func BridgeConfig(runCtx context.Context, reg *Registry, base msg.Config) msg.Co
 	base.TransformContext = ChainTransformContext(base.TransformContext, reg.transformContextFn(runCtx))
 	base.BeforeToolCall = ChainBeforeToolCall(base.BeforeToolCall, reg.beforeToolCallFn(runCtx))
 	base.AfterToolCall = ChainAfterToolCall(base.AfterToolCall, reg.afterToolCallFn(runCtx))
+	base.BeforeProviderRequest = ChainBeforeProviderRequest(base.BeforeProviderRequest, reg.beforeProviderRequestFn(runCtx))
 	return base
 }
 
@@ -28,6 +29,7 @@ func MergeHookFields(dst, src *msg.Config) {
 	dst.TransformContext = src.TransformContext
 	dst.BeforeToolCall = src.BeforeToolCall
 	dst.AfterToolCall = src.AfterToolCall
+	dst.BeforeProviderRequest = src.BeforeProviderRequest
 	dst.PrepareNextTurn = src.PrepareNextTurn
 }
 
@@ -88,5 +90,24 @@ func (r *Registry) afterToolCallFn(runCtx context.Context) msg.AfterToolCallFn {
 			IsError:   result.IsError,
 			Terminate: result.Terminate,
 		}, nil
+	}
+}
+
+func (r *Registry) beforeProviderRequestFn(runCtx context.Context) msg.BeforeProviderRequestFn {
+	return func(modelName string, opts msg.ProviderRequestOptions) (*msg.ProviderRequestOptions, error) {
+		if err := runCtx.Err(); err != nil {
+			return nil, err
+		}
+		result, err := r.EmitBeforeProviderRequest(runCtx, BeforeProviderRequestEvent{
+			ModelName: modelName,
+			Options:   opts,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if result == nil {
+			return nil, nil
+		}
+		return result.Options, nil
 	}
 }

@@ -4,26 +4,33 @@ import (
 	"context"
 	"sync"
 
+	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 )
 
 type (
-	beforeAgentStartHandler func(context.Context, BeforeAgentStartEvent) (*BeforeAgentStartResult, error)
-	contextHandler          func(context.Context, ContextEvent) (*ContextResult, error)
-	toolCallHandler         func(context.Context, ToolCallEvent) (*ToolCallResult, error)
-	toolResultHandler       func(context.Context, ToolResultEvent) (*ToolResultResult, error)
-	observationHandler      func(context.Context, ObservationEvent) error
+	beforeAgentStartHandler      func(context.Context, BeforeAgentStartEvent) (*BeforeAgentStartResult, error)
+	contextHandler               func(context.Context, ContextEvent) (*ContextResult, error)
+	beforeProviderRequestHandler func(context.Context, BeforeProviderRequestEvent) (*BeforeProviderRequestResult, error)
+	toolCallHandler              func(context.Context, ToolCallEvent) (*ToolCallResult, error)
+	toolResultHandler            func(context.Context, ToolResultEvent) (*ToolResultResult, error)
+	sessionBeforeCompactHandler  func(context.Context, SessionBeforeCompactEvent) (*SessionBeforeCompactResult, error)
+	sessionBeforeTreeHandler     func(context.Context, SessionBeforeTreeEvent) (*SessionBeforeTreeResult, error)
+	observationHandler           func(context.Context, ObservationEvent) error
 )
 
 // Registry stores typed hook handlers and observation listeners.
 type Registry struct {
 	mu sync.RWMutex
 
-	beforeAgentStart []beforeAgentStartHandler
-	context          []contextHandler
-	toolCall         []toolCallHandler
-	toolResult       []toolResultHandler
-	observe          []observationHandler
+	beforeAgentStart      []beforeAgentStartHandler
+	context               []contextHandler
+	beforeProviderRequest []beforeProviderRequestHandler
+	toolCall              []toolCallHandler
+	toolResult            []toolResultHandler
+	sessionBeforeCompact  []sessionBeforeCompactHandler
+	sessionBeforeTree     []sessionBeforeTreeHandler
+	observe               []observationHandler
 }
 
 // NewRegistry creates an empty hook registry.
@@ -40,8 +47,19 @@ func (r *Registry) HasLoopHandlers() bool {
 	defer r.mu.RUnlock()
 	return len(r.beforeAgentStart) > 0 ||
 		len(r.context) > 0 ||
+		len(r.beforeProviderRequest) > 0 ||
 		len(r.toolCall) > 0 ||
 		len(r.toolResult) > 0
+}
+
+// HasSessionHandlers reports whether any session compact/tree hook is registered.
+func (r *Registry) HasSessionHandlers() bool {
+	if r == nil {
+		return false
+	}
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return len(r.sessionBeforeCompact) > 0 || len(r.sessionBeforeTree) > 0
 }
 
 // HasHandlers reports whether any hook or observer is registered.
@@ -53,8 +71,11 @@ func (r *Registry) HasHandlers() bool {
 	defer r.mu.RUnlock()
 	return len(r.beforeAgentStart) > 0 ||
 		len(r.context) > 0 ||
+		len(r.beforeProviderRequest) > 0 ||
 		len(r.toolCall) > 0 ||
 		len(r.toolResult) > 0 ||
+		len(r.sessionBeforeCompact) > 0 ||
+		len(r.sessionBeforeTree) > 0 ||
 		len(r.observe) > 0
 }
 
@@ -88,6 +109,30 @@ func OnToolResult(reg *Registry, handler toolResultHandler) {
 		return
 	}
 	reg.registerToolResult(handler)
+}
+
+// OnBeforeProviderRequest registers a handler that patches LLM stream options.
+func OnBeforeProviderRequest(reg *Registry, handler beforeProviderRequestHandler) {
+	if reg == nil {
+		return
+	}
+	reg.registerBeforeProviderRequest(handler)
+}
+
+// OnSessionBeforeCompact registers a handler that can cancel or customize compaction.
+func OnSessionBeforeCompact(reg *Registry, handler sessionBeforeCompactHandler) {
+	if reg == nil {
+		return
+	}
+	reg.registerSessionBeforeCompact(handler)
+}
+
+// OnSessionBeforeTree registers a handler that can cancel or customize branch summary.
+func OnSessionBeforeTree(reg *Registry, handler sessionBeforeTreeHandler) {
+	if reg == nil {
+		return
+	}
+	reg.registerSessionBeforeTree(handler)
 }
 
 // Observe registers a read-only listener for harness observation events.
@@ -147,6 +192,33 @@ func (r *Registry) registerToolResult(handler toolResultHandler) {
 	r.toolResult = append(r.toolResult, handler)
 }
 
+func (r *Registry) registerBeforeProviderRequest(handler beforeProviderRequestHandler) {
+	if r == nil || handler == nil {
+		return
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.beforeProviderRequest = append(r.beforeProviderRequest, handler)
+}
+
+func (r *Registry) registerSessionBeforeCompact(handler sessionBeforeCompactHandler) {
+	if r == nil || handler == nil {
+		return
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.sessionBeforeCompact = append(r.sessionBeforeCompact, handler)
+}
+
+func (r *Registry) registerSessionBeforeTree(handler sessionBeforeTreeHandler) {
+	if r == nil || handler == nil {
+		return
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.sessionBeforeTree = append(r.sessionBeforeTree, handler)
+}
+
 func (r *Registry) registerObserve(handler observationHandler) {
 	if r == nil || handler == nil {
 		return
@@ -178,6 +250,24 @@ func (r *Registry) handlersToolResult() []toolResultHandler {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return append([]toolResultHandler(nil), r.toolResult...)
+}
+
+func (r *Registry) handlersBeforeProviderRequest() []beforeProviderRequestHandler {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return append([]beforeProviderRequestHandler(nil), r.beforeProviderRequest...)
+}
+
+func (r *Registry) handlersSessionBeforeCompact() []sessionBeforeCompactHandler {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return append([]sessionBeforeCompactHandler(nil), r.sessionBeforeCompact...)
+}
+
+func (r *Registry) handlersSessionBeforeTree() []sessionBeforeTreeHandler {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return append([]sessionBeforeTreeHandler(nil), r.sessionBeforeTree...)
 }
 
 func (r *Registry) handlersObserve() []observationHandler {
@@ -300,6 +390,110 @@ func (r *Registry) EmitToolResult(ctx context.Context, event ToolResultEvent) (*
 		return nil, nil
 	}
 	return &merged, nil
+}
+
+// EmitBeforeProviderRequest runs before_provider_request handlers and chains option patches.
+func (r *Registry) EmitBeforeProviderRequest(ctx context.Context, event BeforeProviderRequestEvent) (*BeforeProviderRequestResult, error) {
+	if r == nil {
+		return nil, nil
+	}
+	current := event.Options
+	changed := false
+	for _, handler := range r.handlersBeforeProviderRequest() {
+		result, err := handler(ctx, BeforeProviderRequestEvent{
+			ModelName: event.ModelName,
+			Options:   current,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if result != nil && result.Options != nil {
+			current = *result.Options
+			changed = true
+		}
+	}
+	if !changed {
+		return nil, nil
+	}
+	opts := current
+	return &BeforeProviderRequestResult{Options: &opts}, nil
+}
+
+// EmitSessionBeforeCompact runs session_before_compact handlers (first cancel, else last compaction).
+func (r *Registry) EmitSessionBeforeCompact(ctx context.Context, event SessionBeforeCompactEvent) (*SessionBeforeCompactResult, error) {
+	if r == nil {
+		return nil, nil
+	}
+	handlers := r.handlersSessionBeforeCompact()
+	cancel, last, err := reduceFirstCancelOrLast(len(handlers), func(i int) (bool, *ctxmgr.CompactionResult, error) {
+		result, err := handlers[i](ctx, event)
+		if err != nil || result == nil {
+			return false, nil, err
+		}
+		if result.Cancel {
+			return true, nil, nil
+		}
+		return false, result.Compaction, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if cancel {
+		return &SessionBeforeCompactResult{Cancel: true}, nil
+	}
+	if last == nil {
+		return nil, nil
+	}
+	compacted := *last
+	return &SessionBeforeCompactResult{Compaction: &compacted}, nil
+}
+
+// EmitSessionBeforeTree runs session_before_tree handlers (first cancel, else last summary).
+func (r *Registry) EmitSessionBeforeTree(ctx context.Context, event SessionBeforeTreeEvent) (*SessionBeforeTreeResult, error) {
+	if r == nil {
+		return nil, nil
+	}
+	handlers := r.handlersSessionBeforeTree()
+	cancel, last, err := reduceFirstCancelOrLast(len(handlers), func(i int) (bool, *string, error) {
+		result, err := handlers[i](ctx, event)
+		if err != nil || result == nil {
+			return false, nil, err
+		}
+		if result.Cancel {
+			return true, nil, nil
+		}
+		return false, result.Summary, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if cancel {
+		return &SessionBeforeTreeResult{Cancel: true}, nil
+	}
+	if last == nil {
+		return nil, nil
+	}
+	summary := *last
+	return &SessionBeforeTreeResult{Summary: &summary}, nil
+}
+
+// reduceFirstCancelOrLast walks handlers in order: first cancel wins, else last non-nil value.
+func reduceFirstCancelOrLast[T any](n int, each func(i int) (cancel bool, value *T, err error)) (bool, *T, error) {
+	var last *T
+	for i := 0; i < n; i++ {
+		cancel, value, err := each(i)
+		if err != nil {
+			return false, nil, err
+		}
+		if cancel {
+			return true, nil, nil
+		}
+		if value != nil {
+			copied := *value
+			last = &copied
+		}
+	}
+	return false, last, nil
 }
 
 // EmitObservation notifies observers and logs handler errors without failing the run.

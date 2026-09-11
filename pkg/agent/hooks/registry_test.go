@@ -192,6 +192,26 @@ func TestHasLoopHandlersIgnoresObservers(t *testing.T) {
 			wantTotal: true,
 		},
 		{
+			name: "provider request is a loop handler",
+			setup: func(reg *hooks.Registry) {
+				hooks.OnBeforeProviderRequest(reg, func(context.Context, hooks.BeforeProviderRequestEvent) (*hooks.BeforeProviderRequestResult, error) {
+					return nil, nil
+				})
+			},
+			wantLoop:  true,
+			wantTotal: true,
+		},
+		{
+			name: "session compact is not a loop handler",
+			setup: func(reg *hooks.Registry) {
+				hooks.OnSessionBeforeCompact(reg, func(context.Context, hooks.SessionBeforeCompactEvent) (*hooks.SessionBeforeCompactResult, error) {
+					return nil, nil
+				})
+			},
+			wantLoop:  false,
+			wantTotal: true,
+		},
+		{
 			name:      "empty registry",
 			setup:     func(_ *hooks.Registry) {},
 			wantLoop:  false,
@@ -206,6 +226,9 @@ func TestHasLoopHandlersIgnoresObservers(t *testing.T) {
 			tt.setup(reg)
 			assert.Equal(t, tt.wantLoop, reg.HasLoopHandlers())
 			assert.Equal(t, tt.wantTotal, reg.HasHandlers())
+			if tt.name == "session compact is not a loop handler" {
+				assert.True(t, reg.HasSessionHandlers())
+			}
 		})
 	}
 }

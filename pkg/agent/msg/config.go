@@ -14,17 +14,18 @@ type Config struct {
 	Temperature   float64
 	MaxTokens     int
 	// ThinkingLevel controls reasoning intensity for supported models (default/off/low/medium/high).
-	ThinkingLevel       string
-	TransformContext    TransformContextFn
-	ConvertToLLM        ConvertToLLMFn
-	PrepareNextTurn     PrepareNextTurnFn
-	ShouldStopAfterTurn ShouldStopAfterTurnFn
-	BeforeToolCall      BeforeToolCallFn
-	AfterToolCall       AfterToolCallFn
-	GetSteeringMessages GetMessagesFn
-	GetFollowUpMessages GetMessagesFn
-	SteeringMode        QueueMode
-	FollowUpMode        QueueMode
+	ThinkingLevel         string
+	TransformContext      TransformContextFn
+	ConvertToLLM          ConvertToLLMFn
+	PrepareNextTurn       PrepareNextTurnFn
+	ShouldStopAfterTurn   ShouldStopAfterTurnFn
+	BeforeToolCall        BeforeToolCallFn
+	AfterToolCall         AfterToolCallFn
+	BeforeProviderRequest BeforeProviderRequestFn
+	GetSteeringMessages   GetMessagesFn
+	GetFollowUpMessages   GetMessagesFn
+	SteeringMode          QueueMode
+	FollowUpMode          QueueMode
 	// LLMRetryMaxAttempts overrides default LLM retries when > 0.
 	LLMRetryMaxAttempts int
 	// LLMRetryInitialInterval overrides the first retry delay when > 0.

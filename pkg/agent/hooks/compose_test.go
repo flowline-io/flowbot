@@ -221,3 +221,24 @@ func TestMergeHookFields(t *testing.T) {
 		})
 	}
 }
+
+func TestChainBeforeProviderRequest(t *testing.T) {
+	t.Parallel()
+
+	inner := func(_ string, opts msg.ProviderRequestOptions) (*msg.ProviderRequestOptions, error) {
+		opts.ThinkingLevel = "low"
+		return &opts, nil
+	}
+	outer := func(_ string, opts msg.ProviderRequestOptions) (*msg.ProviderRequestOptions, error) {
+		assert.Equal(t, "low", opts.ThinkingLevel)
+		opts.MaxTokens = 64
+		return &opts, nil
+	}
+
+	chained := hooks.ChainBeforeProviderRequest(inner, outer)
+	got, err := chained("m", msg.ProviderRequestOptions{ThinkingLevel: "high", MaxTokens: 256})
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "low", got.ThinkingLevel)
+	assert.Equal(t, 64, got.MaxTokens)
+}

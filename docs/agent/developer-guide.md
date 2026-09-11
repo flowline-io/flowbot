@@ -303,12 +303,17 @@ h := harness.New(harness.Options{Hooks: reg, /* ... */})
 | -------- | -------------- | ----------- | ------ |
 | `OnBeforeAgentStart` | `EventBeforeAgentStart` | `BeforeAgentStartResult` | Replace prompts; `Cancel` → `hooks.ErrRunCancelled` |
 | `OnContext` | `EventContext` | `ContextResult` | Replace message list before LLM |
+| `OnBeforeProviderRequest` | `EventBeforeProviderRequest` | `BeforeProviderRequestResult` | Patch stream options (`Temperature` / `MaxTokens` / `ThinkingLevel` / retry) before `StreamAssistant` |
 | `OnToolCall` | `EventToolCall` | `ToolCallResult` | `Block` skips tool execution |
 | `OnToolResult` | `EventToolResult` | `ToolResultResult` | Patch `Parts` / `IsError`; `Terminate` ends run |
+| `OnSessionBeforeCompact` | `EventSessionBeforeCompact` | `SessionBeforeCompactResult` | `Cancel` or custom `CompactionResult` before summarization |
+| `OnSessionBeforeTree` | `EventSessionBeforeTree` | `SessionBeforeTreeResult` | `Cancel` or custom branch summary on `MoveTo` |
 | `Observe` | (various) | — | No loop impact |
 | `OnObservation` | filter by type | — | Convenience wrapper over `Observe` |
 
-Handlers receive the same `context.Context` passed to `Harness.Prompt` (respects cancellation during bridged loop hooks).
+Handlers receive the same `context.Context` passed to `Harness.Prompt` (respects cancellation during bridged loop hooks). Session compact/tree handlers must be registered before `harness.New` (`HasSessionHandlers()` gates injection into `ctxmgr.Manager`).
+
+`session_before_compact` / `session_before_tree` reduce with **first cancel wins**, otherwise **last non-nil custom result wins**. Compaction call sites set typed `CompactOpts.Reason` (`manual` / `threshold` / `overflow`) and `WillRetry` on overflow recovery. On `MoveTo`, `UserWantsSummary` is true when the caller left summary empty (auto-generate) and false when summary text was already supplied.
 
 ### Direct loop use (without harness)
 
@@ -319,7 +324,7 @@ routed := model.ApplyDefaultRouter(cfg)
 cfg = hooks.BridgeConfig(ctx, reg, routed)
 ```
 
-Or set `Config.TransformContext` / `BeforeToolCall` / `AfterToolCall` directly on `agent.Config` without a registry.
+Or set `Config.TransformContext` / `BeforeToolCall` / `AfterToolCall` / `BeforeProviderRequest` directly on `agent.Config` without a registry.
 
 ### Chat agent integration
 
@@ -419,8 +424,7 @@ Use `result.CodeOf(err)` or `errors.As` at HTTP/chat integration boundaries inst
 
 Not implemented in the core library (planned for upper layers):
 
-- Provider payload hooks (`before_provider_request`) — reserved in `hooks/events.go`, not yet implemented
-- Session compact/tree hooks (`session_before_compact`) — second phase; requires ctxmgr callback wiring
+- Provider payload / response hooks (`before_provider_payload`, `after_provider_response`) — langchaingo does not expose request-body or HTTP response callbacks; wiring would need an HTTP transport seam
 
 Already wired in product layers:
 
@@ -428,4 +432,6 @@ Already wired in product layers:
 - Pipeline `agent_run` steps (`capability: core`, `operation: agent_run`) with template-rendered `prompt` and ephemeral sessions
 - `chat_agent` YAML → `agent.Config` (models, retry, sensors, sandbox)
 - Compaction via `pkg/agent/ctxmgr` and `harness.Options.ContextManager`
+- Typed hooks including `before_provider_request`, `session_before_compact`, and `session_before_tree`
 - LLM retry, agent metrics/OTel, path sensors, progress artifact, opt-in sandbox
+

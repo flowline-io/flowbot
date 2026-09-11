@@ -14,4 +14,8 @@ type PrepareOptions struct {
 type CompactOpts struct {
 	// Force enables overflow-style re-compaction after a prior compaction leaf.
 	Force bool
+	// Reason classifies why compaction ran (manual, threshold, overflow).
+	Reason CompactReason
+	// WillRetry reports whether the aborted turn retries after compaction (overflow recovery).
+	WillRetry bool
 }

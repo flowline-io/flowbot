@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
@@ -244,4 +245,156 @@ func TestBridgeConfigToolHooks(t *testing.T) {
 			assert.True(t, reg.HasLoopHandlers())
 		})
 	}
+}
+
+func TestEmitBeforeProviderRequestChainsOptions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		setup     func(*hooks.Registry)
+		wantLevel string
+		wantTok   int
+		wantNil   bool
+	}{
+		{
+			name: "chains patches in order",
+			setup: func(reg *hooks.Registry) {
+				hooks.OnBeforeProviderRequest(reg, func(_ context.Context, ev hooks.BeforeProviderRequestEvent) (*hooks.BeforeProviderRequestResult, error) {
+					opts := ev.Options
+					opts.ThinkingLevel = "low"
+					return &hooks.BeforeProviderRequestResult{Options: &opts}, nil
+				})
+				hooks.OnBeforeProviderRequest(reg, func(_ context.Context, ev hooks.BeforeProviderRequestEvent) (*hooks.BeforeProviderRequestResult, error) {
+					assert.Equal(t, "low", ev.Options.ThinkingLevel)
+					opts := ev.Options
+					opts.MaxTokens = 128
+					return &hooks.BeforeProviderRequestResult{Options: &opts}, nil
+				})
+			},
+			wantLevel: "low",
+			wantTok:   128,
+		},
+		{
+			name:    "no handlers returns nil",
+			setup:   func(_ *hooks.Registry) {},
+			wantNil: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			reg := hooks.NewRegistry()
+			tt.setup(reg)
+			result, err := reg.EmitBeforeProviderRequest(context.Background(), hooks.BeforeProviderRequestEvent{
+				ModelName: "m",
+				Options:   msg.ProviderRequestOptions{ThinkingLevel: "high", MaxTokens: 256},
+			})
+			require.NoError(t, err)
+			if tt.wantNil {
+				assert.Nil(t, result)
+				return
+			}
+			require.NotNil(t, result)
+			require.NotNil(t, result.Options)
+			assert.Equal(t, tt.wantLevel, result.Options.ThinkingLevel)
+			assert.Equal(t, tt.wantTok, result.Options.MaxTokens)
+		})
+	}
+}
+
+func TestEmitSessionBeforeCompactCancelOrLast(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		setup       func(*hooks.Registry)
+		wantCancel  bool
+		wantSummary string
+		wantNil     bool
+	}{
+		{
+			name: "first cancel wins",
+			setup: func(reg *hooks.Registry) {
+				hooks.OnSessionBeforeCompact(reg, func(context.Context, hooks.SessionBeforeCompactEvent) (*hooks.SessionBeforeCompactResult, error) {
+					return &hooks.SessionBeforeCompactResult{Cancel: true}, nil
+				})
+				hooks.OnSessionBeforeCompact(reg, func(context.Context, hooks.SessionBeforeCompactEvent) (*hooks.SessionBeforeCompactResult, error) {
+					return &hooks.SessionBeforeCompactResult{Compaction: &ctxmgr.CompactionResult{Summary: "later"}}, nil
+				})
+			},
+			wantCancel: true,
+		},
+		{
+			name: "last compaction wins",
+			setup: func(reg *hooks.Registry) {
+				hooks.OnSessionBeforeCompact(reg, func(context.Context, hooks.SessionBeforeCompactEvent) (*hooks.SessionBeforeCompactResult, error) {
+					return &hooks.SessionBeforeCompactResult{Compaction: &ctxmgr.CompactionResult{Summary: "first"}}, nil
+				})
+				hooks.OnSessionBeforeCompact(reg, func(context.Context, hooks.SessionBeforeCompactEvent) (*hooks.SessionBeforeCompactResult, error) {
+					return &hooks.SessionBeforeCompactResult{Compaction: &ctxmgr.CompactionResult{Summary: "second"}}, nil
+				})
+			},
+			wantSummary: "second",
+		},
+		{
+			name:    "empty registry",
+			setup:   func(_ *hooks.Registry) {},
+			wantNil: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			reg := hooks.NewRegistry()
+			tt.setup(reg)
+			result, err := reg.EmitSessionBeforeCompact(context.Background(), hooks.SessionBeforeCompactEvent{
+				Reason: ctxmgr.CompactReasonManual,
+			})
+			require.NoError(t, err)
+			if tt.wantNil {
+				assert.Nil(t, result)
+				return
+			}
+			require.NotNil(t, result)
+			assert.Equal(t, tt.wantCancel, result.Cancel)
+			if tt.wantSummary != "" {
+				require.NotNil(t, result.Compaction)
+				assert.Equal(t, tt.wantSummary, result.Compaction.Summary)
+			}
+		})
+	}
+}
+
+func TestEmitSessionBeforeTreeCancelOrLast(t *testing.T) {
+	t.Parallel()
+
+	first := "first"
+	second := "second"
+	reg := hooks.NewRegistry()
+	hooks.OnSessionBeforeTree(reg, func(context.Context, hooks.SessionBeforeTreeEvent) (*hooks.SessionBeforeTreeResult, error) {
+		return &hooks.SessionBeforeTreeResult{Summary: &first}, nil
+	})
+	hooks.OnSessionBeforeTree(reg, func(context.Context, hooks.SessionBeforeTreeEvent) (*hooks.SessionBeforeTreeResult, error) {
+		return &hooks.SessionBeforeTreeResult{Summary: &second}, nil
+	})
+	result, err := reg.EmitSessionBeforeTree(context.Background(), hooks.SessionBeforeTreeEvent{TargetEntryID: "t"})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.NotNil(t, result.Summary)
+	assert.Equal(t, "second", *result.Summary)
+
+	cancelReg := hooks.NewRegistry()
+	hooks.OnSessionBeforeTree(cancelReg, func(context.Context, hooks.SessionBeforeTreeEvent) (*hooks.SessionBeforeTreeResult, error) {
+		return &hooks.SessionBeforeTreeResult{Cancel: true}, nil
+	})
+	hooks.OnSessionBeforeTree(cancelReg, func(context.Context, hooks.SessionBeforeTreeEvent) (*hooks.SessionBeforeTreeResult, error) {
+		return &hooks.SessionBeforeTreeResult{Summary: &second}, nil
+	})
+	cancelled, err := cancelReg.EmitSessionBeforeTree(context.Background(), hooks.SessionBeforeTreeEvent{})
+	require.NoError(t, err)
+	require.NotNil(t, cancelled)
+	assert.True(t, cancelled.Cancel)
 }

@@ -2,9 +2,10 @@ package ctxmgr
 
 import (
 	"context"
-	"fmt"
-
 	"errors"
+	"fmt"
+	"strings"
+
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -34,6 +35,8 @@ type Options struct {
 	SystemPrompt  string
 	Tools         []llms.Tool
 	ThinkingLevel string
+	BeforeCompact BeforeCompactFn
+	BeforeTree    BeforeTreeFn
 }
 
 // Manager orchestrates compaction, branch summarization, and context budget checks.
@@ -45,6 +48,8 @@ type Manager struct {
 	systemPrompt  string
 	tools         []llms.Tool
 	thinkingLevel string
+	beforeCompact BeforeCompactFn
+	beforeTree    BeforeTreeFn
 }
 
 // New creates a context manager for harness integration.
@@ -57,7 +62,25 @@ func New(opts Options) *Manager {
 		systemPrompt:  opts.SystemPrompt,
 		tools:         append([]llms.Tool(nil), opts.Tools...),
 		thinkingLevel: opts.ThinkingLevel,
+		beforeCompact: opts.BeforeCompact,
+		beforeTree:    opts.BeforeTree,
 	}
+}
+
+// SetBeforeCompact replaces the optional compaction hook callback.
+func (m *Manager) SetBeforeCompact(fn BeforeCompactFn) {
+	if m == nil {
+		return
+	}
+	m.beforeCompact = fn
+}
+
+// SetBeforeTree replaces the optional tree-navigation hook callback.
+func (m *Manager) SetBeforeTree(fn BeforeTreeFn) {
+	if m == nil {
+		return
+	}
+	m.beforeTree = fn
 }
 
 // Settings returns the active compaction settings.
@@ -112,7 +135,7 @@ func (m *Manager) EnsureWithinBudget(ctx context.Context, sess *session.Session,
 	if !ShouldCompact(usage.Tokens, m.contextWindow, m.settings) {
 		return nil
 	}
-	_, err = m.compactPath(ctx, sess, ag, path, CompactOpts{Force: false}, usage.Tokens)
+	_, err = m.compactPath(ctx, sess, ag, path, CompactOpts{Force: false, Reason: CompactReasonThreshold}, usage.Tokens)
 	return err
 }
 
@@ -140,16 +163,13 @@ func (m *Manager) MoveTo(ctx context.Context, sess *session.Session, targetEntry
 	if sess == nil {
 		return errors.New("ctxmgr: nil session")
 	}
-	if summary != "" {
-		return sess.MoveTo(ctx, targetEntryID, summary)
-	}
 
 	oldLeaf, err := sess.GetBranch(ctx, "")
 	if err != nil {
 		return fmt.Errorf("ctxmgr: load current branch: %w", err)
 	}
 	if len(oldLeaf) == 0 {
-		return sess.MoveTo(ctx, targetEntryID, "")
+		return sess.MoveTo(ctx, targetEntryID, summary)
 	}
 	oldLeafID := oldLeaf[len(oldLeaf)-1].ID
 	if oldLeafID == targetEntryID {
@@ -165,7 +185,38 @@ func (m *Manager) MoveTo(ctx context.Context, sess *session.Session, targetEntry
 		_, adaptErr := result.GetOrError(collected)
 		return adaptErr
 	}
-	abandoned := collected.Value().Entries
+	return m.moveToWithSummary(ctx, sess, targetEntryID, oldLeafID, collected.Value(), summary)
+}
+
+func (m *Manager) moveToWithSummary(
+	ctx context.Context,
+	sess *session.Session,
+	targetEntryID, oldLeafID string,
+	collected branchEntriesResult,
+	callerSummary string,
+) error {
+	abandoned := collected.Entries
+	userWantsSummary := strings.TrimSpace(callerSummary) == ""
+	hookOutcome, err := m.emitBeforeTree(ctx, BeforeTreeEvent{
+		TargetEntryID:      targetEntryID,
+		OldLeafID:          oldLeafID,
+		CommonAncestorID:   collected.CommonAncestor,
+		EntriesToSummarize: abandoned,
+		UserWantsSummary:   userWantsSummary,
+	})
+	if err != nil {
+		return err
+	}
+	if hookOutcome != nil && hookOutcome.Cancel {
+		return ErrTreeNavigationCancelled
+	}
+	if hookOutcome != nil && strings.TrimSpace(hookOutcome.Summary) != "" {
+		return sess.MoveTo(ctx, targetEntryID, strings.TrimSpace(hookOutcome.Summary))
+	}
+	if !userWantsSummary {
+		return sess.MoveTo(ctx, targetEntryID, strings.TrimSpace(callerSummary))
+	}
+
 	messages, fileOps, _ := PrepareBranchSummary(abandoned, m.contextWindow, m.settings)
 	if len(messages) == 0 {
 		return sess.MoveTo(ctx, targetEntryID, "")
@@ -258,28 +309,19 @@ func (m *Manager) summarizeAndPersist(
 	}
 	preparation := preparationResult.Value()
 	if preparation == nil {
-		if report.Pruned {
-			return report, m.reloadKeepingExtras(ctx, sess, ag, extra)
-		}
-		if ShouldCompact(contextTokens, m.contextWindow, m.settings) || opts.Force {
-			return report, ErrCompactionRequired
-		}
-		return report, nil
+		return m.finishWithoutPreparation(ctx, sess, ag, extra, opts, contextTokens, report)
 	}
 	preparation.SystemPrompt = m.systemPrompt
 	preparation.Tools = m.tools
 	preparation.ThinkingLevel = m.thinkingLevel
-	compactResult := RunCompaction(ctx, m.model, m.modelName, preparation)
-	if !compactResult.IsOk() {
-		_, adaptErr := result.GetOrError(compactResult)
-		if report.Pruned {
-			if reloadErr := m.reloadKeepingExtras(ctx, sess, ag, extra); reloadErr != nil {
-				return report, reloadErr
-			}
+
+	compacted, err := m.resolveCompaction(ctx, preparation, path, opts)
+	if err != nil {
+		if errors.Is(err, ErrCompactionCancelled) {
+			return report, m.afterCompactCancelled(ctx, sess, ag, extra, report)
 		}
-		return report, adaptErr
+		return report, m.afterCompactFailure(ctx, sess, ag, extra, report, err)
 	}
-	compacted := compactResult.Value()
 	if err := sess.AppendCompaction(ctx, session.CompactionResult{
 		EntryID:          NewCompactionEntryID(),
 		Summary:          compacted.Summary,
@@ -295,6 +337,84 @@ func (m *Manager) summarizeAndPersist(
 		return report, m.ReloadAgentState(ctx, sess, ag)
 	}
 	return report, nil
+}
+
+func (m *Manager) finishWithoutPreparation(
+	ctx context.Context,
+	sess *session.Session,
+	ag StatefulAgent,
+	extra []msg.AgentMessage,
+	opts CompactOpts,
+	contextTokens int,
+	report CompactReport,
+) (CompactReport, error) {
+	if report.Pruned {
+		return report, m.reloadKeepingExtras(ctx, sess, ag, extra)
+	}
+	if ShouldCompact(contextTokens, m.contextWindow, m.settings) || opts.Force {
+		return report, ErrCompactionRequired
+	}
+	return report, nil
+}
+
+func (m *Manager) resolveCompaction(
+	ctx context.Context,
+	preparation *CompactionPreparation,
+	path []session.TreeEntry,
+	opts CompactOpts,
+) (*CompactionResult, error) {
+	hookOutcome, err := m.emitBeforeCompact(ctx, BeforeCompactEvent{
+		Preparation:   preparation,
+		BranchEntries: path,
+		Reason:        compactReason(opts),
+		WillRetry:     opts.WillRetry,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if hookOutcome != nil && hookOutcome.Cancel {
+		return nil, ErrCompactionCancelled
+	}
+	if hookOutcome != nil && hookOutcome.Compaction != nil {
+		return hookOutcome.Compaction, nil
+	}
+	compactResult := RunCompaction(ctx, m.model, m.modelName, preparation)
+	if !compactResult.IsOk() {
+		_, adaptErr := result.GetOrError(compactResult)
+		return nil, adaptErr
+	}
+	return compactResult.Value(), nil
+}
+
+func (m *Manager) afterCompactCancelled(
+	ctx context.Context,
+	sess *session.Session,
+	ag StatefulAgent,
+	extra []msg.AgentMessage,
+	report CompactReport,
+) error {
+	if report.Pruned {
+		if reloadErr := m.reloadKeepingExtras(ctx, sess, ag, extra); reloadErr != nil {
+			return reloadErr
+		}
+	}
+	return ErrCompactionCancelled
+}
+
+func (m *Manager) afterCompactFailure(
+	ctx context.Context,
+	sess *session.Session,
+	ag StatefulAgent,
+	extra []msg.AgentMessage,
+	report CompactReport,
+	err error,
+) error {
+	if report.Pruned {
+		if reloadErr := m.reloadKeepingExtras(ctx, sess, ag, extra); reloadErr != nil {
+			return reloadErr
+		}
+	}
+	return err
 }
 
 func (m *Manager) reloadKeepingExtras(
@@ -343,4 +463,28 @@ func (m *Manager) ReloadAgentState(ctx context.Context, sess *session.Session, a
 		state.ModelName = agentCtx.ModelName
 	})
 	return nil
+}
+
+func (m *Manager) emitBeforeCompact(ctx context.Context, event BeforeCompactEvent) (*BeforeCompactOutcome, error) {
+	if m == nil || m.beforeCompact == nil {
+		return nil, nil
+	}
+	return m.beforeCompact(ctx, event)
+}
+
+func (m *Manager) emitBeforeTree(ctx context.Context, event BeforeTreeEvent) (*BeforeTreeOutcome, error) {
+	if m == nil || m.beforeTree == nil {
+		return nil, nil
+	}
+	return m.beforeTree(ctx, event)
+}
+
+func compactReason(opts CompactOpts) CompactReason {
+	if opts.Reason != "" {
+		return opts.Reason
+	}
+	if opts.Force {
+		return CompactReasonOverflow
+	}
+	return CompactReasonThreshold
 }

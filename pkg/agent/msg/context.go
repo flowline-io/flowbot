@@ -1,6 +1,10 @@
 package msg
 
-import "github.com/tmc/langchaingo/llms"
+import (
+	"time"
+
+	"github.com/tmc/langchaingo/llms"
+)
 
 // Context holds the mutable state passed through the agent loop.
 type Context struct {
@@ -88,6 +92,21 @@ type BeforeToolCallFn func(ctx BeforeToolContext) (*BeforeToolResult, error)
 
 // AfterToolCallFn runs after a tool executes and may patch its result.
 type AfterToolCallFn func(ctx AfterToolContext) (*AfterToolResult, error)
+
+// ProviderRequestOptions are the patchable fields of an LLM stream request.
+type ProviderRequestOptions struct {
+	Temperature             float64
+	MaxTokens               int
+	ThinkingLevel           string
+	LLMRetryMaxAttempts     int
+	LLMRetryInitialInterval time.Duration
+	LLMRetryMaxInterval     time.Duration
+	LLMRetryMultiplier      float64
+}
+
+// BeforeProviderRequestFn runs after stream options are built and may patch them.
+// A nil returned options pointer means leave the request unchanged.
+type BeforeProviderRequestFn func(modelName string, opts ProviderRequestOptions) (*ProviderRequestOptions, error)
 
 // GetMessagesFn drains steering or follow-up queues at loop checkpoints.
 type GetMessagesFn func() ([]AgentMessage, error)

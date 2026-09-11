@@ -100,6 +100,40 @@ func ChainPrepareNextTurn(inner, outer msg.PrepareNextTurnFn) msg.PrepareNextTur
 	}
 }
 
+// ChainBeforeProviderRequest runs inner before outer so base patches apply before hook patches.
+func ChainBeforeProviderRequest(inner, outer msg.BeforeProviderRequestFn) msg.BeforeProviderRequestFn {
+	if outer == nil {
+		return inner
+	}
+	if inner == nil {
+		return outer
+	}
+	return func(modelName string, opts msg.ProviderRequestOptions) (*msg.ProviderRequestOptions, error) {
+		current := opts
+		if inner != nil {
+			patched, err := inner(modelName, current)
+			if err != nil {
+				return nil, err
+			}
+			if patched != nil {
+				current = *patched
+			}
+		}
+		outerPatched, err := outer(modelName, current)
+		if err != nil {
+			return nil, err
+		}
+		if outerPatched != nil {
+			return outerPatched, nil
+		}
+		if current != opts {
+			out := current
+			return &out, nil
+		}
+		return nil, nil
+	}
+}
+
 func applyAfterToolPatch(result msg.ToolResultMessage, patch *msg.AfterToolResult) msg.ToolResultMessage {
 	if patch == nil {
 		return result

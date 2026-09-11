@@ -29,6 +29,7 @@ type FakeModel struct {
 	calls        int
 	lastMessages []llms.MessageContent
 	lastTools    []llms.Tool
+	lastOpts     llms.CallOptions
 	lastCtx      context.Context
 }
 
@@ -77,6 +78,13 @@ func (f *FakeModel) LastContext() context.Context {
 	return f.lastCtx
 }
 
+// LastCallOptions returns the call options from the most recent GenerateContent call.
+func (f *FakeModel) LastCallOptions() llms.CallOptions {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.lastOpts
+}
+
 // GenerateContent returns the next scripted response.
 func (f *FakeModel) GenerateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (*llms.ContentResponse, error) {
 	if ctx.Err() != nil {
@@ -92,6 +100,7 @@ func (f *FakeModel) GenerateContent(ctx context.Context, messages []llms.Message
 	defer f.mu.Unlock()
 	f.calls++
 	f.lastCtx = ctx
+	f.lastOpts = opts
 	f.lastMessages = append([]llms.MessageContent(nil), messages...)
 	f.lastTools = append([]llms.Tool(nil), opts.Tools...)
 

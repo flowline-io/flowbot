@@ -170,9 +170,12 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 	}
 	before := h.ContextManager().GetContextUsage(branch).Tokens
 
-	report, err := h.ContextManager().CompactAndReload(ctx, h.Session(), h.Agent(), ctxmgr.CompactOpts{Force: true})
+	report, err := h.ContextManager().CompactAndReload(ctx, h.Session(), h.Agent(), ctxmgr.CompactOpts{
+		Force:  true,
+		Reason: ctxmgr.CompactReasonManual,
+	})
 	if err != nil {
-		if agentresult.IsCode(err, "nothing_to_compact") {
+		if agentresult.IsCode(err, "nothing_to_compact") || errors.Is(err, ctxmgr.ErrCompactionCancelled) {
 			return &ManualCompactionResult{Compacted: false, TokensBefore: before, TokensAfter: before}, nil
 		}
 		return nil, err

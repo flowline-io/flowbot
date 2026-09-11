@@ -134,3 +134,27 @@ func TestRunLoop_StreamingCancelled(t *testing.T) {
 		})
 	}
 }
+
+func TestRunLoop_BeforeProviderRequestPatchesStreamOptions(t *testing.T) {
+	t.Parallel()
+
+	model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
+	stream := agentevent.NewStream(8)
+	cfg := loop.DefaultConfig()
+	cfg.ModelName = "fake"
+	cfg.MaxTokens = 256
+	cfg.ThinkingLevel = "high"
+	cfg.BeforeProviderRequest = func(_ string, opts msg.ProviderRequestOptions) (*msg.ProviderRequestOptions, error) {
+		opts.MaxTokens = 64
+		opts.ThinkingLevel = "low"
+		return &opts, nil
+	}
+
+	_, err := loop.RunLoop(context.Background(), []msg.AgentMessage{
+		loop.NewUserMessage("hi"),
+	}, &msg.Context{}, cfg, loop.LoopDeps{Model: model}, stream)
+	require.NoError(t, err)
+	require.Equal(t, 1, model.Calls())
+	assert.Equal(t, 64, model.LastCallOptions().MaxTokens)
+	assert.Equal(t, "low", agentllm.ThinkingLevelFromContext(model.LastContext()))
+}

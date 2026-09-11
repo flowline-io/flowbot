@@ -61,6 +61,10 @@ type (
 	BeforeToolCallFn = msg.BeforeToolCallFn
 	// AfterToolCallFn runs after each tool execution.
 	AfterToolCallFn = msg.AfterToolCallFn
+	// ProviderRequestOptions are patchable LLM stream option fields.
+	ProviderRequestOptions = msg.ProviderRequestOptions
+	// BeforeProviderRequestFn patches stream options before the LLM call.
+	BeforeProviderRequestFn = msg.BeforeProviderRequestFn
 	// GetMessagesFn drains steering or follow-up queues.
 	GetMessagesFn = msg.GetMessagesFn
 	// StopReason is the model stop reason for an assistant turn.

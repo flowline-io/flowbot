@@ -1,18 +1,25 @@
 package hooks
 
-import "github.com/flowline-io/flowbot/pkg/agent/msg"
+import (
+	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/session"
+)
 
 // Event name constants for harness and observation hooks.
 const (
-	EventBeforeAgentStart = "before_agent_start"
-	EventContext          = "context"
-	EventToolCall         = "tool_call"
-	EventToolResult       = "tool_result"
-	EventSavePoint        = "save_point"
-	EventContextUsage     = "context_usage"
-	EventContextCompacted = "context_compacted"
-	EventModelUpdate      = "model_update"
-	EventToolsUpdate      = "tools_update"
+	EventBeforeAgentStart      = "before_agent_start"
+	EventContext               = "context"
+	EventBeforeProviderRequest = "before_provider_request"
+	EventToolCall              = "tool_call"
+	EventToolResult            = "tool_result"
+	EventSessionBeforeCompact  = "session_before_compact"
+	EventSessionBeforeTree     = "session_before_tree"
+	EventSavePoint             = "save_point"
+	EventContextUsage          = "context_usage"
+	EventContextCompacted      = "context_compacted"
+	EventModelUpdate           = "model_update"
+	EventToolsUpdate           = "tools_update"
 )
 
 // BeforeAgentStartEvent fires before an agent run begins.
@@ -69,6 +76,46 @@ type ToolResultResult struct {
 	Parts     []msg.ContentPart
 	IsError   *bool
 	Terminate bool
+}
+
+// BeforeProviderRequestEvent fires after stream options are built and before the LLM call.
+type BeforeProviderRequestEvent struct {
+	ModelName string
+	Options   msg.ProviderRequestOptions
+}
+
+// BeforeProviderRequestResult replaces stream options when Options is non-nil.
+type BeforeProviderRequestResult struct {
+	Options *msg.ProviderRequestOptions
+}
+
+// SessionBeforeCompactEvent fires after compaction preparation and before summarization.
+type SessionBeforeCompactEvent struct {
+	Preparation   *ctxmgr.CompactionPreparation
+	BranchEntries []session.TreeEntry
+	Reason        ctxmgr.CompactReason
+	WillRetry     bool
+}
+
+// SessionBeforeCompactResult can cancel compaction or supply a custom summary.
+type SessionBeforeCompactResult struct {
+	Cancel     bool
+	Compaction *ctxmgr.CompactionResult
+}
+
+// SessionBeforeTreeEvent fires before auto branch summarization on MoveTo.
+type SessionBeforeTreeEvent struct {
+	TargetEntryID      string
+	OldLeafID          string
+	CommonAncestorID   string
+	EntriesToSummarize []session.TreeEntry
+	UserWantsSummary   bool
+}
+
+// SessionBeforeTreeResult can cancel navigation summarization or supply a custom summary.
+type SessionBeforeTreeResult struct {
+	Cancel  bool
+	Summary *string
 }
 
 // ContextUsageInfo reports estimated context consumption for observation hooks.

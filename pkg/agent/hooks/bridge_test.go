@@ -124,3 +124,27 @@ func TestBridgeConfigSkipsObserveOnlyRegistry(t *testing.T) {
 		})
 	}
 }
+
+func TestBridgeConfigBeforeProviderRequest(t *testing.T) {
+	t.Parallel()
+
+	reg := hooks.NewRegistry()
+	hooks.OnBeforeProviderRequest(reg, func(_ context.Context, ev hooks.BeforeProviderRequestEvent) (*hooks.BeforeProviderRequestResult, error) {
+		opts := ev.Options
+		opts.MaxTokens = 42
+		opts.ThinkingLevel = "medium"
+		return &hooks.BeforeProviderRequestResult{Options: &opts}, nil
+	})
+	bridged := hooks.BridgeConfig(context.Background(), reg, msg.Config{MaxTokens: 100, ThinkingLevel: "high"})
+	require.NotNil(t, bridged.BeforeProviderRequest)
+	assert.True(t, reg.HasLoopHandlers())
+
+	patched, err := bridged.BeforeProviderRequest("model", msg.ProviderRequestOptions{
+		MaxTokens:     100,
+		ThinkingLevel: "high",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, patched)
+	assert.Equal(t, 42, patched.MaxTokens)
+	assert.Equal(t, "medium", patched.ThinkingLevel)
+}
