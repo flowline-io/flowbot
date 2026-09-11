@@ -64,7 +64,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 		adapter = &relationsWebAdapter{
 			ent:    EntClient,
 			uid:    "bdd-relations-uid-" + types.Id(),
-			scopes: bddWebScopesUser(),
+			scopes: bddWebScopesAdmin(),
 		}
 		store.Database = adapter
 

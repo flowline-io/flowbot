@@ -19,8 +19,7 @@ import (
 )
 
 // bddWebAuthParams builds Parameter.Params for BDD web auth tokens.
-// Scopes must satisfy route.RequireServiceScope for /service/web (pipeline:read/run
-// or admin:*).
+// /service/web Authorize requires admin:* and kind=full (see pkg/auth.MinimumServiceScope).
 func bddWebAuthParams(uid string, scopes []string) map[string]any {
 	return map[string]any{
 		"uid":    uid,
@@ -35,8 +34,8 @@ func bddWebScopesAdmin() []string {
 	return []string{auth.ScopeAdmin}
 }
 
-// bddWebScopesUser passes /service/web Authorize (GET and POST) but not admin:*.
-// pipeline:run also satisfies pipeline:read for read routes.
+// bddWebScopesUser is a limited API-token scope set (pipeline:run only).
+// It must be rejected by /service/web Authorize; use it only for negative auth cases.
 func bddWebScopesUser() []string {
 	return []string{auth.ScopePipelineRun}
 }

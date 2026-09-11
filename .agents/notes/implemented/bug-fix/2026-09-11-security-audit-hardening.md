@@ -36,4 +36,5 @@ Ship a coordinated hardening pass:
 ## Verification
 
 - Package tests cover auth scopes, redirects, urlguard, hermetic templates, webhook auth, OAuth seal/open, and login rate-limit fail-closed.
+- BDD web page fixtures seed `admin:*` + `kind=full` for authenticated `/service/web` requests; `bddWebScopesUser` (`pipeline:run`) is only for Authorize denial cases (e.g. events page non-admin).
 - `go tool task lint` passes on the hardening change set.

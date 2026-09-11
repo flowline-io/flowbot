@@ -82,12 +82,12 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 		notifyAdapter = &notifyWebAdapter{
 			ent:    EntClient,
 			uid:    testUID,
-			scopes: bddWebScopesUser(),
+			scopes: bddWebScopesAdmin(),
 		}
 		otherUserAdapter = &notifyWebAdapter{
 			ent:    EntClient,
 			uid:    otherUID,
-			scopes: bddWebScopesUser(),
+			scopes: bddWebScopesAdmin(),
 		}
 		store.Database = notifyAdapter
 

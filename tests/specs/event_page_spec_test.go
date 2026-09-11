@@ -147,7 +147,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 		})
 
 		Context("with non-admin scope", func() {
-			It("returns 403 forbidden", func() {
+			It("rejects at Authorize before the handler", func() {
 				store.Database = userAdapter
 
 				req := MakeRequest(http.MethodGet, "/service/web/events", nil)
@@ -157,8 +157,9 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
 
-				Expect(resp.StatusCode).To(Equal(http.StatusForbidden))
-				Expect(string(ReadBody(resp))).To(Equal("Admin access required"))
+				// /service/web requires admin:*; pipeline-scoped tokens never reach requireAdmin.
+				Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+				Expect(string(ReadBody(resp))).To(ContainSubstring(`"retcode":"60007"`))
 			})
 		})
 

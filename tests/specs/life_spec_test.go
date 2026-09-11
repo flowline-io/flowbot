@@ -61,7 +61,7 @@ var _ = Describe("Life Pages", Label("module", "web", "life"), func() {
 		lifeAdapter = &lifeWebAdapter{
 			ent:    EntClient,
 			uid:    testUID,
-			scopes: bddWebScopesUser(),
+			scopes: bddWebScopesAdmin(),
 		}
 		store.Database = lifeAdapter
 
