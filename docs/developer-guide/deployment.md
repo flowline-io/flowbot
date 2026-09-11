@@ -74,14 +74,18 @@ sudo journalctl -u flowbot -f
 
 GitHub Actions workflows (`.github/workflows/`):
 
-| Workflow        | Description        |
-| --------------- | ------------------ |
-| `build.yml`     | Lint + Build       |
-| `testing.yml`   | Run all tests      |
-| `build_cli.yml` | Build CLI tools    |
-| `docker.yml`    | Build Docker image |
+| Workflow                   | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `build.yml`                | Lint + Build                             |
+| `testing.yml`              | Run all tests                            |
+| `build_cli.yml`            | Build CLI tools                          |
+| `build_agent.yml`          | Build headless agent binary              |
+| `build_gateway.yml`        | Build gateway worker binary              |
+| `docker.yml`               | Build Docker image                       |
 | `docker-agent-sandbox.yml` | Build agent sandbox image (`sandbox-v*` tags) |
-| `release.yml`   | Release pipeline   |
+| `agent-eval.yml`           | Agent evaluation (regression)            |
+| `release.yml`              | Release pipeline                         |
+| `pages.yml`                | Publish website to GitHub Pages          |
 
 ## Health Checks
 

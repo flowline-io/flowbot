@@ -24,16 +24,12 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 
 ### Bot System
 
-- `bots` — Bot definitions
-- `agents` — Desktop agent records
-- `agent_skills` — Agent skill registrations
+- `bots` — Module / bot registration state
 
 ### Messaging
 
 - `messages` — Message records
 - `channels` — Channel management
-- `chat_sessions` — Agent chat session state
-- `chat_session_entries` — Agent chat session messages/turns
 
 ### Hub and Homelab
 
@@ -43,14 +39,24 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 
 - `pipeline_definitions` — Pipeline definition records
 - `pipeline_definition_versions` — Versioned pipeline definition history
+- `pipeline_name` — Published pipeline name index
 - `pipeline_runs` — Pipeline execution runs
 - `pipeline_step_runs` — Pipeline step execution records
 - `event_consumptions` — Pipeline idempotency guard
 
 ### Workflow System
 
+- `workflows` — Workflow definitions
+- `workflow_tasks` — Workflow task nodes
+- `workflow_triggers` — Workflow triggers
 - `workflow_runs` — Workflow execution runs
 - `workflow_step_runs` — Workflow step execution records
+
+### Named Functions (FaaS)
+
+- `function_definitions` — Function definition records
+- `function_definition_versions` — Published function versions
+- `function_runs` — Function invoke / try runs
 
 ### Events
 
@@ -62,7 +68,35 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 
 - `notify_channels` — Per-user notification channel configuration
 - `notify_rules` — Notification gateway rules
+- `notify_templates` — Notification templates
 - `notification_records` — Notification delivery history
+
+### Web Auth
+
+- `web_accounts` — Web console accounts (password / TOTP)
+
+### Agent / Chat Agent
+
+- `agents` — Desktop agent records
+- `agent_skills` / `agent_skill_files` — Agent skill registrations and files
+- `agent_knowledge` — Knowledge documents
+- `agent_memory_facts` — Memory facts
+- `agent_plans` — Agent plans
+- `agent_session_summaries` — Session summaries
+- `agent_subagents` / `agent_subagent_tasks` — Subagent definitions and tasks
+- `agent_todos` — Agent todo items
+- `chat_sessions` / `chat_session_entries` — Chat session state and turns
+- `chat_scheduled_tasks` / `chat_scheduled_task_runs` — Scheduled chat tasks
+- `llm_usage_records` — LLM token usage
+
+### Gateway
+
+- `gateway_jobs` — Local CLI gateway jobs
+- `gateway_workers` — Gateway worker registrations
+
+### Clips
+
+- `clips` — Clip resources (public/private visibility)
 
 ### Life (solo RPG productivity)
 
@@ -79,6 +113,12 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 - `life_action_logs` — Completion / dice / drop audit
 - `life_rewards` — Player-defined real-life rewards (gold sink)
 - `life_reward_redemptions` — Reward redeem audit (name/price snapshots)
+- `life_achievements` / `life_achievement_progress` / `life_achievement_unlocks` — Achievement catalog and progress
+- `life_habit_checkins` — Habit check-ins
+- `life_action_specs` / `life_action_occurrences` / `life_action_dependencies` — Action graph
+- `life_adjudications` — Adjudication records
+- `life_evidence` — Evidence attachments
+- `life_plan_nodes` — Plan tree nodes
 
 ### Resources
 

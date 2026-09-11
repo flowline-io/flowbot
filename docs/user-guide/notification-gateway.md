@@ -2,7 +2,7 @@
 
 Unified notification gateway with template-based message rendering, platform-specific overrides, Redis-backed rate limiting, time-window aggregation, and mute/DND rules to prevent notification fatigue.
 
-Source: `pkg/notify/`, `pkg/notify/template/`, `pkg/notify/rules/`, `pkg/ability/notify/`
+Source: `pkg/notify/`, `pkg/notify/template/`, `pkg/notify/rules/`, CapCore `notify_send` in `pkg/capability/core`
 
 ## Overview
 

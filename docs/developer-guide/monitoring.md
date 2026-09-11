@@ -211,7 +211,7 @@ The dashboard is organized into 5 rows.
 | ------------------- | --------------------------------------- | ---------- |
 | HTTP Request Traces | `serviceName=flowbot spanName=HTTP`     | Table      |
 | Pipeline Execution  | `serviceName=flowbot spanName=pipeline` | Table      |
-| Ability Invocation  | `serviceName=flowbot spanName=ability`  | Table      |
+| Capability Invocation | `serviceName=flowbot spanName=capability` | Table    |
 | Event Processing    | `serviceName=flowbot spanName=event`    | Table      |
 | Recent Pipelines    | Trace search                            | Trace view |
 | Recent Events       | Trace search                            | Trace view |

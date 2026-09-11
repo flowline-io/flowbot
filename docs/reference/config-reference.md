@@ -59,7 +59,7 @@ Covers:
 - Platform integrations (Slack, Discord, Tailchat; Telegram struct only)
 - Module settings (web auth)
 - Third-party vendor stubs
-- Capability invocation (`ability`)
+- Capability invocation (`pkg/capability`)
 
 Pipeline definitions are stored in PostgreSQL (published YAML); manage via Web UI or `flowbot pipeline`. See [pipelines.yaml](pipelines.yaml) for schema/examples and [user-guide/pipeline.md](../user-guide/pipeline.md). Notification templates/rules live in the UI / PostgreSQL (not in this file).
 

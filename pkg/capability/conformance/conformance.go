@@ -1,5 +1,5 @@
-// Package conformance provides a standard test suite for ability adapters.
-// Any new provider backed by an ability Service interface must pass these
+// Package conformance provides a standard test suite for capability adapters.
+// Any new provider backed by a capability Service interface must pass these
 // tests to guarantee consistent pagination and error handling.
 package conformance
 

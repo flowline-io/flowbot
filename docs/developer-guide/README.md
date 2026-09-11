@@ -7,8 +7,9 @@ Operations and development documentation for Flowbot.
 - [Deployment](./deployment.md) — Binary, Docker, and systemd deployment methods with health checks
 - [Monitoring](./monitoring.md) — Grafana dashboard, Prometheus metrics via PushGateway, and alerting rules
 - [Tracing](./tracing.md) — OpenTelemetry distributed tracing across all components
-- [Conformance](./conformance.md) — Ability adapter conformance test suite for provider development
+- [Conformance](./conformance.md) — Capability adapter conformance test suite for provider development
 - [Cursor Cloud](./cursor-cloud.md) — Per-session PostgreSQL/Redis bootstrap and Cloud config gotchas
+- [Contributing](../../CONTRIBUTING.md) — PR checklist, Agent Notes, lint/test expectations
 
 ## Development Tools
 
@@ -76,9 +77,9 @@ go tool task test:coverage   # Coverage report
 ### Conformance Tests
 
 ```bash
-go test ./pkg/ability/...                                # All ability + conformance tests
-go test -run TestConformance ./pkg/ability/bookmark/karakeep/  # Single adapter
-go test ./pkg/ability/conformance/                       # Conformance framework self-tests
+go test ./pkg/capability/...                             # All capability + conformance tests
+go test -run TestConformance ./pkg/capability/karakeep/  # Single adapter
+go test ./pkg/capability/conformance/                    # Conformance framework self-tests
 ```
 
 ### Add Go Tool Dependency

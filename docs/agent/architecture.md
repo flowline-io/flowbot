@@ -113,7 +113,7 @@ tool.ExecuteBatch
 
 On failure, the executor appends a `ToolResultMessage` with `IsError: true` so the model can self-correct. Missing tools produce an error result referencing `msg.ErrToolNotFound`.
 
-Reference tool: `pkg/agent/tools/echo/`.
+Reference tool: `pkg/agent/tools/echo/`. Coding tools live under `pkg/agent/tools/coding/`. Product tools (clip, notify, HTML artifact preview) live under `internal/server/chatagent/tools/` — for example `present_html` in `tools/htmlpreview` (see [chatagent-feature-checklist.md](./chatagent-feature-checklist.md) W-11 and [note](../../.agents/notes/implemented/feature/2026-09-11-chat-html-artifacts.md)).
 
 ## Session Tree
 

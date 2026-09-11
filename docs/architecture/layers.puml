@@ -1,7 +1,6 @@
 @startuml Layered Architecture
 ' =============================================================================
 ' Flowbot Layered Architecture Diagram
-' Shows the abstraction layers and their relationships
 ' =============================================================================
 
 skinparam componentStyle rectangle
@@ -16,7 +15,7 @@ title Flowbot — Layered Architecture
 package "Layer 6 — External" as L6 #ECEFF1 {
   actor Users
   cloud "Discord / Slack / Tailchat" as Chat
-  cloud "Third-Party APIs\n(GitHub, FireflyIII, ...)" as APIs
+  cloud "Third-Party APIs\n(GitHub, FireflyIII, Grafana, ...)" as APIs
 }
 
 ' =============================================================================
@@ -32,8 +31,9 @@ package "Layer 5 — Platform Adapters\ninternal/platforms/" as L5 #E8EAF6 {
 ' Layer 4: HTTP / API Gateway
 ' =============================================================================
 package "Layer 4 — HTTP Gateway\ninternal/server/ (Fiber v3)" as L4 #E3F2FD {
-  [REST API\n/service/{cap}/*] as REST
+  [REST API\n/service/{module}/*] as REST
   [Hub API\n/hub/*] as HubAPI
+  [Chatagent\n/chatagent/*] as ChatAPI
   [Platform Callbacks] as Callbacks
   [Auth Middleware] as AuthMW
   [Swagger] as Swagger
@@ -42,11 +42,12 @@ package "Layer 4 — HTTP Gateway\ninternal/server/ (Fiber v3)" as L4 #E3F2FD {
 ' =============================================================================
 ' Layer 3: Module / Business Logic
 ' =============================================================================
-package "Layer 3 — Modules\ninternal/modules/ (20 modules)" as L3 #F3E5F5 {
+package "Layer 3 — Modules\ninternal/modules/ (5 modules)" as L3 #F3E5F5 {
   [Module Framework\npkg/module/] as ModuleFW
-  [Modules] as BotMods
+  [automate / hub / life / web / example] as BotMods
   [Workflow Engine\npkg/workflow/] as WF
   [Pipeline Engine\npkg/pipeline/] as Pipeline
+  [Named Functions\npkg/functions/] as FaaS
   [LLM\npkg/agent/llm/] as LLM
   [Agent Engine\npkg/agent/] as AgentEng
 }
@@ -54,16 +55,12 @@ package "Layer 3 — Modules\ninternal/modules/ (20 modules)" as L3 #F3E5F5 {
 ' =============================================================================
 ' Layer 2: Capability Abstraction
 ' =============================================================================
-package "Layer 2 — Capability Abstraction\npkg/ability/" as L2 #FFF9C4 {
-  [Bookmark] as BookmarkAb
-  [Archive] as ArchiveAb
-  [Reader] as ReaderAb
-  [Kanban] as KanbanAb
-  [Finance] as FinanceAb
-  [Infra] as InfraAb
-  [ShellHistory] as ShellAb
+package "Layer 2 — Capability Abstraction\npkg/capability/" as L2 #FFF9C4 {
+  [capability.Invoke] as CapInvoke
+  [Provider-backed\nkarakeep, miniflux, gitea, ...] as ProvCaps
+  [Aggregates\ncore, devops, functions,\ngateway, life] as AggCaps
   note right
-    ability.Invoke(capability, operation, params)
+    capability.Invoke(capType, operation, params)
     Returns standard pagination (limit + opaque cursor)
     Wraps provider-specific errors to standard types
   end note
@@ -72,39 +69,32 @@ package "Layer 2 — Capability Abstraction\npkg/ability/" as L2 #FFF9C4 {
 ' =============================================================================
 ' Layer 1: Provider Adapters
 ' =============================================================================
-package "Layer 1 — Provider Adapters\npkg/providers/ (17 providers)" as L1 #E8F5E9 {
+package "Layer 1 — Provider Adapters\npkg/providers/ (29)" as L1 #E8F5E9 {
   [GitHub / Gitea / Drone] as DevGroup
-  [Karakeep / LinkWarden] as BmGroup
-  [ArchiveBox] as ArchGroup
-  [Miniflux] as ReaderGroup
-  [Kanboard] as KanbanGroup
-  [Firefly III] as FinanceGroup
-  [AdGuard / Cloudflare / Uptime Kuma] as InfraGroup
-  [Transmission] as TorrentGroup
-  [n8n] as N8NGroup
-  [Dropbox] as DropboxGroup
-  [Slack] as SlackGroup
-  [Email] as EmailGroup
-  [Atuin / Slash] as ShellGroup
+  [Karakeep / ArchiveBox / Miniflux\nTrilium / Memos / Confluence] as ContentGroup
+  [Kanboard / Trello / NocoDB] as KanbanGroup
+  [Firefly III / n8n] as FinanceGroup
+  [Beszel / Grafana / Traefik\nUptime Kuma / Dozzle / Wakapi\nNetAlertX / Scanopy / AdGuard] as OpsGroup
+  [Transmission / Email / Slack\nSlash / Dropbox / Example] as OtherGroup
 }
 
 ' =============================================================================
 ' Layer 0: Infrastructure
 ' =============================================================================
 package "Layer 0 — Infrastructure" as L0 #FFEBEE {
-  database "PostgreSQL" as PostgreSQL {
+  database "PostgreSQL 16" as PostgreSQL {
     [Data Events]
     [Audit Logs]
     [Users / Tokens]
-    [Workflow / Pipeline State]
+    [Workflow / Pipeline / Function State]
   }
-  database "Redis" as Redis {
+  database "Redis 7" as Redis {
     [Sessions]
     [Pub/Sub (Streams)]
     [Distributed Locks]
     [Cache]
   }
-  [Docker\n(pkg/executor/)] as Docker
+  [Docker / kern\n(pkg/executor/)] as Docker
 }
 
 ' =============================================================================
@@ -125,7 +115,7 @@ package "Cross-Cutting Concerns" as Cross #FFE0B2 {
   [Notifications\npkg/notify/] as Notify
   [Event System\npkg/event/] as EventSys
   [Structured Logging\npkg/flog/] as Flog
-  [Metrics\npkg/stats/] as Metrics
+  [Metrics\npkg/metrics/] as Metrics
 }
 
 ' =============================================================================
@@ -142,28 +132,30 @@ TailchatDrv --> Callbacks
 
 REST --> BotMods : dispatch to modules
 HubAPI --> Hub : management
+ChatAPI --> AgentEng
 Callbacks --> BotMods : platform events
 
-BotMods --> BookmarkAb : ability.Invoke()
-BotMods --> ArchiveAb
-BotMods --> ReaderAb
-BotMods --> KanbanAb
-BotMods --> FinanceAb
-BotMods --> InfraAb
-BotMods --> ShellAb
+BotMods --> CapInvoke : capability.Invoke()
+AgentEng --> CapInvoke
+WF --> CapInvoke
+Pipeline --> CapInvoke
+FaaS --> CapInvoke
 
-BookmarkAb --> BmGroup : adapter
-ArchiveAb --> ArchGroup : adapter
-ReaderAb --> ReaderGroup : adapter
-KanbanAb --> KanbanGroup : adapter
-FinanceAb --> FinanceGroup : adapter
-InfraAb --> InfraGroup : adapter
-ShellAb --> ShellGroup : adapter
+CapInvoke --> ProvCaps
+CapInvoke --> AggCaps
+
+ProvCaps --> DevGroup
+ProvCaps --> ContentGroup
+ProvCaps --> KanbanGroup
+ProvCaps --> FinanceGroup
+ProvCaps --> OpsGroup
+ProvCaps --> OtherGroup
 
 BotMods --> WF : trigger workflows
-WF --> Pipeline : orchestrate
-Pipeline --> BotMods : invoke actions
+BotMods --> Pipeline
+BotMods --> FaaS
 WF --> Docker : execute steps
+FaaS --> Docker
 
 REST --> PostgreSQL : persist
 REST --> Redis : cache / lock
@@ -174,8 +166,7 @@ REST --> Redis : cache / lock
 Scanner --> Registry : scan docker-compose.yaml
 Registry --> Hub : register apps
 Hub --> Binding : bind capability
-Binding --> BookmarkAb : register
-Binding --> ArchiveAb : register
+Binding --> CapInvoke : register
 
 ' =============================================================================
 ' Cross-Cutting reaches all layers
@@ -187,7 +178,7 @@ EventSys -[hidden]-> BotMods
 
 note bottom of L3
   <b>Architecture Rules:</b>
-  1. Modules never import providers directly — use ability.Invoke()
+  1. Modules never import providers directly — use capability.Invoke()
   2. Providers never emit DataEvents or call Hub/Pipeline
   3. Never return provider-private types from adapters
   4. Durable events: DataEvent → PostgreSQL → Redis Stream → Pipeline

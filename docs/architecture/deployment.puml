@@ -18,21 +18,21 @@ node "Host Machine (Linux)" as Host {
 
     ' --- Flowbot Server ---
     node "flowbot (Main Server)" as FlowbotContainer {
-      [Fiber HTTP Server :8080] as FiberServer
+      [Fiber HTTP Server :6060] as FiberServer
       [Workflow Engine] as WFEngine
       [Pipeline Engine] as PipelineEngine
-      [Modules] as BotModules
+      [Modules\nautomate / hub / life / web] as BotModules
       [LLM Agents] as LLMAgents
       [Web UI (templ + HTMX)] as WebUI
     }
 
     ' --- PostgreSQL ---
-    database "PostgreSQL 8" as PostgreSQLContainer {
+    database "PostgreSQL 16" as PostgreSQLContainer {
       [data_events]
       [audit_logs]
-      [users / tokens]
-      [workflow state]
-      [pipeline runs]
+      [users / tokens / web_account]
+      [workflow / pipeline / function state]
+      [agent / gateway / life]
     }
 
     ' --- Redis ---
@@ -57,7 +57,8 @@ node "Host Machine (Linux)" as Host {
       [n8n]
       [gitea]
       [beszel]
-      [atuin]
+      [grafana]
+      [traefik]
     }
   }
 
@@ -86,7 +87,6 @@ cloud "External Services" as External {
   [GitHub API] as GitHubAPI
   [Firefly III API] as FireflyAPI
   [Pushover] as PushoverAPI
-  [Cloudflare API] as CloudflareAPI
   [Email (SMTP)] as SMTP
 }
 
@@ -97,13 +97,19 @@ cloud "GitHub Actions" as GHA {
   [Build\n(build.yml)] as BuildCI
   [Testing\n(testing.yml)] as TestingCI
   [Build CLI\n(build_cli.yml)] as BuildCLICI
+  [Build Agent\n(build_agent.yml)] as BuildAgentCI
+  [Build Gateway\n(build_gateway.yml)] as BuildGatewayCI
   [Docker\n(docker.yml)] as DockerCI
+  [Sandbox\n(docker-agent-sandbox.yml)] as SandboxCI
+  [Agent Eval\n(agent-eval.yml)] as EvalCI
   [Release\n(release.yml)] as ReleaseCI
+  [Pages\n(pages.yml)] as PagesCI
 }
 
 node "GitHub Container Registry" as GHCR {
   [flowbot:latest]
   [flowbot:v*]
+  [flowbot-agent-sandbox:sandbox-v*]
 }
 
 ' =============================================================================
@@ -119,10 +125,10 @@ actor "Admin" as Admin
 ' --- Users ---
 Users --> DiscordAPI : chat
 Users --> SlackAPI : chat
-Admin --> FiberServer : HTTPS :8080
+Admin --> FiberServer : HTTPS :6060
 
 ' --- Server → Infrastructure ---
-FiberServer --> PostgreSQLContainer : TCP :3306
+FiberServer --> PostgreSQLContainer : TCP :5432
 FiberServer --> RedisContainer : TCP :6379
 FlowbotContainer --> HomelabApps : Docker socket (read-only)
 
@@ -132,7 +138,6 @@ FiberServer --> SlackAPI : REST
 FiberServer --> GitHubAPI : REST
 FiberServer --> FireflyAPI : REST
 FiberServer --> PushoverAPI : push
-FiberServer --> CloudflareAPI : REST
 FiberServer --> SMTP : SMTP
 
 ' --- Homelab Scanner ---
@@ -142,6 +147,7 @@ FlowbotContainer --> HomelabApps : docker ps / inspect
 ' --- CI/CD → Registry ---
 BuildCI --> GHCR : push image
 DockerCI --> GHCR : push image
+SandboxCI --> GHCR : push sandbox image
 ReleaseCI --> GHCR : push tagged image
 
 ' --- Deployment ---
@@ -160,11 +166,9 @@ end note
 
 note bottom of GHA
   <b>CI/CD Pipelines (.github/workflows/):</b>
-  - build.yml: Lint + Build server
-  - testing.yml: Run all tests
-  - build_cli.yml: Build CLI tools
-  - docker.yml: Build Docker image
-  - release.yml: Tag and release
+  - build.yml / testing.yml / release.yml / pages.yml
+  - build_cli.yml / build_agent.yml / build_gateway.yml
+  - docker.yml / docker-agent-sandbox.yml / agent-eval.yml
 end note
 
 @enduml

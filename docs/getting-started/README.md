@@ -73,5 +73,8 @@ go install github.com/flowline-io/flowbot/cmd/cli@latest
 
 ```bash
 flowbot --help
-flowbot workflow run ./docs/examples/workflows/save_and_track.yaml
+flowbot workflow apply --file ./docs/examples/workflows/save_and_track.yaml
+flowbot workflow run save_and_track
 ```
+
+`workflow run` takes a stored workflow name (after `apply`), not a file path. Details: [Workflow Engine](../user-guide/workflow.md).

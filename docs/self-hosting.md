@@ -25,13 +25,16 @@ postgres:
 redis:
   url: redis://:${REDIS_PASSWORD}@redis:6379/0
 modules:
-  web:
+  - name: web
+    enabled: true
     auth:
       enabled: true
       username: admin
       password: ${WEB_PASSWORD}   # migrated into DB on first boot; remove after
       encryption_key: ${FLOWBOT_WEB_AUTH_ENCRYPTION_KEY}
       cookie_secure: false   # set true behind HTTPS
+  - name: automate
+    enabled: true
 ```
 
 `${REDIS_PASSWORD}`, `${WEB_PASSWORD}`, and `${FLOWBOT_WEB_AUTH_ENCRYPTION_KEY}` are expanded from the process environment (see compose `environment`).
@@ -88,7 +91,7 @@ http:
     - 127.0.0.1/32
     - 10.0.0.0/8
 modules:
-  web:
+  - name: web
     auth:
       cookie_secure: true
 ```

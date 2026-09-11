@@ -1,12 +1,12 @@
-# Ability Adapter Conformance Tests
+# Capability Adapter Conformance Tests
 
-Standard compliance suite for ability adapters. Any new provider adapter must pass this suite to guarantee pagination and error handling conform to Flowbot standards.
+Standard compliance suite for capability adapters. Any new provider-backed adapter must pass this suite to guarantee pagination and error handling conform to Flowbot standards.
 
-Source: `pkg/ability/conformance/`
+Source: `pkg/capability/conformance/`
 
 ## Overview
 
-Each capability (bookmark, reader, kanban, note, memo, forge, github, example) defines a `Service` interface in `pkg/ability/<capability>/interface.go`. Provider adapters implement this interface, translating provider-specific types into ability domain types. The conformance suite verifies every adapter correctly implements:
+Provider-backed capabilities live in `pkg/capability/<provider>/` and register via `capability.Register(Spec)`. Conformance runners define domain-shaped service interfaces (bookmark, reader, kanban, note, memo, forge, github, example) so adapters can be verified without depending on provider-private types. The suite verifies every adapter correctly implements:
 
 - Pagination structure (`ListResult[T]`, `PageInfo`, opaque cursors)
 - Error wrapping (Flowbot sentinel errors via `types.WrapError` / `types.Errorf`)
@@ -17,7 +17,7 @@ Each capability (bookmark, reader, kanban, note, memo, forge, github, example) d
 ## Architecture
 
 ```
-pkg/ability/conformance/
+pkg/capability/conformance/
 ├── conformance.go          # Shared types, context helpers, error assertion helpers
 ├── pagination.go           # Pagination-specific assertions (cursor round-trip, PageInfo structure)
 ├── example.go              # RunExampleConformance — reference capability runner
@@ -32,11 +32,13 @@ pkg/ability/conformance/
 └── pagination_test.go      # Self-tests for pagination helpers
 ```
 
-Each adapter adds a `conformance_test.go` in its package:
+Each adapter adds a `conformance_test.go` next to its implementation:
 
 ```
-pkg/ability/bookmark/karakeep/
+pkg/capability/karakeep/
 ├── adapter.go              # Adapter implementation
+├── service.go              # Capability Service interface
+├── register.go             # Spec registration
 ├── adapter_test.go         # Adapter-specific tests (type conversion, edge cases)
 └── conformance_test.go     # Calls conformance.RunBookmarkConformance
 ```
@@ -49,31 +51,31 @@ Each capability runner accepts a `Config` struct and a factory function. The fac
 
 ```go
 type BookmarkConfig struct {
-    ListItems      []*Bookmark    // Items returned by List
-    ListNextCursor string         // Next cursor from provider
-    ListErr        error          // Error from List
+    ListItems      []*capability.Bookmark    // Items returned by List
+    ListNextCursor string                    // Next cursor from provider
+    ListErr        error                     // Error from List
     // ... per-operation fields
 }
 
-type BookmarkServiceFactory func(t *testing.T, cfg BookmarkConfig) Service
+type BookmarkServiceFactory func(t *testing.T, cfg BookmarkConfig) BookmarkService
 ```
 
 The runner creates subtests, each with a different `Config`. The adapter's `conformance_test.go` implements the factory, mapping `Config` fields to its fake client:
 
 ```go
-conformance.RunBookmarkConformance(t, func(t *testing.T, cfg conformance.BookmarkConfig) bm.Service {
+conformance.RunBookmarkConformance(t, func(t *testing.T, cfg conformance.BookmarkConfig) conformance.BookmarkService {
     c := &fakeClient{
         listResp:  toProviderResponse(cfg),
         listErr:   cfg.ListErr,
         // ...
     }
-    a := NewWithClient(c).(*Adapter)
-    a.cursorSecret = conformance.CursorSecret
+    a := NewWithClient(c)
+    a.SetCursorSecret(conformance.CursorSecret)
     return a
 })
 ```
 
-This decouples the conformance runner from provider-specific types — the runner only knows about ability domain types.
+This decouples the conformance runner from provider-specific types — the runner only knows about capability domain types.
 
 ### Per-Capability Runners
 
@@ -128,7 +130,7 @@ Each runner function defines all test cases for its capability's operations. Tes
 
 ### Step 1: Implement the Service Interface
 
-Create an adapter in `pkg/ability/<capability>/<provider>/` implementing the capability's `Service` interface.
+Create an adapter in `pkg/capability/<provider>/` implementing the capability's `Service` interface (follow `pkg/capability/example/`).
 
 ### Step 2: Create a Fake Client
 
@@ -147,21 +149,19 @@ package newprovider
 
 import (
     "testing"
+
     "github.com/flowline-io/flowbot/pkg/capability/conformance"
-    bm "github.com/flowline-io/flowbot/pkg/capability/bookmark"
 )
 
 func TestConformance(t *testing.T) {
-    conformance.RunBookmarkConformance(t, func(t *testing.T, cfg conformance.BookmarkConfig) bm.Service {
+    conformance.RunBookmarkConformance(t, func(t *testing.T, cfg conformance.BookmarkConfig) conformance.BookmarkService {
         c := &fakeClient{
             listResp:  toProviderListResponse(cfg),
             listErr:   cfg.ListErr,
             // ... map every config field
         }
-        a := NewWithClient(c).(*Adapter)
-        if cursorAdapter, ok := interface{}(a).(interface{ SetCursorSecret([]byte) }); ok {
-            cursorAdapter.SetCursorSecret(conformance.CursorSecret)
-        }
+        a := NewWithClient(c)
+        a.SetCursorSecret(conformance.CursorSecret)
         return a
     })
 }
@@ -171,10 +171,10 @@ func TestConformance(t *testing.T) {
 
 ```bash
 # Run this adapter's conformance only
-go test -run TestConformance ./pkg/ability/bookmark/newprovider/
+go test -run TestConformance ./pkg/capability/karakeep/
 
-# Run all ability tests
-go test ./pkg/ability/...
+# Run capability packages (includes conformance self-tests)
+go test ./pkg/capability/...
 
 # Run all tests
 go tool task test
@@ -214,16 +214,16 @@ The conformance package exports reusable assertion helpers:
 
 ## Coverage Matrix
 
-| Adapter    | Capability | Conformance Runner                    |
-| ---------- | ---------- | ------------------------------------- |
-| karakeep   | bookmark   | `RunBookmarkConformance`              |
-| example    | example    | `RunExampleConformance`               |
-| gitea      | forge      | `RunForgeConformance`                 |
-| github     | github     | `RunGithubConformance`                |
-| kanboard   | kanban     | `RunKanbanConformance`                |
-| memos      | memo       | `RunMemoConformance`                  |
-| trilium    | note       | `RunNoteConformance`                  |
-| miniflux   | reader     | `RunReaderConformance`                |
+| Adapter  | Capability package | Conformance Runner       |
+| -------- | ------------------ | ------------------------ |
+| karakeep | karakeep           | `RunBookmarkConformance` |
+| example  | example            | `RunExampleConformance`  |
+| gitea    | gitea              | `RunForgeConformance`    |
+| github   | github             | `RunGithubConformance`   |
+| kanboard | kanboard           | `RunKanbanConformance`   |
+| memos    | memos              | `RunMemoConformance`     |
+| trilium  | trilium            | `RunNoteConformance`     |
+| miniflux | miniflux           | `RunReaderConformance`   |
 
 Each adapter package also includes adapter-specific unit tests (`adapter_test.go`) for type conversion and edge cases, plus self-tests for the conformance framework in `conformance_test.go` and `pagination_test.go`.
 
@@ -231,7 +231,7 @@ Each adapter package also includes adapter-specific unit tests (`adapter_test.go
 
 To add conformance coverage for a new capability:
 
-1. Define `<capability>Config` and `<Capability>ServiceFactory` types in a new `pkg/ability/conformance/<capability>.go`
+1. Define `<capability>Config` and `<Capability>ServiceFactory` types in a new `pkg/capability/conformance/<capability>.go`
 2. Implement `Run<Capability>Conformance` with subtests covering all operations
 3. Wire up existing adapters by adding `conformance_test.go` in each adapter package
 4. Add new subtests if the capability has unique semantics

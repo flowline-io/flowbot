@@ -109,6 +109,13 @@ models:
     model_names:
       - "gpt-5.5-instant"
       - "gpt-5.5"
+  # DeepSeek V4.1 Flash via openai_compatible — use API id deepseek-flash (not deepseek-v4-flash).
+  # See docs/agent/developer-guide.md and .agents/notes/implemented/feature/2026-09-11-deepseek-v41-flash.md
+  # - provider: "openai_compatible"
+  #   base_url: "https://api.deepseek.com/v1"
+  #   api_key: ""
+  #   model_names:
+  #     - "deepseek-flash"
 
 # Direct-message chat assistant agent
 chat_agent:

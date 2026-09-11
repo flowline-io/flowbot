@@ -9,7 +9,7 @@ Core concepts and usage guides for Flowbot's orchestration engines.
 - [Pipeline Engine](./pipeline.md) — Event-driven multi-step automation with retry and checkpointing
 - [Pipeline Template Engine](./pipeline-template.md) — Go `text/template`-based parameter rendering with conditionals, loops, and FuncMap
 - [Workflow Engine](./workflow.md) — YAML-defined task DAGs with capability invocation, shell commands, Docker, and remote machines
-- [Notifications](./notifications.md) — Multi-channel notification configuration (Slack, Pushover, ntfy, Message Pusher)
+- [Notifications](./notifications.md) — Multi-channel notification configuration (Slack, Pushover, ntfy, Message Pusher, inapp)
 - [Notification Gateway](./notification-gateway.md) — Template-based notification rendering, Redis-backed throttling, aggregation, and mute/DND rules
 
 ## Concepts
@@ -19,12 +19,16 @@ self-hosted app exposes: capability type, API endpoints, and authentication mech
 It uses docker-compose labels for deterministic discovery and optional HTTP probes for
 runtime validation.
 
-Flowbot operates three runtime engines:
+Flowbot operates three runtime engines plus named functions:
 
 1. **Pipelines** react to `DataEvent` messages published via Redis Stream. Each pipeline consists of a trigger and ordered steps that invoke capability operations.
 
 2. **Workflows** execute task DAGs defined in YAML. Tasks can invoke capabilities, run Docker containers, execute shell commands, or connect to remote machines.
 
-3. **Notifications** deliver messages across multiple channels using a unified provider interface.
+3. **Named functions** (FaaS) publish pure transform versions invoked via capability or HTTP.
+
+4. **Notifications** deliver messages across multiple channels using a unified provider interface.
+
+REST for functions, pipeline, and workflow is mounted under one module: `/service/automate/{functions,pipeline,workflow}` (`internal/modules/automate`). See [merge note](../../.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md).
 
 For architecture details, see [Architecture](../architecture/README.md).

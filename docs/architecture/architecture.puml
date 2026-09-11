@@ -25,6 +25,8 @@ package "cmd/ — Entry Points" as EntryPoints #FFF3E0 {
   [Server\ncmd/main.go] as ServerEntry
   [Admin CLI\ncmd/cli/] as AdminCLI
   [Composer CLI\ncmd/composer/] as ComposerCLI
+  [Gateway\ncmd/gateway/] as GatewayCLI
+  [Agent CLI\ncmd/agent/] as AgentCLI
 }
 
 ' =============================================================================
@@ -32,12 +34,12 @@ package "cmd/ — Entry Points" as EntryPoints #FFF3E0 {
 ' =============================================================================
 package "internal/server/ — HTTP Layer (Fiber v3)" as ServerLayer #E3F2FD {
   [Router] as Router
-  [Capability Routes\n/service/{cap}/*] as CapRoutes
+  [Service Routes\n/service/{module}/*] as CapRoutes
   [Hub Routes\n/hub/*] as HubRoutes
+  [Chatagent\n/chatagent/*] as ChatagentRoutes
   [Platform Callbacks] as PlatformRoutes
   [Swagger / OpenAPI] as Swagger
-  [Media Routes] as MediaRoutes
-  [Event Routes] as EventRoutes
+  [Media / Agent / OAuth] as MediaRoutes
 }
 
 ' =============================================================================
@@ -52,101 +54,64 @@ package "internal/platforms/ — Chat Platform Adapters" as PlatformLayer #E8EAF
 ' =============================================================================
 ' Modules
 ' =============================================================================
-package "internal/modules/ — 20 Modules" as BotModules #F3E5F5 {
-  [agent] as AgentMod
-  [anki] as AnkiMod
-  [archive] as ArchiveMod
-  [bookmark] as BookmarkMod
-  [clipboard] as ClipboardMod
-  [cloudflare] as CloudflareMod
-  [dev] as DevMod
-  [finance] as FinanceMod
-  [gitea] as GiteaMod
-  [github] as GitHubMod
+package "internal/modules/ — 5 Modules" as BotModules #F3E5F5 {
+  [automate\nfunctions / pipeline / workflow] as AutomateMod
+  [example] as ExampleMod
   [hub] as HubMod
-  [kanban] as KanbanMod
-  [notify] as NotifyMod
-  [reader] as ReaderMod
-  [search] as SearchMod
-  [server] as ServerMod
-  [torrent] as TorrentMod
-  [user] as UserMod
-  [webhook] as WebhookMod
-  [workflow] as WorkflowMod
+  [life] as LifeMod
+  [web\nSSR ops console] as WebMod
 }
 
 ' =============================================================================
-' Capability / Ability Layer
+' Capability Layer
 ' =============================================================================
-package "pkg/ability/ — Capability Abstraction" as AbilityLayer #FFF9C4 {
-  [bookmark.Service] as BookmarkAbility
-  [archive.Service] as ArchiveAbility
-  [reader.Service] as ReaderAbility
-  [kanban.Service] as KanbanAbility
-  [finance.Service] as FinanceAbility
-  [infra.Service] as InfraAbility
-  [shellhistory.Service] as ShellAbility
-  [Invoke Dispatcher] as Invoke
+package "pkg/capability/ — Capability Abstraction" as CapLayer #FFF9C4 {
+  [capability.Invoke] as Invoke
+  [core / functions / gateway / life] as InternalCaps
+  [Provider-backed caps\nkarakeep, miniflux, ...] as ProviderCaps
+  [conformance/] as Conformance
 }
 
 ' =============================================================================
 ' Provider Layer
 ' =============================================================================
-package "pkg/providers/ — 17 Third-Party Integrations" as ProviderLayer #E8F5E9 {
-  [adguard] as AdGuardP
-  [archivebox] as ArchiveBox
-  [cloudflare] as CloudflareP
-  [drone] as DroneCI
-  [dropbox] as Dropbox
-  [email] as Email
-  [fireflyiii] as FireflyIII
-  [gitea] as GiteaP
-  [github] as GitHubP
-  [kanboard] as Kanboard
-  [karakeep] as Karakeep
-  [miniflux] as Miniflux
-  [n8n] as N8N
-  [slack] as SlackP
-  [slash] as Slash
-  [transmission] as Transmission
-  [uptimekuma] as UptimeKuma
+package "pkg/providers/ — 29 Integrations" as ProviderLayer #E8F5E9 {
+  [Forge\ngithub / gitea / drone] as ForgeP
+  [Content\nkarakeep / miniflux / archivebox\ntrilium / memos / confluence] as ContentP
+  [Ops\nbeszel / grafana / traefik\nuptimekuma / dozzle / wakapi\nnetalertx / scanopy / adguard] as OpsP
+  [Work\nkanboard / trello / nocodb\nfireflyiii / n8n] as WorkP
+  [Other\nemail / slack / slash\ntransmission / dropbox / example] as OtherP
 }
 
 ' =============================================================================
-' Workflow / Pipeline
+' Workflow / Pipeline / Functions
 ' =============================================================================
-package "pkg/workflow/ + pkg/pipeline/" as WorkflowPipeline #FFCDD2 {
+package "Automate Engines" as WorkflowPipeline #FFCDD2 {
   [Workflow Engine\npkg/workflow/] as WorkflowEngine
   [Pipeline Engine\npkg/pipeline/] as PipelineEngine
+  [Named Functions\npkg/functions/] as FunctionsEng
   [Executor\npkg/executor/] as Executor
 }
 
 ' =============================================================================
-' Hub / Homelab
+' Hub / Homelab / Agent
 ' =============================================================================
-package "pkg/hub/ + pkg/homelab/" as HubHomelab #BBDEFB {
+package "Hub / Homelab / Agent" as HubHomelab #BBDEFB {
   [Homelab Scanner\npkg/homelab/] as HomelabScanner
-  [App Registry\npkg/homelab/] as AppRegistry
   [Hub Manager\npkg/hub/] as HubManager
-  [Health Checks\npkg/hub/] as HealthChecks
-  [Capability Binding\npkg/hub/] as CapBinding
+  [Agent Engine\npkg/agent/] as AgentEngine
+  [Life Domain\npkg/life/] as LifeDomain
 }
 
 ' =============================================================================
 ' Cross-Cutting
 ' =============================================================================
 package "Cross-Cutting Packages" as CrossCutting #ECEFF1 {
-  [auth\npkg/auth/] as Auth
-  [notify\npkg/notify/] as Notify
-  [event\npkg/event/] as Event
-  [parser\npkg/parser/] as Parser
-  [config\npkg/config/] as Config
-  [flog\npkg/flog/] as Flog
-  [types\npkg/types/] as Types
-  [cache\npkg/cache/] as Cache
-  [locker\npkg/locker/] as Locker
-  [media\npkg/media/] as Media
-  [stats\npkg/stats/] as Stats
+  [auth / webauth] as Auth
+  [notify (+ inapp)] as Notify
+  [event] as Event
+  [config / flog / types] as Config
+  [cache / rdb / media / metrics] as InfraPkg
 }
 
 ' =============================================================================
@@ -162,8 +127,7 @@ package "pkg/views + internal/modules/web — SSR UI" as FrontendLayer #F3E5F5 {
 ' Storage
 ' =============================================================================
 package "internal/store/ — Data Layer" as StoreLayer #E0F2F1 {
-  [DAO (Ent)\n39 tables] as DAO
-  [Models\n56 models] as Models
+  [DAO (Ent)\n~87 schemas] as DAO
   [Event Store] as EventStore
   [Audit Store] as AuditStore
 }
@@ -178,63 +142,58 @@ ChatCloud --> TailchatAdapter : messages
 Discord --> Router
 SlackAdapter --> Router
 TailchatAdapter --> Router
+ServerEntry --> Router
+AdminCLI --> CapRoutes
+ComposerCLI --> CapRoutes
+GatewayCLI --> CapRoutes
+AgentCLI --> ChatagentRoutes
 
 ' =============================================================================
 ' Connections — Server → Modules
 ' =============================================================================
-Router --> AgentMod
-Router --> AnkiMod
-Router --> ArchiveMod
-Router --> BookmarkMod
-Router --> ClipboardMod
-Router --> CloudflareMod
-Router --> DevMod
-Router --> FinanceMod
-Router --> GiteaMod
-Router --> GitHubMod
+Router --> AutomateMod
+Router --> ExampleMod
 Router --> HubMod
-Router --> KanbanMod
-Router --> NotifyMod
-Router --> ReaderMod
-Router --> SearchMod
-Router --> ServerMod
-Router --> TorrentMod
-Router --> UserMod
-Router --> WebhookMod
-Router --> WorkflowMod
+Router --> LifeMod
+Router --> WebMod
+ChatagentRoutes --> AgentEngine
 
 ' =============================================================================
-' Connections — Module → Ability → Provider
+' Connections — Module → Capability → Provider
 ' =============================================================================
-BookmarkMod --> BookmarkAbility : ability.Invoke()
-ArchiveMod --> ArchiveAbility : ability.Invoke()
-ReaderMod --> ReaderAbility : ability.Invoke()
-KanbanMod --> KanbanAbility : ability.Invoke()
-FinanceMod --> FinanceAbility : ability.Invoke()
+AutomateMod --> Invoke : capability.Invoke()
+HubMod --> Invoke
+LifeMod --> Invoke
+WebMod --> Invoke
+AgentEngine --> Invoke
 
-BookmarkAbility --> Karakeep : adapter
-ArchiveAbility --> ArchiveBox : adapter
-ReaderAbility --> Miniflux : adapter
-KanbanAbility --> Kanboard : adapter
-FinanceAbility --> FireflyIII : adapter
+Invoke --> ProviderCaps
+Invoke --> InternalCaps
+ProviderCaps --> ForgeP
+ProviderCaps --> ContentP
+ProviderCaps --> OpsP
+ProviderCaps --> WorkP
+ProviderCaps --> OtherP
 
 ' =============================================================================
 ' Connections — Workflow / Pipeline
 ' =============================================================================
-WorkflowMod --> WorkflowEngine : triggers
-WorkflowEngine --> Executor : Docker / Shell
-PipelineEngine --> WorkflowEngine : orchestrates
+AutomateMod --> WorkflowEngine
+AutomateMod --> PipelineEngine
+AutomateMod --> FunctionsEng
+WorkflowEngine --> Executor : Docker / kern
+PipelineEngine --> Invoke
+FunctionsEng --> Executor
 Event --> PipelineEngine : Redis Stream
 
 ' =============================================================================
-' Connections — Hub / Homelab
+' Connections — Hub / Homelab / Life
 ' =============================================================================
-HomelabScanner --> AppRegistry : scan docker-compose
-AppRegistry --> HubManager : register apps
-HubManager --> CapBinding : bind to capability
-CapBinding --> AbilityLayer : register
-HubMod --> HubManager : commands
-HubRoutes --> HubManager : /hub/*
+HomelabScanner --> HubManager : scan / register
+HubManager --> CapLayer : bind capability
+HubMod --> HubManager
+HubRoutes --> HubManager
+LifeMod --> LifeDomain
 
 ' =============================================================================
 ' Connections — Storage
@@ -247,25 +206,21 @@ EventStore --> Redis : Redis Stream outbox
 DAO --> PostgreSQL
 AuditStore --> PostgreSQL
 Event --> Redis : pub/sub
-Cache --> Redis
-Locker --> Redis
+InfraPkg --> Redis
 
 ' =============================================================================
 ' Cross-cutting
 ' =============================================================================
-Router --> Auth : auth context
-Router --> Notify : notifications
-Router --> Config : load config
-Router --> Flog : logging
-Router --> Stats : metrics
-Router --> Media : file storage
+Router --> Auth
+Router --> Notify
+Router --> Config
 
 ' =============================================================================
 ' Frontend
 ' =============================================================================
 Users --> TemplViews : HTTPS /service/web/*
 TemplViews --> Router : HTMX / form mutations
-HTMXAlpine --> TemplViews : partial updates
-DaisyUI --> TemplViews : styles
+HTMXAlpine --> TemplViews
+DaisyUI --> TemplViews
 
 @enduml

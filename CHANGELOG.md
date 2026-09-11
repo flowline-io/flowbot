@@ -6,6 +6,10 @@
 
 - GitHub community onboarding: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, PR template, and issue templates (bug / feature / provider / docs / UI). See [.agents/notes/implemented/process/2026-09-11-github-community-onboarding.md](.agents/notes/implemented/process/2026-09-11-github-community-onboarding.md).
 
+### Changed
+
+- Durable docs under `docs/` aligned to current modules (`automate`), `pkg/capability`, provider/package/CI inventories, and automate REST prefixes. See [.agents/notes/implemented/process/2026-09-11-docs-sync-current-code.md](.agents/notes/implemented/process/2026-09-11-docs-sync-current-code.md).
+
 ## [0.99.12]
 
 ### Added

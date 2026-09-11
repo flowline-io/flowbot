@@ -17,3 +17,6 @@ Flowbot is a Homelab Data Hub & Capability Orchestration Center — it discovers
 - [Skills](./skills/) — AI assistant skills for CLI-invokable capabilities
 - [Examples](./examples/) — Workflow and pipeline configuration examples
 - [Website](./website/) — Public-facing documentation site
+- [Contributing](../CONTRIBUTING.md) — How to contribute (PR checklist, Agent Notes, lint/test)
+- [Security](../SECURITY.md) — Vulnerability reporting
+- [Code of Conduct](../CODE_OF_CONDUCT.md) — Community standards
