@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://flowline-io.github.io
+    about: Product site, tutorials, and API docs
+  - name: Self-hosting guide
+    url: https://github.com/flowline-io/flowbot/blob/master/docs/self-hosting.md
+    about: Docker Compose, reverse proxy, backups, and security checklist
+  - name: Contributing guide
+    url: https://github.com/flowline-io/flowbot/blob/master/CONTRIBUTING.md
+    about: How to set up a dev environment and open a pull request
+  - name: Security vulnerability
+    url: https://github.com/flowline-io/flowbot/security/advisories/new
+    about: Privately report a security issue (do not open a public issue)

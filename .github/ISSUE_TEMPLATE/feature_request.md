@@ -1,19 +1,28 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
-title: ""
-labels: ""
-assignees: ""
+description: Propose a new capability or product enhancement
+title: "[feat] "
+labels: ["enhancement"]
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+**Problem**
+What problem are you solving? Who hits it in a homelab?
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**Proposed solution**
+What should Flowbot do?
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+**Alternatives considered**
+Other approaches you tried or considered (scripts, other tools, existing capabilities).
+
+**Surfaces**
+Where should this appear? (check all that apply)
+
+- [ ] Web UI
+- [ ] REST / capability.Invoke
+- [ ] CLI
+- [ ] Pipeline / Workflow
+- [ ] Agent / chat
+- [ ] Webhook / event source
 
 **Additional context**
-Add any other context or screenshots about the feature request here.
+Mocks, references, or related issues.

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- GitHub community onboarding: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, PR template, and issue templates (bug / feature / provider / docs / UI). See [.agents/notes/implemented/process/2026-09-11-github-community-onboarding.md](.agents/notes/implemented/process/2026-09-11-github-community-onboarding.md).
+
 ## [0.99.12]
 
 ### Added

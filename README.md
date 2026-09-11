@@ -282,6 +282,12 @@ Full template: [`docs/reference/config.yaml`](docs/reference/config.yaml). Field
 - [Developer Guide](docs/developer-guide/README.md)
 - [Testing](docs/testing/README.md)
 
+## Contributing
+
+- [Contributing guide](CONTRIBUTING.md) — setup, PR checklist, provider entry points
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md) — private vulnerability reports only
+
 ## License
 
 [GPL-3.0](LICENSE)

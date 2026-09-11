@@ -1,40 +1,32 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: ""
-labels: ""
-assignees: ""
+description: Something is broken or behaves unexpectedly
+title: "[bug] "
+labels: ["bug"]
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear description of what went wrong.
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**To reproduce**
 
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+1.
+2.
+3.
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+What you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Environment**
 
-**Desktop (please complete the following information):**
+- Flowbot version / commit:
+- Install path: Docker Compose / binary / from source
+- OS:
+- Go version (if from source):
+- PostgreSQL / Redis versions (if known):
 
-- OS: [e.g. iOS]
-- Browser [e.g. chrome, safari]
-- Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
-
-- Device: [e.g. iPhone6]
-- OS: [e.g. iOS8.1]
-- Browser [e.g. stock browser, safari]
-- Version [e.g. 22]
+**Logs / screenshots**
+Paste relevant log lines (redact secrets). Attach screenshots if useful.
 
 **Additional context**
-Add any other context about the problem here.
+Related config sections (redact secrets), pipelines, or capabilities involved.
