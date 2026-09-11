@@ -110,12 +110,12 @@ func ConfigFromChatAgent(cfg config.ChatAgentSandboxConfig, workspace string) Co
 		Runtime:         strings.TrimSpace(cfg.Runtime),
 		SecurityProfile: strings.TrimSpace(cfg.SecurityProfile),
 		Image:           image,
-		Network:     strings.TrimSpace(cfg.Network),
-		Memory:      strings.TrimSpace(cfg.Memory),
-		Workspace:   strings.TrimSpace(workspace),
-		ServerURL:   strings.TrimSpace(cfg.ServerURL),
-		AccessToken: strings.TrimSpace(cfg.AccessToken),
-		CLIPath:     strings.TrimSpace(cfg.CLIPath),
+		Network:         strings.TrimSpace(cfg.Network),
+		Memory:          strings.TrimSpace(cfg.Memory),
+		Workspace:       strings.TrimSpace(workspace),
+		ServerURL:       strings.TrimSpace(cfg.ServerURL),
+		AccessToken:     strings.TrimSpace(cfg.AccessToken),
+		CLIPath:         strings.TrimSpace(cfg.CLIPath),
 	}
 }
 

@@ -30,7 +30,10 @@
     }
     var buttons = root.querySelectorAll('[data-html-tab]');
     buttons.forEach(function (btn) {
-      btn.classList.toggle('is-active', btn.getAttribute('data-html-tab') === tab);
+      btn.classList.toggle(
+        'is-active',
+        btn.getAttribute('data-html-tab') === tab,
+      );
     });
     var preview = root.querySelector('[data-html-pane="preview"]');
     var source = root.querySelector('[data-html-pane="source"]');

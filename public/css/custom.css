@@ -1725,7 +1725,11 @@ body:has(.chatagent-page) > main {
 }
 
 .chatagent-page .chatagent-html-tab.is-active {
-  background: color-mix(in oklab, var(--color-primary, #0f766e) 12%, transparent);
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 12%,
+    transparent
+  );
   color: var(--color-base-content, #111);
 }
 

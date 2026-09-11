@@ -678,9 +678,9 @@ func getAgentRunOptions(ctx fiber.Ctx) error {
 }
 
 type functionInvokeOption struct {
-	Name               string `json:"name"`
-	PublishedVersions  []int  `json:"published_versions"`
-	LatestVersion      int    `json:"latest_version,omitempty"`
+	Name              string `json:"name"`
+	PublishedVersions []int  `json:"published_versions"`
+	LatestVersion     int    `json:"latest_version,omitempty"`
 }
 
 type functionInvokeOptionsResponse struct {

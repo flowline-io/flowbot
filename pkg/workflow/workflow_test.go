@@ -41,7 +41,7 @@ func TestParseAction(t *testing.T) {
 			wantDetails:      "karakeep",
 		},
 		{
-			name: "kern",
+			name:             "kern",
 			action:           "kern:alpine:3.20",
 			wantIsCapability: false,
 			wantType:         "kern",

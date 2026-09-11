@@ -370,12 +370,12 @@ func TestChatAgentHTMLArtifactSupersededHidesPreview(t *testing.T) {
 	t.Parallel()
 	var buf bytes.Buffer
 	err := ChatAgentToolMessage(model.AgentChatMessage{
-		Kind:                "tool",
-		ToolName:            "present_html",
-		ToolStatus:          "completed",
-		ArtifactID:          "a1",
+		Kind:               "tool",
+		ToolName:           "present_html",
+		ToolStatus:         "completed",
+		ArtifactID:         "a1",
 		ArtifactTitle:      "Dash",
-		ArtifactHTML:        `<!DOCTYPE html><html><head></head><body>old</body></html>`,
+		ArtifactHTML:       `<!DOCTYPE html><html><head></head><body>old</body></html>`,
 		ArtifactSuperseded: true,
 	}).Render(context.Background(), &buf)
 	if err != nil {

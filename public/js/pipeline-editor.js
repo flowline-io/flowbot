@@ -534,7 +534,9 @@
           return;
         }
         const root = this.$el;
-        const cap = root.querySelector('[data-testid="step-capability-select"]');
+        const cap = root.querySelector(
+          '[data-testid="step-capability-select"]',
+        );
         if (cap) {
           this.fillCapabilitySelect(cap);
         }
@@ -576,7 +578,11 @@
       },
 
       formatTestStepDuration(durationMs) {
-        if (durationMs === undefined || durationMs === null || durationMs === '') {
+        if (
+          durationMs === undefined ||
+          durationMs === null ||
+          durationMs === ''
+        ) {
           return '';
         }
         const num = Number(durationMs);
@@ -794,11 +800,7 @@
       },
 
       isParamTypeNumber(p) {
-        return (
-          p?.type === 'int' ||
-          p?.type === 'int64' ||
-          p?.type === 'number'
-        );
+        return p?.type === 'int' || p?.type === 'int64' || p?.type === 'number';
       },
 
       isParamTypeBool(p) {
