@@ -3,6 +3,8 @@ package flog
 import (
 	"bytes"
 	"errors"
+	"io"
+	"os"
 	"strings"
 	"syscall"
 	"testing"
@@ -77,8 +79,13 @@ func TestFxLogger_LogEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			prev := l
-			t.Cleanup(func() { l = prev })
+			prevInited := inited.Load()
+			t.Cleanup(func() {
+				l = prev
+				inited.Store(prevInited)
+			})
 			l = zerolog.New(&buf).Level(zerolog.DebugLevel)
+			inited.Store(true)
 
 			logger := NewFxLogger()
 			require.NotNil(t, logger)
@@ -93,6 +100,26 @@ func TestFxLogger_LogEvent(t *testing.T) {
 			assert.Contains(t, strings.ToLower(out), `"level":"`+tt.wantLevel+`"`)
 		})
 	}
+}
+
+func TestFxLogger_PreInitProvideErrorGoesToStderr(t *testing.T) {
+	prevInited := inited.Load()
+	t.Cleanup(func() { inited.Store(prevInited) })
+	inited.Store(false)
+
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+	prev := os.Stderr
+	os.Stderr = w
+	NewFxLogger().LogEvent(&fxevent.Provided{
+		ConstructorName: "config.NewConfig()",
+		Err:             errors.New("config validation failed"),
+	})
+	os.Stderr = prev
+	require.NoError(t, w.Close())
+	out, err := io.ReadAll(r)
+	require.NoError(t, err)
+	assert.Contains(t, string(out), "config validation failed")
 }
 
 func TestFxLogger_NewFxLogger(t *testing.T) {

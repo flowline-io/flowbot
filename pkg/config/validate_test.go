@@ -184,17 +184,26 @@ func TestValidate_Conditional(t *testing.T) {
 		noErr   bool
 	}{
 		{
-			name: "slack enabled, empty creds rejected",
+			name: "slack enabled, empty tokens rejected",
+			mutate: func(c *Type) {
+				c.Platform.Slack.Enabled = true
+				c.Platform.Slack.AppToken = ""
+				c.Platform.Slack.BotToken = ""
+			},
+			wantErr: "platform.slack",
+		},
+		{
+			name: "slack enabled, tokens only OK",
 			mutate: func(c *Type) {
 				c.Platform.Slack.Enabled = true
 				c.Platform.Slack.AppID = ""
 				c.Platform.Slack.ClientID = ""
 				c.Platform.Slack.ClientSecret = ""
 				c.Platform.Slack.SigningSecret = ""
-				c.Platform.Slack.AppToken = ""
-				c.Platform.Slack.BotToken = ""
+				c.Platform.Slack.AppToken = "xapp-test"
+				c.Platform.Slack.BotToken = "xoxb-test"
 			},
-			wantErr: "platform.slack",
+			noErr: true,
 		},
 		{
 			name: "slack disabled, empty creds OK",

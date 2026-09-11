@@ -22,7 +22,7 @@ Ent auto-migrates on server startup, so no manual migration step is needed.
 Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`) when deriving config from `docs/reference/config.yaml`:
 
 - `redis.url` must include a non-empty password (e.g. `redis://:flowbot@127.0.0.1:6379/0`), so Redis is run with `--requirepass flowbot`.
-- Platform `required_if=Enabled true` is **not** uniform: Discord requires app/client/bot credentials; Tailchat requires `api_url`. Slack and Telegram do **not** fail validation with empty tokens — still set unused platforms to `enabled: false` in Cloud.
+- Platform `required_if=Enabled true` is **not** uniform: Discord requires app/client/bot credentials; Tailchat requires `api_url`; Slack requires `app_token` + `bot_token` (OAuth/signing fields optional for Socket Mode). Telegram has no credential fields yet. Still set unused platforms to `enabled: false` in Cloud.
 - `GET /metrics` requires `metrics.bearer_token` or an access token with `admin:metrics` / `admin:*` scope.
 - `/service/{capability}/*` (after Authorize) requires a minimum scope (`service:{capability}:read|write`, or `hub:capabilities:read` for `/service/hub`). `/service/web/*` requires `admin:*` and a full browser session (`kind=full`). Tokens with empty scopes are rejected. Web login issues `admin:*`.
 - `platform.tailchat.webhook_token` is required when Tailchat is enabled (header `X-Tailchat-Token`).

@@ -284,10 +284,13 @@ type Slack struct {
 	// Slack platform configuration
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Slack app ID
-	AppID         string `json:"app_id" yaml:"app_id" mapstructure:"app_id" validate:"required_if=Enabled true"`
-	ClientID      string `json:"client_id" yaml:"client_id" mapstructure:"client_id" validate:"required_if=Enabled true"`
-	ClientSecret  string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret" sensitive:"true" validate:"required_if=Enabled true"`
-	SigningSecret string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret" sensitive:"true" validate:"required_if=Enabled true"`
+	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	// Slack OAuth client ID
+	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	// Slack OAuth client secret
+	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret" sensitive:"true"`
+	// Slack signing secret
+	SigningSecret string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret" sensitive:"true"`
 	// Slack verification token
 	VerificationToken string `json:"verification_token" yaml:"verification_token" mapstructure:"verification_token"`
 	// Slack app token
@@ -821,12 +824,17 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 	}
 	log.Printf("API served from root URL path '%s'\n", App.ApiPath)
 
-	// Validate config before starting any subsystems
+	// Validate config before starting any subsystems.
+	// Std log: flog is not initialized yet (fx Provide runs before Init).
 	if err := App.Validate(); err != nil {
-		return nil, fmt.Errorf("config validation failed:\n%w", err)
+		err = fmt.Errorf("config validation failed:\n%w", err)
+		log.Println(err)
+		return nil, err
 	}
 	if err := App.ReachabilityCheck(context.Background()); err != nil {
-		return nil, fmt.Errorf("dependency check failed:\n%w", err)
+		err = fmt.Errorf("dependency check failed:\n%w", err)
+		log.Println(err)
+		return nil, err
 	}
 
 	// fx hooks

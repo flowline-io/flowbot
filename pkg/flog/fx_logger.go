@@ -1,6 +1,8 @@
 package flog
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
 	"go.uber.org/fx/fxevent"
@@ -87,14 +89,20 @@ func logFxProcessEvent(event fxevent.Event) {
 }
 
 func logFxErrOnly(err error) {
-	if err != nil {
-		Error(err)
+	if err == nil {
+		return
 	}
+	// NewConfig (and other Provides) run before flog.Init; zero-value zerolog discards.
+	if !inited.Load() {
+		fmt.Fprintf(os.Stderr, "error occurred: %v\n", err)
+		return
+	}
+	Error(err)
 }
 
 func logFxErrOrInfo(err error, format string, a ...any) {
 	if err != nil {
-		Error(err)
+		logFxErrOnly(err)
 		return
 	}
 	Info(format, a...)

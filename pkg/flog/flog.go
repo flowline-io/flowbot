@@ -29,6 +29,7 @@ var (
 	sampled            zerolog.Logger
 	callerOn           atomic.Bool
 	stackOn            atomic.Bool
+	inited             atomic.Bool
 	moduleLogs         sync.Map // map[string]*zerolog.Logger
 	moduleLvls         sync.Map // map[string]zerolog.Level
 	defaultLvl         zerolog.Level
@@ -192,6 +193,7 @@ func Init(cfg Config) {
 	stateMu.Lock()
 
 	l = zerolog.New(multi).With().Timestamp().Logger()
+	inited.Store(true)
 
 	// level
 	defaultLvl = zerologLevel(cfg.Level)
