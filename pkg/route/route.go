@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -487,6 +488,42 @@ func auditScopeDeny(ctx fiber.Ctx, scope string) {
 		Action: "auth.scope.deny",
 		Target: audit.Target{Type: "scope"},
 	}, "required: "+scope)
+}
+
+// ActionWebhookQueryTokenDeprecated is recorded when a caller still sends ?token=.
+const ActionWebhookQueryTokenDeprecated = "webhook.auth.query_token_deprecated"
+
+const legacyWebhookQueryTokenReason = "query token auth removed; use X-Webhook-Token or HMAC"
+
+// WarnLegacyWebhookQueryToken records an audit warning when the request carries
+// a legacy ?token= query parameter. The token value is never logged or stored.
+// No-op when the query param is absent or the auditor is unset.
+func WarnLegacyWebhookQueryToken(ctx fiber.Ctx, targetType, targetID string) {
+	if ctx == nil || strings.TrimSpace(ctx.Query("token")) == "" {
+		return
+	}
+	a := getRouteAuditor()
+	if a == nil {
+		return
+	}
+	id := strings.TrimSpace(targetID)
+	if id == "" {
+		id = "-"
+	}
+	typ := strings.TrimSpace(targetType)
+	if typ == "" {
+		typ = "webhook"
+	}
+	flog.Warn("webhook: legacy query token on %s/%s; use X-Webhook-Token or HMAC", typ, id)
+	_ = a.RecordRejected(context.Background(), audit.Entry{
+		Subject: &audit.Subject{
+			SubjectType: "webhook",
+			IPAddress:   ctx.IP(),
+			UserAgent:   string(ctx.Request().Header.UserAgent()),
+		},
+		Action: ActionWebhookQueryTokenDeprecated,
+		Target: audit.Target{Type: typ, ID: id},
+	}, legacyWebhookQueryTokenReason)
 }
 
 func ScopeHandler(ctx fiber.Ctx, scope string) bool {

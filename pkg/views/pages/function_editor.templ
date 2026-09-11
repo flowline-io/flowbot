@@ -93,6 +93,12 @@ templ FunctionEditorPage(ctx context.Context, draft partials.FunctionDraftData) 
 					>{ i18n.T(ctx, "common.copy") }</button>
 				</div>
 				<p class="text-xs text-base-content/50 m-0" data-testid="function-call-auth-hint">{ i18n.T(ctx, "function_editor.auth_hint") }</p>
+				<button
+					type="button"
+					class="btn btn-ghost btn-xs px-0 text-primary"
+					@click="copyCallCurl()"
+					data-testid="btn-copy-call-curl"
+				>{ i18n.T(ctx, "function_editor.copy_curl") }</button>
 			</div>
 			<div role="tablist" class="tabs tabs-border mb-4">
 				<button type="button" role="tab" class="tab" :class="tab === 'code' && 'tab-active'" @click="setTab('code')" data-testid="tab-code">{ i18n.T(ctx, "common.code") }</button>

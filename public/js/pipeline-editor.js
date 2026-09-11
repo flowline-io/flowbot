@@ -2331,18 +2331,18 @@
         if (auth.token) {
           return flowbotI18n(
             'client.pipeline.auth_token_preview',
-            'Auth: header X-Webhook-Token',
+            'Auth: Header only — X-Webhook-Token (not ?token=)',
           );
         }
         if (auth.hmac_secret) {
           return flowbotI18n(
             'client.pipeline.auth_hmac_preview',
-            'Auth: header X-Hub-Signature-256',
+            'Auth: HMAC only — X-Hub-Signature-256 (not ?token=)',
           );
         }
         return flowbotI18n(
           'client.pipeline.auth_configure',
-          'Auth: configure Token or HMAC Secret',
+          'Auth: configure Token or HMAC (Header/HMAC only)',
         );
       },
 
@@ -2359,9 +2359,12 @@
         if (method === 'POST' || method === 'PUT') {
           parts.push('-H', '"Content-Type: application/json"', '-d', "'{}'");
         }
-        var token = this.webhookToken(t);
+        var auth = t.webhook.auth || {};
+        var token = auth.token || '';
         if (token) {
           parts.push('-H', '"X-Webhook-Token: ' + token.replace(/"/g, '\\"') + '"');
+        } else if (auth.hmac_secret) {
+          parts.push('-H', '"X-Hub-Signature-256: sha256=SIGNATURE"');
         }
         parts.push('"' + url + '"');
         return parts.join(' ');

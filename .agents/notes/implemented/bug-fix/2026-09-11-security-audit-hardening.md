@@ -28,7 +28,7 @@ Ship a coordinated hardening pass:
 
 ## Consequences
 
-- Existing integrations that called pipeline/function webhooks with `?token=` must switch to `X-Webhook-Token` or HMAC.
+- Existing integrations that called pipeline/function webhooks with `?token=` must switch to `X-Webhook-Token` or HMAC. Migration UX (UI labels, curl copy, audit warnings): [webhook-query-token-migration-ux](../feature/2026-09-11-webhook-query-token-migration-ux.md).
 - API tokens with only `pipeline:*` can no longer drive `/service/web` or mint broader scopes.
 - Docker/self-host configs must set `listen: ":6060"` (or `0.0.0.0:6060`) when publishing a container port; loopback is the secure local default.
 - OAuth rows written after web Init are ciphertext; backups still need key material (`encryption_key` / key file).

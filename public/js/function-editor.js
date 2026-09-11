@@ -1,16 +1,53 @@
 (function () {
-  function toastCopied() {
+  function toastMessage(key, fallback) {
     window.dispatchEvent(
       new CustomEvent('flowbot:toast', {
         detail: {
           type: 'success',
-          message: flowbotI18n(
-            'client.function_editor.copied_call_url',
-            'Copied call URL',
-          ),
+          message: flowbotI18n(key, fallback),
         },
       }),
     );
+  }
+
+  function toastCopied() {
+    toastMessage('client.function_editor.copied_call_url', 'Copied call URL');
+  }
+
+  function toastCurlCopied() {
+    toastMessage('client.function_editor.copied_curl', 'curl example copied');
+  }
+
+  function copyText(text, onSuccess) {
+    var value = String(text || '');
+    if (!value) {
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(value)
+        .then(onSuccess)
+        // intentionally silent: clipboard may be denied in private mode
+        .catch(function () {});
+      return;
+    }
+    var area = document.createElement('textarea');
+    area.value = value;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.left = '-9999px';
+    document.body.appendChild(area);
+    area.select();
+    try {
+      document.execCommand('copy');
+      onSuccess();
+    } finally {
+      document.body.removeChild(area);
+    }
+  }
+
+  function isMaskedSecret(value) {
+    return !value || String(value).indexOf('\u2022') !== -1;
   }
 
   function register() {
@@ -95,30 +132,41 @@
       },
 
       copyCallURL(url) {
-        var text = String(url || '');
-        if (!text) {
-          return;
+        copyText(url, toastCopied);
+      },
+
+      callCurlExample() {
+        var url = String(this.callURL || '').trim();
+        if (!url) {
+          return '';
         }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard
-            .writeText(text)
-            .then(toastCopied)
-            .catch(function () {});
-          return;
+        var parts = [
+          'curl',
+          '-X',
+          'POST',
+          '-H',
+          '"Content-Type: application/json"',
+          '-d',
+          "'{}'",
+        ];
+        var token = String(this.token || '');
+        var hmac = String(this.hmacSecret || '');
+        if (!isMaskedSecret(token)) {
+          parts.push(
+            '-H',
+            '"X-Webhook-Token: ' + token.replace(/"/g, '\\"') + '"',
+          );
+        } else if (!isMaskedSecret(hmac) || this.hmacSet) {
+          parts.push('-H', '"X-Hub-Signature-256: sha256=SIGNATURE"');
+        } else {
+          parts.push('-H', '"X-Webhook-Token: YOUR_TOKEN"');
         }
-        var area = document.createElement('textarea');
-        area.value = text;
-        area.setAttribute('readonly', '');
-        area.style.position = 'fixed';
-        area.style.left = '-9999px';
-        document.body.appendChild(area);
-        area.select();
-        try {
-          document.execCommand('copy');
-          toastCopied();
-        } finally {
-          document.body.removeChild(area);
-        }
+        parts.push('"' + url + '"');
+        return parts.join(' ');
+      },
+
+      copyCallCurl() {
+        copyText(this.callCurlExample(), toastCurlCopied);
       },
 
       setTab(name) {

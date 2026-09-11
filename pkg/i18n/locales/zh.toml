@@ -1838,6 +1838,9 @@ other = "搜索失败，请重试。"
 [client.function_editor.copied_call_url]
 other = "调用 URL 已复制"
 
+[client.function_editor.copied_curl]
+other = "curl 示例已复制"
+
 [client.function_editor.save_draft_failed]
 other = "保存草稿失败"
 
@@ -2285,13 +2288,13 @@ other = "触发器 {{.Index}}：{{.Error}}"
 other = "Webhook: ..."
 
 [client.pipeline.auth_token_preview]
-other = "Auth: 请求头 X-Webhook-Token"
+other = "认证：仅 Header — X-Webhook-Token（不用 ?token=）"
 
 [client.pipeline.auth_hmac_preview]
-other = "Auth: 请求头 X-Hub-Signature-256"
+other = "认证：仅 HMAC — X-Hub-Signature-256（不用 ?token=）"
 
 [client.pipeline.auth_configure]
-other = "Auth: 请配置 Token 或 HMAC Secret"
+other = "认证：请配置 Token 或 HMAC（只用 Header/HMAC）"
 
 [client.pipeline.memory_load_failed]
 other = "加载记忆条目失败"
@@ -3441,7 +3444,10 @@ other = "未发布更改"
 other = "未保存"
 
 [function_editor.auth_hint]
-other = "认证：请求头 X-Webhook-Token 或 query token。版本化路径固定已发布快照。"
+other = "认证：只用 Header/HMAC — X-Webhook-Token 或 X-Hub-Signature-256（不接受 query ?token=）。版本化路径固定已发布快照。"
+
+[function_editor.copy_curl]
+other = "复制 curl 示例"
 
 [function_editor.entrypoint]
 other = "入口"
@@ -4006,6 +4012,18 @@ other = "运行工作流"
 
 [workflow.copy_webhook_url]
 other = "复制 Webhook URL"
+
+[workflow.copy_webhook_curl]
+other = "复制 curl 示例"
+
+[workflow.webhook_auth_token_hint]
+other = "认证：仅 Header — X-Webhook-Token（不用 ?token=）"
+
+[workflow.webhook_auth_hmac_hint]
+other = "认证：仅 HMAC — X-Hub-Signature-256（不用 ?token=）"
+
+[workflow.webhook_auth_configure]
+other = "认证：请配置 Token 或 HMAC（只用 Header/HMAC）"
 
 [workflow.input.empty]
 other = "输入：（空）"

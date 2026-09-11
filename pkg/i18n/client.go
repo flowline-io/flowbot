@@ -93,6 +93,7 @@ var clientMessageIDs = []string{
 	"client.command_palette.homelab",
 	"client.command_palette.search_failed",
 	"client.function_editor.copied_call_url",
+	"client.function_editor.copied_curl",
 	"client.function_editor.save_draft_failed",
 	"client.function_editor.publish_success",
 	"client.function_editor.publish_failed",

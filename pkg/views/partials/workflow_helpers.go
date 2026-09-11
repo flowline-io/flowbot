@@ -153,6 +153,62 @@ func WorkflowWebhookURL(tr model.WorkflowTrigger, publicOrigin string) string {
 	return base + path
 }
 
+func workflowRuleAuthMap(rule map[string]any) map[string]any {
+	if rule == nil {
+		return nil
+	}
+	v, ok := rule["auth"]
+	if !ok || v == nil {
+		return nil
+	}
+	m, ok := v.(map[string]any)
+	if !ok {
+		return nil
+	}
+	return m
+}
+
+// WorkflowWebhookAuthHint returns a short auth-mode hint for webhook triggers.
+// Empty when the trigger is not a webhook with a path.
+func WorkflowWebhookAuthHint(ctx context.Context, tr model.WorkflowTrigger) string {
+	if WorkflowWebhookURLPath(tr) == "" {
+		return ""
+	}
+	auth := workflowRuleAuthMap(tr.Rule)
+	if workflowRuleString(auth, "token") != "" {
+		return i18n.T(ctx, "workflow.webhook_auth_token_hint")
+	}
+	if workflowRuleString(auth, "hmac_secret") != "" {
+		return i18n.T(ctx, "workflow.webhook_auth_hmac_hint")
+	}
+	return i18n.T(ctx, "workflow.webhook_auth_configure")
+}
+
+// WorkflowWebhookCurl builds a copy-paste curl example for a webhook trigger.
+// Tokens are sent via X-Webhook-Token (never as ?token=).
+func WorkflowWebhookCurl(tr model.WorkflowTrigger, publicOrigin string) string {
+	endpoint := WorkflowWebhookURL(tr, publicOrigin)
+	if endpoint == "" {
+		return ""
+	}
+	method := strings.ToUpper(strings.TrimSpace(workflowRuleString(tr.Rule, "method")))
+	if method == "" {
+		method = "POST"
+	}
+	parts := []string{"curl", "-X", method}
+	if method == "POST" || method == "PUT" {
+		parts = append(parts, "-H", `"Content-Type: application/json"`, "-d", `'{}'`)
+	}
+	auth := workflowRuleAuthMap(tr.Rule)
+	if tok := workflowRuleString(auth, "token"); tok != "" {
+		parts = append(parts, "-H", `"X-Webhook-Token: `+strings.ReplaceAll(tok, `"`, `\"`)+`"`)
+	} else if workflowRuleString(auth, "hmac_secret") != "" {
+		parts = append(parts, "-H", `"X-Hub-Signature-256: sha256=SIGNATURE"`)
+	}
+	parts = append(parts, `"`+endpoint+`"`)
+	return strings.Join(parts, " ")
+}
+
 // WorkflowRunStatusClass returns the flowbot-chip CSS class for a workflow run status.
 func WorkflowRunStatusClass(status int) string {
 	if c, ok := workflowRunStatusMeta[types.WorkflowRunState(status)]; ok {

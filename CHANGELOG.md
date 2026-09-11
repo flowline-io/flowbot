@@ -15,6 +15,7 @@
 
 ### Changed
 
+- Webhook migration UX after dropping `?token=`: UI marks Header/HMAC only, one-click curl examples, and audit warnings (`webhook.auth.query_token_deprecated`) for legacy query-token calls. See [.agents/notes/implemented/feature/2026-09-11-webhook-query-token-migration-ux.md](.agents/notes/implemented/feature/2026-09-11-webhook-query-token-migration-ux.md).
 - Durable docs under `docs/` aligned to current modules (`automate`), `pkg/capability`, provider/package/CI inventories, and automate REST prefixes. See [.agents/notes/implemented/process/2026-09-11-docs-sync-current-code.md](.agents/notes/implemented/process/2026-09-11-docs-sync-current-code.md).
 
 ### Security

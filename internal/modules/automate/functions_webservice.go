@@ -188,6 +188,7 @@ func invokeCall(ctx fiber.Ctx, version *int) error {
 		return err
 	}
 	body := ctx.Body()
+	route.WarnLegacyWebhookQueryToken(ctx, "function", name)
 	if !pkgfunctions.AuthenticateCall(meta, ctx.Get("X-Webhook-Token"), ctx.Get("X-Hub-Signature-256"), body) {
 		return types.Errorf(types.ErrUnauthorized, "function call authentication failed")
 	}

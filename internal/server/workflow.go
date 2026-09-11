@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	"github.com/flowline-io/flowbot/pkg/route"
 	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
@@ -79,6 +80,8 @@ func makeWorkflowWebhookHandler(svc *workflow.Service) fiber.Handler {
 		if !strings.EqualFold(method, ep.Config.Method) {
 			return c.SendStatus(fiber.StatusMethodNotAllowed)
 		}
+
+		route.WarnLegacyWebhookQueryToken(c, "workflow", ep.WorkflowName)
 
 		status, ok := authenticateWebhook(c, ep.Config)
 		if !ok {

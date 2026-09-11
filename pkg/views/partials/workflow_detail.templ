@@ -390,12 +390,26 @@ templ WorkflowTriggersTable(ctx context.Context, workflowName string, triggers [
 								</td>
 								<td class="max-w-xl">
 									if webhookURL := WorkflowWebhookURL(tr, publicOrigin); webhookURL != "" {
-										<div class="flex items-center gap-1 min-w-0">
-											<span
-												class="min-w-0 flex-1 font-mono text-xs text-base-content break-all"
-												data-testid={ "workflow-webhook-url-" + fmt.Sprint(tr.ID) }
-											>{ webhookURL }</span>
-											@ClipCopyIconButton("btn-copy-workflow-webhook-url-"+fmt.Sprint(tr.ID), webhookURL, i18n.T(ctx, "workflow.copy_webhook_url"))
+										<div class="space-y-1 min-w-0">
+											<div class="flex items-center gap-1 min-w-0">
+												<span
+													class="min-w-0 flex-1 font-mono text-xs text-base-content break-all"
+													data-testid={ "workflow-webhook-url-" + fmt.Sprint(tr.ID) }
+												>{ webhookURL }</span>
+												@ClipCopyIconButton("btn-copy-workflow-webhook-url-"+fmt.Sprint(tr.ID), webhookURL, i18n.T(ctx, "workflow.copy_webhook_url"))
+											</div>
+											<p class="text-xs text-base-content/50 m-0" data-testid={ "workflow-webhook-auth-hint-" + fmt.Sprint(tr.ID) }>
+												{ WorkflowWebhookAuthHint(ctx, tr) }
+											</p>
+											if curl := WorkflowWebhookCurl(tr, publicOrigin); curl != "" {
+												<button
+													type="button"
+													class="btn btn-ghost btn-xs px-0 text-primary"
+													data-clip-copy
+													data-clip-markdown={ curl }
+													data-testid={ "btn-copy-workflow-webhook-curl-" + fmt.Sprint(tr.ID) }
+												>{ i18n.T(ctx, "workflow.copy_webhook_curl") }</button>
+											}
 										</div>
 									} else {
 										<span class="font-mono text-xs text-base-content/50 truncate block">{ valuePreview(tr.Rule) }</span>

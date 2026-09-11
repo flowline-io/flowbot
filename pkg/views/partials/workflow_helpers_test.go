@@ -186,6 +186,84 @@ func TestWorkflowWebhookURL(t *testing.T) {
 	}
 }
 
+func TestWorkflowWebhookCurl(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		tr     model.WorkflowTrigger
+		origin string
+		want   string
+	}{
+		{
+			name: "token auth uses header",
+			tr: model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
+				"path": "hooks/a", "method": "POST",
+				"auth": map[string]any{"token": "tok"},
+			}},
+			origin: "https://bot.example",
+			want:   `curl -X POST -H "Content-Type: application/json" -d '{}' -H "X-Webhook-Token: tok" "https://bot.example/webhook/workflow/hooks/a"`,
+		},
+		{
+			name: "hmac auth uses signature header",
+			tr: model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
+				"path": "hooks/b",
+				"auth": map[string]any{"hmac_secret": "hmac"},
+			}},
+			origin: "",
+			want:   `curl -X POST -H "Content-Type: application/json" -d '{}' -H "X-Hub-Signature-256: sha256=SIGNATURE" "/webhook/workflow/hooks/b"`,
+		},
+		{
+			name: "non webhook empty",
+			tr:   model.WorkflowTrigger{Type: "cron"},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, WorkflowWebhookCurl(tt.tr, tt.origin))
+			assert.NotContains(t, tt.want, "?token=")
+		})
+	}
+}
+
+func TestWorkflowWebhookAuthHint(t *testing.T) {
+	t.Parallel()
+	ctx := i18n.DefaultContext()
+	tests := []struct {
+		name string
+		tr   model.WorkflowTrigger
+		want string
+	}{
+		{
+			name: "token",
+			tr: model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
+				"path": "a", "auth": map[string]any{"token": "t"},
+			}},
+			want: "Auth: Header only — X-Webhook-Token (not ?token=)",
+		},
+		{
+			name: "hmac",
+			tr: model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
+				"path": "a", "auth": map[string]any{"hmac_secret": "h"},
+			}},
+			want: "Auth: HMAC only — X-Hub-Signature-256 (not ?token=)",
+		},
+		{
+			name: "missing auth",
+			tr:   model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"path": "a"}},
+			want: "Auth: configure Token or HMAC (Header/HMAC only)",
+		},
+		{name: "not webhook", tr: model.WorkflowTrigger{Type: "cron"}, want: ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, WorkflowWebhookAuthHint(ctx, tt.tr))
+		})
+	}
+}
+
 func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -212,8 +290,11 @@ func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
 				`data-testid="btn-copy-workflow-webhook-url-7"`,
 				`data-clip-copy`,
 				`data-clip-markdown="https://bot.example/webhook/workflow/hooks/bookmark"`,
+				`data-testid="workflow-webhook-auth-hint-7"`,
+				`data-testid="btn-copy-workflow-webhook-curl-7"`,
+				`X-Webhook-Token: tok`,
 			},
-			absent: []string{`"payload"`, `data-absolute-url-path`, `POST`},
+			absent: []string{`"payload"`, `data-absolute-url-path`},
 		},
 		{
 			name: "manual keeps rule preview",

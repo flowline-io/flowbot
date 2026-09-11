@@ -22,6 +22,7 @@ import (
 
 type mockAuditor struct {
 	entries []audit.Entry
+	reasons []string
 }
 
 func (m *mockAuditor) Record(_ context.Context, entry audit.Entry) error {
@@ -37,7 +38,8 @@ func (m *mockAuditor) RecordFailure(_ context.Context, entry audit.Entry, _ erro
 	return m.Record(context.TODO(), entry)
 }
 
-func (m *mockAuditor) RecordRejected(_ context.Context, entry audit.Entry, _ string) error {
+func (m *mockAuditor) RecordRejected(_ context.Context, entry audit.Entry, reason string) error {
+	m.reasons = append(m.reasons, reason)
 	return m.Record(context.TODO(), entry)
 }
 

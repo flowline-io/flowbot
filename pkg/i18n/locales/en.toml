@@ -1838,6 +1838,9 @@ other = "Search failed. Please try again."
 [client.function_editor.copied_call_url]
 other = "Copied call URL"
 
+[client.function_editor.copied_curl]
+other = "curl example copied"
+
 [client.function_editor.save_draft_failed]
 other = "Failed to save draft"
 
@@ -2285,13 +2288,13 @@ other = "Trigger {{.Index}}: {{.Error}}"
 other = "Webhook: ..."
 
 [client.pipeline.auth_token_preview]
-other = "Auth: header X-Webhook-Token"
+other = "Auth: Header only — X-Webhook-Token (not ?token=)"
 
 [client.pipeline.auth_hmac_preview]
-other = "Auth: header X-Hub-Signature-256"
+other = "Auth: HMAC only — X-Hub-Signature-256 (not ?token=)"
 
 [client.pipeline.auth_configure]
-other = "Auth: configure Token or HMAC Secret"
+other = "Auth: configure Token or HMAC (Header/HMAC only)"
 
 [client.pipeline.memory_load_failed]
 other = "Failed to load memory facts"
@@ -3441,7 +3444,10 @@ other = "Unpublished changes"
 other = "Unsaved"
 
 [function_editor.auth_hint]
-other = "Auth: header X-Webhook-Token or query token. Versioned path pins a published snapshot."
+other = "Auth: Header/HMAC only — X-Webhook-Token or X-Hub-Signature-256 (query ?token= rejected). Versioned path pins a published snapshot."
+
+[function_editor.copy_curl]
+other = "Copy curl example"
 
 [function_editor.entrypoint]
 other = "Entrypoint"
@@ -4006,6 +4012,18 @@ other = "Run workflow"
 
 [workflow.copy_webhook_url]
 other = "Copy webhook URL"
+
+[workflow.copy_webhook_curl]
+other = "Copy curl example"
+
+[workflow.webhook_auth_token_hint]
+other = "Auth: Header only — X-Webhook-Token (not ?token=)"
+
+[workflow.webhook_auth_hmac_hint]
+other = "Auth: HMAC only — X-Hub-Signature-256 (not ?token=)"
+
+[workflow.webhook_auth_configure]
+other = "Auth: configure Token or HMAC (Header/HMAC only)"
 
 [workflow.input.empty]
 other = "Input: (empty)"

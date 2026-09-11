@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	"github.com/flowline-io/flowbot/pkg/route"
 	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -105,6 +106,7 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 		}
 
 		wcfg := def.Trigger.Webhook
+		route.WarnLegacyWebhookQueryToken(c, "pipeline", def.Name)
 
 		status, ok := authenticateWebhook(c, wcfg)
 		if !ok {
