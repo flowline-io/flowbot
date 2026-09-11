@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/agent/subagent"
@@ -45,7 +46,7 @@ func LoadSubagentsFromStore(ctx context.Context) ([]Subagent, error) {
 // GetSubagentDefinition loads one enabled subagent by name as a runnable definition.
 func GetSubagentDefinition(ctx context.Context, name string) (subagent.Definition, error) {
 	if store.Database == nil {
-		return subagent.Definition{}, fmt.Errorf("subagent store unavailable")
+		return subagent.Definition{}, errors.New("subagent store unavailable")
 	}
 	row, err := store.AgentStoreFromDB().GetAgentSubagentByName(ctx, name)
 	if err != nil {

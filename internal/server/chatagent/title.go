@@ -9,6 +9,7 @@ import (
 
 	"github.com/tmc/langchaingo/llms"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -117,7 +118,7 @@ func DisableSessionTitleLLMForTest() (restore func()) {
 }
 
 func skipSessionTitleLLM(context.Context, string, string, string, sessionTitleModelFunc) (string, error) {
-	return "", fmt.Errorf("session title llm skipped for test")
+	return "", errors.New("session title llm skipped for test")
 }
 
 func generateSessionTitleAsync(

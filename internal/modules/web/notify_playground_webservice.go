@@ -9,6 +9,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
@@ -311,11 +312,11 @@ func parsePlaygroundPayload(raw string) (map[string]any, error) {
 
 func attachPlaygroundChannelProto(ctx context.Context, req *playgroundRequest) error {
 	if req.ChannelID <= 0 {
-		return fmt.Errorf("channel is required")
+		return errors.New("channel is required")
 	}
 	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannel(ctx, req.ChannelID)
 	if err != nil {
-		return fmt.Errorf("channel not found")
+		return errors.New("channel not found")
 	}
 	req.ChannelProto = ch.Protocol
 	return nil
@@ -331,7 +332,7 @@ func renderPlaygroundMessage(req playgroundRequest) (*notifytmpl.RenderResult, e
 	}
 	eng := notifytmpl.GetEngine()
 	if eng == nil {
-		return nil, fmt.Errorf("template engine not initialized")
+		return nil, errors.New("template engine not initialized")
 	}
 	result, err := eng.Render(req.TemplateID, req.ChannelProto, payload)
 	if err != nil {

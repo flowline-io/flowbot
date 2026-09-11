@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	rssClient "miniflux.app/v2/client"
@@ -204,7 +205,7 @@ func TestStarEntry(t *testing.T) {
 		wantErr string
 	}{
 		{name: "stars entry via client", entryID: 1},
-		{name: "propagates provider star error", entryID: 2, starErr: fmt.Errorf("upstream"), wantErr: "miniflux star entry"},
+		{name: "propagates provider star error", entryID: 2, starErr: errors.New("upstream"), wantErr: "miniflux star entry"},
 		{name: "stars another entry id", entryID: 42},
 	}
 	for _, tt := range tests {
@@ -233,7 +234,7 @@ func TestUnstarEntry(t *testing.T) {
 		wantErr   string
 	}{
 		{name: "unstars entry via client", entryID: 1},
-		{name: "propagates provider unstar error", entryID: 2, unstarErr: fmt.Errorf("upstream"), wantErr: "miniflux unstar entry"},
+		{name: "propagates provider unstar error", entryID: 2, unstarErr: errors.New("upstream"), wantErr: "miniflux unstar entry"},
 		{name: "unstars another entry id", entryID: 7},
 	}
 	for _, tt := range tests {

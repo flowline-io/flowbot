@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -122,7 +123,7 @@ func (f *FunctionClient) Runs(ctx context.Context, name string) (*FunctionRunsRe
 // Call invokes a published function via the unauthenticated /call endpoint using function token auth.
 func (f *FunctionClient) Call(ctx context.Context, name string, version *int, event any, token, idempotencyKey string) (*FunctionCallResult, error) {
 	if name == "" {
-		return nil, fmt.Errorf("function name is required")
+		return nil, errors.New("function name is required")
 	}
 	path := "/service/automate/functions/call/" + url.PathEscape(name)
 	if version != nil {

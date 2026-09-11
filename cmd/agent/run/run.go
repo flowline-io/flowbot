@@ -10,6 +10,7 @@ import (
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
@@ -41,18 +42,18 @@ type Result struct {
 // Execute runs one print-mode agent turn and returns final assistant text.
 func Execute(ctx context.Context, opts Options) (Result, error) {
 	if opts.Config == nil {
-		return Result{}, fmt.Errorf("config is required")
+		return Result{}, errors.New("config is required")
 	}
 	if err := opts.Config.Validate(); err != nil {
 		return Result{}, err
 	}
 	prompt := strings.TrimSpace(opts.Prompt)
 	if prompt == "" {
-		return Result{}, fmt.Errorf("prompt is required")
+		return Result{}, errors.New("prompt is required")
 	}
 	workspace := strings.TrimSpace(opts.Workspace)
 	if workspace == "" {
-		return Result{}, fmt.Errorf("workspace is required")
+		return Result{}, errors.New("workspace is required")
 	}
 	if opts.Timeout <= 0 {
 		opts.Timeout = 30 * time.Minute

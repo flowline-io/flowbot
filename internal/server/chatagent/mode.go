@@ -23,11 +23,7 @@ const (
 // IsReadOnlyTool reports whether name is allowed in plan mode.
 func IsReadOnlyTool(name string) bool {
 	switch name {
-	case "read_file", "web_search", "web_fetch", "read_skill", "list_dir", "glob_files", "grep_files", listScheduleToolName, listTodosToolName, clip.GetToolName, searchKnowledgeToolName, getKnowledgeToolName:
-		return true
-	case memoryGetToolName, memoryListToolName, searchSessionSummariesToolName:
-		return true
-	case todoWriteToolName, agenthtml.ToolName:
+	case "read_file", "web_search", "web_fetch", "read_skill", "list_dir", "glob_files", "grep_files", listScheduleToolName, listTodosToolName, clip.GetToolName, searchKnowledgeToolName, getKnowledgeToolName, memoryGetToolName, memoryListToolName, searchSessionSummariesToolName, todoWriteToolName, agenthtml.ToolName:
 		return true
 	default:
 		return false

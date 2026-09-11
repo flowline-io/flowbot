@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifereward"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/liferewardredemption"
@@ -22,7 +23,7 @@ type LifeRewardCreate struct {
 // CreateReward inserts an active player-defined reward.
 func (s *LifeStore) CreateReward(ctx context.Context, profileID int64, in LifeRewardCreate) (*gen.LifeReward, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	row, err := s.client.LifeReward.Create().
 		SetFlag(types.Id()).
@@ -67,7 +68,7 @@ func (s *LifeStore) ListRewards(ctx context.Context, profileID int64, activeOnly
 // A non-positive limit returns all matching rows (offset ignored).
 func (s *LifeStore) ListRewardsPage(ctx context.Context, profileID int64, activeOnly *bool, limit, offset int) ([]*gen.LifeReward, int, error) {
 	if !s.ready() {
-		return nil, 0, fmt.Errorf("life: store not available")
+		return nil, 0, errors.New("life: store not available")
 	}
 	q := s.client.LifeReward.Query().Where(lifereward.LifeProfileIDEQ(profileID))
 	if activeOnly != nil {
@@ -91,7 +92,7 @@ func (s *LifeStore) ListRewardsPage(ctx context.Context, profileID int64, active
 // UpdateReward updates mutable catalog fields for a reward.
 func (s *LifeStore) UpdateReward(ctx context.Context, id int64, in LifeRewardCreate) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeReward.UpdateOneID(id).
 		SetName(in.Name).
@@ -108,7 +109,7 @@ func (s *LifeStore) UpdateReward(ctx context.Context, id int64, in LifeRewardCre
 // SetRewardActive soft-deletes or restores a reward.
 func (s *LifeStore) SetRewardActive(ctx context.Context, id int64, active bool) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeReward.UpdateOneID(id).SetActive(active).Save(ctx)
 	if err != nil {
@@ -120,7 +121,7 @@ func (s *LifeStore) SetRewardActive(ctx context.Context, id int64, active bool) 
 // SetProfileGold sets absolute gold balance on a profile.
 func (s *LifeStore) SetProfileGold(ctx context.Context, id int64, gold int) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeProfile.UpdateOneID(id).SetGold(gold).Save(ctx)
 	if err != nil {
@@ -132,7 +133,7 @@ func (s *LifeStore) SetProfileGold(ctx context.Context, id int64, gold int) erro
 // MarkRewardRedeemed updates last_redeemed_at after a successful redeem.
 func (s *LifeStore) MarkRewardRedeemed(ctx context.Context, id int64, at time.Time) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeReward.UpdateOneID(id).SetLastRedeemedAt(at).Save(ctx)
 	if err != nil {
@@ -144,7 +145,7 @@ func (s *LifeStore) MarkRewardRedeemed(ctx context.Context, id int64, at time.Ti
 // CreateRewardRedemption inserts one redemption audit row with price/name snapshots.
 func (s *LifeStore) CreateRewardRedemption(ctx context.Context, profileID, rewardID int64, rewardName string, pricePaid int, at time.Time) (*gen.LifeRewardRedemption, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	row, err := s.client.LifeRewardRedemption.Create().
 		SetFlag(types.Id()).
@@ -173,7 +174,7 @@ func (s *LifeStore) ListRewardRedemptions(ctx context.Context, profileID int64, 
 // A non-positive limit returns all matching rows (offset ignored).
 func (s *LifeStore) ListRewardRedemptionsPage(ctx context.Context, profileID int64, limit, offset int) ([]*gen.LifeRewardRedemption, int, error) {
 	if !s.ready() {
-		return nil, 0, fmt.Errorf("life: store not available")
+		return nil, 0, errors.New("life: store not available")
 	}
 	q := s.client.LifeRewardRedemption.Query().Where(liferewardredemption.LifeProfileIDEQ(profileID))
 	total, err := q.Clone().Count(ctx)

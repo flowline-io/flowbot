@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/require"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
@@ -199,7 +199,7 @@ func TestLoginSubmit(t *testing.T) {
 			username:     "admin",
 			password:     "flowbot-dev-pass",
 			totpEnabled:  true,
-			paramSetErr:  fmt.Errorf("db down"),
+			paramSetErr:  errors.New("db down"),
 			wantStatus:   http.StatusOK,
 			wantContains: "Internal error",
 			wantPending:  false,

@@ -404,7 +404,7 @@ func checkLifecycleOp(name, operation string) (homelab.App, error) {
 func webUIURL() (string, error) {
 	base := strings.TrimRight(strings.TrimSpace(types.AppUrl()), "/")
 	if base == "" {
-		return "", fmt.Errorf("flowbot.url is not configured")
+		return "", errors.New("flowbot.url is not configured")
 	}
 	u, err := url.JoinPath(base, "service", "web", "login")
 	if err != nil {

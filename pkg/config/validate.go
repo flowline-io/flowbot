@@ -15,6 +15,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/redis/go-redis/v9"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
@@ -74,10 +75,10 @@ func (t *Type) validateStructTags(errs ValidationErrors) ValidationErrors {
 	}
 	if t.Log.Rotation != nil {
 		if t.Log.Rotation.MaxSize <= 0 {
-			errs = append(errs, fmt.Errorf("log.rotation.maxSize: must be > 0 when rotation is configured. Fix: set log.rotation.maxSize in flowbot.yaml"))
+			errs = append(errs, errors.New("log.rotation.maxSize: must be > 0 when rotation is configured. Fix: set log.rotation.maxSize in flowbot.yaml"))
 		}
 		if t.Log.Rotation.MaxBackups < 0 {
-			errs = append(errs, fmt.Errorf("log.rotation.maxBackups: must be >= 0. Fix: set log.rotation.maxBackups in flowbot.yaml"))
+			errs = append(errs, errors.New("log.rotation.maxBackups: must be >= 0. Fix: set log.rotation.maxBackups in flowbot.yaml"))
 		}
 	}
 	if err := validate.Validate.Struct(t.Tracing); err != nil {
@@ -116,7 +117,7 @@ func (t *Type) validateRedisURL(errs ValidationErrors) ValidationErrors {
 		return errs
 	}
 	if opts.Password == "" {
-		errs = append(errs, fmt.Errorf(
+		errs = append(errs, errors.New(
 			"redis.url: password must not be empty. Fix: include a password in redis.url (e.g. redis://:PASSWORD@HOST:PORT/DB) in flowbot.yaml",
 		))
 	}

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	agentsandbox "github.com/flowline-io/flowbot/pkg/agent/sandbox"
 )
@@ -35,7 +36,7 @@ type WorkspaceSandbox struct {
 func (s *WorkspaceSandbox) Prepare(parent, caseName string) (string, error) {
 	caseName = strings.TrimSpace(caseName)
 	if caseName == "" {
-		return "", fmt.Errorf("eval: sandbox case name required")
+		return "", errors.New("eval: sandbox case name required")
 	}
 	root := filepath.Join(parent, caseName)
 	if err := os.MkdirAll(root, 0o750); err != nil {

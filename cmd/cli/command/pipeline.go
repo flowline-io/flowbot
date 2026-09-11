@@ -8,6 +8,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
@@ -40,7 +41,7 @@ func pipelineApplyCommand() *cobra.Command {
 				return err
 			}
 			if strings.TrimSpace(filePath) == "" {
-				return fmt.Errorf("--file is required")
+				return errors.New("--file is required")
 			}
 			data, err := os.ReadFile(filePath)
 			if err != nil {
@@ -114,7 +115,7 @@ func pipelineGetCommand() *cobra.Command {
 		Short: "Get a pipeline definition",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("pipeline name is required")
+				return errors.New("pipeline name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -137,7 +138,7 @@ func pipelineExportCommand() *cobra.Command {
 		Short: "Export a pipeline as YAML",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("pipeline name is required")
+				return errors.New("pipeline name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -172,7 +173,7 @@ func pipelineDeleteCommand() *cobra.Command {
 		Short: "Delete a pipeline definition (also deletes run history)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("pipeline name is required")
+				return errors.New("pipeline name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -194,7 +195,7 @@ func pipelineRunCommand() *cobra.Command {
 		Short: "Run a stored pipeline asynchronously",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("pipeline name is required")
+				return errors.New("pipeline name is required")
 			}
 			eventRaw, err := cmd.Flags().GetString("event")
 			if err != nil {
@@ -228,7 +229,7 @@ func pipelineRunsCommand() *cobra.Command {
 		Short: "List runs for a pipeline",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("pipeline name is required")
+				return errors.New("pipeline name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {

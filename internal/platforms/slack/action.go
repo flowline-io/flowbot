@@ -9,6 +9,7 @@ import (
 
 	"github.com/slack-go/slack"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -160,7 +161,7 @@ func (*Action) RegisterSlashCommands(_ protocol.Request) protocol.Response {
 func (a *Action) postRichMessage(channel, threadId string, content protocol.Message) (string, error) {
 	msgOptions, fileIDs := a.buildMsgOptions(content)
 	if len(msgOptions) == 0 {
-		return "", fmt.Errorf("no valid message content")
+		return "", errors.New("no valid message content")
 	}
 
 	if threadId != "" {

@@ -85,7 +85,7 @@ func TestAuthLayoutChinese(t *testing.T) {
 	}
 	html := buf.String()
 	if !strings.Contains(html, `lang="zh-Hans"`) {
-		t.Fatalf("want zh-Hans lang attribute")
+		t.Fatal("want zh-Hans lang attribute")
 	}
 	zhBtn := switcherButton(t, html, "lang-switch-zh")
 	if !strings.Contains(zhBtn, "font-semibold") {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
@@ -115,7 +116,7 @@ func (s *LifeStore) Client() *gen.Client {
 // WithTx runs a callback inside one ent transaction.
 func (s *LifeStore) WithTx(ctx context.Context, fn func(*LifeStore) error) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	if s.inTx {
 		return fn(s)
@@ -187,7 +188,7 @@ func (s *LifeStore) GetProfileByID(ctx context.Context, id int64) (*gen.LifeProf
 // CreateProfile inserts a new life profile.
 func (s *LifeStore) CreateProfile(ctx context.Context, userID, nickname, classType string) (*gen.LifeProfile, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	if classType == "" {
 		classType = "Architect"
@@ -208,7 +209,7 @@ func (s *LifeStore) CreateProfile(ctx context.Context, userID, nickname, classTy
 // UpdateProfileStats updates level/exp/gold/pity on a profile.
 func (s *LifeStore) UpdateProfileStats(ctx context.Context, id int64, level int, exp int64, gold int, pity map[string]int) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	u := s.client.LifeProfile.UpdateOneID(id).
 		SetLevel(level).
@@ -227,7 +228,7 @@ func (s *LifeStore) UpdateProfileStats(ctx context.Context, id int64, level int,
 // UpdateProfileClass sets class_type.
 func (s *LifeStore) UpdateProfileClass(ctx context.Context, id int64, classType string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeProfile.UpdateOneID(id).SetClassType(classType).Save(ctx)
 	if err != nil {
@@ -239,7 +240,7 @@ func (s *LifeStore) UpdateProfileClass(ctx context.Context, id int64, classType 
 // CreateCharacteristic inserts a characteristic row.
 func (s *LifeStore) CreateCharacteristic(ctx context.Context, profileID int64, code, name string) (*gen.LifeCharacteristic, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	row, err := s.client.LifeCharacteristic.Create().
 		SetFlag(types.Id()).
@@ -281,7 +282,7 @@ func (s *LifeStore) GetCharacteristic(ctx context.Context, id int64) (*gen.LifeC
 // UpdateCharacteristicStats updates level/exp.
 func (s *LifeStore) UpdateCharacteristicStats(ctx context.Context, id int64, level int, exp int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeCharacteristic.UpdateOneID(id).SetLevel(level).SetCurrentExp(exp).Save(ctx)
 	return err
@@ -307,7 +308,7 @@ func (s *LifeStore) GetSkillByName(ctx context.Context, profileID int64, name st
 // CreateSkill inserts a skill.
 func (s *LifeStore) CreateSkill(ctx context.Context, profileID, characteristicID int64, name string, ratio float64) (*gen.LifeSkill, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	if ratio <= 0 {
 		ratio = 0.5
@@ -351,7 +352,7 @@ func (s *LifeStore) GetSkill(ctx context.Context, id int64) (*gen.LifeSkill, err
 // UpdateSkillStats updates skill level/exp.
 func (s *LifeStore) UpdateSkillStats(ctx context.Context, id int64, level int, exp int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeSkill.UpdateOneID(id).SetLevel(level).SetCurrentExp(exp).Save(ctx)
 	return err
@@ -360,7 +361,7 @@ func (s *LifeStore) UpdateSkillStats(ctx context.Context, id int64, level int, e
 // EnsureAIContext creates AI context if missing.
 func (s *LifeStore) EnsureAIContext(ctx context.Context, profileID int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeAIContext.Query().Where(lifeaicontext.LifeProfileIDEQ(profileID)).Only(ctx)
 	if err == nil {
@@ -397,7 +398,7 @@ func (s *LifeStore) GetAIContext(ctx context.Context, profileID int64) (*gen.Lif
 // UpdateAIContext writes completion rate, mood, and personality.
 func (s *LifeStore) UpdateAIContext(ctx context.Context, profileID int64, rate float64, mood map[string]any, personality string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	u := s.client.LifeAIContext.Update().Where(lifeaicontext.LifeProfileIDEQ(profileID)).
 		SetHistoricalCompletionRate(rate)
@@ -414,7 +415,7 @@ func (s *LifeStore) UpdateAIContext(ctx context.Context, profileID int64, rate f
 // CreateGoal inserts an active PARA goal. areaID is optional parent Area for Project/Resource.
 func (s *LifeStore) CreateGoal(ctx context.Context, profileID int64, title, category string, areaID *int64) (*gen.LifeGoal, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	b := s.client.LifeGoal.Create().
 		SetFlag(types.Id()).
@@ -452,7 +453,7 @@ func (s *LifeStore) GetGoalByFlag(ctx context.Context, profileID int64, flag str
 // CreatePlanNode inserts one life plan node and its action spec when needed.
 func (s *LifeStore) CreatePlanNode(ctx context.Context, in LifeCreatePlanNodeInput) (*gen.LifePlanNode, *gen.LifeActionSpec, error) {
 	if !s.ready() {
-		return nil, nil, fmt.Errorf("life: store not available")
+		return nil, nil, errors.New("life: store not available")
 	}
 	var row *gen.LifePlanNode
 	var spec *gen.LifeActionSpec
@@ -464,10 +465,10 @@ func (s *LifeStore) CreatePlanNode(ctx context.Context, in LifeCreatePlanNodeInp
 		}
 		if in.ActionSpec != nil {
 			if in.ActionSpec.TaskType == "checkpoint" && len(in.DependencyPlanNodeIDs) == 0 {
-				return fmt.Errorf("life: checkpoint dependencies required")
+				return errors.New("life: checkpoint dependencies required")
 			}
 			if in.ActionSpec.TaskType != "checkpoint" && len(in.DependencyPlanNodeIDs) > 0 {
-				return fmt.Errorf("life: only checkpoint actions can have dependencies")
+				return errors.New("life: only checkpoint actions can have dependencies")
 			}
 			spec, innerErr = createActionSpecWithClient(ctx, txStore.client, row.ID, *in.ActionSpec)
 			if innerErr != nil {
@@ -569,7 +570,7 @@ func (s *LifeStore) GetActionSpecByPlanNodeID(ctx context.Context, planNodeID in
 // ConfirmHabitAction promotes a habit candidate to a confirmed habit.
 func (s *LifeStore) ConfirmHabitAction(ctx context.Context, planNodeID int64) (*gen.LifeActionSpec, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	spec, err := s.GetActionSpecByPlanNodeID(ctx, planNodeID)
 	if err != nil {
@@ -593,7 +594,7 @@ func (s *LifeStore) ConfirmHabitAction(ctx context.Context, planNodeID int64) (*
 // UpdatePlanNode edits mutable fields on one plan node.
 func (s *LifeStore) UpdatePlanNode(ctx context.Context, id int64, title, description, status string, sortOrder int) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	u := s.client.LifePlanNode.UpdateOneID(id).
 		SetTitle(title).
@@ -611,7 +612,7 @@ func (s *LifeStore) UpdatePlanNode(ctx context.Context, id int64, title, descrip
 // DeletePlanNode removes one plan node and its descendants.
 func (s *LifeStore) DeletePlanNode(ctx context.Context, profileID, id int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	rows, err := s.ListPlanNodes(ctx, profileID)
 	if err != nil {
@@ -657,7 +658,7 @@ func (s *LifeStore) DeletePlanNode(ctx context.Context, profileID, id int64) err
 // UpdateGoalStatus sets goal status (Active / Paused / Completed).
 func (s *LifeStore) UpdateGoalStatus(ctx context.Context, id int64, status string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeGoal.UpdateOneID(id).SetStatus(status).Save(ctx)
 	return err
@@ -666,7 +667,7 @@ func (s *LifeStore) UpdateGoalStatus(ctx context.Context, id int64, status strin
 // MarkQuestStatus sets quest status and completed_at when Completed.
 func (s *LifeStore) MarkQuestStatus(ctx context.Context, id int64, status string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	u := s.client.LifeQuest.UpdateOneID(id).SetStatus(status)
 	if status == "Completed" {
@@ -680,7 +681,7 @@ func (s *LifeStore) MarkQuestStatus(ctx context.Context, id int64, status string
 // SetInventoryTarnishedUntil sets or clears rust on an inventory row.
 func (s *LifeStore) SetInventoryTarnishedUntil(ctx context.Context, id int64, until *time.Time) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	u := s.client.LifeInventory.UpdateOneID(id)
 	if until == nil {
@@ -695,7 +696,7 @@ func (s *LifeStore) SetInventoryTarnishedUntil(ctx context.Context, id int64, un
 // SetEquippedSlotsTarnishedUntil sets or clears rust on equipped slots.
 func (s *LifeStore) SetEquippedSlotsTarnishedUntil(ctx context.Context, profileID int64, until *time.Time) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	u := s.client.LifeEquippedSlots.Update().Where(lifeequippedslots.LifeProfileIDEQ(profileID))
 	if until == nil {
@@ -710,7 +711,7 @@ func (s *LifeStore) SetEquippedSlotsTarnishedUntil(ctx context.Context, profileI
 // EnsureEquippedSlots creates empty slots row if missing.
 func (s *LifeStore) EnsureEquippedSlots(ctx context.Context, profileID int64) (*gen.LifeEquippedSlots, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	row, err := s.client.LifeEquippedSlots.Query().Where(lifeequippedslots.LifeProfileIDEQ(profileID)).Only(ctx)
 	if err == nil {
@@ -740,7 +741,7 @@ func (s *LifeStore) GetEquippedSlots(ctx context.Context, profileID int64) (*gen
 // SetEquippedSlot writes one slot inventory id (nil clears).
 func (s *LifeStore) SetEquippedSlot(ctx context.Context, profileID int64, slotField string, inventoryID *int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	slots, err := s.EnsureEquippedSlots(ctx, profileID)
 	if err != nil {
@@ -816,7 +817,7 @@ func (s *LifeStore) ListGoals(ctx context.Context, profileID int64, status strin
 // CreateQuest inserts a quest.
 func (s *LifeStore) CreateQuest(ctx context.Context, q *gen.LifeQuest) (*gen.LifeQuest, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	b := s.client.LifeQuest.Create().
 		SetFlag(types.Id()).
@@ -897,7 +898,7 @@ func (s *LifeStore) GetQuestByFlag(ctx context.Context, profileID int64, flag st
 // CreateEvidence inserts one quest evidence row.
 func (s *LifeStore) CreateEvidence(ctx context.Context, in LifeEvidenceInput) (*gen.LifeEvidence, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	b := s.client.LifeEvidence.Create().
 		SetFlag(types.Id()).
@@ -948,7 +949,7 @@ func (s *LifeStore) ListEvidenceByQuestIDs(ctx context.Context, profileID int64,
 // CreateAdjudication inserts one suggested quest ruling.
 func (s *LifeStore) CreateAdjudication(ctx context.Context, in LifeAdjudicationInput) (*gen.LifeAdjudication, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	row, err := s.client.LifeAdjudication.Create().
 		SetFlag(types.Id()).
@@ -1040,7 +1041,7 @@ func (s *LifeStore) GetAdjudicationByFlag(ctx context.Context, profileID int64, 
 // MarkAdjudicationApplied records that the ruling was accepted.
 func (s *LifeStore) MarkAdjudicationApplied(ctx context.Context, id int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	now := time.Now()
 	_, err := s.client.LifeAdjudication.UpdateOneID(id).
@@ -1056,7 +1057,7 @@ func (s *LifeStore) MarkAdjudicationApplied(ctx context.Context, id int64) error
 // MarkQuestCompleted sets status Completed.
 func (s *LifeStore) MarkQuestCompleted(ctx context.Context, id int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	now := time.Now()
 	_, err := s.client.LifeQuest.UpdateOneID(id).
@@ -1069,7 +1070,7 @@ func (s *LifeStore) MarkQuestCompleted(ctx context.Context, id int64) error {
 // UpsertEquipment creates equipment if flag missing.
 func (s *LifeStore) UpsertEquipment(ctx context.Context, flag, name, rarity, slotType, lore string, buffs, priv map[string]any) (*gen.LifeEquipment, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	existing, err := s.client.LifeEquipment.Query().Where(lifeequipment.FlagEQ(flag)).Only(ctx)
 	if err == nil {
@@ -1146,7 +1147,7 @@ func (s *LifeStore) MapEquipmentByIDs(ctx context.Context, ids []int64) (map[int
 // UpsertLootTable creates or updates a loot table by tier.
 func (s *LifeStore) UpsertLootTable(ctx context.Context, tier string, chance float64, pool []string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	existing, err := s.client.LifeLootTable.Query().Where(lifeloottable.DropTierEQ(tier)).Only(ctx)
 	if err == nil {
@@ -1170,7 +1171,7 @@ func (s *LifeStore) UpsertLootTable(ctx context.Context, tier string, chance flo
 // UpsertAchievement inserts or updates a catalog achievement by flag.
 func (s *LifeStore) UpsertAchievement(ctx context.Context, in LifeAchievementUpsert) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	kind := in.Kind
 	if kind == "" {
@@ -1211,7 +1212,7 @@ func (s *LifeStore) UpsertAchievement(ctx context.Context, in LifeAchievementUps
 // ListAchievements returns the achievement catalog ordered by sort_order.
 func (s *LifeStore) ListAchievements(ctx context.Context) ([]*gen.LifeAchievement, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	return s.client.LifeAchievement.Query().
 		Order(lifeachievement.BySortOrder(), lifeachievement.ByFlag()).
@@ -1221,7 +1222,7 @@ func (s *LifeStore) ListAchievements(ctx context.Context) ([]*gen.LifeAchievemen
 // DeactivateAchievementsNotInFlags sets active=false for catalog rows whose flag is not listed.
 func (s *LifeStore) DeactivateAchievementsNotInFlags(ctx context.Context, keepFlags []string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	q := s.client.LifeAchievement.Update().SetActive(false)
 	if len(keepFlags) > 0 {
@@ -1234,7 +1235,7 @@ func (s *LifeStore) DeactivateAchievementsNotInFlags(ctx context.Context, keepFl
 // ListAchievementProgress returns progress rows for a profile.
 func (s *LifeStore) ListAchievementProgress(ctx context.Context, profileID int64) ([]*gen.LifeAchievementProgress, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	return s.client.LifeAchievementProgress.Query().
 		Where(lifeachievementprogress.LifeProfileIDEQ(profileID)).
@@ -1244,7 +1245,7 @@ func (s *LifeStore) ListAchievementProgress(ctx context.Context, profileID int64
 // ListAchievementUnlocks returns unlock rows for a profile.
 func (s *LifeStore) ListAchievementUnlocks(ctx context.Context, profileID int64) ([]*gen.LifeAchievementUnlock, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	return s.client.LifeAchievementUnlock.Query().
 		Where(lifeachievementunlock.LifeProfileIDEQ(profileID)).
@@ -1287,7 +1288,7 @@ func (s *LifeStore) MapLootTablesByTiers(ctx context.Context, tiers []string) (m
 // CreateInventory inserts an inventory instance.
 func (s *LifeStore) CreateInventory(ctx context.Context, profileID, equipmentID int64, questID *int64, loreStatus string) (*gen.LifeInventory, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	if loreStatus == "" {
 		loreStatus = "none"
@@ -1389,7 +1390,7 @@ func (s *LifeStore) MapInventoryByIDs(ctx context.Context, ids []int64) (map[int
 // UpdateInventoryLore sets instance lore fields and status.
 func (s *LifeStore) UpdateInventoryLore(ctx context.Context, id int64, name, lore, status string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeInventory.UpdateOneID(id).
 		SetInstanceName(name).
@@ -1402,7 +1403,7 @@ func (s *LifeStore) UpdateInventoryLore(ctx context.Context, id int64, name, lor
 // UpdateInventoryLoreStatus sets only lore_status (keeps instance name/lore).
 func (s *LifeStore) UpdateInventoryLoreStatus(ctx context.Context, id int64, status string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeInventory.UpdateOneID(id).
 		SetLoreStatus(status).
@@ -1413,7 +1414,7 @@ func (s *LifeStore) UpdateInventoryLoreStatus(ctx context.Context, id int64, sta
 // CreateActionLog inserts an action log row.
 func (s *LifeStore) CreateActionLog(ctx context.Context, profileID, questID int64, exp, gold int, invID *int64, dice *float64) (*gen.LifeActionLog, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	b := s.client.LifeActionLog.Create().
 		SetFlag(types.Id()).
@@ -1462,7 +1463,7 @@ func (s *LifeStore) ListActionLogsPage(ctx context.Context, profileID int64, lim
 // AppendLoreOutbox writes an unpublished outbox row for lore generation.
 func (s *LifeStore) AppendLoreOutbox(ctx context.Context, profileID, inventoryID int64) (string, error) {
 	if !s.ready() {
-		return "", fmt.Errorf("life: store not available")
+		return "", errors.New("life: store not available")
 	}
 	eventID := types.Id()
 	payload := map[string]any{
@@ -1523,7 +1524,7 @@ func (s *LifeStore) ListPendingLoreOutbox(ctx context.Context, limit int) ([]*ge
 // MarkOutboxPublished marks an outbox event published.
 func (s *LifeStore) MarkOutboxPublished(ctx context.Context, eventID string) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.EventOutbox.Update().
 		Where(eventoutbox.EventID(eventID)).
@@ -1551,7 +1552,7 @@ func (s *LifeStore) GetQuest(ctx context.Context, id int64) (*gen.LifeQuest, err
 // A nil areaID clears the parent link.
 func (s *LifeStore) UpdateGoal(ctx context.Context, id int64, title, category string, areaID *int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	u := s.client.LifeGoal.UpdateOneID(id).SetTitle(title).SetCategory(category)
 	if areaID == nil {
@@ -1566,7 +1567,7 @@ func (s *LifeStore) UpdateGoal(ctx context.Context, id int64, title, category st
 // ClearGoalAreaRefs clears area_id on goals that point at the given Area goal id.
 func (s *LifeStore) ClearGoalAreaRefs(ctx context.Context, areaID int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	_, err := s.client.LifeGoal.Update().
 		Where(lifegoal.AreaIDEQ(areaID)).
@@ -1578,7 +1579,7 @@ func (s *LifeStore) ClearGoalAreaRefs(ctx context.Context, areaID int64) error {
 // DeleteGoal removes a goal row.
 func (s *LifeStore) DeleteGoal(ctx context.Context, id int64) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	return s.client.LifeGoal.DeleteOneID(id).Exec(ctx)
 }
@@ -1644,7 +1645,7 @@ type LifeAchievementUpsert struct {
 // PersistCompleteQuest applies cascade, loot inventory, action log, and rust clear in one transaction.
 func (s *LifeStore) PersistCompleteQuest(ctx context.Context, in LifeCompletePersist) (*LifeCompleteResult, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
@@ -1740,7 +1741,7 @@ func resolveCompleteLoot(ctx context.Context, tx *gen.Tx, in *LifeCompletePersis
 // PersistFailQuest marks a quest failed and applies rust in one transaction.
 func (s *LifeStore) PersistFailQuest(ctx context.Context, profileID, questID int64, rustInvIDs []int64, until time.Time) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	tx, err := s.client.Tx(ctx)
 	if err != nil {

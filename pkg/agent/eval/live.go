@@ -2,9 +2,9 @@ package eval
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	"errors"
 	"github.com/tmc/langchaingo/llms"
 )
 
@@ -57,7 +57,7 @@ type LiveOptions struct {
 // RunLiveScenarios runs each scenario k times with a real (or fake) model and aggregates pass@k / pass^k.
 func RunLiveScenarios(ctx context.Context, scenarios []Scenario, model llms.Model, opts LiveOptions) (EvalReport, error) {
 	if model == nil {
-		return EvalReport{}, fmt.Errorf("eval: live model is required")
+		return EvalReport{}, errors.New("eval: live model is required")
 	}
 	k := opts.Trials
 	if k <= 0 {

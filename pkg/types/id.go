@@ -27,7 +27,7 @@ type uint128 struct {
 func (u uint128) quoRem64(v uint64) (q uint128, r uint64) {
 	q.Hi, r = bits.Div64(0, u.Hi, v)
 	q.Lo, r = bits.Div64(r, u.Lo, v)
-	return
+	return q, r
 }
 
 func encodeShortUUID(u uuid.UUID) string {

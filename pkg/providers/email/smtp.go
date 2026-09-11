@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
 	"github.com/microcosm-cc/bluemonday"
 )
 
@@ -26,16 +27,16 @@ func (c *Client) Send(ctx context.Context, in SendInput) error {
 		return err
 	}
 	if c.cfg.SMTPHost == "" {
-		return fmt.Errorf("email: smtp_host is not configured")
+		return errors.New("email: smtp_host is not configured")
 	}
 	if len(in.To) == 0 {
-		return fmt.Errorf("email: to is required")
+		return errors.New("email: to is required")
 	}
 	if strings.TrimSpace(in.Subject) == "" {
-		return fmt.Errorf("email: subject is required")
+		return errors.New("email: subject is required")
 	}
 	if strings.TrimSpace(in.Text) == "" && strings.TrimSpace(in.HTML) == "" {
-		return fmt.Errorf("email: text or html body is required")
+		return errors.New("email: text or html body is required")
 	}
 
 	in, err := sanitizeSendInput(in)
@@ -85,7 +86,7 @@ func sanitizeSendInput(in SendInput) (SendInput, error) {
 		return SendInput{}, err
 	}
 	if out.Subject == "" {
-		return SendInput{}, fmt.Errorf("email: subject is required")
+		return SendInput{}, errors.New("email: subject is required")
 	}
 
 	var err error
@@ -99,10 +100,10 @@ func sanitizeSendInput(in SendInput) (SendInput, error) {
 		return SendInput{}, err
 	}
 	if len(out.To) == 0 {
-		return SendInput{}, fmt.Errorf("email: to is required")
+		return SendInput{}, errors.New("email: to is required")
 	}
 	if strings.TrimSpace(out.Text) == "" && strings.TrimSpace(out.HTML) == "" {
-		return SendInput{}, fmt.Errorf("email: text or html body is required")
+		return SendInput{}, errors.New("email: text or html body is required")
 	}
 	return out, nil
 }
@@ -125,7 +126,7 @@ func sanitizeAddresses(addrs []string, field string) ([]string, error) {
 func sanitizeAddress(addr string) (string, error) {
 	addr = strings.TrimSpace(addr)
 	if addr == "" {
-		return "", fmt.Errorf("empty address")
+		return "", errors.New("empty address")
 	}
 	if err := rejectHeaderValue(addr, "address"); err != nil {
 		return "", err
@@ -321,7 +322,7 @@ func sendSMTPSTARTTLS(ctx context.Context, addr, host string, auth smtp.Auth, fr
 	}
 	defer func() { _ = client.Close() }()
 	if ok, _ := client.Extension("STARTTLS"); !ok {
-		return fmt.Errorf("email: smtp server does not support STARTTLS")
+		return errors.New("email: smtp server does not support STARTTLS")
 	}
 	if err := client.StartTLS(&tls.Config{ServerName: host, MinVersion: tls.VersionTLS12}); err != nil {
 		return fmt.Errorf("email: smtp starttls: %w", err)
@@ -352,7 +353,7 @@ func (c *Client) checkSMTP(ctx context.Context) error {
 		if err == nil {
 			if ok, _ := client.Extension("STARTTLS"); !ok {
 				_ = client.Close()
-				return fmt.Errorf("email: smtp server does not support STARTTLS")
+				return errors.New("email: smtp server does not support STARTTLS")
 			}
 			if err = client.StartTLS(&tls.Config{ServerName: c.cfg.SMTPHost, MinVersion: tls.VersionTLS12}); err != nil {
 				_ = client.Close()

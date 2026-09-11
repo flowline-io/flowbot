@@ -3,6 +3,7 @@ package pipeline
 import (
 	"fmt"
 
+	"errors"
 	"github.com/goccy/go-yaml"
 )
 
@@ -31,7 +32,7 @@ func IsEnabledInYAML(yamlStr string) bool {
 // Cron triggers are synced so pause also stops scheduled runs after engine reload.
 func SetEnabledInYAML(yamlStr string, enabled bool) (string, error) {
 	if yamlStr == "" {
-		return "", fmt.Errorf("set enabled in yaml: empty input")
+		return "", errors.New("set enabled in yaml: empty input")
 	}
 	def, err := ParseEditorYAML(yamlStr)
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/bytedance/sonic"
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -67,7 +68,7 @@ func (b *Beszel) ensureAuth(ctx context.Context) error {
 		return nil
 	}
 	if b.email == "" || b.password == "" {
-		return fmt.Errorf("beszel: token or email/password required")
+		return errors.New("beszel: token or email/password required")
 	}
 	resp, err := b.c.R().
 		SetContext(ctx).
@@ -84,7 +85,7 @@ func (b *Beszel) ensureAuth(ctx context.Context) error {
 		return fmt.Errorf("beszel auth decode: %w", err)
 	}
 	if result.Token == "" {
-		return fmt.Errorf("beszel auth: empty token")
+		return errors.New("beszel auth: empty token")
 	}
 	b.c.SetHeader("Authorization", result.Token)
 	b.authed = true
@@ -113,7 +114,7 @@ func (b *Beszel) ListSystems(ctx context.Context) (*SystemList, error) {
 // GetSystem returns a single system by ID.
 func (b *Beszel) GetSystem(ctx context.Context, id string) (*System, error) {
 	if id == "" {
-		return nil, fmt.Errorf("beszel: system id required")
+		return nil, errors.New("beszel: system id required")
 	}
 	if err := b.ensureAuth(ctx); err != nil {
 		return nil, err

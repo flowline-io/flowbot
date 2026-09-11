@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementunlock"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
@@ -15,7 +16,7 @@ import (
 // ListActionLogsInRange returns action logs with created_at in [since, until).
 func (s *LifeStore) ListActionLogsInRange(ctx context.Context, profileID int64, since, until time.Time) ([]*gen.LifeActionLog, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	rows, err := s.client.LifeActionLog.Query().
 		Where(
@@ -34,7 +35,7 @@ func (s *LifeStore) ListActionLogsInRange(ctx context.Context, profileID int64, 
 // ListRewardRedemptionsInRange returns redemptions with redeemed_at in [since, until).
 func (s *LifeStore) ListRewardRedemptionsInRange(ctx context.Context, profileID int64, since, until time.Time) ([]*gen.LifeRewardRedemption, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	rows, err := s.client.LifeRewardRedemption.Query().
 		Where(
@@ -53,7 +54,7 @@ func (s *LifeStore) ListRewardRedemptionsInRange(ctx context.Context, profileID 
 // ListAchievementUnlocksInRange returns unlocks with unlocked_at in [since, until).
 func (s *LifeStore) ListAchievementUnlocksInRange(ctx context.Context, profileID int64, since, until time.Time) ([]*gen.LifeAchievementUnlock, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	rows, err := s.client.LifeAchievementUnlock.Query().
 		Where(
@@ -72,7 +73,7 @@ func (s *LifeStore) ListAchievementUnlocksInRange(ctx context.Context, profileID
 // ListQuestsCompletedInRange returns Completed quests with completed_at in [since, until).
 func (s *LifeStore) ListQuestsCompletedInRange(ctx context.Context, profileID int64, since, until time.Time) ([]*gen.LifeQuest, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	rows, err := s.client.LifeQuest.Query().
 		Where(
@@ -93,7 +94,7 @@ func (s *LifeStore) ListQuestsCompletedInRange(ctx context.Context, profileID in
 // ListQuestsByIDs returns quests for the given ids scoped to a profile.
 func (s *LifeStore) ListQuestsByIDs(ctx context.Context, profileID int64, ids []int64) ([]*gen.LifeQuest, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	if len(ids) == 0 {
 		return nil, nil

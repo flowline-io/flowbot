@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/store"
 )
 
@@ -31,7 +32,7 @@ func configGetCommand() *cobra.Command {
 		Long:  "Retrieve a specific configuration setting",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("configuration key is required")
+				return errors.New("configuration key is required")
 			}
 			key := args[0]
 
@@ -84,7 +85,7 @@ func configSetCommand() *cobra.Command {
 		Long:  "Modify a configuration setting (stored in environment or config file)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("both key and value are required")
+				return errors.New("both key and value are required")
 			}
 			key := args[0]
 			value := args[1]

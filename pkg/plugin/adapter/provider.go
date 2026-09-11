@@ -8,6 +8,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -57,7 +58,7 @@ func (a *PluginProviderAdapter) WebhookConvert(payload []byte) ([]types.DataEven
 // Remote plugin providers delegate token exchange to the plugin runner;
 // stub providers return an unimplemented error.
 func (*PluginProviderAdapter) GetAccessToken(_ fiber.Ctx) (*providers.OAuthToken, error) {
-	return nil, fmt.Errorf("plugin provider adapter: GetAccessToken not implemented via remote plugin")
+	return nil, errors.New("plugin provider adapter: GetAccessToken not implemented via remote plugin")
 }
 
 // GetAuthorizeURL returns the OAuth authorize URL from the plugin.

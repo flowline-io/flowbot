@@ -9,6 +9,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -51,13 +52,13 @@ func ParseYAML(data []byte) (*types.WorkflowMetadata, error) {
 	}
 
 	if wf.Name == "" {
-		return nil, fmt.Errorf("workflow name is required")
+		return nil, errors.New("workflow name is required")
 	}
 	if len(wf.Pipeline) == 0 {
-		return nil, fmt.Errorf("workflow pipeline is required")
+		return nil, errors.New("workflow pipeline is required")
 	}
 	if len(wf.Tasks) == 0 {
-		return nil, fmt.Errorf("workflow tasks are required")
+		return nil, errors.New("workflow tasks are required")
 	}
 	if err := validateInputDefs(wf.Inputs); err != nil {
 		return nil, err
@@ -74,7 +75,7 @@ func ParseYAML(data []byte) (*types.WorkflowMetadata, error) {
 // ExportYAML marshals a workflow definition to YAML exchange format.
 func ExportYAML(wf *types.WorkflowMetadata) ([]byte, error) {
 	if wf == nil {
-		return nil, fmt.Errorf("workflow is nil")
+		return nil, errors.New("workflow is nil")
 	}
 	data, err := yaml.Marshal(wf)
 	if err != nil {
@@ -111,7 +112,7 @@ func validateInputDefs(inputs []types.WorkflowInputDef) error {
 	seen := make(map[string]struct{}, len(inputs))
 	for _, in := range inputs {
 		if in.Name == "" {
-			return fmt.Errorf("workflow input name is required")
+			return errors.New("workflow input name is required")
 		}
 		if _, ok := seen[in.Name]; ok {
 			return fmt.Errorf("duplicate workflow input %q", in.Name)

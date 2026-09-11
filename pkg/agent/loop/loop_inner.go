@@ -108,8 +108,8 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 	return stopInner, nil
 }
 
-func (s *innerLoopState) executeTools(assistant msg.AssistantMessage) ([]msg.ToolResultMessage, bool, bool, error) {
-	hasToolCalls := len(assistant.ToolCalls()) > 0
+func (s *innerLoopState) executeTools(assistant msg.AssistantMessage) (messages []msg.ToolResultMessage, terminate, hasToolCalls bool, err error) {
+	hasToolCalls = len(assistant.ToolCalls()) > 0
 	if !hasToolCalls {
 		return nil, false, false, nil
 	}

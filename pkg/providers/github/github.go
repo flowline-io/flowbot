@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -114,7 +115,7 @@ func (v *Github) GetAccessToken(ctx fiber.Ctx) (*providers.OAuthToken, error) {
 
 	tr, ok := tokenResp.(*TokenResponse)
 	if !ok {
-		return nil, fmt.Errorf("unexpected token response type from github")
+		return nil, errors.New("unexpected token response type from github")
 	}
 
 	return &providers.OAuthToken{
@@ -178,7 +179,7 @@ func (v *Github) GetStarred(username string) (result []*Repository, err error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return
+		return result, err
 	}
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
@@ -194,7 +195,7 @@ func (v *Github) GetFollowers() (result []*User, err error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return
+		return result, err
 	}
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
@@ -231,7 +232,7 @@ func (v *Github) GetUserProjects(username string) (result []*Project, err error)
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return
+		return result, err
 	}
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
@@ -247,7 +248,7 @@ func (v *Github) GetProjectColumns(projectID int64) (result []*ProjectColumn, er
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return
+		return result, err
 	}
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
@@ -305,7 +306,7 @@ func (v *Github) GetNotifications() (result []*Notification, err error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return
+		return result, err
 	}
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
@@ -324,7 +325,7 @@ func (v *Github) GetReleases(owner, repo string, page, perPage int) (result []*R
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return
+		return result, err
 	}
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
@@ -369,7 +370,7 @@ func (v *Github) GetIssue(owner, repo string, number int) (*Issue, error) {
 	if resp.StatusCode() == http.StatusOK {
 		result, ok := resp.Result().(*Issue)
 		if !ok {
-			return nil, fmt.Errorf("github get issue: unexpected response type")
+			return nil, errors.New("github get issue: unexpected response type")
 		}
 		return result, nil
 	}

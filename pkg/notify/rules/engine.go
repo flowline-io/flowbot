@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify/manifest"
@@ -233,13 +234,13 @@ func ValidateCondition(condition string) error {
 	for part := range parts {
 		part = strings.TrimSpace(part)
 		if part == "" {
-			return fmt.Errorf("rules: empty expression after ||")
+			return errors.New("rules: empty expression after ||")
 		}
 		andParts := strings.SplitSeq(part, "&&")
 		for ap := range andParts {
 			ap = strings.TrimSpace(ap)
 			if ap == "" {
-				return fmt.Errorf("rules: empty expression after &&")
+				return errors.New("rules: empty expression after &&")
 			}
 			if err := validateTimeExpression(ap); err != nil {
 				return err

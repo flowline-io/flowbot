@@ -196,10 +196,10 @@ func TestBaseLayoutChinese(t *testing.T) {
 	requireNoError(t, err)
 	html := buf.String()
 	if !strings.Contains(html, `lang="zh-Hans"`) {
-		t.Fatalf("want zh-Hans lang attribute")
+		t.Fatal("want zh-Hans lang attribute")
 	}
 	if !strings.Contains(html, "收件箱") {
-		t.Fatalf("want Chinese inbox nav label")
+		t.Fatal("want Chinese inbox nav label")
 	}
 	zhBtn := switcherButton(t, html, "lang-switch-zh")
 	if !strings.Contains(zhBtn, "font-semibold") {
@@ -255,7 +255,7 @@ func assertAlpineFollowsPageScripts(t *testing.T, html string) {
 		t.Fatalf("missing scripts: homelab-registry=%d alpine=%d", pageScript, alpine)
 	}
 	if alpine < pageScript {
-		t.Fatalf("alpine.csp.min.js must appear after homelab-registry.js so alpine:init handlers register first")
+		t.Fatal("alpine.csp.min.js must appear after homelab-registry.js so alpine:init handlers register first")
 	}
 	if strings.Contains(html, `homelab-registry.js" defer`) {
 		t.Fatal("homelab-registry.js must load synchronously so Alpine.data registers before alpine:init")

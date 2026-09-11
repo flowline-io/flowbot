@@ -2,8 +2,8 @@ package client
 
 import (
 	"context"
-	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -49,25 +49,25 @@ type FinanceHealthResult struct {
 // CreateTransaction creates a new finance transaction.
 func (f *FireflyiiiClient) CreateTransaction(ctx context.Context, req *CreateTransactionRequest) (*capability.Transaction, error) {
 	if req == nil {
-		return nil, fmt.Errorf("request is required")
+		return nil, errors.New("request is required")
 	}
 	if req.Type == "" {
-		return nil, fmt.Errorf("type is required")
+		return nil, errors.New("type is required")
 	}
 	if req.Date == "" {
-		return nil, fmt.Errorf("date is required")
+		return nil, errors.New("date is required")
 	}
 	if req.Amount == "" {
-		return nil, fmt.Errorf("amount is required")
+		return nil, errors.New("amount is required")
 	}
 	if req.Description == "" {
-		return nil, fmt.Errorf("description is required")
+		return nil, errors.New("description is required")
 	}
 	if req.SourceID == "" && req.SourceName == "" {
-		return nil, fmt.Errorf("source_id or source_name is required")
+		return nil, errors.New("source_id or source_name is required")
 	}
 	if req.DestinationID == "" && req.DestinationName == "" {
-		return nil, fmt.Errorf("destination_id or destination_name is required")
+		return nil, errors.New("destination_id or destination_name is required")
 	}
 	var result TransactionItemResult
 	err := f.c.Post(ctx, "/service/fireflyiii/transactions", req, &result)

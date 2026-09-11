@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -25,7 +24,7 @@ func (oauthTokenStore) Get(ctx context.Context, uid types.Uid, topic, provider s
 
 func (oauthTokenStore) Set(ctx context.Context, uid types.Uid, topic string, token *providers.OAuthToken) error {
 	if token == nil {
-		return fmt.Errorf("oauth token is nil")
+		return errors.New("oauth token is nil")
 	}
 	existing, err := store.ModuleDataStoreFromDB().OAuthGet(ctx, uid, topic, token.Type)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {

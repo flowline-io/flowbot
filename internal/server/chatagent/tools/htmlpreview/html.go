@@ -10,6 +10,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"errors"
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
@@ -90,10 +91,10 @@ type ParsedArgs struct {
 func ParseArgs(args map[string]any) (ParsedArgs, error) {
 	html := stringArg(args["html"])
 	if html == "" {
-		return ParsedArgs{}, fmt.Errorf("html is required")
+		return ParsedArgs{}, errors.New("html is required")
 	}
 	if !utf8.ValidString(html) {
-		return ParsedArgs{}, fmt.Errorf("html must be valid UTF-8")
+		return ParsedArgs{}, errors.New("html must be valid UTF-8")
 	}
 	if len(html) > MaxHTMLBytes {
 		return ParsedArgs{}, fmt.Errorf("html exceeds %d bytes", MaxHTMLBytes)
@@ -187,7 +188,7 @@ func PrepareDocument(html, title string) string {
 // Register registers present_html on the given registry.
 func Register(registry *tool.Registry) error {
 	if registry == nil {
-		return fmt.Errorf("htmlpreview tools: registry is nil")
+		return errors.New("htmlpreview tools: registry is nil")
 	}
 	return registry.Register(Tool{})
 }
@@ -224,7 +225,7 @@ func validateArtifactID(id string) error {
 		switch {
 		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '_', r == '-':
 		default:
-			return fmt.Errorf("id must be alphanumeric, underscore, or hyphen")
+			return errors.New("id must be alphanumeric, underscore, or hyphen")
 		}
 	}
 	return nil

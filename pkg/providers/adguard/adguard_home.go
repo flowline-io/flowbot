@@ -6,6 +6,7 @@ import (
 
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -49,7 +50,7 @@ func (v *AdGuardHome) GetStatus() (*ServerStatus, error) {
 
 	result, ok := resp.Result().(*ServerStatus)
 	if !ok {
-		return nil, fmt.Errorf("unexpected response type from adguard")
+		return nil, errors.New("unexpected response type from adguard")
 	}
 	return result, nil
 }
@@ -64,7 +65,7 @@ func (v *AdGuardHome) GetStats() (*Stats, error) {
 
 	result, ok := resp.Result().(*Stats)
 	if !ok {
-		return nil, fmt.Errorf("unexpected response type from adguard")
+		return nil, errors.New("unexpected response type from adguard")
 	}
 	return result, nil
 }

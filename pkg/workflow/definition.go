@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -20,7 +21,7 @@ type WorkflowRows struct {
 // MetadataFromRows converts normalized store rows into WorkflowMetadata.
 func MetadataFromRows(rows WorkflowRows) (*types.WorkflowMetadata, error) {
 	if rows.Workflow == nil {
-		return nil, fmt.Errorf("workflow row is nil")
+		return nil, errors.New("workflow row is nil")
 	}
 	wf := rows.Workflow
 	meta := &types.WorkflowMetadata{

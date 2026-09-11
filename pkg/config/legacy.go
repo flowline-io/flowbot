@@ -1,14 +1,18 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"errors"
 
-// RejectLegacyKeys reports migration errors when obsolete YAML top-level keys are present.
-// Call with viper.AllSettings() (or an equivalent raw map) before relying on unmarshaled config.
+	// RejectLegacyKeys reports migration errors when obsolete YAML top-level keys are present.
+	// Call with viper.AllSettings() (or an equivalent raw map) before relying on unmarshaled config.
+)
+
 func RejectLegacyKeys(settings map[string]any) error {
 	var errs ValidationErrors
 
 	if _, ok := settings["store_config"]; ok {
-		errs = append(errs, fmt.Errorf(
+		errs = append(errs, errors.New(
 			"store_config: removed. Fix: migrate to postgres.dsn (see docs/reference/config-reference.md)",
 		))
 	}

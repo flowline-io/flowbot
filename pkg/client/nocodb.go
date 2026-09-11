@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -91,7 +92,7 @@ func (n *NocodbClient) ListBases(ctx context.Context) (*NocoBasesResult, error) 
 // ListTables returns tables in a base (first page).
 func (n *NocodbClient) ListTables(ctx context.Context, baseID string) (*NocoTablesResult, error) {
 	if baseID == "" {
-		return nil, fmt.Errorf("base_id is required")
+		return nil, errors.New("base_id is required")
 	}
 	var result NocoTablesResult
 	path := "/service/nocodb/bases/" + url.PathEscape(baseID) + "/tables"
@@ -104,7 +105,7 @@ func (n *NocodbClient) ListTables(ctx context.Context, baseID string) (*NocoTabl
 // GetTable returns table metadata.
 func (n *NocodbClient) GetTable(ctx context.Context, tableID string) (*capability.NocoTable, error) {
 	if tableID == "" {
-		return nil, fmt.Errorf("table_id is required")
+		return nil, errors.New("table_id is required")
 	}
 	var result NocoTableResult
 	path := "/service/nocodb/tables/" + url.PathEscape(tableID)
@@ -117,7 +118,7 @@ func (n *NocodbClient) GetTable(ctx context.Context, tableID string) (*capabilit
 // ListRecords returns records for a table.
 func (n *NocodbClient) ListRecords(ctx context.Context, tableID string, q NocoListRecordsQuery) (*NocoRecordsResult, error) {
 	if tableID == "" {
-		return nil, fmt.Errorf("table_id is required")
+		return nil, errors.New("table_id is required")
 	}
 	if err := validateNocoListQuery(q); err != nil {
 		return nil, err
@@ -151,13 +152,13 @@ func (n *NocodbClient) ListRecords(ctx context.Context, tableID string, q NocoLi
 
 func validateNocoListQuery(q NocoListRecordsQuery) error {
 	if q.Limit < 0 {
-		return fmt.Errorf("limit must be non-negative")
+		return errors.New("limit must be non-negative")
 	}
 	if q.Limit > nocoMaxListLimit {
 		return fmt.Errorf("limit exceeds maximum of %d", nocoMaxListLimit)
 	}
 	if q.Offset < 0 {
-		return fmt.Errorf("offset must be non-negative")
+		return errors.New("offset must be non-negative")
 	}
 	return nil
 }
@@ -165,10 +166,10 @@ func validateNocoListQuery(q NocoListRecordsQuery) error {
 // GetRecord returns a single record.
 func (n *NocodbClient) GetRecord(ctx context.Context, tableID, recordID string) (*capability.NocoRecord, error) {
 	if tableID == "" {
-		return nil, fmt.Errorf("table_id is required")
+		return nil, errors.New("table_id is required")
 	}
 	if recordID == "" {
-		return nil, fmt.Errorf("record_id is required")
+		return nil, errors.New("record_id is required")
 	}
 	var result NocoRecordResult
 	path := "/service/nocodb/tables/" + url.PathEscape(tableID) + "/records/" + url.PathEscape(recordID)
@@ -181,10 +182,10 @@ func (n *NocodbClient) GetRecord(ctx context.Context, tableID, recordID string) 
 // CreateRecord creates a record.
 func (n *NocodbClient) CreateRecord(ctx context.Context, tableID string, fields map[string]any) (*capability.NocoRecord, error) {
 	if tableID == "" {
-		return nil, fmt.Errorf("table_id is required")
+		return nil, errors.New("table_id is required")
 	}
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("fields are required")
+		return nil, errors.New("fields are required")
 	}
 	var result NocoRecordResult
 	path := "/service/nocodb/tables/" + url.PathEscape(tableID) + "/records"
@@ -197,13 +198,13 @@ func (n *NocodbClient) CreateRecord(ctx context.Context, tableID string, fields 
 // UpdateRecord updates a record.
 func (n *NocodbClient) UpdateRecord(ctx context.Context, tableID, recordID string, fields map[string]any) (*capability.NocoRecord, error) {
 	if tableID == "" {
-		return nil, fmt.Errorf("table_id is required")
+		return nil, errors.New("table_id is required")
 	}
 	if recordID == "" {
-		return nil, fmt.Errorf("record_id is required")
+		return nil, errors.New("record_id is required")
 	}
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("fields are required")
+		return nil, errors.New("fields are required")
 	}
 	var result NocoRecordResult
 	path := "/service/nocodb/tables/" + url.PathEscape(tableID) + "/records"
@@ -216,10 +217,10 @@ func (n *NocodbClient) UpdateRecord(ctx context.Context, tableID, recordID strin
 // DeleteRecord deletes a record.
 func (n *NocodbClient) DeleteRecord(ctx context.Context, tableID, recordID string) error {
 	if tableID == "" {
-		return fmt.Errorf("table_id is required")
+		return errors.New("table_id is required")
 	}
 	if recordID == "" {
-		return fmt.Errorf("record_id is required")
+		return errors.New("record_id is required")
 	}
 	var result NocoDeleteResult
 	path := "/service/nocodb/tables/" + url.PathEscape(tableID) + "/records"

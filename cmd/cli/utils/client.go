@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/store"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
@@ -27,7 +28,7 @@ func NewClient(cmd *cobra.Command) (*client.Client, error) {
 			return nil, fmt.Errorf("load server URL: %w", err)
 		}
 		if stored == "" {
-			return nil, fmt.Errorf("server URL is required (use --server-url, FLOWBOT_SERVER_URL, or 'flowbot config set server-url <url>')")
+			return nil, errors.New("server URL is required (use --server-url, FLOWBOT_SERVER_URL, or 'flowbot config set server-url <url>')")
 		}
 		serverURL = stored
 	}
@@ -41,7 +42,7 @@ func NewClient(cmd *cobra.Command) (*client.Client, error) {
 		}
 	}
 	if token == "" {
-		return nil, fmt.Errorf("not logged in (use 'flowbot login' first, or set FLOWBOT_TOKEN)")
+		return nil, errors.New("not logged in (use 'flowbot login' first, or set FLOWBOT_TOKEN)")
 	}
 
 	cl := client.NewClient(serverURL, token)

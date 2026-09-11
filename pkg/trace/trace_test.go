@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -47,9 +46,8 @@ func TestMain(m *testing.M) {
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	))
-	code := m.Run()
+	m.Run()
 	_ = testTracerProvider.Shutdown(context.Background())
-	os.Exit(code)
 }
 
 // withTracingConfig temporarily replaces config.App.Tracing under a package mutex.

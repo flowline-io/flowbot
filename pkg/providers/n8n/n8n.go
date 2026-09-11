@@ -7,6 +7,7 @@ import (
 
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -25,7 +26,7 @@ func GetClient() (*N8N, error) {
 	endpoint, _ := providers.GetConfig(ID, EndpointKey)
 	apiKey, _ := providers.GetConfig(ID, ApiKeyKey)
 	if endpoint.String() == "" {
-		return nil, fmt.Errorf("n8n disabled")
+		return nil, errors.New("n8n disabled")
 	}
 
 	return NewN8N(endpoint.String(), apiKey.String()), nil
@@ -72,7 +73,7 @@ func (v *N8N) GetWorkflow(id string) (*Workflow, error) {
 	if resp.StatusCode() == http.StatusOK {
 		result, ok := resp.Result().(*Workflow)
 		if !ok {
-			return nil, fmt.Errorf("unexpected response type from n8n")
+			return nil, errors.New("unexpected response type from n8n")
 		}
 		return result, nil
 	}
@@ -92,7 +93,7 @@ func (v *N8N) CreateWorkflow(workflow *Workflow) (*Workflow, error) {
 	if resp.StatusCode() == http.StatusCreated || resp.StatusCode() == http.StatusOK {
 		result, ok := resp.Result().(*Workflow)
 		if !ok {
-			return nil, fmt.Errorf("unexpected response type from n8n")
+			return nil, errors.New("unexpected response type from n8n")
 		}
 		return result, nil
 	}
@@ -113,7 +114,7 @@ func (v *N8N) UpdateWorkflow(id string, workflow *Workflow) (*Workflow, error) {
 	if resp.StatusCode() == http.StatusOK {
 		result, ok := resp.Result().(*Workflow)
 		if !ok {
-			return nil, fmt.Errorf("unexpected response type from n8n")
+			return nil, errors.New("unexpected response type from n8n")
 		}
 		return result, nil
 	}
@@ -175,7 +176,7 @@ func (v *N8N) ExecuteWorkflow(id string, data map[string]any) error {
 	webhookPath, webhookID := findWebhookNode(workflow.Nodes)
 
 	if webhookPath == "" && webhookID == "" {
-		return fmt.Errorf("workflow does not have a webhook trigger node or webhook path is not configured")
+		return errors.New("workflow does not have a webhook trigger node or webhook path is not configured")
 	}
 
 	webhookURL := buildWebhookURL(webhookPath, webhookID)
@@ -210,7 +211,7 @@ func findWebhookNode(nodes []Node) (path, id string) {
 			break
 		}
 	}
-	return
+	return path, id
 }
 
 func sanitizeWebhookPath(path string) string {

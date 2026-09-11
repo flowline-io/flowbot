@@ -112,7 +112,7 @@ func LoadSkillsFromStore(ctx context.Context) ([]Skill, error) {
 // GetSkillContent loads one enabled skill body by name.
 func GetSkillContent(ctx context.Context, name string) (SkillContent, error) {
 	if store.Database == nil {
-		return SkillContent{}, fmt.Errorf("skill store unavailable")
+		return SkillContent{}, errors.New("skill store unavailable")
 	}
 	row, err := getAgentSkillByName(ctx, name)
 	if err != nil {
@@ -136,7 +136,7 @@ func GetSkillContent(ctx context.Context, name string) (SkillContent, error) {
 // GetSkillFile loads one enabled skill auxiliary file by skill name and relative path.
 func GetSkillFile(ctx context.Context, name, filePath string) (SkillContent, error) {
 	if store.Database == nil {
-		return SkillContent{}, fmt.Errorf("skill store unavailable")
+		return SkillContent{}, errors.New("skill store unavailable")
 	}
 	normalized, err := normalizeSkillFilePath(filePath)
 	if err != nil {

@@ -2,9 +2,9 @@ package chatagent
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/approval"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -29,7 +29,7 @@ func (c llmCompleter) Complete(ctx context.Context, systemPrompt, userPrompt str
 func NewApprovalReviewer(ctx context.Context) (approval.Reviewer, error) {
 	modelName := config.ResolveApprovalModel()
 	if modelName == "" {
-		return nil, fmt.Errorf("approval model unavailable")
+		return nil, errors.New("approval model unavailable")
 	}
 	model, resolved, err := NewModelForTest(ctx, modelName)
 	if err != nil {

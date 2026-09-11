@@ -11,6 +11,7 @@ import (
 	"github.com/bytedance/sonic"
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -55,7 +56,7 @@ func NewScanopy(endpoint, apiKey string) *Scanopy {
 // Health reports whether GET /api/version succeeds.
 func (s *Scanopy) Health(ctx context.Context) error {
 	if s == nil || s.c == nil {
-		return fmt.Errorf("scanopy: not configured")
+		return errors.New("scanopy: not configured")
 	}
 	_, err := s.GetVersion(ctx)
 	if err != nil {
@@ -114,7 +115,7 @@ func (s *Scanopy) ListHosts(ctx context.Context, params ListParams) (*Page[Host]
 // GetHost returns a single host by ID (includes children by default).
 func (s *Scanopy) GetHost(ctx context.Context, id string) (*Host, error) {
 	if id == "" {
-		return nil, fmt.Errorf("scanopy: host id required")
+		return nil, errors.New("scanopy: host id required")
 	}
 	path := "/api/v1/hosts/" + url.PathEscape(id)
 	resp, err := s.c.R().SetContext(ctx).Get(path)

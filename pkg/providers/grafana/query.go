@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"errors"
 	"github.com/bytedance/sonic"
 )
 
@@ -64,7 +65,7 @@ var backendDatasourceTypes = map[BackendKind][]string{
 // When DatasourceUID is empty, the first matching datasource type is used.
 func (g *Grafana) Query(ctx context.Context, req QueryRequest) (*QueryResult, error) {
 	if req.Expr == "" {
-		return nil, fmt.Errorf("grafana query: expr is required")
+		return nil, errors.New("grafana query: expr is required")
 	}
 	dsType, err := resolveDatasourceType(req.Backend)
 	if err != nil {

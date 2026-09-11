@@ -10,6 +10,7 @@ import (
 
 	"github.com/flc1125/go-cron/v4"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
@@ -392,11 +393,11 @@ var allowedWebhookMethods = map[string]bool{
 // (same auth/path/method/payload fields as pipeline webhooks).
 func webhookConfigFromRule(workflowName string, rule types.KV) (*pipeline.WebhookConfig, error) {
 	if rule == nil {
-		return nil, fmt.Errorf("webhook trigger rule is empty")
+		return nil, errors.New("webhook trigger rule is empty")
 	}
 	path := stringFromRule(rule, "path")
 	if path == "" {
-		return nil, fmt.Errorf("webhook trigger path must not be empty")
+		return nil, errors.New("webhook trigger path must not be empty")
 	}
 	method, err := webhookMethodFromRule(rule)
 	if err != nil {
@@ -448,7 +449,7 @@ func webhookAuthFromRule(rule types.KV) (pipeline.WebhookAuthConfig, error) {
 	token := stringFromMap(authMap, "token")
 	hmacSecret := stringFromMap(authMap, "hmac_secret")
 	if token == "" && hmacSecret == "" {
-		return pipeline.WebhookAuthConfig{}, fmt.Errorf("webhook trigger requires at least one of auth.token or auth.hmac_secret")
+		return pipeline.WebhookAuthConfig{}, errors.New("webhook trigger requires at least one of auth.token or auth.hmac_secret")
 	}
 	tokenHeader := stringFromMap(authMap, "token_header")
 	if tokenHeader == "" {

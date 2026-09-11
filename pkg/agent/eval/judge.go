@@ -6,6 +6,7 @@ import (
 	"math"
 	"strings"
 
+	"errors"
 	"github.com/bytedance/sonic"
 	"github.com/tmc/langchaingo/llms"
 )
@@ -68,7 +69,7 @@ type judgeRaw struct {
 // JudgeDimension scores one quality dimension with a judge model.
 func JudgeDimension(ctx context.Context, model llms.Model, dimension, task, transcript, finalText string) (int, string, bool, error) {
 	if model == nil {
-		return 0, "", true, fmt.Errorf("eval: judge model is required")
+		return 0, "", true, errors.New("eval: judge model is required")
 	}
 	prompt := JudgePrompt(dimension, task, transcript, finalText)
 	resp, err := model.GenerateContent(ctx, []llms.MessageContent{
@@ -78,7 +79,7 @@ func JudgeDimension(ctx context.Context, model llms.Model, dimension, task, tran
 		return 0, "", true, err
 	}
 	if resp == nil || len(resp.Choices) == 0 {
-		return 0, "", true, fmt.Errorf("eval: empty judge response")
+		return 0, "", true, errors.New("eval: empty judge response")
 	}
 	raw := strings.TrimSpace(resp.Choices[0].Content)
 	raw = extractJSONObject(raw)

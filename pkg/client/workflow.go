@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/url"
 )
 
@@ -97,7 +97,7 @@ func (w *WorkflowClient) Delete(ctx context.Context, name string) error {
 // Run starts an asynchronous workflow run and returns the run ID.
 func (w *WorkflowClient) Run(ctx context.Context, name string, input map[string]any) (*WorkflowRunResult, error) {
 	if name == "" {
-		return nil, fmt.Errorf("workflow name is required")
+		return nil, errors.New("workflow name is required")
 	}
 	if input == nil {
 		input = map[string]any{}

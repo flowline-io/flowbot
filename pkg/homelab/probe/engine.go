@@ -144,11 +144,6 @@ func (e *Engine) resolveHostPort(port homelab.PortMapping) string {
 			return port.Container
 		}
 		return port.HostPort
-	case "both":
-		if port.HostPort != "" {
-			return port.HostPort
-		}
-		return port.Container
 	default:
 		if port.HostPort != "" {
 			return port.HostPort

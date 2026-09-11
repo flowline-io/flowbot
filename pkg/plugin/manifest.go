@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"errors"
 	"github.com/bytedance/sonic"
 	goYaml "github.com/goccy/go-yaml"
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -105,16 +106,16 @@ func ParseManifest(data []byte) (*Manifest, error) {
 		return nil, fmt.Errorf("parse manifest: %w", err)
 	}
 	if m.Name == "" {
-		return nil, fmt.Errorf("manifest: missing name")
+		return nil, errors.New("manifest: missing name")
 	}
 	if m.Runtime != RuntimeGRPC && m.Runtime != RuntimeWasm {
 		return nil, fmt.Errorf("manifest: invalid runtime %q, must be grpc or wasm", m.Runtime)
 	}
 	if m.Runtime == RuntimeGRPC && m.GRPC == nil {
-		return nil, fmt.Errorf("manifest: grpc config required for grpc runtime")
+		return nil, errors.New("manifest: grpc config required for grpc runtime")
 	}
 	if m.Runtime == RuntimeWasm && m.Wasm == nil {
-		return nil, fmt.Errorf("manifest: wasm config required for wasm runtime")
+		return nil, errors.New("manifest: wasm config required for wasm runtime")
 	}
 	return &m, nil
 }

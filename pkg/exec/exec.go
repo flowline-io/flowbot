@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -72,7 +73,7 @@ func (c Config) maxOutput() int {
 func (c Config) ResolveWorkDir(workdir string) (string, error) {
 	root := strings.TrimSpace(c.Workspace)
 	if root == "" {
-		return "", fmt.Errorf("workspace is required")
+		return "", errors.New("workspace is required")
 	}
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
@@ -83,7 +84,7 @@ func (c Config) ResolveWorkDir(workdir string) (string, error) {
 		return absRoot, nil
 	}
 	if filepath.IsAbs(workdir) {
-		return "", fmt.Errorf("workdir must be relative to workspace")
+		return "", errors.New("workdir must be relative to workspace")
 	}
 	joined := filepath.Clean(filepath.Join(absRoot, workdir))
 	rel, err := filepath.Rel(absRoot, joined)
@@ -97,7 +98,7 @@ func (c Config) ResolveWorkDir(workdir string) (string, error) {
 func RunTerminal(ctx context.Context, cfg Config, command, workdir string) (Result, error) {
 	command = strings.TrimSpace(command)
 	if command == "" {
-		return Result{}, fmt.Errorf("command is required")
+		return Result{}, errors.New("command is required")
 	}
 	dir, err := cfg.ResolveWorkDir(workdir)
 	if err != nil {
@@ -122,7 +123,7 @@ func RunTerminal(ctx context.Context, cfg Config, command, workdir string) (Resu
 func RunCode(ctx context.Context, cfg Config, language, code, filename, workdir string, stdin []byte) (Result, error) {
 	language = strings.ToLower(strings.TrimSpace(language))
 	if language == "" || strings.TrimSpace(code) == "" {
-		return Result{}, fmt.Errorf("language and code are required")
+		return Result{}, errors.New("language and code are required")
 	}
 	if len(code) > MaxCodeBytes {
 		return Result{}, fmt.Errorf("code exceeds %d bytes", MaxCodeBytes)
@@ -173,10 +174,10 @@ func RunEntrypoint(ctx context.Context, cfg Config, entrypoint, source string, s
 	switch entrypoint {
 	case "main.py", "main.sh", "main.go":
 	default:
-		return Result{}, fmt.Errorf("entrypoint must be main.py, main.sh, or main.go")
+		return Result{}, errors.New("entrypoint must be main.py, main.sh, or main.go")
 	}
 	if strings.TrimSpace(source) == "" {
-		return Result{}, fmt.Errorf("source is required")
+		return Result{}, errors.New("source is required")
 	}
 	if len(source) > MaxCodeBytes {
 		return Result{}, fmt.Errorf("source exceeds %d bytes", MaxCodeBytes)

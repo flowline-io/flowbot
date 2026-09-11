@@ -11,6 +11,7 @@ import (
 	"github.com/bytedance/sonic"
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -56,7 +57,7 @@ func NewWakapi(endpoint, apiKey string) *Wakapi {
 // Health checks GET /api/health (no auth required).
 func (w *Wakapi) Health(ctx context.Context) (*HealthStatus, error) {
 	if w == nil || w.c == nil {
-		return nil, fmt.Errorf("wakapi: not configured")
+		return nil, errors.New("wakapi: not configured")
 	}
 	resp, err := w.c.R().SetContext(ctx).Get("/api/health")
 	if err != nil {
@@ -143,7 +144,7 @@ func (w *Wakapi) ListHeartbeats(ctx context.Context, params HeartbeatsParams) (*
 		user = CurrentUser
 	}
 	if params.Date == "" {
-		return nil, fmt.Errorf("wakapi heartbeats: date required")
+		return nil, errors.New("wakapi heartbeats: date required")
 	}
 	path := fmt.Sprintf("/api/compat/wakatime/v1/users/%s/heartbeats", user)
 	resp, err := w.c.R().

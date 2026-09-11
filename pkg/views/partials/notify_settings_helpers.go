@@ -122,8 +122,6 @@ func actionBadgeClass(action string) string {
 		return "flowbot-chip flowbot-chip-warning"
 	case "aggregate":
 		return "flowbot-chip flowbot-chip-primary"
-	case "mute":
-		return "flowbot-chip flowbot-chip-muted"
 	case "drop":
 		return "flowbot-chip flowbot-chip-error"
 	default:

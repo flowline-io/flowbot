@@ -8,6 +8,7 @@ import (
 	"github.com/bytedance/sonic"
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -52,7 +53,7 @@ func NewGrafana(endpoint, token string) *Grafana {
 // Health returns Grafana instance health.
 func (g *Grafana) Health(ctx context.Context) (*Health, error) {
 	if g == nil || g.c == nil {
-		return nil, fmt.Errorf("grafana: not configured")
+		return nil, errors.New("grafana: not configured")
 	}
 	resp, err := g.c.R().SetContext(ctx).Get("/api/health")
 	if err != nil {

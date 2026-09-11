@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flc1125/go-cron/v4"
 )
 
@@ -15,7 +16,7 @@ var cronParser = cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month 
 func ValidateExpr(spec string) error {
 	spec = strings.TrimSpace(spec)
 	if spec == "" {
-		return fmt.Errorf("empty cron expression")
+		return errors.New("empty cron expression")
 	}
 	if _, err := cronParser.Parse(spec); err != nil {
 		return fmt.Errorf("invalid cron expression %q: %w", spec, err)
@@ -27,7 +28,7 @@ func ValidateExpr(spec string) error {
 func NextRun(spec string, from time.Time) (time.Time, error) {
 	spec = strings.TrimSpace(spec)
 	if spec == "" {
-		return time.Time{}, fmt.Errorf("empty cron expression")
+		return time.Time{}, errors.New("empty cron expression")
 	}
 	schedule, err := cronParser.Parse(spec)
 	if err != nil {

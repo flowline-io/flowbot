@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -118,7 +119,7 @@ func (m *Manager) EnsureWithinBudget(ctx context.Context, sess *session.Session,
 // CompactAndReload compacts the current branch and reloads agent state.
 func (m *Manager) CompactAndReload(ctx context.Context, sess *session.Session, ag StatefulAgent, opts CompactOpts) (CompactReport, error) {
 	if sess == nil {
-		return CompactReport{}, fmt.Errorf("ctxmgr: nil session")
+		return CompactReport{}, errors.New("ctxmgr: nil session")
 	}
 	if !opts.Force && !m.settings.Enabled {
 		return CompactReport{}, nil
@@ -137,7 +138,7 @@ func (m *Manager) CompactAndReload(ctx context.Context, sess *session.Session, a
 // MoveTo navigates the session tree, auto-summarizing abandoned branches when needed.
 func (m *Manager) MoveTo(ctx context.Context, sess *session.Session, targetEntryID, summary string) error {
 	if sess == nil {
-		return fmt.Errorf("ctxmgr: nil session")
+		return errors.New("ctxmgr: nil session")
 	}
 	if summary != "" {
 		return sess.MoveTo(ctx, targetEntryID, summary)

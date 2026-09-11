@@ -53,7 +53,7 @@ func NewClient(lc fx.Lifecycle, _ *config.Type) (*redis.Client, error) {
 // ReadTimeout and WriteTimeout fall back to 60s when zero.
 func redisOptions(cfg config.Redis) (*redis.Options, error) {
 	if cfg.URL == "" {
-		return nil, fmt.Errorf("redis.url is empty")
+		return nil, errors.New("redis.url is empty")
 	}
 	opts, err := redis.ParseURL(cfg.URL)
 	if err != nil {

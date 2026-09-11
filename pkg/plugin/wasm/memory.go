@@ -8,12 +8,13 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/tetratelabs/wazero/api"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // writeJSON writes JSON data to the wasm module's memory.
-func writeJSON(ctx context.Context, mod api.Module, data any) (uint32, uint32, error) {
+func writeJSON(ctx context.Context, mod api.Module, data any) (ptr, size uint32, err error) {
 	raw, err := sonic.Marshal(data)
 	if err != nil {
 		return 0, 0, fmt.Errorf("marshal: %w", err)
@@ -22,7 +23,7 @@ func writeJSON(ctx context.Context, mod api.Module, data any) (uint32, uint32, e
 }
 
 // writeBytes writes raw bytes to the wasm module's memory.
-func writeBytes(ctx context.Context, mod api.Module, data []byte) (uint32, uint32, error) {
+func writeBytes(ctx context.Context, mod api.Module, data []byte) (ptr, size uint32, err error) {
 	size, ok := utils.IntToUint32(len(data))
 	if !ok {
 		return 0, 0, fmt.Errorf("payload too large: %d bytes", len(data))
@@ -35,12 +36,12 @@ func writeBytes(ctx context.Context, mod api.Module, data []byte) (uint32, uint3
 	if err != nil {
 		return 0, 0, fmt.Errorf("alloc: %w", err)
 	}
-	ptr, ok := utils.Uint64ToUint32(results[0])
+	ptr, ok = utils.Uint64ToUint32(results[0])
 	if !ok {
-		return 0, 0, fmt.Errorf("alloc returned out-of-range pointer")
+		return 0, 0, errors.New("alloc returned out-of-range pointer")
 	}
 	if ptr == 0 {
-		return 0, 0, fmt.Errorf("alloc returned null pointer")
+		return 0, 0, errors.New("alloc returned null pointer")
 	}
 	if !mod.Memory().Write(ptr, data) {
 		return 0, 0, fmt.Errorf("memory write failed at ptr=%d size=%d", ptr, size)
@@ -88,8 +89,8 @@ func readJSON(_ context.Context, mod api.Module, result uint64, target any) erro
 }
 
 // decodeResult decodes (ptr << 32) | size
-func decodeResult(result uint64) (uint32, uint32) {
-	ptr := uint32(result >> 32)
-	size := uint32(result & 0xFFFFFFFF)
+func decodeResult(result uint64) (ptr, size uint32) {
+	ptr = uint32(result >> 32)
+	size = uint32(result & 0xFFFFFFFF)
 	return ptr, size
 }

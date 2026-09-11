@@ -2,9 +2,9 @@ package chatagent
 
 import (
 	"context"
-	"fmt"
 	"slices"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -26,7 +26,7 @@ type TodoListSnapshot struct {
 // ListTodoItems loads the current checklist for one session.
 func ListTodoItems(ctx context.Context, sessionID string) ([]TodoItem, error) {
 	if store.Database == nil {
-		return nil, fmt.Errorf("store unavailable")
+		return nil, errors.New("store unavailable")
 	}
 	rows, err := store.AgentStoreFromDB().ListAgentTodosBySession(ctx, sessionID)
 	if err != nil {
@@ -59,7 +59,7 @@ func SummarizeTodosBySessions(ctx context.Context, sessionIDs []string) (map[str
 		return map[string]model.AgentTodoSummary{}, nil
 	}
 	if store.Database == nil {
-		return nil, fmt.Errorf("store unavailable")
+		return nil, errors.New("store unavailable")
 	}
 	rows, err := store.AgentStoreFromDB().ListAgentTodosBySessions(ctx, sessionIDs)
 	if err != nil {

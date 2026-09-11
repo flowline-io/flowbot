@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -133,7 +134,7 @@ func TestProviderAdapterGetAuthorizeURL(t *testing.T) {
 			runner := &stubRunner{
 				callFn: func(_ context.Context, _ string, _ json.RawMessage) (json.RawMessage, error) {
 					if tt.name == "call error returns empty" {
-						return nil, fmt.Errorf("connection refused")
+						return nil, errors.New("connection refused")
 					}
 					return tt.result, nil
 				},

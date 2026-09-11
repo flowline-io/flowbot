@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
@@ -25,13 +26,13 @@ func validateAuthConfig(cfg AuthConfig) error {
 	hasPassword := cfg.Password != ""
 	hasHash := cfg.PasswordHash != ""
 	if hasPassword && hasHash {
-		return fmt.Errorf("web auth: set either password or password_hash, not both")
+		return errors.New("web auth: set either password or password_hash, not both")
 	}
 	if !hasPassword && !hasHash {
 		return nil
 	}
 	if !hasUser {
-		return fmt.Errorf("web auth: username is required when password or password_hash is set")
+		return errors.New("web auth: username is required when password or password_hash is set")
 	}
 	if hasHash {
 		return validatePasswordHash(cfg.PasswordHash)
@@ -48,7 +49,7 @@ func validatePasswordHash(hash string) error {
 	// defer the full weak-list probe to rejectWeakPasswordHash unit tests (MinCost).
 	if raceDetectorEnabled {
 		if bcrypt.CompareHashAndPassword([]byte(hash), []byte("")) == nil {
-			return fmt.Errorf("web auth: password_hash must not match an empty password")
+			return errors.New("web auth: password_hash must not match an empty password")
 		}
 		return nil
 	}
@@ -57,11 +58,11 @@ func validatePasswordHash(hash string) error {
 
 func validatePasswordHashFormat(hash string) error {
 	if !isBcryptHash(hash) {
-		return fmt.Errorf("web auth: invalid password_hash (expected bcrypt)")
+		return errors.New("web auth: invalid password_hash (expected bcrypt)")
 	}
 	cost, err := bcrypt.Cost([]byte(hash))
 	if err != nil {
-		return fmt.Errorf("web auth: invalid password_hash (expected bcrypt)")
+		return errors.New("web auth: invalid password_hash (expected bcrypt)")
 	}
 	if cost < webauth.MinBcryptCost {
 		return fmt.Errorf("web auth: password_hash bcrypt cost must be at least %d", webauth.MinBcryptCost)
@@ -71,11 +72,11 @@ func validatePasswordHashFormat(hash string) error {
 
 func rejectWeakPasswordHash(hash string) error {
 	if bcrypt.CompareHashAndPassword([]byte(hash), []byte("")) == nil {
-		return fmt.Errorf("web auth: password_hash must not match an empty password")
+		return errors.New("web auth: password_hash must not match an empty password")
 	}
 	for _, w := range knownWeakPasswords {
 		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(w)) == nil {
-			return fmt.Errorf("web auth: password_hash matches a known weak password")
+			return errors.New("web auth: password_hash matches a known weak password")
 		}
 	}
 	return nil
@@ -99,7 +100,7 @@ func yamlMigrationHash(cfg AuthConfig) (string, error) {
 		return cfg.PasswordHash, nil
 	}
 	if cfg.Password == "" {
-		return "", fmt.Errorf("no yaml password")
+		return "", errors.New("no yaml password")
 	}
 	return webauth.HashPassword(cfg.Password)
 }

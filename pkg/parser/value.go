@@ -14,7 +14,7 @@ func (v Value) Int64() (int64, bool) {
 	return s, ok
 }
 
-func (v Value) Bool() (bool, bool) {
+func (v Value) Bool() (value, ok bool) {
 	s, ok := v.Source.(bool)
 	return s, ok
 }

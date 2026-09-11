@@ -143,7 +143,7 @@ func TestHealthzCapabilitiesPartial(t *testing.T) {
 		t.Errorf("want capability status partial, got %s", body)
 	}
 	if strings.Contains(string(body), "<!DOCTYPE html>") {
-		t.Errorf("capabilities partial must not be a full document")
+		t.Error("capabilities partial must not be a full document")
 	}
 }
 

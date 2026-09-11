@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/google/uuid"
@@ -133,7 +134,7 @@ func (g *ConfirmGate) Wait(ctx context.Context, event hooks.ToolCallEvent, eval 
 	case <-g.done:
 		resp := ConfirmResponse{Approved: false, Reason: ConfirmReasonDenied, Mode: ConfirmModeReject}
 		g.publishResolved(confirmID, resp)
-		return resp, fmt.Errorf("confirmation cancelled")
+		return resp, errors.New("confirmation cancelled")
 	}
 }
 

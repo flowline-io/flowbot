@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -21,13 +22,13 @@ const (
 func BuildSignedURL(publicBaseURL, secret, fileID string, ttl time.Duration, now time.Time) (string, error) {
 	base := strings.TrimRight(strings.TrimSpace(publicBaseURL), "/")
 	if base == "" {
-		return "", fmt.Errorf("media: public_base_url is required for signed URLs")
+		return "", errors.New("media: public_base_url is required for signed URLs")
 	}
 	if strings.TrimSpace(secret) == "" {
-		return "", fmt.Errorf("media: sign secret is required for signed URLs")
+		return "", errors.New("media: sign secret is required for signed URLs")
 	}
 	if strings.TrimSpace(fileID) == "" {
-		return "", fmt.Errorf("media: file id is required")
+		return "", errors.New("media: file id is required")
 	}
 	if ttl <= 0 {
 		ttl = time.Hour
@@ -57,20 +58,20 @@ func SignFile(secret, fileID string, exp int64) string {
 // VerifySignedRequest validates exp and sig query parameters for a file id.
 func VerifySignedRequest(secret, fileID, expRaw, sig string, now time.Time) error {
 	if strings.TrimSpace(secret) == "" {
-		return fmt.Errorf("media: sign secret is not configured")
+		return errors.New("media: sign secret is not configured")
 	}
 	exp, err := strconv.ParseInt(expRaw, 10, 64)
 	if err != nil {
-		return fmt.Errorf("media: invalid exp")
+		return errors.New("media: invalid exp")
 	}
 	if now.Unix() > exp {
-		return fmt.Errorf("media: signed url expired")
+		return errors.New("media: signed url expired")
 	}
 	want := SignFile(secret, fileID, exp)
 	if !hmac.Equal([]byte(want), []byte(sig)) {
 		// Also accept URL-safe base64 mistakes from clients by rejecting clearly.
 		_ = base64.RawURLEncoding
-		return fmt.Errorf("media: invalid signature")
+		return errors.New("media: invalid signature")
 	}
 	return nil
 }

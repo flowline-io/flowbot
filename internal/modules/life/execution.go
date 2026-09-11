@@ -381,8 +381,6 @@ func normalizedImportNodeType(parentType, requested string, hasChildren, hasActi
 		return "project"
 	case "milestone":
 		return "project"
-	case "project":
-		return "action"
 	default:
 		return "action"
 	}

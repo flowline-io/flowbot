@@ -1,6 +1,7 @@
 package dcg
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,10 +16,10 @@ func SynthCommand(language, code string) (string, error) {
 	lang := strings.ToLower(strings.TrimSpace(language))
 	body := strings.TrimSpace(code)
 	if lang == "" {
-		return "", fmt.Errorf("dcg: language is required")
+		return "", errors.New("dcg: language is required")
 	}
 	if body == "" {
-		return "", fmt.Errorf("dcg: code is required")
+		return "", errors.New("dcg: code is required")
 	}
 	quoted := strconv.Quote(body)
 	switch lang {

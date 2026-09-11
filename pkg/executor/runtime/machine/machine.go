@@ -47,20 +47,18 @@ func NewRuntime(opts ...Option) (*Runtime, error) {
 		o(rt)
 	}
 
-	var hostKeyCallback ssh.HostKeyCallback
-	if rt.config.HostKey != "" {
-		keyBytes, err := base64.StdEncoding.DecodeString(rt.config.HostKey)
-		if err != nil {
-			return nil, fmt.Errorf("invalid host key base64: %w", err)
-		}
-		pubKey, err := ssh.ParsePublicKey(keyBytes)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse host key: %w", err)
-		}
-		hostKeyCallback = ssh.FixedHostKey(pubKey)
-	} else {
-		return nil, fmt.Errorf("host key is required for secure SSH connection (set executor.machine.host_key in config)")
+	if rt.config.HostKey == "" {
+		return nil, errors.New("host key is required for secure SSH connection (set executor.machine.host_key in config)")
 	}
+	keyBytes, err := base64.StdEncoding.DecodeString(rt.config.HostKey)
+	if err != nil {
+		return nil, fmt.Errorf("invalid host key base64: %w", err)
+	}
+	pubKey, err := ssh.ParsePublicKey(keyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse host key: %w", err)
+	}
+	hostKeyCallback := ssh.FixedHostKey(pubKey)
 
 	cfg := &ssh.ClientConfig{
 		User:            rt.config.Username,

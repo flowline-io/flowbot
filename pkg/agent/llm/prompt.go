@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
 )
@@ -31,7 +32,7 @@ func (t *chatTemplate) Format(_ context.Context, data map[string]any) ([]llms.Me
 		if raw, ok := data["chat_history"]; ok {
 			chatHistory, ok := raw.([]llms.MessageContent)
 			if !ok {
-				return nil, fmt.Errorf("agent llm: chat_history must be []llms.MessageContent")
+				return nil, errors.New("agent llm: chat_history must be []llms.MessageContent")
 			}
 			messages = append(messages, chatHistory...)
 		}

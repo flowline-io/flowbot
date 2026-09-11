@@ -84,7 +84,8 @@ tasks:
   lint:go:
     desc: Run revive
     cmds:
-      - go tool revive -config revive.toml -formatter friendly ./...
+      # Align with gosec: skip generated Ent (see .agents/notes/implemented/process/2026-09-11-gosec-g115-and-ent-gen-exclude.md).
+      - go tool revive -config revive.toml -formatter friendly -exclude ./internal/store/ent/gen/... ./...
 
   lint:action:
     desc: Lint GitHub Actions workflow files

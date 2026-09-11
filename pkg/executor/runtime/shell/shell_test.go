@@ -27,9 +27,7 @@ func skipIfWindows(t *testing.T) {
 func mockReexec(args ...string) *exec.Cmd {
 	var cmdArgs []string
 	for i := 0; i < len(args); i++ {
-		if args[i] == "-uid" {
-			i++
-		} else if args[i] == "-gid" {
+		if args[i] == "-uid" || args[i] == "-gid" {
 			i++
 		} else if args[i] != "shell" {
 			cmdArgs = append(cmdArgs, args[i])

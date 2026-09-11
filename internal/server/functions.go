@@ -9,6 +9,7 @@ import (
 
 	"go.uber.org/fx"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
@@ -103,7 +104,7 @@ func (e *functionSandboxEnv) Exec(ctx context.Context, opts env.ExecOptions) res
 	workspace := strings.TrimSpace(opts.Dir)
 	if workspace == "" {
 		return result.Err[env.Capture, result.ExecutionError](
-			result.NewExecutionError("spawn_error", "function sandbox workspace is required", fmt.Errorf("empty workspace")),
+			result.NewExecutionError("spawn_error", "function sandbox workspace is required", errors.New("empty workspace")),
 		)
 	}
 	sb := sandbox.New(sandbox.Config{

@@ -51,14 +51,14 @@ func NewBinaryChecker(opts BinaryCheckerOptions) *BinaryChecker {
 // Check runs dcg --robot test against command.
 func (c *BinaryChecker) Check(ctx context.Context, command string) (Decision, error) {
 	if c == nil {
-		return Decision{}, fmt.Errorf("dcg: checker is nil")
+		return Decision{}, errors.New("dcg: checker is nil")
 	}
 	command = strings.TrimSpace(command)
 	if command == "" {
-		return Decision{}, fmt.Errorf("dcg: command is required")
+		return Decision{}, errors.New("dcg: command is required")
 	}
 	if c.configPath == "" {
-		return Decision{}, fmt.Errorf("dcg: config path is required")
+		return Decision{}, errors.New("dcg: config path is required")
 	}
 
 	runner := c.runner
@@ -162,7 +162,7 @@ func (c ErrorChecker) Check(context.Context, string) (Decision, error) {
 	if c.Err != nil {
 		return Decision{}, c.Err
 	}
-	return Decision{}, fmt.Errorf("dcg: unavailable")
+	return Decision{}, errors.New("dcg: unavailable")
 }
 
 // AllowAllChecker permits every command (tests).
@@ -190,7 +190,7 @@ func (c DenyChecker) Check(context.Context, string) (Decision, error) {
 
 var (
 	defaultMu      sync.RWMutex
-	defaultChecker Checker = ErrorChecker{Err: fmt.Errorf("dcg: not initialized")}
+	defaultChecker Checker = ErrorChecker{Err: errors.New("dcg: not initialized")}
 )
 
 // SetDefaultChecker installs the process-wide checker used when ChatHookDeps.DCG is nil.
@@ -198,7 +198,7 @@ func SetDefaultChecker(c Checker) {
 	defaultMu.Lock()
 	defer defaultMu.Unlock()
 	if c == nil {
-		defaultChecker = ErrorChecker{Err: fmt.Errorf("dcg: not initialized")}
+		defaultChecker = ErrorChecker{Err: errors.New("dcg: not initialized")}
 		return
 	}
 	defaultChecker = c

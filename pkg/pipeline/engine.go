@@ -970,7 +970,7 @@ func convertToTypesKV(m map[string]any) types.KV {
 // from the checkpointed step index.
 func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 	if e.store == nil {
-		return fmt.Errorf("pipeline store not available")
+		return errors.New("pipeline store not available")
 	}
 
 	run, err := e.store.GetRun(ctx, runID)

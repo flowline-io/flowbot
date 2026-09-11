@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/validate"
@@ -80,7 +81,7 @@ func (k *KanbanClient) Create(ctx context.Context, req KanbanCreateRequest) (*ca
 
 func validateCreateRequest(req *KanbanCreateRequest) error {
 	if req.Title == "" {
-		return fmt.Errorf("title is required")
+		return errors.New("title is required")
 	}
 	if len(req.Title) > validate.TitleMaxLen {
 		return fmt.Errorf("title exceeds maximum length of %d", validate.TitleMaxLen)
@@ -211,7 +212,7 @@ func (k *KanbanClient) Search(ctx context.Context, projectID int, query string) 
 		return nil, fmt.Errorf("project_id must be positive, got %d", projectID)
 	}
 	if query == "" {
-		return nil, fmt.Errorf("query is required")
+		return nil, errors.New("query is required")
 	}
 
 	var result []*capability.Task
@@ -251,7 +252,7 @@ func (k *KanbanClient) GetMetadataByName(ctx context.Context, taskID int, name s
 		return "", fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
 	if name == "" {
-		return "", fmt.Errorf("name is required")
+		return "", errors.New("name is required")
 	}
 
 	var result string
@@ -297,7 +298,7 @@ func (k *KanbanClient) RemoveMetadata(ctx context.Context, taskID int, name stri
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
 	if name == "" {
-		return nil, fmt.Errorf("name is required")
+		return nil, errors.New("name is required")
 	}
 
 	var result KanbanRemoveMetadataResult
@@ -353,7 +354,7 @@ func (k *KanbanClient) CreateTag(ctx context.Context, req KanbanCreateTagRequest
 		return nil, fmt.Errorf("project_id must be positive, got %d", req.ProjectID)
 	}
 	if req.Name == "" {
-		return nil, fmt.Errorf("name is required")
+		return nil, errors.New("name is required")
 	}
 
 	var result KanbanCreateTagResult
@@ -381,7 +382,7 @@ func (k *KanbanClient) UpdateTag(ctx context.Context, id int, req KanbanUpdateTa
 		return nil, fmt.Errorf("id must be positive, got %d", id)
 	}
 	if req.Name == "" {
-		return nil, fmt.Errorf("name is required")
+		return nil, errors.New("name is required")
 	}
 
 	var result KanbanUpdateTagResult
@@ -509,7 +510,7 @@ func (k *KanbanClient) CreateSubtask(ctx context.Context, taskID int, req Kanban
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
 	if req.Title == "" {
-		return nil, fmt.Errorf("title is required")
+		return nil, errors.New("title is required")
 	}
 
 	var result KanbanCreateSubtaskResult

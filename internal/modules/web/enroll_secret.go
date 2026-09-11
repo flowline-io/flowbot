@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -21,7 +22,7 @@ const (
 func stashEnrollSecret(_ fiber.Ctx, pending *pendingSession, secret string) error {
 	enc := getEncryptor()
 	if enc == nil {
-		return fmt.Errorf("encryptor not ready")
+		return errors.New("encryptor not ready")
 	}
 	ct, nonce, err := enc.Encrypt([]byte(secret))
 	if err != nil {
@@ -41,7 +42,7 @@ func stashEnrollSecret(_ fiber.Ctx, pending *pendingSession, secret string) erro
 func readEnrollSecret(params types.KV) (string, error) {
 	enc := getEncryptor()
 	if enc == nil {
-		return "", fmt.Errorf("encryptor not ready")
+		return "", errors.New("encryptor not ready")
 	}
 	ctB64, _ := params.String(paramEnrollSecretCT)
 	nonceB64, _ := params.String(paramEnrollSecretNonce)

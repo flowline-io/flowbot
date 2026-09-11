@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
@@ -295,7 +296,7 @@ func applyUpdateHunks(original string, hunks [][]string) (string, error) {
 		}
 		idx := indexSequence(lines, before)
 		if idx < 0 {
-			return "", fmt.Errorf("hunk context not found")
+			return "", errors.New("hunk context not found")
 		}
 		next := make([]string, 0, len(lines)-len(before)+len(after))
 		next = append(next, lines[:idx]...)

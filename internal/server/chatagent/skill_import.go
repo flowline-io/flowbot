@@ -44,7 +44,7 @@ type skillFrontmatter struct {
 // Safe to call on every server start; preserves enabled / disable_model_invocation on update.
 func ImportBundledSkills(ctx context.Context) error {
 	if store.Database == nil {
-		return fmt.Errorf("skill store unavailable")
+		return errors.New("skill store unavailable")
 	}
 	n, err := ImportSkillsFromFS(ctx, skills.FS, ".")
 	if err != nil {
@@ -59,7 +59,7 @@ func ImportBundledSkills(ctx context.Context) error {
 // Source is recorded as "imported". Returns the number of skills synced.
 func ImportSkillsFromZip(ctx context.Context, data []byte) (int, error) {
 	if len(data) == 0 {
-		return 0, fmt.Errorf("empty zip archive")
+		return 0, errors.New("empty zip archive")
 	}
 	if len(data) > maxSkillZipBytes {
 		return 0, fmt.Errorf("zip archive exceeds maximum size (%d bytes)", maxSkillZipBytes)
@@ -92,7 +92,7 @@ func upsertSkillsFromFS(ctx context.Context, fsys fs.FS, root, source string) (i
 		return 0, nil
 	}
 	if store.Database == nil {
-		return 0, fmt.Errorf("skill store unavailable")
+		return 0, errors.New("skill store unavailable")
 	}
 	synced := 0
 	for _, skillDir := range dirs {
@@ -138,7 +138,7 @@ func mapFSFromZip(data []byte) (fstest.MapFS, error) {
 		return nil, fmt.Errorf("open zip: %w", err)
 	}
 	if len(zr.File) > maxSkillZipFiles {
-		return nil, fmt.Errorf("zip archive has too many files")
+		return nil, errors.New("zip archive has too many files")
 	}
 	out := make(fstest.MapFS)
 	var total int64
@@ -155,7 +155,7 @@ func mapFSFromZip(data []byte) (fstest.MapFS, error) {
 		}
 		total += int64(f.UncompressedSize64)
 		if total > maxSkillZipUncompressed {
-			return nil, fmt.Errorf("zip uncompressed size exceeds maximum")
+			return nil, errors.New("zip uncompressed size exceeds maximum")
 		}
 		rc, err := f.Open()
 		if err != nil {
@@ -209,11 +209,11 @@ func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir, source string)
 	body = strings.TrimSpace(body)
 	switch {
 	case name == "":
-		return fmt.Errorf("SKILL.md missing name")
+		return errors.New("SKILL.md missing name")
 	case desc == "":
-		return fmt.Errorf("SKILL.md missing description")
+		return errors.New("SKILL.md missing description")
 	case body == "":
-		return fmt.Errorf("SKILL.md body is empty")
+		return errors.New("SKILL.md body is empty")
 	}
 	if source == "" {
 		source = skillSourceBundled
@@ -351,13 +351,13 @@ func parseSkillMarkdown(raw string) (skillFrontmatter, string, error) {
 	const delim = "---"
 	trimmed := strings.TrimLeftFunc(raw, unicode.IsSpace)
 	if !strings.HasPrefix(trimmed, delim) {
-		return skillFrontmatter{}, "", fmt.Errorf("missing YAML frontmatter")
+		return skillFrontmatter{}, "", errors.New("missing YAML frontmatter")
 	}
 	rest := strings.TrimPrefix(trimmed, delim)
 	rest = strings.TrimLeft(rest, "\r\n")
 	before, after, ok := strings.Cut(rest, "\n"+delim)
 	if !ok {
-		return skillFrontmatter{}, "", fmt.Errorf("unterminated YAML frontmatter")
+		return skillFrontmatter{}, "", errors.New("unterminated YAML frontmatter")
 	}
 	yamlBlock := before
 	body := strings.TrimLeft(after, "\r\n")

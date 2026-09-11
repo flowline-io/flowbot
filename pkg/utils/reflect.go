@@ -10,7 +10,7 @@ func GetFunctionName(i any) string {
 	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
-func ParseFunctionName(name string) (string, string) {
+func ParseFunctionName(name string) (pkg, function string) {
 	names := strings.Split(name, ".")
 	if len(names) > 1 {
 		return strings.Join(names[:len(names)-1], "."), names[len(names)-1]

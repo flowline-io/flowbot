@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
@@ -82,7 +83,7 @@ func hubAppsStatusCommand() *cobra.Command {
 		Long:  "Retrieve the current status and health of a specific homelab application.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("app name is required")
+				return errors.New("app name is required")
 			}
 			name := args[0]
 
@@ -116,7 +117,7 @@ func hubAppsLogsCommand() *cobra.Command {
 		Short: "Get app logs",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("app name is required")
+				return errors.New("app name is required")
 			}
 			name := args[0]
 
@@ -149,7 +150,7 @@ func hubAppsRestartCommand() *cobra.Command {
 		Long:  "Trigger a restart of a registered homelab application by name.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("app name is required")
+				return errors.New("app name is required")
 			}
 			name := args[0]
 
@@ -238,7 +239,7 @@ func hubHealthCommand() *cobra.Command {
 			_, _ = fmt.Println()
 
 			if len(health.Details) > 0 {
-				_, _ = fmt.Printf("Capabilities:\n")
+				_, _ = fmt.Print("Capabilities:\n")
 				for _, d := range health.Details {
 					_, _ = fmt.Printf("  %-18s (app: %s) [%s]\n",
 						d.Capability, d.App, d.Status)
@@ -247,7 +248,7 @@ func hubHealthCommand() *cobra.Command {
 			}
 
 			if len(health.AppStatuses) > 0 {
-				_, _ = fmt.Printf("Apps:\n")
+				_, _ = fmt.Print("Apps:\n")
 				for _, a := range health.AppStatuses {
 					_, _ = fmt.Printf("  %-24s status: %-12s health: %s\n",
 						a.Name, a.Status, a.Health)

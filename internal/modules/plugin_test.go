@@ -3,13 +3,13 @@ package modules_test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	"github.com/flowline-io/flowbot/pkg/plugin/adapter"
 	"github.com/flowline-io/flowbot/pkg/plugin/manager"
@@ -55,7 +55,7 @@ func TestModuleAdapterCommand(t *testing.T) {
 		{
 			name:       "handles plugin errors gracefully",
 			result:     json.RawMessage(`{}`),
-			callError:  fmt.Errorf("plugin error"),
+			callError:  errors.New("plugin error"),
 			wantErrMsg: "plugin error",
 		},
 		{

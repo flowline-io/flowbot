@@ -509,7 +509,7 @@ func (s *AgentStore) SearchAgentKnowledge(ctx context.Context, params AgentKnowl
 	prefix := strings.TrimSpace(params.PathPrefix)
 	tag := strings.TrimSpace(params.Tag)
 	if queryText == "" && prefix == "" {
-		return nil, fmt.Errorf("postgres: search agent knowledge: query or path_prefix is required")
+		return nil, errors.New("postgres: search agent knowledge: query or path_prefix is required")
 	}
 	limit := normalizeAgentKnowledgeSearchLimit(params.Limit)
 
@@ -746,10 +746,10 @@ func (s *AgentStore) UpsertAgentMemoryFact(ctx context.Context, fact AgentMemory
 	key := strings.TrimSpace(fact.Key)
 	value := strings.TrimSpace(fact.Value)
 	if scope == "" || key == "" {
-		return nil, fmt.Errorf("postgres: upsert agent memory fact: scope and key are required")
+		return nil, errors.New("postgres: upsert agent memory fact: scope and key are required")
 	}
 	if value == "" {
-		return nil, fmt.Errorf("postgres: upsert agent memory fact: value is required")
+		return nil, errors.New("postgres: upsert agent memory fact: value is required")
 	}
 	existing, err := s.client.AgentMemoryFact.Query().
 		Where(
@@ -890,7 +890,7 @@ func (s *AgentStore) UpsertAgentSessionSummaryPending(ctx context.Context, sessi
 	flag := strings.TrimSpace(sessionFlag)
 	scope = strings.TrimSpace(scope)
 	if flag == "" || scope == "" {
-		return nil, fmt.Errorf("postgres: upsert session summary pending: session_flag and scope are required")
+		return nil, errors.New("postgres: upsert session summary pending: session_flag and scope are required")
 	}
 	existing, err := s.client.AgentSessionSummary.Query().
 		Where(agentsessionsummary.SessionFlagEQ(flag)).
@@ -937,7 +937,7 @@ func (s *AgentStore) UpsertAgentSessionSummaryPending(ctx context.Context, sessi
 func (s *AgentStore) ClaimAgentSessionSummaryPending(ctx context.Context, claimToken string) (*gen.AgentSessionSummary, error) {
 	token := strings.TrimSpace(claimToken)
 	if token == "" {
-		return nil, fmt.Errorf("postgres: claim session summary: claim_token is required")
+		return nil, errors.New("postgres: claim session summary: claim_token is required")
 	}
 	row, err := s.client.AgentSessionSummary.Query().
 		Where(
@@ -977,7 +977,7 @@ func (s *AgentStore) MarkAgentSessionSummaryReady(ctx context.Context, sessionFl
 	flag := strings.TrimSpace(sessionFlag)
 	token := strings.TrimSpace(claimToken)
 	if flag == "" || token == "" {
-		return fmt.Errorf("postgres: mark session summary ready: session_flag and claim_token are required")
+		return errors.New("postgres: mark session summary ready: session_flag and claim_token are required")
 	}
 	n, err := s.client.AgentSessionSummary.Update().
 		Where(
@@ -1007,7 +1007,7 @@ func (s *AgentStore) MarkAgentSessionSummaryFailed(ctx context.Context, sessionF
 	flag := strings.TrimSpace(sessionFlag)
 	token := strings.TrimSpace(claimToken)
 	if flag == "" || token == "" {
-		return fmt.Errorf("postgres: mark session summary failed: session_flag and claim_token are required")
+		return errors.New("postgres: mark session summary failed: session_flag and claim_token are required")
 	}
 	n, err := s.client.AgentSessionSummary.Update().
 		Where(
@@ -1048,7 +1048,7 @@ func (s *AgentStore) GetAgentSessionSummaryBySession(ctx context.Context, sessio
 func (s *AgentStore) SearchAgentSessionSummaries(ctx context.Context, params AgentSessionSummarySearchParams) ([]*gen.AgentSessionSummary, error) {
 	queryText := strings.TrimSpace(params.Query)
 	if queryText == "" {
-		return nil, fmt.Errorf("postgres: search session summaries: query is required")
+		return nil, errors.New("postgres: search session summaries: query is required")
 	}
 	limit := normalizeAgentKnowledgeSearchLimit(params.Limit)
 	query := s.client.AgentSessionSummary.Query().

@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,6 +9,7 @@ import (
 
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -705,7 +705,7 @@ func TestIsNotFound(t *testing.T) {
 		},
 		{
 			name: "non api error",
-			err:  fmt.Errorf("network error"),
+			err:  errors.New("network error"),
 			want: false,
 		},
 		{
@@ -748,7 +748,7 @@ func TestIsUnauthorized(t *testing.T) {
 		},
 		{
 			name: "non api error",
-			err:  fmt.Errorf("random error"),
+			err:  errors.New("random error"),
 			want: false,
 		},
 		{

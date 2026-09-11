@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -27,7 +28,7 @@ func (g *GithubClient) GetUser(ctx context.Context) (*capability.ForgeUser, erro
 // GetUserByLogin returns a github user by login name.
 func (g *GithubClient) GetUserByLogin(ctx context.Context, login string) (*capability.ForgeUser, error) {
 	if login == "" {
-		return nil, fmt.Errorf("login is required")
+		return nil, errors.New("login is required")
 	}
 	path := fmt.Sprintf("/service/github/user/%s", login)
 	var result capability.ForgeUser
@@ -41,7 +42,7 @@ func (g *GithubClient) GetUserByLogin(ctx context.Context, login string) (*capab
 // GetRepo returns a repository by owner and repo name.
 func (g *GithubClient) GetRepo(ctx context.Context, owner, repo string) (*capability.ForgeRepo, error) {
 	if owner == "" || repo == "" {
-		return nil, fmt.Errorf("owner and repo are required")
+		return nil, errors.New("owner and repo are required")
 	}
 	path := "/service/github/repo?" + url.Values{
 		"owner": {owner},
@@ -58,7 +59,7 @@ func (g *GithubClient) GetRepo(ctx context.Context, owner, repo string) (*capabi
 // ListIssues returns issues for an owner with optional filtering.
 func (g *GithubClient) ListIssues(ctx context.Context, owner string, query *ListIssuesQuery) ([]*capability.ForgeIssue, error) {
 	if owner == "" {
-		return nil, fmt.Errorf("owner is required")
+		return nil, errors.New("owner is required")
 	}
 	params := url.Values{"owner": {owner}}
 	if query != nil {
@@ -81,7 +82,7 @@ func (g *GithubClient) ListIssues(ctx context.Context, owner string, query *List
 // GetIssue returns a single issue by owner, repo, and issue number.
 func (g *GithubClient) GetIssue(ctx context.Context, owner, repo string, number int64) (*capability.ForgeIssue, error) {
 	if owner == "" || repo == "" {
-		return nil, fmt.Errorf("owner and repo are required")
+		return nil, errors.New("owner and repo are required")
 	}
 	if number <= 0 {
 		return nil, fmt.Errorf("number must be positive, got %d", number)
@@ -102,7 +103,7 @@ func (g *GithubClient) GetIssue(ctx context.Context, owner, repo string, number 
 // GetCommitDiff returns the diff for a specific commit.
 func (g *GithubClient) GetCommitDiff(ctx context.Context, owner, repo, commitID string) (*capability.ForgeCommitDiff, error) {
 	if owner == "" || repo == "" || commitID == "" {
-		return nil, fmt.Errorf("owner, repo and commit_id are required")
+		return nil, errors.New("owner, repo and commit_id are required")
 	}
 	path := "/service/github/commit-diff?" + url.Values{
 		"owner":     {owner},
@@ -120,7 +121,7 @@ func (g *GithubClient) GetCommitDiff(ctx context.Context, owner, repo, commitID 
 // GetFileContent returns the content of a file at a specific commit.
 func (g *GithubClient) GetFileContent(ctx context.Context, owner, repo, commitID, filePath string, query *FileContentQuery) (string, error) {
 	if owner == "" || repo == "" || commitID == "" || filePath == "" {
-		return "", fmt.Errorf("owner, repo, commit_id and file_path are required")
+		return "", errors.New("owner, repo, commit_id and file_path are required")
 	}
 	params := url.Values{
 		"owner":     {owner},
@@ -171,7 +172,7 @@ func (g *GithubClient) ListNotifications(ctx context.Context, query *ListNotific
 // ListReleases returns releases for a repository.
 func (g *GithubClient) ListReleases(ctx context.Context, owner, repo string, query *ListNotificationsQuery) ([]*capability.Release, error) {
 	if owner == "" || repo == "" {
-		return nil, fmt.Errorf("owner and repo are required")
+		return nil, errors.New("owner and repo are required")
 	}
 	params := url.Values{
 		"owner": {owner},

@@ -31,7 +31,7 @@ const tokenUsername = "<token>"
 //
 // This will use `LoadDefaultConfig` to read registry auth details from the config.
 // If the config doesn't exist, it will attempt to load registry credentials using the default credential helper for the platform.
-func getRegistryCredentials(configFile, hostname string) (string, string, error) {
+func getRegistryCredentials(configFile, hostname string) (username, password string, err error) {
 	cfg, err := loadConfig(configFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -47,7 +47,7 @@ func getRegistryCredentials(configFile, hostname string) (string, string, error)
 // Hostnames should already be resolved using `ResolveRegistryAuth`
 //
 // If the returned username string is empty, the password is an identity token.
-func (c *config) getRegistryCredentials(hostname string) (string, string, error) {
+func (c *config) getRegistryCredentials(hostname string) (username, password string, err error) {
 	h, ok := c.CredentialHelpers[hostname]
 	if ok {
 		return getCredentialsFromHelper(h, hostname)
@@ -77,7 +77,7 @@ func (c *config) getRegistryCredentials(hostname string) (string, string, error)
 // It takes the "Auth" filed from AuthConfig and decodes that into a username and password.
 //
 // If "Auth" is empty, an empty user/pass will be returned, but not an error.
-func decodeBase64Auth(auth authConfig) (string, string, error) {
+func decodeBase64Auth(auth authConfig) (username, password string, err error) {
 	if auth.Auth == "" {
 		return "", "", nil
 	}
@@ -111,7 +111,7 @@ func decodeBase64Auth(auth authConfig) (string, string, error) {
 // Hostnames should already be resolved using `ResolveRegistryAuth`
 //
 // If the username string is empty, the password string is an identity token.
-func getCredentialsFromHelper(helper, hostname string) (string, string, error) {
+func getCredentialsFromHelper(helper, hostname string) (username, password string, err error) {
 	if helper == "" {
 		helper = getCredentialHelper()
 	}

@@ -89,8 +89,6 @@ func CountToolErrors(messages []msg.AgentMessage) int {
 // NormalizeTier maps empty/unknown tier to basic.
 func NormalizeTier(raw string) string {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "", TierBasic:
-		return TierBasic
 	case TierCombo:
 		return TierCombo
 	case TierSystem:

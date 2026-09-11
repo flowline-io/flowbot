@@ -2,9 +2,9 @@ package approval
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
+	"errors"
 	"github.com/bytedance/sonic"
 )
 
@@ -36,7 +36,7 @@ type LLMReviewer struct {
 // Review runs the aux security classification.
 func (r *LLMReviewer) Review(ctx context.Context, req ReviewRequest) (ReviewResult, error) {
 	if r == nil || r.Complete == nil {
-		return ReviewResult{}, fmt.Errorf("approval: reviewer unavailable")
+		return ReviewResult{}, errors.New("approval: reviewer unavailable")
 	}
 	system := reviewerSystemPrompt()
 	user := FormatReviewUserPrompt(req)

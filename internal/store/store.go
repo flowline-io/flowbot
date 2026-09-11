@@ -21,13 +21,12 @@ var availableAdapters = make(map[string]Adapter)
 
 func openAdapter(jsonConfig config.StoreType) error {
 	if adp == nil {
-		if len(availableAdapters) >= 1 {
-			// Default to the only entry in availableAdapters.
-			for _, v := range availableAdapters {
-				adp = v
-			}
-		} else {
+		if len(availableAdapters) == 0 {
 			return errors.New("store: db adapter is not specified. Please set postgres.dsn in flowbot.yaml")
+		}
+		// Default to the only entry in availableAdapters.
+		for _, v := range availableAdapters {
+			adp = v
 		}
 	}
 

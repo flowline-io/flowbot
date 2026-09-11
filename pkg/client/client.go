@@ -132,11 +132,11 @@ func (c *Client) SetDebug(debug bool) {
 	if debug && !c.debugErrorHookSet {
 		c.debugErrorHookSet = true
 		c.rc.OnError(func(req *resty.Request, err error) {
-			fmt.Fprintf(os.Stderr, "\n==============================================================================\n")
-			fmt.Fprintf(os.Stderr, "~~~ REQUEST (FAILED) ~~~\n")
+			fmt.Fprint(os.Stderr, "\n==============================================================================\n")
+			fmt.Fprint(os.Stderr, "~~~ REQUEST (FAILED) ~~~\n")
 			fmt.Fprintf(os.Stderr, "%s  %s\n", req.Method, req.URL)
 			fmt.Fprintf(os.Stderr, "ERROR  : %v\n", err)
-			fmt.Fprintf(os.Stderr, "==============================================================================\n")
+			fmt.Fprint(os.Stderr, "==============================================================================\n")
 		})
 	}
 }

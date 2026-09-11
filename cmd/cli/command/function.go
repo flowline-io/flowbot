@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	pkgfunctions "github.com/flowline-io/flowbot/pkg/functions"
 )
@@ -40,7 +41,7 @@ func functionApplyCommand() *cobra.Command {
 				return err
 			}
 			if strings.TrimSpace(dir) == "" {
-				return fmt.Errorf("--dir is required")
+				return errors.New("--dir is required")
 			}
 			meta, entrypoint, source, err := pkgfunctions.LoadDir(dir)
 			if err != nil {
@@ -105,7 +106,7 @@ func functionGetCommand() *cobra.Command {
 		Short: "Get a function definition",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("function name is required")
+				return errors.New("function name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -127,7 +128,7 @@ func functionExportCommand() *cobra.Command {
 		Short: "Export a function snapshot",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("function name is required")
+				return errors.New("function name is required")
 			}
 			outDir, err := cmd.Flags().GetString("out")
 			if err != nil {
@@ -167,7 +168,7 @@ func functionDeleteCommand() *cobra.Command {
 		Short: "Delete a function",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("function name is required")
+				return errors.New("function name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -189,7 +190,7 @@ func functionRunsCommand() *cobra.Command {
 		Short: "List function runs",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("function name is required")
+				return errors.New("function name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {

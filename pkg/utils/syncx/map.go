@@ -17,7 +17,7 @@ func (m *Map[K, V]) Get(key K) (value V, ok bool) {
 		return value, ok
 	}
 	value, ok = v.(V)
-	return
+	return value, ok
 }
 
 func (m *Map[K, V]) Set(key K, value V) {

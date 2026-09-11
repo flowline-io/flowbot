@@ -804,7 +804,7 @@ func handleStreamRead(w *bufio.Writer, result []redis.XStream, err error, lastID
 }
 
 func writeHeartbeat(w *bufio.Writer) bool {
-	if _, fErr := fmt.Fprintf(w, ": heartbeat\n\n"); fErr != nil {
+	if _, fErr := fmt.Fprint(w, ": heartbeat\n\n"); fErr != nil {
 		return true
 	}
 	return w.Flush() != nil

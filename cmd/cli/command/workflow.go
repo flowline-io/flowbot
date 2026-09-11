@@ -8,6 +8,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
@@ -40,7 +41,7 @@ func workflowApplyCommand() *cobra.Command {
 				return err
 			}
 			if strings.TrimSpace(filePath) == "" {
-				return fmt.Errorf("--file is required")
+				return errors.New("--file is required")
 			}
 			data, err := os.ReadFile(filePath)
 			if err != nil {
@@ -105,7 +106,7 @@ func workflowGetCommand() *cobra.Command {
 		Short: "Get a workflow definition",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("workflow name is required")
+				return errors.New("workflow name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -132,7 +133,7 @@ func workflowExportCommand() *cobra.Command {
 		Short: "Export a workflow as YAML",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("workflow name is required")
+				return errors.New("workflow name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -164,7 +165,7 @@ func workflowDeleteCommand() *cobra.Command {
 		Short: "Delete a workflow definition",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("workflow name is required")
+				return errors.New("workflow name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -186,7 +187,7 @@ func workflowRunCommand() *cobra.Command {
 		Short: "Run a stored workflow asynchronously",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("workflow name is required")
+				return errors.New("workflow name is required")
 			}
 			inputRaw, _ := cmd.Flags().GetString("input")
 			input := map[string]any{}
@@ -217,7 +218,7 @@ func workflowRunsCommand() *cobra.Command {
 		Short: "List runs for a workflow",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("workflow name is required")
+				return errors.New("workflow name is required")
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {

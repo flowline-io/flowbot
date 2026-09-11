@@ -10,6 +10,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
@@ -39,7 +40,7 @@ func reset2FAAction(cmd *cobra.Command, _ []string) error {
 	username, _ := cmd.Flags().GetString("username")
 	username = strings.TrimSpace(username)
 	if username == "" {
-		return fmt.Errorf("username is required")
+		return errors.New("username is required")
 	}
 	yes, _ := cmd.Flags().GetBool("yes")
 	if err := confirmReset2FA(cmd, username, yes); err != nil {
@@ -75,7 +76,7 @@ func confirmReset2FA(cmd *cobra.Command, username string, yes bool) error {
 		return fmt.Errorf("read confirmation: %w", err)
 	}
 	if strings.TrimSpace(line) != username {
-		return fmt.Errorf("confirmation mismatch; aborted")
+		return errors.New("confirmation mismatch; aborted")
 	}
 	return nil
 }

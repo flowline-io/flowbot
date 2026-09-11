@@ -3,7 +3,6 @@ package transmission
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/hekmon/transmissionrpc/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -78,7 +78,7 @@ func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (tra
 	}
 
 	if !isValidRedirect(magnetUrl) {
-		return transmissionrpc.Torrent{}, fmt.Errorf("transmission: invalid torrent url")
+		return transmissionrpc.Torrent{}, errors.New("transmission: invalid torrent url")
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, magnetUrl, http.NoBody)
@@ -89,10 +89,10 @@ func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (tra
 		Transport: utils.HTTPTransport(),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 5 {
-				return fmt.Errorf("transmission: too many redirects")
+				return errors.New("transmission: too many redirects")
 			}
 			if !isValidRedirect(req.URL.String()) {
-				return fmt.Errorf("transmission: invalid torrent redirect url")
+				return errors.New("transmission: invalid torrent redirect url")
 			}
 			return nil
 		},

@@ -528,8 +528,6 @@ func zerologLevel(level string) zerolog.Level {
 	switch level {
 	case DebugLevel:
 		return zerolog.DebugLevel
-	case InfoLevel:
-		return zerolog.InfoLevel
 	case WarnLevel:
 		return zerolog.WarnLevel
 	case ErrorLevel:

@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -27,7 +28,7 @@ func (f *ForgeClient) GetUser(ctx context.Context) (*capability.ForgeUser, error
 // GetRepo returns a repository by owner and repo name.
 func (f *ForgeClient) GetRepo(ctx context.Context, owner, repo string) (*capability.ForgeRepo, error) {
 	if owner == "" || repo == "" {
-		return nil, fmt.Errorf("owner and repo are required")
+		return nil, errors.New("owner and repo are required")
 	}
 	path := "/service/gitea/repo?" + url.Values{
 		"owner": {owner},
@@ -51,7 +52,7 @@ type ListIssuesQuery struct {
 // ListIssues returns issues for an owner with optional filtering.
 func (f *ForgeClient) ListIssues(ctx context.Context, owner string, query *ListIssuesQuery) ([]*capability.ForgeIssue, error) {
 	if owner == "" {
-		return nil, fmt.Errorf("owner is required")
+		return nil, errors.New("owner is required")
 	}
 	params := url.Values{"owner": {owner}}
 	if query != nil {
@@ -74,7 +75,7 @@ func (f *ForgeClient) ListIssues(ctx context.Context, owner string, query *ListI
 // GetIssue returns a single issue by owner, repo, and issue index.
 func (f *ForgeClient) GetIssue(ctx context.Context, owner, repo string, index int64) (*capability.ForgeIssue, error) {
 	if owner == "" || repo == "" {
-		return nil, fmt.Errorf("owner and repo are required")
+		return nil, errors.New("owner and repo are required")
 	}
 	if index <= 0 {
 		return nil, fmt.Errorf("index must be positive, got %d", index)
@@ -95,7 +96,7 @@ func (f *ForgeClient) GetIssue(ctx context.Context, owner, repo string, index in
 // GetCommitDiff returns the diff for a specific commit.
 func (f *ForgeClient) GetCommitDiff(ctx context.Context, owner, repo, commitID string) (*capability.ForgeCommitDiff, error) {
 	if owner == "" || repo == "" || commitID == "" {
-		return nil, fmt.Errorf("owner, repo and commit_id are required")
+		return nil, errors.New("owner, repo and commit_id are required")
 	}
 	path := "/service/gitea/commit-diff?" + url.Values{
 		"owner":     {owner},
@@ -119,7 +120,7 @@ type FileContentQuery struct {
 // GetFileContent returns the content of a file at a specific commit.
 func (f *ForgeClient) GetFileContent(ctx context.Context, owner, repo, commitID, filePath string, query *FileContentQuery) (string, error) {
 	if owner == "" || repo == "" || commitID == "" || filePath == "" {
-		return "", fmt.Errorf("owner, repo, commit_id and file_path are required")
+		return "", errors.New("owner, repo, commit_id and file_path are required")
 	}
 	params := url.Values{
 		"owner":     {owner},

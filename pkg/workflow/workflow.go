@@ -9,6 +9,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
@@ -495,10 +496,10 @@ func (r *Runner) ResumeWorkflow(ctx context.Context, runID int64) error {
 	defer r.Close()
 
 	if r.store == nil {
-		return fmt.Errorf("cannot resume workflow without a store")
+		return errors.New("cannot resume workflow without a store")
 	}
 	if r.definitions == nil {
-		return fmt.Errorf("cannot resume workflow without a definition store")
+		return errors.New("cannot resume workflow without a definition store")
 	}
 
 	run, err := r.store.GetRun(ctx, runID)

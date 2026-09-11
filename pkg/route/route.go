@@ -367,19 +367,19 @@ func GetAccessToken(req *http.Request) string {
 func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	p, err := LookupAccessToken(context.Background(), accessToken)
 	if err != nil {
-		return
+		return uid, isValid
 	}
 	if p.ID <= 0 || AccessTokenIsExpired(p) {
-		return
+		return uid, isValid
 	}
 	params := types.KV(p.Params)
 	u, _ := params.String("uid")
 	uid = types.Uid(u)
 	if uid.IsZero() {
-		return
+		return uid, isValid
 	}
 	isValid = true
-	return
+	return uid, isValid
 }
 
 func GetUid(ctx fiber.Ctx) types.Uid {

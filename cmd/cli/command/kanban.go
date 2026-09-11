@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/client"
@@ -103,7 +104,7 @@ func kanbanGetCommand() *cobra.Command {
 		Long:  "Display details of a specific kanban task",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -186,7 +187,7 @@ func kanbanUpdateCommand() *cobra.Command {
 		Long:  "Modify an existing kanban task",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -227,7 +228,7 @@ func kanbanDeleteCommand() *cobra.Command {
 		Long:  "Close a task by ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -272,7 +273,7 @@ func kanbanMoveCommand() *cobra.Command {
 		Long:  "Move a task to a different column",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -317,7 +318,7 @@ func kanbanSearchCommand() *cobra.Command {
 		Long:  "Search tasks using kanboard search syntax",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("search query is required")
+				return errors.New("search query is required")
 			}
 			query := args[0]
 
@@ -382,7 +383,7 @@ func kanbanMetadataGetCommand() *cobra.Command {
 		Long:  "Get all metadata or a specific metadata value by name",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -401,15 +402,13 @@ func kanbanMetadataGetCommand() *cobra.Command {
 					return fmt.Errorf("get metadata: %w", err)
 				}
 				_, _ = fmt.Println(value)
-			} else {
-				metadata, err := c.Kanban.GetMetadata(cmd.Context(), taskId)
-				if err != nil {
-					return fmt.Errorf("get metadata: %w", err)
-				}
-				return PrintJSON(metadata)
+				return nil
 			}
-
-			return nil
+			metadata, err := c.Kanban.GetMetadata(cmd.Context(), taskId)
+			if err != nil {
+				return fmt.Errorf("get metadata: %w", err)
+			}
+			return PrintJSON(metadata)
 		},
 	}
 	cmd.Flags().StringP("output", "o", "json", "Output format (json, value)")
@@ -423,7 +422,7 @@ func kanbanMetadataSetCommand() *cobra.Command {
 		Long:  "Set one or more metadata values for a task",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and at least one name=value pair are required")
+				return errors.New("task ID and at least one name=value pair are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -468,7 +467,7 @@ func kanbanMetadataDeleteCommand() *cobra.Command {
 		Long:  "Delete a metadata entry from a task",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and metadata name are required")
+				return errors.New("task ID and metadata name are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -544,7 +543,7 @@ func kanbanSubtaskListCommand() *cobra.Command {
 		Long:  "Display all subtasks for a given task",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -597,7 +596,7 @@ func kanbanSubtaskGetCommand() *cobra.Command {
 		Long:  "Display details of a specific subtask",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and subtask ID are required")
+				return errors.New("task ID and subtask ID are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -646,7 +645,7 @@ func kanbanSubtaskCreateCommand() *cobra.Command {
 		Long:  "Add a subtask to a kanban task",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -697,7 +696,7 @@ func kanbanSubtaskUpdateCommand() *cobra.Command {
 		Long:  "Modify an existing subtask",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and subtask ID are required")
+				return errors.New("task ID and subtask ID are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -758,7 +757,7 @@ func kanbanSubtaskDeleteCommand() *cobra.Command {
 		Long:  "Remove a subtask by ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and subtask ID are required")
+				return errors.New("task ID and subtask ID are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -826,7 +825,7 @@ func kanbanSubtaskTimerCheckCommand() *cobra.Command {
 		Long:  "Check if a timer is started for the given subtask and user",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and subtask ID are required")
+				return errors.New("task ID and subtask ID are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -867,7 +866,7 @@ func kanbanSubtaskTimerStartCommand() *cobra.Command {
 		Long:  "Start subtask timer for a user",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and subtask ID are required")
+				return errors.New("task ID and subtask ID are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -908,7 +907,7 @@ func kanbanSubtaskTimerStopCommand() *cobra.Command {
 		Long:  "Stop subtask timer for a user",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and subtask ID are required")
+				return errors.New("task ID and subtask ID are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -949,7 +948,7 @@ func kanbanSubtaskTimerSpentCommand() *cobra.Command {
 		Long:  "Get time spent on a subtask for a user (in hours)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("task ID and subtask ID are required")
+				return errors.New("task ID and subtask ID are required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -1087,7 +1086,7 @@ func kanbanTagUpdateCommand() *cobra.Command {
 		Long:  "Modify an existing tag",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("tag ID is required")
+				return errors.New("tag ID is required")
 			}
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -1129,7 +1128,7 @@ func kanbanTagDeleteCommand() *cobra.Command {
 		Long:  "Remove a tag by ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("tag ID is required")
+				return errors.New("tag ID is required")
 			}
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -1187,7 +1186,7 @@ func kanbanTagTaskGetCommand() *cobra.Command {
 		Long:  "Display tags assigned to a task",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -1232,7 +1231,7 @@ func kanbanTagTaskSetCommand() *cobra.Command {
 		Long:  "Assign tags to a task",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("task ID is required")
+				return errors.New("task ID is required")
 			}
 			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -1334,7 +1333,7 @@ func kanbanCardMoveCommand() *cobra.Command {
 		Long:  "Move a task to a different column",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("card ID is required")
+				return errors.New("card ID is required")
 			}
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -1379,7 +1378,7 @@ func kanbanCardDeleteCommand() *cobra.Command {
 		Long:  "Close a task by ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("card ID is required")
+				return errors.New("card ID is required")
 			}
 			id, err := strconv.Atoi(args[0])
 			if err != nil {

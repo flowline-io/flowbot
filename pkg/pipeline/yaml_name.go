@@ -3,13 +3,14 @@ package pipeline
 import (
 	"fmt"
 
+	"errors"
 	"github.com/goccy/go-yaml"
 )
 
 // SetNameInYAML returns YAML with the top-level name field updated.
 func SetNameInYAML(yamlStr, name string) (string, error) {
 	if yamlStr == "" {
-		return "", fmt.Errorf("set name in yaml: empty input")
+		return "", errors.New("set name in yaml: empty input")
 	}
 	if err := ValidateName(name); err != nil {
 		return "", fmt.Errorf("set name in yaml: %w", err)

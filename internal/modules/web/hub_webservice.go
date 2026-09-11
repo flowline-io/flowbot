@@ -241,8 +241,6 @@ func hubLifecycleSuccessMessage(c fiber.Ctx, name, operation string) string {
 		return webMsgData(c, "toast.hub.restarted", map[string]any{"Name": name})
 	case "pull":
 		return webMsgData(c, "toast.hub.pulled", map[string]any{"Name": name})
-	case "update":
-		return webMsgData(c, "toast.hub.updated", map[string]any{"Name": name})
 	default:
 		return webMsgData(c, "toast.hub.updated", map[string]any{"Name": name})
 	}

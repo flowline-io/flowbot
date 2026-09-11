@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
@@ -48,7 +49,7 @@ func (s *WorkflowStore) ApplyDefinition(ctx context.Context, meta *types.Workflo
 		return nil, nil
 	}
 	if meta == nil {
-		return nil, fmt.Errorf("workflow metadata is nil")
+		return nil, errors.New("workflow metadata is nil")
 	}
 	if err := schema.ValidatePipelineName(meta.Name); err != nil {
 		return nil, fmt.Errorf("workflow name: %w", err)

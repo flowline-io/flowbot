@@ -1,7 +1,6 @@
 package llm_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -19,5 +18,5 @@ func init() {
 }
 
 func TestMain(m *testing.M) {
-	os.Exit(m.Run())
+	m.Run()
 }

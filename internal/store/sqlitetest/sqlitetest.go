@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -110,7 +111,7 @@ func cachedSchemaTemplate() (string, error) {
 		if len(stmts) == 0 {
 			_ = client.Close()
 			_ = sqlDB.Close()
-			schemaTemplateErr = fmt.Errorf("ent schema WriteTo produced no statements")
+			schemaTemplateErr = errors.New("ent schema WriteTo produced no statements")
 			return
 		}
 		for _, stmt := range stmts {

@@ -2,10 +2,10 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -71,7 +71,7 @@ type emailHealthResult struct {
 // Send sends an email.
 func (e *EmailClient) Send(ctx context.Context, req *SendEmailRequest) error {
 	if req == nil {
-		return fmt.Errorf("request is required")
+		return errors.New("request is required")
 	}
 	var result emailActionResult
 	return e.c.Post(ctx, "/service/email/send", req, &result)
@@ -110,7 +110,7 @@ func (e *EmailClient) ListMessages(ctx context.Context, mailbox string, unseenOn
 // GetMessage fetches a message by id.
 func (e *EmailClient) GetMessage(ctx context.Context, id string) (*capability.MailMessage, error) {
 	if id == "" {
-		return nil, fmt.Errorf("id is required")
+		return nil, errors.New("id is required")
 	}
 	path := "/service/email/message?id=" + url.QueryEscape(id)
 	var result emailItemResult
@@ -171,7 +171,7 @@ func (e *EmailClient) SearchMessages(ctx context.Context, req *EmailSearchReques
 // MarkRead marks a message as read.
 func (e *EmailClient) MarkRead(ctx context.Context, id string) error {
 	if id == "" {
-		return fmt.Errorf("id is required")
+		return errors.New("id is required")
 	}
 	var result emailActionResult
 	return e.c.Post(ctx, "/service/email/messages/read", &EmailIDRequest{ID: id}, &result)
@@ -180,7 +180,7 @@ func (e *EmailClient) MarkRead(ctx context.Context, id string) error {
 // MarkUnread marks a message as unread.
 func (e *EmailClient) MarkUnread(ctx context.Context, id string) error {
 	if id == "" {
-		return fmt.Errorf("id is required")
+		return errors.New("id is required")
 	}
 	var result emailActionResult
 	return e.c.Post(ctx, "/service/email/messages/unread", &EmailIDRequest{ID: id}, &result)

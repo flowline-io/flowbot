@@ -1,6 +1,7 @@
 package permission
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -110,7 +111,7 @@ func BuildUserConfigFromForm(defaults Config, form FormValues) (Config, map[stri
 	mergePatternFormRules(out, defaults, form.Patterns, fieldErrors)
 
 	if len(fieldErrors) > 0 {
-		return nil, fieldErrors, fmt.Errorf("invalid permission form")
+		return nil, fieldErrors, errors.New("invalid permission form")
 	}
 	if err := ValidateUserConfig(out); err != nil {
 		return nil, nil, err

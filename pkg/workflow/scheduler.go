@@ -157,32 +157,31 @@ func (r *Runner) dispatchReadyTasks(
 	for {
 		mu.Lock()
 		hasReady := len(*ready) > 0 && *activeCount < wf.MaxConcurrency
-		if hasReady {
-			id := (*ready)[0]
-			*ready = (*ready)[1:]
-			*activeCount++
-			if r.metrics != nil {
-				r.metrics.SetConcurrency(wf.Name, *activeCount)
-			}
-			mu.Unlock()
-
-			sem <- struct{}{}
-			wg.Add(1)
-
-			go func(taskID string) {
-				defer wg.Done()
-				defer func() {
-					<-sem
-					done <- struct{}{}
-				}()
-
-				wt := taskMap[taskID]
-				taskFn(ctx, taskID, wt, nodes, input, results, mu, run, ready, &wf, firstErr, errOnce, cancel)
-			}(id)
-		} else {
+		if !hasReady {
 			mu.Unlock()
 			break
 		}
+		id := (*ready)[0]
+		*ready = (*ready)[1:]
+		*activeCount++
+		if r.metrics != nil {
+			r.metrics.SetConcurrency(wf.Name, *activeCount)
+		}
+		mu.Unlock()
+
+		sem <- struct{}{}
+		wg.Add(1)
+
+		go func(taskID string) {
+			defer wg.Done()
+			defer func() {
+				<-sem
+				done <- struct{}{}
+			}()
+
+			wt := taskMap[taskID]
+			taskFn(ctx, taskID, wt, nodes, input, results, mu, run, ready, &wf, firstErr, errOnce, cancel)
+		}(id)
 	}
 }
 

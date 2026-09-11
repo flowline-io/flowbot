@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
@@ -49,10 +50,10 @@ type CreateFeedRequest struct {
 // CreateFeed creates a new feed.
 func (r *ReaderClient) CreateFeed(ctx context.Context, req *CreateFeedRequest) (*capability.Feed, error) {
 	if req == nil {
-		return nil, fmt.Errorf("feed_url is required")
+		return nil, errors.New("feed_url is required")
 	}
 	if req.FeedURL == "" {
-		return nil, fmt.Errorf("feed_url is required")
+		return nil, errors.New("feed_url is required")
 	}
 	if err := validate.ValidateVar(req.FeedURL, validate.TagURL); err != nil {
 		return nil, fmt.Errorf("invalid feed_url: %w", err)
@@ -117,10 +118,10 @@ type UpdateEntriesResult struct {
 // UpdateEntriesStatus updates the status of multiple entries.
 func (r *ReaderClient) UpdateEntriesStatus(ctx context.Context, req *UpdateEntriesRequest) (*UpdateEntriesResult, error) {
 	if req == nil || len(req.EntryIDs) == 0 {
-		return nil, fmt.Errorf("entry_ids is required")
+		return nil, errors.New("entry_ids is required")
 	}
 	if req.Status == "" {
-		return nil, fmt.Errorf("status is required")
+		return nil, errors.New("status is required")
 	}
 
 	var result UpdateEntriesResult

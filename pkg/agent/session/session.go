@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 )
 
@@ -70,7 +71,7 @@ func (s *Session) AppendCompaction(ctx context.Context, result CompactionResult)
 	}
 	entryID := result.EntryID
 	if entryID == "" {
-		return fmt.Errorf("session: empty compaction entry id")
+		return errors.New("session: empty compaction entry id")
 	}
 	entry := TreeEntry{
 		ID:               entryID,
@@ -228,7 +229,7 @@ func assistantToolsAlreadyEmitted(calls []msg.ToolCallPart, emitted map[string]s
 // MoveTo switches the active leaf and optionally appends a branch summary node.
 func (s *Session) MoveTo(ctx context.Context, entryID, summary string) error {
 	if entryID == "" {
-		return fmt.Errorf("session: empty entry id")
+		return errors.New("session: empty entry id")
 	}
 	s.invalidateBranchCache()
 	if summary != "" {

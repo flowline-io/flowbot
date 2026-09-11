@@ -8,6 +8,7 @@ import (
 
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
@@ -55,7 +56,7 @@ func (i *FireflyIII) About() (*About, error) {
 
 	result, ok := resp.Result().(*Response)
 	if !ok {
-		return nil, fmt.Errorf("unexpected response type from fireflyiii")
+		return nil, errors.New("unexpected response type from fireflyiii")
 	}
 	return ConvertResponseData[About](result, resp.StatusCode())
 }
@@ -71,7 +72,7 @@ func (i *FireflyIII) CurrentUser() (*User, error) {
 
 	result, ok := resp.Result().(*Response)
 	if !ok {
-		return nil, fmt.Errorf("unexpected response type from fireflyiii")
+		return nil, errors.New("unexpected response type from fireflyiii")
 	}
 	return ConvertResponseData[User](result, resp.StatusCode())
 }
@@ -88,7 +89,7 @@ func (i *FireflyIII) CreateTransaction(transaction Transaction) (*TransactionRes
 
 	result, ok := resp.Result().(*Response)
 	if !ok {
-		return nil, fmt.Errorf("unexpected response type from fireflyiii")
+		return nil, errors.New("unexpected response type from fireflyiii")
 	}
 	return ConvertResponseData[TransactionResult](result, resp.StatusCode())
 }

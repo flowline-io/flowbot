@@ -67,7 +67,7 @@ func classifyDirEntries(entries []os.DirEntry) (metaName, entryName string, err 
 	return metaName, entryName, nil
 }
 
-func classifyFile(name, metaName, entryName string) (string, string, error) {
+func classifyFile(name, metaName, entryName string) (meta, entry string, err error) {
 	switch {
 	case name == "metadata.yaml":
 		if metaName != "" {

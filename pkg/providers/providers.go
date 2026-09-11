@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/tidwall/gjson"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -103,7 +104,7 @@ func GetOAuthProvider(name string) (OAuthProvider, error) {
 func GetOrRefreshToken(ctx context.Context, uid types.Uid, topic, t string) (*OAuthToken, error) {
 	store := getOAuthTokenStore()
 	if store == nil {
-		return nil, fmt.Errorf("providers: oauth token store is not configured")
+		return nil, errors.New("providers: oauth token store is not configured")
 	}
 
 	oauth, err := store.Get(ctx, uid, topic, t)
@@ -148,7 +149,7 @@ func RedirectURI(name, flag string) string {
 var Configs json.RawMessage
 
 // ErrMissingConfig is returned when provider configs have not been loaded.
-var ErrMissingConfig = fmt.Errorf("provider configs are empty")
+var ErrMissingConfig = errors.New("provider configs are empty")
 
 // GetConfig reads a nested config value for the named provider.
 func GetConfig(name, key string) (gjson.Result, error) {

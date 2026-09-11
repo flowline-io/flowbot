@@ -130,12 +130,12 @@ func RequiredInt64(params map[string]any, key string) (int64, error) {
 	return value, nil
 }
 
-func BoolParam(params map[string]any, key string) (bool, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
+func BoolParam(params map[string]any, key string) (parsed, ok bool) {
+	raw, present := params[key]
+	if !present || raw == nil {
 		return false, false
 	}
-	switch v := value.(type) {
+	switch v := raw.(type) {
 	case bool:
 		return v, true
 	case string:

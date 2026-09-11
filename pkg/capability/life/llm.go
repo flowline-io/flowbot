@@ -670,7 +670,7 @@ func normalizeAdjudicationReason(raw, verdict string) string {
 	}
 }
 
-func normalizeAdjudicationRewards(verdict string, suggestedExp, suggestedGold, baseExp, baseGold int) (int, int) {
+func normalizeAdjudicationRewards(verdict string, suggestedExp, suggestedGold, baseExp, baseGold int) (exp, gold int) {
 	maxExp := max(baseExp, 0)
 	maxGold := max(baseGold, 0)
 	suggestedExp = clampInt(suggestedExp, 0, maxExp)

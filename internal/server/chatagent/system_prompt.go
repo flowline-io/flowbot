@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
 	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
 	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
@@ -233,7 +234,7 @@ func readContextFile(path string) (string, error) {
 		return "", err
 	}
 	if info.IsDir() {
-		return "", fmt.Errorf("context path is directory")
+		return "", errors.New("context path is directory")
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {

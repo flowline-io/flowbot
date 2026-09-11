@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"errors"
 	"github.com/bytedance/sonic"
 	"github.com/goccy/go-yaml"
 )
@@ -40,13 +41,13 @@ func loadSEOConfig() (seoConfig, error) {
 		return seoConfig{}, fmt.Errorf("parsing seo.yaml: %w", err)
 	}
 	if strings.TrimSpace(cfg.BaseURL) == "" {
-		return seoConfig{}, fmt.Errorf("seo.yaml: base_url is required")
+		return seoConfig{}, errors.New("seo.yaml: base_url is required")
 	}
 	if len(cfg.SitemapPaths) == 0 {
-		return seoConfig{}, fmt.Errorf("seo.yaml: sitemap_paths must not be empty")
+		return seoConfig{}, errors.New("seo.yaml: sitemap_paths must not be empty")
 	}
 	if len(cfg.EntryPages) == 0 {
-		return seoConfig{}, fmt.Errorf("seo.yaml: entry_pages must not be empty")
+		return seoConfig{}, errors.New("seo.yaml: entry_pages must not be empty")
 	}
 	cfg.BaseURL = strings.TrimRight(cfg.BaseURL, "/")
 	return cfg, nil

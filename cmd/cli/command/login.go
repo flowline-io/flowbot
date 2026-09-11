@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/store"
 )
 
@@ -39,7 +40,7 @@ func LoginCommand() *cobra.Command {
 			}
 
 			if token == "" {
-				return fmt.Errorf("token is required")
+				return errors.New("token is required")
 			}
 
 			if err := store.SaveToken(token, profile); err != nil {

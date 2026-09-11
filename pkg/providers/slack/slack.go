@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -118,7 +119,7 @@ func (v *Slack) GetAccessToken(ctx fiber.Ctx) (*providers.OAuthToken, error) {
 	v.redirectURI = providers.RedirectURI(ID, ctx.Params("flag"))
 	code := ctx.Query("code")
 	if code == "" {
-		return nil, fmt.Errorf("missing authorization code")
+		return nil, errors.New("missing authorization code")
 	}
 
 	tokenResp, err := v.completeAuth(code)

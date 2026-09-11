@@ -6,6 +6,7 @@ import (
 	"maps"
 	"slices"
 
+	"errors"
 	"github.com/bytedance/sonic"
 )
 
@@ -55,7 +56,7 @@ func parseRuleSet(raw []byte) (RuleSet, error) {
 	}
 	var patterns map[string]string
 	if err := sonic.Unmarshal(raw, &patterns); err != nil {
-		return RuleSet{}, fmt.Errorf("invalid rule value")
+		return RuleSet{}, errors.New("invalid rule value")
 	}
 	keys := make([]string, 0, len(patterns))
 	for pattern := range patterns {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -21,7 +22,7 @@ var homelabRuntime homelab.Runtime = homelab.NoopRuntime{}
 func RunHomelabScan(cfg config.Homelab) error {
 	homeConfig := homelabConfig(cfg)
 	if homeConfig.AppsDir == "" && homeConfig.Root == "" {
-		return fmt.Errorf("homelab app registry disabled: apps_dir and root are empty")
+		return errors.New("homelab app registry disabled: apps_dir and root are empty")
 	}
 	apps, err := homelab.NewScanner(homeConfig).Scan()
 	if err != nil {

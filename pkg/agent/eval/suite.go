@@ -2,6 +2,7 @@ package eval
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"maps"
 	"path/filepath"
@@ -128,7 +129,7 @@ func FilterByTier(scenarios []Scenario, spec string) ([]Scenario, error) {
 		}
 	}
 	if len(want) == 0 {
-		return nil, fmt.Errorf("eval: empty --tier spec")
+		return nil, errors.New("eval: empty --tier spec")
 	}
 	out := make([]Scenario, 0, len(scenarios))
 	for _, sc := range scenarios {

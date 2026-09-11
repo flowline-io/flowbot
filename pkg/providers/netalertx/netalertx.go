@@ -9,6 +9,7 @@ import (
 	"github.com/bytedance/sonic"
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -53,7 +54,7 @@ func NewNetAlertX(endpoint, token string) *NetAlertX {
 // Health reports whether the NetAlertX REST API is reachable.
 func (n *NetAlertX) Health(ctx context.Context) error {
 	if n == nil || n.c == nil {
-		return fmt.Errorf("netalertx: not configured")
+		return errors.New("netalertx: not configured")
 	}
 	_, err := n.fetchTotals(ctx)
 	if err != nil {
@@ -175,7 +176,7 @@ func isStatusCode(err error, code int) bool {
 // SearchDevices searches devices by MAC, name, or IP.
 func (n *NetAlertX) SearchDevices(ctx context.Context, query string) ([]Device, error) {
 	if query == "" {
-		return nil, fmt.Errorf("netalertx: query is required")
+		return nil, errors.New("netalertx: query is required")
 	}
 	resp, err := n.c.R().
 		SetContext(ctx).

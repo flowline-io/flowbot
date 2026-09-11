@@ -2,10 +2,10 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -196,7 +196,7 @@ func (d *DevopsClient) BeszelListSystems(ctx context.Context) (*DevopsSystemsRes
 // BeszelGetSystem returns one Beszel system.
 func (d *DevopsClient) BeszelGetSystem(ctx context.Context, id string) (*capability.DevopsSystem, error) {
 	if id == "" {
-		return nil, fmt.Errorf("id is required")
+		return nil, errors.New("id is required")
 	}
 	var result DevopsSystemResult
 	path := "/service/devops/beszel/systems/" + url.PathEscape(id)
@@ -285,10 +285,10 @@ func (d *DevopsClient) GrafanaSearchDashboards(ctx context.Context, query string
 // GrafanaQuery runs a query against prometheus/alloy/loki/tempo/pyroscope via Grafana.
 func (d *DevopsClient) GrafanaQuery(ctx context.Context, req DevopsGrafanaQueryRequest) (*capability.DevopsGrafanaQueryResult, error) {
 	if req.Backend == "" {
-		return nil, fmt.Errorf("backend is required")
+		return nil, errors.New("backend is required")
 	}
 	if req.Expr == "" {
-		return nil, fmt.Errorf("expr is required")
+		return nil, errors.New("expr is required")
 	}
 	var result DevopsGrafanaQueryResult
 	if err := d.c.Post(ctx, "/service/devops/grafana/query", &req, &result); err != nil {
@@ -387,7 +387,7 @@ func (d *DevopsClient) NetalertxTotals(ctx context.Context) (*capability.DevopsN
 // NetalertxSearchDevices searches NetAlertX devices.
 func (d *DevopsClient) NetalertxSearchDevices(ctx context.Context, query string) (*DevopsNetalertxDevicesResult, error) {
 	if query == "" {
-		return nil, fmt.Errorf("query is required")
+		return nil, errors.New("query is required")
 	}
 	var result DevopsNetalertxDevicesResult
 	if err := d.c.Post(ctx, "/service/devops/netalertx/devices/search", &DevopsNetalertxSearchRequest{Query: query}, &result); err != nil {
@@ -459,7 +459,7 @@ func (d *DevopsClient) ScanopyListHosts(ctx context.Context, opts DevopsScanopyL
 // ScanopyGetHost returns a Scanopy host by ID.
 func (d *DevopsClient) ScanopyGetHost(ctx context.Context, id string) (*capability.DevopsScanopyHost, error) {
 	if id == "" {
-		return nil, fmt.Errorf("id is required")
+		return nil, errors.New("id is required")
 	}
 	var result DevopsScanopyHostResult
 	if err := d.c.Get(ctx, "/service/devops/scanopy/hosts/"+url.PathEscape(id), &result); err != nil {

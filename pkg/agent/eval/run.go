@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/loop"
@@ -40,7 +41,7 @@ func RunFakeScenarioWithHarness(ctx context.Context, scenario Scenario) (RunResu
 // modelName is forwarded via llms.WithModel; empty defaults to "eval" (FakeModel-safe).
 func RunWithModel(ctx context.Context, scenario Scenario, model llms.Model, modelName string) (RunResult, error) {
 	if model == nil {
-		return RunResult{}, fmt.Errorf("eval: model is required")
+		return RunResult{}, errors.New("eval: model is required")
 	}
 	return executeScenario(ctx, scenario, model, modelName)
 }
@@ -48,7 +49,7 @@ func RunWithModel(ctx context.Context, scenario Scenario, model llms.Model, mode
 // RunWithModelHarness executes one scenario through pkg/agent/harness.
 func RunWithModelHarness(ctx context.Context, scenario Scenario, model llms.Model, modelName string) (RunResult, error) {
 	if model == nil {
-		return RunResult{}, fmt.Errorf("eval: model is required")
+		return RunResult{}, errors.New("eval: model is required")
 	}
 	return executeScenarioWithHarness(ctx, scenario, model, modelName)
 }

@@ -772,7 +772,7 @@ func TestGatewaySendDeferredInappAndMuteExternal(t *testing.T) {
 		case rec.Channel == "slack" && rec.Status == "muted":
 			sawMutedSlack = true
 		case rec.Channel == "slack" && rec.Status == "deferred":
-			t.Fatalf("slack should be muted at enqueue, not deferred")
+			t.Fatal("slack should be muted at enqueue, not deferred")
 		}
 	}
 	assert.True(t, sawInapp)

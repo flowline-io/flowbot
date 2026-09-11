@@ -513,7 +513,7 @@ func resolveTurnModel(ctx context.Context, deps LoopDeps, modelName string) (llm
 		return resolved, nil
 	}
 	if deps.Model == nil {
-		return nil, fmt.Errorf("agent loop: model is nil")
+		return nil, errors.New("agent loop: model is nil")
 	}
 	return deps.Model, nil
 }

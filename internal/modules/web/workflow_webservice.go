@@ -127,7 +127,7 @@ func workflowListTable(c fiber.Ctx) error {
 func loadWorkflowListEntries(ctx context.Context) ([]partials.WorkflowListEntry, error) {
 	s := getWorkflowStore()
 	if s == nil {
-		return nil, fmt.Errorf("workflow store not available")
+		return nil, errors.New("workflow store not available")
 	}
 	defs, err := s.ListDefinitions(ctx)
 	if err != nil {
@@ -547,8 +547,6 @@ func coerceWorkflowInputValue(def types.WorkflowInputDef, v any) (any, error) {
 
 func coerceWorkflowInputString(def types.WorkflowInputDef, raw string) (any, error) {
 	switch def.Type {
-	case types.WorkflowInputTypeString, "":
-		return raw, nil
 	case types.WorkflowInputTypeNumber:
 		f, err := strconv.ParseFloat(raw, 64)
 		if err != nil {

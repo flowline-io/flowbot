@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
@@ -183,7 +184,7 @@ func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityI
 
 // FindNodeRelations returns upstream and downstream edges for a node identified
 // by (appName, capability, entityID). Optional pipelineName filter and time window.
-func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, capability, entityID, pipelineName string, since time.Duration) ([]schema.ResourceEdge, []schema.ResourceEdge, error) {
+func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, capability, entityID, pipelineName string, since time.Duration) (upstream, downstream []schema.ResourceEdge, err error) {
 	if s == nil || s.client == nil {
 		return nil, nil, nil
 	}
@@ -260,7 +261,7 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 	if cursor != "" {
 		n, err := strconv.Atoi(cursor)
 		if err != nil || n < 0 {
-			return nil, "", fmt.Errorf("search nodes: invalid cursor")
+			return nil, "", errors.New("search nodes: invalid cursor")
 		}
 		offset = n
 	}

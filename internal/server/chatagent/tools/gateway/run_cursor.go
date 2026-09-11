@@ -93,7 +93,7 @@ func (t RunCursorTool) Execute(ctx context.Context, id string, args map[string]a
 // Register registers run_cursor when CapGateway is enabled.
 func Register(registry *tool.Registry, uid string) error {
 	if registry == nil {
-		return fmt.Errorf("gateway tools: registry is nil")
+		return errors.New("gateway tools: registry is nil")
 	}
 	if !config.App.Gateway.Enabled {
 		return nil

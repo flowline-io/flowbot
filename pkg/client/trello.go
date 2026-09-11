@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -43,7 +44,7 @@ func (t *TrelloClient) ListBoards(ctx context.Context, limit int, cursor string)
 // GetBoard returns a board by id.
 func (t *TrelloClient) GetBoard(ctx context.Context, boardID string) (*capability.TrelloBoard, error) {
 	if boardID == "" {
-		return nil, fmt.Errorf("board_id is required")
+		return nil, errors.New("board_id is required")
 	}
 	var result TrelloItemResult[capability.TrelloBoard]
 	path := fmt.Sprintf("/service/trello/boards/%s", url.PathEscape(boardID))
@@ -57,7 +58,7 @@ func (t *TrelloClient) GetBoard(ctx context.Context, boardID string) (*capabilit
 // ListLists returns lists on a board.
 func (t *TrelloClient) ListLists(ctx context.Context, boardID string) ([]capability.TrelloList, error) {
 	if boardID == "" {
-		return nil, fmt.Errorf("board_id is required")
+		return nil, errors.New("board_id is required")
 	}
 	var result []capability.TrelloList
 	path := fmt.Sprintf("/service/trello/boards/%s/lists", url.PathEscape(boardID))
@@ -68,7 +69,7 @@ func (t *TrelloClient) ListLists(ctx context.Context, boardID string) ([]capabil
 // ListCards returns cards on a board.
 func (t *TrelloClient) ListCards(ctx context.Context, boardID string, limit int, cursor string) (*TrelloListResult[capability.TrelloCard], error) {
 	if boardID == "" {
-		return nil, fmt.Errorf("board_id is required")
+		return nil, errors.New("board_id is required")
 	}
 	base := fmt.Sprintf("/service/trello/boards/%s/cards", url.PathEscape(boardID))
 	path := trelloPathWithPage(base, limit, cursor)
@@ -80,7 +81,7 @@ func (t *TrelloClient) ListCards(ctx context.Context, boardID string, limit int,
 // GetCard returns a card by id.
 func (t *TrelloClient) GetCard(ctx context.Context, cardID string) (*capability.TrelloCard, error) {
 	if cardID == "" {
-		return nil, fmt.Errorf("card_id is required")
+		return nil, errors.New("card_id is required")
 	}
 	var result TrelloItemResult[capability.TrelloCard]
 	path := fmt.Sprintf("/service/trello/cards/%s", url.PathEscape(cardID))
@@ -94,7 +95,7 @@ func (t *TrelloClient) GetCard(ctx context.Context, cardID string) (*capability.
 // SearchCards searches cards by query.
 func (t *TrelloClient) SearchCards(ctx context.Context, query string, limit int) ([]capability.TrelloCard, error) {
 	if query == "" {
-		return nil, fmt.Errorf("query is required")
+		return nil, errors.New("query is required")
 	}
 	v := url.Values{"q": {query}}
 	if limit > 0 {
@@ -116,7 +117,7 @@ type CreateCardRequest struct {
 // CreateCard creates a new card.
 func (t *TrelloClient) CreateCard(ctx context.Context, req *CreateCardRequest) (*capability.TrelloCard, error) {
 	if req == nil || req.ListID == "" || req.Name == "" {
-		return nil, fmt.Errorf("list_id and name are required")
+		return nil, errors.New("list_id and name are required")
 	}
 	var result TrelloItemResult[capability.TrelloCard]
 	err := t.c.Post(ctx, "/service/trello/cards", req, &result)
@@ -135,7 +136,7 @@ type UpdateCardRequest struct {
 // UpdateCard updates a card.
 func (t *TrelloClient) UpdateCard(ctx context.Context, cardID string, req *UpdateCardRequest) (*capability.TrelloCard, error) {
 	if cardID == "" {
-		return nil, fmt.Errorf("card_id is required")
+		return nil, errors.New("card_id is required")
 	}
 	if req == nil {
 		req = &UpdateCardRequest{}
@@ -157,7 +158,7 @@ type MoveCardRequest struct {
 // MoveCard moves a card to another list.
 func (t *TrelloClient) MoveCard(ctx context.Context, cardID, listID string) (*capability.TrelloCard, error) {
 	if cardID == "" || listID == "" {
-		return nil, fmt.Errorf("card_id and list_id are required")
+		return nil, errors.New("card_id and list_id are required")
 	}
 	var result TrelloItemResult[capability.TrelloCard]
 	path := fmt.Sprintf("/service/trello/cards/%s/move", url.PathEscape(cardID))
@@ -171,7 +172,7 @@ func (t *TrelloClient) MoveCard(ctx context.Context, cardID, listID string) (*ca
 // DeleteCard deletes a card.
 func (t *TrelloClient) DeleteCard(ctx context.Context, cardID string) error {
 	if cardID == "" {
-		return fmt.Errorf("card_id is required")
+		return errors.New("card_id is required")
 	}
 	path := fmt.Sprintf("/service/trello/cards/%s", url.PathEscape(cardID))
 	return t.c.Delete(ctx, path, nil, nil)
@@ -200,7 +201,7 @@ func (t *TrelloClient) RegisterWebhook(ctx context.Context, req *RegisterWebhook
 // DeleteWebhook deletes a webhook by id.
 func (t *TrelloClient) DeleteWebhook(ctx context.Context, webhookID string) error {
 	if webhookID == "" {
-		return fmt.Errorf("webhook_id is required")
+		return errors.New("webhook_id is required")
 	}
 	path := fmt.Sprintf("/service/trello/webhooks/%s", url.PathEscape(webhookID))
 	return t.c.Delete(ctx, path, nil, nil)

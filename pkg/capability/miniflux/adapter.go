@@ -205,8 +205,8 @@ func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (a *Adapter) decodeCursor(page capability.PageRequest) (int, int, error) {
-	limit := normalizedLimit(page.Limit)
+func (a *Adapter) decodeCursor(page capability.PageRequest) (offset, limit int, err error) {
+	limit = normalizedLimit(page.Limit)
 	if page.Cursor == "" {
 		return 0, limit, nil
 	}

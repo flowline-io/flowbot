@@ -6,6 +6,7 @@ import (
 
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -48,7 +49,7 @@ func (i *Drone) CreateBuild(namespace, name string) (*Build, error) {
 
 	result, ok := resp.Result().(*Build)
 	if !ok {
-		return nil, fmt.Errorf("unexpected response type from drone")
+		return nil, errors.New("unexpected response type from drone")
 	}
 	return result, nil
 }

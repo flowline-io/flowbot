@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 )
 
@@ -38,11 +39,11 @@ func NewRegistry() *Registry {
 // Register adds a tool and rejects duplicate names.
 func (r *Registry) Register(t Tool) error {
 	if t == nil {
-		return fmt.Errorf("tool registry: nil tool")
+		return errors.New("tool registry: nil tool")
 	}
 	name := t.Name()
 	if name == "" {
-		return fmt.Errorf("tool registry: empty tool name")
+		return errors.New("tool registry: empty tool name")
 	}
 
 	r.mu.Lock()

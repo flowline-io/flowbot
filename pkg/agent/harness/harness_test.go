@@ -2,12 +2,12 @@ package harness_test
 
 import (
 	"context"
-	"fmt"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"strings"
 	"testing"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
@@ -33,7 +33,7 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 		{
 			name: "overflow then success",
 			scripts: []agentllm.ResponseScript{
-				{Err: fmt.Errorf("Your input exceeds the context window of this model")},
+				{Err: errors.New("Your input exceeds the context window of this model")},
 				{Content: "## Goal\nCompact summary"},
 				{Content: "recovered reply"},
 			},
@@ -47,11 +47,11 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 		{
 			name: "overflow without recovery script",
 			scripts: []agentllm.ResponseScript{
-				{Err: fmt.Errorf("Your input exceeds the context window of this model")},
+				{Err: errors.New("Your input exceeds the context window of this model")},
 				{Content: "## Goal\nCompact summary"},
-				{Err: fmt.Errorf("Your input exceeds the context window of this model")},
+				{Err: errors.New("Your input exceeds the context window of this model")},
 				{Content: "## Goal\nForce compact summary"},
-				{Err: fmt.Errorf("Your input exceeds the context window of this model")},
+				{Err: errors.New("Your input exceeds the context window of this model")},
 			},
 			wantErr: true,
 		},
@@ -467,7 +467,7 @@ func TestHarnessRespectsCompactionDisabledOnOverflow(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	fakeModel := agentllm.NewFakeModel(agentllm.ResponseScript{
-		Err: fmt.Errorf("Your input exceeds the context window of this model"),
+		Err: errors.New("Your input exceeds the context window of this model"),
 	})
 	ctxMgr := ctxmgr.New(ctxmgr.Options{
 		Model:         fakeModel,
@@ -548,7 +548,7 @@ func TestHarnessOverflowRetryAfterPruneOnly(t *testing.T) {
 			appendToolTurn(ctx, t, sess, tt.toolText)
 
 			fakeModel := agentllm.NewFakeModel(
-				agentllm.ResponseScript{Err: fmt.Errorf("Your input exceeds the context window of this model")},
+				agentllm.ResponseScript{Err: errors.New("Your input exceeds the context window of this model")},
 				agentllm.ResponseScript{Content: "## Goal\ncompacted"},
 				agentllm.ResponseScript{Content: "recovered after overflow"},
 			)

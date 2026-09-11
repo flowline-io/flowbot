@@ -678,7 +678,7 @@ func TestHubAppsListShowsRuntimeStatus(t *testing.T) {
 				t.Errorf("want body containing %q, got %s", tt.wantContains, body)
 			}
 			if tt.status == homelab.AppStatusUnknown && strings.Contains(string(body), ">error<") {
-				t.Errorf("unknown status must not render as error badge")
+				t.Error("unknown status must not render as error badge")
 			}
 		})
 	}

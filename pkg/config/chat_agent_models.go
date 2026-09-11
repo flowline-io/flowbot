@@ -42,10 +42,10 @@ func ResolveChatAgentModels() (chat, tool string, dual bool, err error) {
 }
 
 // ResolveChatAgentModelPair validates chat and tool model names and reports dual routing.
-func ResolveChatAgentModelPair(chat, tool string) (string, string, bool, error) {
+func ResolveChatAgentModelPair(chat, tool string) (chatOut, toolOut string, dual bool, err error) {
 	chat = strings.TrimSpace(chat)
 	tool = strings.TrimSpace(tool)
-	dual := tool != ""
+	dual = tool != ""
 	if !dual {
 		if chat != "" && !ModelRegistered(chat) {
 			return "", "", false, fmt.Errorf("chat model %q is not registered in models", chat)

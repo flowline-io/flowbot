@@ -17,6 +17,7 @@ import (
 	"github.com/tetratelabs/wazero/api"
 	wasi "github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -43,7 +44,7 @@ type WasmRunner struct {
 func NewWasmRunner(m *plugin.Manifest) (*WasmRunner, error) {
 	wasmCfg := m.Wasm
 	if wasmCfg == nil {
-		return nil, fmt.Errorf("wasm config required")
+		return nil, errors.New("wasm config required")
 	}
 
 	timeout := 30 * time.Second
@@ -96,7 +97,7 @@ func NewWasmRunner(m *plugin.Manifest) (*WasmRunner, error) {
 // Load compiles the wasm module, registers host functions, and creates the primary instance.
 func (r *WasmRunner) Load(ctx context.Context, m *plugin.Manifest) (*plugin.PluginInfo, error) {
 	if m.Wasm == nil {
-		return nil, fmt.Errorf("wasm load: no wasm config")
+		return nil, errors.New("wasm load: no wasm config")
 	}
 
 	// Install WASI snapshot preview1
@@ -192,7 +193,7 @@ func (r *WasmRunner) Stop(ctx context.Context) error {
 // Call invokes a named wasm export with JSON parameters and returns JSON result.
 func (r *WasmRunner) Call(ctx context.Context, function string, params json.RawMessage) (json.RawMessage, error) {
 	if !r.started.Load() {
-		return nil, fmt.Errorf("wasm call: plugin not started")
+		return nil, errors.New("wasm call: plugin not started")
 	}
 
 	r.inflight.Add(1)
@@ -203,7 +204,7 @@ func (r *WasmRunner) Call(ctx context.Context, function string, params json.RawM
 
 	mod := r.acquireInstance()
 	if mod == nil {
-		return nil, fmt.Errorf("wasm call: no available instance")
+		return nil, errors.New("wasm call: no available instance")
 	}
 	defer r.releaseInstance(mod)
 
@@ -292,7 +293,7 @@ func (r *WasmRunner) releaseInstance(mod api.Module) {
 func parseMemBytes(s string) (uint32, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return 0, fmt.Errorf("empty memory size")
+		return 0, errors.New("empty memory size")
 	}
 
 	mult := uint64(1)

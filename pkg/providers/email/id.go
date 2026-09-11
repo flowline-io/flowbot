@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
 	"github.com/bytedance/sonic"
 )
 
@@ -30,7 +31,7 @@ func EncodeMessageID(mailbox string, uidValidity, uid uint32) string {
 func DecodeMessageID(id string) (MessageRef, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return MessageRef{}, fmt.Errorf("email: message id is required")
+		return MessageRef{}, errors.New("email: message id is required")
 	}
 	if raw, err := base64.RawURLEncoding.DecodeString(id); err == nil {
 		var ref MessageRef

@@ -186,7 +186,7 @@ func (n *NocoDB) CreateRecord(ctx context.Context, tableID string, fields map[st
 		return nil, err
 	}
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("fields are required")
+		return nil, errors.New("fields are required")
 	}
 	path := "/api/v2/tables/" + url.PathEscape(tableID) + "/records"
 	resp, err := n.c.R().SetContext(ctx).SetBody(fields).Post(path)
@@ -206,7 +206,7 @@ func (n *NocoDB) UpdateRecord(ctx context.Context, tableID string, fields map[st
 		return nil, err
 	}
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("fields are required")
+		return nil, errors.New("fields are required")
 	}
 	body, err := withEncodedRecordID(fields)
 	if err != nil {
@@ -270,7 +270,7 @@ func truncateMsg(msg string) string {
 
 func decodeRecordBody(body []byte) (Record, error) {
 	if len(body) == 0 {
-		return nil, fmt.Errorf("empty response body")
+		return nil, errors.New("empty response body")
 	}
 	trimmed := body
 	for len(trimmed) > 0 && (trimmed[0] == ' ' || trimmed[0] == '\n' || trimmed[0] == '\t' || trimmed[0] == '\r') {
@@ -282,7 +282,7 @@ func decodeRecordBody(body []byte) (Record, error) {
 			return nil, fmt.Errorf("decode record: %w", err)
 		}
 		if len(list) == 0 {
-			return nil, fmt.Errorf("empty record list in response")
+			return nil, errors.New("empty record list in response")
 		}
 		return list[0], nil
 	}
@@ -291,7 +291,7 @@ func decodeRecordBody(body []byte) (Record, error) {
 		return nil, fmt.Errorf("decode record: %w", err)
 	}
 	if len(single) == 0 {
-		return nil, fmt.Errorf("empty record in response")
+		return nil, errors.New("empty record in response")
 	}
 	return single, nil
 }
@@ -300,7 +300,7 @@ func decodeRecordBody(body []byte) (Record, error) {
 // Decimal integers are encoded as int64; other ids remain strings (custom PKs).
 func encodeRecordID(id string) (any, error) {
 	if id == "" {
-		return nil, fmt.Errorf("record id is required")
+		return nil, errors.New("record id is required")
 	}
 	if n, err := strconv.ParseInt(id, 10, 64); err == nil {
 		return n, nil
@@ -366,13 +366,13 @@ func validatePathID(name, id string) error {
 
 func validateListQuery(q ListRecordsQuery) error {
 	if q.Limit < 0 {
-		return fmt.Errorf("limit must be non-negative")
+		return errors.New("limit must be non-negative")
 	}
 	if q.Limit > maxListLimit {
 		return fmt.Errorf("limit exceeds maximum of %d", maxListLimit)
 	}
 	if q.Offset < 0 {
-		return fmt.Errorf("offset must be non-negative")
+		return errors.New("offset must be non-negative")
 	}
 	return nil
 }

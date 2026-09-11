@@ -47,11 +47,11 @@ var (
 // SetSessionArchived updates the archive flag and enqueues summary generation when archiving.
 func SetSessionArchived(ctx context.Context, sessionID string, archived bool) error {
 	if store.Database == nil {
-		return fmt.Errorf("chatagent: database unavailable")
+		return errors.New("chatagent: database unavailable")
 	}
 	sessionID = strings.TrimSpace(sessionID)
 	if sessionID == "" {
-		return fmt.Errorf("chatagent: empty session id")
+		return errors.New("chatagent: empty session id")
 	}
 	if err := store.ChatStoreFromDB().UpdateChatSessionArchived(ctx, sessionID, archived); err != nil {
 		return err
@@ -79,10 +79,10 @@ func enqueueSessionSummary(ctx context.Context, sessionID string) error {
 	// Clone so callers that pass Fiber/fasthttp buffer aliases stay safe after the request ends.
 	sessionID = strings.Clone(strings.TrimSpace(sessionID))
 	if sessionID == "" {
-		return fmt.Errorf("chatagent: empty session id")
+		return errors.New("chatagent: empty session id")
 	}
 	if store.Database == nil {
-		return fmt.Errorf("chatagent: database unavailable")
+		return errors.New("chatagent: database unavailable")
 	}
 	title := ""
 	if sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID); err == nil && sess != nil {
@@ -244,7 +244,7 @@ func buildSessionSummaryInput(ctx context.Context, sessionID string) (string, er
 	}
 	text := strings.TrimSpace(b.String())
 	if text == "" {
-		return "", fmt.Errorf("session has no summarizable messages")
+		return "", errors.New("session has no summarizable messages")
 	}
 	return text, nil
 }
@@ -299,7 +299,7 @@ func DisableSessionSummaryLLMForTest() (restore func()) {
 	sessionSummaryLLMMu.Lock()
 	orig := generateSessionSummary
 	generateSessionSummary = func(context.Context, string, string, sessionTitleModelFunc) (string, error) {
-		return "", fmt.Errorf("session summary llm skipped for test")
+		return "", errors.New("session summary llm skipped for test")
 	}
 	sessionSummaryLLMMu.Unlock()
 	return func() {

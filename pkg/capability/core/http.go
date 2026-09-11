@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -145,7 +146,7 @@ func newHTTPClient(timeout time.Duration) *http.Client {
 		Timeout: timeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 5 {
-				return fmt.Errorf("too many redirects")
+				return errors.New("too many redirects")
 			}
 			if err := assertURLAllowed(req.URL); err != nil {
 				return err

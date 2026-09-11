@@ -120,11 +120,6 @@ func achievementThreshold(def AchievementDef) int {
 	switch kind {
 	case AchievementKindFirst:
 		return 1
-	case AchievementKindCount:
-		if def.Threshold < 1 {
-			return 1
-		}
-		return def.Threshold
 	default:
 		if def.Threshold < 1 {
 			return 1

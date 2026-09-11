@@ -104,7 +104,7 @@ type parsedCLI struct {
 
 func parseCLI(in cliInput) (parsedCLI, error) {
 	if !in.Print {
-		return parsedCLI{}, fmt.Errorf("headless mode requires -p / --print")
+		return parsedCLI{}, errors.New("headless mode requires -p / --print")
 	}
 	format := strings.ToLower(strings.TrimSpace(in.OutputFormat))
 	if format == "" {
@@ -115,7 +115,7 @@ func parseCLI(in cliInput) (parsedCLI, error) {
 	}
 	prompt := strings.TrimSpace(strings.Join(in.PromptArgs, " "))
 	if prompt == "" {
-		return parsedCLI{}, fmt.Errorf("prompt is required")
+		return parsedCLI{}, errors.New("prompt is required")
 	}
 	ws := strings.TrimSpace(in.Workspace)
 	if ws == "" {

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
@@ -71,7 +72,7 @@ type checkpointCompletionInput struct {
 // CreateActionOccurrence inserts one occurrence row.
 func (s *LifeStore) CreateActionOccurrence(ctx context.Context, in LifeCreateOccurrenceInput) (*gen.LifeActionOccurrence, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	kind := normalizeOccurrenceKind(in.Kind)
 	state := normalizeOccurrenceState(in.State)
@@ -96,7 +97,7 @@ func (s *LifeStore) CreateActionOccurrence(ctx context.Context, in LifeCreateOcc
 // EnsureRecurringOccurrences lazily creates due daily/weekly occurrences.
 func (s *LifeStore) EnsureRecurringOccurrences(ctx context.Context, profileID int64, now time.Time) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	nodes, err := s.ListPlanNodes(ctx, profileID)
 	if err != nil {
@@ -188,7 +189,7 @@ func (s *LifeStore) GetActionOccurrenceByFlag(ctx context.Context, profileID int
 // CompleteActionOccurrence completes one occurrence and writes an action log.
 func (s *LifeStore) CompleteActionOccurrence(ctx context.Context, in LifeCompleteOccurrenceInput) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
@@ -210,7 +211,7 @@ func (s *LifeStore) CompleteActionOccurrence(ctx context.Context, in LifeComplet
 		return fmt.Errorf("life: complete occurrence: %w", err)
 	}
 	if affected == 0 {
-		return fmt.Errorf("life: occurrence is not pending")
+		return errors.New("life: occurrence is not pending")
 	}
 	if _, err := tx.LifeActionLog.Create().
 		SetFlag(types.Id()).
@@ -252,7 +253,7 @@ func (s *LifeStore) CompleteActionOccurrence(ctx context.Context, in LifeComplet
 // SkipActionOccurrence marks one occurrence skipped or missed.
 func (s *LifeStore) SkipActionOccurrence(ctx context.Context, in LifeSkipOccurrenceInput) error {
 	if !s.ready() {
-		return fmt.Errorf("life: store not available")
+		return errors.New("life: store not available")
 	}
 	affected, err := s.client.LifeActionOccurrence.Update().
 		Where(lifeactionoccurrence.IDEQ(in.OccurrenceID), lifeactionoccurrence.StateEQ("pending")).
@@ -262,7 +263,7 @@ func (s *LifeStore) SkipActionOccurrence(ctx context.Context, in LifeSkipOccurre
 		return fmt.Errorf("life: skip occurrence: %w", err)
 	}
 	if affected == 0 {
-		return fmt.Errorf("life: occurrence is not pending")
+		return errors.New("life: occurrence is not pending")
 	}
 	return nil
 }
@@ -291,7 +292,7 @@ func (s *LifeStore) ListHabitCheckins(ctx context.Context, profileID, planNodeID
 // UpsertHabitCheckin creates or refreshes a daily habit checkin and writes an action log.
 func (s *LifeStore) UpsertHabitCheckin(ctx context.Context, in LifeHabitCheckinInput) (*gen.LifeHabitCheckin, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	day := startOfDayUTC(in.CheckinAt)
 	status := strings.TrimSpace(in.Status)
@@ -347,7 +348,7 @@ func (s *LifeStore) UpsertHabitCheckin(ctx context.Context, in LifeHabitCheckinI
 // EnsureTodoOccurrence creates a pending one-time occurrence if missing.
 func (s *LifeStore) EnsureTodoOccurrence(ctx context.Context, profileID, planNodeID int64) (*gen.LifeActionOccurrence, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, errors.New("life: store not available")
 	}
 	existing, err := s.client.LifeActionOccurrence.Query().
 		Where(
@@ -443,38 +444,38 @@ func (s *LifeStore) getCheckpointActionNode(ctx context.Context, actionPlanNodeI
 		return nil, fmt.Errorf("life: get checkpoint action: %w", err)
 	}
 	if actionNode.ParentID == nil {
-		return nil, fmt.Errorf("life: checkpoint action requires parent")
+		return nil, errors.New("life: checkpoint action requires parent")
 	}
 	actionSpec, err := s.GetActionSpecByPlanNodeID(ctx, actionPlanNodeID)
 	if err != nil {
 		return nil, err
 	}
 	if actionSpec == nil || actionSpec.TaskType != "checkpoint" {
-		return nil, fmt.Errorf("life: dependencies require checkpoint action")
+		return nil, errors.New("life: dependencies require checkpoint action")
 	}
 	return actionNode, nil
 }
 
 func (s *LifeStore) createActionDependency(ctx context.Context, profileID int64, actionNode *gen.LifePlanNode, dependencyID int64) error {
 	if dependencyID == actionNode.ID {
-		return fmt.Errorf("life: checkpoint cannot depend on itself")
+		return errors.New("life: checkpoint cannot depend on itself")
 	}
 	dependencyNode, err := s.client.LifePlanNode.Get(ctx, dependencyID)
 	if err != nil {
 		return fmt.Errorf("life: get dependency action: %w", err)
 	}
 	if dependencyNode.LifeProfileID != profileID {
-		return fmt.Errorf("life: dependency action not found")
+		return errors.New("life: dependency action not found")
 	}
 	if dependencyNode.ParentID == nil || *dependencyNode.ParentID != *actionNode.ParentID {
-		return fmt.Errorf("life: dependency action must share parent")
+		return errors.New("life: dependency action must share parent")
 	}
 	dependencySpec, err := s.GetActionSpecByPlanNodeID(ctx, dependencyID)
 	if err != nil {
 		return err
 	}
 	if dependencySpec == nil || dependencySpec.TaskType != "todo" {
-		return fmt.Errorf("life: dependency action must be todo")
+		return errors.New("life: dependency action must be todo")
 	}
 	if _, err := s.client.LifeActionDependency.Create().
 		SetActionPlanNodeID(actionNode.ID).
@@ -529,7 +530,7 @@ func checkpointReadyForCompletion(ctx context.Context, client *gen.Client, profi
 		return false, "", fmt.Errorf("life: get checkpoint node: %w", err)
 	}
 	if node.LifeProfileID != profileID {
-		return false, "", fmt.Errorf("life: checkpoint action not found")
+		return false, "", errors.New("life: checkpoint action not found")
 	}
 	if strings.EqualFold(node.Status, "Completed") {
 		return false, "", nil
@@ -550,7 +551,7 @@ func checkpointReadyForCompletion(ctx context.Context, client *gen.Client, profi
 		return false, "", fmt.Errorf("life: list checkpoint dependencies: %w", err)
 	}
 	if len(rows) == 0 {
-		return false, "", fmt.Errorf("life: checkpoint dependencies required")
+		return false, "", errors.New("life: checkpoint dependencies required")
 	}
 	for _, row := range rows {
 		exists, err := client.LifeActionLog.Query().

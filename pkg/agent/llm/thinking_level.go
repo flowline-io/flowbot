@@ -68,8 +68,6 @@ func deepSeekReasoningEffort(level string) string {
 		return "low"
 	case ThinkingLevelMedium:
 		return "medium"
-	case ThinkingLevelHigh:
-		return "high"
 	default:
 		// default and off both map to high; off callers should skip this field.
 		return "high"

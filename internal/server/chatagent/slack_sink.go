@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -42,7 +43,7 @@ func (s *slackStreamSink) Flush(ctx context.Context, final string) error {
 
 func (s *slackStreamSink) update(text string) error {
 	if s.caller == nil || s.messageID == "" {
-		return fmt.Errorf("slack stream sink: missing caller or message id")
+		return errors.New("slack stream sink: missing caller or message id")
 	}
 	text = truncateSlackText(text)
 	resp := s.caller.Do(protocol.Request{

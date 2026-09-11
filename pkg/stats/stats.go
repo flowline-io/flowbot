@@ -201,7 +201,7 @@ func getOrCreateGauge(name string, labels prometheus.Labels) prometheus.Gauge {
 // PushNow immediately pushes metrics to pushgateway
 func PushNow() error {
 	if pusher == nil {
-		return fmt.Errorf("metrics not initialized, call Init() first")
+		return errors.New("metrics not initialized, call Init() first")
 	}
 	return pusher.Push()
 }
@@ -209,7 +209,7 @@ func PushNow() error {
 // PushWithContext pushes metrics using a context
 func PushWithContext(ctx context.Context) error {
 	if pusher == nil {
-		return fmt.Errorf("metrics not initialized, call Init() first")
+		return errors.New("metrics not initialized, call Init() first")
 	}
 	return pusher.PushContext(ctx)
 }

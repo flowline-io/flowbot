@@ -2,7 +2,7 @@ package event
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"sync"
 )
 
@@ -66,7 +66,7 @@ func GetMessageDestinations() MessageDestinations {
 func requireMessageDestinations() (MessageDestinations, error) {
 	s := GetMessageDestinations()
 	if s == nil {
-		return nil, fmt.Errorf("event: message destinations store is not configured")
+		return nil, errors.New("event: message destinations store is not configured")
 	}
 	return s, nil
 }

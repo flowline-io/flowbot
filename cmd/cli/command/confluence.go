@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
@@ -134,7 +135,7 @@ func confluencePageSearchCommand() *cobra.Command {
 			}
 			cql, _ := cmd.Flags().GetString("cql")
 			if cql == "" {
-				return fmt.Errorf("cql is required")
+				return errors.New("cql is required")
 			}
 			limit, _ := cmd.Flags().GetInt("limit")
 			cursor, _ := cmd.Flags().GetString("cursor")

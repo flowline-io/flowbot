@@ -380,8 +380,8 @@ func TestRecentErrors(t *testing.T) {
 
 	t.Run("captures error entries", func(t *testing.T) {
 		ClearErrorBuffer()
-		recordError(fmt.Errorf("test error 1"))
-		recordError(fmt.Errorf("test error 2"))
+		recordError(errors.New("test error 1"))
+		recordError(errors.New("test error 2"))
 		entries := RecentErrors()
 		require.Len(t, entries, 2)
 		require.Equal(t, "test error 1", entries[0].Message)
@@ -419,7 +419,7 @@ func TestRecentErrors(t *testing.T) {
 
 	t.Run("caller field populated", func(t *testing.T) {
 		ClearErrorBuffer()
-		callerTestHelper(fmt.Errorf("caller test"))
+		callerTestHelper(errors.New("caller test"))
 		entries := RecentErrors()
 		require.Len(t, entries, 1)
 		require.Contains(t, entries[0].Caller, "flog_test.go")

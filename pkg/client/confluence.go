@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -43,7 +44,7 @@ func (c *ConfluenceClient) ListSpaces(ctx context.Context, limit int, cursor str
 // ListPages returns pages in a space.
 func (c *ConfluenceClient) ListPages(ctx context.Context, spaceKey string, limit int, cursor string) (*ConfluenceListResult[capability.ConfluencePage], error) {
 	if spaceKey == "" {
-		return nil, fmt.Errorf("space_key is required")
+		return nil, errors.New("space_key is required")
 	}
 	base := fmt.Sprintf("/service/confluence/spaces/%s/pages", url.PathEscape(spaceKey))
 	path := confluencePathWithPage(base, limit, cursor)
@@ -55,7 +56,7 @@ func (c *ConfluenceClient) ListPages(ctx context.Context, spaceKey string, limit
 // GetPage returns a page by id.
 func (c *ConfluenceClient) GetPage(ctx context.Context, pageID string) (*capability.ConfluencePage, error) {
 	if pageID == "" {
-		return nil, fmt.Errorf("page_id is required")
+		return nil, errors.New("page_id is required")
 	}
 	var result ConfluenceItemResult[capability.ConfluencePage]
 	path := fmt.Sprintf("/service/confluence/pages/%s", url.PathEscape(pageID))
@@ -69,7 +70,7 @@ func (c *ConfluenceClient) GetPage(ctx context.Context, pageID string) (*capabil
 // GetPageContent returns storage-format page content.
 func (c *ConfluenceClient) GetPageContent(ctx context.Context, pageID string) (string, error) {
 	if pageID == "" {
-		return "", fmt.Errorf("page_id is required")
+		return "", errors.New("page_id is required")
 	}
 	var result string
 	path := fmt.Sprintf("/service/confluence/pages/%s/content", url.PathEscape(pageID))
@@ -80,7 +81,7 @@ func (c *ConfluenceClient) GetPageContent(ctx context.Context, pageID string) (s
 // SearchPages searches pages with CQL.
 func (c *ConfluenceClient) SearchPages(ctx context.Context, cql string, limit int, cursor string) (*ConfluenceListResult[capability.ConfluencePage], error) {
 	if cql == "" {
-		return nil, fmt.Errorf("cql is required")
+		return nil, errors.New("cql is required")
 	}
 	v := url.Values{"cql": {cql}}
 	if limit > 0 {
@@ -105,7 +106,7 @@ type CreatePageRequest struct {
 // CreatePage creates a new page.
 func (c *ConfluenceClient) CreatePage(ctx context.Context, req *CreatePageRequest) (*capability.ConfluencePage, error) {
 	if req == nil || req.Title == "" {
-		return nil, fmt.Errorf("title is required")
+		return nil, errors.New("title is required")
 	}
 	var result ConfluenceItemResult[capability.ConfluencePage]
 	err := c.c.Post(ctx, "/service/confluence/pages", req, &result)
@@ -124,7 +125,7 @@ type UpdatePageRequest struct {
 // UpdatePage updates a page.
 func (c *ConfluenceClient) UpdatePage(ctx context.Context, pageID string, req *UpdatePageRequest) (*capability.ConfluencePage, error) {
 	if pageID == "" {
-		return nil, fmt.Errorf("page_id is required")
+		return nil, errors.New("page_id is required")
 	}
 	if req == nil {
 		req = &UpdatePageRequest{}
@@ -141,7 +142,7 @@ func (c *ConfluenceClient) UpdatePage(ctx context.Context, pageID string, req *U
 // DeletePage deletes a page.
 func (c *ConfluenceClient) DeletePage(ctx context.Context, pageID string) error {
 	if pageID == "" {
-		return fmt.Errorf("page_id is required")
+		return errors.New("page_id is required")
 	}
 	path := fmt.Sprintf("/service/confluence/pages/%s", url.PathEscape(pageID))
 	return c.c.Delete(ctx, path, nil, nil)

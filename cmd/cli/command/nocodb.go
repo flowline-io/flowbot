@@ -7,6 +7,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
@@ -352,14 +353,14 @@ func nocodbHealthCommand() *cobra.Command {
 
 func parseNocoFields(raw string) (map[string]any, error) {
 	if raw == "" {
-		return nil, fmt.Errorf("fields are required")
+		return nil, errors.New("fields are required")
 	}
 	var fields map[string]any
 	if err := sonic.Unmarshal([]byte(raw), &fields); err != nil {
 		return nil, fmt.Errorf("invalid fields JSON: %w", err)
 	}
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("fields are required")
+		return nil, errors.New("fields are required")
 	}
 	return fields, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	plugintypes "github.com/flowline-io/flowbot/pkg/plugin/types"
 )
@@ -43,9 +44,9 @@ func NewSource(cfg SourceConfig) (Source, error) {
 	case "local":
 		return NewLocalSource(cfg.Path), nil
 	case "oci":
-		return nil, fmt.Errorf("oci source not yet implemented")
+		return nil, errors.New("oci source not yet implemented")
 	case "git":
-		return nil, fmt.Errorf("git source not yet implemented")
+		return nil, errors.New("git source not yet implemented")
 	default:
 		return nil, fmt.Errorf("unknown source type: %s", cfg.Type)
 	}

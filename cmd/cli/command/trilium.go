@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
@@ -131,7 +132,7 @@ func triliumGetCommand() *cobra.Command {
 		Long:  "Display details of a specific note",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("note id is required")
+				return errors.New("note id is required")
 			}
 			id := args[0]
 
@@ -179,7 +180,7 @@ func triliumUpdateCommand() *cobra.Command {
 		Long:  "Update title and/or content of a note",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("note id is required")
+				return errors.New("note id is required")
 			}
 			id := args[0]
 
@@ -196,7 +197,7 @@ func triliumUpdateCommand() *cobra.Command {
 				hasUpdate = true
 			}
 			if !hasUpdate {
-				return fmt.Errorf("at least one of --title or --content must be provided")
+				return errors.New("at least one of --title or --content must be provided")
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -226,7 +227,7 @@ func triliumDeleteCommand() *cobra.Command {
 		Long:  "Delete a note by its ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("note id is required")
+				return errors.New("note id is required")
 			}
 			id := args[0]
 
@@ -317,7 +318,7 @@ func triliumContentGetCommand() *cobra.Command {
 		Long:  "Display the full content of a note",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("note id is required")
+				return errors.New("note id is required")
 			}
 			id := args[0]
 
@@ -353,7 +354,7 @@ func triliumContentSetCommand() *cobra.Command {
 		Long:  "Replace the full content of a note",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("note id is required")
+				return errors.New("note id is required")
 			}
 			id := args[0]
 			content, _ := cmd.Flags().GetString("content")

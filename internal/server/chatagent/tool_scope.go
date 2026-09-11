@@ -75,18 +75,14 @@ func ToolGroupOf(name string) string {
 		return ToolGroupFS
 	case "run_terminal", "run_code":
 		return ToolGroupShell
-	case "web_search", "web_fetch", "glob_files", "grep_files":
+	case "web_search", "web_fetch", "glob_files", "grep_files", searchKnowledgeToolName, getKnowledgeToolName:
 		return ToolGroupSearch
-	case clip.CreateToolName, clip.GetToolName, agenthtml.ToolName, agentnotify.SendToolName, agentgw.RunCursorToolName:
+	case clip.CreateToolName, clip.GetToolName, agenthtml.ToolName, agentnotify.SendToolName, agentgw.RunCursorToolName, "read_skill":
 		return ToolGroupCore
 	case delegateSubagentToolName:
 		return ToolGroupSubagent
 	case scheduleToolName, updateScheduleToolName, listScheduleToolName, cancelScheduleToolName:
 		return ToolGroupSchedule
-	case "read_skill":
-		return ToolGroupCore
-	case searchKnowledgeToolName, getKnowledgeToolName:
-		return ToolGroupSearch
 	case memorySetToolName, memoryGetToolName, memoryListToolName, memoryDeleteToolName, searchSessionSummariesToolName:
 		return ToolGroupMemory
 	case todoWriteToolName, listTodosToolName:

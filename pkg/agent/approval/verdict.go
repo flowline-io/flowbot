@@ -5,6 +5,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"errors"
 	"github.com/bytedance/sonic"
 )
 
@@ -38,7 +39,7 @@ type reviewJSON struct {
 func ParseReviewOutput(raw string) (ReviewResult, error) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
-		return ReviewResult{}, fmt.Errorf("approval: empty reviewer output")
+		return ReviewResult{}, errors.New("approval: empty reviewer output")
 	}
 	// Allow fenced JSON or leading/trailing prose by extracting the first object.
 	if i := strings.Index(raw, "{"); i >= 0 {

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/plugin"
 )
 
@@ -68,7 +69,7 @@ func (s *LocalSource) Artifact(_ context.Context, name string) ([]byte, error) {
 }
 
 func (*LocalSource) Watch(_ context.Context) (<-chan SourceEvent, error) {
-	return nil, fmt.Errorf("watch not implemented for local source")
+	return nil, errors.New("watch not implemented for local source")
 }
 
 func (*LocalSource) Close() error { return nil }

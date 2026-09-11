@@ -137,7 +137,7 @@ func Send(text string, message Message) error {
 			continue
 		}
 		if scheme == "" {
-			lastErr = fmt.Errorf("[notify] invalid URI: missing protocol scheme")
+			lastErr = errors.New("[notify] invalid URI: missing protocol scheme")
 			flog.Error(lastErr)
 			continue
 		}
@@ -167,7 +167,7 @@ func Send(text string, message Message) error {
 		if lastErr != nil {
 			return lastErr
 		}
-		return fmt.Errorf("[notify] no notification sent")
+		return errors.New("[notify] no notification sent")
 	}
 	return nil
 }
@@ -178,7 +178,7 @@ func Send(text string, message Message) error {
 func SendToProtocol(protocol, uri string, message Message) error {
 	protocol = strings.TrimSpace(protocol)
 	if protocol == "" {
-		return fmt.Errorf("[notify] protocol is required")
+		return errors.New("[notify] protocol is required")
 	}
 	n, ok := lookupNotifyer(protocol)
 	if !ok {
@@ -186,7 +186,7 @@ func SendToProtocol(protocol, uri string, message Message) error {
 	}
 	text := strings.TrimSpace(uri)
 	if text == "" {
-		return fmt.Errorf("[notify] uri is required")
+		return errors.New("[notify] uri is required")
 	}
 	if !strings.Contains(text, "://") {
 		text = protocol + "://" + text
@@ -549,12 +549,12 @@ func channelsFromNotifyConfigKeys(keys []string) []string {
 // It prefers the global NotifyChannel registry (settings UI), then falls back to
 // per-user notify:<channel> config when a UID is present.
 func dispatchChannel(ctx context.Context, uid types.Uid, channel string, msg Message) error {
-	if err := sendGlobalChannel(ctx, channel, msg); err != nil {
-		if !errors.Is(err, types.ErrNotFound) {
-			return err
-		}
-	} else {
+	err := sendGlobalChannel(ctx, channel, msg)
+	if err == nil {
 		return nil
+	}
+	if !errors.Is(err, types.ErrNotFound) {
+		return err
 	}
 	return sendToUserChannel(ctx, uid, channel, msg)
 }

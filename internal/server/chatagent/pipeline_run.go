@@ -2,10 +2,10 @@ package chatagent
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
+	"errors"
 	abilityagent "github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -26,7 +26,7 @@ func RunPipelineAgent(ctx context.Context, params abilityagent.RunParams) (*abil
 
 	svc := pipelineRunService
 	if svc == nil {
-		return nil, fmt.Errorf("chatagent: shared service not bound; call BindSharedService at bootstrap")
+		return nil, errors.New("chatagent: shared service not bound; call BindSharedService at bootstrap")
 	}
 	out, err := RunEphemeral(ctx, svc, EphemeralRunParams{
 		UID:         params.UID,

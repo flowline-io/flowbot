@@ -546,8 +546,6 @@ func lifeAchievementProgressPct(current, target int) int {
 // LifeRarityClass maps equipment rarity to a CSS modifier class.
 func LifeRarityClass(rarity string) string {
 	switch strings.ToLower(strings.TrimSpace(rarity)) {
-	case "common":
-		return "rarity-common"
 	case "uncommon":
 		return "rarity-uncommon"
 	case "rare":

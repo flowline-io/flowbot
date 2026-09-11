@@ -445,14 +445,14 @@ func workflowDAGConnectorClass(fromCount, toCount int) string {
 }
 
 // workflowDAGNormalizeCounts clamps layer sizes and returns the shared rail column count.
-func workflowDAGNormalizeCounts(fromCount, toCount int) (int, int, int) {
+func workflowDAGNormalizeCounts(fromCount, toCount int) (fromOut, toOut, rail int) {
 	if fromCount < 1 {
 		fromCount = 1
 	}
 	if toCount < 1 {
 		toCount = 1
 	}
-	rail := max(toCount, fromCount)
+	rail = max(toCount, fromCount)
 	return fromCount, toCount, rail
 }
 

@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
 	"github.com/bytedance/sonic"
 )
 
 func ConvertResponseData[T any](resp *Response, statusCode int) (*T, error) {
 	if resp == nil {
-		return nil, fmt.Errorf("response is nil")
+		return nil, errors.New("response is nil")
 	}
 
 	if statusCode != 200 {

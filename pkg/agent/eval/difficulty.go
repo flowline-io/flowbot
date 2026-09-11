@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -15,8 +16,6 @@ const (
 // NormalizeDifficulty maps empty/unknown values to easy|medium|hard.
 func NormalizeDifficulty(raw string) string {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "", DifficultyEasy:
-		return DifficultyEasy
 	case DifficultyMedium:
 		return DifficultyMedium
 	case DifficultyHard:
@@ -73,7 +72,7 @@ func parseDifficultySpec(spec string) (map[string]struct{}, error) {
 		}
 	}
 	if len(want) == 0 {
-		return nil, fmt.Errorf("eval: empty --difficulty spec")
+		return nil, errors.New("eval: empty --difficulty spec")
 	}
 	return want, nil
 }

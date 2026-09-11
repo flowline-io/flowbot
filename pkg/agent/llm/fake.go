@@ -2,10 +2,10 @@ package llm
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 
+	"errors"
 	"github.com/tmc/langchaingo/llms"
 )
 
@@ -51,7 +51,7 @@ func (f *FakeModel) Call(ctx context.Context, prompt string, options ...llms.Cal
 		return "", err
 	}
 	if resp == nil || len(resp.Choices) == 0 {
-		return "", fmt.Errorf("fake model: empty response")
+		return "", errors.New("fake model: empty response")
 	}
 	return resp.Choices[0].Content, nil
 }

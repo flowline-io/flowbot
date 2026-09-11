@@ -49,8 +49,7 @@ func buildRunWaterfall(steps []runWaterfallInput, now time.Time) []RunWaterfallB
 	return out
 }
 
-func waterfallBounds(steps []runWaterfallInput, now time.Time) (time.Time, time.Time) {
-	var minStart, maxEnd time.Time
+func waterfallBounds(steps []runWaterfallInput, now time.Time) (minStart, maxEnd time.Time) {
 	for _, s := range steps {
 		if s.StartedAt.IsZero() {
 			continue

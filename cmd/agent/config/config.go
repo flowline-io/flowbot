@@ -2,10 +2,10 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
+	"errors"
 	"github.com/goccy/go-yaml"
 )
 
@@ -53,10 +53,10 @@ func firstNonEmpty(vals ...string) string {
 // Validate checks required fields.
 func (c *Config) Validate() error {
 	if strings.TrimSpace(c.FlowbotURL) == "" {
-		return fmt.Errorf("flowbot_url is required (config or FLOWBOT_URL)")
+		return errors.New("flowbot_url is required (config or FLOWBOT_URL)")
 	}
 	if strings.TrimSpace(c.AccessToken) == "" {
-		return fmt.Errorf("access_token is required (config or FLOWBOT_AGENT_TOKEN)")
+		return errors.New("access_token is required (config or FLOWBOT_AGENT_TOKEN)")
 	}
 	return nil
 }

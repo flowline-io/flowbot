@@ -13,6 +13,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/tmc/langchaingo/llms"
 
+	"errors"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -231,7 +232,7 @@ func clipHealthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeR
 func generateMetaWithLLM(ctx context.Context, content string, modelResolver metaModelFunc) (Meta, error) {
 	chatModel := config.ChatAgentChatModel()
 	if chatModel == "" {
-		return Meta{}, fmt.Errorf("agent model is not configured")
+		return Meta{}, errors.New("agent model is not configured")
 	}
 	model, resolvedName, err := modelResolver(ctx, chatModel)
 	if err != nil {
@@ -349,7 +350,7 @@ func truncateRunes(s string, maxLen int) string {
 
 func newSlug(n int) (string, error) {
 	if n <= 0 {
-		return "", fmt.Errorf("invalid slug length")
+		return "", errors.New("invalid slug length")
 	}
 	alphabetLen := big.NewInt(int64(len(slugAlphabet)))
 	buf := make([]byte, n)

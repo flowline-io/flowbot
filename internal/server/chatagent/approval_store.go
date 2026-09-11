@@ -110,7 +110,7 @@ func DeleteUserApprovalMode(ctx context.Context, uid types.Uid) error {
 	return nil
 }
 
-func loadApprovalCache(uid types.Uid) (approval.Mode, bool, bool) {
+func loadApprovalCache(uid types.Uid) (mode approval.Mode, set, hit bool) {
 	raw, ok := approvalCache.Load(uid.String())
 	if !ok {
 		return approval.ModeManual, false, false

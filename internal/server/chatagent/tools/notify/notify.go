@@ -78,11 +78,10 @@ func (t SendTool) Execute(ctx context.Context, id string, args map[string]any, _
 
 	templateID, err := pkgnotify.ResolveDefaultTemplateID(ctx)
 	if err != nil {
-		if errors.Is(err, pkgnotify.ErrNoDefaultTemplate) {
-			templateID = pkgnotify.AgentNotifyTemplateID
-		} else {
+		if !errors.Is(err, pkgnotify.ErrNoDefaultTemplate) {
 			return sendErrorResult(id, t.Name(), err), nil
 		}
+		templateID = pkgnotify.AgentNotifyTemplateID
 	}
 
 	channels := pkgnotify.DefaultInboxChannels(ctx)
@@ -106,7 +105,7 @@ func (t SendTool) Execute(ctx context.Context, id string, args map[string]any, _
 // Register registers send_notification on the given registry.
 func Register(registry *tool.Registry, uid types.Uid) error {
 	if registry == nil {
-		return fmt.Errorf("notify tools: registry is nil")
+		return errors.New("notify tools: registry is nil")
 	}
 	return registry.Register(SendTool{UID: uid})
 }

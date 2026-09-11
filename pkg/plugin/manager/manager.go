@@ -99,13 +99,8 @@ func (m *PluginManager) Init(ctx context.Context, pluginConfigs map[string]json.
 	return nil
 }
 
-func deriveIdentity(srcCfg SourceConfig, manifest *plugin.Manifest) string {
-	switch srcCfg.Type {
-	case "local", "oci", "git":
-		return manifest.Name
-	default:
-		return manifest.Name
-	}
+func deriveIdentity(_ SourceConfig, manifest *plugin.Manifest) string {
+	return manifest.Name
 }
 
 // loadPlugin loads a single plugin, creates adapters, and registers them.

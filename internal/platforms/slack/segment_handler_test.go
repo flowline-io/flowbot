@@ -502,7 +502,7 @@ func TestHandleSegMarkdownVarious(t *testing.T) {
 			}
 			sec, ok := blocks[len(blocks)-1].(*slack.SectionBlock)
 			if !ok || sec.Text == nil {
-				t.Fatalf("expected section block with text")
+				t.Fatal("expected section block with text")
 			}
 			if !strings.Contains(sec.Text.Text, tt.wantSubstr) {
 				t.Errorf("expected text to contain %q, got %q", tt.wantSubstr, sec.Text.Text)
@@ -550,7 +550,7 @@ func TestHandleSegHtml(t *testing.T) {
 			}
 			sec, ok := blocks[0].(*slack.SectionBlock)
 			if !ok || sec.Text == nil {
-				t.Fatalf("expected section block with text")
+				t.Fatal("expected section block with text")
 			}
 			if !strings.Contains(sec.Text.Text, tt.wantSubstr) {
 				t.Errorf("expected text to contain %q, got %q", tt.wantSubstr, sec.Text.Text)

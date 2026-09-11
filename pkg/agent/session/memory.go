@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -31,7 +32,7 @@ func (m *MemoryStorage) GetBranch(_ context.Context, leafID string) ([]TreeEntry
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	if leafID == "" {
-		return nil, fmt.Errorf("session memory: empty leaf id")
+		return nil, errors.New("session memory: empty leaf id")
 	}
 
 	byID := make(map[string]TreeEntry, len(m.entries))

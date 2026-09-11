@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -44,7 +45,7 @@ func GetFileMetaStore() FileMetaStore {
 func requireFileMetaStore() (FileMetaStore, error) {
 	s := GetFileMetaStore()
 	if s == nil {
-		return nil, fmt.Errorf("media: file meta store is not configured")
+		return nil, errors.New("media: file meta store is not configured")
 	}
 	return s, nil
 }

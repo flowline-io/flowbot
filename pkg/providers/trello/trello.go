@@ -10,6 +10,7 @@ import (
 
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -247,7 +248,7 @@ func (t *Trello) UpdateCard(ctx context.Context, cardID, name, desc string) (*Ca
 	}
 	card, ok := resp.Result().(*Card)
 	if !ok || card == nil {
-		return nil, fmt.Errorf("trello update card: unexpected response type")
+		return nil, errors.New("trello update card: unexpected response type")
 	}
 	return card, nil
 }

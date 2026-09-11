@@ -11,6 +11,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/tmc/langchaingo/llms"
 
+	"errors"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 )
@@ -58,11 +59,11 @@ var (
 func GenerateKnowledgeMetadata(ctx context.Context, path, content string) (KnowledgeMetadata, error) {
 	content = strings.TrimSpace(content)
 	if content == "" {
-		return KnowledgeMetadata{}, fmt.Errorf("content is required")
+		return KnowledgeMetadata{}, errors.New("content is required")
 	}
 	chatModel := config.ChatAgentChatModel()
 	if chatModel == "" {
-		return KnowledgeMetadata{}, fmt.Errorf("agent not configured")
+		return KnowledgeMetadata{}, errors.New("agent not configured")
 	}
 	knowledgeMetadataLLMMu.RLock()
 	llmGen := generateKnowledgeMetadataLLM
@@ -116,7 +117,7 @@ func generateKnowledgeMetadataWithLLM(
 	}
 	meta = sanitizeKnowledgeMetadata(meta)
 	if meta.Title == "" || meta.Summary == "" || len(meta.Tags) < knowledgeMetadataMinTags {
-		return KnowledgeMetadata{}, fmt.Errorf("incomplete metadata from model")
+		return KnowledgeMetadata{}, errors.New("incomplete metadata from model")
 	}
 	return meta, nil
 }

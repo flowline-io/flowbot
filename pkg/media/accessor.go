@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -27,7 +28,7 @@ func AsAccessor(h Handler) (Accessor, bool) {
 // ReadAll opens a file by id and returns its bytes (caller must use Accessor).
 func ReadAll(ctx context.Context, a Accessor, fileID string) (*types.FileDef, []byte, error) {
 	if a == nil {
-		return nil, nil, fmt.Errorf("media: nil accessor")
+		return nil, nil, errors.New("media: nil accessor")
 	}
 	fd, rc, err := a.OpenByID(ctx, fileID)
 	if err != nil {

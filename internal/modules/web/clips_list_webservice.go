@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -79,7 +80,7 @@ func clipSetVisibility(ctx fiber.Ctx) error {
 
 func loadClipListItems(ctx context.Context) ([]partials.ClipListItem, error) {
 	if store.Database == nil || store.Database.GetClient() == nil {
-		return nil, fmt.Errorf("store not available")
+		return nil, errors.New("store not available")
 	}
 	rows, err := store.ClipStoreFromDB().ListClips(ctx, 200)
 	if err != nil {

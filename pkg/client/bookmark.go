@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
@@ -150,7 +151,7 @@ func validateTags(tags []string) error {
 	}
 	for _, tag := range tags {
 		if len(tag) < validate.MinTagLen {
-			return fmt.Errorf("tag cannot be empty")
+			return errors.New("tag cannot be empty")
 		}
 		if len(tag) > validate.TagMaxLen {
 			return fmt.Errorf("tag length exceeds maximum of %d characters", validate.TagMaxLen)
@@ -242,7 +243,7 @@ func (b *BookmarkClient) Search(ctx context.Context, query *SearchBookmarksQuery
 
 func validateSearchBookmarksQuery(query *SearchBookmarksQuery) error {
 	if query.Q == "" {
-		return fmt.Errorf("search query is required")
+		return errors.New("search query is required")
 	}
 	if len(query.Q) > validate.QueryMaxLen {
 		return fmt.Errorf("query exceeds maximum length of %d", validate.QueryMaxLen)

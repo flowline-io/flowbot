@@ -136,8 +136,7 @@ func SyntaxCheck(define string, actual []*Token) (bool, error) {
 					res = false
 					continue
 				}
-			case "string":
-			case "any":
+			case "string", "any":
 			}
 		}
 	}

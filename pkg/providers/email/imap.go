@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
 	"github.com/emersion/go-imap"
 	imapclient "github.com/emersion/go-imap/client"
 	"github.com/emersion/go-message/mail"
@@ -37,7 +38,7 @@ func (c *Client) Search(ctx context.Context, q SearchQuery) ([]MessageMeta, stri
 		return nil, "", err
 	}
 	if c.cfg.IMAPHost == "" {
-		return nil, "", fmt.Errorf("email: imap_host is not configured")
+		return nil, "", errors.New("email: imap_host is not configured")
 	}
 	mailbox, limit := normalizeSearchPaging(q, c.cfg.Mailbox)
 

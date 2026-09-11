@@ -375,8 +375,6 @@ func evaluatePermissionResult(
 	switch result.Action {
 	case permission.ActionAllow:
 		return nil, nil
-	case permission.ActionDeny:
-		return &hooks.ToolCallResult{Block: true, Reason: "permission denied"}, nil
 	case permission.ActionAsk:
 		return handlePermissionAsk(ctx, deps, event, result, sessionState)
 	default:

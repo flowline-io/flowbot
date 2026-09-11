@@ -820,14 +820,7 @@ func TestNotifyChannelSetDefault(t *testing.T) {
 			syncTestStoreToDB(t, ts)
 
 			channelID := tt.id
-			if tt.wantID != 0 {
-				for _, ch := range listTestNotifyChannels(t) {
-					if ch.Name == "phone" {
-						channelID = strconv.FormatInt(ch.ID, 10)
-						break
-					}
-				}
-			} else if len(tt.channels) > 0 {
+			if tt.wantID != 0 || len(tt.channels) > 0 {
 				for _, ch := range listTestNotifyChannels(t) {
 					if ch.Name == "phone" {
 						channelID = strconv.FormatInt(ch.ID, 10)

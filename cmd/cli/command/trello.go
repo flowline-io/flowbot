@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
@@ -159,7 +160,7 @@ func trelloCardSearchCommand() *cobra.Command {
 			}
 			query, _ := cmd.Flags().GetString("query")
 			if query == "" {
-				return fmt.Errorf("query is required")
+				return errors.New("query is required")
 			}
 			limit, _ := cmd.Flags().GetInt("limit")
 			cards, err := c.Trello.SearchCards(cmd.Context(), query, limit)

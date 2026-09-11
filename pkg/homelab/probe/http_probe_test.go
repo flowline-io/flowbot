@@ -84,8 +84,6 @@ func TestNewHTTPProbeAndProbeEndpoint(t *testing.T) {
 				case "/health":
 					w.WriteHeader(http.StatusOK)
 					_, _ = w.Write([]byte(`{"status":"ok"}`))
-				case "/.well-known/openid-configuration":
-					w.WriteHeader(http.StatusNotFound)
 				default:
 					w.WriteHeader(http.StatusNotFound)
 				}

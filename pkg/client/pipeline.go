@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/url"
 )
 
@@ -99,7 +99,7 @@ func (p *PipelineClient) Delete(ctx context.Context, name string) error {
 // Run starts an asynchronous pipeline run with an optional event payload.
 func (p *PipelineClient) Run(ctx context.Context, name string, event map[string]any) (*PipelineRunResult, error) {
 	if name == "" {
-		return nil, fmt.Errorf("pipeline name is required")
+		return nil, errors.New("pipeline name is required")
 	}
 	if event == nil {
 		event = map[string]any{}

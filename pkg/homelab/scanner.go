@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
@@ -123,7 +124,7 @@ func normalizeConfig(config Config) Config {
 
 func safeAbs(path string) (string, error) {
 	if path == "" {
-		return "", fmt.Errorf("path is required")
+		return "", errors.New("path is required")
 	}
 	abs, err := filepath.Abs(path)
 	if err != nil {

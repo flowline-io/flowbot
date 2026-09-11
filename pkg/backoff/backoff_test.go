@@ -68,7 +68,7 @@ func TestDo_BasicRetry(t *testing.T) {
 			}
 			attempt, err := Do(context.Background(), cfg, fn)
 			if tt.wantErr && err == nil {
-				t.Fatalf("expected error, got nil")
+				t.Fatal("expected error, got nil")
 			}
 			if !tt.wantErr && err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -292,7 +292,7 @@ func TestDo_Adaptive(t *testing.T) {
 			fn := func(_ context.Context) error { return errTest }
 			attempt, err := Do(context.Background(), cfg, fn)
 			if err == nil {
-				t.Fatalf("expected error")
+				t.Fatal("expected error")
 			}
 			if attempt != 3 {
 				t.Fatalf("got attempt=%d, want=3", attempt)
@@ -393,7 +393,7 @@ func TestDo_MaxElapsedTime(t *testing.T) {
 			fn := func(_ context.Context) error { return errTest }
 			attempt, err := Do(context.Background(), cfg, fn)
 			if err == nil {
-				t.Fatalf("expected error")
+				t.Fatal("expected error")
 			}
 			if attempt < tt.minAttempts {
 				t.Fatalf("got attempt=%d, want >= %d", attempt, tt.minAttempts)

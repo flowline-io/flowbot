@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -26,7 +26,7 @@ func TestConfigsPage(t *testing.T) {
 	}{
 		{name: "renders page with configs", storeConfigs: []model.ConfigItem{createTestConfig("u1", "t1", "k1")}, wantStatus: http.StatusOK, wantContains: "k1"},
 		{name: "renders page with empty list", storeConfigs: []model.ConfigItem{}, wantStatus: http.StatusOK, wantContains: "Configs"},
-		{name: "store error returns 500", storeErr: fmt.Errorf("db down"), wantStatus: http.StatusInternalServerError},
+		{name: "store error returns 500", storeErr: errors.New("db down"), wantStatus: http.StatusInternalServerError},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -113,7 +113,7 @@ func TestDeleteConfig(t *testing.T) {
 		},
 		{
 			name:       "delete returns toast on store error",
-			delErr:     fmt.Errorf("db down"),
+			delErr:     errors.New("db down"),
 			wantStatus: http.StatusNoContent,
 			wantHX:     "Failed to delete config",
 		},
@@ -306,7 +306,7 @@ func TestCreateConfig(t *testing.T) {
 		{
 			name:        "store error returns toast",
 			body:        "uid=u1&topic=t1&key=k1&value=%7B%7D",
-			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return fmt.Errorf("db down") },
+			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return errors.New("db down") },
 			wantStatus:  http.StatusNoContent,
 			wantHX:      "Could not save config",
 		},
@@ -414,7 +414,7 @@ func TestUpdateConfig(t *testing.T) {
 			path:        "/service/web/configs/u1/t1/k1",
 			body:        "value=%7B%7D",
 			getConfigFn: func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
-			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return fmt.Errorf("db down") },
+			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return errors.New("db down") },
 			wantStatus:  http.StatusNoContent,
 			wantHX:      "Could not save config",
 		},

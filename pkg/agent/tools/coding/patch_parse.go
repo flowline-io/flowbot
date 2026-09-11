@@ -1,6 +1,7 @@
 package coding
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -58,7 +59,7 @@ func findPatchBounds(lines []string) (start, end int, err error) {
 		}
 	}
 	if start < 0 || end < 0 || end <= start {
-		return 0, 0, fmt.Errorf("patch must contain *** Begin Patch and *** End Patch")
+		return 0, 0, errors.New("patch must contain *** Begin Patch and *** End Patch")
 	}
 	return start, end, nil
 }

@@ -14,6 +14,7 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -157,7 +158,7 @@ func (a *adapter) GetClient() *gen.Client {
 // Ping checks PostgreSQL connectivity and returns the round-trip latency.
 func (a *adapter) Ping(ctx context.Context) (time.Duration, error) {
 	if a.db == nil {
-		return 0, fmt.Errorf("postgres: database not initialized")
+		return 0, errors.New("postgres: database not initialized")
 	}
 	start := time.Now()
 	err := a.db.PingContext(ctx)

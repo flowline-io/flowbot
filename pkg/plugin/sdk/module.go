@@ -2,7 +2,7 @@ package sdk
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 )
 
 // Module is the interface for module plugins.
@@ -22,10 +22,10 @@ type ModuleBase struct{}
 func (ModuleBase) Init(_ json.RawMessage) error { return nil }
 func (ModuleBase) Bootstrap() error             { return nil }
 func (ModuleBase) Command(_ *Context, _ any) (*MsgPayload, error) {
-	return nil, fmt.Errorf("command not implemented")
+	return nil, errors.New("command not implemented")
 }
 func (ModuleBase) Form(_ *Context, _ map[string]string) (*MsgPayload, error) {
-	return nil, fmt.Errorf("form not implemented")
+	return nil, errors.New("form not implemented")
 }
 func (ModuleBase) Rules() (*Rules, error)             { return &Rules{}, nil }
 func (ModuleBase) Help() (map[string][]string, error) { return nil, nil }

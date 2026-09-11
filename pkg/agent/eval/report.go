@@ -388,7 +388,7 @@ func FormatCompareMarkdown(diff *CompareDiff) string {
 	_, _ = fmt.Fprintf(&b, "- baseline: %s\n", diff.BaselineSuite)
 	_, _ = fmt.Fprintf(&b, "- candidate: %s\n", diff.CandidateSuite)
 	_, _ = b.WriteString("\n## Scorecard delta\n\n")
-	_, _ = fmt.Fprintf(&b, "| Metric | Baseline | Candidate | Delta |\n| --- | --- | --- | --- |\n")
+	_, _ = fmt.Fprint(&b, "| Metric | Baseline | Candidate | Delta |\n| --- | --- | --- | --- |\n")
 	_, _ = fmt.Fprintf(&b, "| total | %.2f | %.2f | %+.2f |\n",
 		diff.BaselineScorecard.Total, diff.CandidateScorecard.Total, diff.TotalDelta)
 	_, _ = fmt.Fprintf(&b, "| L1 | %.4f | %.4f | %+.4f |\n",
@@ -405,7 +405,7 @@ func FormatCompareMarkdown(diff *CompareDiff) string {
 	} else {
 		_, _ = b.WriteString("| quality_avg | n/a | n/a | n/a |\n")
 	}
-	_, _ = fmt.Fprintf(&b, "\n## Case gate delta\n\n")
+	_, _ = fmt.Fprint(&b, "\n## Case gate delta\n\n")
 	_, _ = fmt.Fprintf(&b, "- improved (%d): %v\n", len(diff.Improved), diff.Improved)
 	_, _ = fmt.Fprintf(&b, "- regressed (%d): %v\n", len(diff.Regressed), diff.Regressed)
 	_, _ = fmt.Fprintf(&b, "- unchanged pass (%d)\n", len(diff.UnchangedPass))

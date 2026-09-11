@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
 )
@@ -37,7 +38,7 @@ func LLMGenerate(ctx context.Context, modelName, prompt string) (string, error) 
 // GenerateWithTemplate performs a single-shot completion using the given prompt template.
 func GenerateWithTemplate(ctx context.Context, modelName string, template ChatTemplate, data map[string]any) (string, error) {
 	if modelName == "" {
-		return "", fmt.Errorf("agent llm: model or agent disabled")
+		return "", errors.New("agent llm: model or agent disabled")
 	}
 
 	messages, err := template.Format(ctx, data)

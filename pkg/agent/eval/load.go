@@ -120,7 +120,7 @@ func LoadScenarioFileWithOptions(path, workspaceParent string, opts LoadOptions)
 		return Scenario{}, err
 	}
 	if strings.TrimSpace(cf.Name) == "" || strings.TrimSpace(cf.Prompt) == "" {
-		return Scenario{}, fmt.Errorf("name and prompt are required")
+		return Scenario{}, errors.New("name and prompt are required")
 	}
 	scripts, err := scriptsFromCase(cf.Scripts)
 	if err != nil {
@@ -272,17 +272,17 @@ func toolsForToolset(toolset, workspaceRoot string, execEnv env.ExecutionEnv) ([
 		return []tool.Tool{echo.Tool{}}, nil
 	case "write_file":
 		if workspaceRoot == "" {
-			return nil, fmt.Errorf("write_file toolset requires workspace")
+			return nil, errors.New("write_file toolset requires workspace")
 		}
 		return []tool.Tool{coding.WriteFileTool{Workspace: ws, Env: execEnv}}, nil
 	case "read_file":
 		if workspaceRoot == "" {
-			return nil, fmt.Errorf("read_file toolset requires workspace")
+			return nil, errors.New("read_file toolset requires workspace")
 		}
 		return []tool.Tool{coding.ReadFileTool{Workspace: ws, Env: execEnv}}, nil
 	case "fs":
 		if workspaceRoot == "" {
-			return nil, fmt.Errorf("fs toolset requires workspace")
+			return nil, errors.New("fs toolset requires workspace")
 		}
 		return []tool.Tool{
 			coding.ReadFileTool{Workspace: ws, Env: execEnv},
@@ -291,7 +291,7 @@ func toolsForToolset(toolset, workspaceRoot string, execEnv env.ExecutionEnv) ([
 		}, nil
 	case "coding":
 		if workspaceRoot == "" {
-			return nil, fmt.Errorf("coding toolset requires workspace")
+			return nil, errors.New("coding toolset requires workspace")
 		}
 		return []tool.Tool{
 			coding.ReadFileTool{Workspace: ws, Env: execEnv},

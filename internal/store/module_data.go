@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
@@ -535,7 +536,7 @@ func (s *ModuleDataStore) BehaviorList(ctx context.Context, uid types.Uid) ([]*g
 func (s *ModuleDataStore) BehaviorIncrease(ctx context.Context, uid types.Uid, flag string, number int) error {
 	delta, ok := utils.IntToInt32(number)
 	if !ok {
-		return fmt.Errorf("postgres: behaviorincrease: count delta out of range")
+		return errors.New("postgres: behaviorincrease: count delta out of range")
 	}
 	u := s.client.Behavior.Update().Where(behavior.UID(uid.String()), behavior.FlagEQ(flag))
 	u = u.AddCount(delta).SetUpdatedAt(time.Now())
@@ -859,7 +860,7 @@ func (s *ModuleDataStore) GetCounterByFlag(ctx context.Context, uid types.Uid, t
 func (s *ModuleDataStore) record(ctx context.Context, id, digit int64) error {
 	d, ok := utils.Int64ToInt32(digit)
 	if !ok {
-		return fmt.Errorf("postgres: counterrecord: digit out of range")
+		return errors.New("postgres: counterrecord: digit out of range")
 	}
 	_, err := s.client.CounterRecord.Create().
 		SetCounterID(id).

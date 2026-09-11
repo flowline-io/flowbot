@@ -39,7 +39,7 @@ func TestLocaleSwitchSetsCookie(t *testing.T) {
 		t.Fatalf("cookie: got %+v want flowbot-lang=zh", langCookie)
 	}
 	if resp.Header.Get("HX-Refresh") != "true" {
-		t.Fatalf("want HX-Refresh header")
+		t.Fatal("want HX-Refresh header")
 	}
 	_, _ = io.Copy(io.Discard, resp.Body)
 }

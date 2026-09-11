@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
@@ -127,7 +128,7 @@ func memoGetCommand() *cobra.Command {
 		Long:  "Display details of a specific memo",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("memo name is required (e.g., memos/123)")
+				return errors.New("memo name is required (e.g., memos/123)")
 			}
 			name := args[0]
 
@@ -175,7 +176,7 @@ func memoUpdateCommand() *cobra.Command {
 		Long:  "Update content, visibility, or pinned status of a memo",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("memo name is required (e.g., memos/123)")
+				return errors.New("memo name is required (e.g., memos/123)")
 			}
 			name := args[0]
 
@@ -199,7 +200,7 @@ func memoUpdateCommand() *cobra.Command {
 			}
 
 			if !hasUpdate {
-				return fmt.Errorf("at least one of --content, --visibility, or --pinned must be provided")
+				return errors.New("at least one of --content, --visibility, or --pinned must be provided")
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -233,7 +234,7 @@ func memoDeleteCommand() *cobra.Command {
 		Long:  "Delete a memo by its resource name",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("memo name is required (e.g., memos/123)")
+				return errors.New("memo name is required (e.g., memos/123)")
 			}
 			name := args[0]
 

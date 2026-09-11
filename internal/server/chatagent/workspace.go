@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
@@ -111,7 +112,7 @@ func ResolveWorkspace(rel string) (coding.Workspace, error) {
 	cfg := config.App.ChatAgent
 	root := strings.TrimSpace(cfg.Workspace)
 	if root == "" {
-		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace is required")
+		return coding.Workspace{}, errors.New("chat_agent.workspace is required")
 	}
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
@@ -141,7 +142,7 @@ func ResolveWorkspace(rel string) (coding.Workspace, error) {
 	}
 	if !info.IsDir() {
 		if norm == "" {
-			return coding.Workspace{}, fmt.Errorf("chat_agent.workspace is not a directory")
+			return coding.Workspace{}, errors.New("chat_agent.workspace is not a directory")
 		}
 		return coding.Workspace{}, fmt.Errorf("workspace %q is not a directory: %w", norm, types.ErrInvalidArgument)
 	}

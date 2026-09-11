@@ -164,7 +164,7 @@ func (GetTool) Execute(ctx context.Context, id string, args map[string]any, _ to
 // Register registers create_clip and get_clip on the given registry.
 func Register(registry *tool.Registry, publicBaseURL string) error {
 	if registry == nil {
-		return fmt.Errorf("clip tools: registry is nil")
+		return errors.New("clip tools: registry is nil")
 	}
 	tools := []tool.Tool{
 		CreateTool{PublicBaseURL: publicBaseURL},

@@ -16,6 +16,7 @@ import (
 	"github.com/creachadair/jrpc2"
 	"github.com/creachadair/jrpc2/jhttp"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -175,7 +176,7 @@ func GetClient() (*Kanboard, error) {
 	username, _ := providers.GetConfig(ID, UsernameKey)
 	password, _ := providers.GetConfig(ID, PasswordKey)
 	if endpoint.String() == "" {
-		return nil, fmt.Errorf("kanboard disabled")
+		return nil, errors.New("kanboard disabled")
 	}
 
 	return NewKanboard(endpoint.String(), username.String(), password.String())
@@ -211,47 +212,49 @@ func (v *Kanboard) GetMe(ctx context.Context) (user *User, err error) {
 	err = v.c.CallResult(ctx, "getMe", nil, &user)
 	if err != nil {
 		err = fmt.Errorf("failed to get me, %w", err)
-		return
+		return user, err
 	}
-	return
+	return user,
+
+		// GetVersion returns the Kanboard server version via JSON-RPC getVersion.
+		// Works with both Application API and User API credentials.
+		err
 }
 
-// GetVersion returns the Kanboard server version via JSON-RPC getVersion.
-// Works with both Application API and User API credentials.
 func (v *Kanboard) GetVersion(ctx context.Context) (version string, err error) {
 	err = v.c.CallResult(ctx, "getVersion", nil, &version)
 	if err != nil {
 		err = fmt.Errorf("failed to get version, %w", err)
-		return
+		return version, err
 	}
-	return
+	return version, err
 }
 
 func (v *Kanboard) CreateTask(ctx context.Context, task *Task) (taskId int64, err error) {
 	err = v.c.CallResult(ctx, "createTask", task, &taskId)
 	if err != nil {
 		err = fmt.Errorf("failed to create task, %w", err)
-		return
+		return taskId, err
 	}
-	return
+	return taskId, err
 }
 
 func (v *Kanboard) GetAllTasks(ctx context.Context, projectId int, status StatusId) (tasks []*Task, err error) {
 	err = v.c.CallResult(ctx, "getAllTasks", types.KV{"project_id": projectId, "status_id": status}, &tasks)
 	if err != nil {
 		err = fmt.Errorf("failed to get all tasks, %w", err)
-		return
+		return tasks, err
 	}
-	return
+	return tasks, err
 }
 
 func (v *Kanboard) GetTask(ctx context.Context, taskId int) (task *Task, err error) {
 	err = v.c.CallResult(ctx, "getTask", types.KV{"task_id": taskId}, &task)
 	if err != nil {
 		err = fmt.Errorf("failed to get task, %w", err)
-		return
+		return task, err
 	}
-	return
+	return task, err
 }
 
 func (v *Kanboard) UpdateTask(ctx context.Context, taskId int, task *Task) (result bool, err error) {
@@ -265,36 +268,36 @@ func (v *Kanboard) UpdateTask(ctx context.Context, taskId int, task *Task) (resu
 	err = v.c.CallResult(ctx, "updateTask", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to update task, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) CloseTask(ctx context.Context, taskId int) (result bool, err error) {
 	err = v.c.CallResult(ctx, "closeTask", types.KV{"task_id": taskId}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to close task, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) OpenTask(ctx context.Context, taskId int) (result bool, err error) {
 	err = v.c.CallResult(ctx, "openTask", types.KV{"task_id": taskId}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to open task, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) RemoveTask(ctx context.Context, taskId int) (result bool, err error) {
 	err = v.c.CallResult(ctx, "removeTask", types.KV{"task_id": taskId}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to remove task, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) MoveTaskPosition(ctx context.Context, projectId, taskId, columnId, position, swimlaneId int) (result bool, err error) {
@@ -308,81 +311,81 @@ func (v *Kanboard) MoveTaskPosition(ctx context.Context, projectId, taskId, colu
 	err = v.c.CallResult(ctx, "moveTaskPosition", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to move task position, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) GetColumns(ctx context.Context, projectId int) (columns []types.KV, err error) {
 	err = v.c.CallResult(ctx, "getColumns", types.KV{"project_id": projectId}, &columns)
 	if err != nil {
 		err = fmt.Errorf("failed to get columns, %w", err)
-		return
+		return columns, err
 	}
-	return
+	return columns, err
 }
 
 func (v *Kanboard) SearchTasks(ctx context.Context, projectId int, query string) (tasks []*Task, err error) {
 	err = v.c.CallResult(ctx, "searchTasks", types.KV{"project_id": projectId, "query": query}, &tasks)
 	if err != nil {
 		err = fmt.Errorf("failed to search tasks, %w", err)
-		return
+		return tasks, err
 	}
-	return
+	return tasks, err
 }
 
 func (v *Kanboard) GetTaskMetadata(ctx context.Context, taskId int) (metadata []TaskMetadata, err error) {
 	err = v.c.CallResult(ctx, "getTaskMetadata", types.KV{"task_id": taskId}, &metadata)
 	if err != nil {
 		err = fmt.Errorf("failed to get task metadata, %w", err)
-		return
+		return metadata, err
 	}
-	return
+	return metadata, err
 }
 
 func (v *Kanboard) GetTaskMetadataByName(ctx context.Context, taskId int, name string) (value string, err error) {
 	err = v.c.CallResult(ctx, "getTaskMetadataByName", types.KV{"task_id": taskId, "name": name}, &value)
 	if err != nil {
 		err = fmt.Errorf("failed to get task metadata by name, %w", err)
-		return
+		return value, err
 	}
-	return
+	return value, err
 }
 
 func (v *Kanboard) SaveTaskMetadata(ctx context.Context, taskId int, values TaskMetadata) (result bool, err error) {
 	err = v.c.CallResult(ctx, "saveTaskMetadata", types.KV{"task_id": taskId, "values": values}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to save task metadata, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) RemoveTaskMetadata(ctx context.Context, taskId int, name string) (result bool, err error) {
 	err = v.c.CallResult(ctx, "removeTaskMetadata", types.KV{"task_id": taskId, "name": name}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to remove task metadata, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) GetAllTags(ctx context.Context) (tags []Tag, err error) {
 	err = v.c.CallResult(ctx, "getAllTags", nil, &tags)
 	if err != nil {
 		err = fmt.Errorf("failed to get all tags, %w", err)
-		return
+		return tags, err
 	}
-	return
+	return tags, err
 }
 
 func (v *Kanboard) GetTagsByProject(ctx context.Context, projectId int) (tags []Tag, err error) {
 	err = v.c.CallResult(ctx, "getTagsByProject", []any{projectId}, &tags)
 	if err != nil {
 		err = fmt.Errorf("failed to get tags by project, %w", err)
-		return
+		return tags, err
 	}
-	return
+	return tags, err
 }
 
 func (v *Kanboard) CreateTag(ctx context.Context, projectId int, tag, colorId string) (tagId int64, err error) {
@@ -393,9 +396,9 @@ func (v *Kanboard) CreateTag(ctx context.Context, projectId int, tag, colorId st
 	err = v.c.CallResult(ctx, "createTag", params, &tagId)
 	if err != nil {
 		err = fmt.Errorf("failed to create tag, %w", err)
-		return
+		return tagId, err
 	}
-	return
+	return tagId, err
 }
 
 func (v *Kanboard) UpdateTag(ctx context.Context, tagId int, tag, colorId string) (result bool, err error) {
@@ -406,36 +409,36 @@ func (v *Kanboard) UpdateTag(ctx context.Context, tagId int, tag, colorId string
 	err = v.c.CallResult(ctx, "updateTag", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to update tag, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) RemoveTag(ctx context.Context, tagId int) (result bool, err error) {
 	err = v.c.CallResult(ctx, "removeTag", []any{tagId}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to remove tag, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) SetTaskTags(ctx context.Context, projectId, taskId int, tags []string) (result bool, err error) {
 	err = v.c.CallResult(ctx, "setTaskTags", []any{projectId, taskId, tags}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to set task tags, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) GetTaskTags(ctx context.Context, taskId int) (tags map[string]string, err error) {
 	err = v.c.CallResult(ctx, "getTaskTags", []any{taskId}, &tags)
 	if err != nil {
 		err = fmt.Errorf("failed to get task tags, %w", err)
-		return
+		return tags, err
 	}
-	return
+	return tags, err
 }
 
 func (v *Kanboard) CreateSubtask(ctx context.Context, taskId int, title string, userId, timeEstimated, timeSpent, status int) (subtaskId int64, err error) {
@@ -455,27 +458,27 @@ func (v *Kanboard) CreateSubtask(ctx context.Context, taskId int, title string, 
 	err = v.c.CallResult(ctx, "createSubtask", params, &subtaskId)
 	if err != nil {
 		err = fmt.Errorf("failed to create subtask, %w", err)
-		return
+		return subtaskId, err
 	}
-	return
+	return subtaskId, err
 }
 
 func (v *Kanboard) GetSubtask(ctx context.Context, subtaskId int) (subtask *Subtask, err error) {
 	err = v.c.CallResult(ctx, "getSubtask", types.KV{"subtask_id": subtaskId}, &subtask)
 	if err != nil {
 		err = fmt.Errorf("failed to get subtask, %w", err)
-		return
+		return subtask, err
 	}
-	return
+	return subtask, err
 }
 
 func (v *Kanboard) GetAllSubtasks(ctx context.Context, taskId int) (subtasks []*Subtask, err error) {
 	err = v.c.CallResult(ctx, "getAllSubtasks", types.KV{"task_id": taskId}, &subtasks)
 	if err != nil {
 		err = fmt.Errorf("failed to get all subtasks, %w", err)
-		return
+		return subtasks, err
 	}
-	return
+	return subtasks, err
 }
 
 func (v *Kanboard) UpdateSubtask(ctx context.Context, subtaskId, taskId int, title string, userId, timeEstimated, timeSpent, status int) (result bool, err error) {
@@ -498,18 +501,18 @@ func (v *Kanboard) UpdateSubtask(ctx context.Context, subtaskId, taskId int, tit
 	err = v.c.CallResult(ctx, "updateSubtask", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to update subtask, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) RemoveSubtask(ctx context.Context, subtaskId int) (result bool, err error) {
 	err = v.c.CallResult(ctx, "removeSubtask", types.KV{"subtask_id": subtaskId}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to remove subtask, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) HasSubtaskTimer(ctx context.Context, subtaskId, userId int) (result bool, err error) {
@@ -520,9 +523,9 @@ func (v *Kanboard) HasSubtaskTimer(ctx context.Context, subtaskId, userId int) (
 	err = v.c.CallResult(ctx, "hasSubtaskTimer", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to check subtask timer, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) SetSubtaskStartTime(ctx context.Context, subtaskId, userId int) (result bool, err error) {
@@ -533,9 +536,9 @@ func (v *Kanboard) SetSubtaskStartTime(ctx context.Context, subtaskId, userId in
 	err = v.c.CallResult(ctx, "setSubtaskStartTime", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to start subtask timer, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) SetSubtaskEndTime(ctx context.Context, subtaskId, userId int) (result bool, err error) {
@@ -546,9 +549,9 @@ func (v *Kanboard) SetSubtaskEndTime(ctx context.Context, subtaskId, userId int)
 	err = v.c.CallResult(ctx, "setSubtaskEndTime", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to stop subtask timer, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }
 
 func (v *Kanboard) GetSubtaskTimeSpent(ctx context.Context, subtaskId, userId int) (result float64, err error) {
@@ -559,7 +562,7 @@ func (v *Kanboard) GetSubtaskTimeSpent(ctx context.Context, subtaskId, userId in
 	err = v.c.CallResult(ctx, "getSubtaskTimeSpent", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to get subtask time spent, %w", err)
-		return
+		return result, err
 	}
-	return
+	return result, err
 }

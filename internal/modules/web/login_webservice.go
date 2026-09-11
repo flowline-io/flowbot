@@ -252,7 +252,7 @@ func completeLogin2FA(ctx fiber.Ctx, account *gen.WebAccount, next string, step 
 func verifySecondFactor(account *gen.WebAccount, code string) (ok bool, step int64, remaining []string, usedBackup bool, err error) {
 	enc := getEncryptor()
 	if enc == nil {
-		return false, 0, nil, false, fmt.Errorf("encryptor not ready")
+		return false, 0, nil, false, errors.New("encryptor not ready")
 	}
 	secret, serr := accountTOTPSecret(account.TotpSecretCiphertext, account.TotpSecretNonce)
 	if serr == nil {

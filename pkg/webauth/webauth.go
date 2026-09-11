@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -117,7 +118,7 @@ func LoadEncryptor(encryptionKey, keyDir string) (enc *Encryptor, fromFile, crea
 func parseKey(s string) ([]byte, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return nil, fmt.Errorf("webauth: empty encryption key")
+		return nil, errors.New("webauth: empty encryption key")
 	}
 	if decoded, err := base64.RawStdEncoding.DecodeString(s); err == nil && len(decoded) == 32 {
 		return decoded, nil
@@ -132,7 +133,7 @@ func parseKey(s string) ([]byte, error) {
 // Encrypt encrypts plaintext with AES-256-GCM. Returns ciphertext and nonce.
 func (e *Encryptor) Encrypt(plaintext []byte) (ciphertext, nonce []byte, err error) {
 	if e == nil || len(e.key) != 32 {
-		return nil, nil, fmt.Errorf("webauth: encryptor not ready")
+		return nil, nil, errors.New("webauth: encryptor not ready")
 	}
 	block, err := aes.NewCipher(e.key)
 	if err != nil {
@@ -153,7 +154,7 @@ func (e *Encryptor) Encrypt(plaintext []byte) (ciphertext, nonce []byte, err err
 // Decrypt decrypts ciphertext produced by Encrypt.
 func (e *Encryptor) Decrypt(ciphertext, nonce []byte) ([]byte, error) {
 	if e == nil || len(e.key) != 32 {
-		return nil, fmt.Errorf("webauth: encryptor not ready")
+		return nil, errors.New("webauth: encryptor not ready")
 	}
 	block, err := aes.NewCipher(e.key)
 	if err != nil {
@@ -238,7 +239,7 @@ func CodeAt(secret string, now time.Time) (string, error) {
 	}
 	counter, ok := utils.Int64ToUint64(now.Unix() / 30)
 	if !ok {
-		return "", fmt.Errorf("webauth: totp time before unix epoch")
+		return "", errors.New("webauth: totp time before unix epoch")
 	}
 	return hotp(key, counter), nil
 }
@@ -327,7 +328,7 @@ func ValidatePasswordStrength(username, password string) error {
 		"toor": {}, "passw0rd": {}, "default": {},
 	}
 	if _, ok := weak[strings.ToLower(password)]; ok {
-		return fmt.Errorf("known weak password is not allowed")
+		return errors.New("known weak password is not allowed")
 	}
 	pairs := [][2]string{
 		{"admin", "admin"}, {"admin", "password"}, {"admin", "123456"},
@@ -335,7 +336,7 @@ func ValidatePasswordStrength(username, password string) error {
 	}
 	for _, p := range pairs {
 		if username == p[0] && password == p[1] {
-			return fmt.Errorf("known weak default credentials are not allowed")
+			return errors.New("known weak default credentials are not allowed")
 		}
 	}
 	return nil

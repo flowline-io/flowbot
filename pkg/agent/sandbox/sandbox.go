@@ -501,10 +501,10 @@ func removeSandboxContainer(cli *client.Client, id string) {
 
 func validateRunOptions(opts RunOptions) error {
 	if strings.TrimSpace(opts.Workspace) == "" {
-		return fmt.Errorf("sandbox: workspace is required")
+		return errors.New("sandbox: workspace is required")
 	}
 	if strings.TrimSpace(opts.Image) == "" {
-		return fmt.Errorf("sandbox: image is required")
+		return errors.New("sandbox: image is required")
 	}
 	return nil
 }
@@ -562,7 +562,7 @@ func tarWorkspace(root, destName string) (io.Reader, error) {
 		return nil, err
 	}
 	if !info.IsDir() {
-		return nil, fmt.Errorf("workspace is not a directory")
+		return nil, errors.New("workspace is not a directory")
 	}
 	var buf bytes.Buffer
 	tw := tar.NewWriter(&buf)
@@ -892,7 +892,7 @@ func buildCommand(opts RunOptions) ([]string, error) {
 	case len(opts.Argv) > 0:
 		cmd = append([]string(nil), opts.Argv...)
 	case strings.TrimSpace(opts.Command) == "":
-		return nil, fmt.Errorf("sandbox: empty command")
+		return nil, errors.New("sandbox: empty command")
 	default:
 		cmd = []string{"sh", "-c", opts.Command}
 	}

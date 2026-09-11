@@ -9,6 +9,7 @@ import (
 	"github.com/flc1125/go-cron/v4"
 	"github.com/goccy/go-yaml"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -331,7 +332,7 @@ func (t TriggerEntry) toEngineTrigger() Trigger {
 // ParseEditorYAML parses a YAML string into an EditorDefinition.
 func ParseEditorYAML(yamlStr string) (*EditorDefinition, error) {
 	if yamlStr == "" {
-		return nil, fmt.Errorf("parse editor yaml: empty input")
+		return nil, errors.New("parse editor yaml: empty input")
 	}
 	var def EditorDefinition
 	if err := yaml.Unmarshal([]byte(yamlStr), &def); err != nil {

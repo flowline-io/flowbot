@@ -2,11 +2,11 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/goccy/go-yaml"
 )
@@ -89,13 +89,13 @@ func (c *Config) applyEnvOverrides() {
 // Validate checks required fields.
 func (c *Config) Validate() error {
 	if strings.TrimSpace(c.FlowbotURL) == "" {
-		return fmt.Errorf("flowbot_url is required")
+		return errors.New("flowbot_url is required")
 	}
 	if strings.TrimSpace(c.AccessToken) == "" {
-		return fmt.Errorf("access_token is required")
+		return errors.New("access_token is required")
 	}
 	if strings.TrimSpace(c.DefaultWorkspace) == "" {
-		return fmt.Errorf("default_workspace is required")
+		return errors.New("default_workspace is required")
 	}
 	if len(c.WorkspaceAllowlist) == 0 {
 		c.WorkspaceAllowlist = []string{c.DefaultWorkspace}

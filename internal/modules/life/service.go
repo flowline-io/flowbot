@@ -1558,7 +1558,7 @@ func (s *Service) ListActionLogsPage(ctx context.Context, userID string, page, p
 	return out, total, nil
 }
 
-func normalizeLifeListPage(page, perPage int) (int, int, int) {
+func normalizeLifeListPage(page, perPage int) (pageOut, perPageOut, offset int) {
 	if perPage < 1 {
 		perPage = 10
 	}

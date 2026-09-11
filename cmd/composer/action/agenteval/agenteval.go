@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tmc/langchaingo/llms"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/eval"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -388,7 +389,7 @@ func loadCapabilityScenarios(f liveFlags, workspace string) ([]eval.Scenario, []
 		return nil, nil, err
 	}
 	if len(scenarios) == 0 {
-		return nil, nil, fmt.Errorf("agenteval: no capability cases selected")
+		return nil, nil, errors.New("agenteval: no capability cases selected")
 	}
 	return scenarios, goldDirs, nil
 }
@@ -516,10 +517,10 @@ func resolveJudgeModel(ctx context.Context, f liveFlags, caseCount int) (llms.Mo
 		return agentllm.NewFakeModel(fakeJudgeScripts(n)...), nil
 	}
 	if f.judgeName == "" {
-		return nil, fmt.Errorf("agenteval: --judge-model is required when --judge-fake=false")
+		return nil, errors.New("agenteval: --judge-model is required when --judge-fake=false")
 	}
 	if f.judgeName == f.modelName && f.modelName != "" {
-		return nil, fmt.Errorf("agenteval: --judge-model must differ from --model")
+		return nil, errors.New("agenteval: --judge-model must differ from --model")
 	}
 	if err := config.Load(f.configPath); err != nil {
 		return nil, fmt.Errorf("load config for --judge-model: %w", err)

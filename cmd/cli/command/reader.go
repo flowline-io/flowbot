@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/client"
@@ -89,7 +90,7 @@ func readerFeedGetCommand() *cobra.Command {
 		Long:  "Display details of a specific RSS feed",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("feed ID is required")
+				return errors.New("feed ID is required")
 			}
 			id, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
@@ -238,7 +239,7 @@ func readerFeedEntriesCommand() *cobra.Command {
 		Long:  "Display RSS entries for a specific feed",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("feed ID is required")
+				return errors.New("feed ID is required")
 			}
 			feedID, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {

@@ -3,6 +3,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/format"
@@ -250,7 +251,7 @@ func render(docs map[string]string) ([]byte, error) {
 		return b.Bytes(), err
 	}
 	if !utf8.Valid(formatted) {
-		return nil, fmt.Errorf("generated file is not valid UTF-8")
+		return nil, errors.New("generated file is not valid UTF-8")
 	}
 	return formatted, nil
 }

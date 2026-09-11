@@ -85,7 +85,7 @@ func (moduleHandler) Bootstrap() error {
 	}
 	mgr := capability.GetEventSourceManager()
 	if mgr == nil {
-		return fmt.Errorf("hub: event source manager not initialized")
+		return errors.New("hub: event source manager not initialized")
 	}
 	mgr.RegisterWebhook(karakeepAdapter.NewWebhook())
 	flog.Info("hub: registered karakeep webhook on /webhook/provider/karakeep/events")

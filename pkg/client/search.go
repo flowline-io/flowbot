@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
@@ -45,7 +46,7 @@ func (s *SearchClient) Search(ctx context.Context, query, source string) ([]Sear
 
 func validateSearchQuery(query string) error {
 	if query == "" {
-		return fmt.Errorf("query is required")
+		return errors.New("query is required")
 	}
 	if len(query) > validate.QueryMaxLen {
 		return fmt.Errorf("query exceeds maximum length of %d", validate.QueryMaxLen)

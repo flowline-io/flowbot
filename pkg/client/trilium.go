@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
@@ -89,7 +90,7 @@ func validateListNotesQuery(query *ListNotesQuery) error {
 // Get returns a single note by ID.
 func (t *TriliumClient) Get(ctx context.Context, id string) (*capability.Note, error) {
 	if id == "" {
-		return nil, fmt.Errorf("id is required")
+		return nil, errors.New("id is required")
 	}
 	var result NoteItemResult
 	path := fmt.Sprintf("/service/trilium/%s", url.PathEscape(id))
@@ -111,10 +112,10 @@ type CreateNoteRequest struct {
 // Create creates a new note.
 func (t *TriliumClient) Create(ctx context.Context, req *CreateNoteRequest) (*capability.Note, error) {
 	if req == nil {
-		return nil, fmt.Errorf("request is required")
+		return nil, errors.New("request is required")
 	}
 	if req.Title == "" {
-		return nil, fmt.Errorf("title is required")
+		return nil, errors.New("title is required")
 	}
 	var result NoteItemResult
 	err := t.c.Post(ctx, "/service/trilium", req, &result)
@@ -133,10 +134,10 @@ type UpdateNoteRequest struct {
 // Update updates an existing note.
 func (t *TriliumClient) Update(ctx context.Context, id string, req *UpdateNoteRequest) (*capability.Note, error) {
 	if id == "" {
-		return nil, fmt.Errorf("id is required")
+		return nil, errors.New("id is required")
 	}
 	if req == nil {
-		return nil, fmt.Errorf("request is required")
+		return nil, errors.New("request is required")
 	}
 	var result NoteItemResult
 	path := fmt.Sprintf("/service/trilium/%s", url.PathEscape(id))
@@ -150,7 +151,7 @@ func (t *TriliumClient) Update(ctx context.Context, id string, req *UpdateNoteRe
 // Delete removes a note by ID.
 func (t *TriliumClient) Delete(ctx context.Context, id string) error {
 	if id == "" {
-		return fmt.Errorf("id is required")
+		return errors.New("id is required")
 	}
 	path := fmt.Sprintf("/service/trilium/%s", url.PathEscape(id))
 	return t.c.Delete(ctx, path, nil, nil)
@@ -164,7 +165,7 @@ type SearchNotesQuery struct {
 // Search searches notes by query string.
 func (t *TriliumClient) Search(ctx context.Context, query *SearchNotesQuery) (*NoteListResult, error) {
 	if query == nil || query.Q == "" {
-		return nil, fmt.Errorf("query is required")
+		return nil, errors.New("query is required")
 	}
 	path := "/service/trilium/search?" + url.Values{"q": {query.Q}}.Encode()
 	var result NoteListResult
@@ -175,7 +176,7 @@ func (t *TriliumClient) Search(ctx context.Context, query *SearchNotesQuery) (*N
 // GetContent returns the full content of a note.
 func (t *TriliumClient) GetContent(ctx context.Context, id string) (string, error) {
 	if id == "" {
-		return "", fmt.Errorf("id is required")
+		return "", errors.New("id is required")
 	}
 	var result NoteContentResult
 	path := fmt.Sprintf("/service/trilium/%s/content", url.PathEscape(id))
@@ -189,7 +190,7 @@ func (t *TriliumClient) GetContent(ctx context.Context, id string) (string, erro
 // SetContent replaces the full content of a note.
 func (t *TriliumClient) SetContent(ctx context.Context, id, content string) error {
 	if id == "" {
-		return fmt.Errorf("id is required")
+		return errors.New("id is required")
 	}
 	path := fmt.Sprintf("/service/trilium/%s/content", url.PathEscape(id))
 	return t.c.Put(ctx, path, content, nil)

@@ -39,7 +39,7 @@ func resolvePlatformUserFlag(data protocol.MessageEventData) string {
 // Returns the user flag and an error if any operation fails.
 func registerPlatformUser(data protocol.MessageEventData, platform *gen.Platform) (types.Uid, error) {
 	if platform == nil {
-		return "", fmt.Errorf("register platform user: platform is nil")
+		return "", errors.New("register platform user: platform is nil")
 	}
 	ctx := context.Background()
 
@@ -194,7 +194,7 @@ func platformUserProfileDefaults(platformName, flag string) (email, avatarURL st
 // Returns the channel flag and an error if any operation fails.
 func registerPlatformChannel(data protocol.MessageEventData, platform *gen.Platform) (string, error) {
 	if platform == nil {
-		return "", fmt.Errorf("register platform channel: platform is nil")
+		return "", errors.New("register platform channel: platform is nil")
 	}
 
 	platformChannel, err := store.PlatformStoreFromDB().GetPlatformChannelByFlag(context.Background(), data.TopicId)
@@ -250,7 +250,7 @@ func registerPlatformChannel(data protocol.MessageEventData, platform *gen.Platf
 // if the agent already exists, update its last online time, otherwise create a new agent
 func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 	if hostid == "" {
-		return fmt.Errorf("hostid is empty")
+		return errors.New("hostid is empty")
 	}
 	agent, err := store.RuntimeAgentStoreFromDB().GetAgentByHostid(context.Background(), uid, topic, hostid)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {

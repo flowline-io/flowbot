@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
@@ -53,14 +54,14 @@ func (s *ServerClient) Upload(ctx context.Context, files map[string]io.Reader, f
 
 func validateUploadFiles(files map[string]io.Reader, filenames map[string]string) error {
 	if len(files) == 0 {
-		return fmt.Errorf("at least one file is required")
+		return errors.New("at least one file is required")
 	}
 	if len(files) > validate.MaxFileCount {
 		return fmt.Errorf("file count exceeds maximum of %d", validate.MaxFileCount)
 	}
 	for fieldName := range files {
 		if fieldName == "" {
-			return fmt.Errorf("field name cannot be empty")
+			return errors.New("field name cannot be empty")
 		}
 		if len(fieldName) > validate.NameMaxLen {
 			return fmt.Errorf("field name exceeds maximum length of %d", validate.NameMaxLen)

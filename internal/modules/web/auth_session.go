@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -234,10 +235,10 @@ func safeNext(next string) string {
 func accountTOTPSecret(ciphertext, nonce *[]byte) (string, error) {
 	enc := getEncryptor()
 	if enc == nil {
-		return "", fmt.Errorf("encryptor not ready")
+		return "", errors.New("encryptor not ready")
 	}
 	if ciphertext == nil || nonce == nil || len(*ciphertext) == 0 || len(*nonce) == 0 {
-		return "", fmt.Errorf("totp secret missing")
+		return "", errors.New("totp secret missing")
 	}
 	pt, err := enc.Decrypt(*ciphertext, *nonce)
 	if err != nil {

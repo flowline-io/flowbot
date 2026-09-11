@@ -6,6 +6,7 @@ import (
 
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -91,7 +92,7 @@ func (i *Slash) GetShortcut(id int32) (*Shortcut, error) {
 	}
 	result, ok := resp.Result().(*Shortcut)
 	if !ok {
-		return nil, fmt.Errorf("unexpected response type from slash")
+		return nil, errors.New("unexpected response type from slash")
 	}
 	return result, nil
 }

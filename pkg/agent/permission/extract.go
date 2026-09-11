@@ -138,7 +138,7 @@ func extractRunTerminalPrimary(req Request) (string, ParseBashCommand, []string)
 
 func extractProductToolPrimary(req Request) (string, ParseBashCommand, []string) {
 	switch req.Tool {
-	case ToolReadSkill:
+	case ToolReadSkill, ToolScheduleTask:
 		return strings.TrimSpace(fmt.Sprint(req.Args["name"])), ParseBashCommand{}, nil
 	case ToolSearchKnowledge:
 		q := strings.TrimSpace(fmt.Sprint(req.Args["query"]))
@@ -150,8 +150,6 @@ func extractProductToolPrimary(req Request) (string, ParseBashCommand, []string)
 		return strings.TrimSpace(fmt.Sprint(req.Args["path"])), ParseBashCommand{}, nil
 	case ToolDelegateSubagent:
 		return strings.TrimSpace(fmt.Sprint(req.Args["subagent_type"])), ParseBashCommand{}, nil
-	case ToolScheduleTask:
-		return strings.TrimSpace(fmt.Sprint(req.Args["name"])), ParseBashCommand{}, nil
 	case ToolUpdateScheduledTask, ToolCancelScheduledTask:
 		return strings.TrimSpace(fmt.Sprint(req.Args["task_id"])), ParseBashCommand{}, nil
 	case ToolListScheduledTasks:
@@ -224,9 +222,7 @@ func extractPathsFromSegment(segment, workspaceRoot string) []string {
 			continue
 		}
 		if filepath.IsAbs(word) || strings.HasPrefix(word, "/") {
-			if workspaceRoot != "" && !isUnderRoot(workspaceRoot, filepath.Clean(word)) {
-				paths = append(paths, word)
-			} else if workspaceRoot == "" && (filepath.IsAbs(word) || strings.HasPrefix(word, "/")) {
+			if workspaceRoot == "" || !isUnderRoot(workspaceRoot, filepath.Clean(word)) {
 				paths = append(paths, word)
 			}
 			continue

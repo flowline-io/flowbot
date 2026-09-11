@@ -12,6 +12,7 @@ import (
 	goPlugin "github.com/hashicorp/go-plugin"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	pb "github.com/flowline-io/flowbot/pkg/plugin/grpc/proto"
 )
@@ -134,7 +135,7 @@ func (r *GrpcRunner) Call(ctx context.Context, function string, params json.RawM
 	started := r.started
 	r.mu.Unlock()
 	if !started {
-		return nil, fmt.Errorf("grpc call: plugin not started")
+		return nil, errors.New("grpc call: plugin not started")
 	}
 
 	switch function {

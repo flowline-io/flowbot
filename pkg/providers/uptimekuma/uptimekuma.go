@@ -10,6 +10,7 @@ import (
 	"github.com/prometheus/common/model"
 	"resty.dev/v3"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -52,7 +53,7 @@ func NewUptimeKuma(endpoint, token string) *UptimeKuma {
 // Health reports whether the /metrics endpoint is reachable with a 2xx status.
 func (i *UptimeKuma) Health(ctx context.Context) error {
 	if i == nil || i.c == nil {
-		return fmt.Errorf("uptimekuma: not configured")
+		return errors.New("uptimekuma: not configured")
 	}
 	resp, err := i.c.R().SetContext(ctx).Get("/metrics")
 	if err != nil {

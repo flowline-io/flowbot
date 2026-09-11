@@ -156,17 +156,17 @@ func formatFetchOutput(rawURL string, status int, contentType string, body []byt
 func validateFetchURL(u *url.URL, allowLoopback bool) error {
 	scheme := strings.ToLower(u.Scheme)
 	if scheme != "http" && scheme != "https" {
-		return fmt.Errorf("only http and https URLs are allowed")
+		return errors.New("only http and https URLs are allowed")
 	}
 	host := strings.ToLower(u.Hostname())
 	if host == "" {
-		return fmt.Errorf("url host is required")
+		return errors.New("url host is required")
 	}
 	if allowLoopback {
 		return nil
 	}
 	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
-		return fmt.Errorf("localhost and loopback hosts are blocked")
+		return errors.New("localhost and loopback hosts are blocked")
 	}
 	if ip := net.ParseIP(host); ip != nil {
 		return validateFetchIP(ip)
@@ -176,7 +176,7 @@ func validateFetchURL(u *url.URL, allowLoopback bool) error {
 
 func validateFetchIP(ip net.IP) error {
 	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsUnspecified() {
-		return fmt.Errorf("loopback and link-local addresses are blocked")
+		return errors.New("loopback and link-local addresses are blocked")
 	}
 	return nil
 }

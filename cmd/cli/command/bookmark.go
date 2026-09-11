@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/client"
@@ -107,7 +108,7 @@ func bookmarkGetCommand() *cobra.Command {
 		Long:  "Display details of a specific bookmark",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("bookmark ID is required")
+				return errors.New("bookmark ID is required")
 			}
 			id := args[0]
 
@@ -149,7 +150,7 @@ func bookmarkArchiveCommand() *cobra.Command {
 		Long:  "Archive or unarchive a bookmark by ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("bookmark ID is required")
+				return errors.New("bookmark ID is required")
 			}
 			id := args[0]
 
@@ -207,7 +208,7 @@ func bookmarkDeleteCommand() *cobra.Command {
 		Long:  "Archive a bookmark by ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("bookmark ID is required")
+				return errors.New("bookmark ID is required")
 			}
 			id := args[0]
 

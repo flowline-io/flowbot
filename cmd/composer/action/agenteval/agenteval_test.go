@@ -25,10 +25,7 @@ func TestEvalCommandShape(t *testing.T) {
 			require.NotNil(t, sub.Flags().Lookup("cases"))
 			require.NotNil(t, sub.Flags().Lookup("run"))
 			require.NotNil(t, sub.Flags().Lookup("difficulty"))
-		case "run":
-			require.NotNil(t, sub.Flags().Lookup("cases"))
-			require.NotNil(t, sub.Flags().Lookup("run"))
-		case "harness":
+		case "run", "harness":
 			require.NotNil(t, sub.Flags().Lookup("cases"))
 			require.NotNil(t, sub.Flags().Lookup("run"))
 		}

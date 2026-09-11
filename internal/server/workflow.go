@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/fx"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -113,7 +114,7 @@ func workflowWebhookInput(c fiber.Ctx, wcfg *pipeline.WebhookConfig) (types.KV, 
 	if wcfg.Payload == config.WebhookPayloadMapped {
 		var parsed map[string]any
 		if err := sonic.Unmarshal(body, &parsed); err != nil {
-			return nil, fmt.Errorf("invalid JSON body")
+			return nil, errors.New("invalid JSON body")
 		}
 		maps.Copy(input, parsed)
 	} else {

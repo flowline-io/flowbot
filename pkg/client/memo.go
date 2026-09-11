@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -73,10 +74,10 @@ func validateListMemosQuery(query *ListMemosQuery) error {
 		return fmt.Errorf("limit must be non-negative, got %d", query.Limit)
 	}
 	if query.Limit > 100 {
-		return fmt.Errorf("limit exceeds maximum of 100")
+		return errors.New("limit exceeds maximum of 100")
 	}
 	if len(query.Cursor) > 4096 {
-		return fmt.Errorf("cursor exceeds maximum length of 4096")
+		return errors.New("cursor exceeds maximum length of 4096")
 	}
 	return nil
 }
@@ -84,7 +85,7 @@ func validateListMemosQuery(query *ListMemosQuery) error {
 // Get returns a single memo by its resource name (e.g., "memos/123").
 func (m *MemoClient) Get(ctx context.Context, name string) (*capability.Memo, error) {
 	if name == "" {
-		return nil, fmt.Errorf("name is required")
+		return nil, errors.New("name is required")
 	}
 	var result MemoItemResult
 	path := "/service/memos?" + url.Values{"name": {name}}.Encode()
@@ -104,7 +105,7 @@ type CreateMemoRequest struct {
 // Create creates a new memo.
 func (m *MemoClient) Create(ctx context.Context, content, visibility string) (*capability.Memo, error) {
 	if content == "" {
-		return nil, fmt.Errorf("content is required")
+		return nil, errors.New("content is required")
 	}
 	body := CreateMemoRequest{
 		Content:    content,
@@ -128,7 +129,7 @@ type UpdateMemoRequest struct {
 // Update updates an existing memo.
 func (m *MemoClient) Update(ctx context.Context, name string, req *UpdateMemoRequest) (*capability.Memo, error) {
 	if name == "" {
-		return nil, fmt.Errorf("name is required")
+		return nil, errors.New("name is required")
 	}
 	var result MemoItemResult
 	path := "/service/memos?" + url.Values{"name": {name}}.Encode()
@@ -142,7 +143,7 @@ func (m *MemoClient) Update(ctx context.Context, name string, req *UpdateMemoReq
 // Delete removes a memo by its resource name.
 func (m *MemoClient) Delete(ctx context.Context, name string) error {
 	if name == "" {
-		return fmt.Errorf("name is required")
+		return errors.New("name is required")
 	}
 	path := "/service/memos?" + url.Values{"name": {name}}.Encode()
 	err := m.c.Delete(ctx, path, nil, nil)

@@ -202,8 +202,7 @@ func (*Runtime) setupWorkdir(t *types.Task) (string, error) {
 }
 
 // buildShellCommand constructs the environment variables and reexec args for the shell command.
-func (r *Runtime) buildShellCommand(workdir string, t *types.Task) ([]string, []string, error) {
-	var env []string
+func (r *Runtime) buildShellCommand(workdir string, t *types.Task) (args, env []string, err error) {
 	for name, value := range t.Env {
 		env = append(env, fmt.Sprintf("%s%s=%s", envVarPrefix, name, value))
 	}
@@ -223,7 +222,7 @@ func (r *Runtime) buildShellCommand(workdir string, t *types.Task) ([]string, []
 		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
 	}
 
-	args := make([]string, len(r.shell)+1)
+	args = make([]string, len(r.shell)+1)
 	copy(args, r.shell)
 	args[len(r.shell)] = entrypointPath
 	args = append([]string{"shell", "-uid", r.uid, "-gid", r.gid}, args...)

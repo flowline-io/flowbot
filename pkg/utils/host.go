@@ -4,7 +4,7 @@ import (
 	"github.com/shirou/gopsutil/v4/host"
 )
 
-func HostInfo() (string, string, error) {
+func HostInfo() (hostID, hostname string, err error) {
 	infoStat, err := host.Info()
 	if err != nil {
 		return "", "", err

@@ -143,7 +143,7 @@ func (s *Service) RunAPI(ctx context.Context, req RunRequest, opts *APIRunOption
 // CompactSession force-compacts the current session branch without sending a user turn.
 func (s *Service) CompactSession(ctx context.Context, sessionID string) (*ManualCompactionResult, error) {
 	if !agentllm.AgentEnabled(agentName) {
-		return nil, fmt.Errorf("agent is disabled or model is not configured")
+		return nil, errors.New("agent is disabled or model is not configured")
 	}
 	if err := ensureSessionActive(ctx, sessionID); err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 		return nil, err
 	}
 	if h == nil || h.ContextManager() == nil || h.Session() == nil {
-		return nil, fmt.Errorf("agent context manager unavailable")
+		return nil, errors.New("agent context manager unavailable")
 	}
 
 	branch, err := h.Session().GetBranch(ctx, "")
@@ -193,11 +193,11 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 func validateRunRequest(ctx context.Context, req RunRequest) error {
 	if !agentllm.AgentEnabled(agentName) {
 		flog.Warn("[chat-agent] run rejected: agent disabled or model not configured session=%s", req.SessionID)
-		return fmt.Errorf("agent is disabled or model is not configured")
+		return errors.New("agent is disabled or model is not configured")
 	}
 	if strings.TrimSpace(req.Text) == "" && len(req.Attachments) == 0 {
 		flog.Debug("[chat-agent] run rejected: empty message session=%s", req.SessionID)
-		return fmt.Errorf("empty message")
+		return errors.New("empty message")
 	}
 	if err := ensureSessionActive(ctx, req.SessionID); err != nil {
 		flog.Warn("[chat-agent] run rejected: session inactive session=%s: %v", req.SessionID, err)
@@ -294,7 +294,7 @@ func buildRunUserMessage(ctx context.Context, req RunRequest) (agent.UserMessage
 	}
 	userParts := BuildUserMessageParts(req.Text, mediaParts)
 	if len(userParts) == 0 {
-		return agent.UserMessage{}, nil, fmt.Errorf("empty message")
+		return agent.UserMessage{}, nil, errors.New("empty message")
 	}
 	return agent.NewUserMessageWithParts(userParts...), mediaParts, nil
 }
@@ -395,17 +395,17 @@ func (s *Service) releaseHarnessAfterRunAbort(h *harness.Harness, sessionID stri
 
 func ensureSessionActive(ctx context.Context, sessionID string) error {
 	if store.Database == nil {
-		return fmt.Errorf("chat session store unavailable")
+		return errors.New("chat session store unavailable")
 	}
 	sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			return fmt.Errorf("chat session not found")
+			return errors.New("chat session not found")
 		}
 		return fmt.Errorf("load chat session: %w", err)
 	}
 	if sess.State == int(schema.ChatSessionClosed) {
-		return fmt.Errorf("chat session closed")
+		return errors.New("chat session closed")
 	}
 	return nil
 }

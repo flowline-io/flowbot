@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
@@ -44,7 +45,7 @@ func (s *WebAccountStore) Client() *gen.Client {
 // Count returns the number of web accounts.
 func (s *WebAccountStore) Count(ctx context.Context) (int, error) {
 	if !s.ready() {
-		return 0, fmt.Errorf("web account store not available")
+		return 0, errors.New("web account store not available")
 	}
 	n, err := s.client.WebAccount.Query().Count(ctx)
 	if err != nil {
@@ -56,7 +57,7 @@ func (s *WebAccountStore) Count(ctx context.Context) (int, error) {
 // GetByUsername returns the account for username.
 func (s *WebAccountStore) GetByUsername(ctx context.Context, username string) (*gen.WebAccount, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("web account store not available")
+		return nil, errors.New("web account store not available")
 	}
 	row, err := s.client.WebAccount.Query().Where(webaccount.UsernameEQ(username)).Only(ctx)
 	if err != nil {
@@ -71,7 +72,7 @@ func (s *WebAccountStore) GetByUsername(ctx context.Context, username string) (*
 // GetByUID returns the account for uid.
 func (s *WebAccountStore) GetByUID(ctx context.Context, uid string) (*gen.WebAccount, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("web account store not available")
+		return nil, errors.New("web account store not available")
 	}
 	row, err := s.client.WebAccount.Query().Where(webaccount.UIDEQ(uid)).Only(ctx)
 	if err != nil {
@@ -113,10 +114,10 @@ type CreateAccountInput struct {
 // It runs in a transaction: COUNT must be 0, then insert web_accounts + users.
 func (s *WebAccountStore) CreateFirstAccount(ctx context.Context, in CreateAccountInput) (*gen.WebAccount, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("web account store not available")
+		return nil, errors.New("web account store not available")
 	}
 	if in.Username == "" || in.PasswordHash == "" {
-		return nil, fmt.Errorf("web account: username and password hash required")
+		return nil, errors.New("web account: username and password hash required")
 	}
 	uid := webauth.UIDForUsername(in.Username)
 	var created *gen.WebAccount
@@ -153,7 +154,7 @@ func (s *WebAccountStore) CreateFirstAccount(ctx context.Context, in CreateAccou
 // EnsureUser creates a users row for uid if missing.
 func (s *WebAccountStore) EnsureUser(ctx context.Context, uid, username string) error {
 	if !s.ready() {
-		return fmt.Errorf("web account store not available")
+		return errors.New("web account store not available")
 	}
 	return ensureUser(ctx, s.client, uid, username)
 }
@@ -201,7 +202,7 @@ func ensureUserTx(ctx context.Context, tx *gen.Tx, uid, username string) error {
 // UpdatePasswordHash sets a new password hash.
 func (s *WebAccountStore) UpdatePasswordHash(ctx context.Context, username, hash string) error {
 	if !s.ready() {
-		return fmt.Errorf("web account store not available")
+		return errors.New("web account store not available")
 	}
 	n, err := s.client.WebAccount.Update().
 		Where(webaccount.UsernameEQ(username)).
@@ -220,7 +221,7 @@ func (s *WebAccountStore) UpdatePasswordHash(ctx context.Context, username, hash
 // EnableTOTP stores encrypted secret, backup hashes, marks enabled, and records the enroll step.
 func (s *WebAccountStore) EnableTOTP(ctx context.Context, username string, ciphertext, nonce []byte, backupHashes []string, lastStep int64) error {
 	if !s.ready() {
-		return fmt.Errorf("web account store not available")
+		return errors.New("web account store not available")
 	}
 	n, err := s.client.WebAccount.Update().
 		Where(webaccount.UsernameEQ(username)).
@@ -243,7 +244,7 @@ func (s *WebAccountStore) EnableTOTP(ctx context.Context, username string, ciphe
 // SetTOTPLastStep records the last accepted TOTP time step (replay protection).
 func (s *WebAccountStore) SetTOTPLastStep(ctx context.Context, username string, step int64) error {
 	if !s.ready() {
-		return fmt.Errorf("web account store not available")
+		return errors.New("web account store not available")
 	}
 	n, err := s.client.WebAccount.Update().
 		Where(webaccount.UsernameEQ(username)).
@@ -262,7 +263,7 @@ func (s *WebAccountStore) SetTOTPLastStep(ctx context.Context, username string, 
 // SetBackupCodeHashes replaces backup code hashes.
 func (s *WebAccountStore) SetBackupCodeHashes(ctx context.Context, username string, hashes []string) error {
 	if !s.ready() {
-		return fmt.Errorf("web account store not available")
+		return errors.New("web account store not available")
 	}
 	if hashes == nil {
 		hashes = []string{}
@@ -284,7 +285,7 @@ func (s *WebAccountStore) SetBackupCodeHashes(ctx context.Context, username stri
 // ResetTOTP clears TOTP secret, disables 2FA, and clears backup codes.
 func (s *WebAccountStore) ResetTOTP(ctx context.Context, username string) error {
 	if !s.ready() {
-		return fmt.Errorf("web account store not available")
+		return errors.New("web account store not available")
 	}
 	n, err := s.client.WebAccount.Update().
 		Where(webaccount.UsernameEQ(username)).
@@ -308,7 +309,7 @@ func (s *WebAccountStore) ResetTOTP(ctx context.Context, username string) error 
 // This clears pre-2FA legacy cookies (missing kind) and any pending sessions on startup.
 func (s *WebAccountStore) RevokeLegacyWebSessions(ctx context.Context) (int, error) {
 	if !s.ready() {
-		return 0, fmt.Errorf("web account store not available")
+		return 0, errors.New("web account store not available")
 	}
 	rows, err := s.client.Parameter.Query().All(ctx)
 	if err != nil {
@@ -336,7 +337,7 @@ func (s *WebAccountStore) RevokeLegacyWebSessions(ctx context.Context) (int, err
 // DeleteWebSessionsForUID removes parameter rows for web sessions belonging to uid.
 func (s *WebAccountStore) DeleteWebSessionsForUID(ctx context.Context, uid string) (int, error) {
 	if !s.ready() {
-		return 0, fmt.Errorf("web account store not available")
+		return 0, errors.New("web account store not available")
 	}
 	rows, err := s.client.Parameter.Query().All(ctx)
 	if err != nil {

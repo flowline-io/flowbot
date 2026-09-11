@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
 	"github.com/flowline-io/flowbot/pkg/capability/core"
@@ -19,7 +19,7 @@ type coreExecProvider struct{}
 func (coreExecProvider) ExecConfig(_ context.Context) (pkgexec.Config, error) {
 	ws := strings.TrimSpace(config.CoreWorkspace())
 	if ws == "" {
-		return pkgexec.Config{}, fmt.Errorf("core workspace is not configured (set core.workspace or chat_agent.workspace)")
+		return pkgexec.Config{}, errors.New("core workspace is not configured (set core.workspace or chat_agent.workspace)")
 	}
 	timeout := config.App.ChatAgent.ShellTimeout
 	if timeout <= 0 {

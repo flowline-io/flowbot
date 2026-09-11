@@ -2,8 +2,8 @@ package docker
 
 import (
 	"context"
-	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -16,10 +16,10 @@ func NewTmpfsMounter() *TmpfsMounter {
 
 func (*TmpfsMounter) Mount(_ context.Context, mnt *types.Mount) error {
 	if mnt.Target == "" {
-		return fmt.Errorf("tmpfs target is required")
+		return errors.New("tmpfs target is required")
 	}
 	if mnt.Source != "" {
-		return fmt.Errorf("tmpfs source should be empty")
+		return errors.New("tmpfs source should be empty")
 	}
 	return nil
 }

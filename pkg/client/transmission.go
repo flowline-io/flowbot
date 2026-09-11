@@ -2,8 +2,8 @@ package client
 
 import (
 	"context"
-	"fmt"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
@@ -45,10 +45,10 @@ type TransmissionHealthResult struct {
 // AddTorrent adds a torrent by magnet link or HTTP(S) .torrent URL.
 func (t *TransmissionClient) AddTorrent(ctx context.Context, req *AddTorrentRequest) (*capability.Torrent, error) {
 	if req == nil {
-		return nil, fmt.Errorf("request is required")
+		return nil, errors.New("request is required")
 	}
 	if req.URL == "" {
-		return nil, fmt.Errorf("url is required")
+		return nil, errors.New("url is required")
 	}
 	var result TorrentItemResult
 	err := t.c.Post(ctx, "/service/transmission/torrents", req, &result)
@@ -71,7 +71,7 @@ func (t *TransmissionClient) ListTorrents(ctx context.Context) ([]*capability.To
 // StopTorrents stops torrents by ID.
 func (t *TransmissionClient) StopTorrents(ctx context.Context, ids []int64) error {
 	if len(ids) == 0 {
-		return fmt.Errorf("ids is required")
+		return errors.New("ids is required")
 	}
 	var result TorrentsActionResult
 	return t.c.Post(ctx, "/service/transmission/torrents/stop", &TorrentsActionRequest{IDs: ids}, &result)
@@ -80,7 +80,7 @@ func (t *TransmissionClient) StopTorrents(ctx context.Context, ids []int64) erro
 // RemoveTorrents removes torrents by ID.
 func (t *TransmissionClient) RemoveTorrents(ctx context.Context, ids []int64) error {
 	if len(ids) == 0 {
-		return fmt.Errorf("ids is required")
+		return errors.New("ids is required")
 	}
 	var result TorrentsActionResult
 	return t.c.Post(ctx, "/service/transmission/torrents/remove", &TorrentsActionRequest{IDs: ids}, &result)

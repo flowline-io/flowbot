@@ -2,10 +2,10 @@
 package email
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
@@ -27,10 +27,10 @@ func GetClient() (*Client, error) {
 // NewClient validates config and returns a client.
 func NewClient(cfg Config) (*Client, error) {
 	if cfg.Username == "" || cfg.Password == "" {
-		return nil, fmt.Errorf("email: username and password are required")
+		return nil, errors.New("email: username and password are required")
 	}
 	if cfg.SMTPHost == "" && cfg.IMAPHost == "" {
-		return nil, fmt.Errorf("email: smtp_host or imap_host is required")
+		return nil, errors.New("email: smtp_host or imap_host is required")
 	}
 	if cfg.Mailbox == "" {
 		cfg.Mailbox = "INBOX"

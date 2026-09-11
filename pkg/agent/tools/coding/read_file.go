@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"errors"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
@@ -121,10 +122,10 @@ func intArg(args map[string]any, key string) int {
 
 func sliceFileLines(content string, offset, limit int) (string, error) {
 	if offset < 0 {
-		return "", fmt.Errorf("offset must be >= 0")
+		return "", errors.New("offset must be >= 0")
 	}
 	if limit < 0 {
-		return "", fmt.Errorf("limit must be >= 0")
+		return "", errors.New("limit must be >= 0")
 	}
 	lines := strings.Split(content, "\n")
 	if len(lines) > 0 && lines[len(lines)-1] == "" && strings.HasSuffix(content, "\n") {
