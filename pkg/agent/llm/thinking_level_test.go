@@ -36,8 +36,8 @@ func TestReasoningCallOptionsThinkingLevel(t *testing.T) {
 	}{
 		{name: "off disables anthropic reasoning", modelName: "claude-sonnet-4.6", level: "off", wantLen: 0},
 		{name: "default keeps anthropic reasoning", modelName: "claude-sonnet-4.6", level: "default", wantLen: 4},
-		{name: "high enables deepseek reasoning", modelName: "deepseek-v4-flash", level: "high", wantLen: 2},
-		{name: "off disables deepseek reasoning", modelName: "deepseek-v4-flash", level: "off", wantLen: 0},
+		{name: "high enables deepseek reasoning", modelName: "deepseek-flash", level: "high", wantLen: 2},
+		{name: "off disables deepseek reasoning", modelName: "deepseek-flash", level: "off", wantLen: 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

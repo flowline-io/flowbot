@@ -125,7 +125,7 @@ func TestLLMUsageStore_UsageTypeLegacySources(t *testing.T) {
 	_, err := client.LLMUsageRecord.Create().
 		SetUID(uid).
 		SetSessionID("sess-agent").
-		SetModel("deepseek-v4-flash").
+		SetModel("deepseek-flash").
 		SetSource("chat_agent").
 		SetTotalTokens(100).
 		SetPromptTokens(100).
@@ -135,7 +135,7 @@ func TestLLMUsageStore_UsageTypeLegacySources(t *testing.T) {
 	_, err = client.LLMUsageRecord.Create().
 		SetUID(uid).
 		SetSessionID("sess-pipeline").
-		SetModel("deepseek-v4-flash").
+		SetModel("deepseek-flash").
 		SetSource("pipeline").
 		SetTotalTokens(30).
 		SetPromptTokens(30).

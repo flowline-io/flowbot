@@ -48,7 +48,7 @@ func TestContextWindowForModel(t *testing.T) {
 		modelName string
 		want      int
 	}{
-		{name: "catalog model", modelName: "deepseek-v4-pro", want: 1_048_576},
+		{name: "catalog model", modelName: "deepseek-flash", want: 1_048_576},
 		{name: "unknown model fallback", modelName: "unknown", want: model.DefaultContextWindow},
 		{name: "empty name fallback", modelName: "", want: model.DefaultContextWindow},
 	}
@@ -70,7 +70,7 @@ func TestMaxContextWindow(t *testing.T) {
 	}{
 		{
 			name:       "returns largest catalog window",
-			modelNames: []string{"fake-model", "deepseek-v4-pro"},
+			modelNames: []string{"fake-model", "deepseek-flash"},
 			want:       1_048_576,
 		},
 		{
@@ -103,8 +103,8 @@ func TestChatAgentContextWindow(t *testing.T) {
 		toolModel string
 		want      int
 	}{
-		{name: "single chat model", chatModel: "deepseek-v4-flash", want: 1_048_576},
-		{name: "dual model uses max", chatModel: "gpt-5.3-codex", toolModel: "deepseek-v4-pro", want: 1_048_576},
+		{name: "single chat model", chatModel: "deepseek-flash", want: 1_048_576},
+		{name: "dual model uses max", chatModel: "gpt-5.3-codex", toolModel: "deepseek-flash", want: 1_048_576},
 		{name: "unknown chat model fallback", chatModel: "missing-model", want: model.DefaultContextWindow},
 	}
 	for _, tt := range tests {

@@ -15,7 +15,7 @@ func TestChatAgentThreadHeaderMobile(t *testing.T) {
 		Flag:          "sess-long-id",
 		Title:         "Ask about date and directory layout",
 		State:         "Active",
-		Model:         "deepseek-v4-flash",
+		Model:         "deepseek-flash",
 		ThinkingLevel: "default",
 		Workspace:     "chat-workspace",
 	}
@@ -59,7 +59,7 @@ func TestChatAgentThreadHeaderMobile(t *testing.T) {
 				`data-testid="chatagent-thread-meta"`,
 				`data-testid="chatagent-session-model-label"`,
 				`data-chatagent-model-text`,
-				"deepseek-v4-flash",
+				"deepseek-flash",
 				`data-testid="chatagent-session-thinking-label"`,
 				`data-chatagent-thinking-text`,
 				`data-testid="chatagent-thread-workspace"`,

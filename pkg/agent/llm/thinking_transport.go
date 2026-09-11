@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/pkg/agent/model"
 )
 
 // thinkingRequestProfile describes which thinking request fields a model family accepts.
@@ -19,19 +20,18 @@ type thinkingRequestProfile struct {
 
 // thinkingRequestProfileFor returns the OpenAI-compatible thinking field profile for a model.
 func thinkingRequestProfileFor(modelName string) (thinkingRequestProfile, bool) {
-	switch {
-	case isDeepSeekV4ReasoningModel(modelName):
+	if model.HasFeature(modelName, model.CapThinking) {
 		return thinkingRequestProfile{
 			SupportsThinkingType:    true,
-			SupportsReasoningEffort: true,
+			SupportsReasoningEffort: model.HasFeature(modelName, model.CapReasoningEffort),
 		}, true
-	case isMiMoReasoningModel(modelName):
+	}
+	if isMiMoReasoningModel(modelName) {
 		return thinkingRequestProfile{
 			SupportsThinkingType: true,
 		}, true
-	default:
-		return thinkingRequestProfile{}, false
 	}
+	return thinkingRequestProfile{}, false
 }
 
 // thinkingTransport injects OpenAI-compatible thinking parameters into chat
@@ -169,7 +169,7 @@ func reasoningForToolCalls(msg map[string]any, reasoning map[string]string) stri
 }
 
 func needsReasoningContentRoundTrip(modelName string) bool {
-	return isDeepSeekV4ReasoningModel(modelName) || isMiMoReasoningModel(modelName)
+	return model.HasFeature(modelName, model.CapThinking) || isMiMoReasoningModel(modelName)
 }
 
 func messageHasToolCalls(msg map[string]any) bool {

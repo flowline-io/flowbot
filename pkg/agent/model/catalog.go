@@ -10,9 +10,7 @@ import (
 // DefaultContextWindow is the fallback input token budget for unknown models.
 const DefaultContextWindow = 128000
 
-const deepseekV4ProDescription = "DeepSeek V4 Pro is a large-scale Mixture-of-Experts model from DeepSeek with 1.6T total parameters and 49B activated parameters, supporting a 1M-token context window. It is designed for advanced reasoning, coding, and long-context tasks."
-
-const deepseekV4FlashDescription = "DeepSeek V4 Flash is an efficiency-optimized Mixture-of-Experts model from DeepSeek with 284B total parameters and 13B activated parameters, supporting a 1M-token context window. It is designed for fast inference and low-latency agent workloads."
+const deepseekFlashDescription = "DeepSeek V4.1 Flash is a 552B-parameter Mixture-of-Experts model from DeepSeek with an asymmetric Causal-Encoder-Decoder structure (8B input activation, 16B output activation). It supports a 1M-token context window, native multimodal vision understanding, and thinking mode for agent workloads, targeting higher capability, faster inference, and lower KV-cache cost than prior DeepSeek Flash releases."
 
 const gpt53CodexDescription = "GPT-5.3-Codex is OpenAI's most advanced agentic coding model, combining the frontier software engineering performance of GPT-5.2-Codex with the broader reasoning and professional knowledge capabilities of GPT-5.2. It achieves state-of-the-art results on SWE-Bench Pro and strong performance on Terminal-Bench 2.0 and OSWorld-Verified, reflecting improved multi-language coding, terminal proficiency, and real-world computer-use skills. The model is optimized for long-running, tool-using workflows and supports interactive steering during execution, making it suitable for complex development tasks, debugging, deployment, and iterative product work.\n\nBeyond coding, GPT-5.3-Codex performs strongly on structured knowledge-work benchmarks such as GDPval, supporting tasks like document drafting, spreadsheet analysis, slide creation, and operational research across domains. It is trained with enhanced cybersecurity awareness, including vulnerability identification capabilities, and deployed with additional safeguards for high-risk use cases. Compared to prior Codex models, it is more token-efficient and approximately 25% faster, targeting professional end-to-end workflows that span reasoning, execution, and computer interaction."
 
@@ -33,30 +31,19 @@ const mimoV25Description = "Xiaomi MiMo-V2.5 is an omni-modal agent model with a
 const mimoV25ProDescription = "Xiaomi MiMo-V2.5-Pro is a trillion-scale Mixture-of-Experts model (1T total parameters, 42B activated) with a 1M-token context window. It targets peak agent performance on demanding agentic workloads while retaining the V2.5 series' omni-modal understanding of text, image, audio, and video."
 
 var catalog = map[string]Metadata{
-	"deepseek-v4-pro": {
-		ID:            "deepseek-v4-pro",
-		Name:          "DeepSeek V4 Pro",
-		Description:   deepseekV4ProDescription,
+	"deepseek-flash": {
+		ID:            "deepseek-flash",
+		Name:          "DeepSeek V4.1 Flash",
+		Description:   deepseekFlashDescription,
 		ContextLength: 1_048_576,
 		MaxOutput:     384_000,
 		Features: []Feature{
 			CapChat,
 			CapFunctionCall,
 			CapJsonMode,
-			ModalityTextIn,
-			ModalityTextOut,
-		},
-	},
-	"deepseek-v4-flash": {
-		ID:            "deepseek-v4-flash",
-		Name:          "DeepSeek V4 Flash",
-		Description:   deepseekV4FlashDescription,
-		ContextLength: 1_048_576,
-		MaxOutput:     384_000,
-		Features: []Feature{
-			CapChat,
-			CapFunctionCall,
-			CapJsonMode,
+			CapThinking,
+			CapReasoningEffort,
+			ModalityImageIn,
 			ModalityTextIn,
 			ModalityTextOut,
 		},

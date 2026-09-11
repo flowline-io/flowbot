@@ -54,7 +54,7 @@ func TestThinkingHTTPClientInjectsThinking(t *testing.T) {
 		{
 			name:        "deepseek chat completion gets thinking and effort",
 			path:        "/v1/chat/completions",
-			body:        `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}]}`,
+			body:        `{"model":"deepseek-flash","messages":[{"role":"user","content":"hi"}]}`,
 			wantInject:  true,
 			wantEnabled: true,
 			wantEffort:  "high",
@@ -62,13 +62,13 @@ func TestThinkingHTTPClientInjectsThinking(t *testing.T) {
 		{
 			name:       "non chat path unchanged",
 			path:       "/v1/models",
-			body:       `{"model":"deepseek-v4-flash"}`,
+			body:       `{"model":"deepseek-flash"}`,
 			wantInject: false,
 		},
 		{
 			name:        "preserves existing thinking fields",
 			path:        "/v1/chat/completions",
-			body:        `{"model":"deepseek-v4-flash","reasoning_effort":"max","thinking":{"type":"enabled"}}`,
+			body:        `{"model":"deepseek-flash","reasoning_effort":"max","thinking":{"type":"enabled"}}`,
 			wantInject:  true,
 			wantEnabled: true,
 			wantEffort:  "max",
@@ -76,7 +76,7 @@ func TestThinkingHTTPClientInjectsThinking(t *testing.T) {
 		{
 			name:          "deepseek off disables thinking and omits reasoning_effort",
 			path:          "/v1/chat/completions",
-			body:          `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}],"reasoning_effort":"high"}`,
+			body:          `{"model":"deepseek-flash","messages":[{"role":"user","content":"hi"}],"reasoning_effort":"high"}`,
 			thinkingLevel: llm.ThinkingLevelOff,
 			wantInject:    true,
 			wantEnabled:   false,

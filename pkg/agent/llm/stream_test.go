@@ -22,7 +22,7 @@ func TestStreamAssistant_ReasoningDelta(t *testing.T) {
 	}{
 		{
 			name:      "deepseek v4 streams reasoning content field",
-			modelName: "deepseek-v4-flash",
+			modelName: "deepseek-flash",
 			script: llm.ResponseScript{
 				ReasoningChunks: []string{"step"},
 				Chunks:          []string{"ok"},

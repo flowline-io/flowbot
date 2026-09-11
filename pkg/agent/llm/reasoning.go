@@ -54,11 +54,6 @@ func ReasoningCallOptions(modelName string, maxTokens int, thinkingLevel string)
 	return opts
 }
 
-func isDeepSeekV4ReasoningModel(modelName string) bool {
-	lower := strings.ToLower(modelName)
-	return strings.Contains(lower, "deepseek-v4")
-}
-
 // isMiMoReasoningModel reports whether model is a Xiaomi MiMo V2.5 series
 // reasoning model that returns reasoning_content (see MiMo deep-thinking API).
 func isMiMoReasoningModel(modelName string) bool {

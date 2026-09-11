@@ -95,7 +95,7 @@ func TestRunLoop_ReasoningStream(t *testing.T) {
 			})
 
 			cfg := loop.DefaultConfig()
-			cfg.ModelName = "deepseek-v4-chat"
+			cfg.ModelName = "deepseek-flash"
 			cfg.MaxSteps = 3
 
 			_, err := loop.RunLoop(context.Background(), []msg.AgentMessage{

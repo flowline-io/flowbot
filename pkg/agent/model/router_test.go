@@ -137,13 +137,13 @@ func TestRouter_PrepareNextTurnHook_media(t *testing.T) {
 		{
 			name:           "strips media for text-only tool model",
 			chatModel:      "mimo-v2.5",
-			toolModel:      "deepseek-v4-pro",
+			toolModel:      "qwen3.7-max",
 			toolResults:    1,
 			wantMediaKinds: nil,
 		},
 		{
 			name:           "keeps media for omni-modal tool model",
-			chatModel:      "deepseek-v4-pro",
+			chatModel:      "deepseek-flash",
 			toolModel:      "mimo-v2.5",
 			toolResults:    1,
 			wantMediaKinds: []msg.MediaKind{msg.MediaKindImage, msg.MediaKindAudio},
@@ -158,16 +158,23 @@ func TestRouter_PrepareNextTurnHook_media(t *testing.T) {
 		{
 			name:           "does not filter media on chat turn",
 			chatModel:      "mimo-v2.5",
-			toolModel:      "deepseek-v4-pro",
+			toolModel:      "deepseek-flash",
 			toolResults:    0,
 			wantMediaKinds: []msg.MediaKind{msg.MediaKindImage, msg.MediaKindAudio},
 		},
 		{
 			name:           "does not filter when chat and tool models match",
-			chatModel:      "deepseek-v4-pro",
-			toolModel:      "deepseek-v4-pro",
+			chatModel:      "deepseek-flash",
+			toolModel:      "deepseek-flash",
 			toolResults:    1,
 			wantMediaKinds: []msg.MediaKind{msg.MediaKindImage, msg.MediaKindAudio},
+		},
+		{
+			name:           "keeps image only when tool model is deepseek flash",
+			chatModel:      "mimo-v2.5",
+			toolModel:      "deepseek-flash",
+			toolResults:    1,
+			wantMediaKinds: []msg.MediaKind{msg.MediaKindImage},
 		},
 	}
 

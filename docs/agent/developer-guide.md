@@ -207,7 +207,7 @@ ctxMgr := ctxmgr.New(ctxmgr.Options{
 })
 ```
 
-Register models in `flowbot.yaml` and add catalog entries in `pkg/agent/model/catalog.go` for accurate context limits. Unknown model names use the default 128000-token budget.
+Register models in `flowbot.yaml` and add catalog entries in `pkg/agent/model/catalog.go` for accurate context limits and features. Unknown model names use the default 128000-token budget. For DeepSeek V4.1 Flash, configure API id `deepseek-flash` (not `deepseek-v4-flash` / `deepseek-v4-pro`); legacy ids are treated as unknown models — see [note](../../.agents/notes/implemented/feature/2026-09-11-deepseek-v41-flash.md).
 
 Configure compaction thresholds in `flowbot.yaml`:
 

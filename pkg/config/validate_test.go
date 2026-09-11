@@ -241,7 +241,7 @@ func TestValidate_Conditional(t *testing.T) {
 			name: "model invalid provider alias",
 			mutate: func(c *Type) {
 				c.Models = []Model{
-					{Provider: "openai-compatible", ModelNames: []string{"deepseek-v4-flash"}},
+					{Provider: "openai-compatible", ModelNames: []string{"deepseek-flash"}},
 				}
 			},
 			wantErr: "models[0].provider: unsupported value",
@@ -250,7 +250,7 @@ func TestValidate_Conditional(t *testing.T) {
 			name: "model supported openai compatible provider",
 			mutate: func(c *Type) {
 				c.Models = []Model{
-					{Provider: "openai_compatible", ModelNames: []string{"deepseek-v4-flash"}},
+					{Provider: "openai_compatible", ModelNames: []string{"deepseek-flash"}},
 				}
 			},
 			noErr: true,

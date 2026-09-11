@@ -740,9 +740,9 @@ func TestRunWithModel_forwardsModelName(t *testing.T) {
 		Name:   "greet",
 		Prompt: "Say hello",
 		Expect: eval.Expectation{RequireCompletion: true, MaxSteps: 2},
-	}, captured, "deepseek-v4-flash")
+	}, captured, "deepseek-flash")
 	require.NoError(t, err)
-	assert.Equal(t, "deepseek-v4-flash", captured.last)
+	assert.Equal(t, "deepseek-flash", captured.last)
 }
 
 func TestRunWithModel_defaultsModelName(t *testing.T) {

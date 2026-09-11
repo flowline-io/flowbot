@@ -10,6 +10,10 @@ const (
 	CapFunctionCall Feature = "CapFunctionCall"
 	// CapJsonMode marks structured JSON output mode support.
 	CapJsonMode Feature = "CapJsonMode"
+	// CapThinking marks OpenAI-compatible thinking request fields and reasoning streams.
+	CapThinking Feature = "CapThinking"
+	// CapReasoningEffort marks DeepSeek-style reasoning_effort injection.
+	CapReasoningEffort Feature = "CapReasoningEffort"
 	// ModalityTextIn marks text input modality support.
 	ModalityTextIn Feature = "ModalityTextIn"
 	// ModalityTextOut marks text output modality support.

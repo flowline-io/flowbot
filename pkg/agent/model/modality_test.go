@@ -18,7 +18,8 @@ func TestSupportsModality(t *testing.T) {
 		want      bool
 	}{
 		{name: "known vision model image", modelName: "gpt-5.3-codex", kind: msg.MediaKindImage, want: true},
-		{name: "known text-only model image", modelName: "deepseek-v4-pro", kind: msg.MediaKindImage, want: false},
+		{name: "known vision deepseek flash image", modelName: "deepseek-flash", kind: msg.MediaKindImage, want: true},
+		{name: "known text-only model image", modelName: "qwen3.7-max", kind: msg.MediaKindImage, want: false},
 		{name: "unknown model allows image", modelName: "custom-vision", kind: msg.MediaKindImage, want: true},
 		{name: "unknown model rejects audio", modelName: "custom-vision", kind: msg.MediaKindAudio, want: false},
 		{name: "known model rejects video until catalog", modelName: "gpt-5.5-pro", kind: msg.MediaKindVideo, want: false},
@@ -45,7 +46,8 @@ func TestAcceptsMediaInput(t *testing.T) {
 		want      bool
 	}{
 		{name: "vision model accepts media", modelName: "mimo-v2.5", want: true},
-		{name: "text-only model rejects media", modelName: "deepseek-v4-pro", want: false},
+		{name: "vision deepseek flash accepts media", modelName: "deepseek-flash", want: true},
+		{name: "text-only model rejects media", modelName: "qwen3.7-max", want: false},
 		{name: "unknown model allows image so accepts media", modelName: "custom-uncatalogued", want: true},
 	}
 	for _, tt := range tests {

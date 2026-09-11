@@ -54,9 +54,14 @@ func TestRejectUnsupportedModalities(t *testing.T) {
 		},
 		{
 			name:      "text model rejects image",
-			modelName: "deepseek-v4-pro",
+			modelName: "qwen3.7-max",
 			parts:     []msg.ContentPart{msg.MediaPart{Kind: msg.MediaKindImage}},
 			wantErr:   true,
+		},
+		{
+			name:      "deepseek flash accepts image",
+			modelName: "deepseek-flash",
+			parts:     []msg.ContentPart{msg.MediaPart{Kind: msg.MediaKindImage}},
 		},
 		{
 			name:      "audio rejected until catalog",

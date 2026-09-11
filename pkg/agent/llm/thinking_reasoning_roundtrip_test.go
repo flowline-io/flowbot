@@ -24,7 +24,7 @@ func TestThinkingHTTPClientInjectsReasoningContentForToolCalls(t *testing.T) {
 		{
 			name: "deepseek injects prior tool-call reasoning by id",
 			body: `{
-				"model":"deepseek-v4-flash",
+				"model":"deepseek-flash",
 				"messages":[
 					{"role":"user","content":"hi"},
 					{"role":"assistant","content":"","tool_calls":[{"id":"call_a","type":"function","function":{"name":"read_skill","arguments":"{}"}}]},
@@ -48,7 +48,7 @@ func TestThinkingHTTPClientInjectsReasoningContentForToolCalls(t *testing.T) {
 		{
 			name: "preserves existing reasoning_content",
 			body: `{
-				"model":"deepseek-v4-flash",
+				"model":"deepseek-flash",
 				"messages":[
 					{"role":"assistant","reasoning_content":"kept","tool_calls":[{"id":"1","type":"function","function":{"name":"echo","arguments":"{}"}}]}
 				]
@@ -60,7 +60,7 @@ func TestThinkingHTTPClientInjectsReasoningContentForToolCalls(t *testing.T) {
 			name:  "thinking off still injects for tool-call history",
 			level: llm.ThinkingLevelOff,
 			body: `{
-				"model":"deepseek-v4-flash",
+				"model":"deepseek-flash",
 				"messages":[
 					{"role":"assistant","tool_calls":[{"id":"1","type":"function","function":{"name":"echo","arguments":"{}"}}]}
 				]
@@ -71,7 +71,7 @@ func TestThinkingHTTPClientInjectsReasoningContentForToolCalls(t *testing.T) {
 		{
 			name: "skips assistant without tool_calls",
 			body: `{
-				"model":"deepseek-v4-flash",
+				"model":"deepseek-flash",
 				"messages":[
 					{"role":"assistant","content":"plain answer"},
 					{"role":"assistant","tool_calls":[{"id":"1","type":"function","function":{"name":"echo","arguments":"{}"}}]}
@@ -83,7 +83,7 @@ func TestThinkingHTTPClientInjectsReasoningContentForToolCalls(t *testing.T) {
 		{
 			name: "matches by tool call id when order differs from collect order",
 			body: `{
-				"model":"deepseek-v4-flash",
+				"model":"deepseek-flash",
 				"messages":[
 					{"role":"assistant","tool_calls":[{"id":"second","type":"function","function":{"name":"echo","arguments":"{}"}}]},
 					{"role":"assistant","tool_calls":[{"id":"first","type":"function","function":{"name":"echo","arguments":"{}"}}]}

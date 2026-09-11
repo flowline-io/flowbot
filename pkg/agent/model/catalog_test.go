@@ -19,22 +19,13 @@ func TestLookup(t *testing.T) {
 		wantFeats int
 	}{
 		{
-			name:      "known deepseek pro model",
-			id:        "deepseek-v4-pro",
-			wantOK:    true,
-			wantName:  "DeepSeek V4 Pro",
-			wantCtx:   1_048_576,
-			wantOut:   384_000,
-			wantFeats: 5,
-		},
-		{
 			name:      "known deepseek flash model",
-			id:        "deepseek-v4-flash",
+			id:        "deepseek-flash",
 			wantOK:    true,
-			wantName:  "DeepSeek V4 Flash",
+			wantName:  "DeepSeek V4.1 Flash",
 			wantCtx:   1_048_576,
 			wantOut:   384_000,
-			wantFeats: 5,
+			wantFeats: 8,
 		},
 		{
 			name:      "known gpt codex model",
@@ -153,8 +144,7 @@ func TestContextWindowFor(t *testing.T) {
 		modelName string
 		want      int
 	}{
-		{name: "catalog pro model", modelName: "deepseek-v4-pro", want: 1_048_576},
-		{name: "catalog flash model", modelName: "deepseek-v4-flash", want: 1_048_576},
+		{name: "catalog flash model", modelName: "deepseek-flash", want: 1_048_576},
 		{name: "catalog codex model", modelName: "gpt-5.3-codex", want: 400_000},
 		{name: "catalog claude opus model", modelName: "claude-opus-4.8", want: 1_000_000},
 		{name: "catalog claude sonnet model", modelName: "claude-sonnet-4.6", want: 1_000_000},
@@ -183,7 +173,7 @@ func TestMaxContextWindow(t *testing.T) {
 	}{
 		{
 			name:       "returns largest window",
-			modelNames: []string{"fake-model", "deepseek-v4-pro"},
+			modelNames: []string{"fake-model", "deepseek-flash"},
 			want:       1_048_576,
 		},
 		{
@@ -212,13 +202,17 @@ func TestHasFeature(t *testing.T) {
 		feature   model.Feature
 		want      bool
 	}{
-		{name: "known feature", modelName: "deepseek-v4-pro", feature: model.CapFunctionCall, want: true},
+		{name: "known feature", modelName: "deepseek-flash", feature: model.CapFunctionCall, want: true},
+		{name: "thinking on flash", modelName: "deepseek-flash", feature: model.CapThinking, want: true},
+		{name: "reasoning effort on flash", modelName: "deepseek-flash", feature: model.CapReasoningEffort, want: true},
+		{name: "image input on flash", modelName: "deepseek-flash", feature: model.ModalityImageIn, want: true},
 		{name: "image input on codex", modelName: "gpt-5.3-codex", feature: model.ModalityImageIn, want: true},
 		{name: "file input on claude opus", modelName: "claude-opus-4.8", feature: model.ModalityFileIn, want: true},
 		{name: "audio input on mimo v2.5", modelName: "mimo-v2.5", feature: model.ModalityAudioIn, want: true},
 		{name: "video input on mimo v2.5 pro", modelName: "mimo-v2.5-pro", feature: model.ModalityVideoIn, want: true},
 		{name: "unknown model", modelName: "fake-model", feature: model.CapChat, want: false},
-		{name: "missing feature on known model", modelName: "deepseek-v4-pro", feature: model.Feature("CapVision"), want: false},
+		{name: "missing feature on known model", modelName: "deepseek-flash", feature: model.Feature("CapVision"), want: false},
+		{name: "legacy deepseek id unknown", modelName: "deepseek-v4-flash", feature: model.CapThinking, want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
