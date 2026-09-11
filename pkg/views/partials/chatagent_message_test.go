@@ -278,6 +278,10 @@ func TestChatAgentThreadScriptsIncludesClipCopy(t *testing.T) {
 	if trajIdx < 0 || threadIdx < 0 || trajIdx > threadIdx {
 		t.Fatalf("want chatagent-trajectory.js before chatagent-thread.js\nhtml=%s", html)
 	}
+	htmlJS := strings.Index(html, "/static/js/chatagent-html.js")
+	if htmlJS < 0 || htmlJS > threadIdx {
+		t.Fatalf("want chatagent-html.js before chatagent-thread.js\nhtml=%s", html)
+	}
 }
 
 func TestChatAgentToolMessageCollapse(t *testing.T) {
@@ -327,6 +331,71 @@ func TestChatAgentToolMessageCollapse(t *testing.T) {
 			}
 			assertChatAgentToolCollapseHTML(t, buf.String(), tt.msg, tt.wantOpen)
 		})
+	}
+}
+
+func TestChatAgentHTMLArtifactSandbox(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	err := ChatAgentToolMessage(model.AgentChatMessage{
+		Kind:          "tool",
+		ToolName:      "present_html",
+		ToolStatus:    "completed",
+		ArtifactID:    "a1",
+		ArtifactTitle: "Dash",
+		ArtifactHTML:  `<!DOCTYPE html><html><head></head><body>ok</body></html>`,
+	}).Render(context.Background(), &buf)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	if !strings.Contains(html, `sandbox="allow-scripts"`) {
+		t.Fatalf("want sandbox=allow-scripts\nhtml=%s", html)
+	}
+	if strings.Contains(html, "allow-same-origin") {
+		t.Fatalf("must not set allow-same-origin\nhtml=%s", html)
+	}
+	if !strings.Contains(html, `data-testid="chatagent-html-artifact"`) {
+		t.Fatalf("want html artifact card\nhtml=%s", html)
+	}
+	if !strings.Contains(html, `srcdoc="`) {
+		t.Fatalf("want srcdoc iframe\nhtml=%s", html)
+	}
+	if !strings.Contains(html, `data-testid="chatagent-html-tab-preview"`) {
+		t.Fatalf("want preview tab on live card\nhtml=%s", html)
+	}
+}
+
+func TestChatAgentHTMLArtifactSupersededHidesPreview(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	err := ChatAgentToolMessage(model.AgentChatMessage{
+		Kind:                "tool",
+		ToolName:            "present_html",
+		ToolStatus:          "completed",
+		ArtifactID:          "a1",
+		ArtifactTitle:      "Dash",
+		ArtifactHTML:        `<!DOCTYPE html><html><head></head><body>old</body></html>`,
+		ArtifactSuperseded: true,
+	}).Render(context.Background(), &buf)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	if !strings.Contains(html, `data-testid="chatagent-html-superseded"`) {
+		t.Fatalf("want updated note\nhtml=%s", html)
+	}
+	if strings.Contains(html, `data-testid="chatagent-html-frame"`) {
+		t.Fatalf("superseded card must not mount iframe\nhtml=%s", html)
+	}
+	if strings.Contains(html, `data-testid="chatagent-html-tab-preview"`) {
+		t.Fatalf("superseded card must not keep preview tab\nhtml=%s", html)
+	}
+	if strings.Contains(html, `data-testid="chatagent-html-source"`) {
+		t.Fatalf("superseded card must not keep source\nhtml=%s", html)
+	}
+	if strings.Contains(html, `data-testid="chatagent-html-expand"`) {
+		t.Fatalf("superseded card must not keep expand\nhtml=%s", html)
 	}
 }
 

@@ -36,6 +36,7 @@ const (
 	ToolTodoWrite              = "todo_write"
 	ToolListTodos              = "list_todos"
 	ToolRunCursor              = "run_cursor"
+	ToolPresentHTML            = "present_html"
 )
 
 // PermissionKeyForTool maps a tool name to its OpenCode permission key.
@@ -63,6 +64,8 @@ func PermissionKeyForTool(tool string) string {
 		return KeyMemory
 	case ToolTodoWrite, ToolListTodos:
 		return KeyTodo
+	case ToolPresentHTML:
+		return KeyHTML
 	case ToolRunCursor:
 		return KeyGateway
 	default:
@@ -159,9 +162,22 @@ func extractProductToolPrimary(req Request) (string, ParseBashCommand, []string)
 		return "read", ParseBashCommand{}, nil
 	case ToolMemoryList:
 		return "list", ParseBashCommand{}, nil
+	case ToolPresentHTML:
+		return extractPresentHTMLPrimary(req), ParseBashCommand{}, nil
 	default:
 		return req.Tool, ParseBashCommand{}, nil
 	}
+}
+
+func extractPresentHTMLPrimary(req Request) string {
+	title := strings.TrimSpace(fmt.Sprint(req.Args["title"]))
+	if title == "" {
+		title = strings.TrimSpace(fmt.Sprint(req.Args["id"]))
+	}
+	if title == "" {
+		return req.Tool
+	}
+	return title
 }
 
 func extractPathsFromCommand(command, workspaceRoot string) []string {

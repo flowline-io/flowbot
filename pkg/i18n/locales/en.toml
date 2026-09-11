@@ -1775,6 +1775,21 @@ other = "Copy code"
 [client.chatagent.copy_md]
 other = "Copy markdown"
 
+[client.chatagent.html.preview]
+other = "Preview"
+
+[client.chatagent.html.source]
+other = "Source"
+
+[client.chatagent.html.expand]
+other = "Expand"
+
+[client.chatagent.html.close]
+other = "Close"
+
+[client.chatagent.html.updated]
+other = "Updated — this version is no longer live."
+
 [client.chatagent.thinking_prefix]
 other = "Thinking: {{.Level}}"
 
@@ -3604,6 +3619,12 @@ other = "External Paths"
 
 [permissions.key.external_directory.description]
 other = "Controls access to paths outside the workspace."
+
+[permissions.key.html.label]
+other = "HTML preview"
+
+[permissions.key.html.description]
+other = "Controls present_html artifacts shown in the chat preview."
 
 [agent_skills.import]
 other = "Import"

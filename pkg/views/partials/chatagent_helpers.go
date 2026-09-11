@@ -114,10 +114,49 @@ func ChatAgentOneLinePreview(text string) string {
 
 // ChatAgentToolPreview is the collapsed tool summary snippet (Text, else stdout).
 func ChatAgentToolPreview(row model.AgentChatMessage) string {
+	if row.ToolName == "present_html" {
+		if p := ChatAgentOneLinePreview(row.ArtifactTitle); p != "" {
+			return p
+		}
+	}
 	if p := ChatAgentOneLinePreview(row.Text); p != "" {
 		return p
 	}
 	return ChatAgentOneLinePreview(row.ToolStdout)
+}
+
+func htmlArtifactTitle(row model.AgentChatMessage) string {
+	if title := strings.TrimSpace(row.ArtifactTitle); title != "" {
+		return title
+	}
+	return "HTML"
+}
+
+// ChatAgentHTMLArtifactLive reports whether this tool row should show a running iframe.
+func ChatAgentHTMLArtifactLive(row model.AgentChatMessage) bool {
+	return row.ToolName == "present_html" &&
+		row.ToolStatus == "completed" &&
+		strings.TrimSpace(row.ArtifactHTML) != "" &&
+		!row.ArtifactSuperseded
+}
+
+// MarkSupersededHTMLArtifacts flags older present_html rows that share an id with a later row.
+func MarkSupersededHTMLArtifacts(messages []model.AgentChatMessage) {
+	latest := make(map[string]int)
+	for i, row := range messages {
+		id := strings.TrimSpace(row.ArtifactID)
+		if id == "" || row.ToolName != "present_html" || row.ToolStatus != "completed" {
+			continue
+		}
+		latest[id] = i
+	}
+	for i := range messages {
+		id := strings.TrimSpace(messages[i].ArtifactID)
+		if id == "" || messages[i].ToolName != "present_html" {
+			continue
+		}
+		messages[i].ArtifactSuperseded = latest[id] != i
+	}
 }
 
 // ChatAgentSessionActivityLabel returns a human-readable runtime activity label.

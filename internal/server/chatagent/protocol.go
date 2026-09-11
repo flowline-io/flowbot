@@ -45,11 +45,14 @@ type StreamEvent struct {
 	Title string `json:"title,omitempty"`
 
 	// tool
-	Name     string `json:"name,omitempty"`
-	Subagent string `json:"subagent,omitempty"`
-	Status   string `json:"status,omitempty"`
-	Stdout   string `json:"stdout,omitempty"`
-	Stderr   string `json:"stderr,omitempty"`
+	Name       string `json:"name,omitempty"`
+	Subagent   string `json:"subagent,omitempty"`
+	Status     string `json:"status,omitempty"`
+	Stdout     string `json:"stdout,omitempty"`
+	Stderr     string `json:"stderr,omitempty"`
+	CallID     string `json:"call_id,omitempty"`
+	ArtifactID string `json:"artifact_id,omitempty"`
+	HTML       string `json:"html,omitempty"`
 
 	// tool / turn timing
 	DurationMs int64 `json:"duration_ms,omitempty"`

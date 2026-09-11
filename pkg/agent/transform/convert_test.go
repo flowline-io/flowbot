@@ -50,6 +50,24 @@ func TestDefaultConvertToLLM(t *testing.T) {
 			},
 		},
 		{
+			name: "present_html arguments are redacted",
+			messages: []msg.AgentMessage{msg.AssistantMessage{Parts: []msg.ContentPart{
+				msg.ToolCallPart{ID: "1", Name: "present_html", Arguments: `{"html":"<h1>secret-dashboard</h1>","title":"Dash","id":"a1"}`},
+			}}},
+			wantLen:  1,
+			wantRole: llms.ChatMessageTypeAI,
+			check: func(t *testing.T, result []llms.MessageContent) {
+				require.Len(t, result[0].Parts, 1)
+				tc, ok := result[0].Parts[0].(llms.ToolCall)
+				require.True(t, ok)
+				require.NotNil(t, tc.FunctionCall)
+				assert.NotContains(t, tc.FunctionCall.Arguments, "secret-dashboard")
+				assert.Contains(t, tc.FunctionCall.Arguments, "omitted html artifact")
+				assert.Contains(t, tc.FunctionCall.Arguments, `"id":"a1"`)
+				assert.Contains(t, tc.FunctionCall.Arguments, `"title":"Dash"`)
+			},
+		},
+		{
 			name: "custom display only filtered",
 			messages: []msg.AgentMessage{
 				msg.CustomMessage{DisplayOnly: true, Parts: []msg.ContentPart{msg.TextPart{Text: "hidden"}}},

@@ -3,6 +3,7 @@ package chatagent
 import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
 	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
+	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	agentnotify "github.com/flowline-io/flowbot/internal/server/chatagent/tools/notify"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
@@ -22,7 +23,7 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	if err := coding.RegisterAll(registry, ws, executionEnvForWorkspace(ws)); err != nil {
 		return nil, err
 	}
-	if err := clip.Register(registry, config.App.Flowbot.URL); err != nil {
+	if err := registerProductTools(registry); err != nil {
 		return nil, err
 	}
 	uid := registryUID(taskDeps, scheduleDeps)
@@ -63,6 +64,13 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	return registry, nil
 }
 
+func registerProductTools(registry *tool.Registry) error {
+	if err := clip.Register(registry, config.App.Flowbot.URL); err != nil {
+		return err
+	}
+	return agenthtml.Register(registry)
+}
+
 // NewSubagentRegistry registers coding tools and an optional allowlisted read_skill tool for subagent runs.
 func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Registry, error) {
 	registry := tool.NewRegistry()
@@ -92,6 +100,7 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
 	names = append(names, clip.ActiveToolNames()...)
+	names = append(names, agenthtml.ActiveToolNames()...)
 	names = append(names, agentnotify.ActiveToolNames()...)
 	names = append(names, agentgw.ActiveToolNames()...)
 	names = append(names, "read_skill", delegateSubagentToolName)
@@ -124,11 +133,15 @@ func registrySessionID(taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) s
 
 // BaseToolNamesForRun returns the active tool set for one run.
 // Autonomous runs omit memory tools unless they appear in explicitTools.
+// Pipeline (ephemeral) runs omit present_html unless it appears in explicitTools.
 func BaseToolNamesForRun(kind RunKind, explicitTools []string) []string {
 	if len(explicitTools) > 0 {
 		return append([]string(nil), explicitTools...)
 	}
 	names := ActiveToolNames()
+	if kind == RunKindPipeline {
+		names = omitToolNames(names, agenthtml.ToolName)
+	}
 	if IsAutonomousRunKind(kind) {
 		return omitToolNames(names, MemoryToolNames()...)
 	}

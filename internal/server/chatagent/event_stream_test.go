@@ -347,3 +347,31 @@ func TestHandleAPIStreamEventOmitsTurnTrace(t *testing.T) {
 		assert.False(t, IsObserverStreamEvent(event.Type), event.Type)
 	}
 }
+
+func TestPresentHTMLToolEndIncludesDocument(t *testing.T) {
+	t.Parallel()
+	pub := &apiEventRecorder{}
+	tracker := &apiStreamTracker{
+		coalescer:          newStreamCoalescer(),
+		reasoningCoalescer: newStreamCoalescer(),
+	}
+	handleAPIStreamEvent(t.Context(), pub, tracker, agentevent.Event{
+		Type: agentevent.TypeToolExecutionEnd,
+		ToolCall: msg.ToolCallPart{
+			ID:        "c1",
+			Name:      "present_html",
+			Arguments: `{"html":"<p>hi</p>","title":"Dash","id":"a1"}`,
+		},
+		ToolResult: msg.ToolResultMessage{
+			Name:  "present_html",
+			Parts: []msg.ContentPart{msg.TextPart{Text: "html presented\nid: a1\ntitle: Dash\nbytes: 8\nhash: sha256:x"}},
+		},
+	})
+	got := pub.snapshot()
+	require.Len(t, got, 1)
+	assert.Equal(t, "a1", got[0].ArtifactID)
+	assert.Equal(t, "c1", got[0].CallID)
+	assert.Equal(t, "Dash", got[0].Title)
+	assert.Contains(t, got[0].HTML, "Content-Security-Policy")
+	assert.Contains(t, got[0].HTML, "<p>hi</p>")
+}

@@ -204,6 +204,13 @@ func TestEvaluatorDelegateAndSchedule(t *testing.T) {
 			want: permission.ActionAllow,
 			key:  permission.KeyTodo,
 		},
+		{
+			name: "present_html defaults allow",
+			tool: permission.ToolPresentHTML,
+			args: map[string]any{"html": "<p>x</p>"},
+			want: permission.ActionAllow,
+			key:  permission.KeyHTML,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

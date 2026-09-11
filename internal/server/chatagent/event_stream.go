@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 )
@@ -145,11 +146,15 @@ func publishAPIToolStart(publisher EventPublisher, tracker *apiStreamTracker, ev
 		return
 	}
 	tracker.subagentTool = ""
-	_ = publisher.Publish(StreamEvent{
+	start := StreamEvent{
 		Type:   EventTypeTool,
 		Name:   call.Name,
 		Status: "running",
-	})
+	}
+	if call.Name == htmlpreview.ToolName {
+		start.CallID = call.ID
+	}
+	_ = publisher.Publish(start)
 }
 
 func publishAPIToolUpdate(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
@@ -190,13 +195,35 @@ func publishAPIToolEnd(publisher EventPublisher, tracker *apiStreamTracker, ev a
 		return
 	}
 
-	_ = publisher.Publish(StreamEvent{
+	_ = publisher.Publish(toolEndStreamEvent(call, status, stdout, ev.DurationMs))
+}
+
+func toolEndStreamEvent(call msg.ToolCallPart, status, stdout string, durationMs int64) StreamEvent {
+	out := StreamEvent{
 		Type:       EventTypeTool,
 		Name:       toolDisplayName(call),
 		Status:     status,
 		Stdout:     stdout,
-		DurationMs: ev.DurationMs,
-	})
+		DurationMs: durationMs,
+	}
+	if call.Name != htmlpreview.ToolName {
+		return out
+	}
+	out.CallID = call.ID
+	if status != "completed" {
+		return out
+	}
+	html, title := htmlpreview.HTMLAndTitleFromArguments(call.Arguments)
+	meta := htmlpreview.ParseResultMeta(stdout)
+	if meta.Title != "" {
+		title = meta.Title
+	}
+	out.ArtifactID = meta.ID
+	out.Title = title
+	if html != "" {
+		out.HTML = htmlpreview.PrepareDocument(html, title)
+	}
+	return out
 }
 
 func publishAPITurnEnd(publisher EventPublisher, ev agentevent.Event) {

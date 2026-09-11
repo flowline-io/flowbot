@@ -969,6 +969,7 @@ func mapChatMessages(sessionID string, messages []chatagent.HistoryMessage) []mo
 		}
 		out = append(out, mapHistoryMessage(sessionID, m))
 	}
+	partials.MarkSupersededHTMLArtifacts(out)
 	return out
 }
 
@@ -980,13 +981,16 @@ func mapHistoryMessage(sessionID string, m chatagent.HistoryMessage) model.Agent
 	switch kind {
 	case "tool":
 		return model.AgentChatMessage{
-			Role:       "tool",
-			Kind:       "tool",
-			ToolName:   m.ToolName,
-			ToolStatus: m.ToolStatus,
-			ToolStdout: m.Text,
-			DurationMs: m.DurationMs,
-			CreatedAt:  m.CreatedAt,
+			Role:          "tool",
+			Kind:          "tool",
+			ToolName:      m.ToolName,
+			ToolStatus:    m.ToolStatus,
+			ToolStdout:    m.Text,
+			DurationMs:    m.DurationMs,
+			CreatedAt:     m.CreatedAt,
+			ArtifactID:    m.ArtifactID,
+			ArtifactTitle: m.ArtifactTitle,
+			ArtifactHTML:  m.ArtifactHTML,
 		}
 	case "thinking":
 		text := m.ThinkingText

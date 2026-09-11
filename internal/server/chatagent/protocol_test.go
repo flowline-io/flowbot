@@ -71,6 +71,19 @@ func TestMarshalStreamEvent(t *testing.T) {
 			wantSub: `"subagent":"general-purpose"`,
 		},
 		{
+			name: "present_html tool event includes html",
+			event: StreamEvent{
+				Type:       EventTypeTool,
+				Name:       "present_html",
+				Status:     "completed",
+				CallID:     "c1",
+				ArtifactID: "html_ab",
+				Title:      "Dash",
+				HTML:       "<!DOCTYPE html>",
+			},
+			wantSub: `"artifact_id":"html_ab"`,
+		},
+		{
 			name: "turn_trace event",
 			event: StreamEvent{
 				Type:       EventTypeTurnTrace,

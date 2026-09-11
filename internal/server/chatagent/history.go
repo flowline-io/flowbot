@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -21,11 +22,15 @@ type HistoryMessage struct {
 	CreatedAt          time.Time       `json:"created_at"`
 	ToolName           string          `json:"tool_name,omitempty"`
 	ToolStatus         string          `json:"tool_status,omitempty"`
+	ArtifactID         string          `json:"artifact_id,omitempty"`
+	ArtifactTitle      string          `json:"artifact_title,omitempty"`
+	ArtifactHTML       string          `json:"artifact_html,omitempty"`
 	DurationMs         int64           `json:"duration_ms,omitempty"`
 	TurnDurationMs     int64           `json:"turn_duration_ms,omitempty"`
 	ThinkingDurationMs int64           `json:"thinking_duration_ms,omitempty"`
 	RunDurationMs      int64           `json:"run_duration_ms,omitempty"`
 	ThinkingText       string          `json:"thinking_text,omitempty"`
+	toolCallID         string
 }
 
 // ListSessionMessages returns user and assistant messages for a session branch.
@@ -41,6 +46,7 @@ func ListSessionMessages(ctx context.Context, sessionID string) ([]HistoryMessag
 	}
 
 	messages := make([]HistoryMessage, 0, len(branch))
+	htmlCalls := map[string]presentHTMLCall{}
 	for _, entry := range branch {
 		switch entry.Type {
 		case session.EntryMessage:
@@ -48,7 +54,11 @@ func ListSessionMessages(ctx context.Context, sessionID string) ([]HistoryMessag
 				continue
 			}
 			createdAt := createdAtByID[entry.ID]
+			recordPresentHTMLCalls(entry.Message, htmlCalls)
 			rows := historyMessagesFromMessage(entry.Message, createdAt)
+			for i := range rows {
+				enrichPresentHTMLHistory(&rows[i], htmlCalls)
+			}
 			messages = append(messages, rows...)
 		case session.EntryCompaction:
 			text := strings.TrimSpace(entry.Summary)
@@ -167,6 +177,7 @@ func historyMessagesFromMessage(message agent.AgentMessage, createdAt time.Time)
 			ToolStatus: status,
 			DurationMs: m.DurationMs,
 			CreatedAt:  ts,
+			toolCallID: m.ToolCallID,
 		}}
 	default:
 		return nil
@@ -194,4 +205,47 @@ func historyAttachments(parts []msg.ContentPart) []AttachmentRef {
 		})
 	}
 	return out
+}
+
+type presentHTMLCall struct {
+	HTML  string
+	Title string
+}
+
+func recordPresentHTMLCalls(message agent.AgentMessage, calls map[string]presentHTMLCall) {
+	asst, ok := message.(msg.AssistantMessage)
+	if !ok {
+		return
+	}
+	for _, call := range asst.ToolCalls() {
+		if call.Name != htmlpreview.ToolName || call.ID == "" {
+			continue
+		}
+		html, title := htmlpreview.HTMLAndTitleFromArguments(call.Arguments)
+		if html == "" {
+			continue
+		}
+		calls[call.ID] = presentHTMLCall{HTML: html, Title: title}
+	}
+}
+
+func enrichPresentHTMLHistory(row *HistoryMessage, calls map[string]presentHTMLCall) {
+	if row == nil || row.Kind != "tool" || row.ToolName != htmlpreview.ToolName || row.ToolStatus == "error" {
+		return
+	}
+	meta := htmlpreview.ParseResultMeta(row.Text)
+	row.ArtifactID = meta.ID
+	title := meta.Title
+	src, ok := calls[row.toolCallID]
+	if !ok {
+		return
+	}
+	if title == "" {
+		title = src.Title
+	}
+	row.ArtifactTitle = title
+	if src.HTML == "" {
+		return
+	}
+	row.ArtifactHTML = htmlpreview.PrepareDocument(src.HTML, title)
 }

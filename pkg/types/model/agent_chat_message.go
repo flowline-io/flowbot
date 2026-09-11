@@ -13,6 +13,10 @@ type AgentChatMessage struct {
 	ToolStatus         string                `json:"tool_status"`
 	ToolStdout         string                `json:"tool_stdout"`
 	ToolStderr         string                `json:"tool_stderr"`
+	ArtifactID         string                `json:"artifact_id,omitempty"`
+	ArtifactTitle      string                `json:"artifact_title,omitempty"`
+	ArtifactHTML       string                `json:"artifact_html,omitempty"`
+	ArtifactSuperseded bool                  `json:"artifact_superseded,omitempty"`
 	DurationMs         int64                 `json:"duration_ms,omitempty"`
 	TurnDurationMs     int64                 `json:"turn_duration_ms,omitempty"`
 	ThinkingDurationMs int64                 `json:"thinking_duration_ms,omitempty"`

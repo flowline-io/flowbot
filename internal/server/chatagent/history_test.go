@@ -196,3 +196,22 @@ func TestHasPersistedToolResults(t *testing.T) {
 		})
 	}
 }
+
+func TestEnrichPresentHTMLHistory(t *testing.T) {
+	t.Parallel()
+	row := HistoryMessage{
+		Kind:       "tool",
+		ToolName:   "present_html",
+		ToolStatus: "completed",
+		Text:       "html presented\nid: a1\ntitle: Dash\nbytes: 11\nhash: sha256:x",
+		toolCallID: "c1",
+	}
+	calls := map[string]presentHTMLCall{
+		"c1": {HTML: `<div id="n">ok</div>`, Title: "Dash"},
+	}
+	enrichPresentHTMLHistory(&row, calls)
+	assert.Equal(t, "a1", row.ArtifactID)
+	assert.Equal(t, "Dash", row.ArtifactTitle)
+	assert.Contains(t, row.ArtifactHTML, "Content-Security-Policy")
+	assert.Contains(t, row.ArtifactHTML, `<div id="n">ok</div>`)
+}

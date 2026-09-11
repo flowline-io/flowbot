@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
+	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -26,7 +27,7 @@ func IsReadOnlyTool(name string) bool {
 		return true
 	case memoryGetToolName, memoryListToolName, searchSessionSummariesToolName:
 		return true
-	case todoWriteToolName:
+	case todoWriteToolName, agenthtml.ToolName:
 		return true
 	default:
 		return false
@@ -39,7 +40,7 @@ func ReadOnlyToolNames() []string {
 		"list_dir", "glob_files", "grep_files", "read_file",
 		"web_search", "web_fetch", "read_skill", listScheduleToolName, listTodosToolName, todoWriteToolName,
 		memoryGetToolName, memoryListToolName, searchSessionSummariesToolName,
-		clip.GetToolName,
+		clip.GetToolName, agenthtml.ToolName,
 		searchKnowledgeToolName, getKnowledgeToolName,
 	}
 }

@@ -1775,6 +1775,21 @@ other = "复制代码"
 [client.chatagent.copy_md]
 other = "复制 Markdown"
 
+[client.chatagent.html.preview]
+other = "预览"
+
+[client.chatagent.html.source]
+other = "源码"
+
+[client.chatagent.html.expand]
+other = "放大"
+
+[client.chatagent.html.close]
+other = "关闭"
+
+[client.chatagent.html.updated]
+other = "已更新 — 此版本不再实时运行。"
+
 [client.chatagent.thinking_prefix]
 other = "思考：{{.Level}}"
 
@@ -3604,6 +3619,12 @@ other = "外部路径"
 
 [permissions.key.external_directory.description]
 other = "控制对工作区外路径的访问。"
+
+[permissions.key.html.label]
+other = "HTML 预览"
+
+[permissions.key.html.description]
+other = "控制聊天中 present_html 预览。"
 
 [agent_skills.import]
 other = "导入"

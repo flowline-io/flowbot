@@ -3,6 +3,7 @@ package chatagent
 import (
 	"testing"
 
+	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
@@ -26,6 +27,7 @@ func TestSelectableSubagentToolsIncludesMemory(t *testing.T) {
 			assert.Len(t, names, len(coding.ActiveToolNames())+len(MemoryToolNames()))
 			assert.Contains(t, names, memorySetToolName)
 			assert.Contains(t, names, searchSessionSummariesToolName)
+			assert.NotContains(t, names, agenthtml.ToolName)
 		})
 	}
 }
@@ -48,21 +50,31 @@ func TestActiveToolNamesIncludesMemory(t *testing.T) {
 
 func TestBaseToolNamesForRun(t *testing.T) {
 	tests := []struct {
-		name          string
-		kind          RunKind
-		explicitTools []string
-		wantMemory    bool
+		name            string
+		kind            RunKind
+		explicitTools   []string
+		wantMemory      bool
+		wantPresentHTML bool
 	}{
-		{name: "interactive default includes memory", kind: RunKindInteractive, wantMemory: true},
-		{name: "pipeline default omits memory", kind: RunKindPipeline, wantMemory: false},
-		{name: "scheduled default omits memory", kind: RunKindScheduled, wantMemory: false},
-		{name: "pipeline explicit allowlist keeps memory", kind: RunKindPipeline, explicitTools: []string{"read_file", memorySetToolName}, wantMemory: true},
+		{name: "interactive default includes memory", kind: RunKindInteractive, wantMemory: true, wantPresentHTML: true},
+		{name: "pipeline default omits memory", kind: RunKindPipeline, wantMemory: false, wantPresentHTML: false},
+		{name: "scheduled default omits memory", kind: RunKindScheduled, wantMemory: false, wantPresentHTML: true},
+		{name: "pipeline explicit allowlist keeps memory", kind: RunKindPipeline, explicitTools: []string{"read_file", memorySetToolName}, wantMemory: true, wantPresentHTML: false},
+		{name: "pipeline explicit list keeps present_html", kind: RunKindPipeline, explicitTools: []string{agenthtml.ToolName}, wantPresentHTML: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			names := BaseToolNamesForRun(tt.kind, tt.explicitTools)
+			if tt.wantPresentHTML {
+				assert.Contains(t, names, agenthtml.ToolName)
+			} else {
+				assert.NotContains(t, names, agenthtml.ToolName)
+			}
 			if tt.wantMemory {
 				assert.Contains(t, names, memorySetToolName)
+				return
+			}
+			if len(tt.explicitTools) > 0 {
 				return
 			}
 			assert.NotContains(t, names, memorySetToolName)
@@ -105,4 +117,20 @@ func TestNewSubagentRegistryRegistersMemory(t *testing.T) {
 	require.NoError(t, err)
 	_, ok := reg.Get(memorySetToolName)
 	assert.True(t, ok)
+}
+
+func TestNewSubagentRegistryOmitsPresentHTML(t *testing.T) {
+	LockAppConfigForTest(t)
+	root := t.TempDir()
+	config.App.ChatAgent = config.ChatAgentConfig{
+		ChatModel: "gpt-test",
+		Workspace: root,
+	}
+
+	ws, err := WorkspaceFromConfig()
+	require.NoError(t, err)
+	reg, err := NewSubagentRegistry(ws, nil)
+	require.NoError(t, err)
+	_, ok := reg.Get(agenthtml.ToolName)
+	assert.False(t, ok)
 }

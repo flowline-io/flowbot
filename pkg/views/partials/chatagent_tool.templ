@@ -1,6 +1,9 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
 
 templ ChatAgentToolMessage(msg model.AgentChatMessage) {
 	<div class="chat chat-start" data-role="tool" data-testid="chatagent-message-tool">
@@ -37,5 +40,90 @@ templ ChatAgentToolMessage(msg model.AgentChatMessage) {
 				}
 			</div>
 		</details>
+		if msg.ToolName == "present_html" && msg.ArtifactHTML != "" {
+			@ChatAgentHTMLArtifact(msg)
+		}
 	</div>
+}
+
+templ ChatAgentHTMLArtifact(msg model.AgentChatMessage) {
+	<div
+		class="chatagent-html-artifact"
+		data-testid="chatagent-html-artifact"
+		data-html-artifact
+		data-html-artifact-id={ msg.ArtifactID }
+		if msg.ArtifactSuperseded {
+			data-html-artifact-superseded
+		}
+	>
+		<div class="chatagent-html-toolbar">
+			<span class="chatagent-html-title" data-testid="chatagent-html-title">{ htmlArtifactTitle(msg) }</span>
+			if ChatAgentHTMLArtifactLive(msg) {
+				<div class="chatagent-html-tabs" role="tablist">
+					<button type="button" class="chatagent-html-tab is-active" data-html-tab="preview" data-testid="chatagent-html-tab-preview">{ i18n.T(ctx, "client.chatagent.html.preview") }</button>
+					<button type="button" class="chatagent-html-tab" data-html-tab="source" data-testid="chatagent-html-tab-source">{ i18n.T(ctx, "client.chatagent.html.source") }</button>
+				</div>
+				<button type="button" class="btn btn-ghost btn-xs" data-html-expand data-testid="chatagent-html-expand">{ i18n.T(ctx, "client.chatagent.html.expand") }</button>
+			}
+		</div>
+		if msg.ArtifactSuperseded {
+			<p class="chatagent-html-superseded" data-testid="chatagent-html-superseded">{ i18n.T(ctx, "client.chatagent.html.updated") }</p>
+		} else if ChatAgentHTMLArtifactLive(msg) {
+			<div class="chatagent-html-pane" data-html-pane="preview" data-testid="chatagent-html-preview">
+				@ChatAgentHTMLPreviewFrame(msg.ArtifactHTML, htmlArtifactTitle(msg))
+			</div>
+			<pre class="chatagent-html-source hidden" data-html-pane="source" data-testid="chatagent-html-source">{ msg.ArtifactHTML }</pre>
+		}
+	</div>
+}
+
+templ ChatAgentHTMLPreviewFrame(doc, title string) {
+	<iframe
+		class="chatagent-html-frame"
+		sandbox="allow-scripts"
+		referrerpolicy="no-referrer"
+		allow=""
+		srcdoc={ doc }
+		title={ title }
+		data-testid="chatagent-html-frame"
+	></iframe>
+}
+
+templ ChatAgentHTMLArtifactTemplate() {
+	<template id="chatagent-html-artifact-template">
+		<div class="chatagent-html-artifact" data-testid="chatagent-html-artifact" data-html-artifact>
+			<div class="chatagent-html-toolbar">
+				<span class="chatagent-html-title" data-testid="chatagent-html-title"></span>
+				<div class="chatagent-html-tabs" role="tablist">
+					<button type="button" class="chatagent-html-tab is-active" data-html-tab="preview" data-testid="chatagent-html-tab-preview">{ i18n.T(ctx, "client.chatagent.html.preview") }</button>
+					<button type="button" class="chatagent-html-tab" data-html-tab="source" data-testid="chatagent-html-tab-source">{ i18n.T(ctx, "client.chatagent.html.source") }</button>
+				</div>
+				<button type="button" class="btn btn-ghost btn-xs" data-html-expand data-testid="chatagent-html-expand">{ i18n.T(ctx, "client.chatagent.html.expand") }</button>
+			</div>
+			<div class="chatagent-html-pane" data-html-pane="preview" data-testid="chatagent-html-preview"></div>
+			<pre class="chatagent-html-source hidden" data-html-pane="source" data-testid="chatagent-html-source"></pre>
+		</div>
+	</template>
+}
+
+templ ChatAgentHTMLOverlay() {
+	<dialog id="chatagent-html-overlay" class="chatagent-html-overlay" data-testid="chatagent-html-overlay">
+		<div class="chatagent-html-overlay-bar">
+			<span id="chatagent-html-overlay-title" class="chatagent-html-title"></span>
+			<div class="chatagent-html-tabs" role="tablist">
+				<button type="button" class="chatagent-html-tab is-active" data-html-overlay-tab="preview" data-testid="chatagent-html-overlay-preview">{ i18n.T(ctx, "client.chatagent.html.preview") }</button>
+				<button type="button" class="chatagent-html-tab" data-html-overlay-tab="source" data-testid="chatagent-html-overlay-source">{ i18n.T(ctx, "client.chatagent.html.source") }</button>
+			</div>
+			<button type="button" class="btn btn-ghost btn-xs" data-html-overlay-close data-testid="chatagent-html-overlay-close">{ i18n.T(ctx, "client.chatagent.html.close") }</button>
+		</div>
+		<iframe
+			id="chatagent-html-overlay-frame"
+			class="chatagent-html-frame chatagent-html-overlay-frame"
+			sandbox="allow-scripts"
+			referrerpolicy="no-referrer"
+			allow=""
+			data-testid="chatagent-html-overlay-frame"
+		></iframe>
+		<pre id="chatagent-html-overlay-source" class="chatagent-html-source hidden" data-testid="chatagent-html-overlay-source"></pre>
+	</dialog>
 }

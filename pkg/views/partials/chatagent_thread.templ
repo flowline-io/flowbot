@@ -274,6 +274,8 @@ templ ChatAgentThread(ctx context.Context, session model.AgentSession, messages 
 			</div>
 			<p class="text-xs text-error hidden mt-2" id="chatagent-thread-error" data-testid="chatagent-thread-error"></p>
 		</div>
+		@ChatAgentHTMLOverlay()
+		@ChatAgentHTMLArtifactTemplate()
 	</div>
 }
 

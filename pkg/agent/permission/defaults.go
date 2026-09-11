@@ -29,6 +29,9 @@ const KeyKnowledge = "knowledge"
 // KeyTodo is the permission key for session todo checklist tools.
 const KeyTodo = "todo"
 
+// KeyHTML is the permission key for present_html artifacts.
+const KeyHTML = "html"
+
 // KeyGateway is the permission key for local CLI gateway tools (run_cursor).
 const KeyGateway = "gateway"
 
@@ -96,6 +99,7 @@ func DefaultConfig() Config {
 			Default: ActionAsk,
 		},
 		KeyTodo:     {Default: ActionAllow},
+		KeyHTML:     {Default: ActionAllow},
 		KeyGateway:  {Default: loadGatewayDefaultAction()},
 		KeyDoomLoop: {Default: ActionAsk},
 		KeyExternalDirectory: {

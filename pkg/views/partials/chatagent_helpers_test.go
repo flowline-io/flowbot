@@ -436,6 +436,25 @@ func TestChatAgentToolPreview(t *testing.T) {
 		Text:       "   \n  ",
 		ToolStdout: "from stdout",
 	}))
+	assert.Equal(t, "Dash", ChatAgentToolPreview(model.AgentChatMessage{
+		ToolName:      "present_html",
+		ArtifactTitle: "Dash",
+		Text:          "html presented",
+	}))
+}
+
+func TestMarkSupersededHTMLArtifacts(t *testing.T) {
+	msgs := []model.AgentChatMessage{
+		{ToolName: "present_html", ToolStatus: "completed", ArtifactID: "a1", ArtifactHTML: "<p>1</p>"},
+		{ToolName: "present_html", ToolStatus: "completed", ArtifactID: "a1", ArtifactHTML: "<p>2</p>"},
+		{ToolName: "present_html", ToolStatus: "completed", ArtifactID: "b1", ArtifactHTML: "<p>b</p>"},
+	}
+	MarkSupersededHTMLArtifacts(msgs)
+	assert.True(t, msgs[0].ArtifactSuperseded)
+	assert.False(t, msgs[1].ArtifactSuperseded)
+	assert.False(t, msgs[2].ArtifactSuperseded)
+	assert.True(t, ChatAgentHTMLArtifactLive(msgs[1]))
+	assert.False(t, ChatAgentHTMLArtifactLive(msgs[0]))
 }
 
 func TestGroupAgentSessionsByDay(t *testing.T) {

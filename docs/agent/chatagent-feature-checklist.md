@@ -64,6 +64,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-04a | Composer media (upload + paste image) | Two-step: upload media then send with `file_id`s | MIME allowlist; max 8; modality Reject / missing `public_base_url` surfaced in UI | `chatagent-chat.js` + media unit/HTTP tests |
 | W-05 | Context ring + popover | `GET …/context` + JS | Token window zero; Skills list collapsed until opened | `agents_page_spec_test.go` context It |
 | W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert; tool/thinking collapse; codeblock chrome; jump-to-bottom | chat BDD stream done; `chatagent_message_test.go` |
+| W-11 | HTML artifact preview (`present_html`) | `tools/htmlpreview`, `chatagent-html.js`, tool card iframe `sandbox="allow-scripts"` (no `allow-same-origin`) + injected CSP meta | 256KB cap; same id latest iframe only; superseded cards drop Preview/Source; no new SSE type (`html`/`artifact_id`/`call_id` on existing `tool` events); plan mode allowed; not on subagent/pipeline | `htmlpreview` tests, `transform` redact test, `event_stream_test.go`, `memory_registry_test.go`, `pipeline_run_test.go`, `chatagent_message_test.go` |
 | W-10 | Trajectory view | Chat \| Trajectory on the thread; `GET …/trajectory`; Duration gantt + Preview/Raw inspector | `?view=trajectory`; composer stays; no SYSTEM/CONTEXT without `turn_trace`; `thread.js` forwards `turn_trace` SSE | `agents_page_spec_test.go`, `chatagent_message_test.go`, `agents_webservice_test.go` |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
 | W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model; workspace picker is create-time only (thread shows read-only label; PUT `workspace` → 400) | agents page + `chatagent-chat.js` |
@@ -106,7 +107,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | O-06 | Manual + automatic compaction | `CompactSession`, ctxmgr | | compaction / context tests |
 | O-08 | Pipeline agent step (ephemeral) | `pipeline_run.go` / `RunPipelineAgent` | Tools/skills allowlist; memory default off | `pipeline_run_test.go`, `ephemeral_run_test.go` |
 | O-09 | Scheduled autonomous run + delivery | `scheduled_run.go`, scheduler | Isolated session; permission policy | `chat_agent_scheduled_task_spec_test.go`, scheduled_* tests |
-| O-10 | Skills tool / memory tool / delegate_subagent tool / todo tools | registry + tools | Allowlists for subagents | skills/memory/subagent/todo tests |
+| O-10 | Skills tool / memory tool / delegate_subagent tool / todo tools / present_html | registry + tools | Allowlists for subagents; present_html not on subagent/pipeline | skills/memory/subagent/todo/htmlpreview tests |
 | O-11 | Sensors / progress / usage recording | sensors, progress, usage_record | | unit tests |
 | O-12 | Prompt cache | `prompt_cache.go` | Invalidation on config change | `prompt_cache_test.go` |
 | O-13 | Persist `turn_trace` | `executeRun` after prompt assembly, `h.Session().Append` | Skip `RunKindPipeline`; one node per `Run`; publish SSE when API publisher is set | `service.go` / trajectory persist tests |
@@ -116,7 +117,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 - Rewriting `pkg/agent` loop/harness core
 - Merging `/chatagent` and `/service/web/agents` route prefixes
 - Desktop instruct protocol (`pkg/types/agent.go` / `internal/server/agent.go`)
-- New product features beyond cleanup
+- Public HTML artifact share URLs, workspace HTML export, `get_html`, right-hand canvas
 
 ---
 

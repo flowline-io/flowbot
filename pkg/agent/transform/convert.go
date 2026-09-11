@@ -1,12 +1,17 @@
 package transform
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/tmc/langchaingo/llms"
 )
+
+const presentHTMLToolName = "present_html"
 
 const (
 	compactionSummaryPrefix = "The conversation history before this point was compacted into the following summary:\n\n<summary>\n"
@@ -110,12 +115,48 @@ func partsToLLM(parts []msg.ContentPart) ([]llms.ContentPart, error) {
 				Type: "function",
 				FunctionCall: &llms.FunctionCall{
 					Name:      p.Name,
-					Arguments: p.Arguments,
+					Arguments: redactPresentHTMLArguments(p.Name, p.Arguments),
 				},
 			})
 		}
 	}
 	return result, nil
+}
+
+func redactPresentHTMLArguments(name, arguments string) string {
+	if name != presentHTMLToolName || strings.TrimSpace(arguments) == "" {
+		return arguments
+	}
+	var obj map[string]any
+	if err := sonic.UnmarshalString(arguments, &obj); err != nil {
+		return arguments
+	}
+	html := mapString(obj, "html")
+	if html == "" {
+		return arguments
+	}
+	id := mapString(obj, "id")
+	title := mapString(obj, "title")
+	sum := sha256.Sum256([]byte(html))
+	obj["html"] = fmt.Sprintf("[omitted html artifact id=%s title=%s bytes=%d hash=%s]",
+		id, title, len(html), hex.EncodeToString(sum[:]))
+	out, err := sonic.MarshalString(obj)
+	if err != nil {
+		return arguments
+	}
+	return out
+}
+
+func mapString(obj map[string]any, key string) string {
+	raw, ok := obj[key]
+	if !ok || raw == nil {
+		return ""
+	}
+	s, ok := raw.(string)
+	if !ok {
+		return strings.TrimSpace(fmt.Sprint(raw))
+	}
+	return s
 }
 
 func mediaPartToLLM(p msg.MediaPart) (llms.ContentPart, error) {

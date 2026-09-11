@@ -79,6 +79,7 @@ func TestValidatePipelineAgentTools(t *testing.T) {
 		{name: "empty tools allowed", tools: nil},
 		{name: "known tool allowed", tools: []string{"read_file"}},
 		{name: "unknown tool rejected", tools: []string{"evil_tool"}, wantErr: true},
+		{name: "present_html rejected", tools: []string{"present_html"}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

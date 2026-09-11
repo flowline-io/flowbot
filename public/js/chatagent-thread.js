@@ -334,6 +334,9 @@
   }
 
   function toolKey(ev) {
+    if ((ev.name || '') === 'present_html' && ev.call_id) {
+      return (ev.subagent || '') + ':present_html:' + ev.call_id;
+    }
     return (ev.subagent || '') + ':' + (ev.name || 'tool');
   }
 
@@ -775,6 +778,14 @@
             var card = upsertToolCard(messagesEl, ev, toolCards, assistantBody);
             if (ns.handleTodoToolEvent) {
               ns.handleTodoToolEvent(ev, card, threadRoot);
+            }
+            if (
+              ev.name === 'present_html' &&
+              ev.status === 'completed' &&
+              ev.html &&
+              ns.mountHtmlArtifact
+            ) {
+              ns.mountHtmlArtifact(card, ev);
             }
             return;
           }

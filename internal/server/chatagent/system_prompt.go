@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
 	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
+	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -85,6 +86,7 @@ func DefaultToolSnippets() map[string]string {
 		searchSessionSummariesToolName: "Search archived chat session summaries by keyword",
 		clip.CreateToolName:            "Create a shareable markdown clip and return its full public URL",
 		clip.GetToolName:               "Read a shareable markdown clip by slug",
+		agenthtml.ToolName:             "Present an interactive HTML document in chat; inline CSS/JS only (no network)",
 		agentgw.RunCursorToolName:      "Delegate a coding task to the local Cursor CLI via flowbot-gateway",
 		searchKnowledgeToolName:        "Search the knowledge base; returns path, title, tags, and summary",
 		getKnowledgeToolName:           "Read a knowledge base markdown document by path",
@@ -327,6 +329,9 @@ func addProductWorkflow(add func(string), has func(string) bool) {
 	if has(updateScheduleToolName) {
 		add("Use list_scheduled_tasks to find task_id before update_scheduled_task or cancel_scheduled_task")
 		add("Use update_scheduled_task state=paused or state=active to pause and resume tasks")
+	}
+	if has(agenthtml.ToolName) {
+		add("Use present_html for interactive HTML the user can preview in chat; inline all CSS and JavaScript (no network, no CDNs). Pass the returned id to update the same artifact")
 	}
 }
 
