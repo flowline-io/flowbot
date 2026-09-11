@@ -153,24 +153,6 @@ func WorkflowWebhookURL(tr model.WorkflowTrigger, publicOrigin string) string {
 	return base + path
 }
 
-func workflowRuleAuthString(rule map[string]any, key string) string {
-	if rule == nil {
-		return ""
-	}
-	auth, ok := rule["auth"]
-	if !ok || auth == nil {
-		return ""
-	}
-	switch m := auth.(type) {
-	case map[string]any:
-		return workflowRuleString(m, key)
-	case types.KV:
-		return workflowRuleString(map[string]any(m), key)
-	default:
-		return ""
-	}
-}
-
 // WorkflowRunStatusClass returns the flowbot-chip CSS class for a workflow run status.
 func WorkflowRunStatusClass(status int) string {
 	if c, ok := workflowRunStatusMeta[types.WorkflowRunState(status)]; ok {

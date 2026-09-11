@@ -179,7 +179,9 @@ func (e *Encryptor) SealString(plaintext string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	raw := append(nonce, ct...)
+	raw := make([]byte, len(nonce)+len(ct))
+	copy(raw, nonce)
+	copy(raw[len(nonce):], ct)
 	return sealedStringPrefix + base64.RawURLEncoding.EncodeToString(raw), nil
 }
 

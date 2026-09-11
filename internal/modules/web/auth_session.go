@@ -233,11 +233,6 @@ func safeNext(next string) string {
 	return "/service/web/home"
 }
 
-// safeLoginRedirectURL allows only same-origin relative paths under /service/web/.
-func safeLoginRedirectURL(raw string) (string, bool) {
-	return safeServiceWebRedirectURL(raw, true)
-}
-
 // safeServiceWebRedirectURL allows only relative /service/web paths (no scheme/host,
 // protocol-relative URL, userinfo, opaque, or backslash open-redirect tricks).
 // When allowExactRoot is true, path "/service/web" is accepted in addition to
