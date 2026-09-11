@@ -12,6 +12,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -67,26 +68,9 @@ func tokensCreate(ctx fiber.Ctx) error {
 	}
 	uidVal := strings.TrimSpace(ctx.FormValue("uid"))
 	expiresVal := ctx.FormValue("expires")
-	args := ctx.RequestCtx().PostArgs()
-	scopesBytes := args.PeekMulti("scopes")
+	scopes := collectFormScopes(ctx)
 
-	errorsMsg := make(map[string]string)
-	if uidVal == "" {
-		errorsMsg["uid"] = webMsg(ctx, "error.validation.uid_required")
-	}
-	if expiresVal == "" {
-		errorsMsg["expires"] = webMsg(ctx, "error.validation.expiry_required")
-	}
-	scopes := make([]string, 0, len(scopesBytes))
-	for _, raw := range scopesBytes {
-		val := string(raw)
-		if val != "" {
-			scopes = append(scopes, val)
-		}
-	}
-	if len(scopes) == 0 {
-		errorsMsg["scopes"] = webMsg(ctx, "error.validation.scopes_required")
-	}
+	errorsMsg := validateTokenForm(ctx, uidVal, expiresVal, scopes)
 	if len(errorsMsg) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
@@ -95,23 +79,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 
 	expiresDuration, err := time.ParseDuration(expiresVal)
 	if err != nil {
-		errorsMsg["expires"] = webMsg(ctx, "error.validation.invalid_duration")
-		ctx.Status(http.StatusUnprocessableEntity)
-		ctx.Type("html")
-		return partials.TokenForm(errorsMsg).Render(ctx.Context(), ctx.Response().BodyWriter())
-	}
-
-	validScopes := make(map[string]bool)
-	for _, s := range auth.AllScopes() {
-		validScopes[s.Value] = true
-	}
-	for _, s := range scopes {
-		if !validScopes[s] {
-			errorsMsg["scopes"] = webMsgData(ctx, "error.validation.invalid_scope", map[string]any{"Scope": s})
-			break
-		}
-	}
-	if len(errorsMsg) > 0 {
+		errorsMsg = map[string]string{"expires": webMsg(ctx, "error.validation.invalid_duration")}
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
 		return partials.TokenForm(errorsMsg).Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -144,6 +112,46 @@ func tokensCreate(ctx fiber.Ctx) error {
 	)
 	ctx.Response().BodyWriter().Write([]byte(alert))
 	return partials.TokenRow(ctx.Context(), item).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func collectFormScopes(ctx fiber.Ctx) []string {
+	scopesBytes := ctx.RequestCtx().PostArgs().PeekMulti("scopes")
+	scopes := make([]string, 0, len(scopesBytes))
+	for _, raw := range scopesBytes {
+		val := string(raw)
+		if val != "" {
+			scopes = append(scopes, val)
+		}
+	}
+	return scopes
+}
+
+func validateTokenForm(ctx fiber.Ctx, uidVal, expiresVal string, scopes []string) map[string]string {
+	errorsMsg := make(map[string]string)
+	if uidVal == "" {
+		errorsMsg["uid"] = webMsg(ctx, "error.validation.uid_required")
+	}
+	if expiresVal == "" {
+		errorsMsg["expires"] = webMsg(ctx, "error.validation.expiry_required")
+	}
+	if len(scopes) == 0 {
+		errorsMsg["scopes"] = webMsg(ctx, "error.validation.scopes_required")
+		return errorsMsg
+	}
+	validScopes := make(map[string]bool, len(auth.AllScopes()))
+	for _, s := range auth.AllScopes() {
+		validScopes[s.Value] = true
+	}
+	for _, s := range scopes {
+		if !validScopes[s] {
+			errorsMsg["scopes"] = webMsgData(ctx, "error.validation.invalid_scope", map[string]any{"Scope": s})
+			return errorsMsg
+		}
+	}
+	if !auth.CanGrantScopes(route.GetScopes(ctx), scopes) {
+		errorsMsg["scopes"] = webMsg(ctx, "error.validation.scope_elevation")
+	}
+	return errorsMsg
 }
 
 func tokensRevoke(ctx fiber.Ctx) error {

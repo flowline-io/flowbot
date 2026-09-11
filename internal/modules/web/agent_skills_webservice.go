@@ -85,7 +85,7 @@ func agentSkillsImport(ctx fiber.Ctx) error {
 	n, err := chatagent.ImportSkillsFromZip(ctx.Context(), data)
 	if err != nil {
 		flog.Warn("[web] agent skills import failed uid=%s: %v", getUID(ctx), err)
-		return toastError(ctx, webMsgData(ctx, "toast.agent_skills.import_failed", map[string]any{"Error": err.Error()}))
+		return toastError(ctx, webMsgData(ctx, "toast.agent_skills.import_failed", map[string]any{"Error": clientSafeErrorMessage(ctx, err)}))
 	}
 	if n == 0 {
 		return toastErrorKey(ctx, "toast.agent_skills.no_skill_md")

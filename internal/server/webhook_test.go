@@ -99,12 +99,12 @@ func TestAuthenticateWebhook(t *testing.T) {
 			wantOK: true,
 		},
 		{
-			name: "token via query param",
+			name: "token via query param rejected",
 			wcfg: &pipeline.WebhookConfig{
 				Auth: pipeline.WebhookAuthConfig{Token: "123456"},
 			},
 			query:  "token=123456",
-			wantOK: true,
+			wantOK: false,
 		},
 		{
 			name: "wrong query token rejected",
@@ -364,7 +364,7 @@ func TestPipelineWebhookCatchAll(t *testing.T) {
 			wantStatus: fiber.StatusAccepted,
 		},
 		{
-			name: "get with query token succeeds when method is GET",
+			name: "get with query token rejected",
 			defs: []pipeline.Definition{{
 				Name: "wh", Enabled: true,
 				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
@@ -374,6 +374,20 @@ func TestPipelineWebhookCatchAll(t *testing.T) {
 			}},
 			method:     http.MethodGet,
 			url:        "/webhook/a?token=123456",
+			wantStatus: fiber.StatusUnauthorized,
+		},
+		{
+			name: "get with header token succeeds when method is GET",
+			defs: []pipeline.Definition{{
+				Name: "wh", Enabled: true,
+				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
+					Path: "a", Method: "GET", EventType: "webhook.a",
+					Auth: pipeline.WebhookAuthConfig{Token: "tok"}, Payload: "raw",
+				}},
+			}},
+			method:     http.MethodGet,
+			url:        "/webhook/a",
+			token:      "tok",
 			wantStatus: fiber.StatusAccepted,
 		},
 		{

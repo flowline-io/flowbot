@@ -2169,6 +2169,9 @@ other = "Invalid duration"
 [error.validation.invalid_scope]
 other = "Invalid scope: {{.Scope}}"
 
+[error.validation.scope_elevation]
+other = "Cannot grant scopes beyond the current session"
+
 [toast.life.breakdown_encode_failed]
 other = "Could not encode breakdown preview"
 
@@ -2282,7 +2285,7 @@ other = "Trigger {{.Index}}: {{.Error}}"
 other = "Webhook: ..."
 
 [client.pipeline.auth_token_preview]
-other = "Auth: ?token=... or header X-Webhook-Token"
+other = "Auth: header X-Webhook-Token"
 
 [client.pipeline.auth_hmac_preview]
 other = "Auth: header X-Hub-Signature-256"

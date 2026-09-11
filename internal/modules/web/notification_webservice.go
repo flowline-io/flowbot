@@ -83,7 +83,7 @@ func retryNotification(ctx fiber.Ctx) error {
 
 	if notifypkg.IsConnectivityTestTemplate(rec.TemplateID) {
 		if err := retryConnectivityTest(ctx.Context(), ns, uid, rec.Channel); err != nil {
-			setShowToast(ctx, "error", webMsgData(ctx, "toast.notification.retry_failed", map[string]any{"Error": err.Error()}))
+			setShowToast(ctx, "error", webMsgData(ctx, "toast.notification.retry_failed", map[string]any{"Error": clientSafeErrorMessage(ctx, err)}))
 			return renderNotificationsTable(ctx, ns, uid)
 		}
 		setShowToastKey(ctx, "success", "toast.notification.connectivity_retest_succeeded")
@@ -97,7 +97,7 @@ func retryNotification(ctx fiber.Ctx) error {
 
 	notifyUid := types.Uid(rec.UID)
 	if err := notifypkg.GatewaySend(context.Background(), notifyUid, rec.TemplateID, []string{rec.Channel}, payload); err != nil {
-		setShowToast(ctx, "error", webMsgData(ctx, "toast.notification.retry_failed", map[string]any{"Error": err.Error()}))
+		setShowToast(ctx, "error", webMsgData(ctx, "toast.notification.retry_failed", map[string]any{"Error": clientSafeErrorMessage(ctx, err)}))
 		return renderNotificationsTable(ctx, ns, uid)
 	}
 

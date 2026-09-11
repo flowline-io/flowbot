@@ -22,7 +22,6 @@ func TestAuthenticateCall(t *testing.T) {
 		name        string
 		meta        *functions.Metadata
 		headerToken string
-		queryToken  string
 		hmacSig     string
 		want        bool
 	}{
@@ -31,12 +30,6 @@ func TestAuthenticateCall(t *testing.T) {
 			meta:        &functions.Metadata{HTTP: functions.HTTPConfig{Auth: functions.HTTPAuth{Token: "secret"}}},
 			headerToken: "secret",
 			want:        true,
-		},
-		{
-			name:       "token query match",
-			meta:       &functions.Metadata{HTTP: functions.HTTPConfig{Auth: functions.HTTPAuth{Token: "secret"}}},
-			queryToken: "secret",
-			want:       true,
 		},
 		{
 			name:        "token mismatch",
@@ -70,7 +63,7 @@ func TestAuthenticateCall(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := functions.AuthenticateCall(tt.meta, tt.headerToken, tt.queryToken, tt.hmacSig, body)
+			got := functions.AuthenticateCall(tt.meta, tt.headerToken, tt.hmacSig, body)
 			assert.Equal(t, tt.want, got)
 		})
 	}

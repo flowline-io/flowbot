@@ -4,6 +4,7 @@
 
 ### Breaking
 
+- Security hardening: `/service/web` requires `admin:*` and full browser sessions only (`kind=full`); API tokens with only `pipeline:*` can no longer use the Web UI or mint broader scopes. Pipeline/function/workflow webhook auth no longer accepts `?token=` — use header `X-Webhook-Token` or HMAC. Reference config defaults to `listen: "127.0.0.1:6060"` and platforms disabled; Docker/proxy deploys must set `listen: ":6060"`. See [.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md](.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md).
 - Functions, pipeline, and workflow REST modules merge into one `automate` module: paths are `/service/automate/{functions|pipeline|workflow}`; config is `modules.automate.enabled` (orphan `modules.workflow` / `modules.pipeline` keys are ignored). Token scopes stay `function:*` / `pipeline:*` / `workflow:*`. See [.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md](.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md).
 - DeepSeek catalog id is `deepseek-flash` only (DeepSeek V4.1 Flash, vision + thinking). `deepseek-v4-flash` / `deepseek-v4-pro` are removed; configs still using those ids get unknown-model defaults. See [.agents/notes/implemented/feature/2026-09-11-deepseek-v41-flash.md](.agents/notes/implemented/feature/2026-09-11-deepseek-v41-flash.md).
 
@@ -16,6 +17,9 @@
 
 - Durable docs under `docs/` aligned to current modules (`automate`), `pkg/capability`, provider/package/CI inventories, and automate REST prefixes. See [.agents/notes/implemented/process/2026-09-11-docs-sync-current-code.md](.agents/notes/implemented/process/2026-09-11-docs-sync-current-code.md).
 
+### Security
+
+- Web login redirects reject open-redirect tricks; agent `web_fetch` SSRF aligns with `core.http_request`; notify templates use hermetic Sprig (no `env`); login rate limit fails closed on Redis errors; `POST /agent` requires `admin:*`; OAuth tokens sealed at rest with the web auth key. See [.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md](.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md).
 ## [0.99.12]
 
 ### Added

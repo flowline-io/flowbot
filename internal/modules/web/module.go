@@ -77,6 +77,7 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		}
 	}
 	setWebEncryptor(enc)
+	store.SetOAuthEncryptor(enc)
 
 	handler.initialized = true
 	handler.authConfig = config.Auth

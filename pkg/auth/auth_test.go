@@ -70,9 +70,10 @@ func TestHasMinimumServiceScope(t *testing.T) {
 		{name: "write satisfies karakeep GET", scopes: []string{ScopeServiceKarakeepWrite}, group: "karakeep", method: "GET", want: true},
 		{name: "read does not satisfy karakeep POST", scopes: []string{ScopeServiceKarakeepRead}, group: "karakeep", method: "POST", want: false},
 		{name: "write satisfies karakeep POST", scopes: []string{ScopeServiceKarakeepWrite}, group: "karakeep", method: "POST", want: true},
-		{name: "pipeline read for web GET", scopes: []string{ScopePipelineRead}, group: "web", method: "GET", want: true},
-		{name: "pipeline run for web GET", scopes: []string{ScopePipelineRun}, group: "web", method: "GET", want: true},
-		{name: "pipeline read denies web POST", scopes: []string{ScopePipelineRead}, group: "web", method: "POST", want: false},
+		{name: "pipeline read denies web GET", scopes: []string{ScopePipelineRead}, group: "web", method: "GET", want: false},
+		{name: "pipeline run denies web GET", scopes: []string{ScopePipelineRun}, group: "web", method: "GET", want: false},
+		{name: "admin satisfies web GET", scopes: []string{ScopeAdmin}, group: "web", method: "GET", want: true},
+		{name: "admin satisfies web POST", scopes: []string{ScopeAdmin}, group: "web", method: "POST", want: true},
 		{name: "pipeline read for pipeline GET", scopes: []string{ScopePipelineRead}, group: "automate/pipeline", method: "GET", want: true},
 		{name: "pipeline run satisfies pipeline GET", scopes: []string{ScopePipelineRun}, group: "automate/pipeline", method: "GET", want: true},
 		{name: "pipeline read denies pipeline POST", scopes: []string{ScopePipelineRead}, group: "automate/pipeline", method: "POST", want: false},
@@ -103,8 +104,8 @@ func TestMinimumServiceScope(t *testing.T) {
 	}{
 		{name: "example GET", group: "example", method: "GET", want: ScopeServiceExampleRead},
 		{name: "example POST", group: "example", method: "POST", want: ScopeServiceExampleWrite},
-		{name: "web GET", group: "web", method: "GET", want: ScopePipelineRead},
-		{name: "web DELETE", group: "web", method: "DELETE", want: ScopePipelineRun},
+		{name: "web GET", group: "web", method: "GET", want: ScopeAdmin},
+		{name: "web DELETE", group: "web", method: "DELETE", want: ScopeAdmin},
 		{name: "pipeline GET", group: "automate/pipeline", method: "GET", want: ScopePipelineRead},
 		{name: "pipeline POST", group: "automate/pipeline", method: "POST", want: ScopePipelineRun},
 		{name: "functions GET", group: "automate/functions", method: "GET", want: ScopeFunctionRead},
@@ -117,6 +118,27 @@ func TestMinimumServiceScope(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, MinimumServiceScope(tt.group, tt.method))
+		})
+	}
+}
+
+func TestCanGrantScopes(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		caller    []string
+		requested []string
+		want      bool
+	}{
+		{name: "admin grants anything", caller: []string{ScopeAdmin}, requested: []string{ScopePipelineRun, ScopeAdmin}, want: true},
+		{name: "exact subset", caller: []string{ScopePipelineRead, ScopePipelineRun}, requested: []string{ScopePipelineRead}, want: true},
+		{name: "cannot elevate", caller: []string{ScopePipelineRun}, requested: []string{ScopeAdmin}, want: false},
+		{name: "empty requested ok", caller: []string{ScopePipelineRead}, requested: nil, want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, CanGrantScopes(tt.caller, tt.requested))
 		})
 	}
 }

@@ -2285,9 +2285,9 @@
       },
 
       // webhookURL builds the absolute pipeline webhook endpoint for a path
-      // (routes are served as /webhook/{path}). When token is set, append
-      // ?token= so the URL is ready to call (GET-friendly; also accepted on POST).
-      webhookURL(path, token) {
+      // (routes are served as /webhook/{path}). Tokens are not embedded in the
+      // URL; use header X-Webhook-Token (or HMAC) instead.
+      webhookURL(path) {
         if (!path) {
           return '';
         }
@@ -2295,11 +2295,7 @@
         if (!trimmed) {
           return '';
         }
-        var url = window.location.origin + '/webhook/' + trimmed;
-        if (token) {
-          url += '?token=' + encodeURIComponent(token);
-        }
-        return url;
+        return window.location.origin + '/webhook/' + trimmed;
       },
 
       webhookMethod(t) {
@@ -2320,7 +2316,7 @@
         if (!t || !t.webhook || !t.webhook.path) {
           return flowbotI18n('client.pipeline.webhook_preview', 'Webhook: ...');
         }
-        var url = this.webhookURL(t.webhook.path, this.webhookToken(t));
+        var url = this.webhookURL(t.webhook.path);
         if (!url) {
           return flowbotI18n('client.pipeline.webhook_preview', 'Webhook: ...');
         }
@@ -2335,7 +2331,7 @@
         if (auth.token) {
           return flowbotI18n(
             'client.pipeline.auth_token_preview',
-            'Auth: ?token=... or header X-Webhook-Token',
+            'Auth: header X-Webhook-Token',
           );
         }
         if (auth.hmac_secret) {
@@ -2354,8 +2350,7 @@
         if (!t || !t.webhook || !t.webhook.path) {
           return '';
         }
-        var token = this.webhookToken(t);
-        var url = this.webhookURL(t.webhook.path, token);
+        var url = this.webhookURL(t.webhook.path);
         if (!url) {
           return '';
         }
@@ -2363,6 +2358,10 @@
         var parts = ['curl', '-X', method];
         if (method === 'POST' || method === 'PUT') {
           parts.push('-H', '"Content-Type: application/json"', '-d', "'{}'");
+        }
+        var token = this.webhookToken(t);
+        if (token) {
+          parts.push('-H', '"X-Webhook-Token: ' + token.replace(/"/g, '\\"') + '"');
         }
         parts.push('"' + url + '"');
         return parts.join(' ');
@@ -2414,7 +2413,7 @@
           );
           return;
         }
-        var url = this.webhookURL(t.webhook.path, this.webhookToken(t));
+        var url = this.webhookURL(t.webhook.path);
         if (!url) {
           showToast(
             flowbotI18n(
@@ -2427,10 +2426,7 @@
         }
         await this.copyTextValue(
           url,
-          flowbotI18n(
-            'client.pipeline.webhook_url_copied',
-            'Webhook URL copied',
-          ),
+          flowbotI18n('client.pipeline.webhook_url_copied', 'Webhook URL copied'),
         );
       },
 

@@ -167,6 +167,55 @@ func (e *Encryptor) Decrypt(ciphertext, nonce []byte) ([]byte, error) {
 	return gcm.Open(nil, nonce, ciphertext, nil)
 }
 
+const sealedStringPrefix = "fbenc1."
+
+// SealString encrypts plaintext for opaque string storage (e.g. OAuth tokens).
+// Empty plaintext is returned unchanged. Output is prefix + base64(nonce||ciphertext).
+func (e *Encryptor) SealString(plaintext string) (string, error) {
+	if plaintext == "" {
+		return "", nil
+	}
+	ct, nonce, err := e.Encrypt([]byte(plaintext))
+	if err != nil {
+		return "", err
+	}
+	raw := append(nonce, ct...)
+	return sealedStringPrefix + base64.RawURLEncoding.EncodeToString(raw), nil
+}
+
+// OpenString decrypts a value produced by SealString. Plaintext legacy values
+// (no prefix) are returned unchanged so existing rows keep working until rewritten.
+// A nil receiver rejects sealed values (fail closed) and returns plaintext as-is.
+func (e *Encryptor) OpenString(stored string) (string, error) {
+	if stored == "" || !strings.HasPrefix(stored, sealedStringPrefix) {
+		return stored, nil
+	}
+	if e == nil || len(e.key) != 32 {
+		return "", errors.New("webauth: encryptor not ready")
+	}
+	raw, err := base64.RawURLEncoding.DecodeString(strings.TrimPrefix(stored, sealedStringPrefix))
+	if err != nil {
+		return "", fmt.Errorf("webauth: decode sealed string: %w", err)
+	}
+	block, err := aes.NewCipher(e.key)
+	if err != nil {
+		return "", err
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	ns := gcm.NonceSize()
+	if len(raw) < ns {
+		return "", errors.New("webauth: sealed string too short")
+	}
+	plain, err := e.Decrypt(raw[ns:], raw[:ns])
+	if err != nil {
+		return "", err
+	}
+	return string(plain), nil
+}
+
 // HashPassword returns a bcrypt hash of password.
 func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), MinBcryptCost)

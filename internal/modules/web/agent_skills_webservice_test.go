@@ -663,7 +663,7 @@ func TestAgentSkillsImportAuthenticated(t *testing.T) {
 			filename:   "bad.zip",
 			archive:    []byte("not-a-zip"),
 			wantStatus: http.StatusNoContent,
-			wantHX:     "zip",
+			wantHX:     "Import failed: Server error",
 		},
 		{
 			name:     "redirects when unauthenticated",

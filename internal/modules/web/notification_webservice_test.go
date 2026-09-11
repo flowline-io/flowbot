@@ -144,7 +144,7 @@ func TestRetryNotificationConnectivityTest(t *testing.T) {
 				protocol:  "retryslack",
 				templates: []string{"retryslack://{tokenA}/{tokenB}/{tokenC}"},
 			},
-			wantHXContains: "not found",
+			wantHXContains: "Server error",
 			wantSent:       0,
 			wantBodyNot:    "template test not found",
 		},

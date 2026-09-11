@@ -249,6 +249,49 @@ func TestLoginRateLimiterRecordFailure(t *testing.T) {
 	}
 }
 
+func TestLoginRateLimiterFailClosed(t *testing.T) {
+	t.Parallel()
+	store := &errRateLimitStore{err: assertAnError}
+	l := newLoginRateLimiter(store, 5, 10, cache.TTLMedium, cache.TTLMedium)
+	_, locked := l.Allow(context.Background(), "10.0.0.9")
+	if !locked {
+		t.Fatal("Allow should fail closed when store errors")
+	}
+	locked, _ = l.RecordFailure(context.Background(), "10.0.0.9")
+	if !locked {
+		t.Fatal("RecordFailure should fail closed when store errors")
+	}
+}
+
+type errRateLimitStore struct {
+	err error
+}
+
+func (e *errRateLimitStore) GetInt64(context.Context, cache.Key) (int64, error) {
+	return 0, e.err
+}
+func (e *errRateLimitStore) SetInt64(context.Context, cache.Key, int64, cache.TTL) error {
+	return e.err
+}
+func (e *errRateLimitStore) Incr(context.Context, cache.Key) (int64, error) {
+	return 0, e.err
+}
+func (e *errRateLimitStore) IncrWithTTL(context.Context, cache.Key, cache.TTL) (int64, error) {
+	return 0, e.err
+}
+func (e *errRateLimitStore) Exists(context.Context, cache.Key) (bool, error) {
+	return false, e.err
+}
+func (e *errRateLimitStore) Del(context.Context, cache.Key) error {
+	return e.err
+}
+
+var assertAnError = errSentinel("rate limit store down")
+
+type errSentinel string
+
+func (e errSentinel) Error() string { return string(e) }
+
 func TestLoginRateLimiterRecordSuccess(t *testing.T) {
 	tests := []struct {
 		name  string

@@ -4,8 +4,8 @@
 # platform/vendors blocks below remain exhaustive stubs; pool/media/http knobs are
 # optional (see docs/reference/config-reference.md).
 
-# Server listening address and port
-listen: ":6060"
+# Server listening address and port (loopback by default; use ":6060" behind a reverse proxy / Docker)
+listen: "127.0.0.1:6060"
 # API path prefix (default "/")
 # api_path: "/"
 
@@ -281,7 +281,7 @@ tracing:
 platform:
   # Slack platform configuration
   slack:
-    enabled: true
+    enabled: false
     app_id: ""
     client_id: ""
     client_secret: ""
@@ -292,7 +292,7 @@ platform:
 
   # Discord platform configuration
   discord:
-    enabled: true
+    enabled: false
     app_id: ""
     public_key: ""
     client_id: ""
@@ -301,7 +301,7 @@ platform:
 
   # Tailchat platform configuration
   tailchat:
-    enabled: true
+    enabled: false
     api_url: ""
     app_id: ""
     app_secret: ""
@@ -310,7 +310,7 @@ platform:
 
   # Telegram platform configuration
   telegram:
-    enabled: true
+    enabled: false
 
 # Module configuration list
 modules:
@@ -319,10 +319,10 @@ modules:
     auth:
       # One-time migration only. Prefer DB accounts + /service/web/setup on new installs.
       # After migration, remove plaintext password from this file.
-      username: admin
-      # Dev plaintext example only — change before any real deployment (min 12 chars).
-      password: "flowbot-dev-pass"
-      # Prefer encryption_key via env in production (AES-GCM for TOTP secrets).
+      # username: admin
+      # Dev plaintext example only — never reuse; min 12 chars; change before any real deployment.
+      # password: "change-me-before-deploy"
+      # Prefer encryption_key via env in production (AES-GCM for TOTP secrets and OAuth tokens).
       # encryption_key: "${FLOWBOT_WEB_AUTH_ENCRYPTION_KEY}"
       # encryption_key_dir: "."   # fallback key file when encryption_key unset
       # cookie_secure defaults to true; brute_force defaults to enabled (omit both).

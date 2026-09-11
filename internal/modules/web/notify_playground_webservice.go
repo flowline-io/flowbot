@@ -88,13 +88,13 @@ func notifyPlaygroundPreview(ctx fiber.Ctx) error {
 		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if err := attachPlaygroundChannelProto(ctx.Context(), &req); err != nil {
-		view.Errors = map[string]string{"channel_id": err.Error()}
+		view.Errors = map[string]string{"channel_id": clientSafeErrorMessage(ctx, err)}
 		ctx.Type("html")
 		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	rendered, err := renderPlaygroundMessage(req)
 	if err != nil {
-		view.Errors = map[string]string{"_form": err.Error()}
+		view.Errors = map[string]string{"_form": clientSafeErrorMessage(ctx, err)}
 		ctx.Type("html")
 		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
@@ -141,7 +141,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 
 	rendered, err := renderPlaygroundMessage(req)
 	if err != nil {
-		view.Errors = map[string]string{"_form": err.Error()}
+		view.Errors = map[string]string{"_form": clientSafeErrorMessage(ctx, err)}
 		ctx.Type("html")
 		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
@@ -168,12 +168,12 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 		if ns != nil {
 			_, _ = ns.Record(ctx.Context(), uid, ch.Name, templateID, summary, "failed", err.Error(), "", payload)
 		}
-		setShowToast(ctx, "error", webMsgData(ctx, "toast.notify_playground.send_failed", map[string]any{"Error": err.Error()}))
+		setShowToast(ctx, "error", webMsgData(ctx, "toast.notify_playground.send_failed", map[string]any{"Error": clientSafeErrorMessage(ctx, err)}))
 		view.Result = &partials.NotifyPlaygroundResultParams{
 			Title:  rendered.Title,
 			Body:   rendered.Body,
 			Format: rendered.Format,
-			Error:  err.Error(),
+			Error:  clientSafeErrorMessage(ctx, err),
 		}
 		ctx.Type("html")
 		return partials.NotifyPlayground(ctx.Context(), view).Render(ctx.Context(), ctx.Response().BodyWriter())

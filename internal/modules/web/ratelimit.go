@@ -44,10 +44,13 @@ func newLoginRateLimiter(store rateLimitStore, maxAttempts, lockoutLimit int64, 
 // Allow checks if a login attempt from the given IP should proceed.
 // It returns a progressive delay duration and whether the IP is locked out.
 // If locked is true, the request should be rejected.
+// Redis errors fail closed (treat as locked) so brute-force protection cannot
+// be bypassed by cache outages.
 func (l *loginRateLimiter) Allow(ctx context.Context, ip string) (delay time.Duration, locked bool) {
 	exists, err := l.store.Exists(ctx, lockKey(ip))
 	if err != nil {
-		flog.Debug("login rate limiter allow exists error: %v", err)
+		flog.Warn("login rate limiter allow exists error (fail-closed): %v", err)
+		return 0, true
 	}
 	if exists {
 		return 0, true
@@ -55,7 +58,8 @@ func (l *loginRateLimiter) Allow(ctx context.Context, ip string) (delay time.Dur
 
 	count, err := l.store.GetInt64(ctx, attemptKey(ip))
 	if err != nil {
-		flog.Debug("login rate limiter allow getint64 error: %v", err)
+		flog.Warn("login rate limiter allow getint64 error (fail-closed): %v", err)
+		return 0, true
 	}
 	if count >= l.maxAttempts {
 		shift := max(min(count, int64(63)), 0)
@@ -67,18 +71,20 @@ func (l *loginRateLimiter) Allow(ctx context.Context, ip string) (delay time.Dur
 
 // RecordFailure records a failed login attempt.
 // Returns whether the IP is now locked and the retry-after duration.
+// Redis errors fail closed (locked) so counters cannot be skipped.
 func (l *loginRateLimiter) RecordFailure(ctx context.Context, ip string) (locked bool, retryAfter time.Duration) {
 	count, err := l.store.IncrWithTTL(ctx, attemptKey(ip), l.windowTTL)
 	if err != nil {
-		flog.Debug("login rate limiter record incr error: %v", err)
-		return false, 0
+		flog.Warn("login rate limiter record incr error (fail-closed): %v", err)
+		return true, l.lockoutTTL.Duration()
 	}
 	if count >= l.lockoutLimit {
 		if err := l.store.Del(ctx, attemptKey(ip)); err != nil {
 			flog.Debug("login rate limiter record del error: %v", err)
 		}
 		if err := l.store.SetInt64(ctx, lockKey(ip), 1, l.lockoutTTL); err != nil {
-			flog.Debug("login rate limiter record setint64 error: %v", err)
+			flog.Warn("login rate limiter record setint64 error (fail-closed): %v", err)
+			return true, l.lockoutTTL.Duration()
 		}
 		return true, l.lockoutTTL.Duration()
 	}

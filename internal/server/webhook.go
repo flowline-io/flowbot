@@ -161,8 +161,8 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 }
 
 // authenticateWebhook validates the request against the webhook auth config.
-// Token auth accepts either the configured header (default X-Webhook-Token)
-// or the query parameter "token".
+// Token auth accepts the configured header only (default X-Webhook-Token).
+// Query tokens are rejected to avoid leaking secrets via access logs and Referer.
 func authenticateWebhook(c fiber.Ctx, wcfg *pipeline.WebhookConfig) (int, bool) {
 	if wcfg == nil {
 		return fiber.StatusUnauthorized, false
@@ -179,10 +179,7 @@ func authenticateWebhook(c fiber.Ctx, wcfg *pipeline.WebhookConfig) (int, bool) 
 			tokenHeader = "X-Webhook-Token"
 		}
 		provided := c.Get(tokenHeader)
-		if provided == "" {
-			provided = c.Query("token")
-		}
-		if provided == ac.Token {
+		if provided != "" && hmac.Equal([]byte(provided), []byte(ac.Token)) {
 			return fiber.StatusOK, true
 		}
 	}

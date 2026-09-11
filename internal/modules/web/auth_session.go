@@ -2,13 +2,14 @@ package web
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 
-	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -226,10 +227,39 @@ func setPendingCookie(ctx fiber.Ctx, value string, maxAge int) {
 }
 
 func safeNext(next string) string {
-	if next == "" || !strings.HasPrefix(next, "/") || strings.Contains(next, "//") || strings.Contains(next, ":") {
-		return "/service/web/home"
+	if safe, ok := safeServiceWebRedirectURL(next, true); ok {
+		return safe
 	}
-	return next
+	return "/service/web/home"
+}
+
+// safeLoginRedirectURL allows only same-origin relative paths under /service/web/.
+func safeLoginRedirectURL(raw string) (string, bool) {
+	return safeServiceWebRedirectURL(raw, true)
+}
+
+// safeServiceWebRedirectURL allows only relative /service/web paths (no scheme/host,
+// protocol-relative URL, userinfo, opaque, or backslash open-redirect tricks).
+// When allowExactRoot is true, path "/service/web" is accepted in addition to
+// paths under "/service/web/".
+func safeServiceWebRedirectURL(raw string, allowExactRoot bool) (string, bool) {
+	if raw == "" || strings.ContainsAny(raw, "\\") || strings.HasPrefix(raw, "//") {
+		return "", false
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "", false
+	}
+	if u.Scheme != "" || u.Host != "" || u.User != nil || u.Opaque != "" {
+		return "", false
+	}
+	if allowExactRoot && u.Path == "/service/web" {
+		return u.RequestURI(), true
+	}
+	if !strings.HasPrefix(u.Path, "/service/web/") {
+		return "", false
+	}
+	return u.RequestURI(), true
 }
 
 func accountTOTPSecret(ciphertext, nonce *[]byte) (string, error) {

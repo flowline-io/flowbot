@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -192,20 +191,7 @@ func inboxItemsFromRecords(records []model.NotificationRecord) []partials.InboxI
 	return out
 }
 
-// safeInboxRedirectURL allows only relative /service/web paths (no scheme/host open redirect).
+// safeInboxRedirectURL allows only relative /service/web/ paths (no open redirect).
 func safeInboxRedirectURL(raw string) (string, bool) {
-	if raw == "" || strings.HasPrefix(raw, "//") {
-		return "", false
-	}
-	u, err := url.Parse(raw)
-	if err != nil {
-		return "", false
-	}
-	if u.Scheme != "" || u.Host != "" {
-		return "", false
-	}
-	if !strings.HasPrefix(u.Path, "/service/web/") {
-		return "", false
-	}
-	return u.RequestURI(), true
+	return safeServiceWebRedirectURL(raw, false)
 }

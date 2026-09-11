@@ -377,8 +377,8 @@ func (*Controller) agentData(ctx fiber.Ctx) error {
 	if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
 		return protocol.ErrInternalServerError.Wrap(err)
 	}
-	// authorization
-	uid, isValid := route.CheckAccessToken(route.GetAccessToken(&r))
+	// authorization — require admin:* (agent instruct channel is privileged)
+	uid, isValid := route.CheckAccessTokenWithScope(route.GetAccessToken(&r), auth.ScopeAdmin)
 	if !isValid {
 		return protocol.ErrNotAuthorized.New("token not valided")
 	}

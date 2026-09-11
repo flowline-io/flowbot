@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -77,6 +79,31 @@ func webMsgData(c fiber.Ctx, id string, data map[string]any) string {
 // toastErrorKey shows a localized error toast.
 func toastErrorKey(c fiber.Ctx, id string) error {
 	return toastError(c, webMsg(c, id))
+}
+
+// clientSafeErrorMessage returns a user-facing error string without leaking
+// provider/DSN/path details from unknown errors. Domain validation/not-found
+// messages are passed through; everything else becomes a generic server error.
+func clientSafeErrorMessage(c fiber.Ctx, err error) string {
+	if err == nil {
+		return webMsg(c, "error.server")
+	}
+	var te *types.Error
+	if errors.As(err, &te) && te != nil {
+		switch {
+		case errors.Is(te.Kind, types.ErrInvalidArgument),
+			errors.Is(te.Kind, types.ErrNotFound),
+			errors.Is(te.Kind, types.ErrForbidden),
+			errors.Is(te.Kind, types.ErrConflict),
+			errors.Is(te.Kind, types.ErrAlreadyExists),
+			errors.Is(te.Kind, types.ErrUnauthorized):
+			if msg := strings.TrimSpace(te.Message); msg != "" {
+				return msg
+			}
+		}
+	}
+	flog.Debug("web client-safe error redacted: %v", err)
+	return webMsg(c, "error.server")
 }
 
 // setShowToastKey shows a localized toast.

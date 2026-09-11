@@ -265,8 +265,19 @@ func (s *ModuleDataStore) ListConfigs(ctx context.Context, opts ListConfigOption
 	return result, nil
 }
 
-// OAuthSet stores OAuth credentials.
+// OAuthSet stores OAuth credentials (token fields sealed at rest when an encryptor is wired).
 func (s *ModuleDataStore) OAuthSet(ctx context.Context, oauthModel gen.OAuth) error {
+	token, err := sealOAuthField(oauthModel.Token)
+	if err != nil {
+		return fmt.Errorf("postgres: oauthset seal token: %w", err)
+	}
+	refresh, err := sealOAuthField(oauthModel.RefreshToken)
+	if err != nil {
+		return fmt.Errorf("postgres: oauthset seal refresh: %w", err)
+	}
+	oauthModel.Token = token
+	oauthModel.RefreshToken = refresh
+
 	existing, err := s.client.OAuth.Query().
 		Where(
 			oauth.UID(oauthModel.UID),
@@ -279,58 +290,68 @@ func (s *ModuleDataStore) OAuthSet(ctx context.Context, oauthModel gen.OAuth) er
 	}
 
 	if existing != nil {
-		u := s.client.OAuth.Update().Where(oauth.IDEQ(existing.ID)).
-			SetName(oauthModel.Name).
-			SetToken(oauthModel.Token).
-			SetUpdatedAt(time.Now())
-		if oauthModel.Extra != nil {
-			u = u.SetExtra(map[string]any(oauthModel.Extra))
-		}
-		if oauthModel.RefreshToken != "" {
-			u = u.SetRefreshToken(oauthModel.RefreshToken)
-		}
-		if !oauthModel.ExpiresAt.IsZero() {
-			u = u.SetExpiresAt(oauthModel.ExpiresAt)
-		}
-		if oauthModel.TokenType != "" {
-			u = u.SetTokenType(oauthModel.TokenType)
-		}
-		if oauthModel.Scope != "" {
-			u = u.SetScope(oauthModel.Scope)
-		}
-		_, err = u.Save(ctx)
+		err = s.updateOAuth(ctx, existing.ID, oauthModel)
 	} else {
-		extra := map[string]any(oauthModel.Extra)
-		if extra == nil {
-			extra = map[string]any{}
-		}
-		c := s.client.OAuth.Create().
-			SetUID(oauthModel.UID).
-			SetTopic(oauthModel.Topic).
-			SetName(oauthModel.Name).
-			SetType(oauthModel.Type).
-			SetToken(oauthModel.Token).
-			SetExtra(extra).
-			SetCreatedAt(oauthModel.CreatedAt).
-			SetUpdatedAt(oauthModel.UpdatedAt)
-		if oauthModel.RefreshToken != "" {
-			c = c.SetRefreshToken(oauthModel.RefreshToken)
-		}
-		if !oauthModel.ExpiresAt.IsZero() {
-			c = c.SetExpiresAt(oauthModel.ExpiresAt)
-		}
-		if oauthModel.TokenType != "" {
-			c = c.SetTokenType(oauthModel.TokenType)
-		}
-		if oauthModel.Scope != "" {
-			c = c.SetScope(oauthModel.Scope)
-		}
-		_, err = c.Save(ctx)
+		err = s.createOAuth(ctx, oauthModel)
 	}
 	if err != nil {
 		return fmt.Errorf("postgres: oauthset save: %w", err)
 	}
 	return nil
+}
+
+func (s *ModuleDataStore) updateOAuth(ctx context.Context, id int64, oauthModel gen.OAuth) error {
+	u := s.client.OAuth.Update().Where(oauth.IDEQ(id)).
+		SetName(oauthModel.Name).
+		SetToken(oauthModel.Token).
+		SetUpdatedAt(time.Now())
+	if oauthModel.Extra != nil {
+		u = u.SetExtra(map[string]any(oauthModel.Extra))
+	}
+	if oauthModel.RefreshToken != "" {
+		u = u.SetRefreshToken(oauthModel.RefreshToken)
+	}
+	if !oauthModel.ExpiresAt.IsZero() {
+		u = u.SetExpiresAt(oauthModel.ExpiresAt)
+	}
+	if oauthModel.TokenType != "" {
+		u = u.SetTokenType(oauthModel.TokenType)
+	}
+	if oauthModel.Scope != "" {
+		u = u.SetScope(oauthModel.Scope)
+	}
+	_, err := u.Save(ctx)
+	return err
+}
+
+func (s *ModuleDataStore) createOAuth(ctx context.Context, oauthModel gen.OAuth) error {
+	extra := map[string]any(oauthModel.Extra)
+	if extra == nil {
+		extra = map[string]any{}
+	}
+	c := s.client.OAuth.Create().
+		SetUID(oauthModel.UID).
+		SetTopic(oauthModel.Topic).
+		SetName(oauthModel.Name).
+		SetType(oauthModel.Type).
+		SetToken(oauthModel.Token).
+		SetExtra(extra).
+		SetCreatedAt(oauthModel.CreatedAt).
+		SetUpdatedAt(oauthModel.UpdatedAt)
+	if oauthModel.RefreshToken != "" {
+		c = c.SetRefreshToken(oauthModel.RefreshToken)
+	}
+	if !oauthModel.ExpiresAt.IsZero() {
+		c = c.SetExpiresAt(oauthModel.ExpiresAt)
+	}
+	if oauthModel.TokenType != "" {
+		c = c.SetTokenType(oauthModel.TokenType)
+	}
+	if oauthModel.Scope != "" {
+		c = c.SetScope(oauthModel.Scope)
+	}
+	_, err := c.Save(ctx)
+	return err
 }
 
 // OAuthGet returns OAuth credentials for uid, topic, and type.
@@ -344,6 +365,9 @@ func (s *ModuleDataStore) OAuthGet(ctx context.Context, uid types.Uid, topic, t 
 		}
 		return gen.OAuth{}, fmt.Errorf("postgres: oauthget: %w", err)
 	}
+	if err := openOAuthRow(o); err != nil {
+		return gen.OAuth{}, err
+	}
 	return *o, nil
 }
 
@@ -355,9 +379,29 @@ func (s *ModuleDataStore) OAuthGetAvailable(ctx context.Context, t string) ([]ge
 	}
 	result := make([]gen.OAuth, len(oauths))
 	for i, o := range oauths {
+		if err := openOAuthRow(o); err != nil {
+			return nil, err
+		}
 		result[i] = *o
 	}
 	return result, nil
+}
+
+func openOAuthRow(o *gen.OAuth) error {
+	if o == nil {
+		return nil
+	}
+	token, err := openOAuthField(o.Token)
+	if err != nil {
+		return fmt.Errorf("postgres: oauth open token: %w", err)
+	}
+	refresh, err := openOAuthField(o.RefreshToken)
+	if err != nil {
+		return fmt.Errorf("postgres: oauth open refresh: %w", err)
+	}
+	o.Token = token
+	o.RefreshToken = refresh
+	return nil
 }
 
 // FormSet set a form.

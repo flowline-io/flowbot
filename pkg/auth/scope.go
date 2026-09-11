@@ -155,11 +155,14 @@ func isWriteHTTPMethod(method string) bool {
 }
 
 // MinimumServiceScope returns the default minimum scope for /service/{group} routes.
-// Web module routes map to pipeline:*; automate REST groups map to function:*/pipeline:*/workflow:*;
-// hub module routes map to hub:capabilities:read; provider modules use service:{group}:read|write.
+// Web UI routes require admin:* (full browser sessions). Automate REST groups map to
+// function:*/pipeline:*/workflow:*; hub module routes map to hub:capabilities:read;
+// provider modules use service:{group}:read|write.
 func MinimumServiceScope(group, method string) string {
 	switch group {
-	case "web", "automate/pipeline":
+	case "web":
+		return ScopeAdmin
+	case "automate/pipeline":
 		if isWriteHTTPMethod(method) {
 			return ScopePipelineRun
 		}
@@ -194,19 +197,37 @@ func HasMinimumServiceScope(scopes []string, group, method string) bool {
 	}
 	if !isWriteHTTPMethod(method) {
 		switch group {
-		case "web", "automate/pipeline":
+		case "web", "hub":
+			return false
+		case "automate/pipeline":
 			return HasScope(scopes, ScopePipelineRun)
 		case "automate/functions":
 			return HasScope(scopes, ScopeFunctionRun)
 		case "automate/workflow":
 			return HasScope(scopes, ScopeWorkflowRun)
-		case "hub":
-			return false
 		default:
 			return HasScope(scopes, ServiceScope(group, "write"))
 		}
 	}
 	return false
+}
+
+// CanGrantScopes reports whether callerScopes may mint every scope in requested.
+// admin:* may grant any scope; otherwise each requested scope must already be held.
+func CanGrantScopes(callerScopes, requested []string) bool {
+	if HasScope(callerScopes, ScopeAdmin) {
+		return true
+	}
+	for _, s := range requested {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		if !HasScope(callerScopes, s) {
+			return false
+		}
+	}
+	return true
 }
 
 // AllScopes returns all scopes available for CLI token creation.

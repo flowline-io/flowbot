@@ -734,7 +734,7 @@ func TestNotifyChannelTest(t *testing.T) {
 				Enabled:  true,
 			},
 			wantStatus:     http.StatusOK,
-			wantHXContains: `unknown protocol`,
+			wantHXContains: "Server error",
 		},
 	}
 	for _, tt := range tests {

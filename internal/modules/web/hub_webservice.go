@@ -214,7 +214,7 @@ func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.Ap
 		return toastError(c, webMsgData(c, "toast.hub.operation_failed", map[string]any{
 			"Operation": operation,
 			"Name":      name,
-			"Error":     err.Error(),
+			"Error":     clientSafeErrorMessage(c, err),
 		}))
 	}
 

@@ -147,6 +147,19 @@ func TestEngineRender(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsNonHermeticSprig(t *testing.T) {
+	t.Parallel()
+	e := New()
+	err := e.LoadConfig([]manifest.Template{{
+		ID:              "env.leak",
+		Name:            "Env Leak",
+		DefaultFormat:   "markdown",
+		DefaultTemplate: `secret={{ env "PATH" }}`,
+	}})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "env")
+}
+
 func TestEngineChannelOverride(t *testing.T) {
 	t.Parallel()
 	templates := []manifest.Template{

@@ -365,21 +365,37 @@ func GetAccessToken(req *http.Request) string {
 }
 
 func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
+	uid, _, ok := lookupValidAccessToken(accessToken)
+	return uid, ok
+}
+
+// CheckAccessTokenWithScope validates the token and requires the given scope (or admin:*).
+func CheckAccessTokenWithScope(accessToken, required string) (uid types.Uid, isValid bool) {
+	uid, params, ok := lookupValidAccessToken(accessToken)
+	if !ok {
+		return uid, false
+	}
+	if !auth.HasScope(parseScopes(params), required) {
+		return uid, false
+	}
+	return uid, true
+}
+
+func lookupValidAccessToken(accessToken string) (uid types.Uid, params types.KV, ok bool) {
 	p, err := LookupAccessToken(context.Background(), accessToken)
 	if err != nil {
-		return uid, isValid
+		return uid, nil, false
 	}
 	if p.ID <= 0 || AccessTokenIsExpired(p) {
-		return uid, isValid
+		return uid, nil, false
 	}
-	params := types.KV(p.Params)
+	params = types.KV(p.Params)
 	u, _ := params.String("uid")
 	uid = types.Uid(u)
 	if uid.IsZero() {
-		return uid, isValid
+		return uid, nil, false
 	}
-	isValid = true
-	return uid, isValid
+	return uid, params, true
 }
 
 func GetUid(ctx fiber.Ctx) types.Uid {

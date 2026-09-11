@@ -8,9 +8,9 @@ import (
 )
 
 // AuthenticateCall validates a function HTTP call using metadata token and/or HMAC.
-// Token auth accepts headerToken (X-Webhook-Token) or queryToken. HMAC uses
+// Token auth accepts headerToken (X-Webhook-Token) only. HMAC uses
 // X-Hub-Signature-256 style "sha256=<hex>" signatures over the raw body.
-func AuthenticateCall(meta *Metadata, headerToken, queryToken, hmacSig string, body []byte) bool {
+func AuthenticateCall(meta *Metadata, headerToken, hmacSig string, body []byte) bool {
 	if meta == nil {
 		return false
 	}
@@ -21,9 +21,6 @@ func AuthenticateCall(meta *Metadata, headerToken, queryToken, hmacSig string, b
 	}
 	if token != "" {
 		provided := strings.TrimSpace(headerToken)
-		if provided == "" {
-			provided = strings.TrimSpace(queryToken)
-		}
 		if provided != "" && hmac.Equal([]byte(provided), []byte(token)) {
 			return true
 		}

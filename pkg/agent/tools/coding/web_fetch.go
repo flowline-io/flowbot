@@ -5,20 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // WebFetchTool downloads text content from an http(s) URL.
 type WebFetchTool struct {
 	HTTPClient *http.Client
 	MaxOutput  int
-	// AllowLoopback permits localhost/loopback hosts (intended for tests).
+	// AllowLoopback permits localhost/loopback/private hosts (intended for tests).
 	AllowLoopback bool
 }
 
@@ -27,7 +27,7 @@ func (WebFetchTool) Name() string { return "web_fetch" }
 
 // Description explains the tool to the model.
 func (WebFetchTool) Description() string {
-	return "Fetches text content from an http(s) URL; blocks localhost/loopback/link-local hosts including redirects; response truncated for context safety"
+	return "Fetches text content from an http(s) URL; blocks private/loopback/link-local and cloud-metadata hosts including redirects; response truncated for context safety"
 }
 
 // Parameters returns the JSON schema for tool arguments.
@@ -153,30 +153,6 @@ func formatFetchOutput(rawURL string, status int, contentType string, body []byt
 	return out
 }
 
-func validateFetchURL(u *url.URL, allowLoopback bool) error {
-	scheme := strings.ToLower(u.Scheme)
-	if scheme != "http" && scheme != "https" {
-		return errors.New("only http and https URLs are allowed")
-	}
-	host := strings.ToLower(u.Hostname())
-	if host == "" {
-		return errors.New("url host is required")
-	}
-	if allowLoopback {
-		return nil
-	}
-	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
-		return errors.New("localhost and loopback hosts are blocked")
-	}
-	if ip := net.ParseIP(host); ip != nil {
-		return validateFetchIP(ip)
-	}
-	return nil
-}
-
-func validateFetchIP(ip net.IP) error {
-	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsUnspecified() {
-		return errors.New("loopback and link-local addresses are blocked")
-	}
-	return nil
+func validateFetchURL(u *url.URL, allowPrivate bool) error {
+	return utils.AssertPublicHTTPURL(u, allowPrivate)
 }

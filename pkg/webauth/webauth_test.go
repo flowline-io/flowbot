@@ -3,6 +3,7 @@ package webauth_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,6 +21,24 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 	pt, err := enc.Decrypt(ct, nonce)
 	require.NoError(t, err)
 	assert.Equal(t, "totp-secret", string(pt))
+}
+
+func TestSealOpenStringRoundTrip(t *testing.T) {
+	enc, _, _, err := webauth.LoadEncryptor("dGVzdC1rZXktMzItYnl0ZXMtbG9uZyEhISE", t.TempDir())
+	require.NoError(t, err)
+	sealed, err := enc.SealString("oauth-token")
+	require.NoError(t, err)
+	assert.NotEqual(t, "oauth-token", sealed)
+	assert.True(t, strings.HasPrefix(sealed, "fbenc1."))
+	opened, err := enc.OpenString(sealed)
+	require.NoError(t, err)
+	assert.Equal(t, "oauth-token", opened)
+	legacy, err := enc.OpenString("plaintext-legacy")
+	require.NoError(t, err)
+	assert.Equal(t, "plaintext-legacy", legacy)
+	_, err = (*webauth.Encryptor)(nil).OpenString(sealed)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "encryptor not ready")
 }
 
 func TestLoadEncryptorCreatesKeyFile(t *testing.T) {

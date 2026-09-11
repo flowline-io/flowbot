@@ -2,19 +2,19 @@ package core
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 const (
@@ -210,24 +210,11 @@ func assertURLAllowed(u *url.URL) error {
 	if hostAllowed(host, cfg.AllowHosts) {
 		return nil
 	}
-
-	ips, err := net.LookupIP(host)
-	if err != nil {
-		if !cfg.AllowPrivate && isBlockedHostname(host) {
-			return types.Errorf(types.ErrForbidden, "host %q is not allowed", host)
+	if err := utils.AssertPublicHTTPURL(u, cfg.AllowPrivate); err != nil {
+		if strings.HasPrefix(err.Error(), "resolve host:") {
+			return err
 		}
-		return fmt.Errorf("resolve host: %w", err)
-	}
-	if cfg.AllowPrivate {
-		return nil
-	}
-	for _, ip := range ips {
-		if isBlockedIP(ip) {
-			return types.Errorf(types.ErrForbidden, "host %q resolves to blocked address %s", host, ip)
-		}
-	}
-	if isBlockedHostname(host) {
-		return types.Errorf(types.ErrForbidden, "host %q is not allowed", host)
+		return types.Errorf(types.ErrForbidden, "%v", err)
 	}
 	return nil
 }
@@ -240,27 +227,6 @@ func hostAllowed(host string, allow []string) bool {
 			continue
 		}
 		if host == a || strings.HasSuffix(host, "."+a) {
-			return true
-		}
-	}
-	return false
-}
-
-func isBlockedHostname(host string) bool {
-	h := strings.ToLower(host)
-	switch h {
-	case "localhost", "metadata.google.internal":
-		return true
-	}
-	return strings.HasSuffix(h, ".localhost") || strings.HasSuffix(h, ".local")
-}
-
-func isBlockedIP(ip net.IP) bool {
-	if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsUnspecified() {
-		return true
-	}
-	if ip4 := ip.To4(); ip4 != nil {
-		if ip4[0] == 169 && ip4[1] == 254 {
 			return true
 		}
 	}

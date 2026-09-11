@@ -38,13 +38,15 @@ func TestWebFetchTool_Execute(t *testing.T) {
 		{name: "fetches body", url: server.URL + "/ok", contains: "hello fetch"},
 		{name: "empty url", url: "  ", wantError: true},
 		{name: "blocks localhost", url: "http://127.0.0.1/secret", wantError: true},
+		{name: "blocks private literal", url: "http://10.0.0.1/secret", wantError: true},
+		{name: "blocks metadata hostname", url: "http://metadata.google.internal/", wantError: true},
 		{name: "rejects file scheme", url: "file:///etc/passwd", wantError: true},
 		{name: "non 2xx", url: server.URL + "/err", wantError: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fetchTool := tool
-			if tt.name == "blocks localhost" {
+			if tt.name == "blocks localhost" || tt.name == "blocks private literal" || tt.name == "blocks metadata hostname" {
 				fetchTool.AllowLoopback = false
 			}
 			result, err := fetchTool.Execute(context.Background(), "id", map[string]any{"url": tt.url}, nil)

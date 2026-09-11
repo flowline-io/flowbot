@@ -1,5 +1,7 @@
 # Flowbot self-hosted stack (PostgreSQL + Redis + Flowbot).
-# Copy docs/reference/config.yaml to ./flowbot.yaml and set credentials before start.
+# Copy docs/reference/config.yaml to ./flowbot.yaml, set credentials, and set
+# listen: ":6060" (all interfaces) so the published port can reach the process.
+# Prefer a strong password via /service/web/setup; do not ship flowbot-dev-pass.
 # See docs/self-hosting.md.
 
 services:
@@ -40,7 +42,8 @@ services:
       - "6060:6060"
     environment:
       REDIS_PASSWORD: flowbot
-      WEB_PASSWORD: flowbot-dev-pass
+      # Optional one-time YAML migration only; prefer /service/web/setup.
+      # WEB_PASSWORD: change-me-before-deploy
     volumes:
       - ./flowbot.yaml:/opt/app/flowbot.yaml:ro
       - flowbot-uploads:/opt/app/uploads

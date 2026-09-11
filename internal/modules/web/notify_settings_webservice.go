@@ -245,7 +245,7 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 		Priority: notifypkg.Low,
 	}
 	if err := notifypkg.SendToProtocol(ch.Protocol, ch.URI, notifyMsg); err != nil {
-		setShowToast(ctx, "error", webMsgData(ctx, "toast.notify_settings.channel_test_failed", map[string]any{"Error": err.Error()}))
+		setShowToast(ctx, "error", webMsgData(ctx, "toast.notify_settings.channel_test_failed", map[string]any{"Error": clientSafeErrorMessage(ctx, err)}))
 		ns := notifypkg.GetNotifyStore()
 		if ns != nil {
 			_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, webMsg(ctx, "notify.test.summary"), "failed", err.Error(), "", nil)

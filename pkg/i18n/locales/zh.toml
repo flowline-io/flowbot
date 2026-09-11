@@ -2169,6 +2169,9 @@ other = "时长无效"
 [error.validation.invalid_scope]
 other = "无效 scope：{{.Scope}}"
 
+[error.validation.scope_elevation]
+other = "不能授予超出当前会话的权限范围"
+
 [toast.life.breakdown_encode_failed]
 other = "无法编码分解预览"
 
@@ -2282,7 +2285,7 @@ other = "触发器 {{.Index}}：{{.Error}}"
 other = "Webhook: ..."
 
 [client.pipeline.auth_token_preview]
-other = "Auth: ?token=... 或请求头 X-Webhook-Token"
+other = "Auth: 请求头 X-Webhook-Token"
 
 [client.pipeline.auth_hmac_preview]
 other = "Auth: 请求头 X-Hub-Signature-256"

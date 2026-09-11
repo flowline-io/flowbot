@@ -125,8 +125,9 @@ func workflowRuleString(rule map[string]any, key string) string {
 }
 
 // WorkflowWebhookURLPath returns the relative workflow webhook URL path
-// (/webhook/workflow/{path}), appending ?token= when auth.token is set.
-// Returns empty when the trigger is not a webhook or path is missing.
+// (/webhook/workflow/{path}). Tokens are not embedded in the URL; callers must
+// send X-Webhook-Token (or HMAC). Returns empty when the trigger is not a
+// webhook or path is missing.
 func WorkflowWebhookURLPath(tr model.WorkflowTrigger) string {
 	if !strings.EqualFold(tr.Type, "webhook") {
 		return ""
@@ -135,11 +136,7 @@ func WorkflowWebhookURLPath(tr model.WorkflowTrigger) string {
 	if path == "" {
 		return ""
 	}
-	out := "/webhook/workflow/" + path
-	if token := workflowRuleAuthString(tr.Rule, "token"); token != "" {
-		out += "?token=" + url.QueryEscape(token)
-	}
-	return out
+	return "/webhook/workflow/" + path
 }
 
 // WorkflowWebhookURL returns the absolute webhook URL when publicOrigin is set,

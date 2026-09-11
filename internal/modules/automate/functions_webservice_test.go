@@ -159,9 +159,9 @@ func TestCallEndpointAuth(t *testing.T) {
 			wantStatus: fiber.StatusServiceUnavailable, // auth ok, exec unavailable
 		},
 		{
-			name:       "valid query token",
+			name:       "query token rejected",
 			path:       "/service/automate/functions/call/echo-fn?token=secret-token",
-			wantStatus: fiber.StatusServiceUnavailable,
+			wantStatus: fiber.StatusUnauthorized,
 		},
 		{
 			name:       "valid hmac",

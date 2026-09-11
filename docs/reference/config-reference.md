@@ -23,12 +23,12 @@ Omitting `modules.web.auth.brute_force` used to disable lockout. It now **defaul
 
 ### Semantic change: web accounts in PostgreSQL
 
-Web UI credentials live in the `web_accounts` table (not YAML for day-to-day login). On first start with an empty table, YAML `username`/`password` (or `password_hash`) are migrated once; afterward remove plaintext passwords from config. New installs with no YAML password use `/service/web/setup`. TOTP is mandatory. Prefer `modules.web.auth.encryption_key` (env) for AES-GCM of TOTP secrets; otherwise a key file is created under `encryption_key_dir` (default `.`).
+Web UI credentials live in the `web_accounts` table (not YAML for day-to-day login). On first start with an empty table, YAML `username`/`password` (or `password_hash`) are migrated once; afterward remove plaintext passwords from config. New installs with no YAML password use `/service/web/setup`. TOTP is mandatory. Prefer `modules.web.auth.encryption_key` (env) for AES-GCM of TOTP secrets and OAuth tokens at rest; otherwise a key file is created under `encryption_key_dir` (default `.`).
 
 ## Daily minimum
 
 ```yaml
-listen: ":6060"
+listen: "127.0.0.1:6060"
 postgres:
   dsn: "postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable"
 redis:
@@ -37,8 +37,7 @@ modules:
   - name: web
     enabled: true
     auth:
-      username: admin
-      password: "flowbot-dev-pass"
+      # Prefer /service/web/setup on new installs; YAML password is one-time migration only.
       encryption_key: "${FLOWBOT_WEB_AUTH_ENCRYPTION_KEY}"
 ```
 

@@ -141,12 +141,12 @@ func TestWorkflowWebhookURLPath(t *testing.T) {
 			want: "/webhook/workflow/hooks/a",
 		},
 		{
-			name: "path with leading slash and token",
+			name: "path with leading slash omits token from url",
 			tr: model.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
 				"path": "/hooks/my-workflow",
 				"auth": map[string]any{"token": "secret+value"},
 			}},
-			want: "/webhook/workflow/hooks/my-workflow?token=secret%2Bvalue",
+			want: "/webhook/workflow/hooks/my-workflow",
 		},
 		{
 			name: "hmac only skips token query",
@@ -175,8 +175,8 @@ func TestWorkflowWebhookURL(t *testing.T) {
 		want   string
 	}{
 		{name: "zero", tr: model.WorkflowTrigger{}, origin: "https://bot.example", want: ""},
-		{name: "relative when origin empty", tr: tr, origin: "", want: "/webhook/workflow/hooks/a?token=t"},
-		{name: "absolute", tr: tr, origin: "https://bot.example/", want: "https://bot.example/webhook/workflow/hooks/a?token=t"},
+		{name: "relative when origin empty", tr: tr, origin: "", want: "/webhook/workflow/hooks/a"},
+		{name: "absolute", tr: tr, origin: "https://bot.example/", want: "https://bot.example/webhook/workflow/hooks/a"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -208,10 +208,10 @@ func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
 			origin: "https://bot.example",
 			want: []string{
 				`data-testid="workflow-webhook-url-7"`,
-				`https://bot.example/webhook/workflow/hooks/bookmark?token=tok`,
+				`https://bot.example/webhook/workflow/hooks/bookmark`,
 				`data-testid="btn-copy-workflow-webhook-url-7"`,
 				`data-clip-copy`,
-				`data-clip-markdown="https://bot.example/webhook/workflow/hooks/bookmark?token=tok"`,
+				`data-clip-markdown="https://bot.example/webhook/workflow/hooks/bookmark"`,
 			},
 			absent: []string{`"payload"`, `data-absolute-url-path`, `POST`},
 		},
