@@ -226,7 +226,6 @@ go tool task run           # go run -tags swagger ./cmd
 go tool task test          # Unit tests
 go tool task test:specs    # BDD acceptance tests (Docker required)
 go tool task lint          # revive + testify + actionlint + oxlint
-go tool task air           # Live reload
 ```
 
 ### Code Generation

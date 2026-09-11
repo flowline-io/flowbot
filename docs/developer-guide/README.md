@@ -19,8 +19,7 @@ Operations and development documentation for Flowbot.
 go tool task build           # Main server
 go tool task build:composer  # Composer CLI
 go tool task build:cli       # Admin CLI
-go tool task build:all       # All binaries
-go tool task air             # Live reload
+go tool task build:all       # All native binaries
 ```
 
 ### Code Generation
@@ -45,9 +44,8 @@ go tool task tidy      # go mod tidy
 
 ```bash
 go tool task secure    # govulncheck
-go tool task leak      # gitleaks
 go tool task gosec     # security scan
-go tool task check     # all security & quality
+go tool task check     # lint + secure + gosec
 ```
 
 #### XSS / Markdown HTML

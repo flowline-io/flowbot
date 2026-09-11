@@ -1,4 +1,5 @@
 version: "3"
+
 tasks:
   default:
     desc: Default task - run common checks
@@ -8,17 +9,11 @@ tasks:
       - task: format
       - task: lint
       - task: scc
-      - echo "All checks completed"
 
   check:
     desc: Run all security and quality checks
-    cmds:
-      - task: lint
-      - task: secure
-      - task: gosec
-      - echo "All checks completed"
+    deps: [lint, secure, gosec]
 
-  # Build tasks
   build:
     desc: Build flowbot server
     deps: [templ]
@@ -51,15 +46,9 @@ tasks:
       - go build -v -o bin/flowbot-agent ./cmd/agent
 
   build:all:
-    desc: Build all binaries
-    cmds:
-      - task: build
-      - task: build:composer
-      - task: build:cli
-      - task: build:gateway
-      - task: build:agent
+    desc: Build all binaries (native targets; use build:cli:linux for sandbox inject)
+    deps: [build, build:composer, build:cli, build:gateway, build:agent]
 
-  # Run tasks
   run:
     desc: Run flowbot server
     deps: [templ]
@@ -86,24 +75,16 @@ tasks:
     cmds:
       - go run ./cmd/agent {{.CLI_ARGS}}
 
-  # Code quality tasks
-  cloc:
-    desc: Count lines of code using cloc
-    cmds:
-      - cloc --exclude-ext=json --fullpath --not-match-d='(^|/)(node_modules|internal/store/ent/gen|docs/website/docs|cloc|docs/api|docs/skills|public/vendor)($|/)' .
-
   scc:
     desc: Generate code statistics using scc
     cmds:
+      - mkdir -p cloc
       - go tool scc > ./cloc/{{ now.Format "2006-01-02" }}.txt
 
-  lint:
-    desc: Run static code analysis
+  lint:go:
+    desc: Run revive
     cmds:
       - go tool revive -config revive.toml -formatter friendly ./...
-      - task: lint:testify
-      - task: lint:action
-      - task: lint:js
 
   lint:action:
     desc: Lint GitHub Actions workflow files
@@ -116,9 +97,13 @@ tasks:
       - go tool testifylint ./...
 
   lint:js:
-    desc: Lint usage of testify
+    desc: Lint public JS with oxlint
     cmds:
       - oxlint ./public
+
+  lint:
+    desc: Run static code analysis
+    deps: [lint:go, lint:testify, lint:action, lint:js]
 
   format:
     desc: Format code (Go and other files)
@@ -131,7 +116,6 @@ tasks:
     cmds:
       - go mod tidy
 
-  # Security tasks
   secure:
     desc: Check for Go vulnerabilities
     cmds:
@@ -148,7 +132,6 @@ tasks:
       # gosec can fail with strconv.Atoi on absolute paths under internal/store/ent/gen.
       - go tool gosec -conf=.gosec.json -exclude-generated -exclude-dir=internal/store/ent/gen -exclude=G101,G103,G118,G122,G124,G204,G302,G304,G306,G703 ./...
 
-  # Test tasks
   test:
     desc: Run all tests
     cmds:
@@ -210,7 +193,6 @@ tasks:
           TIMEOUT: "60m"
           PACKAGES: '{{.PACKAGES}}'
 
-  # Documentation tasks
   swagger:
     desc: Generate Swagger API documentation
     cmds:
@@ -241,7 +223,6 @@ tasks:
     cmds:
       - go run ./cmd/composer agenteval harness --out tmp/agent_eval
 
-  # Development tools
   tools:
     desc: Install all development tools
     cmds:
@@ -249,7 +230,6 @@ tasks:
       - npm install -g oxfmt
       - npm install -g oxlint
 
-  # Release tasks
   snapshot:
     desc: Create snapshot release
     cmds:
