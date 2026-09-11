@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -235,7 +236,11 @@ func CodeAt(secret string, now time.Time) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("webauth: invalid totp secret: %w", err)
 	}
-	return hotp(key, uint64(now.Unix()/30)), nil
+	counter, ok := utils.Int64ToUint64(now.Unix() / 30)
+	if !ok {
+		return "", fmt.Errorf("webauth: totp time before unix epoch")
+	}
+	return hotp(key, counter), nil
 }
 
 // LooksLikeTOTPCode reports whether code is a 6-digit TOTP shape (not a backup code).
@@ -267,7 +272,11 @@ func VerifyTOTP(secret, code string, now time.Time) (step int64, ok bool) {
 	cur := now.Unix() / 30
 	for _, delta := range []int64{-1, 0, 1} {
 		step = cur + delta
-		if hotp(key, uint64(step)) == code {
+		counter, okConv := utils.Int64ToUint64(step)
+		if !okConv {
+			continue
+		}
+		if hotp(key, counter) == code {
 			return step, true
 		}
 	}

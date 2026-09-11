@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"html"
+	"math"
 	"net/url"
 	"slices"
 	"strconv"
@@ -44,7 +45,11 @@ func EventSourceChipClass(source string) string {
 	}
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(source))
-	return eventSourceChipPalette[h.Sum32()%uint32(len(eventSourceChipPalette))]
+	n := len(eventSourceChipPalette)
+	if n <= 0 || n > math.MaxUint32 {
+		return "flowbot-chip flowbot-chip-muted"
+	}
+	return eventSourceChipPalette[int(h.Sum32()%uint32(n))]
 }
 
 // EventRunStatusChipClass returns the chip class for a pipeline run status string.

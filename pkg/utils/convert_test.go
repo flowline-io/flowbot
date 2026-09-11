@@ -127,3 +127,51 @@ func TestUint64ToInt64(t *testing.T) {
 		})
 	}
 }
+
+func TestUint64ToInt(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		in     uint64
+		want   int
+		wantOK bool
+	}{
+		{name: "zero", in: 0, want: 0, wantOK: true},
+		{name: "max int", in: uint64(math.MaxInt), want: math.MaxInt, wantOK: true},
+		{name: "overflow", in: uint64(math.MaxInt) + 1, wantOK: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, ok := Uint64ToInt(tt.in)
+			require.Equal(t, tt.wantOK, ok)
+			if tt.wantOK {
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestInt64ToUint64(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		in     int64
+		want   uint64
+		wantOK bool
+	}{
+		{name: "zero", in: 0, want: 0, wantOK: true},
+		{name: "positive", in: 42, want: 42, wantOK: true},
+		{name: "negative", in: -1, wantOK: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, ok := Int64ToUint64(tt.in)
+			require.Equal(t, tt.wantOK, ok)
+			if tt.wantOK {
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}

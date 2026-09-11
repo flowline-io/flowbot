@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 func PageRequestFromParams(params map[string]any) PageRequest {
@@ -60,9 +61,9 @@ func intFromAny(value any) (int, bool) {
 	case int32:
 		return int(v), true
 	case uint:
-		return int(v), true
+		return utils.Uint64ToInt(uint64(v))
 	case uint64:
-		return int(v), true
+		return utils.Uint64ToInt(v)
 	case uint32:
 		return int(v), true
 	case float64:
@@ -103,9 +104,9 @@ func int64FromAny(value any) (int64, bool) {
 	case int32:
 		return int64(v), true
 	case uint:
-		return int64(v), true
+		return utils.Uint64ToInt64(uint64(v))
 	case uint64:
-		return int64(v), true
+		return utils.Uint64ToInt64(v)
 	case uint32:
 		return int64(v), true
 	case float64:

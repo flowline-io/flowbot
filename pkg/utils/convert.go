@@ -41,3 +41,19 @@ func Uint64ToInt64(n uint64) (int64, bool) {
 	}
 	return int64(n), true
 }
+
+// Uint64ToInt converts n to int when it fits in the int range.
+func Uint64ToInt(n uint64) (int, bool) {
+	if n > uint64(math.MaxInt) {
+		return 0, false
+	}
+	return int(n), true
+}
+
+// Int64ToUint64 converts n to uint64 when it is non-negative.
+func Int64ToUint64(n int64) (uint64, bool) {
+	if n < 0 {
+		return 0, false
+	}
+	return uint64(n), true
+}

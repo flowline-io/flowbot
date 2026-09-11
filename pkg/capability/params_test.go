@@ -1,6 +1,7 @@
 package capability
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -69,6 +70,7 @@ func TestIntParam(t *testing.T) {
 	}{
 		{"int value", map[string]any{"key": 42}, "key", 42, true},
 		{"uint64 value", map[string]any{"key": uint64(42)}, "key", 42, true},
+		{"uint64 overflow", map[string]any{"key": uint64(math.MaxInt) + 1}, "key", 0, false},
 		{"float value", map[string]any{"key": float64(42)}, "key", 42, true},
 		{"string value", map[string]any{"key": "42"}, "key", 42, true},
 		{"invalid string", map[string]any{"key": "abc"}, "key", 0, false},
@@ -183,6 +185,7 @@ func TestInt64Param(t *testing.T) {
 	}{
 		{"int64 value", map[string]any{"key": int64(42)}, "key", 42, true},
 		{"int value", map[string]any{"key": 42}, "key", 42, true},
+		{"uint64 overflow", map[string]any{"key": uint64(math.MaxInt64) + 1}, "key", 0, false},
 		{"float64 value", map[string]any{"key": float64(99.0)}, "key", 99, true},
 		{"not found", map[string]any{}, "key", 0, false},
 		{"nil value", map[string]any{"key": nil}, "key", 0, false},

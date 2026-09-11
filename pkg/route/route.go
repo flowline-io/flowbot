@@ -128,7 +128,9 @@ func authorizeWithLevel(authLevel AuthLevel, group, method string, handler fiber
 		err := Authorize(RequireServiceScope(group, method, handler))(ctx)
 		if err != nil && shouldRedirectWebUnauthorized(ctx, group, err) {
 			next := url.QueryEscape(string(ctx.Request().URI().RequestURI()))
-			ctx.Redirect().To("/service/web/login?next=" + next)
+			if redirErr := ctx.Redirect().To("/service/web/login?next=" + next); redirErr != nil {
+				return redirErr
+			}
 			return fiber.NewError(fiber.StatusSeeOther, "redirect to login")
 		}
 		return err

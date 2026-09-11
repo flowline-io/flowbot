@@ -144,7 +144,9 @@ tasks:
       # intentional unsafe, detached contexts, exec/file loaders, file chmod/write modes).
       # Directory create mode is G301 (enabled; 0750 ceiling).
       # Path exclusions in .gosec.json silence Fiber response-writer / test helper errors.
-      - go tool gosec -conf=.gosec.json -exclude-generated -exclude=G101,G103,G118,G122,G124,G204,G302,G304,G306,G703 ./...
+      # -exclude-dir for ent gen: -exclude-generated still parses those files; on Windows
+      # gosec can fail with strconv.Atoi on absolute paths under internal/store/ent/gen.
+      - go tool gosec -conf=.gosec.json -exclude-generated -exclude-dir=internal/store/ent/gen -exclude=G101,G103,G118,G122,G124,G204,G302,G304,G306,G703 ./...
 
   # Test tasks
   test:
