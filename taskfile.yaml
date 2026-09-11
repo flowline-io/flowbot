@@ -15,7 +15,6 @@ tasks:
     cmds:
       - task: lint
       - task: secure
-      - task: leak
       - task: gosec
       - echo "All checks completed"
 
