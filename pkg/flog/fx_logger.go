@@ -94,7 +94,7 @@ func logFxErrOnly(err error) {
 	}
 	// NewConfig (and other Provides) run before flog.Init; zero-value zerolog discards.
 	if !inited.Load() {
-		fmt.Fprintf(os.Stderr, "error occurred: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "error occurred: %v\n", err)
 		return
 	}
 	Error(err)
