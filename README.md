@@ -35,7 +35,7 @@ A typical homelab runs dozens of apps under `/home/<user>/homelab/apps/`. Each h
 | Homelab Registry  |  bind app →      | Capability Registry |
 | archivebox,atuin, |  capability      | karakeep, miniflux, |
 | adguard,karakeep… | ---------------> | kanboard, gitea, …  |
-+-------------------+                  | notify, agent       |
++-------------------+                  | core, functions, …  |
         |                              +---------+-----------+
         | register apps                          |
         v                                capability.Invoke()
@@ -66,28 +66,34 @@ See [architecture diagrams](docs/architecture/README.md) for PlantUML component,
 
 Provider-backed capabilities use the provider ID as the capability name. Domain event names (e.g. `bookmark.created`) stay stable for orchestration.
 
-| Capability   | Kind              | Notes                                              |
-| ------------ | ----------------- | -------------------------------------------------- |
-| **karakeep** | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
-| **miniflux** | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
-| **kanboard** | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
-| **trilium**  | Provider          | REST, CLI, Chat, Workflow; polling event source    |
-| **memos**    | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
-| **fireflyiii** | Provider        | REST, CLI, Chat, Workflow                          |
-| **transmission** | Provider      | REST, CLI, Chat, Workflow                          |
-| **gitea**    | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
-| **github**   | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
-| **nocodb**   | Provider          | REST, CLI, Chat, Workflow                          |
-| **devops**   | Aggregator        | Multi-provider ops (beszel, uptimekuma, …)         |
-| **clip**     | Provider          | REST, CLI, Chat, Workflow                          |
-| **notify**   | Internal          | Multi-channel dispatch (Slack, Pushover, ntfy, …)  |
-| **agent**    | Internal          | Chat / Cloud Agent loop (`pkg/agent/`)             |
+| Capability       | Kind       | Notes                                                           |
+| ---------------- | ---------- | --------------------------------------------------------------- |
+| **karakeep**     | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
+| **miniflux**     | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
+| **kanboard**     | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
+| **trilium**      | Provider   | REST, CLI, Chat, Workflow; polling event source                 |
+| **memos**        | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
+| **fireflyiii**   | Provider   | REST, CLI, Chat, Workflow                                       |
+| **transmission** | Provider   | REST, CLI, Chat, Workflow                                       |
+| **email**        | Provider   | REST, CLI, Chat, Workflow; SMTP send / IMAP read; polling events |
+| **nocodb**       | Provider   | REST, CLI, Chat, Workflow                                       |
+| **gitea**        | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
+| **github**       | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
+| **trello**       | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
+| **confluence**   | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
+| **devops**       | Aggregator | Multi-provider ops (beszel, uptimekuma, traefik, grafana, …)    |
+| **core**         | Internal   | notify, clip, agent, `http_request`, `run_*`, `kv_*`            |
+| **life**         | Internal   | Life gamification AI (quest eval, lore)                         |
+| **gateway**      | Internal   | Local CLI gateway workers (`cmd/gateway`)                       |
+| **functions**    | Internal   | Named FaaS invoke / get / health                                |
+
+IDs match `hub.CapabilityType` in [`pkg/hub/capability.go`](pkg/hub/capability.go). `clip` / `notify` / `agent` are operations on **core**, not separate capabilities. Package layout: [`docs/architecture/README.md`](docs/architecture/README.md).
 
 ### Discovery / client only
 
 These packages live under `pkg/providers/` for Homelab discovery or OAuth/client helpers. They are **not** full Capability integrations (no `capability.Invoke` service surface):
 
-archivebox, adguard, uptimekuma, drone, dropbox, email, n8n, slash, slack (OAuth), grafana, beszel, dozzle, netalertx, wakapi, traefik, …
+archivebox, adguard, uptimekuma, drone, dropbox, n8n, slash, slack (OAuth), grafana, beszel, dozzle, netalertx, wakapi, traefik, …
 
 All supported capabilities share the same invocation pattern:
 
