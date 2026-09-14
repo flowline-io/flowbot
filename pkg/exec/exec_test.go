@@ -97,7 +97,7 @@ func TestRunEntrypoint(t *testing.T) {
 				data := fake.ReadFile(context.Background(), mod)
 				require.True(t, data.IsOk(), "go.mod should be written")
 				assert.Contains(t, string(data.Value()), "module flowbotfn")
-				assert.Contains(t, string(data.Value()), "go 1.26")
+				assert.Contains(t, string(data.Value()), "go 1.27")
 				if err != nil && !strings.Contains(err.Error(), "go") {
 					// Unexpected non-go failure after env assertions.
 					require.NoError(t, err)

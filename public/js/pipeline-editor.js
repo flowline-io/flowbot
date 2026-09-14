@@ -2362,7 +2362,10 @@
         var auth = t.webhook.auth || {};
         var token = auth.token || '';
         if (token) {
-          parts.push('-H', '"X-Webhook-Token: ' + token.replace(/"/g, '\\"') + '"');
+          parts.push(
+            '-H',
+            '"X-Webhook-Token: ' + token.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"',
+          );
         } else if (auth.hmac_secret) {
           parts.push('-H', '"X-Hub-Signature-256: sha256=SIGNATURE"');
         }

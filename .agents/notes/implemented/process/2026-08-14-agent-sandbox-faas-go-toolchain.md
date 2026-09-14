@@ -12,7 +12,7 @@ The agent sandbox image pins a hermetic Go runtime for FaaS and Cloud Agents:
 
 - Install Go `${GO_VERSION}` (matches root `go.mod`) at `/usr/local/go` with `PATH` and `GOROOT` set
 - Image `ENV GOTOOLCHAIN=local` so the bundled toolchain never auto-downloads
-- Build-time smoke as `agent`: offline `go run main.go` with a minimal `flowbotfn` / `go 1.26` module
+- Build-time smoke as `agent`: offline `go run main.go` with a minimal `flowbotfn` / `go 1.27` module
 - CI smoke: assert `go env GOTOOLCHAIN=local` and rerun offline `go run` under `--network=none`
 - `pkg/exec.mergeGoEnv` also sets `GOTOOLCHAIN=local` (with existing `GOPROXY=off` / `GOSUMDB=off` / `CGO_ENABLED=0`) so FaaS process env matches the image contract even on older images that only have a mismatched Go
 
@@ -28,7 +28,7 @@ Cloud Agents that need a different toolchain can override `GOTOOLCHAIN` when the
 
 - Image Go is hermetic by default; agents that want auto toolchain download must set `GOTOOLCHAIN=auto` (and have network)
 - FaaS Go functions remain stdlib-only; third-party imports still fail under `GOPROXY=off`
-- Sandbox releases that change `GO_VERSION` must keep the FaaS `go.mod` language line (`go 1.26`) compatible with the bundled compiler
+- Sandbox releases that change `GO_VERSION` must keep the FaaS `go.mod` language line (`go 1.27`) compatible with the bundled compiler
 - Size packaging: [agent-sandbox image packaging](./2026-08-30-agent-sandbox-image-packaging.md)
 
 ## Verification

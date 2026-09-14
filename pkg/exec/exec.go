@@ -24,7 +24,7 @@ const (
 	// DefaultMaxOutput truncates combined output beyond this byte count.
 	DefaultMaxOutput = 8192
 
-	goModContents = "module flowbotfn\n\ngo 1.26\n"
+	goModContents = "module flowbotfn\n\ngo 1.27\n"
 )
 
 // Result holds process output from a terminal or code run.

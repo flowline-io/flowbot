@@ -33,7 +33,7 @@ Until 1.0, prefer correct foundations over compatibility shims. Domain event nam
 
 ## Development setup
 
-Requirements: Go 1.26.6+, PostgreSQL, Redis, [Task](https://taskfile.dev) (`go tool task`), Docker for BDD specs.
+Requirements: Go 1.27.1+, PostgreSQL, Redis, [Task](https://taskfile.dev) (`go tool task`), Docker for BDD specs.
 
 ```bash
 git clone https://github.com/flowline-io/flowbot.git

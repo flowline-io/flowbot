@@ -154,7 +154,9 @@
         if (!isMaskedSecret(token)) {
           parts.push(
             '-H',
-            '"X-Webhook-Token: ' + token.replace(/"/g, '\\"') + '"',
+            '"X-Webhook-Token: ' +
+              token.replace(/\\/g, '\\\\').replace(/"/g, '\\"') +
+              '"',
           );
         } else if (!isMaskedSecret(hmac) || this.hmacSet) {
           parts.push('-H', '"X-Hub-Signature-256: sha256=SIGNATURE"');
