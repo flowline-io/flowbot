@@ -14,7 +14,7 @@ require (
 	github.com/adrg/xdg v0.5.3
 	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/bwmarrin/discordgo v0.29.0
-	github.com/bytedance/sonic v1.15.3
+	github.com/bytedance/sonic v1.15.4
 	github.com/containerd/errdefs v1.0.0
 	github.com/creachadair/jrpc2 v1.3.5
 	github.com/dgraph-io/ristretto/v2 v2.4.2
