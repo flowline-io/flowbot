@@ -22,6 +22,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
+// newRuntimeMu serializes wazero.NewRuntime. wazero v1.12.0 races in
+// internal/version.GetWazeroVersion when multiple runtimes are created
+// concurrently; upstream fixed this on main via init()-time version
+// detection but has not released it yet.
+var newRuntimeMu sync.Mutex
+
 // WasmRunner implements plugin.Runner using wazero for in-process wasm execution.
 type WasmRunner struct {
 	manifest     *plugin.Manifest
@@ -38,6 +44,12 @@ type WasmRunner struct {
 
 	inflight sync.WaitGroup
 	started  atomic.Bool
+}
+
+func newWazeroRuntime(ctx context.Context) wazero.Runtime {
+	newRuntimeMu.Lock()
+	defer newRuntimeMu.Unlock()
+	return wazero.NewRuntime(ctx)
 }
 
 // NewWasmRunner creates a WasmRunner for the given plugin manifest.
@@ -81,7 +93,7 @@ func NewWasmRunner(m *plugin.Manifest) (*WasmRunner, error) {
 		bindings.httpPerms = buildAllowlist(wasmCfg.Permissions)
 	}
 
-	rt := wazero.NewRuntime(context.Background())
+	rt := newWazeroRuntime(context.Background())
 
 	return &WasmRunner{
 		manifest:     m,

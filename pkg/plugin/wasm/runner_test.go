@@ -184,6 +184,34 @@ func TestWasmRunnerDefaultTimeout(t *testing.T) {
 	assert.Equal(t, 30*time.Second, runner.timeout)
 }
 
+// Concurrent NewWasmRunner must not race through wazero's version cache
+// (go test -race). See .agents/notes/implemented/bug-fix/2026-09-15-wazero-newruntime-version-race.md.
+func TestNewWasmRunnerConcurrent(t *testing.T) {
+	t.Parallel()
+
+	const n = 32
+	errCh := make(chan error, n)
+	for range n {
+		go func() {
+			runner, err := NewWasmRunner(&plugin.Manifest{
+				Name:    "concurrent",
+				Runtime: plugin.RuntimeWasm,
+				Wasm: &plugin.WasmConfig{
+					Module: "./testdata/empty.wasm",
+				},
+			})
+			if err != nil {
+				errCh <- err
+				return
+			}
+			errCh <- runner.runtime.Close(context.Background())
+		}()
+	}
+	for range n {
+		require.NoError(t, <-errCh)
+	}
+}
+
 func TestWasmRunnerNilPermissions(t *testing.T) {
 	t.Parallel()
 
