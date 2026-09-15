@@ -18,7 +18,7 @@ tasks:
     desc: Build flowbot server
     deps: [templ]
     cmds:
-      - GOEXPERIMENT=goroutineleakprofile go build -v -o bin/flowbot ./cmd
+      - go build -v -o bin/flowbot ./cmd
 
   build:composer:
     desc: Build composer tool
