@@ -730,12 +730,8 @@ type ChatAgentSandboxConfig struct {
 	// Injected as FLOWBOT_SERVER_URL and written to the mounted CLI config.
 	ServerURL string `json:"server_url" yaml:"server_url" mapstructure:"server_url"`
 	// AccessToken is a dedicated Hub access token for the flowbot CLI inside the sandbox.
-	// When empty, credentials are not injected. Injected as FLOWBOT_TOKEN and a mounted token file.
+	// When empty, credentials are not injected. Injected as FLOWBOT_TOKEN and CLI config files.
 	AccessToken string `json:"access_token" yaml:"access_token" mapstructure:"access_token" sensitive:"true"`
-	// CLIPath is an optional host path to a linux/amd64 flowbot CLI binary bind-mounted into the sandbox.
-	// Absolute paths are used as-is; relative paths resolve beside the server executable.
-	// When empty, the sandbox looks for flowbot-cli_linux_amd64 beside the server executable.
-	CLIPath string `json:"cli_path" yaml:"cli_path" mapstructure:"cli_path"`
 }
 
 type Model struct {

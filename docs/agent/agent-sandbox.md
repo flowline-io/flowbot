@@ -43,7 +43,7 @@ Versions are pinned in [`deployments/agent-sandbox/Dockerfile`](../../deployment
 | Shell / CLI | bash, jq, ripgrep, curl, wget, openssh-client, build-essential | Aligned with Flowbot server runtime packages |
 | `dcg` | GitHub release (`DCG_VERSION`, default `v0.6.7`) | Installed as `/usr/local/bin/dcg` (linux musl amd64) with SHA256 verify; config at `/etc/dcg/config.toml` (same as [`pkg/agent/dcg/config.toml`](../../pkg/agent/dcg/config.toml)). **Parity only** — Flowbot's Always-on DCG gate for `run_terminal` / `run_code` runs on the **host** before sandbox exec; the image does not re-check. |
 
-The image does **not** bake the `flowbot` CLI. Chat agent sandbox copies `flowbot-cli_linux_amd64` from beside the Flowbot server binary (or `chat_agent.sandbox.cli_path`) into a host directory and bind-mounts that directory at `/opt/flowbot-cli` (on `PATH`). See [Chat agent CLI injection](#chat-agent-cli-injection-chat_agentsandbox) below.
+The image does **not** bake the `flowbot` CLI. Chat agent sandbox injects `flowbot-cli_linux_amd64` from beside the Flowbot server binary into `/opt/flowbot-cli` (on `PATH`). See [Chat agent CLI injection](#chat-agent-cli-injection-chat_agentsandbox) below.
 
 Credential files materialized by the chat agent sandbox runner are chowned to uid/gid `1000` (the image `agent` user) when possible; otherwise they are mode `0644` so the container can still read them when the host process cannot chown.
 
@@ -182,22 +182,20 @@ chat_agent:
     image: ghcr.io/flowline-io/flowbot-agent-sandbox:latest
     server_url: "http://host.docker.internal:6060"
     access_token: "<hub-access-token>"
-    # cli_path: ""  # optional; default is flowbot-cli_linux_amd64 beside the server binary
 ```
 
 Behavior:
 
-1. The runner resolves a host linux/amd64 CLI: `cli_path` if set (absolute as-is; relative beside the server executable), otherwise `flowbot-cli_linux_amd64` next to the Flowbot server executable (the server image ships this sibling under `/opt/app/`).
-2. If that file exists, each Exec copies it into a temporary host directory as `flowbot` (beside the source file when possible), bind-mounts that directory read-only at `/opt/flowbot-cli`, and prepends `/opt/flowbot-cli` to `PATH` in the container command. If the file is missing or staging fails, the sandbox warns once and continues without `flowbot` (other shell/code tools still work). Mount shape: [.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md](../../.agents/notes/implemented/bug-fix/2026-08-31-sandbox-cli-dir-bind.md).
-3. If `access_token` is non-empty, each Exec materializes a temporary host directory with `token` + `server_url` (mode `0600`), bind-mounts it read-only at `/home/agent/.config/flowbot`, and sets `FLOWBOT_TOKEN` / `FLOWBOT_SERVER_URL`.
-4. The temp directory is outside the agent workspace and removed after the container exits.
-5. If `server_url` host is `host.docker.internal`, the runner adds `ExtraHosts: host.docker.internal:host-gateway`.
+1. The runner resolves `flowbot-cli_linux_amd64` next to the Flowbot server executable (the server image ships this sibling under `/opt/app/`).
+2. **Docker**: after container create, each Exec copies the CLI (as `flowbot`) into `/opt/flowbot-cli` via the Docker Engine API (`CopyToContainer`), and prepends that dir to `PATH`. Credentials (`token` + `server_url` files) are copied the same way to `/home/agent/.config/flowbot`, and `FLOWBOT_TOKEN` / `FLOWBOT_SERVER_URL` are set. No host bind is used for CLI or credentials (avoids Docker-in-Docker path visibility issues). See [.agents/notes/implemented/simplification/2026-09-16-sandbox-cli-api-inject.md](../../.agents/notes/implemented/simplification/2026-09-16-sandbox-cli-api-inject.md).
+3. If the sibling CLI is missing or copy fails, a failing **stub** named `flowbot` is injected instead (non-zero exit + clear stderr). Other shell/code tools still run.
+4. **kern**: same sibling/stub semantics; CLI and config use bind mounts (host paths are visible to kern).
+5. If `server_url` host is `host.docker.internal`, the Docker runner adds `ExtraHosts: host.docker.internal:host-gateway`.
 6. Empty `access_token` skips credential injection (CLI calls fail with not logged in).
 
 `server_url` must reach the same port as `listen` (example `6060` above matches the reference config). Changing `listen` without updating `server_url` yields connection refused inside the sandbox ([note](../../.agents/notes/implemented/bug-fix/2026-09-16-sandbox-cli-server-url-port.md)).
 
-Local development on non-linux/amd64 hosts — or when using `go run` (temp binary under `/tmp/go-build...` with no sibling CLI): build a linux CLI with `go tool task build:cli:linux` and set `cli_path` to that absolute path (or place `bin/flowbot-cli_linux_amd64` beside a packaged server binary).
-
+Local development with `go run` (temp binary under `/tmp/go-build...` with no sibling CLI): build a linux CLI with `go tool task build:cli:linux` and place `flowbot-cli_linux_amd64` beside a packaged server binary, or run the packaged `bin/flowbot` that sits next to the linux CLI artifact.
 ### Kern runtime (`chat_agent.sandbox.runtime`)
 
 Set `runtime: kern` to use the [kern](https://github.com/getkern/kern) CLI instead of Docker (Linux only; `kern` on PATH, `kern doctor` passing). Configure `security_profile: untrusted` for the hardened bundle. Use `server_url: http://127.0.0.1:6060` with `network: host` — `host.docker.internal` is not available under kern (Flowbot logs a warning). Workflow steps use the separate `kern:<image>` action; see [.agents/notes/implemented/architecture/2026-09-01-kern-executor-runtime.md](../../.agents/notes/implemented/architecture/2026-09-01-kern-executor-runtime.md).

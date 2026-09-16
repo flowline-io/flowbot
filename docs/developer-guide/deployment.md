@@ -22,7 +22,6 @@ task build
 ./bin/flowbot-cli -- server-url http://localhost:6060  # Admin CLI
 # For chatagent Docker sandbox skill→CLI: place linux CLI beside the server binary, e.g.
 #   task build:cli:linux && copy bin/flowbot-cli_linux_amd64 next to bin/flowbot
-# or set chat_agent.sandbox.cli_path.
 ```
 
 ### 2. Docker Deployment

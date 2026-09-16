@@ -35,7 +35,6 @@ func TestConfigFromChatAgent(t *testing.T) {
 		wantImage string
 		wantURL   string
 		wantToken string
-		wantCLI   string
 	}{
 		{name: "default image", cfg: config.ChatAgentSandboxConfig{}, wantImage: "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"},
 		{name: "custom image", cfg: config.ChatAgentSandboxConfig{Image: "custom:1"}, wantImage: "custom:1"},
@@ -46,12 +45,10 @@ func TestConfigFromChatAgent(t *testing.T) {
 				Image:       "img:1",
 				ServerURL:   "  http://host.docker.internal:6060  ",
 				AccessToken: "  secret-token  ",
-				CLIPath:     "  /opt/flowbot-cli_linux_amd64  ",
 			},
 			wantImage: "img:1",
 			wantURL:   "http://host.docker.internal:6060",
 			wantToken: "secret-token",
-			wantCLI:   "/opt/flowbot-cli_linux_amd64",
 		},
 	}
 	for _, tt := range tests {
@@ -62,7 +59,6 @@ func TestConfigFromChatAgent(t *testing.T) {
 			assert.Equal(t, "/ws", got.Workspace)
 			assert.Equal(t, tt.wantURL, got.ServerURL)
 			assert.Equal(t, tt.wantToken, got.AccessToken)
-			assert.Equal(t, tt.wantCLI, got.CLIPath)
 		})
 	}
 }
@@ -299,36 +295,4 @@ func TestEnvExecWorkspaceInjectIgnoredOnKern(t *testing.T) {
 	assert.Contains(t, runner.last.Command, "< .flowbot-stdin")
 	assert.NotContains(t, runner.last.Command, "/workspace/.flowbot-stdin")
 	assert.Equal(t, []string{"GOCACHE=" + gocache}, runner.last.Env)
-}
-
-func TestEnvExecForwardsCLIBinary(t *testing.T) {
-	t.Parallel()
-	dir := t.TempDir()
-	cliPath := filepath.Join(dir, "flowbot-cli_linux_amd64")
-	require.NoError(t, os.WriteFile(cliPath, []byte("#!/bin/sh\n"), 0o755))
-
-	runner := &mockRunner{cap: env.Capture{ExitCode: 0}}
-	e := sandbox.New(sandbox.Config{
-		Image:     "img",
-		Workspace: "/ws",
-		CLIPath:   cliPath,
-	}, env.Default(), runner)
-	got := e.Exec(context.Background(), env.ExecOptions{Command: "flowbot version"})
-	require.True(t, got.IsOk())
-	abs, err := filepath.Abs(cliPath)
-	require.NoError(t, err)
-	assert.Equal(t, abs, runner.last.CLIBinary)
-}
-
-func TestEnvExecMissingCLIBinaryDegrades(t *testing.T) {
-	t.Parallel()
-	runner := &mockRunner{cap: env.Capture{ExitCode: 0}}
-	e := sandbox.New(sandbox.Config{
-		Image:     "img",
-		Workspace: "/ws",
-		CLIPath:   filepath.Join(t.TempDir(), "missing-cli"),
-	}, env.Default(), runner)
-	got := e.Exec(context.Background(), env.ExecOptions{Command: "echo ok"})
-	require.True(t, got.IsOk())
-	assert.Empty(t, runner.last.CLIBinary)
 }

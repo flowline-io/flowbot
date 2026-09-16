@@ -70,15 +70,36 @@ func prepareKernRunOptions(opts RunOptions) (RunOptions, []string, error) {
 	if opts.AccessToken != "" && opts.CLIConfigDir == "" {
 		dir, err := materializeCLIConfig(opts.ServerURL, opts.AccessToken)
 		if err != nil {
-			return opts, nil, err
+			flog.Warn("[sandbox] kern cli config skipped: %s", err.Error())
+		} else {
+			opts.CLIConfigDir = dir
+			cleanupDirs = append(cleanupDirs, dir)
 		}
-		opts.CLIConfigDir = dir
-		cleanupDirs = append(cleanupDirs, dir)
 	}
-	if dir := injectCLIBinary(&opts); dir != "" {
-		cleanupDirs = append(cleanupDirs, dir)
+	if opts.CLIBinaryDir == "" {
+		dir, err := ensureKernCLIBinaryDir(&opts)
+		if err != nil {
+			flog.Warn("[sandbox] kern cli inject skipped: %s", err.Error())
+		} else if dir != "" {
+			cleanupDirs = append(cleanupDirs, dir)
+		}
 	}
 	return opts, cleanupDirs, nil
+}
+
+// ensureKernCLIBinaryDir stages a real CLI bind dir when possible, otherwise a failing stub.
+func ensureKernCLIBinaryDir(opts *RunOptions) (string, error) {
+	if opts.CLIBinary != "" {
+		if dir := injectCLIBinary(opts); dir != "" {
+			return dir, nil
+		}
+	}
+	dir, err := materializeCLIStubDir()
+	if err != nil {
+		return "", err
+	}
+	opts.CLIBinaryDir = dir
+	return dir, nil
 }
 
 func cleanupTempDirs(dirs []string) {

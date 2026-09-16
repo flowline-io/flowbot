@@ -136,10 +136,7 @@ other = "RunTimeout 限制私信中单轮 assistant 的总时长。"
 other = "Sandbox 配置 shell 与 code tool 的可选 Docker 隔离。"
 
 ["settings.desc.chat_agent.sandbox.access_token"]
-other = "AccessToken 是沙箱内 flowbot CLI 专用的 Hub access token。为空时不注入凭据。以 FLOWBOT_TOKEN 及挂载 token 文件注入。"
-
-["settings.desc.chat_agent.sandbox.cli_path"]
-other = "CLIPath 是可选的 host 路径，用于将 linux/amd64 flowbot CLI 二进制 bind-mount 到沙箱。绝对路径原样使用；相对路径相对 server 可执行文件解析。为空时沙箱在 server 可执行文件旁查找 flowbot-cli_linux_amd64。"
+other = "AccessToken 是沙箱内 flowbot CLI 专用的 Hub access token。为空时不注入凭据。以 FLOWBOT_TOKEN 及 CLI 配置文件注入。"
 
 ["settings.desc.chat_agent.sandbox.enabled"]
 other = "Enabled 为 true 时启用 Docker 沙箱执行。"
@@ -468,8 +465,17 @@ other = "Slack app token"
 ["settings.desc.platform.slack.bot_token"]
 other = "Slack bot token"
 
+["settings.desc.platform.slack.client_id"]
+other = "Slack OAuth client ID"
+
+["settings.desc.platform.slack.client_secret"]
+other = "Slack OAuth client secret"
+
 ["settings.desc.platform.slack.enabled"]
 other = "Slack 平台配置"
+
+["settings.desc.platform.slack.signing_secret"]
+other = "Slack signing secret"
 
 ["settings.desc.platform.slack.verification_token"]
 other = "Slack verification token"

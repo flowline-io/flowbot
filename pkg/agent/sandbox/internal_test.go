@@ -2,6 +2,7 @@ package sandbox
 
 import (
 	"archive/tar"
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -85,29 +87,20 @@ func TestValidateRunOptions(t *testing.T) {
 
 func TestBuildCommand(t *testing.T) {
 	t.Parallel()
+	pathWrap := []string{"sh", "-c", `PATH="/opt/flowbot-cli:$PATH" exec "$0" "$@"`}
 	tests := []struct {
 		name    string
 		opts    RunOptions
 		want    []string
 		wantErr string
 	}{
-		{name: "argv passthrough", opts: RunOptions{Argv: []string{"python", "main.py"}}, want: []string{"python", "main.py"}},
-		{name: "shell wraps command", opts: RunOptions{Command: "echo hi"}, want: []string{"sh", "-c", "echo hi"}},
+		{name: "argv always wraps path", opts: RunOptions{Argv: []string{"python", "main.py"}}, want: append(append([]string{}, pathWrap...), "python", "main.py")},
+		{name: "shell wraps command", opts: RunOptions{Command: "echo hi"}, want: append(append([]string{}, pathWrap...), "sh", "-c", "echo hi")},
 		{name: "empty command errors", opts: RunOptions{}, wantErr: "empty command"},
 		{
-			name: "cli dir prepends path on argv",
+			name: "cli dir still wraps path on argv",
 			opts: RunOptions{Argv: []string{"python", "main.py"}, CLIBinaryDir: "/tmp/cli"},
-			want: []string{"sh", "-c", `PATH="/opt/flowbot-cli:$PATH" exec "$0" "$@"`, "python", "main.py"},
-		},
-		{
-			name: "cli dir prepends path on shell",
-			opts: RunOptions{Command: "echo hi", CLIBinaryDir: "/tmp/cli"},
-			want: []string{"sh", "-c", `PATH="/opt/flowbot-cli:$PATH" exec "$0" "$@"`, "sh", "-c", "echo hi"},
-		},
-		{
-			name: "cli path wrap keeps caller env unused",
-			opts: RunOptions{Argv: []string{"true"}, CLIBinaryDir: "/tmp/cli", Env: []string{"PATH=/custom"}},
-			want: []string{"sh", "-c", `PATH="/opt/flowbot-cli:$PATH" exec "$0" "$@"`, "true"},
+			want: append(append([]string{}, pathWrap...), "python", "main.py"),
 		},
 	}
 	for _, tt := range tests {
@@ -152,63 +145,31 @@ func TestBuildHostConfig(t *testing.T) {
 		wantErr        string
 		wantBinds      int
 		wantExtraHosts bool
-		wantCLIBind    bool
-		wantCLIBinBind bool
 	}{
 		{name: "binds workspace", opts: RunOptions{Workspace: "/host/ws"}, wantBinds: 1},
 		{name: "inject skips workspace bind", opts: RunOptions{Workspace: "/host/ws", WorkspaceInject: true}, wantBinds: 0},
 		{name: "sets network mode", opts: RunOptions{Workspace: "/host/ws", Network: "bridge"}, wantBinds: 1},
 		{name: "invalid memory", opts: RunOptions{Workspace: "/host/ws", Memory: "not-memory"}, wantErr: "memory"},
 		{
-			name: "cli config bind and host gateway",
+			name: "host gateway without cli binds",
 			opts: RunOptions{
 				Workspace:    "/host/ws",
 				CLIConfigDir: "/tmp/cli-cfg",
+				CLIBinaryDir: "/tmp/cli-bin",
 				ServerURL:    "http://host.docker.internal:6060",
 			},
-			wantBinds:      2,
+			wantBinds:      1,
 			wantExtraHosts: true,
-			wantCLIBind:    true,
 		},
 		{
-			name: "inject keeps cli binds without workspace",
+			name: "inject keeps no cli binds",
 			opts: RunOptions{
 				Workspace:       "/host/ws",
 				WorkspaceInject: true,
 				CLIConfigDir:    "/tmp/cli-cfg",
 				CLIBinaryDir:    "/tmp/cli-bin",
 			},
-			wantBinds:      2,
-			wantCLIBind:    true,
-			wantCLIBinBind: true,
-		},
-		{
-			name: "cli binary file path is not a bind",
-			opts: RunOptions{
-				Workspace: "/host/ws",
-				CLIBinary: "/opt/app/flowbot-cli_linux_amd64",
-			},
-			wantBinds: 1,
-		},
-		{
-			name: "cli binary dir bind",
-			opts: RunOptions{
-				Workspace:    "/host/ws",
-				CLIBinaryDir: "/tmp/cli-bin",
-			},
-			wantBinds:      2,
-			wantCLIBinBind: true,
-		},
-		{
-			name: "cli config and binary dir binds",
-			opts: RunOptions{
-				Workspace:    "/host/ws",
-				CLIConfigDir: "/tmp/cli-cfg",
-				CLIBinaryDir: "/tmp/cli-bin",
-			},
-			wantBinds:      3,
-			wantCLIBind:    true,
-			wantCLIBinBind: true,
+			wantBinds: 0,
 		},
 		{
 			name: "no host gateway for other urls",
@@ -236,46 +197,16 @@ func TestBuildHostConfig(t *testing.T) {
 			} else {
 				assert.Empty(t, hc.ExtraHosts)
 			}
-			if tt.wantCLIBind {
-				found := false
-				for _, b := range hc.Binds {
-					if strings.Contains(b, containerCLIConfigPath+":ro") {
-						found = true
-						break
-					}
-				}
-				assert.True(t, found, "expected CLI config bind")
-			}
-			if tt.wantCLIBinBind {
-				found := false
-				for _, b := range hc.Binds {
-					if strings.Contains(b, containerCLIDirPath+":ro") {
-						found = true
-						break
-					}
-				}
-				assert.True(t, found, "expected CLI binary dir bind")
-			}
 			for _, b := range hc.Binds {
-				assert.NotContains(t, b, "/usr/local/bin/flowbot", "CLI inject bind target is /opt/flowbot-cli")
+				assert.NotContains(t, b, containerCLIConfigPath)
+				assert.NotContains(t, b, containerCLIDirPath)
 			}
 		})
 	}
 }
 
 func TestResolveCLIBinary(t *testing.T) {
-	// Serial: sibling/relative cases override package-level executableDir.
-	// Parallel would race with other tests that call ResolvedCLIBinary via New.
-
-	t.Run("configured absolute path", func(t *testing.T) {
-		dir := t.TempDir()
-		path := filepath.Join(dir, "flowbot-cli_linux_amd64")
-		require.NoError(t, os.WriteFile(path, []byte("x"), 0o755))
-		got := ResolvedCLIBinary(path)
-		abs, err := filepath.Abs(path)
-		require.NoError(t, err)
-		assert.Equal(t, abs, got)
-	})
+	// Serial: sibling cases override package-level executableDir.
 
 	t.Run("sibling of executable", func(t *testing.T) {
 		dir := t.TempDir()
@@ -284,27 +215,18 @@ func TestResolveCLIBinary(t *testing.T) {
 		prev := executableDir
 		executableDir = func() (string, error) { return dir, nil }
 		t.Cleanup(func() { executableDir = prev })
-		got := ResolvedCLIBinary("")
+		got := ResolvedCLIBinary()
 		abs, err := filepath.Abs(path)
 		require.NoError(t, err)
 		assert.Equal(t, abs, got)
 	})
 
-	t.Run("relative path beside executable", func(t *testing.T) {
+	t.Run("missing sibling", func(t *testing.T) {
 		dir := t.TempDir()
-		path := filepath.Join(dir, "custom-cli")
-		require.NoError(t, os.WriteFile(path, []byte("x"), 0o755))
 		prev := executableDir
 		executableDir = func() (string, error) { return dir, nil }
 		t.Cleanup(func() { executableDir = prev })
-		got := ResolvedCLIBinary("custom-cli")
-		abs, err := filepath.Abs(path)
-		require.NoError(t, err)
-		assert.Equal(t, abs, got)
-	})
-
-	t.Run("missing configured path", func(t *testing.T) {
-		got := ResolvedCLIBinary(filepath.Join(t.TempDir(), "nope"))
+		got := ResolvedCLIBinary()
 		assert.Empty(t, got)
 	})
 }
@@ -593,4 +515,118 @@ func TestNeedsHostGateway(t *testing.T) {
 			assert.Equal(t, tt.want, needsHostGateway(tt.url))
 		})
 	}
+}
+
+func TestEnvExecForwardsCLIBinary(t *testing.T) {
+	// Serial: overrides executableDir.
+	dir := t.TempDir()
+	cliPath := filepath.Join(dir, siblingCLIBinaryName)
+	require.NoError(t, os.WriteFile(cliPath, []byte("#!/bin/sh\n"), 0o755))
+	prev := executableDir
+	executableDir = func() (string, error) { return dir, nil }
+	t.Cleanup(func() { executableDir = prev })
+
+	runner := &recordingRunner{cap: env.Capture{ExitCode: 0}}
+	e := New(Config{Image: "img", Workspace: "/ws"}, env.Default(), runner)
+	got := e.Exec(context.Background(), env.ExecOptions{Command: "flowbot version"})
+	require.True(t, got.IsOk())
+	abs, err := filepath.Abs(cliPath)
+	require.NoError(t, err)
+	assert.Equal(t, abs, runner.last.CLIBinary)
+}
+
+func TestEnvExecMissingCLIBinaryUsesEmptyPath(t *testing.T) {
+	// Serial: overrides executableDir.
+	dir := t.TempDir()
+	prev := executableDir
+	executableDir = func() (string, error) { return dir, nil }
+	t.Cleanup(func() { executableDir = prev })
+
+	runner := &recordingRunner{cap: env.Capture{ExitCode: 0}}
+	e := New(Config{Image: "img", Workspace: "/ws"}, env.Default(), runner)
+	got := e.Exec(context.Background(), env.ExecOptions{Command: "echo ok"})
+	require.True(t, got.IsOk())
+	assert.Empty(t, runner.last.CLIBinary)
+}
+
+type recordingRunner struct {
+	last RunOptions
+	cap  env.Capture
+}
+
+func (m *recordingRunner) Run(_ context.Context, opts RunOptions) (env.Capture, error) {
+	m.last = opts
+	return m.cap, nil
+}
+
+func TestTarFlowbotStub(t *testing.T) {
+	t.Parallel()
+	r, err := tarFlowbotStub()
+	require.NoError(t, err)
+	tr := tar.NewReader(r)
+	var found bool
+	for {
+		hdr, nextErr := tr.Next()
+		if nextErr == io.EOF {
+			break
+		}
+		require.NoError(t, nextErr)
+		if hdr.Name == "opt/flowbot-cli/flowbot" {
+			found = true
+			data, readErr := io.ReadAll(tr)
+			require.NoError(t, readErr)
+			assert.Contains(t, string(data), "CLI not available")
+			assert.Equal(t, int64(cliExecWorld), hdr.Mode)
+		}
+	}
+	assert.True(t, found)
+}
+
+func TestTarCLIConfigFiles(t *testing.T) {
+	t.Parallel()
+	r, err := tarCLIConfigFiles("http://host.docker.internal:6200", "tok")
+	require.NoError(t, err)
+	tr := tar.NewReader(r)
+	names := map[string]string{}
+	for {
+		hdr, nextErr := tr.Next()
+		if nextErr == io.EOF {
+			break
+		}
+		require.NoError(t, nextErr)
+		if hdr.Typeflag == tar.TypeReg {
+			data, readErr := io.ReadAll(tr)
+			require.NoError(t, readErr)
+			names[hdr.Name] = string(data)
+		}
+	}
+	assert.Equal(t, "tok", names["home/agent/.config/flowbot/token"])
+	assert.Equal(t, "http://host.docker.internal:6200", names["home/agent/.config/flowbot/server_url"])
+}
+
+func TestEnsureKernCLIBinaryDirStub(t *testing.T) {
+	t.Parallel()
+	opts := RunOptions{}
+	dir, err := ensureKernCLIBinaryDir(&opts)
+	require.NoError(t, err)
+	require.NotEmpty(t, dir)
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	assert.Equal(t, dir, opts.CLIBinaryDir)
+	data, err := os.ReadFile(filepath.Join(dir, containerCLIName))
+	require.NoError(t, err)
+	assert.Contains(t, string(data), "CLI not available")
+}
+
+func TestEnsureKernCLIBinaryDirReal(t *testing.T) {
+	t.Parallel()
+	src := filepath.Join(t.TempDir(), siblingCLIBinaryName)
+	require.NoError(t, os.WriteFile(src, []byte("#!/bin/sh\necho ok\n"), 0o755))
+	opts := RunOptions{CLIBinary: src}
+	dir, err := ensureKernCLIBinaryDir(&opts)
+	require.NoError(t, err)
+	require.NotEmpty(t, dir)
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	data, err := os.ReadFile(filepath.Join(dir, containerCLIName))
+	require.NoError(t, err)
+	assert.Equal(t, "#!/bin/sh\necho ok\n", string(data))
 }

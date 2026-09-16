@@ -59,6 +59,12 @@ const (
 	// Directory modes must include the execute bit so the agent can traverse into the config dir.
 	cliConfigDirWorldAccessible = 0755
 	cliConfigDirOwnerOnly       = 0700
+
+	// flowbotCLIStubScript is injected when the sibling CLI is missing or copy fails.
+	// Shell/code tools still run; invoking `flowbot` exits non-zero with a clear message.
+	flowbotCLIStubScript = "#!/bin/sh\n" +
+		"echo \"flowbot: CLI not available (place flowbot-cli_linux_amd64 beside the Flowbot server binary)\" >&2\n" +
+		"exit 127\n"
 )
 
 var missingCLIBinaryWarn sync.Once
@@ -94,10 +100,6 @@ type Config struct {
 	ServerURL string
 	// AccessToken is the Hub access token injected for the flowbot CLI inside the container.
 	AccessToken string
-	// CLIPath is an optional configured host path to a linux/amd64 flowbot CLI binary.
-	// Absolute paths are used as-is; relative paths are resolved beside the server executable.
-	// When empty, New looks for flowbot-cli_linux_amd64 beside the server executable.
-	CLIPath string
 }
 
 // ConfigFromChatAgent builds sandbox Config from chat agent settings.
@@ -115,7 +117,6 @@ func ConfigFromChatAgent(cfg config.ChatAgentSandboxConfig, workspace string) Co
 		Workspace:       strings.TrimSpace(workspace),
 		ServerURL:       strings.TrimSpace(cfg.ServerURL),
 		AccessToken:     strings.TrimSpace(cfg.AccessToken),
-		CLIPath:         strings.TrimSpace(cfg.CLIPath),
 	}
 }
 
@@ -141,14 +142,14 @@ type RunOptions struct {
 	Stdin []byte
 	// WorkspaceInject copies opts.Workspace into /workspace instead of bind-mounting (Docker only).
 	WorkspaceInject bool
-	// CLIConfigDir is a host directory bind-mounted read-only at containerCLIConfigPath.
-	// When empty and AccessToken is set, DockerRunner materializes a temporary directory.
+	// CLIConfigDir is a host directory bind-mounted read-only at containerCLIConfigPath (kern only).
+	// When empty and AccessToken is set, KernRunner materializes a temporary directory.
 	CLIConfigDir string
-	// CLIBinary is a host path to a linux/amd64 flowbot CLI file. DockerRunner copies it
-	// into a temporary directory (as "flowbot") and bind-mounts that directory.
+	// CLIBinary is a host path to a linux/amd64 flowbot CLI file (sibling of the server binary).
+	// DockerRunner copies it into the container via the Engine API; KernRunner stages a bind dir.
 	CLIBinary string
-	// CLIBinaryDir is a host directory bind-mounted read-only at containerCLIDirPath.
-	// When empty and CLIBinary is set, DockerRunner materializes a temporary directory.
+	// CLIBinaryDir is a host directory bind-mounted read-only at containerCLIDirPath (kern only).
+	// When empty, KernRunner materializes a real CLI or stub directory.
 	CLIBinaryDir string
 }
 
@@ -171,7 +172,7 @@ func New(cfg Config, host env.ExecutionEnv, runner Runner) *Env {
 	if strings.EqualFold(strings.TrimSpace(cfg.Runtime), sandboxRuntimeKern) {
 		warnKernDockerInternal(cfg.ServerURL)
 	}
-	cliBinary := ResolvedCLIBinary(cfg.CLIPath)
+	cliBinary := ResolvedCLIBinary()
 	creds := "none"
 	if cfg.AccessToken != "" {
 		creds = "injected"
@@ -185,10 +186,10 @@ func New(cfg Config, host env.ExecutionEnv, runner Runner) *Env {
 	return &Env{cfg: cfg, cliBinary: cliBinary, host: host, runner: runner}
 }
 
-// ResolvedCLIBinary returns an absolute host path to a regular file usable as the sandbox flowbot CLI.
-// configured is chat_agent.sandbox.cli_path (may be empty). Missing or invalid paths warn once and return empty.
-func ResolvedCLIBinary(configured string) string {
-	path, err := candidateCLIPath(configured)
+// ResolvedCLIBinary returns an absolute path to flowbot-cli_linux_amd64 beside the server executable.
+// Missing or invalid siblings warn once and return empty; runners inject a failing stub instead.
+func ResolvedCLIBinary() string {
+	path, err := candidateCLIPath()
 	if err != nil {
 		warnMissingCLI("%s", err.Error())
 		return ""
@@ -200,7 +201,7 @@ func ResolvedCLIBinary(configured string) string {
 	}
 	info, err := os.Stat(abs)
 	if err != nil {
-		warnMissingCLI("%s unavailable (%s); shell/code still work without flowbot", abs, err.Error())
+		warnMissingCLI("%s unavailable (%s); flowbot stub will be injected", abs, err.Error())
 		return ""
 	}
 	if info.IsDir() {
@@ -210,19 +211,12 @@ func ResolvedCLIBinary(configured string) string {
 	return abs
 }
 
-func candidateCLIPath(configured string) (string, error) {
-	path := strings.TrimSpace(configured)
-	if path != "" && filepath.IsAbs(path) {
-		return path, nil
-	}
+func candidateCLIPath() (string, error) {
 	dir, err := executableDir()
 	if err != nil {
 		return "", fmt.Errorf("resolve server executable: %w", err)
 	}
-	if path == "" {
-		return filepath.Join(dir, siblingCLIBinaryName), nil
-	}
-	return filepath.Join(dir, path), nil
+	return filepath.Join(dir, siblingCLIBinaryName), nil
 }
 
 func warnMissingCLI(format string, args ...any) {
@@ -407,24 +401,6 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 		return env.Capture{}, err
 	}
 
-	var cleanupDirs []string
-	defer func() {
-		for _, d := range cleanupDirs {
-			_ = os.RemoveAll(d)
-		}
-	}()
-	if opts.AccessToken != "" && opts.CLIConfigDir == "" {
-		dir, matErr := materializeCLIConfig(opts.ServerURL, opts.AccessToken)
-		if matErr != nil {
-			return env.Capture{}, matErr
-		}
-		opts.CLIConfigDir = dir
-		cleanupDirs = append(cleanupDirs, dir)
-	}
-	if dir := injectCLIBinary(&opts); dir != "" {
-		cleanupDirs = append(cleanupDirs, dir)
-	}
-
 	cmd, err := buildCommand(opts)
 	if err != nil {
 		return env.Capture{}, err
@@ -470,6 +446,7 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 			return env.Capture{}, err
 		}
 	}
+	injectCLIArtifacts(ctx, cli, id, opts)
 	return waitAndCollectLogs(ctx, cli, id, opts.Workspace, workDir)
 }
 
@@ -515,14 +492,6 @@ func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
 		containerPath := containerWorkspacePath(opts.Workspace)
 		hostConfig.Binds = append(hostConfig.Binds, fmt.Sprintf("%s:%s", opts.Workspace, containerPath))
 	}
-	if opts.CLIConfigDir != "" {
-		hostConfig.Binds = append(hostConfig.Binds,
-			fmt.Sprintf("%s:%s:ro", opts.CLIConfigDir, containerCLIConfigPath))
-	}
-	if opts.CLIBinaryDir != "" {
-		hostConfig.Binds = append(hostConfig.Binds,
-			fmt.Sprintf("%s:%s:ro", opts.CLIBinaryDir, containerCLIDirPath))
-	}
 	if opts.Network != "" {
 		hostConfig.NetworkMode = container.NetworkMode(opts.Network)
 	}
@@ -546,13 +515,168 @@ func injectWorkspace(ctx context.Context, cli *client.Client, containerID, hostW
 		return fmt.Errorf("sandbox: tar workspace: %w", err)
 	}
 	flog.Info("[sandbox] workspace inject id=%s host=%s dest=%s", containerID, hostWorkspace, containerInjectWorkDir)
+	return copyTarToContainer(ctx, cli, containerID, tarStream, "workspace")
+}
+
+// cliInjectKind distinguishes a real sibling CLI from the failing stub on PATH.
+type cliInjectKind string
+
+const (
+	cliInjectKindReal cliInjectKind = "cli"
+	cliInjectKindStub cliInjectKind = "stub"
+)
+
+// injectCLIArtifacts copies the flowbot CLI (or a failing stub) and optional CLI config
+// into the container via the Docker API so DiD bind path visibility is not required.
+// Failures warn and degrade: shell/code still run; invoking flowbot may be missing or stubbed.
+func injectCLIArtifacts(ctx context.Context, cli *client.Client, containerID string, opts RunOptions) {
+	cliTar, kind, err := tarFlowbotCLIOrStub(opts.CLIBinary)
+	if err != nil {
+		flog.Warn("[sandbox] cli inject skipped id=%s err=%s", containerID, err.Error())
+		return
+	}
+	flog.Info("[sandbox] cli inject id=%s kind=%s", containerID, kind)
+	if err := copyTarToContainer(ctx, cli, containerID, cliTar, "cli binary"); err != nil {
+		if kind != cliInjectKindReal {
+			flog.Warn("[sandbox] cli stub copy failed id=%s err=%s", containerID, err.Error())
+			return
+		}
+		flog.Warn("[sandbox] cli binary copy failed id=%s err=%s; injecting stub", containerID, err.Error())
+		stubTar, stubErr := tarFlowbotStub()
+		if stubErr != nil {
+			flog.Warn("[sandbox] cli stub tar failed id=%s err=%s", containerID, stubErr.Error())
+			return
+		}
+		if stubErr = copyTarToContainer(ctx, cli, containerID, stubTar, "cli stub"); stubErr != nil {
+			flog.Warn("[sandbox] cli stub copy failed id=%s err=%s", containerID, stubErr.Error())
+			return
+		}
+	}
+	if opts.AccessToken == "" {
+		return
+	}
+	cfgTar, err := tarCLIConfigFiles(opts.ServerURL, opts.AccessToken)
+	if err != nil {
+		flog.Warn("[sandbox] cli config tar failed id=%s err=%s", containerID, err.Error())
+		return
+	}
+	if err := copyTarToContainer(ctx, cli, containerID, cfgTar, "cli config"); err != nil {
+		flog.Warn("[sandbox] cli config copy failed id=%s err=%s", containerID, err.Error())
+	}
+}
+
+func copyTarToContainer(ctx context.Context, cli *client.Client, containerID string, content io.Reader, what string) error {
 	if _, err := cli.CopyToContainer(ctx, containerID, client.CopyToContainerOptions{
 		DestinationPath: "/",
-		Content:         tarStream,
+		Content:         content,
 	}); err != nil {
-		return fmt.Errorf("sandbox: copy workspace into container: %w", err)
+		return fmt.Errorf("sandbox: copy %s into container: %w", what, err)
 	}
 	return nil
+}
+
+func tarFlowbotCLIOrStub(cliBinary string) (io.Reader, cliInjectKind, error) {
+	if strings.TrimSpace(cliBinary) == "" {
+		r, err := tarFlowbotStub()
+		return r, cliInjectKindStub, err
+	}
+	r, err := tarFlowbotCLIFile(cliBinary)
+	if err != nil {
+		flog.Warn("[sandbox] cli binary tar failed path=%s err=%s; using stub", cliBinary, err.Error())
+		r, err = tarFlowbotStub()
+		return r, cliInjectKindStub, err
+	}
+	return r, cliInjectKindReal, nil
+}
+
+func tarFlowbotCLIFile(src string) (io.Reader, error) {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return nil, err
+	}
+	return tarBytesAt(containerCLIDirPath+"/"+containerCLIName, data, cliExecWorld)
+}
+
+func tarFlowbotStub() (io.Reader, error) {
+	return tarBytesAt(containerCLIDirPath+"/"+containerCLIName, []byte(flowbotCLIStubScript), cliExecWorld)
+}
+
+func writeFlowbotStubFile(path string) error {
+	return os.WriteFile(path, []byte(flowbotCLIStubScript), cliExecWorld)
+}
+
+func tarCLIConfigFiles(serverURL, token string) (io.Reader, error) {
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&buf)
+	dirName := strings.TrimPrefix(containerCLIConfigPath, "/") + "/"
+	if err := tw.WriteHeader(&tar.Header{
+		Typeflag: tar.TypeDir,
+		Name:     dirName,
+		Mode:     int64(cliConfigDirOwnerOnly),
+		Uid:      sandboxAgentUID,
+		Gid:      sandboxAgentGID,
+	}); err != nil {
+		_ = tw.Close()
+		return nil, err
+	}
+	if token != "" {
+		if err := writeTarFile(tw, dirName+cliTokenFileName, []byte(token), cliConfigOwnerOnly); err != nil {
+			_ = tw.Close()
+			return nil, err
+		}
+	}
+	if serverURL != "" {
+		if err := writeTarFile(tw, dirName+cliServerURLFileName, []byte(serverURL), cliConfigOwnerOnly); err != nil {
+			_ = tw.Close()
+			return nil, err
+		}
+	}
+	if err := tw.Close(); err != nil {
+		return nil, err
+	}
+	return &buf, nil
+}
+
+func tarBytesAt(absPath string, data []byte, mode os.FileMode) (io.Reader, error) {
+	name := strings.TrimPrefix(absPath, "/")
+	parent := filepath.ToSlash(filepath.Dir(name))
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&buf)
+	if parent != "." && parent != "" {
+		if err := tw.WriteHeader(&tar.Header{
+			Typeflag: tar.TypeDir,
+			Name:     parent + "/",
+			Mode:     int64(cliExecWorld),
+			Uid:      sandboxAgentUID,
+			Gid:      sandboxAgentGID,
+		}); err != nil {
+			_ = tw.Close()
+			return nil, err
+		}
+	}
+	if err := writeTarFile(tw, name, data, mode); err != nil {
+		_ = tw.Close()
+		return nil, err
+	}
+	if err := tw.Close(); err != nil {
+		return nil, err
+	}
+	return &buf, nil
+}
+
+func writeTarFile(tw *tar.Writer, name string, data []byte, mode os.FileMode) error {
+	if err := tw.WriteHeader(&tar.Header{
+		Typeflag: tar.TypeReg,
+		Name:     name,
+		Mode:     int64(mode),
+		Size:     int64(len(data)),
+		Uid:      sandboxAgentUID,
+		Gid:      sandboxAgentGID,
+	}); err != nil {
+		return err
+	}
+	_, err := tw.Write(data)
+	return err
 }
 
 func tarWorkspace(root, destName string) (io.Reader, error) {
@@ -678,8 +802,8 @@ func materializeCLIConfig(serverURL, token string) (string, error) {
 	return dir, nil
 }
 
-// injectCLIBinary stages opts.CLIBinary into a directory bind when CLIBinaryDir is empty.
-// Staging failure warns once and leaves CLIBinaryDir empty (shell/code still run).
+// injectCLIBinary stages opts.CLIBinary into a directory bind when CLIBinaryDir is empty (kern).
+// Staging failure warns once and leaves CLIBinaryDir empty so the caller can fall back to a stub.
 func injectCLIBinary(opts *RunOptions) string {
 	if opts.CLIBinary == "" || opts.CLIBinaryDir != "" {
 		return ""
@@ -693,8 +817,34 @@ func injectCLIBinary(opts *RunOptions) string {
 	return dir
 }
 
+// materializeCLIStubDir writes a failing flowbot stub into a temp directory for kern bind inject.
+func materializeCLIStubDir() (string, error) {
+	dir, err := os.MkdirTemp("", cliBinaryTempDirPattern)
+	if err != nil {
+		return "", fmt.Errorf("sandbox: create cli stub dir: %w", err)
+	}
+	cleanupOnErr := true
+	defer func() {
+		if cleanupOnErr {
+			_ = os.RemoveAll(dir)
+		}
+	}()
+	dest := filepath.Join(dir, containerCLIName)
+	if err := writeFlowbotStubFile(dest); err != nil {
+		return "", fmt.Errorf("sandbox: write cli stub: %w", err)
+	}
+	if err := ensureSandboxAgentExecutable(dest); err != nil {
+		return "", err
+	}
+	if err := ensureSandboxAgentExecutable(dir); err != nil {
+		return "", err
+	}
+	cleanupOnErr = false
+	return dir, nil
+}
+
 // materializeCLIBinaryDir copies src as "flowbot" into a temp dir beside src
-// (fallback: default temp) so a Docker daemon that can see the CLI file can see the stage dir.
+// (fallback: default temp) for kern bind inject.
 func materializeCLIBinaryDir(src string) (string, error) {
 	dir, err := os.MkdirTemp(filepath.Dir(src), cliBinaryTempDirPattern)
 	if err != nil {
@@ -896,10 +1046,8 @@ func buildCommand(opts RunOptions) ([]string, error) {
 	default:
 		cmd = []string{"sh", "-c", opts.Command}
 	}
-	if opts.CLIBinaryDir != "" {
-		return wrapCommandWithCLIPath(cmd), nil
-	}
-	return cmd, nil
+	// Always prepend /opt/flowbot-cli: Docker/kern inject a real CLI or a failing stub there.
+	return wrapCommandWithCLIPath(cmd), nil
 }
 
 func wrapCommandWithCLIPath(cmd []string) []string {

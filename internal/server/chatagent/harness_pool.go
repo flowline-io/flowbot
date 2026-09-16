@@ -238,7 +238,7 @@ func harnessConfigHash(workspace coding.Workspace) (string, error) {
 			strings.TrimSpace(sandbox.Memory),
 			strings.TrimSpace(sandbox.ServerURL),
 			sandboxAccessTokenFingerprint(sandbox.AccessToken),
-			agentsandbox.ResolvedCLIBinary(sandbox.CLIPath),
+			agentsandbox.ResolvedCLIBinary(),
 		),
 		promptConfigHash(workspace.Root),
 	}

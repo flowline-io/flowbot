@@ -9,6 +9,7 @@
 main
 flowbot
 *.exe
+flowbot-cli_linux_amd64
 
 # Tools (mise)
 .mise.local.toml

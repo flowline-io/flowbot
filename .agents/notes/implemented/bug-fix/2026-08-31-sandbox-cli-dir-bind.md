@@ -16,7 +16,10 @@ create mountpoint for /usr/local/bin/flowbot mount: cannot create subdirectories
 
 ## Decision
 
-Stage the CLI as a host directory containing an executable named `flowbot` (temp dir beside the source file, fallback to default temp), bind-mount that directory read-only at `/opt/flowbot-cli`, and prepend `/opt/flowbot-cli` to `PATH` inside the container (`PATH=/opt/flowbot-cli:$PATH` so the image PATH is preserved). Do not bind a file onto `/usr/local/bin/flowbot`. Staging failure warns once and degrades like a missing CLI.
+Do not bind a file onto `/usr/local/bin/flowbot`. Inject a directory that contains an executable named `flowbot` at `/opt/flowbot-cli`, and prepend that dir to `PATH` (`PATH=/opt/flowbot-cli:$PATH`).
+
+- **kern**: stage a host temp directory (copy of the sibling CLI, or a failing stub) and bind-mount it read-only.
+- **Docker**: copy the same layout into the container via the Engine API instead of bind mounts — see [sandbox-cli-api-inject](../simplification/2026-09-16-sandbox-cli-api-inject.md).
 
 Inject vs bake remains [sandbox-cli-runtime-inject](../architecture/2026-08-17-sandbox-cli-runtime-inject.md). Staging uses copy (not hardlink) so `chown` to uid 1000 cannot change the original binary's owner.
 
@@ -30,12 +33,11 @@ Inject vs bake remains [sandbox-cli-runtime-inject](../architecture/2026-08-17-s
 
 ## Consequences
 
-- Skill → `run_terminal` → `flowbot` works on overlay2 when the sibling CLI exists.
-- Each Exec copies the CLI into an ephemeral temp dir beside the source when the parent is writable.
+- Skill → `run_terminal` → `flowbot` works when the sibling CLI injects successfully.
 - Custom sandbox images keep their own `PATH`; inject prepends `/opt/flowbot-cli`.
-- A present CLI that cannot be staged does not fail the rest of shell/code exec.
+- A present CLI that cannot be staged does not fail the rest of shell/code exec (stub or degrade).
 
 ## Verification
 
-- `go test ./pkg/agent/sandbox/` covers directory binds at `/opt/flowbot-cli`, copy-not-hardlink, PATH wrap with `$PATH`, staging beside the source, and degrade when staging fails.
+- `go test ./pkg/agent/sandbox/` covers `/opt/flowbot-cli` PATH wrap, kern copy-not-hardlink staging, stub degrade, and Docker host config without CLI binds.
 - [`docs/agent/agent-sandbox.md`](../../../../docs/agent/agent-sandbox.md) documents `/opt/flowbot-cli` inject.
