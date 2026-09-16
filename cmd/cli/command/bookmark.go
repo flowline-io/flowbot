@@ -82,13 +82,15 @@ func bookmarkListCommand() *cobra.Command {
 				return fmt.Errorf("list bookmarks: %w", err)
 			}
 
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No bookmarks found")
-			}
-
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				return PrintJSON(result.Items)
+				if result.Items == nil {
+					result.Items = []*capability.Bookmark{}
+				}
+				return PrintJSON(result)
+			}
+			if len(result.Items) == 0 {
+				return PrintEmptyList(cmd, "No bookmarks found")
 			}
 			printBookmarkItems(result.Items)
 			printNextCursor(result.Page.NextCursor)
@@ -304,13 +306,15 @@ func bookmarkSearchCommand() *cobra.Command {
 				return fmt.Errorf("search bookmarks: %w", err)
 			}
 
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No bookmarks found")
-			}
-
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				return PrintJSON(result.Items)
+				if result.Items == nil {
+					result.Items = []*capability.Bookmark{}
+				}
+				return PrintJSON(result)
+			}
+			if len(result.Items) == 0 {
+				return PrintEmptyList(cmd, "No bookmarks found")
 			}
 			_, _ = fmt.Printf("Found %d bookmark(s):\n\n", len(result.Items))
 			printBookmarkItems(result.Items)

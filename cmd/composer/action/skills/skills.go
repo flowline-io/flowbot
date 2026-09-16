@@ -162,7 +162,7 @@ var metaSpecs = []metaSpec{
 		Description:  "Create, list, search, archive, and delete bookmarks via flowbot bookmark.",
 		Keywords:     "bookmarks, karakeep, saved URLs, reading list, link archiving, web clippings",
 		ScopesNote:   "`service:karakeep:read` / `service:karakeep:write`",
-		ResponseHint: "Bookmark id is a string field `id` in `-o json` output.",
+		ResponseHint: "Single-item `-o json` uses field `id`. `bookmark list|search -o json` returns `{data, page}`; page with `page.next_cursor` (opaque, often >100 chars) when more pages exist.",
 		LimitsNote:   "Tag attach/detach and health are capability ops without CLI commands; inspect tags via `bookmark get`.",
 		Workflows: []workflowSpec{
 			{
@@ -178,9 +178,10 @@ var metaSpecs = []metaSpec{
 				Title:       "Find and review bookmarks",
 				Description: "When a user wants to find previously saved content:",
 				Steps: []workflowStep{
-					{Step: 1, Command: "flowbot bookmark search -q \"<keywords>\" --limit 10"},
-					{Step: 2, Command: "flowbot bookmark get <id>"},
-					{Step: 3, Note: "Present the bookmark details to the user."},
+					{Step: 1, Command: "flowbot bookmark search -q \"<keywords>\" --limit 10 -o json"},
+					{Step: 2, Note: "Or page with `flowbot bookmark list -n 100 -o json`; follow `page.next_cursor` until absent. Filter `archived: false` for unread."},
+					{Step: 3, Command: "flowbot bookmark get <id>"},
+					{Step: 4, Note: "Present the bookmark details to the user."},
 				},
 			},
 			{

@@ -18,10 +18,13 @@ Introduce `validate.CursorMaxLen` (4096) for opaque pagination cursors. Bookmark
 
 ## Consequences
 
-- Operators can page past the first `limit` of bookmarks (and notes) via CLI.
+- Operators can page past the first `limit` of bookmarks (and notes) via CLI **after rebuilding** the inject artifact (`go tool task build:cli:linux`) and restarting the server so sandbox picks up the new binary / `cli_path`.
+- `bookmark list|search -o json` emits `{data, page}` (not a bare array) so agents can read `page.next_cursor` without a second table-mode call.
 - Callers that still cap cursors at 100 must switch to `CursorMaxLen`.
-- Server/adapters already accept long cursors; this was a client-only rejection.
+- Server/adapters already accept long cursors; the rejection was client-side (and stale sandbox CLI binaries).
 
 ## Verification
 
-`go test ./pkg/client -run 'TestValidate(ListBookmarks|SearchBookmarks|ListNotes)Query'` asserts cursors longer than `QueryMaxLen` pass and `CursorMaxLen+1` fails.
+- `go test ./pkg/client -run 'TestValidate(ListBookmarks|SearchBookmarks|ListNotes)Query'` asserts cursors longer than `QueryMaxLen` pass and `CursorMaxLen+1` fails.
+- `go test ./cmd/cli/command -run TestBookmarkListRunE` asserts JSON includes `next_cursor`.
+- Sandbox inject binary strings no longer format the cursor error with `100` after rebuild.

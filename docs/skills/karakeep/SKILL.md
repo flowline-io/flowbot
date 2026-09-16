@@ -16,7 +16,7 @@ Prefer the workflows below; load [references/cli.md](references/cli.md) only whe
 
 **CLI limits:** Tag attach/detach and health are capability ops without CLI commands; inspect tags via `bookmark get`.
 
-**JSON fields:** Bookmark id is a string field `id` in `-o json` output.
+**JSON fields:** Single-item `-o json` uses field `id`. `bookmark list|search -o json` returns `{data, page}`; page with `page.next_cursor` (opaque, often >100 chars) when more pages exist.
 
 ## Setup
 
@@ -38,9 +38,10 @@ When a user shares a URL they want to save:
 ### Find and review bookmarks
 
 When a user wants to find previously saved content:
-1. `flowbot bookmark search -q "<keywords>" --limit 10`
-2. `flowbot bookmark get <id>`
-3. Present the bookmark details to the user.
+1. `flowbot bookmark search -q "<keywords>" --limit 10 -o json`
+2. Or page with `flowbot bookmark list -n 100 -o json`; follow `page.next_cursor` until absent. Filter `archived: false` for unread.
+3. `flowbot bookmark get <id>`
+4. Present the bookmark details to the user.
 
 ### Archive a bookmark
 

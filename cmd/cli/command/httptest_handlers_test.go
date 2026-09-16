@@ -163,7 +163,7 @@ func TestBookmarkListRunE(t *testing.T) {
 				_, _ = w.Write([]byte(okJSON(`{"data":[],"page":{"limit":20,"has_more":false}}`)))
 			},
 			args:       []string{"--output", "json"},
-			wantSubstr: "[]",
+			wantSubstr: `"data"`,
 		},
 		{
 			name: "list bookmarks json output",
@@ -173,6 +173,15 @@ func TestBookmarkListRunE(t *testing.T) {
 			},
 			args:       []string{"--output", "json"},
 			wantSubstr: `"id": "bm-2"`,
+		},
+		{
+			name: "list bookmarks json includes next_cursor",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"bm-3","title":"Paged","url":"https://example.com"}],"page":{"limit":20,"has_more":true,"next_cursor":"page-3"}}`)))
+			},
+			args:       []string{"--output", "json"},
+			wantSubstr: `"next_cursor": "page-3"`,
 		},
 		{
 			name: "list bookmarks passes cursor and shows next",
@@ -321,6 +330,15 @@ func TestBookmarkSearchRunE(t *testing.T) {
 			},
 			args:       []string{"--query", "x", "--output", "json"},
 			wantSubstr: `"id": "bm-7"`,
+		},
+		{
+			name: "search json includes next_cursor",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"bm-8","title":"More","url":"https://y.test"}],"page":{"limit":20,"has_more":true,"next_cursor":"s2"}}`)))
+			},
+			args:       []string{"--query", "more", "--output", "json"},
+			wantSubstr: `"next_cursor": "s2"`,
 		},
 		{
 			name: "search shows next cursor",
