@@ -62,7 +62,7 @@ func generateWithModel(
 ) (string, error) {
 	content, err := Complete(ctx, model, "", messages, modelName, 0)
 	if err != nil {
-		return "", fmt.Errorf("agent llm: generate: %w", err)
+		return "", fmt.Errorf("agent llm: generate model=%s: %w", modelName, err)
 	}
 
 	return content, nil

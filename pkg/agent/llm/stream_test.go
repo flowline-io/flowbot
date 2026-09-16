@@ -2,6 +2,7 @@ package llm_test
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
@@ -166,4 +167,20 @@ func TestStreamAssistant_FiltersToolCallStreamDeltas(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStreamAssistant_GenerateErrorIncludesModel(t *testing.T) {
+	t.Parallel()
+
+	model := llm.NewFakeModel(llm.ResponseScript{
+		Err: errors.New("API returned unexpected status code: 402: Insufficient account balance"),
+	})
+	_, err := llm.StreamAssistant(context.Background(), model, "", nil, llm.StreamOptions{
+		ModelName: "mimo-v2.5",
+		Retry:     llm.RetryConfig{MaxAttempts: 1},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "model=mimo-v2.5")
+	assert.Contains(t, err.Error(), "Insufficient account balance")
+	assert.NotContains(t, err.Error(), "model=deepseek-flash")
 }

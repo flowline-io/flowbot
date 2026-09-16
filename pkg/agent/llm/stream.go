@@ -127,7 +127,7 @@ func streamAssistantOnce(
 	if err != nil {
 		flog.Info("[agent-llm] generate failed model=%s duration=%s stream_started=%t err=%v",
 			opts.ModelName, duration, tracker.hasStarted(), err)
-		return mapGenerateError(streamCtx, err, tracker.hasStarted())
+		return mapGenerateError(streamCtx, err, opts.ModelName, tracker.hasStarted())
 	}
 	result, assembleErr := assembleAssistantResult(opts.ModelName, resp, &textBuilder)
 	if assembleErr != nil {
@@ -227,9 +227,9 @@ func wrapStreamCallbacks(ctx context.Context, opts StreamOptions, tracker *strea
 	return wrapped
 }
 
-func mapGenerateError(ctx context.Context, err error, streamStarted bool) (AssistantResult, error) {
+func mapGenerateError(ctx context.Context, err error, modelName string, streamStarted bool) (AssistantResult, error) {
 	if errors.Is(context.Cause(ctx), ErrStreamIdle) || errors.Is(err, ErrStreamIdle) || IsStreamIdleError(err) {
-		idleErr := fmt.Errorf("agent llm: %w", ErrStreamIdle)
+		idleErr := fmt.Errorf("agent llm: model=%s: %w", modelName, ErrStreamIdle)
 		if streamStarted {
 			// Partial output may already be visible; do not retry the same turn.
 			return AssistantResult{}, streamStartedError{cause: idleErr}
@@ -239,7 +239,7 @@ func mapGenerateError(ctx context.Context, err error, streamStarted bool) (Assis
 	if ctx.Err() != nil {
 		return AssistantResult{}, ErrAborted
 	}
-	wrappedErr := fmt.Errorf("agent llm: generate content: %w", err)
+	wrappedErr := fmt.Errorf("agent llm: generate content model=%s: %w", modelName, err)
 	if streamStarted {
 		return AssistantResult{}, streamStartedError{cause: wrappedErr}
 	}
@@ -248,7 +248,7 @@ func mapGenerateError(ctx context.Context, err error, streamStarted bool) (Assis
 
 func assembleAssistantResult(modelName string, resp *llms.ContentResponse, textBuilder *strings.Builder) (AssistantResult, error) {
 	if resp == nil || len(resp.Choices) == 0 {
-		return AssistantResult{}, errors.New("agent llm: empty response")
+		return AssistantResult{}, fmt.Errorf("agent llm: empty response model=%s", modelName)
 	}
 	choice := resp.Choices[0]
 	content := choice.Content
@@ -450,10 +450,10 @@ func runCompletion(ctx context.Context, params completeParams, retryCfg RetryCon
 			if attemptCtx.Err() != nil {
 				return ErrAborted
 			}
-			return fmt.Errorf("agent llm: complete: %w", callErr)
+			return fmt.Errorf("agent llm: complete model=%s: %w", params.modelName, callErr)
 		}
 		if resp == nil || len(resp.Choices) == 0 {
-			return errors.New("agent llm: empty completion")
+			return fmt.Errorf("agent llm: empty completion model=%s", params.modelName)
 		}
 		content = resp.Choices[0].Content
 		return nil
