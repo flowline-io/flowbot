@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	toolbrowser "github.com/flowline-io/flowbot/pkg/agent/tools/browser"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -23,6 +24,9 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	if err := coding.RegisterAll(registry, ws, executionEnvForWorkspace(ws)); err != nil {
 		return nil, err
 	}
+	if err := registerBrowserTools(registry); err != nil {
+		return nil, err
+	}
 	if err := registerProductTools(registry); err != nil {
 		return nil, err
 	}
@@ -33,29 +37,11 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	if err := agentgw.Register(registry, string(uid)); err != nil {
 		return nil, err
 	}
-	if err := registry.Register(ReadSkillTool{}); err != nil {
+	if err := registerKnowledgeAndSkills(registry); err != nil {
 		return nil, err
 	}
-	if err := registry.Register(SearchKnowledgeTool{}); err != nil {
+	if err := registerOptionalSessionTools(registry, ws, taskDeps, scheduleDeps); err != nil {
 		return nil, err
-	}
-	if err := registry.Register(GetKnowledgeTool{}); err != nil {
-		return nil, err
-	}
-	if taskDeps != nil {
-		if err := registry.Register(NewTaskTool(ws, *taskDeps)); err != nil {
-			return nil, err
-		}
-	}
-	if scheduleDeps != nil {
-		if err := NewScheduleTools(*scheduleDeps).Register(registry); err != nil {
-			return nil, err
-		}
-	}
-	if sessionID := registrySessionID(taskDeps, scheduleDeps); sessionID != "" {
-		if err := NewTodoTools(TodoToolDeps{SessionID: sessionID}).Register(registry); err != nil {
-			return nil, err
-		}
 	}
 	if err := RegisterMemoryTools(registry); err != nil {
 		return nil, err
@@ -64,11 +50,47 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	return registry, nil
 }
 
+func registerKnowledgeAndSkills(registry *tool.Registry) error {
+	if err := registry.Register(ReadSkillTool{}); err != nil {
+		return err
+	}
+	if err := registry.Register(SearchKnowledgeTool{}); err != nil {
+		return err
+	}
+	return registry.Register(GetKnowledgeTool{})
+}
+
+func registerOptionalSessionTools(registry *tool.Registry, ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) error {
+	if taskDeps != nil {
+		if err := registry.Register(NewTaskTool(ws, *taskDeps)); err != nil {
+			return err
+		}
+	}
+	if scheduleDeps != nil {
+		if err := NewScheduleTools(*scheduleDeps).Register(registry); err != nil {
+			return err
+		}
+	}
+	if sessionID := registrySessionID(taskDeps, scheduleDeps); sessionID != "" {
+		if err := NewTodoTools(TodoToolDeps{SessionID: sessionID}).Register(registry); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func registerProductTools(registry *tool.Registry) error {
 	if err := clip.Register(registry, config.App.Flowbot.URL); err != nil {
 		return err
 	}
 	return agenthtml.Register(registry)
+}
+
+func registerBrowserTools(registry *tool.Registry) error {
+	if !config.App.ChatAgent.Browser.Enabled {
+		return nil
+	}
+	return toolbrowser.Register(registry)
 }
 
 // NewSubagentRegistry registers coding tools and an optional allowlisted read_skill tool for subagent runs.
@@ -99,6 +121,9 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 // ActiveToolNames returns the default active tool names for the chat assistant.
 func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
+	if config.App.ChatAgent.Browser.Enabled {
+		names = append(names, toolbrowser.ActiveToolNames()...)
+	}
 	names = append(names, clip.ActiveToolNames()...)
 	names = append(names, agenthtml.ActiveToolNames()...)
 	names = append(names, agentnotify.ActiveToolNames()...)

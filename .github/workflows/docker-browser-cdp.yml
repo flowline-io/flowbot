@@ -1,0 +1,107 @@
+name: Docker Browser CDP
+
+on:
+  push:
+    tags:
+      - cdp-v*
+  workflow_dispatch:
+    inputs:
+      tag_suffix:
+        description: 'Optional tag suffix (e.g. dev-abc1234)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: lightpanda
+            image: ghcr.io/flowline-io/flowbot-lightpanda
+            file: deployments/lightpanda/Dockerfile
+            smoke: lightpanda
+          - name: playwright-cdp
+            image: ghcr.io/flowline-io/flowbot-playwright-cdp
+            file: deployments/playwright-cdp/Dockerfile
+            smoke: playwright-cdp
+
+    steps:
+      - name: Checkout server repo
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Generate docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=match,pattern=cdp-v(\d+\.\d+\.\d+),group=1
+            type=match,pattern=cdp-v(\d+\.\d+)\.\d+,group=1
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/cdp-v') }}
+            type=ref,event=tag
+            type=raw,value=dev-${{ github.sha }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix == '' }}
+            type=raw,value=${{ inputs.tag_suffix }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix != '' }}
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=browser-cdp-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=browser-cdp-${{ matrix.name }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+
+      - name: Resolve smoke test tag
+        id: smoketag
+        run: |
+          ref_name="${{ github.ref_name }}"
+          tag_suffix="${{ inputs.tag_suffix }}"
+          if [[ "${{ github.ref_type }}" == "tag" ]] && [[ "$ref_name" == cdp-v* ]]; then
+            echo "value=${ref_name#cdp-v}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$tag_suffix" ]]; then
+            echo "value=${tag_suffix}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=dev-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Smoke test CDP endpoint
+        run: |
+          set -euo pipefail
+          IMAGE="${{ matrix.image }}:${{ steps.smoketag.outputs.value }}"
+          docker pull "$IMAGE"
+          docker image inspect "$IMAGE" --format 'image_size_bytes={{.Size}}'
+          cid="$(docker run -d --rm -p 127.0.0.1:9222:9222 "$IMAGE")"
+          cleanup() { docker stop "$cid" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          for i in $(seq 1 30); do
+            if curl -sf "http://127.0.0.1:9222/json/version" >/tmp/cdp-version.json; then
+              cat /tmp/cdp-version.json
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "CDP /json/version not ready for $IMAGE" >&2
+          docker logs "$cid" || true
+          exit 1

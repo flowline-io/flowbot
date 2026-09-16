@@ -104,6 +104,7 @@ agent, auth, backoff, bulkhead, cache, capability, client, config, cronutil, eve
 | `build_gateway.yml`        | Build gateway worker binary              |
 | `docker.yml`               | Build Docker image                       |
 | `docker-agent-sandbox.yml` | Build agent sandbox image                |
+| `docker-browser-cdp.yml`   | Build Lightpanda / Playwright CDP images |
 | `agent-eval.yml`           | Agent evaluation (regression)            |
 | `release.yml`              | Release pipeline                         |
 | `pages.yml`                | Publish website to GitHub Pages          |

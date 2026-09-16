@@ -33,6 +33,27 @@ other = "ApprovalModel 选择 auto 审批模式的辅助安全审查模型。为
 ["settings.desc.chat_agent.approval_timeout"]
 other = "ApprovalTimeout 限制单次辅助审查调用时长；为零时默认为 10s。"
 
+["settings.desc.chat_agent.browser"]
+other = "Browser configures CDP-backed browser_* tools (Lightpanda or Chromium CDP)."
+
+["settings.desc.chat_agent.browser.allow_hosts"]
+other = "AllowHosts lists hostnames or CIDRs permitted even when AllowPrivate is false."
+
+["settings.desc.chat_agent.browser.allow_private"]
+other = "AllowPrivate permits navigation to private RFC1918 addresses when true."
+
+["settings.desc.chat_agent.browser.driver"]
+other = "Driver selects CDP quirks: lightpanda or playwright (Chromium remote-debugging CDP)."
+
+["settings.desc.chat_agent.browser.enabled"]
+other = "Enabled registers browser_* tools when true."
+
+["settings.desc.chat_agent.browser.endpoint"]
+other = "Endpoint is the CDP WebSocket URL (e.g. ws://lightpanda:9222)."
+
+["settings.desc.chat_agent.browser.timeout"]
+other = "Timeout limits one browser operation; zero defaults to 30s."
+
 ["settings.desc.chat_agent.chat_model"]
 other = "ChatModel 选择智能体模型；非空时启用智能体。"
 

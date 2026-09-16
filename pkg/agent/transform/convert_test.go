@@ -88,6 +88,26 @@ func TestDefaultConvertToLLM(t *testing.T) {
 			wantLen:  1,
 			wantRole: llms.ChatMessageTypeHuman,
 		},
+		{
+			name: "tool result with image emits follow-up human",
+			messages: []msg.AgentMessage{msg.ToolResultMessage{
+				ToolCallID: "1",
+				Name:       "browser_screenshot",
+				Parts: []msg.ContentPart{
+					msg.TextPart{Text: "screenshot png bytes=3"},
+					msg.MediaPart{Kind: msg.MediaKindImage, MIMEType: "image/png", Data: []byte("png")},
+				},
+			}},
+			wantLen:  2,
+			wantRole: llms.ChatMessageTypeTool,
+			check: func(t *testing.T, result []llms.MessageContent) {
+				assert.Equal(t, llms.ChatMessageTypeTool, result[0].Role)
+				assert.Equal(t, llms.ChatMessageTypeHuman, result[1].Role)
+				require.Len(t, result[1].Parts, 1)
+				_, ok := result[1].Parts[0].(llms.BinaryContent)
+				assert.True(t, ok)
+			},
+		},
 	}
 
 	for _, tt := range tests {

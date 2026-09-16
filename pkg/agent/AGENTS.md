@@ -30,15 +30,17 @@ agent/
 ├── subagent/                     # Subagent orchestration
 ├── env/                          # ExecutionEnv for FS/shell with Result
 ├── sandbox/                      # Opt-in Docker ExecutionEnv for shell/code
+├── browser/                      # CDP session adapter (chromedp) for browser_* tools
 ├── tools/
 │   ├── coding/                   # Code/FS/web/terminal tools
+│   ├── browser/                  # CDP browser_* tools (chat-agent when enabled)
 │   └── echo/                     # Reference echo tool
 └── eval/                         # FakeModel harness eval scenarios
 ```
 
 ## Entry points
 
-Hot-path packages: `loop` / `harness` / `hooks` / `tool` / `session` / `permission` / `ctxmgr` / `model` / `transform` (`DefaultConvertToLLM`). Engine tools under `tools/coding/`, `tools/echo/`; also `dcg/`, `loopdetect/`, `subagent/`, `sandbox/`. Eval: `eval/`.
+Hot-path packages: `loop` / `harness` / `hooks` / `tool` / `session` / `permission` / `ctxmgr` / `model` / `transform` (`DefaultConvertToLLM`). Engine tools under `tools/coding/`, `tools/browser/`, `tools/echo/`; also `browser/`, `dcg/`, `loopdetect/`, `subagent/`, `sandbox/`. Eval: `eval/`.
 
 External callers may keep importing `pkg/agent` for types (`AgentMessage`, `NewAgent`, `RunLoop`). Subpackages must not import the parent `pkg/agent` facade — use `msg` / `loop` instead. `ctxmgr` depends only on the `StatefulAgent` seam (`State` / `ApplyState`).
 

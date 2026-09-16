@@ -35,6 +35,9 @@ const KeyHTML = "html"
 // KeyGateway is the permission key for local CLI gateway tools (run_cursor).
 const KeyGateway = "gateway"
 
+// KeyBrowser is the permission key for interactive browser_* tools.
+const KeyBrowser = "browser"
+
 // gatewayDefaultAction stores Action; initialized to ActionAsk.
 var gatewayDefaultAction atomic.Value
 
@@ -85,6 +88,7 @@ func DefaultConfig() Config {
 			},
 		},
 		"websearch":     {Default: ActionAsk},
+		KeyBrowser:      {Default: ActionAsk},
 		"skill":         {Default: ActionAllow},
 		KeyKnowledge:    {Default: ActionAllow},
 		KeyDelegate:     {Default: ActionAsk},

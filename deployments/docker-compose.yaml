@@ -28,6 +28,26 @@ services:
       timeout: 3s
       retries: 10
 
+  lightpanda:
+    image: ghcr.io/flowline-io/flowbot-lightpanda:latest
+    build:
+      context: ..
+      dockerfile: deployments/lightpanda/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9222:9222"
+
+  # Optional Chromium CDP backend: docker compose --profile playwright-cdp up -d
+  playwright-cdp:
+    profiles: ["playwright-cdp"]
+    image: ghcr.io/flowline-io/flowbot-playwright-cdp:latest
+    build:
+      context: ..
+      dockerfile: deployments/playwright-cdp/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9223:9222"
+
   flowbot:
     image: ghcr.io/flowline-io/flowbot:latest
     build:
@@ -38,6 +58,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      lightpanda:
+        condition: service_started
     ports:
       - "6060:6060"
     environment:

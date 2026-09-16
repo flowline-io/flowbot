@@ -82,6 +82,7 @@ GitHub Actions workflows (`.github/workflows/`):
 | `build_gateway.yml`        | Build gateway worker binary              |
 | `docker.yml`               | Build Docker image                       |
 | `docker-agent-sandbox.yml` | Build agent sandbox image (`sandbox-v*` tags) |
+| `docker-browser-cdp.yml`   | Build Lightpanda / Playwright CDP images (`cdp-v*` tags) |
 | `agent-eval.yml`           | Agent evaluation (regression)            |
 | `release.yml`              | Release pipeline                         |
 | `pages.yml`                | Publish website to GitHub Pages          |

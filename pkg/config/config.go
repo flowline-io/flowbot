@@ -650,8 +650,26 @@ type ChatAgentConfig struct {
 	Sandbox ChatAgentSandboxConfig `json:"sandbox" yaml:"sandbox" mapstructure:"sandbox"`
 	// WebSearch configures backends for the web_search tool.
 	WebSearch ChatAgentWebSearchConfig `json:"web_search" yaml:"web_search" mapstructure:"web_search"`
+	// Browser configures CDP-backed browser_* tools (Lightpanda or Chromium CDP).
+	Browser ChatAgentBrowserConfig `json:"browser" yaml:"browser" mapstructure:"browser"`
 	// Media configures multimodal attachment signing and public fetch URLs.
 	Media ChatAgentMediaConfig `json:"media" yaml:"media" mapstructure:"media"`
+}
+
+// ChatAgentBrowserConfig configures interactive browser tools over CDP.
+type ChatAgentBrowserConfig struct {
+	// Enabled registers browser_* tools when true.
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Driver selects CDP quirks: lightpanda or playwright (Chromium remote-debugging CDP).
+	Driver string `json:"driver" yaml:"driver" mapstructure:"driver"`
+	// Endpoint is the CDP WebSocket URL (e.g. ws://lightpanda:9222).
+	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
+	// AllowPrivate permits navigation to private RFC1918 addresses when true.
+	AllowPrivate bool `json:"allow_private" yaml:"allow_private" mapstructure:"allow_private"`
+	// AllowHosts lists hostnames or CIDRs permitted even when AllowPrivate is false.
+	AllowHosts []string `json:"allow_hosts" yaml:"allow_hosts" mapstructure:"allow_hosts"`
+	// Timeout limits one browser operation; zero defaults to 30s.
+	Timeout time.Duration `json:"timeout" yaml:"timeout" mapstructure:"timeout"`
 }
 
 // ChatAgentMediaConfig configures multimodal media delivery for the agent.

@@ -181,6 +181,13 @@ chat_agent:
     # CLI comes from flowbot-cli_linux_amd64 beside the server binary.
   # web_search:
   #   api_key: ""  # optional SerpApi key (https://serpapi.com/search-api); empty uses DuckDuckGo HTML fallback
+  # browser:
+  #   enabled: false
+  #   driver: lightpanda          # lightpanda | playwright (Chromium CDP)
+  #   endpoint: ws://lightpanda:9222
+  #   allow_private: false
+  #   allow_hosts: []             # host or CIDR exceptions
+  #   timeout: 30s
 
 # CapCore runtime primitives (http_request, run_*, kv_*). Workspace falls back to chat_agent.workspace.
 core:

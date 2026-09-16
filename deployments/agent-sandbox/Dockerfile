@@ -122,27 +122,3 @@ RUN mkdir -p /tmp/faas-go-smoke \
     && GOPROXY=off GOSUMDB=off CGO_ENABLED=0 go run main.go \
     && rm -rf /home/agent/.cache/go-build \
     && find /tmp -mindepth 1 -delete
-
-FROM base AS playwright
-
-USER root
-
-# install-deps re-runs apt; strip docs in this layer.
-RUN npx --yes playwright install-deps chromium \
-    && npm cache clean --force \
-    && rm -rf \
-        /var/lib/apt/lists/* \
-        /var/cache/apt/archives/* \
-        /usr/share/man \
-        /usr/share/doc \
-        /usr/share/info \
-        /root/.npm \
-    && find /tmp -mindepth 1 -delete
-
-USER agent
-
-# Keep the Playwright browser cache; drop npx cache only.
-RUN npx --yes playwright install chromium \
-    && npm cache clean --force \
-    && rm -rf /home/agent/.npm \
-    && find /tmp -mindepth 1 -delete

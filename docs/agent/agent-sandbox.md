@@ -16,16 +16,16 @@ The agent sandbox image follows the same principle as [Cursor Cloud Agent Docker
 
 ## Image variants
 
-The Dockerfile defines two runtime stages:
+The Dockerfile defines a single runtime stage `base`. Interactive browsing is not bundled in this image; use chat agent `browser_*` tools with Compose CDP services ([Browser tools](./browser.md)).
 
 | Stage | GHCR tag examples | Use when |
 | ----- | ----------------- | -------- |
-| `base` | `1.0.0`, `latest` | General coding agents: git, Go, Node, Python, shell tools |
-| `playwright` | `playwright-1.0.0`, `playwright` | Browser automation or E2E tasks needing Chromium |
-
-The Playwright variant adds roughly 400 MB (Chromium + system libraries). Pull it only when needed.
+| `base` | `1.0.0`, `latest` | Coding agents: git, Go, Node, Python, shell tools |
 
 Registry: `ghcr.io/flowline-io/flowbot-agent-sandbox`
+
+For interactive browsing use [Browser tools](./browser.md) with Compose CDP services (`lightpanda`, optional `playwright-cdp` profile in [`deployments/docker-compose.yaml`](../../deployments/docker-compose.yaml)). This image does not ship a Playwright or Chromium browser toolchain.
+
 
 ## Pre-installed toolchain
 
@@ -33,7 +33,7 @@ Versions are pinned in [`deployments/agent-sandbox/Dockerfile`](../../deployment
 
 | Tool | Version / source | Notes |
 | ---- | ---------------- | ----- |
-| Base OS | Ubuntu 24.04 | Required for Playwright and browser/computer-use tooling |
+| Base OS | Ubuntu 24.04 | Cloud Agent / coding toolchain base |
 | git | distro package | Required for Cloud Agent clone workflows |
 | sudo | NOPASSWD for `agent` | Privileged setup steps when orchestrator needs them |
 | Go | 1.27.1 (official tarball) | Matches [`go.mod`](../../go.mod). `GOROOT=/usr/local/go`, `GOTOOLCHAIN=local` (no auto toolchain download). Used by Cloud Agents and by named FaaS (`go run main.go`, stdlib-only, `Network=none`) |
@@ -97,24 +97,13 @@ docker run --rm \
 
 Older published CLI builds ignore `FLOWBOT_TOKEN` and only read `~/.config/flowbot/token`. Prefer mounting a materialized config directory (what Flowbot's sandbox runner does).
 
-Playwright example:
-
-```bash
-docker run --rm \
-  -u agent \
-  -v "$(pwd):/workspace" \
-  -w /workspace \
-  ghcr.io/flowline-io/flowbot-agent-sandbox:playwright-1.0.0 \
-  bash -lc 'npx playwright test'
-```
-
 ## Registry and tags
 
-| Git tag | Base image tags | Playwright image tags |
-| ------- | --------------- | --------------------- |
-| `sandbox-v1.0.0` | `1.0.0`, `1.0`, `sandbox-v1.0.0`, `latest` | `playwright-1.0.0`, `playwright-1.0`, `playwright-sandbox-v1.0.0`, `playwright` |
-| `workflow_dispatch` + suffix `dev-abc` | `dev-abc` | `playwright-dev-abc` |
-| `workflow_dispatch` (no suffix) | `dev-<sha>` | `playwright-dev-<sha>` |
+| Git tag | Image tags |
+| ------- | ---------- |
+| `sandbox-v1.0.0` | `1.0.0`, `1.0`, `sandbox-v1.0.0`, `latest` |
+| `workflow_dispatch` + suffix `dev-abc` | `dev-abc` |
+| `workflow_dispatch` (no suffix) | `dev-<sha>` |
 
 ## Versioning
 
@@ -124,7 +113,7 @@ Release steps:
 
 1. Merge Dockerfile or workflow changes to `main`.
 2. Tag: `git tag sandbox-v1.0.0 && git push origin sandbox-v1.0.0`
-3. GitHub Actions workflow [`docker-agent-sandbox.yml`](../../.github/workflows/docker-agent-sandbox.yml) builds and pushes both variants to GHCR.
+3. GitHub Actions workflow [`docker-agent-sandbox.yml`](../../.github/workflows/docker-agent-sandbox.yml) builds and pushes the `base` target to GHCR.
 
 Manual builds (development):
 
@@ -134,13 +123,9 @@ Manual builds (development):
 ## Build locally
 
 ```bash
-# Slim base variant (context is repo root for dcg config COPY)
+# Context is repo root for dcg config COPY
 docker build -f deployments/agent-sandbox/Dockerfile --target base \
   -t flowbot-agent-sandbox:local .
-
-# Playwright variant
-docker build -f deployments/agent-sandbox/Dockerfile --target playwright \
-  -t flowbot-agent-sandbox:playwright-local .
 
 # Smoke test (no baked flowbot CLI)
 docker run --rm flowbot-agent-sandbox:local bash -lc \
@@ -156,16 +141,16 @@ docker run --rm --network=none -w /tmp \
 
 | Workflow | Trigger | Output |
 | -------- | ------- | ------ |
-| [`docker-agent-sandbox.yml`](../../.github/workflows/docker-agent-sandbox.yml) | Push tag `sandbox-v*`; manual `workflow_dispatch` | Pushes both `base` and `playwright` targets to GHCR |
+| [`docker-agent-sandbox.yml`](../../.github/workflows/docker-agent-sandbox.yml) | Push tag `sandbox-v*`; manual `workflow_dispatch` | Pushes `base` to GHCR |
 
-Each matrix job runs a post-build smoke test (`git`, `go`, `node`, `python3`, `dcg`; offline `go run main.go` under `--network=none`; plus `playwright --version` for the Playwright variant) and prints `docker image inspect` Size ([packaging](../../.agents/notes/implemented/process/2026-08-30-agent-sandbox-image-packaging.md)).
+Each build runs a post-build smoke test (`git`, `go`, `node`, `python3`, `dcg`; offline `go run main.go` under `--network=none`) and prints `docker image inspect` Size ([packaging](../../.agents/notes/implemented/process/2026-08-30-agent-sandbox-image-packaging.md)).
 
 ## Orchestrator integration
 
 Cloud Agent orchestrators should reference a pinned semver tag in production, for example:
 
-- Default coding tasks: `ghcr.io/flowline-io/flowbot-agent-sandbox:1.0.0`
-- Browser / E2E tasks: `ghcr.io/flowline-io/flowbot-agent-sandbox:playwright-1.0.0`
+- Coding tasks: `ghcr.io/flowline-io/flowbot-agent-sandbox:1.0.0`
+- Browser tasks: chat agent [Browser tools](./browser.md) + Compose CDP services (not this image)
 
 ### Named FaaS (`go run main.go`)
 
@@ -214,9 +199,7 @@ Future Flowbot configuration for Cloud Agent runtime image selection will point 
 
 ## Extending the image
 
-Fork or extend [`deployments/agent-sandbox/Dockerfile`](../../deployments/agent-sandbox/Dockerfile) when you need extra system packages or compiler versions. Keep stages separate so slim agents are not forced to pay for Playwright.
-
-The Playwright stage installs **Chromium only** to limit image size. Add `firefox` or `webkit` in a custom stage if your orchestrator requires them.
+Fork or extend [`deployments/agent-sandbox/Dockerfile`](../../deployments/agent-sandbox/Dockerfile) when you need extra system packages or compiler versions. Prefer optional later stages so slim agents are not forced to pay for heavy toolchains. For interactive browsing, use [Browser tools](./browser.md) instead of baking browsers into this image.
 
 ## Limitations
 

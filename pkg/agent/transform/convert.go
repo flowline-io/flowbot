@@ -38,7 +38,11 @@ func DefaultConvertToLLM(messages []msg.AgentMessage) ([]llms.MessageContent, er
 			}
 			result = append(result, content)
 		case msg.ToolResultMessage:
-			result = append(result, toolResultToLLM(m))
+			converted, err := toolResultMessagesToLLM(m)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, converted...)
 		case msg.CustomMessage:
 			if m.ExcludeFromContext || m.DisplayOnly {
 				continue
@@ -87,6 +91,23 @@ func toolResultToLLM(message msg.ToolResultMessage) llms.MessageContent {
 			},
 		},
 	}
+}
+
+func toolResultMessagesToLLM(message msg.ToolResultMessage) ([]llms.MessageContent, error) {
+	out := []llms.MessageContent{toolResultToLLM(message)}
+	images := imageParts(message.Parts)
+	if len(images) == 0 {
+		return out, nil
+	}
+	human, err := partsToLLM(images)
+	if err != nil {
+		return nil, err
+	}
+	out = append(out, llms.MessageContent{
+		Role:  llms.ChatMessageTypeHuman,
+		Parts: human,
+	})
+	return out, nil
 }
 
 func customToLLM(message msg.CustomMessage) (llms.MessageContent, error) {
@@ -183,6 +204,24 @@ func textFromParts(parts []msg.ContentPart) string {
 		}
 	}
 	return text.String()
+}
+
+func imageParts(parts []msg.ContentPart) []msg.ContentPart {
+	var out []msg.ContentPart
+	for _, part := range parts {
+		mp, ok := part.(msg.MediaPart)
+		if !ok {
+			continue
+		}
+		if mp.Kind != "" && mp.Kind != msg.MediaKindImage {
+			continue
+		}
+		if len(mp.Data) == 0 && mp.URL == "" {
+			continue
+		}
+		out = append(out, mp)
+	}
+	return out
 }
 
 // FilterContext returns messages unchanged; callers may replace this hook.

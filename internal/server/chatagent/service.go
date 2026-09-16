@@ -11,12 +11,14 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent"
+	agentbrowser "github.com/flowline-io/flowbot/pkg/agent/browser"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -98,6 +100,8 @@ func (s *Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (str
 
 	ctx = WithMemoryScope(ctx, ResolveMemoryScope(req))
 	ctx = withRunIO(ctx, req.API)
+	ctx, cancelBrowser := withBrowserSession(ctx)
+	defer cancelBrowser()
 
 	h, trace, err := s.ensureHarness(ctx, req, len(strings.TrimSpace(req.Text)))
 	if err != nil {
@@ -105,6 +109,29 @@ func (s *Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (str
 	}
 
 	return s.executeRun(ctx, h, req, start, sink, trace)
+}
+
+func withBrowserSession(ctx context.Context) (context.Context, func()) {
+	cfg := config.App.ChatAgent.Browser
+	if !cfg.Enabled {
+		return ctx, func() {}
+	}
+	sess, err := agentbrowser.NewSession(agentbrowser.Config{
+		Driver:       agentbrowser.Driver(cfg.Driver),
+		Endpoint:     cfg.Endpoint,
+		AllowPrivate: cfg.AllowPrivate,
+		AllowHosts:   append([]string(nil), cfg.AllowHosts...),
+		Timeout:      cfg.Timeout,
+	})
+	if err != nil {
+		flog.Warn("[chat-agent] browser session init: %v", err)
+		return ctx, func() {}
+	}
+	return agentbrowser.WithSession(ctx, sess), func() {
+		if cerr := sess.Close(); cerr != nil {
+			flog.Warn("[chat-agent] browser session close: %v", cerr)
+		}
+	}
 }
 
 // prepareRun validates the request and stamps RunStartedAt.

@@ -41,6 +41,12 @@ const (
 
 // PermissionKeyForTool maps a tool name to its OpenCode permission key.
 func PermissionKeyForTool(tool string) string {
+	if key := permissionKeyForBrowserTool(tool); key != "" {
+		return key
+	}
+	if key := permissionKeyForSessionTool(tool); key != "" {
+		return key
+	}
 	switch tool {
 	case ToolRunTerminal, ToolRunCode:
 		return "bash"
@@ -54,6 +60,24 @@ func PermissionKeyForTool(tool string) string {
 		return "skill"
 	case ToolSearchKnowledge, ToolGetKnowledge:
 		return KeyKnowledge
+	case ToolPresentHTML:
+		return KeyHTML
+	case ToolRunCursor:
+		return KeyGateway
+	default:
+		return KeyWildcard
+	}
+}
+
+func permissionKeyForBrowserTool(tool string) string {
+	if strings.HasPrefix(tool, "browser_") {
+		return KeyBrowser
+	}
+	return ""
+}
+
+func permissionKeyForSessionTool(tool string) string {
+	switch tool {
 	case ToolDelegateSubagent:
 		return KeyDelegate
 	case ToolScheduleTask, ToolUpdateScheduledTask, ToolCancelScheduledTask:
@@ -64,12 +88,8 @@ func PermissionKeyForTool(tool string) string {
 		return KeyMemory
 	case ToolTodoWrite, ToolListTodos:
 		return KeyTodo
-	case ToolPresentHTML:
-		return KeyHTML
-	case ToolRunCursor:
-		return KeyGateway
 	default:
-		return KeyWildcard
+		return ""
 	}
 }
 
@@ -122,7 +142,24 @@ func extractToolPrimary(req Request) (string, ParseBashCommand, []string) {
 	case ToolWebFetch:
 		return strings.TrimSpace(fmt.Sprint(req.Args["url"])), ParseBashCommand{}, nil
 	default:
+		if primary, bash, paths, ok := extractBrowserToolPrimary(req); ok {
+			return primary, bash, paths
+		}
 		return extractProductToolPrimary(req)
+	}
+}
+
+func extractBrowserToolPrimary(req Request) (string, ParseBashCommand, []string, bool) {
+	if !strings.HasPrefix(req.Tool, "browser_") {
+		return "", ParseBashCommand{}, nil, false
+	}
+	switch req.Tool {
+	case "browser_navigate":
+		return strings.TrimSpace(fmt.Sprint(req.Args["url"])), ParseBashCommand{}, nil, true
+	case "browser_click", "browser_type":
+		return strings.TrimSpace(fmt.Sprint(req.Args["ref"])), ParseBashCommand{}, nil, true
+	default:
+		return "*", ParseBashCommand{}, nil, true
 	}
 }
 

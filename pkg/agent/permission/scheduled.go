@@ -6,6 +6,7 @@ func ScheduledRunOverlay() Config {
 		"bash":               {Default: ActionDeny},
 		"edit":               {Default: ActionDeny},
 		"websearch":          {Default: ActionDeny},
+		KeyBrowser:           {Default: ActionDeny},
 		KeyDelegate:          {Default: ActionDeny},
 		KeySchedule:          {Default: ActionDeny},
 		KeyExternalDirectory: {Default: ActionDeny},
