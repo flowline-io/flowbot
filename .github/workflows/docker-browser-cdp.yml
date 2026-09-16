@@ -93,14 +93,15 @@ jobs:
           docker pull "$IMAGE"
           docker image inspect "$IMAGE" --format 'image_size_bytes={{.Size}}'
           cid="$(docker run -d --rm -p 127.0.0.1:9222:9222 "$IMAGE")"
-          cleanup() { docker stop "$cid" >/dev/null 2>&1 || true; }
-          trap cleanup EXIT
-          for i in $(seq 1 45); do
+          trap 'docker stop "$cid" >/dev/null 2>&1 || true' EXIT
+          n=0
+          while [ "$n" -lt 45 ]; do
             if curl -sf "http://127.0.0.1:9222/json/version" >/tmp/cdp-version.json; then
               cat /tmp/cdp-version.json
               grep -Eq '"webSocketDebuggerUrl"|"Browser"' /tmp/cdp-version.json
               exit 0
             fi
+            n=$((n + 1))
             sleep 1
           done
           echo "CDP /json/version not ready for $IMAGE" >&2
