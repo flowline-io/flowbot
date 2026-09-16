@@ -200,9 +200,28 @@ tasks:
       - go tool swag init -g cmd/main.go -o ./docs/api
 
   skills:
-    desc: Generate SKILL.md under docs/skills (server imports them on startup)
+    desc: Generate SKILL.md under docs/skills then validate (Go + skills-ref)
     cmds:
       - go run ./cmd/composer skills
+      - task: skills:validate
+
+  skills:validate:
+    desc: Validate docs/skills against agentskills.io (Go rules + skills-ref)
+    cmds:
+      - task: skills:validate:go
+      - task: skills:validate:ref
+
+  skills:validate:go:
+    desc: Validate skill name/description rules with pkg/validate
+    cmds:
+      - go test ./pkg/validate ./docs/skills -count=1
+
+  skills:validate:ref:
+    desc: Run skills-ref validate on each docs/skills/* directory
+    env:
+      SKILLS_REF: "1"
+    cmds:
+      - go test ./docs/skills -run TestSkillsRefValidate -count=1
 
   webdoc:
     desc: Generate docs to website

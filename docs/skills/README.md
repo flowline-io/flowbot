@@ -8,11 +8,13 @@ example `workflow`) are also generated and documented below. The skill body
 describes the CLI command tree (CLI domain names may differ from the capability
 ID, e.g. `karakeep` → `flowbot bookmark`).
 
-Skills follow the SKILL.md convention. The AI assistant loads the skill's
-frontmatter (name + description) at startup, and only pulls the full SKILL.md
-body when the user's request matches the description. Additional files in the
-skill directory (for example `reference.md` or `scripts/run.sh`) can be loaded
-via `read_skill` with the `path` argument.
+Skills follow the [Agent Skills](https://agentskills.io/specification) `SKILL.md`
+convention. The AI assistant loads the skill's frontmatter (name + description)
+at startup, and only pulls the full SKILL.md body when the user's request matches
+the description. Additional files in the skill directory (for example
+`references/cli.md` or `scripts/run.sh`) can be loaded via `read_skill` with the
+`path` argument. Frontmatter identity checks live in [`pkg/validate`](../../pkg/validate/)
+and run on generate (`go tool task skills`), import, Web forms, and CI (`skills-ref`).
 
 ## Available Skills
 
@@ -145,8 +147,11 @@ skills and the platform `workflow` skill are both produced by the same
 command.
 
 ```bash
-# Generate all SKILL.md files to docs/skills/
+# Generate all SKILL.md files to docs/skills/ (Go identity + skills-ref; needs npx)
 go tool task skills
+
+# Same validation without regenerating
+go tool task skills:validate
 ```
 
 When you add a new CLI command tree for a capability, register it in
@@ -254,6 +259,8 @@ metadata:
 
 ## References
 
+- [Agent Skills specification](https://agentskills.io/specification)
+- [pkg/validate](../../pkg/validate/) — Skill name / description validation (`Skill*`)
 - [Composer skills code](../../cmd/composer/action/skills/skills.go) — Capability
   skill generator.
 - [Workflow platform skill](../../cmd/composer/action/skills/workflow_skill.go) —
@@ -262,6 +269,7 @@ metadata:
 - [CLI commands](../../cmd/cli/command/) — The CLI command tree implementations.
 - [Skill Cap ID migration](../migrations/2026-07-agent-skills-cap-id.sql) —
   Rename `homelab-*` agent_skills rows to Cap IDs after upgrade.
+- [Agent Note: name validation + skills-ref CI](../../.agents/notes/implemented/process/2026-09-16-agent-skills-name-validation-skills-ref.md)
 
 ## Migrating from `homelab-*` names
 

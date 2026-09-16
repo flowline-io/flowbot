@@ -13,15 +13,13 @@ import (
 	"strings"
 	"testing/fstest"
 	"time"
-	"unicode"
-
-	"github.com/goccy/go-yaml"
 
 	"github.com/flowline-io/flowbot/docs/skills"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 const (
@@ -33,12 +31,6 @@ const (
 	maxSkillZipUncompressed = 20 << 20 // 20 MiB total uncompressed
 	maxSkillZipFileBytes    = 1 << 20  // 1 MiB per file
 )
-
-// skillFrontmatter is the YAML header of a SKILL.md file.
-type skillFrontmatter struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-}
 
 // ImportBundledSkills upserts embedded docs/skills into agent_skills / agent_skill_files.
 // Safe to call on every server start; preserves enabled / disable_model_invocation on update.
@@ -90,6 +82,16 @@ func upsertSkillsFromFS(ctx context.Context, fsys fs.FS, root, source string) (i
 	}
 	if len(dirs) == 0 {
 		return 0, nil
+	}
+	// Validate identity before requiring a store so bad archives fail fast in tests and imports.
+	for _, skillDir := range dirs {
+		if _, err := loadValidatedSkill(fsys, skillDir); err != nil {
+			label := skillDir
+			if label == "." || label == "" {
+				label = "root"
+			}
+			return 0, fmt.Errorf("import skill %s: %w", label, err)
+		}
 	}
 	if store.Database == nil {
 		return 0, errors.New("skill store unavailable")
@@ -191,50 +193,68 @@ func sanitizeZipPath(name string) (string, error) {
 	return clean, nil
 }
 
-func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir, source string) error {
+type validatedSkill struct {
+	Name        string
+	Description string
+	Body        string
+	BaseDir     string
+}
+
+func loadValidatedSkill(fsys fs.FS, skillDir string) (validatedSkill, error) {
 	skillMD := "SKILL.md"
 	if skillDir != "." && skillDir != "" {
 		skillMD = path.Join(skillDir, "SKILL.md")
 	}
 	raw, err := fs.ReadFile(fsys, skillMD)
 	if err != nil {
-		return err
+		return validatedSkill{}, err
 	}
-	fm, body, err := parseSkillMarkdown(string(raw))
+	fm, body, err := validate.ParseSkillMarkdown(string(raw))
 	if err != nil {
-		return err
+		return validatedSkill{}, err
 	}
 	name := strings.TrimSpace(fm.Name)
 	desc := strings.TrimSpace(fm.Description)
 	body = strings.TrimSpace(body)
-	switch {
-	case name == "":
-		return errors.New("SKILL.md missing name")
-	case desc == "":
-		return errors.New("SKILL.md missing description")
-	case body == "":
-		return errors.New("SKILL.md body is empty")
+	if body == "" {
+		return validatedSkill{}, errors.New("SKILL.md body is empty")
 	}
-	if source == "" {
-		source = skillSourceBundled
+	if err := validate.SkillDocument(name, desc, fm.Compatibility, path.Base(skillDir)); err != nil {
+		return validatedSkill{}, err
 	}
 	baseDir := skillDir
 	if baseDir == "." {
 		baseDir = name
 	}
+	return validatedSkill{
+		Name:        name,
+		Description: desc,
+		Body:        body,
+		BaseDir:     baseDir,
+	}, nil
+}
+
+func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir, source string) error {
+	parsed, err := loadValidatedSkill(fsys, skillDir)
+	if err != nil {
+		return err
+	}
+	if source == "" {
+		source = skillSourceBundled
+	}
 
 	now := time.Now().UTC()
-	existing, err := store.AgentStoreFromDB().GetAgentSkillByFlag(ctx, name)
+	existing, err := store.AgentStoreFromDB().GetAgentSkillByFlag(ctx, parsed.Name)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
 	if errors.Is(err, types.ErrNotFound) {
 		err = store.AgentStoreFromDB().CreateAgentSkill(ctx, &gen.AgentSkill{
-			Flag:                   name,
-			Name:                   name,
-			Description:            desc,
-			Content:                body,
-			BaseDir:                baseDir,
+			Flag:                   parsed.Name,
+			Name:                   parsed.Name,
+			Description:            parsed.Description,
+			Content:                parsed.Body,
+			BaseDir:                parsed.BaseDir,
 			Source:                 source,
 			Enabled:                true,
 			DisableModelInvocation: false,
@@ -242,21 +262,21 @@ func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir, source string)
 			UpdatedAt:              now,
 		})
 		if err != nil {
-			return fmt.Errorf("create skill %s: %w", name, err)
+			return fmt.Errorf("create skill %s: %w", parsed.Name, err)
 		}
 	} else {
-		existing.Name = name
-		existing.Description = desc
-		existing.Content = body
-		existing.BaseDir = baseDir
+		existing.Name = parsed.Name
+		existing.Description = parsed.Description
+		existing.Content = parsed.Body
+		existing.BaseDir = parsed.BaseDir
 		existing.Source = source
 		existing.UpdatedAt = now
 		if err := store.AgentStoreFromDB().UpdateAgentSkill(ctx, existing); err != nil {
-			return fmt.Errorf("update skill %s: %w", name, err)
+			return fmt.Errorf("update skill %s: %w", parsed.Name, err)
 		}
 	}
 
-	return syncSkillAuxFilesFromFS(ctx, fsys, name, skillDir, now)
+	return syncSkillAuxFilesFromFS(ctx, fsys, parsed.Name, skillDir, now)
 }
 
 // skillAuxFile is a bundled skill auxiliary file relative to the skill directory.
@@ -344,27 +364,4 @@ func upsertSkillFile(ctx context.Context, skillFlag, filePath, content string, n
 	existing.Content = content
 	existing.UpdatedAt = now
 	return store.AgentStoreFromDB().UpdateAgentSkillFile(ctx, existing)
-}
-
-// parseSkillMarkdown splits SKILL.md into YAML frontmatter and markdown body.
-func parseSkillMarkdown(raw string) (skillFrontmatter, string, error) {
-	const delim = "---"
-	trimmed := strings.TrimLeftFunc(raw, unicode.IsSpace)
-	if !strings.HasPrefix(trimmed, delim) {
-		return skillFrontmatter{}, "", errors.New("missing YAML frontmatter")
-	}
-	rest := strings.TrimPrefix(trimmed, delim)
-	rest = strings.TrimLeft(rest, "\r\n")
-	before, after, ok := strings.Cut(rest, "\n"+delim)
-	if !ok {
-		return skillFrontmatter{}, "", errors.New("unterminated YAML frontmatter")
-	}
-	yamlBlock := before
-	body := strings.TrimLeft(after, "\r\n")
-
-	var fm skillFrontmatter
-	if err := yaml.Unmarshal([]byte(yamlBlock), &fm); err != nil {
-		return skillFrontmatter{}, "", fmt.Errorf("parse frontmatter: %w", err)
-	}
-	return fm, body, nil
 }

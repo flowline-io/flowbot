@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/command"
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 //go:embed testdata/workflow/*.yaml
@@ -54,6 +55,7 @@ type platformSkillData struct {
 	Title              string
 	CLIRoot            string
 	TriggerDescription string
+	Compatibility      string
 	ScopesNote         string
 	Operations         []opSpec
 	Workflows          []workflowSpec
@@ -66,7 +68,7 @@ const platformSkillTemplate = `---
 name: {{.Name}}
 description: >-
   {{.TriggerDescription}}
-compatibility: Requires flowbot CLI, network access to a Flowbot server
+compatibility: {{.Compatibility}}
 metadata:
   platform: {{.Name}}
   cli_root: {{.CLIRoot}}
@@ -713,6 +715,9 @@ func generatePlatformSkill(meta platformSpec, outputDir string) error {
 	if meta.CommandFn == nil {
 		return fmt.Errorf("platform skill %q: CommandFn is required", meta.Name)
 	}
+	if err := validate.SkillName(meta.Name); err != nil {
+		return fmt.Errorf("platform skill %s: %w", meta.Name, err)
+	}
 
 	dirPath := filepath.Join(outputDir, meta.Name)
 	if err := os.MkdirAll(filepath.Join(dirPath, "references"), 0o750); err != nil {
@@ -733,11 +738,19 @@ func generatePlatformSkill(meta platformSpec, outputDir string) error {
 		return err
 	}
 
+	trigger := buildTriggerDescription(meta.Description, meta.Keywords)
+	if err := validate.SkillDescription(trigger); err != nil {
+		return fmt.Errorf("platform skill %s: %w", meta.Name, err)
+	}
+	if err := validate.SkillCompatibility(skillCompatibility); err != nil {
+		return fmt.Errorf("platform skill %s: %w", meta.Name, err)
+	}
 	data := platformSkillData{
 		Name:               meta.Name,
 		Title:              meta.Title,
 		CLIRoot:            cliRoot,
-		TriggerDescription: buildTriggerDescription(meta.Description, meta.Keywords),
+		TriggerDescription: trigger,
+		Compatibility:      skillCompatibility,
 		ScopesNote:         meta.ScopesNote,
 		Operations:         extractOperations(rootCmd, cliRoot),
 		Workflows:          meta.Workflows,

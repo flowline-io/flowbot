@@ -19,11 +19,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/validate"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
-
-var agentSkillSlugPattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 
 const maxAgentSkillContentBytes = 65536
 
@@ -345,17 +344,19 @@ func validateAgentSkillForm(item model.AgentSkill, isNew bool) map[string]string
 	if isNew {
 		if item.Flag == "" {
 			errs["flag"] = "Flag is required"
-		} else if !agentSkillSlugPattern.MatchString(item.Flag) {
-			errs["flag"] = "Flag must be lowercase letters, numbers, and hyphens"
+		} else if err := validate.SkillName(item.Flag); err != nil {
+			errs["flag"] = err.Error()
 		}
 	}
 	if item.Name == "" {
 		errs["name"] = "Name is required"
-	} else if !agentSkillSlugPattern.MatchString(item.Name) {
-		errs["name"] = "Name must be lowercase letters, numbers, and hyphens"
+	} else if err := validate.SkillName(item.Name); err != nil {
+		errs["name"] = err.Error()
 	}
-	if item.Description == "" {
+	if strings.TrimSpace(item.Description) == "" {
 		errs["description"] = "Description is required"
+	} else if err := validate.SkillDescription(item.Description); err != nil {
+		errs["description"] = err.Error()
 	}
 	if strings.TrimSpace(item.Content) == "" {
 		errs["content"] = "Content is required"

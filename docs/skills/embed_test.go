@@ -2,11 +2,17 @@ package skills_test
 
 import (
 	"io/fs"
+	"os"
+	"os/exec"
+	"path"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/docs/skills"
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 func TestEmbeddedSkillTrees(t *testing.T) {
@@ -61,4 +67,54 @@ func TestEmbeddedSkillTrees(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEmbeddedSkillFrontmatter(t *testing.T) {
+	t.Parallel()
+	err := fs.WalkDir(skills.FS, ".", func(p string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() || path.Base(p) != "SKILL.md" {
+			return nil
+		}
+		raw, err := fs.ReadFile(skills.FS, p)
+		require.NoError(t, err)
+		fm, body, err := validate.ParseSkillMarkdown(string(raw))
+		require.NoError(t, err, p)
+		require.NotEmpty(t, strings.TrimSpace(body), p)
+		dirName := path.Base(path.Dir(p))
+		require.NoError(t, validate.SkillDocument(fm.Name, fm.Description, fm.Compatibility, dirName), p)
+		return nil
+	})
+	require.NoError(t, err)
+}
+
+// TestSkillsRefValidate runs the official skills-ref CLI when SKILLS_REF=1 (CI).
+func TestSkillsRefValidate(t *testing.T) {
+	if os.Getenv("SKILLS_REF") == "" {
+		t.Skip("set SKILLS_REF=1 to run skills-ref validate")
+	}
+	root := "."
+	entries, err := os.ReadDir(root)
+	require.NoError(t, err)
+	npx, err := exec.LookPath("npx")
+	require.NoError(t, err, "npx required when SKILLS_REF=1")
+
+	var checked int
+	for _, ent := range entries {
+		if !ent.IsDir() {
+			continue
+		}
+		skillDir := filepath.Join(root, ent.Name())
+		if _, err := os.Stat(filepath.Join(skillDir, "SKILL.md")); err != nil {
+			continue
+		}
+		checked++
+		cmd := exec.Command(npx, "--yes", "skills-ref@0.1.5", "validate", skillDir)
+		cmd.Dir = root
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err, "skills-ref validate %s\n%s", skillDir, out)
+	}
+	require.Positive(t, checked, "expected at least one skill directory")
 }

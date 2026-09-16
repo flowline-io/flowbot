@@ -17,10 +17,14 @@ import (
 
 	"github.com/flowline-io/flowbot/cmd/cli/command"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 // maxDescriptionLen is the agentskills.io limit for the description frontmatter field.
-const maxDescriptionLen = 1024
+const maxDescriptionLen = validate.SkillDescMaxLen
+
+// skillCompatibility is the generated SKILL.md compatibility frontmatter value.
+const skillCompatibility = "Requires flowbot CLI, network access to a Flowbot server"
 
 // skillTemplate is the lean SKILL.md body (instructions + workflows).
 // Full CLI reference lives in references/cli.md for progressive disclosure.
@@ -28,7 +32,7 @@ const skillTemplate = `---
 name: {{.Name}}
 description: >-
   {{.TriggerDescription}}
-compatibility: Requires flowbot CLI, network access to a Flowbot server
+compatibility: {{.Compatibility}}
 metadata:
   capability: {{.Name}}
   cli_root: {{.CLIRoot}}
@@ -807,6 +811,7 @@ type skillData struct {
 	Title              string
 	CLIRoot            string
 	TriggerDescription string
+	Compatibility      string
 	ScopesNote         string
 	ResponseHint       string
 	LimitsNote         string
@@ -823,6 +828,9 @@ func newTemplateFuncs() template.FuncMap {
 
 // generateSkill writes SKILL.md and references/cli.md for one capability.
 func generateSkill(meta metaSpec, outputDir string, skillTmpl, refTmpl *template.Template) error {
+	if err := validate.SkillName(meta.Name); err != nil {
+		return fmt.Errorf("skill %s: %w", meta.Name, err)
+	}
 	dirPath := filepath.Join(outputDir, meta.Name)
 	if err := os.MkdirAll(filepath.Join(dirPath, "references"), 0o750); err != nil {
 		return fmt.Errorf("create directory %s: %w", dirPath, err)
@@ -830,11 +838,19 @@ func generateSkill(meta metaSpec, outputDir string, skillTmpl, refTmpl *template
 
 	rootCmd := meta.CommandFn()
 	cliRoot := rootCmd.Name()
+	trigger := buildTriggerDescription(meta.Description, meta.Keywords)
+	if err := validate.SkillDescription(trigger); err != nil {
+		return fmt.Errorf("skill %s: %w", meta.Name, err)
+	}
+	if err := validate.SkillCompatibility(skillCompatibility); err != nil {
+		return fmt.Errorf("skill %s: %w", meta.Name, err)
+	}
 	data := skillData{
 		Name:               meta.Name,
 		Title:              meta.Title,
 		CLIRoot:            cliRoot,
-		TriggerDescription: buildTriggerDescription(meta.Description, meta.Keywords),
+		TriggerDescription: trigger,
+		Compatibility:      skillCompatibility,
 		ScopesNote:         meta.ScopesNote,
 		ResponseHint:       meta.ResponseHint,
 		LimitsNote:         meta.LimitsNote,

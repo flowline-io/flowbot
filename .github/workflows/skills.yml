@@ -1,0 +1,61 @@
+name: Skills
+
+on:
+  push:
+    branches:
+      - '*'
+    paths:
+      - 'docs/skills/**'
+      - 'cmd/composer/action/skills/**'
+      - 'pkg/validate/**'
+      - 'internal/server/chatagent/skill_import*'
+      - 'internal/modules/web/agent_skills*'
+      - 'taskfile.yaml'
+      - '.github/workflows/skills.yml'
+  pull_request:
+    paths:
+      - 'docs/skills/**'
+      - 'cmd/composer/action/skills/**'
+      - 'pkg/validate/**'
+      - 'internal/server/chatagent/skill_import*'
+      - 'internal/modules/web/agent_skills*'
+      - 'taskfile.yaml'
+      - '.github/workflows/skills.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.27.1'
+          cache: true
+
+      - name: Go mod download
+        run: go mod download
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+
+      - name: Generate skills
+        run: go run ./cmd/composer skills
+
+      - name: Check generated skills are committed
+        run: git diff --exit-code -- docs/skills
+
+      - name: Validate Agent Skills (Go + skills-ref)
+        env:
+          SKILLS_REF: "1"
+        run: go tool task skills:validate

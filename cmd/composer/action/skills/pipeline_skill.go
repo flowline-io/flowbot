@@ -13,7 +13,7 @@ const pipelineSkillTemplate = `---
 name: {{.Name}}
 description: >-
   {{.TriggerDescription}}
-compatibility: Requires flowbot CLI, network access to a Flowbot server
+compatibility: {{.Compatibility}}
 metadata:
   platform: {{.Name}}
   cli_root: {{.CLIRoot}}
