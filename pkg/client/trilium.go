@@ -81,8 +81,8 @@ func validateListNotesQuery(query *ListNotesQuery) error {
 	if query.Limit > validate.MaxSearchLimit {
 		return fmt.Errorf("limit exceeds maximum of %d", validate.MaxSearchLimit)
 	}
-	if len(query.Cursor) > validate.QueryMaxLen {
-		return fmt.Errorf("cursor exceeds maximum length of %d", validate.QueryMaxLen)
+	if len(query.Cursor) > validate.CursorMaxLen {
+		return fmt.Errorf("cursor exceeds maximum length of %d", validate.CursorMaxLen)
 	}
 	return nil
 }

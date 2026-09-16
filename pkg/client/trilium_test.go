@@ -354,6 +354,8 @@ func TestValidateListNotesQuery(t *testing.T) {
 		errContain string
 	}{
 		{name: "valid", query: &ListNotesQuery{Limit: 10}},
+		{name: "cursor longer than QueryMaxLen is valid", query: &ListNotesQuery{Limit: 10, Cursor: string(make([]byte, validate.QueryMaxLen+1))}},
+		{name: "cursor exceeds CursorMaxLen", query: &ListNotesQuery{Limit: 10, Cursor: string(make([]byte, validate.CursorMaxLen+1))}, wantErr: true, errContain: "cursor exceeds maximum length"},
 		{name: "negative limit", query: &ListNotesQuery{Limit: -1}, wantErr: true, errContain: "non-negative"},
 		{name: "limit too large", query: &ListNotesQuery{Limit: validate.MaxSearchLimit + 1}, wantErr: true, errContain: "maximum"},
 	}

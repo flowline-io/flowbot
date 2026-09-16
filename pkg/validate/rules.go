@@ -19,7 +19,11 @@ const (
 	MinTagLen    = 1
 
 	// Query limits
-	QueryMaxLen    = 100
+	QueryMaxLen = 100
+	// CursorMaxLen is the max length for opaque pagination cursors (HMAC-signed
+	// EncodeCursor tokens). Distinct from QueryMaxLen — search text stays short;
+	// cursors routinely exceed 100 characters.
+	CursorMaxLen   = 4096
 	MaxSearchLimit = 100
 
 	// File upload limits

@@ -8,6 +8,7 @@ import (
 
 	"errors"
 	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 // MemoClient provides access to the memo API.
@@ -76,8 +77,8 @@ func validateListMemosQuery(query *ListMemosQuery) error {
 	if query.Limit > 100 {
 		return errors.New("limit exceeds maximum of 100")
 	}
-	if len(query.Cursor) > 4096 {
-		return errors.New("cursor exceeds maximum length of 4096")
+	if len(query.Cursor) > validate.CursorMaxLen {
+		return fmt.Errorf("cursor exceeds maximum length of %d", validate.CursorMaxLen)
 	}
 	return nil
 }

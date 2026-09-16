@@ -575,6 +575,31 @@ func TestValidateListBookmarksQuery(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "signed opaque cursor under CursorMaxLen is valid",
+			query: &ListBookmarksQuery{
+				Limit:  100,
+				Cursor: string(make([]byte, validate.QueryMaxLen+1)),
+			},
+			wantErr: false,
+		},
+		{
+			name: "cursor at CursorMaxLen is valid",
+			query: &ListBookmarksQuery{
+				Limit:  10,
+				Cursor: string(make([]byte, validate.CursorMaxLen)),
+			},
+			wantErr: false,
+		},
+		{
+			name: "cursor exceeds CursorMaxLen",
+			query: &ListBookmarksQuery{
+				Limit:  10,
+				Cursor: string(make([]byte, validate.CursorMaxLen+1)),
+			},
+			wantErr:    true,
+			errContain: "cursor exceeds maximum length",
+		},
+		{
 			name:       "negative limit",
 			query:      &ListBookmarksQuery{Limit: -1},
 			wantErr:    true,
@@ -665,6 +690,24 @@ func TestValidateSearchBookmarksQuery(t *testing.T) {
 			name:    "valid query",
 			query:   &SearchBookmarksQuery{Q: "test", Limit: 10},
 			wantErr: false,
+		},
+		{
+			name: "search cursor longer than QueryMaxLen is valid",
+			query: &SearchBookmarksQuery{
+				Q:      "test",
+				Limit:  10,
+				Cursor: string(make([]byte, validate.QueryMaxLen+50)),
+			},
+			wantErr: false,
+		},
+		{
+			name: "search cursor exceeds CursorMaxLen",
+			query: &SearchBookmarksQuery{
+				Q:      "test",
+				Cursor: string(make([]byte, validate.CursorMaxLen+1)),
+			},
+			wantErr:    true,
+			errContain: "cursor exceeds maximum length",
 		},
 		{
 			name:       "empty query",
