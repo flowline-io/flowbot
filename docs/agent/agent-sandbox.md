@@ -194,7 +194,9 @@ Behavior:
 5. If `server_url` host is `host.docker.internal`, the runner adds `ExtraHosts: host.docker.internal:host-gateway`.
 6. Empty `access_token` skips credential injection (CLI calls fail with not logged in).
 
-Local development on non-linux/amd64 hosts: build a linux CLI with `go tool task build:cli:linux` and either place `bin/flowbot-cli_linux_amd64` beside the running server binary or set `cli_path`.
+`server_url` must reach the same port as `listen` (example `6060` above matches the reference config). Changing `listen` without updating `server_url` yields connection refused inside the sandbox ([note](../../.agents/notes/implemented/bug-fix/2026-09-16-sandbox-cli-server-url-port.md)).
+
+Local development on non-linux/amd64 hosts — or when using `go run` (temp binary under `/tmp/go-build...` with no sibling CLI): build a linux CLI with `go tool task build:cli:linux` and set `cli_path` to that absolute path (or place `bin/flowbot-cli_linux_amd64` beside a packaged server binary).
 
 ### Kern runtime (`chat_agent.sandbox.runtime`)
 
