@@ -14,7 +14,7 @@ Each interactive run appends one `turn_trace` session-tree node after prompt ass
 
 `GET …/trajectory` (REST and Web) joins the branch with those nodes into labeled rows. The messages SSE emits `turn_trace` on the primary channel only (not `/events`). One `Service.Run` writes one snapshot; inner tool loops share it. Pipeline / ephemeral pipeline runs skip the node. Web, REST, platform DM, and scheduled runs persist it.
 
-The first UI is a role log, a Duration gantt (Input = assemble, Model = thinking + remaining turn, Tools = tool durations), and a Preview/Raw inspector. Missing historical `turn_trace` nodes omit SYSTEM/CONTEXT rather than fabricating them.
+The first UI is a role log, a Duration gantt (Input = assemble, Model = thinking + remaining turn, Tools = tool durations), and a Preview/Raw inspector. Missing historical `turn_trace` nodes omit SYSTEM/CONTEXT rather than fabricating them. Tool CALL/result pairing and argument visibility: [trajectory-tool-call-visibility](../bug-fix/2026-09-16-trajectory-tool-call-visibility.md).
 
 ## Alternatives considered
 

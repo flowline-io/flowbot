@@ -86,13 +86,63 @@ func TestAssembleTrajectory(t *testing.T) {
 	assert.Equal(t, "identity", view.Rows[0].Text)
 	assert.Equal(t, int64(9), view.Rows[0].AssembleMs)
 	assert.Equal(t, "run_terminal", view.Rows[5].ToolName)
+	assert.Equal(t, "call", view.Rows[5].Role)
+	assert.Contains(t, view.Rows[5].Text, "run_terminal")
 	assert.Contains(t, view.Rows[5].Text, "ls")
 	assert.Equal(t, "explore", view.Rows[7].Subagent)
 	assert.Equal(t, "explore", view.Rows[8].Subagent)
+	raw, ok := view.Rows[6].Raw.(map[string]any)
+	require.True(t, ok)
+	assert.JSONEq(t, `{"cmd":"ls"}`, raw["arguments"].(string))
 
 	legacy := assembleTrajectory([]session.TreeEntry{user}, map[string]time.Time{"u1": created})
 	require.Len(t, legacy.Rows, 1)
 	assert.Equal(t, "user", legacy.Rows[0].Kind)
+}
+
+func TestAssembleTrajectoryReordersMidTurnToolResults(t *testing.T) {
+	t.Parallel()
+	created := time.Date(2026, 9, 16, 12, 0, 0, 0, time.UTC)
+	user := session.TreeEntry{
+		ID: "u1", Type: session.EntryMessage, Message: msg.NewUserMessage("list unread"),
+	}
+	// Mid-turn persistence stores tool results before the assistant tool_calls entry.
+	tool := session.TreeEntry{
+		ID:   "t1",
+		Type: session.EntryMessage,
+		Message: msg.ToolResultMessage{
+			ToolCallID: "c1",
+			Name:       "run_terminal",
+			Parts:      []msg.ContentPart{msg.TextPart{Text: "exit code 1"}},
+			IsError:    true,
+			DurationMs: 40,
+		},
+	}
+	assistant := session.TreeEntry{
+		ID:   "a1",
+		Type: session.EntryMessage,
+		Message: msg.AssistantMessage{
+			Parts: []msg.ContentPart{
+				msg.ToolCallPart{ID: "c1", Name: "run_terminal", Arguments: `{"cmd":"python /tmp/bm.py"}`},
+			},
+		},
+	}
+
+	view := assembleTrajectory([]session.TreeEntry{user, tool, assistant}, map[string]time.Time{
+		"u1": created, "t1": created, "a1": created,
+	})
+	require.NotNil(t, view)
+	kinds := make([]string, 0, len(view.Rows))
+	for _, row := range view.Rows {
+		kinds = append(kinds, row.Kind)
+	}
+	assert.Equal(t, []string{"user", "tool_call", "tool"}, kinds)
+	assert.Equal(t, "run_terminal", view.Rows[1].ToolName)
+	assert.Contains(t, view.Rows[1].Text, "python /tmp/bm.py")
+	assert.Equal(t, "error", view.Rows[2].ToolStatus)
+	raw, ok := view.Rows[2].Raw.(map[string]any)
+	require.True(t, ok)
+	assert.JSONEq(t, `{"cmd":"python /tmp/bm.py"}`, raw["arguments"].(string))
 }
 
 func TestAppendTurnTraceSkipsPipeline(t *testing.T) {

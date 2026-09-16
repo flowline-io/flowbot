@@ -85,41 +85,206 @@ func ListSessionTrajectory(ctx context.Context, sessionID string) (*TrajectoryVi
 	return assembleTrajectory(branch, createdAtByID), nil
 }
 
+type toolCallIndex struct {
+	Name      string
+	Arguments string
+	Subagent  string
+}
+
+type trajectoryAssembler struct {
+	view           *TrajectoryView
+	turn           int
+	callsByID      map[string]toolCallIndex
+	subagentByCall map[string]string
+	pendingTools   map[string]TrajectoryRow
+	pendingOrder   []string
+	emittedCalls   map[string]struct{}
+}
+
 func assembleTrajectory(branch []session.TreeEntry, createdAtByID map[string]time.Time) *TrajectoryView {
-	view := &TrajectoryView{Rows: make([]TrajectoryRow, 0, len(branch)*2)}
-	turn := 0
-	subagentByCall := map[string]string{}
+	callsByID := indexBranchToolCalls(branch)
+	a := &trajectoryAssembler{
+		view:           &TrajectoryView{Rows: make([]TrajectoryRow, 0, len(branch)*2)},
+		callsByID:      callsByID,
+		subagentByCall: subagentByCallFromIndex(callsByID),
+		pendingTools:   map[string]TrajectoryRow{},
+		emittedCalls:   map[string]struct{}{},
+	}
 	for _, entry := range branch {
 		createdAt := createdAtByID[entry.ID]
 		if createdAt.IsZero() {
 			createdAt = time.Now().UTC()
 		}
-		switch entry.Type {
-		case session.EntryTurnTrace:
-			nextTurn := turn + 1
-			view.Rows = append(view.Rows, turnTraceRows(entry, nextTurn, createdAt)...)
-		case session.EntryCompaction:
-			text := strings.TrimSpace(entry.Summary)
-			if text == "" {
-				continue
-			}
-			view.Rows = append(view.Rows, TrajectoryRow{
-				ID:        entry.ID,
-				Turn:      turn,
-				Role:      "compaction",
-				Kind:      "compaction",
-				Text:      text,
-				CreatedAt: createdAt,
-				Raw:       map[string]any{"summary": text, "first_kept_entry_id": entry.FirstKeptEntryID},
-			})
-		case session.EntryMessage:
-			if entry.Message == nil {
-				continue
-			}
-			view.Rows = append(view.Rows, trajectoryRowsFromMessage(entry, &turn, createdAt, subagentByCall)...)
+		a.ingestEntry(entry, createdAt)
+	}
+	a.flushPendingTools()
+	return a.view
+}
+
+func subagentByCallFromIndex(callsByID map[string]toolCallIndex) map[string]string {
+	out := map[string]string{}
+	for id, info := range callsByID {
+		if info.Subagent != "" {
+			out[id] = info.Subagent
 		}
 	}
-	return view
+	return out
+}
+
+func (a *trajectoryAssembler) ingestEntry(entry session.TreeEntry, createdAt time.Time) {
+	switch entry.Type {
+	case session.EntryTurnTrace:
+		a.appendRows(turnTraceRows(entry, a.turn+1, createdAt))
+	case session.EntryCompaction:
+		text := strings.TrimSpace(entry.Summary)
+		if text == "" {
+			return
+		}
+		a.appendRows([]TrajectoryRow{{
+			ID:        entry.ID,
+			Turn:      a.turn,
+			Role:      "compaction",
+			Kind:      "compaction",
+			Text:      text,
+			CreatedAt: createdAt,
+			Raw:       map[string]any{"summary": text, "first_kept_entry_id": entry.FirstKeptEntryID},
+		}})
+	case session.EntryMessage:
+		if entry.Message == nil {
+			return
+		}
+		a.appendRows(trajectoryRowsFromMessage(entry, &a.turn, createdAt, a.subagentByCall))
+	}
+}
+
+func (a *trajectoryAssembler) appendRows(rows []TrajectoryRow) {
+	for _, row := range rows {
+		switch row.Kind {
+		case "tool_call":
+			a.appendToolCall(row)
+		case "tool":
+			a.appendToolResult(row)
+		default:
+			a.view.Rows = append(a.view.Rows, row)
+		}
+	}
+}
+
+func (a *trajectoryAssembler) appendToolCall(row TrajectoryRow) {
+	callID := toolCallIDFromRow(row)
+	a.view.Rows = append(a.view.Rows, row)
+	if callID == "" {
+		return
+	}
+	a.emittedCalls[callID] = struct{}{}
+	if pending, ok := a.pendingTools[callID]; ok {
+		a.view.Rows = append(a.view.Rows, enrichToolResultRow(pending, a.callsByID[callID]))
+		delete(a.pendingTools, callID)
+	}
+}
+
+func (a *trajectoryAssembler) appendToolResult(row TrajectoryRow) {
+	callID := toolCallIDFromRow(row)
+	row = enrichToolResultRow(row, a.callsByID[callID])
+	if callID == "" {
+		a.view.Rows = append(a.view.Rows, row)
+		return
+	}
+	if _, seen := a.emittedCalls[callID]; seen {
+		a.view.Rows = append(a.view.Rows, row)
+		return
+	}
+	if _, later := a.callsByID[callID]; later {
+		if _, exists := a.pendingTools[callID]; !exists {
+			a.pendingOrder = append(a.pendingOrder, callID)
+		}
+		a.pendingTools[callID] = row
+		return
+	}
+	a.view.Rows = append(a.view.Rows, row)
+}
+
+func (a *trajectoryAssembler) flushPendingTools() {
+	for _, callID := range a.pendingOrder {
+		if row, ok := a.pendingTools[callID]; ok {
+			a.view.Rows = append(a.view.Rows, row)
+		}
+	}
+}
+
+func indexBranchToolCalls(branch []session.TreeEntry) map[string]toolCallIndex {
+	out := make(map[string]toolCallIndex)
+	for _, entry := range branch {
+		if entry.Type != session.EntryMessage {
+			continue
+		}
+		m, ok := entry.Message.(msg.AssistantMessage)
+		if !ok {
+			continue
+		}
+		for _, call := range m.ToolCalls() {
+			id := strings.TrimSpace(call.ID)
+			if id == "" {
+				continue
+			}
+			subagent := ""
+			if call.Name == delegateSubagentToolName {
+				subagent = subagentTypeFromArgs(call.Arguments)
+			}
+			out[id] = toolCallIndex{
+				Name:      call.Name,
+				Arguments: call.Arguments,
+				Subagent:  subagent,
+			}
+		}
+	}
+	return out
+}
+
+func toolCallIDFromRow(row TrajectoryRow) string {
+	raw, ok := row.Raw.(map[string]any)
+	if !ok {
+		return ""
+	}
+	if id, ok := raw["tool_call_id"].(string); ok {
+		return strings.TrimSpace(id)
+	}
+	if id, ok := raw["id"].(string); ok {
+		return strings.TrimSpace(id)
+	}
+	return ""
+}
+
+func rawString(raw map[string]any, key string) string {
+	value, ok := raw[key].(string)
+	if !ok {
+		return ""
+	}
+	return strings.TrimSpace(value)
+}
+
+func enrichToolResultRow(row TrajectoryRow, info toolCallIndex) TrajectoryRow {
+	if info.Name != "" && strings.TrimSpace(row.ToolName) == "" {
+		row.ToolName = info.Name
+	}
+	if info.Subagent != "" && row.Subagent == "" {
+		row.Subagent = info.Subagent
+	}
+	raw, ok := row.Raw.(map[string]any)
+	if !ok {
+		raw = map[string]any{}
+		row.Raw = raw
+	}
+	if info.Arguments != "" {
+		raw["arguments"] = info.Arguments
+	}
+	if info.Name != "" && rawString(raw, "name") == "" {
+		raw["name"] = info.Name
+	}
+	if info.Subagent != "" && rawString(raw, "subagent") == "" {
+		raw["subagent"] = info.Subagent
+	}
+	return row
 }
 
 func turnTraceRows(entry session.TreeEntry, turn int, createdAt time.Time) []TrajectoryRow {
@@ -243,12 +408,16 @@ func trajectoryRowFromToolCall(entryID string, turn int, ts time.Time, i int, ca
 			subagentByCall[callID] = subagent
 		}
 	}
+	text := msg.SummarizeToolCallParts([]msg.ToolCallPart{call})
+	if text == "" {
+		text = call.Arguments
+	}
 	return TrajectoryRow{
 		ID:        entryID + "/tool_call/" + callID,
 		Turn:      turn,
-		Role:      "assistant",
+		Role:      "call",
 		Kind:      "tool_call",
-		Text:      call.Arguments,
+		Text:      text,
 		ToolName:  call.Name,
 		Subagent:  subagent,
 		CreatedAt: ts,

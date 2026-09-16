@@ -195,6 +195,44 @@
       track('Tools', tot.tools, 'is-tools');
   }
 
+  function rowChipLabel(row) {
+    if (row.kind === 'tool_call') {
+      return 'CALL';
+    }
+    return (row.role || row.kind || '').toUpperCase();
+  }
+
+  function rowPreview(row) {
+    if (!row) {
+      return '';
+    }
+    if (row.kind === 'tool_call') {
+      return row.text || row.tool_name || '';
+    }
+    if (row.kind === 'tool') {
+      var name = row.tool_name || 'tool';
+      if (row.subagent) {
+        name = row.subagent;
+      }
+      if (row.tool_status === 'error') {
+        name += ' · error';
+      }
+      var body = row.text || '';
+      if (!body) {
+        return name;
+      }
+      return name + ' → ' + body;
+    }
+    return row.text || row.tool_name || '';
+  }
+
+  function truncatePreview(text) {
+    if (!text || text.length <= 240) {
+      return text || '';
+    }
+    return text.slice(0, 240) + '…';
+  }
+
   function renderLog(root, rows) {
     var el = root.querySelector('#chatagent-trajectory-log');
     if (!el) {
@@ -208,20 +246,22 @@
       item.className = 'chatagent-trajectory-row';
       item.setAttribute('data-testid', 'chatagent-trajectory-row');
       item.setAttribute('data-row-id', row.id);
+      if (row.kind) {
+        item.setAttribute('data-row-kind', row.kind);
+      }
+      if (row.tool_name) {
+        item.setAttribute('data-tool-name', row.tool_name);
+      }
       if (row.id === st.selectedId) {
         item.classList.add('is-selected');
       }
       var chip = document.createElement('span');
       chip.className =
         'flowbot-chip chatagent-trajectory-chip is-' + (row.kind || row.role);
-      chip.textContent = (row.role || row.kind || '').toUpperCase();
+      chip.textContent = rowChipLabel(row);
       var body = document.createElement('span');
       body.className = 'chatagent-trajectory-row-text';
-      var preview = row.text || row.tool_name || '';
-      if (preview.length > 240) {
-        preview = preview.slice(0, 240) + '…';
-      }
-      body.textContent = preview;
+      body.textContent = truncatePreview(rowPreview(row));
       item.appendChild(chip);
       item.appendChild(body);
       item.addEventListener('click', function () {
@@ -241,6 +281,45 @@
     return null;
   }
 
+  function inspectorTitle(row) {
+    var parts = [(row.role || row.kind || '').toUpperCase()];
+    if (row.turn) {
+      parts[0] += ' Turn ' + row.turn;
+    }
+    if (row.tool_name) {
+      parts.push(row.tool_name);
+    } else if (row.subagent) {
+      parts.push(row.subagent);
+    }
+    return parts.join(' · ');
+  }
+
+  function inspectorPreview(row) {
+    if (row.kind === 'tool_call') {
+      return row.text || '';
+    }
+    if (row.kind === 'tool') {
+      var lines = [];
+      var raw = row.raw && typeof row.raw === 'object' ? row.raw : null;
+      var name = row.tool_name || (raw && raw.name) || '';
+      var args = raw && raw.arguments != null ? String(raw.arguments) : '';
+      if (name) {
+        lines.push(name);
+      }
+      if (args) {
+        lines.push(args);
+      }
+      if (row.text) {
+        if (lines.length) {
+          lines.push('');
+        }
+        lines.push(row.text);
+      }
+      return lines.join('\n');
+    }
+    return row.text || '';
+  }
+
   function renderInspector(root) {
     var st = stateFor(root);
     var panel = root.querySelector('#chatagent-trajectory-inspector');
@@ -258,12 +337,7 @@
     panel.classList.remove('hidden');
     panel.hidden = false;
     if (title) {
-      title.textContent =
-        (row.role || '').toUpperCase() +
-        (row.turn ? ' Turn ' + row.turn : '') +
-        (row.kind === 'tool_call' && row.tool_name
-          ? ' · ' + row.tool_name
-          : '');
+      title.textContent = inspectorTitle(row);
     }
     root.querySelectorAll('[data-inspector-tab]').forEach(function (btn) {
       btn.classList.toggle(
@@ -278,7 +352,7 @@
         2,
       );
     } else {
-      body.textContent = row.text || '';
+      body.textContent = inspectorPreview(row);
     }
   }
 
