@@ -95,9 +95,10 @@ jobs:
           cid="$(docker run -d --rm -p 127.0.0.1:9222:9222 "$IMAGE")"
           cleanup() { docker stop "$cid" >/dev/null 2>&1 || true; }
           trap cleanup EXIT
-          for i in $(seq 1 30); do
+          for i in $(seq 1 45); do
             if curl -sf "http://127.0.0.1:9222/json/version" >/tmp/cdp-version.json; then
               cat /tmp/cdp-version.json
+              grep -Eq '"webSocketDebuggerUrl"|"Browser"' /tmp/cdp-version.json
               exit 0
             fi
             sleep 1

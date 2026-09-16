@@ -30,6 +30,8 @@ Then set `driver: playwright` and `endpoint: ws://playwright-cdp:9222` (or `ws:/
 | Lightpanda CDP | [`deployments/lightpanda/Dockerfile`](../../deployments/lightpanda/Dockerfile) | `ghcr.io/flowline-io/flowbot-lightpanda` |
 | Chromium CDP | [`deployments/playwright-cdp/Dockerfile`](../../deployments/playwright-cdp/Dockerfile) | `ghcr.io/flowline-io/flowbot-playwright-cdp` |
 
+Chromium binds DevTools to loopback inside the container; the playwright-cdp image proxies `0.0.0.0:9222` → `127.0.0.1:9223` with `socat` so Compose siblings and host port maps can reach CDP.
+
 Release tags use **`cdp-v*`** (independent of server `v*` and sandbox `sandbox-v*`). Workflow: [`.github/workflows/docker-browser-cdp.yml`](../../.github/workflows/docker-browser-cdp.yml) (also supports manual `workflow_dispatch`).
 
 ```bash

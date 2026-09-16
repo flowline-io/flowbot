@@ -3,7 +3,15 @@
 FROM mcr.microsoft.com/playwright:v1.55.0-jammy
 
 USER root
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends socat \
+	&& rm -rf /var/lib/apt/lists/*
+
+COPY deployments/playwright-cdp/entrypoint.sh /usr/local/bin/playwright-cdp-entrypoint
+RUN chmod 0755 /usr/local/bin/playwright-cdp-entrypoint
+
 EXPOSE 9222
 
-# Playwright caches Chromium under /ms-playwright; resolve the chrome binary at start.
-CMD ["bash", "-lc", "exec \"$(find /ms-playwright -type f -path '*/chrome-linux/chrome' | head -n1)\" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222 about:blank"]
+# Chromium listens on 127.0.0.1:9223; entrypoint proxies 0.0.0.0:9222 via socat.
+CMD ["playwright-cdp-entrypoint"]
