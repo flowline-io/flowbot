@@ -2,26 +2,44 @@
 
 ## Unreleased
 
+## [0.99.13]
+
 ### Breaking
 
 - Security hardening: `/service/web` requires `admin:*` and full browser sessions only (`kind=full`); API tokens with only `pipeline:*` can no longer use the Web UI or mint broader scopes. Pipeline/function/workflow webhook auth no longer accepts `?token=` — use header `X-Webhook-Token` or HMAC. Reference config defaults to `listen: "127.0.0.1:6060"` and platforms disabled; Docker/proxy deploys must set `listen: ":6060"`. See [.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md](.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md).
 - Functions, pipeline, and workflow REST modules merge into one `automate` module: paths are `/service/automate/{functions|pipeline|workflow}`; config is `modules.automate.enabled` (orphan `modules.workflow` / `modules.pipeline` keys are ignored). Token scopes stay `function:*` / `pipeline:*` / `workflow:*`. See [.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md](.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md).
 - DeepSeek catalog id is `deepseek-flash` only (DeepSeek V4.1 Flash, vision + thinking). `deepseek-v4-flash` / `deepseek-v4-pro` are removed; configs still using those ids get unknown-model defaults. See [.agents/notes/implemented/feature/2026-09-11-deepseek-v41-flash.md](.agents/notes/implemented/feature/2026-09-11-deepseek-v41-flash.md).
+- Homelab discovery is host-side only: probes use host-published TCP ports; `probe_networks` / `probe_port_strategy` removed; fingerprints are path-reachability only; one compose file binds one capability. See [.agents/notes/implemented/simplification/2026-09-11-homelab-discovery-host-contracts.md](.agents/notes/implemented/simplification/2026-09-11-homelab-discovery-host-contracts.md).
+- Chat-agent sandbox drops `chat_agent.sandbox.cli_path`; Docker injects the sibling `flowbot-cli_linux_amd64` (and credentials) via the Engine API instead of bind mounts. See [.agents/notes/implemented/simplification/2026-09-16-sandbox-cli-api-inject.md](.agents/notes/implemented/simplification/2026-09-16-sandbox-cli-api-inject.md).
 
 ### Added
 
 - Chat agent `present_html` tool: interactive HTML artifacts with sandboxed iframe preview (`sandbox="allow-scripts"`, CSP `connect-src 'none'`), Preview/Source tabs, and transcript-only persistence (256KB cap). See [.agents/notes/implemented/feature/2026-09-11-chat-html-artifacts.md](.agents/notes/implemented/feature/2026-09-11-chat-html-artifacts.md).
 - GitHub community onboarding: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, PR template, and issue templates (bug / feature / provider / docs / UI). See [.agents/notes/implemented/process/2026-09-11-github-community-onboarding.md](.agents/notes/implemented/process/2026-09-11-github-community-onboarding.md).
+- Reserved agent hooks: `before_provider_request` (patch stream options), `session_before_compact` / `session_before_tree` (first-cancel / last-custom-result). See [.agents/notes/implemented/feature/2026-09-11-agent-reserved-hooks-wiring.md](.agents/notes/implemented/feature/2026-09-11-agent-reserved-hooks-wiring.md).
 
 ### Changed
 
 - Toolchain upgraded to Go 1.27.1 (`go.mod`, CI pins, Docker images, FaaS `go 1.27` module line); `task build` drops `GOEXPERIMENT=goroutineleakprofile` (stable in 1.27). See [.agents/notes/implemented/process/2026-09-14-go-1.27.1-upgrade.md](.agents/notes/implemented/process/2026-09-14-go-1.27.1-upgrade.md).
 - Webhook migration UX after dropping `?token=`: UI marks Header/HMAC only, one-click curl examples, and audit warnings (`webhook.auth.query_token_deprecated`) for legacy query-token calls. See [.agents/notes/implemented/feature/2026-09-11-webhook-query-token-migration-ux.md](.agents/notes/implemented/feature/2026-09-11-webhook-query-token-migration-ux.md).
 - Durable docs under `docs/` aligned to current modules (`automate`), `pkg/capability`, provider/package/CI inventories, and automate REST prefixes. See [.agents/notes/implemented/process/2026-09-11-docs-sync-current-code.md](.agents/notes/implemented/process/2026-09-11-docs-sync-current-code.md).
+- Slack Socket Mode enablement requires only `app_token` + `bot_token`; OAuth/signing fields stay optional. Config/fx Provide failures print before `flog.Init`. See [.agents/notes/implemented/bug-fix/2026-09-11-slack-socket-mode-validation-and-fx-errors.md](.agents/notes/implemented/bug-fix/2026-09-11-slack-socket-mode-validation-and-fx-errors.md).
+- Taskfile: drop `cloc` / documented `air` / `leak`; parallelize `lint`, `build:all`, and `check` via Task `deps`. See [.agents/notes/implemented/simplification/2026-09-11-taskfile-cleanup.md](.agents/notes/implemented/simplification/2026-09-11-taskfile-cleanup.md).
+- Revive rules tightened (`package-naming`, `bare-return`, `use-errors-new`, …); `lint:go` and gosec exclude `internal/store/ent/gen`. See [.agents/notes/implemented/process/2026-09-11-revive-rules-tighten.md](.agents/notes/implemented/process/2026-09-11-revive-rules-tighten.md) and [.agents/notes/implemented/process/2026-09-11-gosec-g115-and-ent-gen-exclude.md](.agents/notes/implemented/process/2026-09-11-gosec-g115-and-ent-gen-exclude.md).
+- DeepSource enables advisory JavaScript/CSS analyzers for first-party `public/js` and hand-written CSS (vendor / generated `app.css` / `docs/website` excluded). See [.agents/notes/implemented/process/2026-09-11-deepsource-public-js-css.md](.agents/notes/implemented/process/2026-09-11-deepsource-public-js-css.md).
+
+### Fixed
+
+- Opaque pagination cursors use `validate.CursorMaxLen` (4096); bookmark/Trilium list validators no longer reject signed next cursors at 100. Bookmark CLI `-o json` emits `{data, page}` with `page.next_cursor`. See [.agents/notes/implemented/bug-fix/2026-09-16-cursor-max-len-vs-query.md](.agents/notes/implemented/bug-fix/2026-09-16-cursor-max-len-vs-query.md).
+- Chat-agent sandbox CLI `server_url` must reach the same listen port as the host process (`host.docker.internal` / `127.0.0.1`). See [.agents/notes/implemented/bug-fix/2026-09-16-sandbox-cli-server-url-port.md](.agents/notes/implemented/bug-fix/2026-09-16-sandbox-cli-server-url-port.md).
+- LLM generate / complete errors include `model=<name>` so dual-model routing failures name the failing model. See [.agents/notes/implemented/bug-fix/2026-09-16-llm-generate-error-includes-model.md](.agents/notes/implemented/bug-fix/2026-09-16-llm-generate-error-includes-model.md).
+- Concurrent wasm plugin loads serialize `wazero.NewRuntime` to avoid a version-cache data race (wazero v1.12.0). See [.agents/notes/implemented/bug-fix/2026-09-15-wazero-newruntime-version-race.md](.agents/notes/implemented/bug-fix/2026-09-15-wazero-newruntime-version-race.md).
+- Gosec G115: range-checked integer conversions in capability params / TOTP / palette indexing; Fiber authorize redirect errors handled. See [.agents/notes/implemented/process/2026-09-11-gosec-g115-and-ent-gen-exclude.md](.agents/notes/implemented/process/2026-09-11-gosec-g115-and-ent-gen-exclude.md).
 
 ### Security
 
 - Web login redirects reject open-redirect tricks; agent `web_fetch` SSRF aligns with `core.http_request`; notify templates use hermetic Sprig (no `env`); login rate limit fails closed on Redis errors; `POST /agent` requires `admin:*`; OAuth tokens sealed at rest with the web auth key. See [.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md](.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md).
+
 ## [0.99.12]
 
 ### Added
@@ -244,6 +262,7 @@ Notable changes through this tag that were previously listed under Unreleased:
 - Notify capability no longer advertises unimplemented `digest` op (use aggregate rules).
 - Karakeep `delete` archives; Miniflux star/unstar via API.
 
+[0.99.13]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.13
 [0.99.12]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.12
 [0.99.11]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.11
 [0.99.10]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.10
