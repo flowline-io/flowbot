@@ -450,6 +450,24 @@ other = "Provider"
 ["settings.desc.modules"]
 other = "模块配置"
 
+["settings.desc.pii"]
+other = "出站 LLM 经 Presidio Analyzer 的会话内可逆 PII 匿名化"
+
+["settings.desc.pii.analyzer_url"]
+other = "Presidio Analyzer 基址（例如 http://presidio-analyzer:3000）"
+
+["settings.desc.pii.enabled"]
+other = "开启后在 GenerateContent 前匿名化；默认关闭"
+
+["settings.desc.pii.score_threshold"]
+other = "丢弃低于此分数的 Analyzer span；零则默认 0.5"
+
+["settings.desc.pii.session_ttl"]
+other = "内存占位符表的滑动空闲 TTL；零则默认 24h"
+
+["settings.desc.pii.timeout"]
+other = "单次 Analyzer 请求超时；零则默认 15s"
+
 ["settings.desc.platform"]
 other = "Platform"
 

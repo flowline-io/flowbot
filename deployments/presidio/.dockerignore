@@ -1,0 +1,6 @@
+# Ignore host noise; Dockerfile context is the repo root.
+**/.git
+**/node_modules
+**/bin
+**/uploads
+**/*.exe

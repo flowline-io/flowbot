@@ -1,0 +1,74 @@
+# Recognizer registry for Flowbot: en+zh regex + CN phone/ID + spaCy NER via NLP engine.
+supported_languages:
+  - en
+  - zh
+global_regex_flags: 26
+
+recognizers:
+  - name: CreditCardRecognizer
+    supported_languages:
+      - language: en
+      - language: zh
+    type: predefined
+
+  - name: CryptoRecognizer
+    type: predefined
+
+  - name: DateRecognizer
+    type: predefined
+
+  - name: EmailRecognizer
+    type: predefined
+
+  - name: IbanRecognizer
+    type: predefined
+
+  - name: IpRecognizer
+    type: predefined
+
+  - name: MacAddressRecognizer
+    type: predefined
+
+  - name: PhoneRecognizer
+    type: predefined
+
+  - name: UrlRecognizer
+    type: predefined
+
+  - name: UuidRecognizer
+    type: predefined
+
+  - name: UsSsnRecognizer
+    supported_languages:
+      - en
+    type: predefined
+    country_code: us
+
+  - name: CnPhoneRecognizer
+    supported_languages:
+      - language: zh
+        context: [手机, 电话, 联系, 微信, 号码]
+      - language: en
+        context: [phone, mobile, cell, wechat]
+    patterns:
+      - name: "cn_mobile"
+        regex: "(?<![0-9])(?:\\+?86[\\s-]?)?1[3-9]\\d{9}(?![0-9])"
+        score: 0.7
+    supported_entity: "PHONE_NUMBER"
+    type: custom
+
+  - name: CnIdCardRecognizer
+    supported_languages:
+      - language: zh
+        context: [身份证, 证件号, 身份证号]
+      - language: en
+        context: [id, identity, national]
+    patterns:
+      - name: "cn_id_18"
+        regex: "(?<![0-9])[1-9]\\d{5}(?:19|20)\\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\\d|3[01])\\d{3}[0-9Xx](?![0-9A-Za-z])"
+        score: 0.6
+      - name: "cn_id_15"
+        regex: "(?<![0-9])[1-9]\\d{7}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\\d|3[01])\\d{3}(?![0-9])"
+        score: 0.4
+    supported_entity: "CN_ID_CARD"
+    type: custom

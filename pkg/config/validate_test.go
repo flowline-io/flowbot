@@ -154,6 +154,30 @@ func TestValidate_Format(t *testing.T) {
 			mutate:  func(c *Type) { c.Flowbot.URL = "not-a-url" },
 			wantErr: "flowbot.URL",
 		},
+		{
+			name: "pii enabled requires analyzer_url",
+			mutate: func(c *Type) {
+				c.PII.Enabled = true
+				c.PII.AnalyzerURL = ""
+			},
+			wantErr: "pii.analyzer_url",
+		},
+		{
+			name: "pii disabled allows empty analyzer_url",
+			mutate: func(c *Type) {
+				c.PII.Enabled = false
+				c.PII.AnalyzerURL = ""
+			},
+			noErr: true,
+		},
+		{
+			name: "pii enabled with analyzer_url",
+			mutate: func(c *Type) {
+				c.PII.Enabled = true
+				c.PII.AnalyzerURL = "http://presidio-analyzer:3000"
+			},
+			noErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -8,6 +8,29 @@ func (t *Type) Normalize() {
 	t.normalizePostgres()
 	t.normalizeMedia()
 	t.normalizeChatAgentMedia()
+	t.normalizePII()
+}
+
+const (
+	// DefaultPIITimeout is applied when pii.timeout is zero.
+	DefaultPIITimeout = 15 * time.Second
+	// DefaultPIIScoreThreshold is applied when pii.score_threshold is zero.
+	DefaultPIIScoreThreshold = 0.5
+	// DefaultPIISessionTTL is applied when pii.session_ttl is zero.
+	DefaultPIISessionTTL = 24 * time.Hour
+)
+
+// normalizePII fills zero PII tunables with built-in defaults.
+func (t *Type) normalizePII() {
+	if t.PII.Timeout <= 0 {
+		t.PII.Timeout = DefaultPIITimeout
+	}
+	if t.PII.ScoreThreshold <= 0 {
+		t.PII.ScoreThreshold = DefaultPIIScoreThreshold
+	}
+	if t.PII.SessionTTL <= 0 {
+		t.PII.SessionTTL = DefaultPIISessionTTL
+	}
 }
 
 // normalizePostgres maps PostgresConfig into the internal StoreType view used by store.Open.

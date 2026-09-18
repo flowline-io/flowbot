@@ -25,6 +25,7 @@ type AgentCollector struct {
 	loopDetectTotal      *prometheus.CounterVec
 	sensorLintTotal      *prometheus.CounterVec
 	approvalVerdictTotal *prometheus.CounterVec
+	piiTotal             *prometheus.CounterVec
 }
 
 // NewAgentCollector creates an AgentCollector backed by stats.
@@ -111,6 +112,11 @@ func (c *AgentCollector) registerGuardCounters(st *stats.Stats) bool {
 	c.approvalVerdictTotal, err = st.RegisterCounterVec("agent_approval_verdict_total", "Auto approval reviewer verdicts", "verdict")
 	if err != nil {
 		log.Printf("[metrics] agent: failed to register approval_verdict_total: %v", err)
+		return false
+	}
+	c.piiTotal, err = st.RegisterCounterVec("agent_pii_total", "Outbound LLM PII anonymization by status", "status")
+	if err != nil {
+		log.Printf("[metrics] agent: failed to register pii_total: %v", err)
 		return false
 	}
 	return true
@@ -240,4 +246,13 @@ func (c *AgentCollector) IncApprovalVerdict(verdict string) {
 	}
 	defer recoverLog("agent_approval_verdict_total")
 	c.approvalVerdictTotal.WithLabelValues(sanitizeLabel(verdict)).Inc()
+}
+
+// IncPII increments the outbound LLM PII anonymization counter (ok|error|disabled).
+func (c *AgentCollector) IncPII(status string) {
+	if c.piiTotal == nil {
+		return
+	}
+	defer recoverLog("agent_pii_total")
+	c.piiTotal.WithLabelValues(sanitizeLabel(status)).Inc()
 }

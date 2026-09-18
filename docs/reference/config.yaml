@@ -92,6 +92,15 @@ profiling:
   # environment: "development"
   # profile_types: [cpu, alloc_objects, alloc_space, inuse_objects, inuse_space, goroutines]
 
+# Outbound LLM PII anonymization via Presidio Analyzer (Compose profile: pii).
+# See .agents/notes/implemented/architecture/2026-09-18-llm-presidio-anonymizer.md
+# pii:
+#   enabled: false
+#   analyzer_url: "http://127.0.0.1:3000"  # compose: http://presidio-analyzer:3000
+#   timeout: 15s
+#   score_threshold: 0.5
+#   session_ttl: 24h
+
 # Search URL base map
 search:
   url_base_map:

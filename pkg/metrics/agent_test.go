@@ -28,6 +28,7 @@ func TestAgentCollectorNoop(t *testing.T) {
 		{name: "IncLoopDetect", fn: func() { c.IncLoopDetect("generic_repeat", "warn") }},
 		{name: "IncSensorLint", fn: func() { c.IncSensorLint("ok") }},
 		{name: "IncApprovalVerdict", fn: func() { c.IncApprovalVerdict("approve") }},
+		{name: "IncPII", fn: func() { c.IncPII("ok") }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -128,6 +128,7 @@ func generateSessionTitleAsync(
 ) {
 	ctx, cancel := context.WithTimeout(context.Background(), sessionTitleGenTimeout)
 	defer cancel()
+	ctx = agentllm.WithPIISession(ctx, sessionID)
 
 	title, err := llmGen(ctx, userText, reply, chatModel, modelResolver)
 	if err != nil {

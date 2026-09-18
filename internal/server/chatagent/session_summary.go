@@ -202,6 +202,7 @@ func generateSessionSummaryForSession(ctx context.Context, sessionID, existingTi
 
 	genCtx, cancel := context.WithTimeout(ctx, sessionSummaryGenTimeout)
 	defer cancel()
+	genCtx = agentllm.WithPIISession(genCtx, sessionID)
 	summary, err = llmGen(genCtx, input, chatModel, modelResolver)
 	if err != nil {
 		return "", "", err

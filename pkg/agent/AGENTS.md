@@ -15,7 +15,7 @@ agent/
 ├── result/                       # Result[T,E], typed errors, overflow helpers
 ├── event/                        # Lifecycle event stream
 ├── loop/                         # Observe-Think-Act + stateful Agent runtime
-├── llm/                          # langchaingo adapter, retry, fake model
+├── llm/                          # langchaingo adapter, retry, fake model, optional Presidio PII wrap
 ├── tool/                         # Registry, schema, executor, ValidateArgs, FormatToolError
 ├── session/                      # Session tree + Storage interface + JSONL helpers
 ├── model/                        # Model catalog and dual-model router
@@ -47,6 +47,7 @@ External callers may keep importing `pkg/agent` for types (`AgentMessage`, `NewA
 ## Non-obvious rules
 
 - **langchaingo**: only `llms.Model` in `pkg/agent/llm` — no agents/chains. Parallel tool-call SSE rewrite: [note](../../.agents/notes/implemented/bug-fix/2026-08-30-llm-parallel-toolcall-stream-index.md).
+- **PII**: `NewModel` always wraps with `piiModel`; outbound anonymization is gated by top-level `pii.enabled` per request. Session tables via `WithPIISession`. [note](../../.agents/notes/implemented/architecture/2026-09-18-llm-presidio-anonymizer.md).
 - **Modules**: prefer `pkg/agent/llm` for single-shot LLM. Web may import already-wired packages (`permission`; tests: `model`/`msg`/`session`); do not import other `pkg/agent` packages from modules until wired.
 - Distinct from `pkg/types/agent.go` (instruct) and YAML `chat_agent` config.
 - JSON/JSONL: `sonic`. Metrics: `metrics.Agent()` — low-cardinality labels (`status`, `model`, `tool`, `level`); never `session_id`.

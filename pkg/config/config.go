@@ -106,12 +106,29 @@ type Type struct {
 
 	// Retention controls optional automatic cleanup of durable history tables.
 	Retention RetentionConfig `json:"retention" yaml:"retention" mapstructure:"retention"`
+
+	// PII configures outbound LLM reversible anonymization via Presidio Analyzer.
+	PII PIIConfig `json:"pii" yaml:"pii" mapstructure:"pii"`
 }
 
 // RetentionConfig configures optional TTL cleanup for durable rows.
 type RetentionConfig struct {
 	// DataEventsDays deletes data_events older than this many days when > 0. Zero disables.
 	DataEventsDays int `json:"data_events_days" yaml:"data_events_days" mapstructure:"data_events_days"`
+}
+
+// PIIConfig configures session-scoped reversible PII anonymization for LLM traffic.
+type PIIConfig struct {
+	// Enabled turns on Analyzer-backed anonymization before GenerateContent. Default false.
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// AnalyzerURL is the Presidio Analyzer base URL (e.g. http://presidio-analyzer:3000).
+	AnalyzerURL string `json:"analyzer_url" yaml:"analyzer_url" mapstructure:"analyzer_url"`
+	// Timeout limits one Analyzer request; zero defaults to 15s.
+	Timeout time.Duration `json:"timeout" yaml:"timeout" mapstructure:"timeout"`
+	// ScoreThreshold drops Analyzer spans below this score; zero defaults to 0.5.
+	ScoreThreshold float64 `json:"score_threshold" yaml:"score_threshold" mapstructure:"score_threshold"`
+	// SessionTTL is the sliding idle TTL for in-memory placeholder tables; zero defaults to 24h.
+	SessionTTL time.Duration `json:"session_ttl" yaml:"session_ttl" mapstructure:"session_ttl"`
 }
 
 // Tracing configures OpenTelemetry distributed tracing.

@@ -48,6 +48,24 @@ docker compose up -d --build
 
 3. Open `http://localhost:6060/service/web/login` (or `/service/web/setup` on a fresh DB). Complete TOTP enrollment. Do not expose the management port to the public internet before the first admin account exists.
 
+### Optional: LLM PII (Presidio)
+
+Outbound LLM reversible anonymization is off by default. To enable:
+
+```bash
+docker compose --profile pii up -d
+```
+
+Set in `flowbot.yaml`:
+
+```yaml
+pii:
+  enabled: true
+  analyzer_url: "http://presidio-analyzer:3000"  # or http://127.0.0.1:3000 on the host
+```
+
+Image: `ghcr.io/flowline-io/flowbot-presidio-analyzer`. Rationale: [.agents/notes/implemented/architecture/2026-09-18-llm-presidio-anonymizer.md](../.agents/notes/implemented/architecture/2026-09-18-llm-presidio-anonymizer.md).
+
 Health probes:
 
 | Path | Meaning |

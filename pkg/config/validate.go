@@ -55,11 +55,25 @@ func (t *Type) Validate() error {
 	modelNames := make(map[string]bool)
 	errs, modelNames = t.validateModels(errs, modelNames)
 	errs = t.validateChatAgent(errs, modelNames)
+	errs = t.validatePII(errs)
 
 	if len(errs) > 0 {
 		return errs
 	}
 	return nil
+}
+
+// validatePII requires analyzer_url when PII anonymization is enabled.
+func (t *Type) validatePII(errs ValidationErrors) ValidationErrors {
+	if !t.PII.Enabled {
+		return errs
+	}
+	if strings.TrimSpace(t.PII.AnalyzerURL) == "" {
+		errs = append(errs, errors.New(
+			"pii.analyzer_url: must not be empty when pii.enabled is true. Fix: set pii.analyzer_url in flowbot.yaml (e.g. http://presidio-analyzer:3000)",
+		))
+	}
+	return errs
 }
 
 // validateStructTags runs playground-validator struct tag checks on sub-structs.

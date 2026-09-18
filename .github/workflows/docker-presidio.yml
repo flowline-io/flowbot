@@ -1,0 +1,109 @@
+name: Docker Presidio Analyzer
+
+on:
+  push:
+    tags:
+      - presidio-v*
+  workflow_dispatch:
+    inputs:
+      tag_suffix:
+        description: 'Optional tag suffix (e.g. dev-abc1234)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout server repo
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Generate docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/flowline-io/flowbot-presidio-analyzer
+          tags: |
+            type=match,pattern=presidio-v(\d+\.\d+\.\d+),group=1
+            type=match,pattern=presidio-v(\d+\.\d+)\.\d+,group=1
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/presidio-v') }}
+            type=ref,event=tag
+            type=raw,value=dev-${{ github.sha }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix == '' }}
+            type=raw,value=${{ inputs.tag_suffix }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix != '' }}
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: deployments/presidio/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=presidio-analyzer
+          cache-to: type=gha,mode=max,scope=presidio-analyzer
+          annotations: ${{ steps.meta.outputs.annotations }}
+
+      - name: Resolve smoke test tag
+        id: smoketag
+        run: |
+          ref_name="${{ github.ref_name }}"
+          tag_suffix="${{ inputs.tag_suffix }}"
+          if [[ "${{ github.ref_type }}" == "tag" ]] && [[ "$ref_name" == presidio-v* ]]; then
+            echo "value=${ref_name#presidio-v}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$tag_suffix" ]]; then
+            echo "value=${tag_suffix}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=dev-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Smoke test Analyzer en+zh
+        run: |
+          set -euo pipefail
+          IMAGE="ghcr.io/flowline-io/flowbot-presidio-analyzer:${{ steps.smoketag.outputs.value }}"
+          docker pull "$IMAGE"
+          docker image inspect "$IMAGE" --format 'image_size_bytes={{.Size}}'
+          cid="$(docker run -d --rm -p 127.0.0.1:3000:3000 "$IMAGE")"
+          trap 'docker stop "$cid" >/dev/null 2>&1 || true' EXIT
+          n=0
+          while [ "$n" -lt 120 ]; do
+            if curl -sf "http://127.0.0.1:3000/health" >/dev/null; then
+              break
+            fi
+            n=$((n + 1))
+            sleep 2
+          done
+          if ! curl -sf "http://127.0.0.1:3000/health" >/dev/null; then
+            echo "Analyzer /health not ready for $IMAGE" >&2
+            docker logs "$cid" || true
+            exit 1
+          fi
+          # English email / person
+          curl -sf -X POST "http://127.0.0.1:3000/analyze" \
+            -H 'Content-Type: application/json' \
+            -d '{"text":"Contact Jane Doe at jane.doe@example.com","language":"en"}' \
+            | tee /tmp/presidio-en.json
+          grep -Eqi 'EMAIL|PERSON' /tmp/presidio-en.json
+          # Chinese phone / ID card
+          curl -sf -X POST "http://127.0.0.1:3000/analyze" \
+            -H 'Content-Type: application/json' \
+            -d '{"text":"手机 13812345678 身份证 110101199001011234","language":"zh"}' \
+            | tee /tmp/presidio-zh.json
+          grep -Eqi 'PHONE|CN_ID|PERSON' /tmp/presidio-zh.json

@@ -48,6 +48,25 @@ services:
     ports:
       - "127.0.0.1:9223:9222"
 
+  # Optional Presidio Analyzer for LLM PII: docker compose --profile pii up -d
+  # Enable in flowbot.yaml: pii.enabled: true, pii.analyzer_url: http://presidio-analyzer:3000
+  # See .agents/notes/implemented/architecture/2026-09-18-llm-presidio-anonymizer.md
+  presidio-analyzer:
+    profiles: ["pii"]
+    image: ghcr.io/flowline-io/flowbot-presidio-analyzer:latest
+    build:
+      context: ..
+      dockerfile: deployments/presidio/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+
   flowbot:
     image: ghcr.io/flowline-io/flowbot:latest
     build:

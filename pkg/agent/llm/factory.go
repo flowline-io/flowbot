@@ -97,7 +97,7 @@ func NewModel(_ context.Context, modelName string) (llms.Model, string, error) {
 		if err != nil {
 			return nil, "", fmt.Errorf("agent llm: openai model: %w", err)
 		}
-		return model, modelName, nil
+		return wrapPIIModel(model), modelName, nil
 	case ProviderAnthropic:
 		opts := []anthropic.Option{
 			anthropic.WithToken(cfg.ApiKey),
@@ -110,7 +110,7 @@ func NewModel(_ context.Context, modelName string) (llms.Model, string, error) {
 		if err != nil {
 			return nil, "", fmt.Errorf("agent llm: anthropic model: %w", err)
 		}
-		return model, modelName, nil
+		return wrapPIIModel(model), modelName, nil
 	default:
 		return nil, "", fmt.Errorf("agent llm: unsupported provider %q", cfg.Provider)
 	}

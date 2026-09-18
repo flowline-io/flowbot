@@ -100,6 +100,7 @@ func (s *Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (str
 
 	ctx = WithMemoryScope(ctx, ResolveMemoryScope(req))
 	ctx = withRunIO(ctx, req.API)
+	ctx = agentllm.WithPIISession(ctx, req.SessionID)
 	ctx, cancelBrowser := withBrowserSession(ctx)
 	defer cancelBrowser()
 
@@ -187,6 +188,7 @@ func (s *Service) CompactSession(ctx context.Context, sessionID string) (*Manual
 	if err != nil {
 		return nil, err
 	}
+	ctx = agentllm.WithPIISession(ctx, sessionID)
 	if h == nil || h.ContextManager() == nil || h.Session() == nil {
 		return nil, errors.New("agent context manager unavailable")
 	}
