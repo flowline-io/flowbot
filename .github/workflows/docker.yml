@@ -57,3 +57,17 @@ jobs:
             BUILD_DATE=${{ steps.date.outputs.date }}
             VCS_REF=${{ github.sha }}
           annotations: ${{ steps.meta.outputs.annotations }}
+
+      - name: Resolve smoke test tag
+        id: smoketag
+        run: |
+          ref_name="${{ github.ref_name }}"
+          echo "value=${ref_name#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test image
+        run: |
+          IMAGE="ghcr.io/flowline-io/flowbot:${{ steps.smoketag.outputs.value }}"
+          docker pull "$IMAGE"
+          docker image inspect "$IMAGE" --format 'image_size_bytes={{.Size}}'
+          docker run --rm --entrypoint bash "$IMAGE" -lc \
+            'test -x /opt/app/flowbot && test -x /opt/app/flowbot-cli_linux_amd64 && /opt/app/flowbot-cli_linux_amd64 version && composer --version && dcg --version && test -f /etc/dcg/config.toml && command -v wget'
