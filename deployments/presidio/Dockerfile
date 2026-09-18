@@ -25,10 +25,14 @@ ENV NLP_CONF_FILE=/conf/nlp.yaml \
     PORT=3000 \
     WORKERS=1
 
+# Fail the build if recognizers.yaml does not match this base image's Presidio
+# schema (unknown predefined names produce "Invalid recognizer registry configuration"
+# at worker boot and are otherwise only visible in smoke logs).
 # Base image may already ship en_core_web_lg; install the md pair declared in nlp.yaml.
 # zh models pull spacy-pkuseg via the model package. Verify load so a bad install fails the build.
 RUN set -eux; \
     if command -v poetry >/dev/null 2>&1; then PY="poetry run python"; else PY="python"; fi; \
+    $PY -c "from pathlib import Path; import yaml; from presidio_analyzer.input_validation.schemas import ConfigurationValidator; ConfigurationValidator.validate_recognizer_registry_configuration(yaml.safe_load(Path('/conf/recognizers.yaml').read_text(encoding='utf-8'))); print('recognizers.yaml ok')"; \
     $PY -m spacy download en_core_web_md; \
     $PY -m spacy download zh_core_web_md; \
     $PY -c "import spacy; spacy.load('en_core_web_md'); spacy.load('zh_core_web_md'); print('spacy md models ok')"

@@ -35,8 +35,9 @@ recognizers:
   - name: UrlRecognizer
     type: predefined
 
-  - name: UuidRecognizer
-    type: predefined
+  # UuidRecognizer exists on Presidio main but is not in the MCR / PyPI Analyzer
+  # images we build from; listing it makes the worker fail with
+  # "Invalid recognizer registry configuration".
 
   - name: UsSsnRecognizer
     supported_languages:

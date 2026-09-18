@@ -39,3 +39,4 @@ Homelab Flowbot sends chat history, tool results, and auxiliary LLM prompts (tit
 - CI: [`.github/workflows/docker-presidio.yml`](../../../../.github/workflows/docker-presidio.yml) on `presidio-v*` with en/zh `/analyze` smoke
 - Operator docs: [self-hosting](../../../../docs/self-hosting.md#optional-llm-pii-presidio), [`pkg/agent/AGENTS.md`](../../../../pkg/agent/AGENTS.md)
 - Unit tests that assert Analyzer call counts must use a unique session id per invocation and `resetPIISessionForTest`; a fixed id plus `-count=N` / race shards otherwise hits the session hash cache and reports `analyzeCalls=0`
+- `deployments/presidio/conf/recognizers.yaml` must only list predefined recognizer class names present in the MCR/PyPI Analyzer image (e.g. do not copy `UuidRecognizer` from Presidio `main` until it ships). Dockerfile validates the registry YAML at build time.
