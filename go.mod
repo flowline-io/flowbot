@@ -86,7 +86,7 @@ require (
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	miniflux.app/v2 v2.3.3
-	modernc.org/sqlite v1.58.0
+	modernc.org/sqlite v1.59.0
 	resty.dev/v3 v3.0.0-rc.4
 )
 
@@ -565,7 +565,7 @@ require (
 	gotest.tools/gotestsum v1.13.0 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
-	modernc.org/libc v1.75.6 // indirect
+	modernc.org/libc v1.75.7 // indirect
 	modernc.org/libquickjs v0.12.10 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
