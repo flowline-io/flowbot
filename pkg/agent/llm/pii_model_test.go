@@ -2,12 +2,14 @@ package llm
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 	"unicode/utf8"
 
 	"github.com/bytedance/sonic"
@@ -133,6 +135,7 @@ func TestPIIModel_FailClosedOnAnalyzerError(t *testing.T) {
 
 func TestPIIModel_AnonymizeAndRestoreWithSession(t *testing.T) {
 	var analyzeCalls atomic.Int32
+	var sawEn, sawZh atomic.Bool
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/analyze" {
 			w.WriteHeader(http.StatusNotFound)
@@ -149,13 +152,21 @@ func TestPIIModel_AnonymizeAndRestoreWithSession(t *testing.T) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		switch req.Language {
+		case "en":
+			sawEn.Store(true)
+		case "zh":
+			sawZh.Store(true)
+		}
 		var items []analyzeResponseItem
-		if strings.Contains(req.Text, "alice@example.com") {
-			start := strings.Index(req.Text, "alice@example.com")
+		const email = "alice@example.com"
+		if idx := strings.Index(req.Text, email); idx >= 0 {
+			// Presidio returns Unicode rune offsets; convert from byte index.
+			runeStart := utf8.RuneCountInString(req.Text[:idx])
 			items = append(items, analyzeResponseItem{
 				EntityType: "EMAIL_ADDRESS",
-				Start:      start,
-				End:        start + len("alice@example.com"),
+				Start:      runeStart,
+				End:        runeStart + utf8.RuneCountInString(email),
 				Score:      0.99,
 			})
 		}
@@ -178,6 +189,11 @@ func TestPIIModel_AnonymizeAndRestoreWithSession(t *testing.T) {
 	}
 	config.App.Normalize()
 
+	// Unique per invocation so -race -count=N cannot reuse a prior hashCache entry.
+	sessionID := fmt.Sprintf("%s-%d", t.Name(), time.Now().UnixNano())
+	resetPIISessionForTest(sessionID)
+	t.Cleanup(func() { resetPIISessionForTest(sessionID) })
+
 	fake := NewFakeModel(ResponseScript{
 		Chunks: []string{"reply ", "{{PII_EMAIL_", "ADDRESS_1}}", " done"},
 		ToolCalls: []llms.ToolCall{{
@@ -190,7 +206,7 @@ func TestPIIModel_AnonymizeAndRestoreWithSession(t *testing.T) {
 		}},
 	})
 	model := wrapPIIModel(fake)
-	ctx := WithPIISession(context.Background(), "sess-pii-1")
+	ctx := WithPIISession(context.Background(), sessionID)
 
 	var streamed strings.Builder
 	resp, err := model.GenerateContent(ctx, []llms.MessageContent{
@@ -203,7 +219,9 @@ func TestPIIModel_AnonymizeAndRestoreWithSession(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	assert.GreaterOrEqual(t, analyzeCalls.Load(), int32(2)) // en + zh
+	assert.True(t, sawEn.Load(), "expected en analyze")
+	assert.True(t, sawZh.Load(), "expected zh analyze")
+	assert.GreaterOrEqual(t, analyzeCalls.Load(), int32(2))
 	msgs := fake.LastMessages()
 	require.Len(t, msgs, 2)
 	sys, ok := msgs[0].Parts[0].(llms.TextContent)
@@ -220,13 +238,15 @@ func TestPIIModel_AnonymizeAndRestoreWithSession(t *testing.T) {
 	require.NotNil(t, resp.Choices[0].ToolCalls[0].FunctionCall)
 	assert.Contains(t, resp.Choices[0].ToolCalls[0].FunctionCall.Arguments, "alice@example.com")
 
-	// Second turn reuses session table / hash cache — still stable ID.
+	callsAfterFirst := analyzeCalls.Load()
+	// Second turn reuses session table / hash cache — still stable ID, no new analyze.
 	fake2 := NewFakeModel(ResponseScript{Content: "ok"})
 	model2 := wrapPIIModel(fake2)
 	_, err = model2.GenerateContent(ctx, []llms.MessageContent{
 		llms.TextParts(llms.ChatMessageTypeHuman, "email alice@example.com please"),
 	})
 	require.NoError(t, err)
+	assert.Equal(t, callsAfterFirst, analyzeCalls.Load())
 	human2, ok := fake2.LastMessages()[0].Parts[0].(llms.TextContent)
 	require.True(t, ok)
 	assert.Equal(t, human.Text, human2.Text)
@@ -320,25 +340,23 @@ func TestPIIModel_FlushTrailingPlaceholderToStream(t *testing.T) {
 	config.App.PII = config.PIIConfig{Enabled: true, AnalyzerURL: srv.URL}
 	config.App.Normalize()
 
+	sessionID := fmt.Sprintf("%s-%d", t.Name(), time.Now().UnixNano())
+	resetPIISessionForTest(sessionID)
 	tab := newPIITable()
 	tab.mu.Lock()
 	_ = tab.allocateLocked("EMAIL_ADDRESS", "a@b.com")
 	tab.mu.Unlock()
 	globalPIISessions.mu.Lock()
-	globalPIISessions.tables["flush-sess"] = tab
+	globalPIISessions.tables[sessionID] = tab
 	globalPIISessions.mu.Unlock()
-	t.Cleanup(func() {
-		globalPIISessions.mu.Lock()
-		delete(globalPIISessions.tables, "flush-sess")
-		globalPIISessions.mu.Unlock()
-	})
+	t.Cleanup(func() { resetPIISessionForTest(sessionID) })
 
 	// Last chunk ends mid-placeholder; flush must still emit the held suffix to the stream.
 	fake := NewFakeModel(ResponseScript{
 		Chunks: []string{"see {{PII_EMAIL_ADDRESS_1"},
 	})
 	model := wrapPIIModel(fake)
-	ctx := WithPIISession(context.Background(), "flush-sess")
+	ctx := WithPIISession(context.Background(), sessionID)
 
 	var streamed strings.Builder
 	_, err := model.GenerateContent(ctx, []llms.MessageContent{

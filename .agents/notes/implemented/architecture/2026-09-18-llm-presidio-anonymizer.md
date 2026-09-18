@@ -8,7 +8,7 @@ Homelab Flowbot sends chat history, tool results, and auxiliary LLM prompts (tit
 
 ## Decision
 
-- Presidio **Analyzer only** ships as a Docker sidecar ([`deployments/presidio`](../../../../deployments/presidio/), Compose profile `pii`, GHCR `flowbot-presidio-analyzer`). English + Chinese spaCy (`en_core_web_sm`, `zh_core_web_sm`) plus CN phone/ID regex recognizers. Anonymizer is not deployed.
+- Presidio **Analyzer only** ships as a Docker sidecar ([`deployments/presidio`](../../../../deployments/presidio/), Compose profile `pii`, GHCR `flowbot-presidio-analyzer`). English + Chinese spaCy (`en_core_web_md`, `zh_core_web_md`) plus CN phone/ID regex recognizers. Anonymizer is not deployed.
 - Every real `llms.Model` from [`NewModel`](../../../../pkg/agent/llm/factory.go) is wrapped with `piiModel`. Each `GenerateContent` reads top-level `pii.enabled` so pooled models stay correct under config hot-reload. When enabled, Analyzer errors fail closed.
 - Reversible placeholders (`{{PII_EMAIL_ADDRESS_1}}`) live in a process-memory table keyed by chat `session_id` (sliding TTL). [`WithPIISession`](../../../../pkg/agent/llm/pii_session.go) is set on Service.Run / CompactSession, title, and session-summary request contexts. Sessionless Complete (clip/life/judge/knowledge) uses a per-call table.
 - Anonymize `human` / `ai` / `tool` text parts only; skip `system` and image parts. Restore streamed text, reasoning deltas, final content, and tool-call arguments.
@@ -38,3 +38,4 @@ Homelab Flowbot sends chat history, tool results, and auxiliary LLM prompts (tit
 - Stream restorer flushes buffered remainder back into StreamingFunc / StreamingReasoningFunc after GenerateContent
 - CI: [`.github/workflows/docker-presidio.yml`](../../../../.github/workflows/docker-presidio.yml) on `presidio-v*` with en/zh `/analyze` smoke
 - Operator docs: [self-hosting](../../../../docs/self-hosting.md#optional-llm-pii-presidio), [`pkg/agent/AGENTS.md`](../../../../pkg/agent/AGENTS.md)
+- Unit tests that assert Analyzer call counts must use a unique session id per invocation and `resetPIISessionForTest`; a fixed id plus `-count=N` / race shards otherwise hits the session hash cache and reports `analyzeCalls=0`

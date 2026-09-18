@@ -80,19 +80,32 @@ jobs:
           IMAGE="ghcr.io/flowline-io/flowbot-presidio-analyzer:${{ steps.smoketag.outputs.value }}"
           docker pull "$IMAGE"
           docker image inspect "$IMAGE" --format 'image_size_bytes={{.Size}}'
-          cid="$(docker run -d --rm -p 127.0.0.1:3000:3000 "$IMAGE")"
-          trap 'docker stop "$cid" >/dev/null 2>&1 || true' EXIT
-          n=0
-          while [ "$n" -lt 120 ]; do
+          # Do not use --rm until after logs are collected; a crash would delete the container.
+          cid="$(docker run -d -p 127.0.0.1:3000:3000 "$IMAGE")"
+          cleanup() {
+            echo "---- docker inspect State ----" >&2
+            docker inspect "$cid" --format '{{json .State}}' >&2 || true
+            echo "---- docker logs ----" >&2
+            docker logs "$cid" >&2 || true
+            docker rm -f "$cid" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          ready=0
+          # md models + AnalyzerEngine init can take several minutes on CI runners.
+          for n in $(seq 1 180); do
+            status="$(docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null || echo missing)"
+            if [ "$status" != "running" ]; then
+              echo "Analyzer container not running (status=$status) for $IMAGE" >&2
+              exit 1
+            fi
             if curl -sf "http://127.0.0.1:3000/health" >/dev/null; then
+              ready=1
               break
             fi
-            n=$((n + 1))
             sleep 2
           done
-          if ! curl -sf "http://127.0.0.1:3000/health" >/dev/null; then
-            echo "Analyzer /health not ready for $IMAGE" >&2
-            docker logs "$cid" || true
+          if [ "$ready" -ne 1 ]; then
+            echo "Analyzer /health not ready for $IMAGE after ${n:-0} attempts" >&2
             exit 1
           fi
           # English email / person
@@ -107,3 +120,5 @@ jobs:
             -d '{"text":"手机 13812345678 身份证 110101199001011234","language":"zh"}' \
             | tee /tmp/presidio-zh.json
           grep -Eqi 'PHONE|CN_ID|PERSON' /tmp/presidio-zh.json
+          # Success: clear trap so cleanup still removes the container without failing the job.
+          trap 'docker rm -f "$cid" >/dev/null 2>&1 || true' EXIT

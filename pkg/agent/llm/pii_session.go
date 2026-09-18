@@ -282,6 +282,17 @@ func tableFromContext(ctx context.Context) *piiTable {
 	return globalPIISessions.tableFor(PIISessionFromContext(ctx), ttl)
 }
 
+// resetPIISessionForTest drops one session table (tests only).
+func resetPIISessionForTest(sessionID string) {
+	sessionID = strings.TrimSpace(sessionID)
+	if sessionID == "" {
+		return
+	}
+	globalPIISessions.mu.Lock()
+	delete(globalPIISessions.tables, sessionID)
+	globalPIISessions.mu.Unlock()
+}
+
 // mergeRecognizedSpans unions en/zh Analyzer hits and drops language-mismatched NER.
 func mergeRecognizedSpans(spans []recognizedSpan) []recognizedSpan {
 	if len(spans) == 0 {
