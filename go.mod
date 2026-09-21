@@ -42,7 +42,7 @@ require (
 	github.com/moby/moby/api v1.56.0
 	github.com/moby/moby/client v0.6.0
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
-	github.com/onsi/ginkgo/v2 v2.32.2
+	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.43.0
 	github.com/panjf2000/ants/v2 v2.12.1
 	github.com/pelletier/go-toml/v2 v2.4.3
