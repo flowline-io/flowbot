@@ -25,7 +25,7 @@ require (
 	github.com/emersion/go-message v0.18.2
 	github.com/flc1125/go-cron/v4 v4.13.0
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/go-playground/validator/v10 v10.30.4
+	github.com/go-playground/validator/v10 v10.30.5
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/contrib/v3/swaggo v1.0.11
 	github.com/gofiber/contrib/v3/zerolog v1.1.5
