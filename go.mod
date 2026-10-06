@@ -65,7 +65,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.44.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0
 	github.com/tetratelabs/wazero v1.12.0
-	github.com/tidwall/gjson v1.19.0
+	github.com/tidwall/gjson v1.19.1
 	github.com/tmc/langchaingo v0.1.14
 	github.com/valyala/fasthttp v1.74.0
 	github.com/yuin/goldmark v1.8.6
