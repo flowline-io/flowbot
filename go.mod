@@ -40,7 +40,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.3.0
 	github.com/moby/moby/api v1.56.1
-	github.com/moby/moby/client v0.6.0
+	github.com/moby/moby/client v0.6.1
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
@@ -245,7 +245,7 @@ require (
 	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/docker/cli v29.6.2+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.4 // indirect
-	github.com/docker/go-connections v0.7.0 // indirect
+	github.com/docker/go-connections v0.8.1 // indirect
 	github.com/dominikbraun/graph v0.23.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.11.1 // indirect
