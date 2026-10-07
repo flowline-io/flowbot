@@ -15,7 +15,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/bytedance/sonic v1.15.4
-	github.com/chromedp/cdproto v0.0.0-20260714215040-dc233986426f
+	github.com/chromedp/cdproto v0.157.6
 	github.com/chromedp/chromedp v0.16.0
 	github.com/containerd/errdefs v1.0.0
 	github.com/creachadair/jrpc2 v1.3.5
@@ -215,7 +215,6 @@ require (
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/chrismellard/docker-credential-acr-env v0.0.0-20230304212654-82a0ddb27589 // indirect
-	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/cli/browser v1.3.0 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
