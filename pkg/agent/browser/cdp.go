@@ -12,6 +12,7 @@ import (
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 )
 
 type chromedpPage struct {
@@ -21,9 +22,9 @@ type chromedpPage struct {
 }
 
 func openCDPPage(ctx context.Context, cfg Config) (cdpPage, error) {
-	allocCtx, allocCancel := chromedp.NewRemoteAllocator(ctx, cfg.Endpoint, chromedp.NoModifyURL)
+	allocCtx, allocCancel := remote.NewAllocator(ctx, cfg.Endpoint, remote.NoModifyURL)
 	tabCtx, cancel := chromedp.NewContext(allocCtx, chromedp.WithNewBrowserContext())
-	if err := chromedp.Run(tabCtx); err != nil {
+	if err := chromedp.Do(tabCtx); err != nil {
 		cancel()
 		allocCancel()
 		return nil, fmt.Errorf("browser: connect %s: %w", cfg.Endpoint, err)
@@ -45,20 +46,32 @@ func (p *chromedpPage) Close() error {
 	return nil
 }
 
-func (p *chromedpPage) run(opCtx context.Context, actions ...chromedp.Action) error {
+func (p *chromedpPage) withOp(opCtx context.Context) (context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(p.ctx)
-	defer cancel()
 	stop := context.AfterFunc(opCtx, cancel)
-	defer stop()
-	return chromedp.Run(ctx, actions...)
+	return ctx, func() {
+		stop()
+		cancel()
+	}
+}
+
+func (p *chromedpPage) run(opCtx context.Context, actions ...chromedp.Action[chromedp.Void]) error {
+	ctx, cancel := p.withOp(opCtx)
+	defer cancel()
+	return chromedp.Do(ctx, actions...)
+}
+
+func runVal[T any](opCtx context.Context, p *chromedpPage, action chromedp.Action[T]) (T, error) {
+	ctx, cancel := p.withOp(opCtx)
+	defer cancel()
+	return chromedp.Run(ctx, action)
 }
 
 func (p *chromedpPage) Navigate(ctx context.Context, rawURL string) (string, error) {
-	var final string
-	err := p.run(ctx,
-		chromedp.Navigate(rawURL),
-		chromedp.Location(&final),
-	)
+	if err := p.run(ctx, chromedp.Navigate(rawURL)); err != nil {
+		return "", fmt.Errorf("navigate: %w", err)
+	}
+	final, err := runVal(ctx, p, chromedp.Location())
 	if err != nil {
 		return "", fmt.Errorf("navigate: %w", err)
 	}
@@ -74,8 +87,7 @@ func (p *chromedpPage) Snapshot(ctx context.Context) (string, map[string]struct{
 }
 
 func (p *chromedpPage) snapshotDOM(ctx context.Context) (string, map[string]struct{}, error) {
-	var raw string
-	err := p.run(ctx, chromedp.Evaluate(snapshotDOMJS, &raw))
+	raw, err := runVal(ctx, p, chromedp.Evaluate[string](snapshotDOMJS))
 	if err != nil {
 		return "", nil, fmt.Errorf("snapshot: %w", err)
 	}
@@ -85,25 +97,25 @@ func (p *chromedpPage) snapshotDOM(ctx context.Context) (string, map[string]stru
 func (p *chromedpPage) snapshotAX(ctx context.Context) (string, map[string]struct{}, error) {
 	var tree string
 	var refs map[string]struct{}
-	err := p.run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
-		if err := clearFlowbotRefs(ctx); err != nil {
+	err := p.run(ctx, chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
+		if err := clearFlowbotRefs(ctx, t); err != nil {
 			return err
 		}
-		nodes, err := accessibility.GetFullAXTree().Do(ctx)
+		res, err := cdp.Call(ctx, t, accessibility.GetFullAXTree, accessibility.GetFullAXTreeParams{})
 		if err != nil {
 			return err
 		}
-		lines := make([]string, 0, len(nodes))
+		lines := make([]string, 0, len(res.Nodes))
 		refs = make(map[string]struct{})
 		refN := 0
-		for _, n := range nodes {
+		for _, n := range res.Nodes {
 			if n == nil || !axInteractive(n) {
 				continue
 			}
 			ref := fmt.Sprintf("e%d", refN)
 			refN++
 			if n.BackendDOMNodeID != 0 {
-				if err := stampRefOnBackendNode(ctx, n.BackendDOMNodeID, ref); err != nil {
+				if err := stampRefOnBackendNode(ctx, t, n.BackendDOMNodeID, ref); err != nil {
 					continue
 				}
 			}
@@ -117,11 +129,12 @@ func (p *chromedpPage) snapshotAX(ctx context.Context) (string, map[string]struc
 			line += " [ref=" + ref + "]"
 			lines = append(lines, line)
 		}
-		var title, loc string
-		if err := chromedp.Title(&title).Do(ctx); err != nil {
+		title, err := chromedp.Title()(ctx, t)
+		if err != nil {
 			return err
 		}
-		if err := chromedp.Location(&loc).Do(ctx); err != nil {
+		loc, err := chromedp.Location()(ctx, t)
+		if err != nil {
 			return err
 		}
 		body := "(no interactive nodes)"
@@ -137,25 +150,27 @@ func (p *chromedpPage) snapshotAX(ctx context.Context) (string, map[string]struc
 	return tree, refs, nil
 }
 
-func clearFlowbotRefs(ctx context.Context) error {
-	var ignored bool
-	return chromedp.Evaluate(`(function(){
+func clearFlowbotRefs(ctx context.Context, t *chromedp.Target) error {
+	_, err := chromedp.Evaluate[bool](`(function(){
   document.querySelectorAll('[`+refAttr+`]').forEach(el => el.removeAttribute('`+refAttr+`'));
   return true;
-})()`, &ignored).Do(ctx)
+})()`)(ctx, t)
+	return err
 }
 
-func stampRefOnBackendNode(ctx context.Context, backendID cdp.BackendNodeID, ref string) error {
-	remote, err := dom.ResolveNode().WithBackendNodeID(backendID).Do(ctx)
-	if err != nil || remote == nil || remote.ObjectID == "" {
+func stampRefOnBackendNode(ctx context.Context, t *chromedp.Target, backendID cdp.BackendNodeID, ref string) error {
+	resolved, err := cdp.Call(ctx, t, dom.ResolveNode, dom.ResolveNodeParams{BackendNodeID: backendID})
+	if err != nil || resolved.Object == nil || resolved.Object.ObjectID == "" {
 		return fmt.Errorf("resolve node: %w", err)
 	}
-	_, _, err = runtime.CallFunctionOn(`function(attr, ref){ this.setAttribute(attr, ref); }`).
-		WithObjectID(remote.ObjectID).
-		WithArguments([]*runtime.CallArgument{
+	_, err = cdp.Call(ctx, t, runtime.CallFunctionOn, runtime.CallFunctionOnParams{
+		FunctionDeclaration: `function(attr, ref){ this.setAttribute(attr, ref); }`,
+		ObjectID:            resolved.Object.ObjectID,
+		Arguments: []*runtime.CallArgument{
 			{Value: mustJSON(refAttr)},
 			{Value: mustJSON(ref)},
-		}).Do(ctx)
+		},
+	})
 	return err
 }
 
@@ -225,8 +240,8 @@ func decodeSnapshot(raw string) (string, map[string]struct{}, error) {
 }
 
 func (p *chromedpPage) Click(ctx context.Context, ref string) error {
-	sel := refSelector(ref)
-	err := p.run(ctx, chromedp.Click(sel, chromedp.ByQuery))
+	sel := chromedp.CSS(refSelector(ref))
+	err := p.run(ctx, chromedp.Click(sel))
 	if err != nil {
 		return fmt.Errorf("click %s: %w", ref, err)
 	}
@@ -234,10 +249,10 @@ func (p *chromedpPage) Click(ctx context.Context, ref string) error {
 }
 
 func (p *chromedpPage) Type(ctx context.Context, ref, text string) error {
-	sel := refSelector(ref)
+	sel := chromedp.CSS(refSelector(ref))
 	err := p.run(ctx,
-		chromedp.Focus(sel, chromedp.ByQuery),
-		chromedp.SendKeys(sel, text, chromedp.ByQuery),
+		chromedp.Focus(sel),
+		chromedp.SendKeys(sel, text),
 	)
 	if err != nil {
 		return fmt.Errorf("type %s: %w", ref, err)
@@ -246,7 +261,7 @@ func (p *chromedpPage) Type(ctx context.Context, ref, text string) error {
 }
 
 func (p *chromedpPage) Scroll(ctx context.Context, dx, dy int) error {
-	err := p.run(ctx, chromedp.Evaluate(fmt.Sprintf("window.scrollBy(%d,%d)", dx, dy), nil))
+	err := p.run(ctx, chromedp.Evaluate[chromedp.Void](fmt.Sprintf("window.scrollBy(%d,%d)", dx, dy)))
 	if err != nil {
 		return fmt.Errorf("scroll: %w", err)
 	}
@@ -254,9 +269,9 @@ func (p *chromedpPage) Scroll(ctx context.Context, dx, dy int) error {
 }
 
 func (p *chromedpPage) Wait(ctx context.Context, ms int, quirks Quirks) error {
-	actions := make([]chromedp.Action, 0, 2)
+	actions := make([]chromedp.Action[chromedp.Void], 0, 2)
 	if quirks.PreferNetworkIdle {
-		actions = append(actions, chromedp.WaitReady("body", chromedp.ByQuery))
+		actions = append(actions, chromedp.WaitReady(chromedp.CSS("body")))
 	}
 	actions = append(actions, chromedp.Sleep(time.Duration(ms)*time.Millisecond))
 	if err := p.run(ctx, actions...); err != nil {
@@ -266,8 +281,7 @@ func (p *chromedpPage) Wait(ctx context.Context, ms int, quirks Quirks) error {
 }
 
 func (p *chromedpPage) Screenshot(ctx context.Context) ([]byte, error) {
-	var buf []byte
-	err := p.run(ctx, chromedp.FullScreenshot(&buf, 90))
+	buf, err := runVal(ctx, p, chromedp.FullScreenshot(90))
 	if err != nil {
 		return nil, fmt.Errorf("screenshot: %w", err)
 	}

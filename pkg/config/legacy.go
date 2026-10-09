@@ -1,9 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"errors"
-
+	"fmt"
 	// RejectLegacyKeys reports migration errors when obsolete YAML top-level keys are present.
 	// Call with viper.AllSettings() (or an equivalent raw map) before relying on unmarshaled config.
 )

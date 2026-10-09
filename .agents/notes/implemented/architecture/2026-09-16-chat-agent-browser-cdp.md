@@ -10,7 +10,7 @@ Chat agents needed interactive browsing (JS-rendered pages, click/type) beyond `
 
 Ship CDP-backed `browser_*` tools in the agent engine:
 
-- Adapter and per-run session: [`pkg/agent/browser`](../../../../pkg/agent/browser/) using `github.com/chromedp/chromedp` against a remote CDP WebSocket (`NewRemoteAllocator` + isolated browser context). Driver values `lightpanda` and `playwright` share chromedp; `playwright` means Chromium remote-debugging CDP (compose profile), not Playwright Test.
+- Adapter and per-run session: [`pkg/agent/browser`](../../../../pkg/agent/browser/) using `github.com/chromedp/chromedp` and `github.com/chromedp/chromedp/remote` against a remote CDP WebSocket (`remote.NewAllocator` + isolated browser context). Driver values `lightpanda` and `playwright` share chromedp; `playwright` means Chromium remote-debugging CDP (compose profile), not Playwright Test.
 - Tools: [`pkg/agent/tools/browser`](../../../../pkg/agent/tools/browser/); registered from chatagent only when `chat_agent.browser.enabled`. Not in `RegisterHeadless`.
 - Session lifecycle: created in [`Service.Run`](../../../../internal/server/chatagent/service.go), attached via context, closed on defer; operations serialized with a per-session mutex; refs from `browser_snapshot` invalidate on navigate. Snapshot prefers CDP Accessibility tree (refs stamped on backend DOM nodes) and falls back to a DOM-role tree.
 - Screenshots: tool results may include `MediaPart` images; [`transform.DefaultConvertToLLM`](../../../../pkg/agent/transform/convert.go) emits tool text plus a follow-up human message with binary image content. Dual-model routing still strips unsupported modalities via `SupportsModality`.

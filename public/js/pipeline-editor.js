@@ -2364,7 +2364,9 @@
         if (token) {
           parts.push(
             '-H',
-            '"X-Webhook-Token: ' + token.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"',
+            '"X-Webhook-Token: ' +
+              token.replace(/\\/g, '\\\\').replace(/"/g, '\\"') +
+              '"',
           );
         } else if (auth.hmac_secret) {
           parts.push('-H', '"X-Hub-Signature-256: sha256=SIGNATURE"');
@@ -2432,7 +2434,10 @@
         }
         await this.copyTextValue(
           url,
-          flowbotI18n('client.pipeline.webhook_url_copied', 'Webhook URL copied'),
+          flowbotI18n(
+            'client.pipeline.webhook_url_copied',
+            'Webhook URL copied',
+          ),
         );
       },
 
