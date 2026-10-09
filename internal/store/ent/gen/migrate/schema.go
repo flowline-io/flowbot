@@ -2037,6 +2037,24 @@ var (
 		Columns:    ParameterColumns,
 		PrimaryKey: []*schema.Column{ParameterColumns[0]},
 	}
+	// PipelineBlueprintTemplatesColumns holds the columns for the "pipeline_blueprint_templates" table.
+	PipelineBlueprintTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "blueprint_id", Type: field.TypeString, Unique: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "yaml", Type: field.TypeString, Size: 2147483647},
+		{Name: "content_hash", Type: field.TypeString},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// PipelineBlueprintTemplatesTable holds the schema information for the "pipeline_blueprint_templates" table.
+	PipelineBlueprintTemplatesTable = &schema.Table{
+		Name:       "pipeline_blueprint_templates",
+		Columns:    PipelineBlueprintTemplatesColumns,
+		PrimaryKey: []*schema.Column{PipelineBlueprintTemplatesColumns[0]},
+	}
 	// PipelineDefinitionsColumns holds the columns for the "pipeline_definitions" table.
 	PipelineDefinitionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2047,6 +2065,11 @@ var (
 		{Name: "version", Type: field.TypeInt, Default: 1},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "published"}, Default: "draft"},
 		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "blueprint_source", Type: field.TypeString, Default: ""},
+		{Name: "blueprint_id", Type: field.TypeString, Default: ""},
+		{Name: "blueprint_hash", Type: field.TypeString, Default: ""},
+		{Name: "blueprint_yaml", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "blueprint_inputs", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -2055,6 +2078,13 @@ var (
 		Name:       "pipeline_definitions",
 		Columns:    PipelineDefinitionsColumns,
 		PrimaryKey: []*schema.Column{PipelineDefinitionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "pipelinedefinition_blueprint_source_blueprint_id",
+				Unique:  false,
+				Columns: []*schema.Column{PipelineDefinitionsColumns[8], PipelineDefinitionsColumns[9]},
+			},
+		},
 	}
 	// PipelineDefinitionVersionsColumns holds the columns for the "pipeline_definition_versions" table.
 	PipelineDefinitionVersionsColumns = []*schema.Column{
@@ -2558,6 +2588,7 @@ var (
 		PagesTable,
 		PageDataTable,
 		ParameterTable,
+		PipelineBlueprintTemplatesTable,
 		PipelineDefinitionsTable,
 		PipelineDefinitionVersionsTable,
 		PipelineRunsTable,
@@ -2782,6 +2813,9 @@ func init() {
 	}
 	ParameterTable.Annotation = &entsql.Annotation{
 		Table: "parameter",
+	}
+	PipelineBlueprintTemplatesTable.Annotation = &entsql.Annotation{
+		Table: "pipeline_blueprint_templates",
 	}
 	PipelineDefinitionsTable.Annotation = &entsql.Annotation{
 		Table: "pipeline_definitions",

@@ -1,0 +1,32 @@
+kind: pipeline_blueprint
+id: gitea_push_notify
+title: Gitea push notification
+description: Notify when Gitea reports a forge.push event.
+requires:
+  capabilities:
+    - gitea
+inputs:
+  - name: notify_channel
+    type: notify_channel
+    required: true
+    description: Notification channels
+  - name: template_id
+    type: string
+    required: true
+    description: Notification template ID from Notify settings
+definition:
+  description: Notify on Gitea forge.push
+  resumable: true
+  triggers:
+    - type: event
+      enabled: true
+      event: forge.push
+  steps:
+    - name: notify
+      capability: core
+      operation: notify_send
+      params:
+        template_id: "{{inputs.template_id}}"
+        channels: "{{inputs.notify_channel}}"
+        payload:
+          title: Gitea push

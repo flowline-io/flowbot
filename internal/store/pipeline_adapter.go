@@ -187,6 +187,21 @@ func (a PipelineCatalogAdapter) ListPublishedDefinitions(ctx context.Context) ([
 	return a.S.ListPublishedDefinitions(ctx)
 }
 
+// SetBlueprintOrigin implements pipeline.BlueprintOriginStore.
+func (a PipelineCatalogAdapter) SetBlueprintOrigin(ctx context.Context, name string, origin pipeline.BlueprintOrigin) error {
+	return a.S.SetBlueprintOrigin(ctx, name, origin)
+}
+
+// ClearBlueprintOrigin implements pipeline.BlueprintOriginStore.
+func (a PipelineCatalogAdapter) ClearBlueprintOrigin(ctx context.Context, name string) error {
+	return a.S.ClearBlueprintOrigin(ctx, name)
+}
+
+// ListLinkedPipelineNames implements pipeline.BlueprintOriginStore.
+func (a PipelineCatalogAdapter) ListLinkedPipelineNames(ctx context.Context, source, blueprintID string) ([]string, error) {
+	return a.S.ListLinkedPipelineNames(ctx, source, blueprintID)
+}
+
 // GetRunsByParentName implements pipeline.DefinitionCatalog.
 func (a PipelineCatalogAdapter) GetRunsByParentName(ctx context.Context, parentName string) ([]*model.PipelineRun, error) {
 	rows, err := a.S.GetRunsByParentName(ctx, parentName)
@@ -201,14 +216,19 @@ func mapPipelineDefinitionDTO(row *gen.PipelineDefinition) *model.PipelineDefini
 		return nil
 	}
 	return &model.PipelineDefinition{
-		ID:            row.ID,
-		Name:          row.Name,
-		Description:   row.Description,
-		Status:        string(row.Status),
-		Version:       row.Version,
-		CreatedBy:     row.CreatedBy,
-		YamlDraft:     row.YamlDraft,
-		YamlPublished: row.YamlPublished,
+		ID:              row.ID,
+		Name:            row.Name,
+		Description:     row.Description,
+		Status:          string(row.Status),
+		Version:         row.Version,
+		CreatedBy:       row.CreatedBy,
+		YamlDraft:       row.YamlDraft,
+		YamlPublished:   row.YamlPublished,
+		BlueprintSource: row.BlueprintSource,
+		BlueprintID:     row.BlueprintID,
+		BlueprintHash:   row.BlueprintHash,
+		BlueprintYAML:   row.BlueprintYaml,
+		BlueprintInputs: row.BlueprintInputs,
 	}
 }
 

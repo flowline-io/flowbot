@@ -1,0 +1,47 @@
+package partials
+
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ BlueprintInputField(ctx context.Context, in BlueprintInputView, values map[string]any, channels []model.NotifyChannel) {
+	<label class="label">
+		<span class="label-text">{ in.Name }</span>
+		if in.Description != "" {
+			<span class="label-text-alt text-base-content/50">{ in.Description }</span>
+		}
+	</label>
+	if in.Type == "notify_channel" {
+		<div class="flex flex-col gap-1 mb-4" data-testid={ "input-" + in.Name }>
+			for _, ch := range channels {
+				<label class="label cursor-pointer justify-start gap-2 py-1">
+					<input type="checkbox" name={ "input_" + in.Name } value={ ch.Name }
+						class="checkbox checkbox-sm"
+						if notifyChannelChecked(values, in.Name, ch.Name) {
+							checked
+						}
+					>
+					<span class="label-text">{ ch.Name }</span>
+				</label>
+			}
+			if len(channels) == 0 {
+				<p class="text-sm text-warning">{ i18n.T(ctx, "blueprint.inputs.no_channels") }</p>
+			}
+		</div>
+	} else if in.Type == "boolean" {
+		<input type="checkbox" name={ "input_" + in.Name } class="checkbox checkbox-sm mb-4"
+			data-testid={ "input-" + in.Name }
+			if boolInputChecked(values, in) {
+				checked
+			}
+		>
+	} else {
+		<input type="text" name={ "input_" + in.Name }
+			class="input input-bordered w-full mb-4"
+			value={ stringInputValue(values, in) }
+			data-testid={ "input-" + in.Name }>
+	}
+}

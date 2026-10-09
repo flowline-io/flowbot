@@ -27,7 +27,7 @@ Pipeline Engine (pkg/pipeline/engine.go)
 
 ## YAML Schema
 
-Pipeline definitions are stored in PostgreSQL as published YAML (draft/publish in the Web UI, or `flowbot pipeline apply` which publishes immediately). The engine loads published definitions only. Schema examples: [docs/reference/pipelines.yaml](../reference/pipelines.yaml) and [docs/skills/pipeline/](../skills/pipeline/).
+Pipeline definitions are stored in PostgreSQL as published YAML (draft/publish in the Web UI, or `flowbot pipeline apply` which publishes immediately). The engine loads published definitions only. Schema examples: [docs/reference/pipelines.yaml](../reference/pipelines.yaml) and [docs/skills/pipeline/](../skills/pipeline/). Parameterized templates: [blueprints](blueprints.md).
 
 ```yaml
 name: rss_fetch_and_notify          # unique name, used as consumer_name

@@ -69,9 +69,17 @@ When the user needs a new or updated pipeline definition:
 ### Apply a definition from YAML
 
 When the user already has a pipeline YAML file to create or replace (publishes immediately):
-1. Validate against references/schema.md: name, triggers, steps, and event/step templates.
+1. Validate against references/schema.md: name, triggers, steps, and event/step templates. Reject files with kind: pipeline_blueprint.
 2. `flowbot pipeline apply --file path/to/pipeline.yaml`
 3. `flowbot pipeline get <name>`
+
+### Instantiate a pipeline blueprint
+
+When the user wants a parameterized official or imported template instead of writing YAML:
+1. `flowbot blueprint list`
+2. If required capabilities are missing, instantiate is disabled until those apps are connected in Hub.
+3. `flowbot blueprint instantiate builtin webhook_notify --name my_webhook --inputs '{"webhook_path":"hooks/notify","notify_channel":["default"],"template_id":"demo.new_item"}'`
+4. `flowbot pipeline get my_webhook`
 
 ### List and inspect
 
@@ -103,4 +111,5 @@ When the user wants to remove a definition (run history is deleted, including co
 | pipeline name is required / not found | apply first; check `list`; draft-only pipelines are invisible to CLI |
 | conflict / 409 | someone else changed the draft; re-`export`/edit and `apply` again |
 | pipeline is disabled | set `enabled: true` in YAML and re-apply |
+| apply rejected as pipeline_blueprint | use `flowbot blueprint instantiate`; do not pass wrapper YAML to `pipeline apply` |
 | `function "…" not defined` | replace with a helper from [references/steps.md](references/steps.md#templates) |

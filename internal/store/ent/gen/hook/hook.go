@@ -825,6 +825,18 @@ func (f ParameterFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ParameterMutation", m)
 }
 
+// The PipelineBlueprintTemplateFunc type is an adapter to allow the use of ordinary
+// function as PipelineBlueprintTemplate mutator.
+type PipelineBlueprintTemplateFunc func(context.Context, *gen.PipelineBlueprintTemplateMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PipelineBlueprintTemplateFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PipelineBlueprintTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PipelineBlueprintTemplateMutation", m)
+}
+
 // The PipelineDefinitionFunc type is an adapter to allow the use of ordinary
 // function as PipelineDefinition mutator.
 type PipelineDefinitionFunc func(context.Context, *gen.PipelineDefinitionMutation) (gen.Value, error)

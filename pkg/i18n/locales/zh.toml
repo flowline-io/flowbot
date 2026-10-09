@@ -34,6 +34,9 @@ other = "自动化"
 [nav.pipelines]
 other = "流水线"
 
+[nav.blueprints]
+other = "蓝图"
+
 [nav.workflows]
 other = "工作流"
 
@@ -1979,6 +1982,9 @@ other = "创建"
 
 [page.doc_title.pipeline]
 other = "流水线：{{.Name}}"
+
+[page.doc_title.blueprint]
+other = "蓝图：{{.Name}}"
 
 [page.doc_title.runs]
 other = "运行：{{.Name}}"
@@ -5781,3 +5787,153 @@ other = "需要标题"
 
 [toast.life.reward_name_required]
 other = "需要奖励名称"
+
+[page.blueprints.subtitle]
+other = "参数化流水线模板。用你的通知渠道和标识来实例化。"
+
+[blueprint.empty.title]
+other = "还没有蓝图"
+
+[blueprint.empty.detail]
+other = "官方模板会显示在这里。也可以导入 YAML。"
+
+[blueprint.import.btn]
+other = "导入 YAML"
+
+[blueprint.import.title]
+other = "导入蓝图"
+
+[blueprint.import.yaml]
+other = "蓝图 YAML"
+
+[blueprint.import.placeholder]
+other = "kind: pipeline_blueprint\nid: my_template\n..."
+
+[blueprint.col.source]
+other = "来源"
+
+[blueprint.col.requires]
+other = "缺少"
+
+[blueprint.col.instances]
+other = "实例"
+
+[blueprint.source.official]
+other = "官方"
+
+[blueprint.source.imported]
+other = "已导入"
+
+[blueprint.instantiate.btn]
+other = "使用"
+
+[blueprint.instantiate.title]
+other = "从蓝图创建流水线"
+
+[blueprint.instantiate.name]
+other = "流水线名称"
+
+[blueprint.instantiate.enable]
+other = "创建后启用"
+
+[blueprint.inputs.heading]
+other = "输入参数"
+
+[blueprint.inputs.empty]
+other = "此模板没有输入参数。"
+
+[blueprint.inputs.save]
+other = "保存参数"
+
+[blueprint.inputs.no_channels]
+other = "尚未配置通知渠道。"
+
+[blueprint.missing.detail]
+other = "实例化前请先在 Hub 接入缺少的应用："
+
+[blueprint.replace.title]
+other = "替换 YAML"
+
+[blueprint.replace.btn]
+other = "替换"
+
+[blueprint.update.available]
+other = "此模板有新版本可用。"
+
+[blueprint.update.btn]
+other = "更新"
+
+[blueprint.take_control.btn]
+other = "接管"
+
+[blueprint.download]
+other = "下载"
+
+[confirm.delete_blueprint.message]
+other = "删除这份导入的蓝图？仍在使用它的流水线必须先接管或删除。"
+
+[confirm.delete_blueprint.title]
+other = "删除蓝图"
+
+[confirm.delete_blueprint.btn]
+other = "删除"
+
+[confirm.update_blueprint.message]
+other = "用最新模板正文替换这条流水线，并保留当前输入值？"
+
+[confirm.update_blueprint.title]
+other = "从蓝图更新"
+
+[confirm.update_blueprint.btn]
+other = "更新"
+
+[confirm.take_control.message]
+other = "将这条流水线从蓝图断开？之后可以编辑步骤。此操作不可撤销，也不会再跟随官方更新。"
+
+[confirm.take_control.title]
+other = "接管"
+
+[confirm.take_control.btn]
+other = "接管"
+
+[toast.blueprint.replaced]
+other = "蓝图已替换"
+
+[toast.blueprint.deleted]
+other = "蓝图已删除"
+
+[toast.blueprint.inputs_saved]
+other = "参数已保存"
+
+[toast.blueprint.updated]
+other = "已按蓝图更新流水线"
+
+[toast.blueprint.took_control]
+other = "流水线已变为普通定义"
+
+[error.blueprint.official_delete]
+other = "不能删除官方蓝图"
+
+[error.blueprint.in_use]
+other = "请先接管或删除关联流水线，再删除蓝图"
+
+[error.blueprint.linked_readonly]
+other = "蓝图实例不能编辑 YAML。请改输入参数，或先接管。"
+
+[error.blueprint.unavailable]
+other = "蓝图服务未就绪"
+
+[error.blueprint.already_exists]
+other = "已存在相同 id 的蓝图"
+
+[error.blueprint.official_replace]
+other = "不能替换官方蓝图"
+
+[error.blueprint.missing_caps]
+other = "所需能力尚未接入。请到 Hub 安装。"
+
+[error.blueprint.not_instance]
+other = "这条流水线不是蓝图实例"
+
+[error.blueprint.invalid]
+other = "蓝图输入无效，请检查后重试。"

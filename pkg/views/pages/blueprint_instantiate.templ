@@ -1,0 +1,96 @@
+package pages
+
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ BlueprintInstantiatePage(ctx context.Context, data partials.BlueprintInstantiateData) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.blueprint", map[string]any{"Name": data.Entry.Title})) {
+		<div class="max-w-2xl mx-auto">
+			@partials.PageHeaderLiteral(ctx, data.Entry.Title, i18n.T(ctx, "blueprint.instantiate.title")) {
+				<a href={ templ.URL(partials.BlueprintWebPath(data.Entry.Source, data.Entry.ID)) } class="btn btn-ghost btn-sm">{ i18n.T(ctx, "common.back") }</a>
+			}
+			if len(data.Entry.Missing) > 0 {
+				<div class="alert mb-4" data-testid="blueprint-missing-caps">
+					<span>{ i18n.T(ctx, "blueprint.missing.detail") }</span>
+					<a href="/service/web/hub" class="link">{ i18n.T(ctx, "nav.apps") }</a>
+				</div>
+			} else {
+				<form hx-post={ templ.URL(partials.BlueprintInstantiatePath(data.Entry.Source, data.Entry.ID)) }
+					hx-target="body" data-testid="instantiate-form" class="flowbot-surface p-4">
+					<div id="form-error" data-testid="form-error-slot"></div>
+					<label class="label">
+						<span class="label-text">{ i18n.T(ctx, "blueprint.instantiate.name") }</span>
+					</label>
+					<input type="text" name="name" required maxlength="128"
+						class="input input-bordered w-full mb-4"
+						data-testid="input-pipeline-name">
+					for _, in := range data.Inputs {
+						@partials.BlueprintInputField(ctx, in, nil, data.Channels)
+					}
+					<label class="label cursor-pointer justify-start gap-3 mb-4">
+						<input type="checkbox" name="enable" class="checkbox checkbox-sm" data-testid="input-enable">
+						<span class="label-text">{ i18n.T(ctx, "blueprint.instantiate.enable") }</span>
+					</label>
+					<button type="submit" class="btn btn-primary" data-testid="btn-submit-instantiate">{ i18n.T(ctx, "blueprint.instantiate.btn") }</button>
+				</form>
+			}
+		</div>
+	}
+}
+
+templ BlueprintInstancePage(ctx context.Context, data partials.BlueprintInstanceData) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.pipeline", map[string]any{"Name": data.Pipeline.Name})) {
+		<div class="max-w-3xl mx-auto">
+			@partials.PageHeaderLiteral(ctx, data.Pipeline.Name, data.Title) {
+				<a href="/service/web/pipelines" class="btn btn-ghost btn-sm">{ i18n.T(ctx, "common.back") }</a>
+				<a href={ templ.URL(partials.PipelineWebPath(data.Pipeline.Name) + "/runs") }
+					class="btn btn-ghost btn-sm">{ i18n.T(ctx, "page.pipeline_editor.run_history") }</a>
+			}
+			if data.UpdateAvailable {
+				<div class="alert mb-4" data-testid="blueprint-update-available">
+					<span>{ i18n.T(ctx, "blueprint.update.available") }</span>
+					<button type="button" class="btn btn-warning btn-sm"
+						hx-post={ templ.URL(partials.PipelineWebPath(data.Pipeline.Name) + "/blueprint/update") }
+						hx-target="body"
+						data-confirm={ i18n.T(ctx, "confirm.update_blueprint.message") }
+						data-confirm-title={ i18n.T(ctx, "confirm.update_blueprint.title") }
+						data-confirm-btn={ i18n.T(ctx, "confirm.update_blueprint.btn") }
+						data-confirm-class="btn-warning"
+						data-testid="btn-confirm-update">{ i18n.T(ctx, "blueprint.update.btn") }</button>
+				</div>
+			}
+			<form hx-post={ templ.URL(partials.PipelineWebPath(data.Pipeline.Name) + "/blueprint/inputs") }
+				hx-target="body" class="flowbot-surface p-4 mb-4" data-testid="blueprint-inputs-form">
+				<div id="form-error" data-testid="form-error-slot"></div>
+				for _, in := range data.Inputs {
+					@partials.BlueprintInputField(ctx, in, data.Pipeline.BlueprintInputs, data.Channels)
+				}
+				<label class="label cursor-pointer justify-start gap-3 mb-4">
+					<input type="checkbox" name="enable" class="checkbox checkbox-sm" data-testid="input-enable"
+						if data.Enabled {
+							checked
+						}
+					>
+					<span class="label-text">{ i18n.T(ctx, "blueprint.instantiate.enable") }</span>
+				</label>
+				<button type="submit" class="btn btn-primary btn-sm" data-testid="btn-save-inputs">{ i18n.T(ctx, "blueprint.inputs.save") }</button>
+			</form>
+			<div class="mb-4">
+				<button type="button" class="btn btn-error btn-sm"
+					hx-post={ templ.URL(partials.PipelineWebPath(data.Pipeline.Name) + "/blueprint/take-control") }
+					hx-target="body"
+					data-confirm={ i18n.T(ctx, "confirm.take_control.message") }
+					data-confirm-title={ i18n.T(ctx, "confirm.take_control.title") }
+					data-confirm-btn={ i18n.T(ctx, "confirm.take_control.btn") }
+					data-confirm-class="btn-error"
+					data-testid="btn-take-control">{ i18n.T(ctx, "blueprint.take_control.btn") }</button>
+			</div>
+			<pre class="flowbot-surface p-4 overflow-x-auto text-xs font-mono" data-testid="materialized-yaml">{ data.Materialized }</pre>
+		</div>
+	}
+}

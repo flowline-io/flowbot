@@ -145,6 +145,74 @@ func (_u *PipelineDefinitionUpdate) SetNillableCreatedBy(v *string) *PipelineDef
 	return _u
 }
 
+// SetBlueprintSource sets the "blueprint_source" field.
+func (_u *PipelineDefinitionUpdate) SetBlueprintSource(v string) *PipelineDefinitionUpdate {
+	_u.mutation.SetBlueprintSource(v)
+	return _u
+}
+
+// SetNillableBlueprintSource sets the "blueprint_source" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableBlueprintSource(v *string) *PipelineDefinitionUpdate {
+	if v != nil {
+		_u.SetBlueprintSource(*v)
+	}
+	return _u
+}
+
+// SetBlueprintID sets the "blueprint_id" field.
+func (_u *PipelineDefinitionUpdate) SetBlueprintID(v string) *PipelineDefinitionUpdate {
+	_u.mutation.SetBlueprintID(v)
+	return _u
+}
+
+// SetNillableBlueprintID sets the "blueprint_id" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableBlueprintID(v *string) *PipelineDefinitionUpdate {
+	if v != nil {
+		_u.SetBlueprintID(*v)
+	}
+	return _u
+}
+
+// SetBlueprintHash sets the "blueprint_hash" field.
+func (_u *PipelineDefinitionUpdate) SetBlueprintHash(v string) *PipelineDefinitionUpdate {
+	_u.mutation.SetBlueprintHash(v)
+	return _u
+}
+
+// SetNillableBlueprintHash sets the "blueprint_hash" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableBlueprintHash(v *string) *PipelineDefinitionUpdate {
+	if v != nil {
+		_u.SetBlueprintHash(*v)
+	}
+	return _u
+}
+
+// SetBlueprintYaml sets the "blueprint_yaml" field.
+func (_u *PipelineDefinitionUpdate) SetBlueprintYaml(v string) *PipelineDefinitionUpdate {
+	_u.mutation.SetBlueprintYaml(v)
+	return _u
+}
+
+// SetNillableBlueprintYaml sets the "blueprint_yaml" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableBlueprintYaml(v *string) *PipelineDefinitionUpdate {
+	if v != nil {
+		_u.SetBlueprintYaml(*v)
+	}
+	return _u
+}
+
+// SetBlueprintInputs sets the "blueprint_inputs" field.
+func (_u *PipelineDefinitionUpdate) SetBlueprintInputs(v map[string]interface{}) *PipelineDefinitionUpdate {
+	_u.mutation.SetBlueprintInputs(v)
+	return _u
+}
+
+// ClearBlueprintInputs clears the value of the "blueprint_inputs" field.
+func (_u *PipelineDefinitionUpdate) ClearBlueprintInputs() *PipelineDefinitionUpdate {
+	_u.mutation.ClearBlueprintInputs()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *PipelineDefinitionUpdate) SetUpdatedAt(v time.Time) *PipelineDefinitionUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -248,6 +316,24 @@ func (_u *PipelineDefinitionUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if value, ok := _u.mutation.CreatedBy(); ok {
 		_spec.SetField(pipelinedefinition.FieldCreatedBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintSource(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintID(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintHash(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintHash, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintYaml(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintYaml, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintInputs(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintInputs, field.TypeJSON, value)
+	}
+	if _u.mutation.BlueprintInputsCleared() {
+		_spec.ClearField(pipelinedefinition.FieldBlueprintInputs, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldUpdatedAt, field.TypeTime, value)
@@ -389,6 +475,74 @@ func (_u *PipelineDefinitionUpdateOne) SetNillableCreatedBy(v *string) *Pipeline
 	return _u
 }
 
+// SetBlueprintSource sets the "blueprint_source" field.
+func (_u *PipelineDefinitionUpdateOne) SetBlueprintSource(v string) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetBlueprintSource(v)
+	return _u
+}
+
+// SetNillableBlueprintSource sets the "blueprint_source" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableBlueprintSource(v *string) *PipelineDefinitionUpdateOne {
+	if v != nil {
+		_u.SetBlueprintSource(*v)
+	}
+	return _u
+}
+
+// SetBlueprintID sets the "blueprint_id" field.
+func (_u *PipelineDefinitionUpdateOne) SetBlueprintID(v string) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetBlueprintID(v)
+	return _u
+}
+
+// SetNillableBlueprintID sets the "blueprint_id" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableBlueprintID(v *string) *PipelineDefinitionUpdateOne {
+	if v != nil {
+		_u.SetBlueprintID(*v)
+	}
+	return _u
+}
+
+// SetBlueprintHash sets the "blueprint_hash" field.
+func (_u *PipelineDefinitionUpdateOne) SetBlueprintHash(v string) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetBlueprintHash(v)
+	return _u
+}
+
+// SetNillableBlueprintHash sets the "blueprint_hash" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableBlueprintHash(v *string) *PipelineDefinitionUpdateOne {
+	if v != nil {
+		_u.SetBlueprintHash(*v)
+	}
+	return _u
+}
+
+// SetBlueprintYaml sets the "blueprint_yaml" field.
+func (_u *PipelineDefinitionUpdateOne) SetBlueprintYaml(v string) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetBlueprintYaml(v)
+	return _u
+}
+
+// SetNillableBlueprintYaml sets the "blueprint_yaml" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableBlueprintYaml(v *string) *PipelineDefinitionUpdateOne {
+	if v != nil {
+		_u.SetBlueprintYaml(*v)
+	}
+	return _u
+}
+
+// SetBlueprintInputs sets the "blueprint_inputs" field.
+func (_u *PipelineDefinitionUpdateOne) SetBlueprintInputs(v map[string]interface{}) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetBlueprintInputs(v)
+	return _u
+}
+
+// ClearBlueprintInputs clears the value of the "blueprint_inputs" field.
+func (_u *PipelineDefinitionUpdateOne) ClearBlueprintInputs() *PipelineDefinitionUpdateOne {
+	_u.mutation.ClearBlueprintInputs()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *PipelineDefinitionUpdateOne) SetUpdatedAt(v time.Time) *PipelineDefinitionUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -522,6 +676,24 @@ func (_u *PipelineDefinitionUpdateOne) sqlSave(ctx context.Context) (_node *Pipe
 	}
 	if value, ok := _u.mutation.CreatedBy(); ok {
 		_spec.SetField(pipelinedefinition.FieldCreatedBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintSource(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintID(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintHash(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintHash, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintYaml(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintYaml, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BlueprintInputs(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintInputs, field.TypeJSON, value)
+	}
+	if _u.mutation.BlueprintInputsCleared() {
+		_spec.ClearField(pipelinedefinition.FieldBlueprintInputs, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldUpdatedAt, field.TypeTime, value)

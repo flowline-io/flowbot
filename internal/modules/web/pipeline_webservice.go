@@ -120,6 +120,15 @@ func pipelineEditorPage(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	s := getPipelineDefStore()
+	row, err := s.GetDefinitionByName(context.Background(), name)
+	if err != nil {
+		return err
+	}
+	def := mapPipelineDefinition(row)
+	if def.LinkedBlueprint() {
+		return renderLinkedPipelinePage(c, def)
+	}
 	c.Type("html")
 	return pages.PipelineEditorPage(c.Context(), name).Render(c.Context(), c.Response().BodyWriter())
 }
@@ -156,6 +165,20 @@ func updatePipelineDraft(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
 	s := getPipelineDefStore()
+	existing, err := s.GetDefinitionByName(context.Background(), name)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return c.Status(404).JSON(fiber.Map{
+				"error": fiber.Map{"code": "NOT_FOUND", "message": "Pipeline not found"},
+			})
+		}
+		return types.Errorf(types.ErrInternal, "get pipeline: %v", err)
+	}
+	if existing.BlueprintID != "" {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error": fiber.Map{"code": "LINKED_BLUEPRINT", "message": webMsg(c, "error.blueprint.linked_readonly")},
+		})
+	}
 	def, err := s.UpdateDefinitionDraft(context.Background(), name, body.Yaml, body.Version)
 	if err != nil {
 		if errors.Is(err, types.ErrConflict) {

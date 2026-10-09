@@ -49,7 +49,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 
 ## Testing
 
-Which layer: [docs/testing/README.md](../../../docs/testing/README.md). Owning BDD for `/service/web` pages: `tests/specs/*_page_spec_test.go` (`agents`, `agent_sessions`, `agent_scheduled_tasks`, `notifications`, `event`, `home_token_usage`) and `life_spec_test.go`.
+Which layer: [docs/testing/README.md](../../../docs/testing/README.md). Owning BDD for `/service/web` pages: `tests/specs/*_page_spec_test.go` (`agents`, `agent_sessions`, `agent_scheduled_tasks`, `notifications`, `event`, `home_token_usage`, `blueprint`) and `life_spec_test.go`.
 
 ```bash
 go test ./internal/modules/web/...

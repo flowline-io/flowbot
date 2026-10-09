@@ -42,13 +42,14 @@ type PipelineTriggerSummary struct {
 
 // PipelineListEntry augments a pipeline definition with runtime enabled state and last run time.
 type PipelineListEntry struct {
-	Name      string
-	Status    string
-	Enabled   bool
-	LastRunAt *time.Time
-	Triggers  []PipelineTriggerSummary
-	StepCount int
-	Stats     *types.RunLatencyStats
+	Name        string
+	Status      string
+	Enabled     bool
+	LastRunAt   *time.Time
+	Triggers    []PipelineTriggerSummary
+	StepCount   int
+	Stats       *types.RunLatencyStats
+	BlueprintID string
 }
 
 // BuildPipelineListEntries derives list rows from pipeline definition DTOs.
@@ -67,12 +68,13 @@ func BuildPipelineListEntries(defs []model.PipelineDefinition, lastRunAt map[str
 		}
 		stepCount, triggers := PipelineListSummaryFromYAML(yaml)
 		entries = append(entries, PipelineListEntry{
-			Name:      def.Name,
-			Status:    def.Status,
-			Enabled:   pipeline.IsEnabledInYAML(yaml),
-			LastRunAt: last,
-			Triggers:  triggers,
-			StepCount: stepCount,
+			Name:        def.Name,
+			Status:      def.Status,
+			Enabled:     pipeline.IsEnabledInYAML(yaml),
+			LastRunAt:   last,
+			Triggers:    triggers,
+			StepCount:   stepCount,
+			BlueprintID: def.BlueprintID,
 		})
 	}
 	return entries

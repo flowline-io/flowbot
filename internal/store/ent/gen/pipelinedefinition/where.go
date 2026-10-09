@@ -84,6 +84,26 @@ func CreatedBy(v string) predicate.PipelineDefinition {
 	return predicate.PipelineDefinition(sql.FieldEQ(FieldCreatedBy, v))
 }
 
+// BlueprintSource applies equality check predicate on the "blueprint_source" field. It's identical to BlueprintSourceEQ.
+func BlueprintSource(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldBlueprintSource, v))
+}
+
+// BlueprintID applies equality check predicate on the "blueprint_id" field. It's identical to BlueprintIDEQ.
+func BlueprintID(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldBlueprintID, v))
+}
+
+// BlueprintHash applies equality check predicate on the "blueprint_hash" field. It's identical to BlueprintHashEQ.
+func BlueprintHash(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldBlueprintHash, v))
+}
+
+// BlueprintYaml applies equality check predicate on the "blueprint_yaml" field. It's identical to BlueprintYamlEQ.
+func BlueprintYaml(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldBlueprintYaml, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.PipelineDefinition {
 	return predicate.PipelineDefinition(sql.FieldEQ(FieldCreatedAt, v))
@@ -497,6 +517,276 @@ func CreatedByEqualFold(v string) predicate.PipelineDefinition {
 // CreatedByContainsFold applies the ContainsFold predicate on the "created_by" field.
 func CreatedByContainsFold(v string) predicate.PipelineDefinition {
 	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldCreatedBy, v))
+}
+
+// BlueprintSourceEQ applies the EQ predicate on the "blueprint_source" field.
+func BlueprintSourceEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceNEQ applies the NEQ predicate on the "blueprint_source" field.
+func BlueprintSourceNEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceIn applies the In predicate on the "blueprint_source" field.
+func BlueprintSourceIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldBlueprintSource, vs...))
+}
+
+// BlueprintSourceNotIn applies the NotIn predicate on the "blueprint_source" field.
+func BlueprintSourceNotIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldBlueprintSource, vs...))
+}
+
+// BlueprintSourceGT applies the GT predicate on the "blueprint_source" field.
+func BlueprintSourceGT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGT(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceGTE applies the GTE predicate on the "blueprint_source" field.
+func BlueprintSourceGTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGTE(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceLT applies the LT predicate on the "blueprint_source" field.
+func BlueprintSourceLT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLT(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceLTE applies the LTE predicate on the "blueprint_source" field.
+func BlueprintSourceLTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLTE(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceContains applies the Contains predicate on the "blueprint_source" field.
+func BlueprintSourceContains(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContains(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceHasPrefix applies the HasPrefix predicate on the "blueprint_source" field.
+func BlueprintSourceHasPrefix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasPrefix(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceHasSuffix applies the HasSuffix predicate on the "blueprint_source" field.
+func BlueprintSourceHasSuffix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasSuffix(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceEqualFold applies the EqualFold predicate on the "blueprint_source" field.
+func BlueprintSourceEqualFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEqualFold(FieldBlueprintSource, v))
+}
+
+// BlueprintSourceContainsFold applies the ContainsFold predicate on the "blueprint_source" field.
+func BlueprintSourceContainsFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldBlueprintSource, v))
+}
+
+// BlueprintIDEQ applies the EQ predicate on the "blueprint_id" field.
+func BlueprintIDEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldBlueprintID, v))
+}
+
+// BlueprintIDNEQ applies the NEQ predicate on the "blueprint_id" field.
+func BlueprintIDNEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldBlueprintID, v))
+}
+
+// BlueprintIDIn applies the In predicate on the "blueprint_id" field.
+func BlueprintIDIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldBlueprintID, vs...))
+}
+
+// BlueprintIDNotIn applies the NotIn predicate on the "blueprint_id" field.
+func BlueprintIDNotIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldBlueprintID, vs...))
+}
+
+// BlueprintIDGT applies the GT predicate on the "blueprint_id" field.
+func BlueprintIDGT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGT(FieldBlueprintID, v))
+}
+
+// BlueprintIDGTE applies the GTE predicate on the "blueprint_id" field.
+func BlueprintIDGTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGTE(FieldBlueprintID, v))
+}
+
+// BlueprintIDLT applies the LT predicate on the "blueprint_id" field.
+func BlueprintIDLT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLT(FieldBlueprintID, v))
+}
+
+// BlueprintIDLTE applies the LTE predicate on the "blueprint_id" field.
+func BlueprintIDLTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLTE(FieldBlueprintID, v))
+}
+
+// BlueprintIDContains applies the Contains predicate on the "blueprint_id" field.
+func BlueprintIDContains(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContains(FieldBlueprintID, v))
+}
+
+// BlueprintIDHasPrefix applies the HasPrefix predicate on the "blueprint_id" field.
+func BlueprintIDHasPrefix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasPrefix(FieldBlueprintID, v))
+}
+
+// BlueprintIDHasSuffix applies the HasSuffix predicate on the "blueprint_id" field.
+func BlueprintIDHasSuffix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasSuffix(FieldBlueprintID, v))
+}
+
+// BlueprintIDEqualFold applies the EqualFold predicate on the "blueprint_id" field.
+func BlueprintIDEqualFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEqualFold(FieldBlueprintID, v))
+}
+
+// BlueprintIDContainsFold applies the ContainsFold predicate on the "blueprint_id" field.
+func BlueprintIDContainsFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldBlueprintID, v))
+}
+
+// BlueprintHashEQ applies the EQ predicate on the "blueprint_hash" field.
+func BlueprintHashEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldBlueprintHash, v))
+}
+
+// BlueprintHashNEQ applies the NEQ predicate on the "blueprint_hash" field.
+func BlueprintHashNEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldBlueprintHash, v))
+}
+
+// BlueprintHashIn applies the In predicate on the "blueprint_hash" field.
+func BlueprintHashIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldBlueprintHash, vs...))
+}
+
+// BlueprintHashNotIn applies the NotIn predicate on the "blueprint_hash" field.
+func BlueprintHashNotIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldBlueprintHash, vs...))
+}
+
+// BlueprintHashGT applies the GT predicate on the "blueprint_hash" field.
+func BlueprintHashGT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGT(FieldBlueprintHash, v))
+}
+
+// BlueprintHashGTE applies the GTE predicate on the "blueprint_hash" field.
+func BlueprintHashGTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGTE(FieldBlueprintHash, v))
+}
+
+// BlueprintHashLT applies the LT predicate on the "blueprint_hash" field.
+func BlueprintHashLT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLT(FieldBlueprintHash, v))
+}
+
+// BlueprintHashLTE applies the LTE predicate on the "blueprint_hash" field.
+func BlueprintHashLTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLTE(FieldBlueprintHash, v))
+}
+
+// BlueprintHashContains applies the Contains predicate on the "blueprint_hash" field.
+func BlueprintHashContains(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContains(FieldBlueprintHash, v))
+}
+
+// BlueprintHashHasPrefix applies the HasPrefix predicate on the "blueprint_hash" field.
+func BlueprintHashHasPrefix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasPrefix(FieldBlueprintHash, v))
+}
+
+// BlueprintHashHasSuffix applies the HasSuffix predicate on the "blueprint_hash" field.
+func BlueprintHashHasSuffix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasSuffix(FieldBlueprintHash, v))
+}
+
+// BlueprintHashEqualFold applies the EqualFold predicate on the "blueprint_hash" field.
+func BlueprintHashEqualFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEqualFold(FieldBlueprintHash, v))
+}
+
+// BlueprintHashContainsFold applies the ContainsFold predicate on the "blueprint_hash" field.
+func BlueprintHashContainsFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldBlueprintHash, v))
+}
+
+// BlueprintYamlEQ applies the EQ predicate on the "blueprint_yaml" field.
+func BlueprintYamlEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlNEQ applies the NEQ predicate on the "blueprint_yaml" field.
+func BlueprintYamlNEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlIn applies the In predicate on the "blueprint_yaml" field.
+func BlueprintYamlIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldBlueprintYaml, vs...))
+}
+
+// BlueprintYamlNotIn applies the NotIn predicate on the "blueprint_yaml" field.
+func BlueprintYamlNotIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldBlueprintYaml, vs...))
+}
+
+// BlueprintYamlGT applies the GT predicate on the "blueprint_yaml" field.
+func BlueprintYamlGT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGT(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlGTE applies the GTE predicate on the "blueprint_yaml" field.
+func BlueprintYamlGTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGTE(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlLT applies the LT predicate on the "blueprint_yaml" field.
+func BlueprintYamlLT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLT(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlLTE applies the LTE predicate on the "blueprint_yaml" field.
+func BlueprintYamlLTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLTE(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlContains applies the Contains predicate on the "blueprint_yaml" field.
+func BlueprintYamlContains(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContains(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlHasPrefix applies the HasPrefix predicate on the "blueprint_yaml" field.
+func BlueprintYamlHasPrefix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasPrefix(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlHasSuffix applies the HasSuffix predicate on the "blueprint_yaml" field.
+func BlueprintYamlHasSuffix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasSuffix(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlEqualFold applies the EqualFold predicate on the "blueprint_yaml" field.
+func BlueprintYamlEqualFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEqualFold(FieldBlueprintYaml, v))
+}
+
+// BlueprintYamlContainsFold applies the ContainsFold predicate on the "blueprint_yaml" field.
+func BlueprintYamlContainsFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldBlueprintYaml, v))
+}
+
+// BlueprintInputsIsNil applies the IsNil predicate on the "blueprint_inputs" field.
+func BlueprintInputsIsNil() predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIsNull(FieldBlueprintInputs))
+}
+
+// BlueprintInputsNotNil applies the NotNil predicate on the "blueprint_inputs" field.
+func BlueprintInputsNotNil() predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotNull(FieldBlueprintInputs))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

@@ -112,6 +112,68 @@ func (_c *PipelineDefinitionCreate) SetNillableCreatedBy(v *string) *PipelineDef
 	return _c
 }
 
+// SetBlueprintSource sets the "blueprint_source" field.
+func (_c *PipelineDefinitionCreate) SetBlueprintSource(v string) *PipelineDefinitionCreate {
+	_c.mutation.SetBlueprintSource(v)
+	return _c
+}
+
+// SetNillableBlueprintSource sets the "blueprint_source" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableBlueprintSource(v *string) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetBlueprintSource(*v)
+	}
+	return _c
+}
+
+// SetBlueprintID sets the "blueprint_id" field.
+func (_c *PipelineDefinitionCreate) SetBlueprintID(v string) *PipelineDefinitionCreate {
+	_c.mutation.SetBlueprintID(v)
+	return _c
+}
+
+// SetNillableBlueprintID sets the "blueprint_id" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableBlueprintID(v *string) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetBlueprintID(*v)
+	}
+	return _c
+}
+
+// SetBlueprintHash sets the "blueprint_hash" field.
+func (_c *PipelineDefinitionCreate) SetBlueprintHash(v string) *PipelineDefinitionCreate {
+	_c.mutation.SetBlueprintHash(v)
+	return _c
+}
+
+// SetNillableBlueprintHash sets the "blueprint_hash" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableBlueprintHash(v *string) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetBlueprintHash(*v)
+	}
+	return _c
+}
+
+// SetBlueprintYaml sets the "blueprint_yaml" field.
+func (_c *PipelineDefinitionCreate) SetBlueprintYaml(v string) *PipelineDefinitionCreate {
+	_c.mutation.SetBlueprintYaml(v)
+	return _c
+}
+
+// SetNillableBlueprintYaml sets the "blueprint_yaml" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableBlueprintYaml(v *string) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetBlueprintYaml(*v)
+	}
+	return _c
+}
+
+// SetBlueprintInputs sets the "blueprint_inputs" field.
+func (_c *PipelineDefinitionCreate) SetBlueprintInputs(v map[string]interface{}) *PipelineDefinitionCreate {
+	_c.mutation.SetBlueprintInputs(v)
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *PipelineDefinitionCreate) SetCreatedAt(v time.Time) *PipelineDefinitionCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -201,6 +263,22 @@ func (_c *PipelineDefinitionCreate) defaults() {
 		v := pipelinedefinition.DefaultCreatedBy
 		_c.mutation.SetCreatedBy(v)
 	}
+	if _, ok := _c.mutation.BlueprintSource(); !ok {
+		v := pipelinedefinition.DefaultBlueprintSource
+		_c.mutation.SetBlueprintSource(v)
+	}
+	if _, ok := _c.mutation.BlueprintID(); !ok {
+		v := pipelinedefinition.DefaultBlueprintID
+		_c.mutation.SetBlueprintID(v)
+	}
+	if _, ok := _c.mutation.BlueprintHash(); !ok {
+		v := pipelinedefinition.DefaultBlueprintHash
+		_c.mutation.SetBlueprintHash(v)
+	}
+	if _, ok := _c.mutation.BlueprintYaml(); !ok {
+		v := pipelinedefinition.DefaultBlueprintYaml
+		_c.mutation.SetBlueprintYaml(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := pipelinedefinition.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -237,6 +315,18 @@ func (_c *PipelineDefinitionCreate) check() error {
 	}
 	if _, ok := _c.mutation.CreatedBy(); !ok {
 		return &ValidationError{Name: "created_by", err: errors.New(`gen: missing required field "PipelineDefinition.created_by"`)}
+	}
+	if _, ok := _c.mutation.BlueprintSource(); !ok {
+		return &ValidationError{Name: "blueprint_source", err: errors.New(`gen: missing required field "PipelineDefinition.blueprint_source"`)}
+	}
+	if _, ok := _c.mutation.BlueprintID(); !ok {
+		return &ValidationError{Name: "blueprint_id", err: errors.New(`gen: missing required field "PipelineDefinition.blueprint_id"`)}
+	}
+	if _, ok := _c.mutation.BlueprintHash(); !ok {
+		return &ValidationError{Name: "blueprint_hash", err: errors.New(`gen: missing required field "PipelineDefinition.blueprint_hash"`)}
+	}
+	if _, ok := _c.mutation.BlueprintYaml(); !ok {
+		return &ValidationError{Name: "blueprint_yaml", err: errors.New(`gen: missing required field "PipelineDefinition.blueprint_yaml"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "PipelineDefinition.created_at"`)}
@@ -304,6 +394,26 @@ func (_c *PipelineDefinitionCreate) createSpec() (*PipelineDefinition, *sqlgraph
 	if value, ok := _c.mutation.CreatedBy(); ok {
 		_spec.SetField(pipelinedefinition.FieldCreatedBy, field.TypeString, value)
 		_node.CreatedBy = value
+	}
+	if value, ok := _c.mutation.BlueprintSource(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintSource, field.TypeString, value)
+		_node.BlueprintSource = value
+	}
+	if value, ok := _c.mutation.BlueprintID(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintID, field.TypeString, value)
+		_node.BlueprintID = value
+	}
+	if value, ok := _c.mutation.BlueprintHash(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintHash, field.TypeString, value)
+		_node.BlueprintHash = value
+	}
+	if value, ok := _c.mutation.BlueprintYaml(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintYaml, field.TypeString, value)
+		_node.BlueprintYaml = value
+	}
+	if value, ok := _c.mutation.BlueprintInputs(); ok {
+		_spec.SetField(pipelinedefinition.FieldBlueprintInputs, field.TypeJSON, value)
+		_node.BlueprintInputs = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldCreatedAt, field.TypeTime, value)
@@ -464,6 +574,72 @@ func (u *PipelineDefinitionUpsert) SetCreatedBy(v string) *PipelineDefinitionUps
 // UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
 func (u *PipelineDefinitionUpsert) UpdateCreatedBy() *PipelineDefinitionUpsert {
 	u.SetExcluded(pipelinedefinition.FieldCreatedBy)
+	return u
+}
+
+// SetBlueprintSource sets the "blueprint_source" field.
+func (u *PipelineDefinitionUpsert) SetBlueprintSource(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldBlueprintSource, v)
+	return u
+}
+
+// UpdateBlueprintSource sets the "blueprint_source" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateBlueprintSource() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldBlueprintSource)
+	return u
+}
+
+// SetBlueprintID sets the "blueprint_id" field.
+func (u *PipelineDefinitionUpsert) SetBlueprintID(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldBlueprintID, v)
+	return u
+}
+
+// UpdateBlueprintID sets the "blueprint_id" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateBlueprintID() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldBlueprintID)
+	return u
+}
+
+// SetBlueprintHash sets the "blueprint_hash" field.
+func (u *PipelineDefinitionUpsert) SetBlueprintHash(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldBlueprintHash, v)
+	return u
+}
+
+// UpdateBlueprintHash sets the "blueprint_hash" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateBlueprintHash() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldBlueprintHash)
+	return u
+}
+
+// SetBlueprintYaml sets the "blueprint_yaml" field.
+func (u *PipelineDefinitionUpsert) SetBlueprintYaml(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldBlueprintYaml, v)
+	return u
+}
+
+// UpdateBlueprintYaml sets the "blueprint_yaml" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateBlueprintYaml() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldBlueprintYaml)
+	return u
+}
+
+// SetBlueprintInputs sets the "blueprint_inputs" field.
+func (u *PipelineDefinitionUpsert) SetBlueprintInputs(v map[string]interface{}) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldBlueprintInputs, v)
+	return u
+}
+
+// UpdateBlueprintInputs sets the "blueprint_inputs" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateBlueprintInputs() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldBlueprintInputs)
+	return u
+}
+
+// ClearBlueprintInputs clears the value of the "blueprint_inputs" field.
+func (u *PipelineDefinitionUpsert) ClearBlueprintInputs() *PipelineDefinitionUpsert {
+	u.SetNull(pipelinedefinition.FieldBlueprintInputs)
 	return u
 }
 
@@ -646,6 +822,83 @@ func (u *PipelineDefinitionUpsertOne) SetCreatedBy(v string) *PipelineDefinition
 func (u *PipelineDefinitionUpsertOne) UpdateCreatedBy() *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
 		s.UpdateCreatedBy()
+	})
+}
+
+// SetBlueprintSource sets the "blueprint_source" field.
+func (u *PipelineDefinitionUpsertOne) SetBlueprintSource(v string) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintSource(v)
+	})
+}
+
+// UpdateBlueprintSource sets the "blueprint_source" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateBlueprintSource() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintSource()
+	})
+}
+
+// SetBlueprintID sets the "blueprint_id" field.
+func (u *PipelineDefinitionUpsertOne) SetBlueprintID(v string) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintID(v)
+	})
+}
+
+// UpdateBlueprintID sets the "blueprint_id" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateBlueprintID() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintID()
+	})
+}
+
+// SetBlueprintHash sets the "blueprint_hash" field.
+func (u *PipelineDefinitionUpsertOne) SetBlueprintHash(v string) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintHash(v)
+	})
+}
+
+// UpdateBlueprintHash sets the "blueprint_hash" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateBlueprintHash() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintHash()
+	})
+}
+
+// SetBlueprintYaml sets the "blueprint_yaml" field.
+func (u *PipelineDefinitionUpsertOne) SetBlueprintYaml(v string) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintYaml(v)
+	})
+}
+
+// UpdateBlueprintYaml sets the "blueprint_yaml" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateBlueprintYaml() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintYaml()
+	})
+}
+
+// SetBlueprintInputs sets the "blueprint_inputs" field.
+func (u *PipelineDefinitionUpsertOne) SetBlueprintInputs(v map[string]interface{}) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintInputs(v)
+	})
+}
+
+// UpdateBlueprintInputs sets the "blueprint_inputs" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateBlueprintInputs() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintInputs()
+	})
+}
+
+// ClearBlueprintInputs clears the value of the "blueprint_inputs" field.
+func (u *PipelineDefinitionUpsertOne) ClearBlueprintInputs() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.ClearBlueprintInputs()
 	})
 }
 
@@ -996,6 +1249,83 @@ func (u *PipelineDefinitionUpsertBulk) SetCreatedBy(v string) *PipelineDefinitio
 func (u *PipelineDefinitionUpsertBulk) UpdateCreatedBy() *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
 		s.UpdateCreatedBy()
+	})
+}
+
+// SetBlueprintSource sets the "blueprint_source" field.
+func (u *PipelineDefinitionUpsertBulk) SetBlueprintSource(v string) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintSource(v)
+	})
+}
+
+// UpdateBlueprintSource sets the "blueprint_source" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateBlueprintSource() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintSource()
+	})
+}
+
+// SetBlueprintID sets the "blueprint_id" field.
+func (u *PipelineDefinitionUpsertBulk) SetBlueprintID(v string) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintID(v)
+	})
+}
+
+// UpdateBlueprintID sets the "blueprint_id" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateBlueprintID() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintID()
+	})
+}
+
+// SetBlueprintHash sets the "blueprint_hash" field.
+func (u *PipelineDefinitionUpsertBulk) SetBlueprintHash(v string) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintHash(v)
+	})
+}
+
+// UpdateBlueprintHash sets the "blueprint_hash" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateBlueprintHash() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintHash()
+	})
+}
+
+// SetBlueprintYaml sets the "blueprint_yaml" field.
+func (u *PipelineDefinitionUpsertBulk) SetBlueprintYaml(v string) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintYaml(v)
+	})
+}
+
+// UpdateBlueprintYaml sets the "blueprint_yaml" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateBlueprintYaml() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintYaml()
+	})
+}
+
+// SetBlueprintInputs sets the "blueprint_inputs" field.
+func (u *PipelineDefinitionUpsertBulk) SetBlueprintInputs(v map[string]interface{}) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetBlueprintInputs(v)
+	})
+}
+
+// UpdateBlueprintInputs sets the "blueprint_inputs" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateBlueprintInputs() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateBlueprintInputs()
+	})
+}
+
+// ClearBlueprintInputs clears the value of the "blueprint_inputs" field.
+func (u *PipelineDefinitionUpsertBulk) ClearBlueprintInputs() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.ClearBlueprintInputs()
 	})
 }
 

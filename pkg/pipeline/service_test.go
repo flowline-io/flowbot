@@ -123,6 +123,42 @@ func (m *mockCatalog) GetRunsByParentName(_ context.Context, parentName string) 
 	return m.runs[parentName], nil
 }
 
+func (m *mockCatalog) SetBlueprintOrigin(_ context.Context, name string, origin BlueprintOrigin) error {
+	def, ok := m.defs[name]
+	if !ok {
+		return types.ErrNotFound
+	}
+	def.BlueprintSource = origin.Source
+	def.BlueprintID = origin.ID
+	def.BlueprintHash = origin.Hash
+	def.BlueprintYAML = origin.YAML
+	def.BlueprintInputs = origin.Inputs
+	return nil
+}
+
+func (m *mockCatalog) ClearBlueprintOrigin(_ context.Context, name string) error {
+	def, ok := m.defs[name]
+	if !ok {
+		return types.ErrNotFound
+	}
+	def.BlueprintSource = ""
+	def.BlueprintID = ""
+	def.BlueprintHash = ""
+	def.BlueprintYAML = ""
+	def.BlueprintInputs = nil
+	return nil
+}
+
+func (m *mockCatalog) ListLinkedPipelineNames(_ context.Context, source, blueprintID string) ([]string, error) {
+	var names []string
+	for _, def := range m.defs {
+		if def.BlueprintSource == source && def.BlueprintID == blueprintID {
+			names = append(names, def.Name)
+		}
+	}
+	return names, nil
+}
+
 func TestServiceApplyYAMLAndExport(t *testing.T) {
 	cat := newMockCatalog()
 	svc := NewService(cat)

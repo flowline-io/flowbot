@@ -79,6 +79,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelineblueprinttemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
@@ -177,6 +178,7 @@ const (
 	TypePage                      = "Page"
 	TypePageData                  = "PageData"
 	TypeParameter                 = "Parameter"
+	TypePipelineBlueprintTemplate = "PipelineBlueprintTemplate"
 	TypePipelineDefinition        = "PipelineDefinition"
 	TypePipelineDefinitionVersion = "PipelineDefinitionVersion"
 	TypePipelineRun               = "PipelineRun"
@@ -55172,26 +55174,763 @@ func (m *ParameterMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Parameter edge %s", name)
 }
 
+// PipelineBlueprintTemplateMutation represents an operation that mutates the PipelineBlueprintTemplate nodes in the graph.
+type PipelineBlueprintTemplateMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	blueprint_id  *string
+	title         *string
+	description   *string
+	yaml          *string
+	content_hash  *string
+	created_by    *string
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*PipelineBlueprintTemplate, error)
+	predicates    []predicate.PipelineBlueprintTemplate
+}
+
+var _ ent.Mutation = (*PipelineBlueprintTemplateMutation)(nil)
+
+// pipelineblueprinttemplateOption allows management of the mutation configuration using functional options.
+type pipelineblueprinttemplateOption func(*PipelineBlueprintTemplateMutation)
+
+// newPipelineBlueprintTemplateMutation creates new mutation for the PipelineBlueprintTemplate entity.
+func newPipelineBlueprintTemplateMutation(c config, op Op, opts ...pipelineblueprinttemplateOption) *PipelineBlueprintTemplateMutation {
+	m := &PipelineBlueprintTemplateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePipelineBlueprintTemplate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPipelineBlueprintTemplateID sets the ID field of the mutation.
+func withPipelineBlueprintTemplateID(id int64) pipelineblueprinttemplateOption {
+	return func(m *PipelineBlueprintTemplateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PipelineBlueprintTemplate
+		)
+		m.oldValue = func(ctx context.Context) (*PipelineBlueprintTemplate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PipelineBlueprintTemplate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPipelineBlueprintTemplate sets the old PipelineBlueprintTemplate of the mutation.
+func withPipelineBlueprintTemplate(node *PipelineBlueprintTemplate) pipelineblueprinttemplateOption {
+	return func(m *PipelineBlueprintTemplateMutation) {
+		m.oldValue = func(context.Context) (*PipelineBlueprintTemplate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PipelineBlueprintTemplateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PipelineBlueprintTemplateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PipelineBlueprintTemplate entities.
+func (m *PipelineBlueprintTemplateMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PipelineBlueprintTemplateMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PipelineBlueprintTemplateMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PipelineBlueprintTemplate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetBlueprintID sets the "blueprint_id" field.
+func (m *PipelineBlueprintTemplateMutation) SetBlueprintID(s string) {
+	m.blueprint_id = &s
+}
+
+// BlueprintID returns the value of the "blueprint_id" field in the mutation.
+func (m *PipelineBlueprintTemplateMutation) BlueprintID() (r string, exists bool) {
+	v := m.blueprint_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlueprintID returns the old "blueprint_id" field's value of the PipelineBlueprintTemplate entity.
+// If the PipelineBlueprintTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineBlueprintTemplateMutation) OldBlueprintID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlueprintID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlueprintID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlueprintID: %w", err)
+	}
+	return oldValue.BlueprintID, nil
+}
+
+// ResetBlueprintID resets all changes to the "blueprint_id" field.
+func (m *PipelineBlueprintTemplateMutation) ResetBlueprintID() {
+	m.blueprint_id = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *PipelineBlueprintTemplateMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *PipelineBlueprintTemplateMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the PipelineBlueprintTemplate entity.
+// If the PipelineBlueprintTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineBlueprintTemplateMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *PipelineBlueprintTemplateMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *PipelineBlueprintTemplateMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *PipelineBlueprintTemplateMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the PipelineBlueprintTemplate entity.
+// If the PipelineBlueprintTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineBlueprintTemplateMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *PipelineBlueprintTemplateMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[pipelineblueprinttemplate.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *PipelineBlueprintTemplateMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[pipelineblueprinttemplate.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *PipelineBlueprintTemplateMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, pipelineblueprinttemplate.FieldDescription)
+}
+
+// SetYaml sets the "yaml" field.
+func (m *PipelineBlueprintTemplateMutation) SetYaml(s string) {
+	m.yaml = &s
+}
+
+// Yaml returns the value of the "yaml" field in the mutation.
+func (m *PipelineBlueprintTemplateMutation) Yaml() (r string, exists bool) {
+	v := m.yaml
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldYaml returns the old "yaml" field's value of the PipelineBlueprintTemplate entity.
+// If the PipelineBlueprintTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineBlueprintTemplateMutation) OldYaml(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldYaml is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldYaml requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldYaml: %w", err)
+	}
+	return oldValue.Yaml, nil
+}
+
+// ResetYaml resets all changes to the "yaml" field.
+func (m *PipelineBlueprintTemplateMutation) ResetYaml() {
+	m.yaml = nil
+}
+
+// SetContentHash sets the "content_hash" field.
+func (m *PipelineBlueprintTemplateMutation) SetContentHash(s string) {
+	m.content_hash = &s
+}
+
+// ContentHash returns the value of the "content_hash" field in the mutation.
+func (m *PipelineBlueprintTemplateMutation) ContentHash() (r string, exists bool) {
+	v := m.content_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentHash returns the old "content_hash" field's value of the PipelineBlueprintTemplate entity.
+// If the PipelineBlueprintTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineBlueprintTemplateMutation) OldContentHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentHash: %w", err)
+	}
+	return oldValue.ContentHash, nil
+}
+
+// ResetContentHash resets all changes to the "content_hash" field.
+func (m *PipelineBlueprintTemplateMutation) ResetContentHash() {
+	m.content_hash = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *PipelineBlueprintTemplateMutation) SetCreatedBy(s string) {
+	m.created_by = &s
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *PipelineBlueprintTemplateMutation) CreatedBy() (r string, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the PipelineBlueprintTemplate entity.
+// If the PipelineBlueprintTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineBlueprintTemplateMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *PipelineBlueprintTemplateMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PipelineBlueprintTemplateMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PipelineBlueprintTemplateMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PipelineBlueprintTemplate entity.
+// If the PipelineBlueprintTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineBlueprintTemplateMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PipelineBlueprintTemplateMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PipelineBlueprintTemplateMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PipelineBlueprintTemplateMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PipelineBlueprintTemplate entity.
+// If the PipelineBlueprintTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineBlueprintTemplateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PipelineBlueprintTemplateMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the PipelineBlueprintTemplateMutation builder.
+func (m *PipelineBlueprintTemplateMutation) Where(ps ...predicate.PipelineBlueprintTemplate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PipelineBlueprintTemplateMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PipelineBlueprintTemplateMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PipelineBlueprintTemplate, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PipelineBlueprintTemplateMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PipelineBlueprintTemplateMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PipelineBlueprintTemplate).
+func (m *PipelineBlueprintTemplateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PipelineBlueprintTemplateMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.blueprint_id != nil {
+		fields = append(fields, pipelineblueprinttemplate.FieldBlueprintID)
+	}
+	if m.title != nil {
+		fields = append(fields, pipelineblueprinttemplate.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, pipelineblueprinttemplate.FieldDescription)
+	}
+	if m.yaml != nil {
+		fields = append(fields, pipelineblueprinttemplate.FieldYaml)
+	}
+	if m.content_hash != nil {
+		fields = append(fields, pipelineblueprinttemplate.FieldContentHash)
+	}
+	if m.created_by != nil {
+		fields = append(fields, pipelineblueprinttemplate.FieldCreatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, pipelineblueprinttemplate.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, pipelineblueprinttemplate.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PipelineBlueprintTemplateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pipelineblueprinttemplate.FieldBlueprintID:
+		return m.BlueprintID()
+	case pipelineblueprinttemplate.FieldTitle:
+		return m.Title()
+	case pipelineblueprinttemplate.FieldDescription:
+		return m.Description()
+	case pipelineblueprinttemplate.FieldYaml:
+		return m.Yaml()
+	case pipelineblueprinttemplate.FieldContentHash:
+		return m.ContentHash()
+	case pipelineblueprinttemplate.FieldCreatedBy:
+		return m.CreatedBy()
+	case pipelineblueprinttemplate.FieldCreatedAt:
+		return m.CreatedAt()
+	case pipelineblueprinttemplate.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PipelineBlueprintTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pipelineblueprinttemplate.FieldBlueprintID:
+		return m.OldBlueprintID(ctx)
+	case pipelineblueprinttemplate.FieldTitle:
+		return m.OldTitle(ctx)
+	case pipelineblueprinttemplate.FieldDescription:
+		return m.OldDescription(ctx)
+	case pipelineblueprinttemplate.FieldYaml:
+		return m.OldYaml(ctx)
+	case pipelineblueprinttemplate.FieldContentHash:
+		return m.OldContentHash(ctx)
+	case pipelineblueprinttemplate.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case pipelineblueprinttemplate.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case pipelineblueprinttemplate.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PipelineBlueprintTemplate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PipelineBlueprintTemplateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pipelineblueprinttemplate.FieldBlueprintID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlueprintID(v)
+		return nil
+	case pipelineblueprinttemplate.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case pipelineblueprinttemplate.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case pipelineblueprinttemplate.FieldYaml:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetYaml(v)
+		return nil
+	case pipelineblueprinttemplate.FieldContentHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentHash(v)
+		return nil
+	case pipelineblueprinttemplate.FieldCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case pipelineblueprinttemplate.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case pipelineblueprinttemplate.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PipelineBlueprintTemplate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PipelineBlueprintTemplateMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PipelineBlueprintTemplateMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PipelineBlueprintTemplateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PipelineBlueprintTemplate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PipelineBlueprintTemplateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(pipelineblueprinttemplate.FieldDescription) {
+		fields = append(fields, pipelineblueprinttemplate.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PipelineBlueprintTemplateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PipelineBlueprintTemplateMutation) ClearField(name string) error {
+	switch name {
+	case pipelineblueprinttemplate.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown PipelineBlueprintTemplate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PipelineBlueprintTemplateMutation) ResetField(name string) error {
+	switch name {
+	case pipelineblueprinttemplate.FieldBlueprintID:
+		m.ResetBlueprintID()
+		return nil
+	case pipelineblueprinttemplate.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case pipelineblueprinttemplate.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case pipelineblueprinttemplate.FieldYaml:
+		m.ResetYaml()
+		return nil
+	case pipelineblueprinttemplate.FieldContentHash:
+		m.ResetContentHash()
+		return nil
+	case pipelineblueprinttemplate.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case pipelineblueprinttemplate.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case pipelineblueprinttemplate.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PipelineBlueprintTemplate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PipelineBlueprintTemplateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PipelineBlueprintTemplateMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PipelineBlueprintTemplateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PipelineBlueprintTemplateMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PipelineBlueprintTemplateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PipelineBlueprintTemplateMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PipelineBlueprintTemplateMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PipelineBlueprintTemplate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PipelineBlueprintTemplateMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PipelineBlueprintTemplate edge %s", name)
+}
+
 // PipelineDefinitionMutation represents an operation that mutates the PipelineDefinition nodes in the graph.
 type PipelineDefinitionMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int64
-	name           *string
-	description    *string
-	yaml_draft     *string
-	yaml_published *string
-	version        *int
-	addversion     *int
-	status         *pipelinedefinition.Status
-	created_by     *string
-	created_at     *time.Time
-	updated_at     *time.Time
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*PipelineDefinition, error)
-	predicates     []predicate.PipelineDefinition
+	op               Op
+	typ              string
+	id               *int64
+	name             *string
+	description      *string
+	yaml_draft       *string
+	yaml_published   *string
+	version          *int
+	addversion       *int
+	status           *pipelinedefinition.Status
+	created_by       *string
+	blueprint_source *string
+	blueprint_id     *string
+	blueprint_hash   *string
+	blueprint_yaml   *string
+	blueprint_inputs *map[string]interface{}
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*PipelineDefinition, error)
+	predicates       []predicate.PipelineDefinition
 }
 
 var _ ent.Mutation = (*PipelineDefinitionMutation)(nil)
@@ -55596,6 +56335,199 @@ func (m *PipelineDefinitionMutation) ResetCreatedBy() {
 	m.created_by = nil
 }
 
+// SetBlueprintSource sets the "blueprint_source" field.
+func (m *PipelineDefinitionMutation) SetBlueprintSource(s string) {
+	m.blueprint_source = &s
+}
+
+// BlueprintSource returns the value of the "blueprint_source" field in the mutation.
+func (m *PipelineDefinitionMutation) BlueprintSource() (r string, exists bool) {
+	v := m.blueprint_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlueprintSource returns the old "blueprint_source" field's value of the PipelineDefinition entity.
+// If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionMutation) OldBlueprintSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlueprintSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlueprintSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlueprintSource: %w", err)
+	}
+	return oldValue.BlueprintSource, nil
+}
+
+// ResetBlueprintSource resets all changes to the "blueprint_source" field.
+func (m *PipelineDefinitionMutation) ResetBlueprintSource() {
+	m.blueprint_source = nil
+}
+
+// SetBlueprintID sets the "blueprint_id" field.
+func (m *PipelineDefinitionMutation) SetBlueprintID(s string) {
+	m.blueprint_id = &s
+}
+
+// BlueprintID returns the value of the "blueprint_id" field in the mutation.
+func (m *PipelineDefinitionMutation) BlueprintID() (r string, exists bool) {
+	v := m.blueprint_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlueprintID returns the old "blueprint_id" field's value of the PipelineDefinition entity.
+// If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionMutation) OldBlueprintID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlueprintID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlueprintID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlueprintID: %w", err)
+	}
+	return oldValue.BlueprintID, nil
+}
+
+// ResetBlueprintID resets all changes to the "blueprint_id" field.
+func (m *PipelineDefinitionMutation) ResetBlueprintID() {
+	m.blueprint_id = nil
+}
+
+// SetBlueprintHash sets the "blueprint_hash" field.
+func (m *PipelineDefinitionMutation) SetBlueprintHash(s string) {
+	m.blueprint_hash = &s
+}
+
+// BlueprintHash returns the value of the "blueprint_hash" field in the mutation.
+func (m *PipelineDefinitionMutation) BlueprintHash() (r string, exists bool) {
+	v := m.blueprint_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlueprintHash returns the old "blueprint_hash" field's value of the PipelineDefinition entity.
+// If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionMutation) OldBlueprintHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlueprintHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlueprintHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlueprintHash: %w", err)
+	}
+	return oldValue.BlueprintHash, nil
+}
+
+// ResetBlueprintHash resets all changes to the "blueprint_hash" field.
+func (m *PipelineDefinitionMutation) ResetBlueprintHash() {
+	m.blueprint_hash = nil
+}
+
+// SetBlueprintYaml sets the "blueprint_yaml" field.
+func (m *PipelineDefinitionMutation) SetBlueprintYaml(s string) {
+	m.blueprint_yaml = &s
+}
+
+// BlueprintYaml returns the value of the "blueprint_yaml" field in the mutation.
+func (m *PipelineDefinitionMutation) BlueprintYaml() (r string, exists bool) {
+	v := m.blueprint_yaml
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlueprintYaml returns the old "blueprint_yaml" field's value of the PipelineDefinition entity.
+// If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionMutation) OldBlueprintYaml(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlueprintYaml is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlueprintYaml requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlueprintYaml: %w", err)
+	}
+	return oldValue.BlueprintYaml, nil
+}
+
+// ResetBlueprintYaml resets all changes to the "blueprint_yaml" field.
+func (m *PipelineDefinitionMutation) ResetBlueprintYaml() {
+	m.blueprint_yaml = nil
+}
+
+// SetBlueprintInputs sets the "blueprint_inputs" field.
+func (m *PipelineDefinitionMutation) SetBlueprintInputs(value map[string]interface{}) {
+	m.blueprint_inputs = &value
+}
+
+// BlueprintInputs returns the value of the "blueprint_inputs" field in the mutation.
+func (m *PipelineDefinitionMutation) BlueprintInputs() (r map[string]interface{}, exists bool) {
+	v := m.blueprint_inputs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlueprintInputs returns the old "blueprint_inputs" field's value of the PipelineDefinition entity.
+// If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionMutation) OldBlueprintInputs(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlueprintInputs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlueprintInputs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlueprintInputs: %w", err)
+	}
+	return oldValue.BlueprintInputs, nil
+}
+
+// ClearBlueprintInputs clears the value of the "blueprint_inputs" field.
+func (m *PipelineDefinitionMutation) ClearBlueprintInputs() {
+	m.blueprint_inputs = nil
+	m.clearedFields[pipelinedefinition.FieldBlueprintInputs] = struct{}{}
+}
+
+// BlueprintInputsCleared returns if the "blueprint_inputs" field was cleared in this mutation.
+func (m *PipelineDefinitionMutation) BlueprintInputsCleared() bool {
+	_, ok := m.clearedFields[pipelinedefinition.FieldBlueprintInputs]
+	return ok
+}
+
+// ResetBlueprintInputs resets all changes to the "blueprint_inputs" field.
+func (m *PipelineDefinitionMutation) ResetBlueprintInputs() {
+	m.blueprint_inputs = nil
+	delete(m.clearedFields, pipelinedefinition.FieldBlueprintInputs)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *PipelineDefinitionMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -55702,7 +56634,7 @@ func (m *PipelineDefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PipelineDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 14)
 	if m.name != nil {
 		fields = append(fields, pipelinedefinition.FieldName)
 	}
@@ -55723,6 +56655,21 @@ func (m *PipelineDefinitionMutation) Fields() []string {
 	}
 	if m.created_by != nil {
 		fields = append(fields, pipelinedefinition.FieldCreatedBy)
+	}
+	if m.blueprint_source != nil {
+		fields = append(fields, pipelinedefinition.FieldBlueprintSource)
+	}
+	if m.blueprint_id != nil {
+		fields = append(fields, pipelinedefinition.FieldBlueprintID)
+	}
+	if m.blueprint_hash != nil {
+		fields = append(fields, pipelinedefinition.FieldBlueprintHash)
+	}
+	if m.blueprint_yaml != nil {
+		fields = append(fields, pipelinedefinition.FieldBlueprintYaml)
+	}
+	if m.blueprint_inputs != nil {
+		fields = append(fields, pipelinedefinition.FieldBlueprintInputs)
 	}
 	if m.created_at != nil {
 		fields = append(fields, pipelinedefinition.FieldCreatedAt)
@@ -55752,6 +56699,16 @@ func (m *PipelineDefinitionMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case pipelinedefinition.FieldCreatedBy:
 		return m.CreatedBy()
+	case pipelinedefinition.FieldBlueprintSource:
+		return m.BlueprintSource()
+	case pipelinedefinition.FieldBlueprintID:
+		return m.BlueprintID()
+	case pipelinedefinition.FieldBlueprintHash:
+		return m.BlueprintHash()
+	case pipelinedefinition.FieldBlueprintYaml:
+		return m.BlueprintYaml()
+	case pipelinedefinition.FieldBlueprintInputs:
+		return m.BlueprintInputs()
 	case pipelinedefinition.FieldCreatedAt:
 		return m.CreatedAt()
 	case pipelinedefinition.FieldUpdatedAt:
@@ -55779,6 +56736,16 @@ func (m *PipelineDefinitionMutation) OldField(ctx context.Context, name string) 
 		return m.OldStatus(ctx)
 	case pipelinedefinition.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
+	case pipelinedefinition.FieldBlueprintSource:
+		return m.OldBlueprintSource(ctx)
+	case pipelinedefinition.FieldBlueprintID:
+		return m.OldBlueprintID(ctx)
+	case pipelinedefinition.FieldBlueprintHash:
+		return m.OldBlueprintHash(ctx)
+	case pipelinedefinition.FieldBlueprintYaml:
+		return m.OldBlueprintYaml(ctx)
+	case pipelinedefinition.FieldBlueprintInputs:
+		return m.OldBlueprintInputs(ctx)
 	case pipelinedefinition.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case pipelinedefinition.FieldUpdatedAt:
@@ -55840,6 +56807,41 @@ func (m *PipelineDefinitionMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedBy(v)
+		return nil
+	case pipelinedefinition.FieldBlueprintSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlueprintSource(v)
+		return nil
+	case pipelinedefinition.FieldBlueprintID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlueprintID(v)
+		return nil
+	case pipelinedefinition.FieldBlueprintHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlueprintHash(v)
+		return nil
+	case pipelinedefinition.FieldBlueprintYaml:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlueprintYaml(v)
+		return nil
+	case pipelinedefinition.FieldBlueprintInputs:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlueprintInputs(v)
 		return nil
 	case pipelinedefinition.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -55906,6 +56908,9 @@ func (m *PipelineDefinitionMutation) ClearedFields() []string {
 	if m.FieldCleared(pipelinedefinition.FieldYamlPublished) {
 		fields = append(fields, pipelinedefinition.FieldYamlPublished)
 	}
+	if m.FieldCleared(pipelinedefinition.FieldBlueprintInputs) {
+		fields = append(fields, pipelinedefinition.FieldBlueprintInputs)
+	}
 	return fields
 }
 
@@ -55925,6 +56930,9 @@ func (m *PipelineDefinitionMutation) ClearField(name string) error {
 		return nil
 	case pipelinedefinition.FieldYamlPublished:
 		m.ClearYamlPublished()
+		return nil
+	case pipelinedefinition.FieldBlueprintInputs:
+		m.ClearBlueprintInputs()
 		return nil
 	}
 	return fmt.Errorf("unknown PipelineDefinition nullable field %s", name)
@@ -55954,6 +56962,21 @@ func (m *PipelineDefinitionMutation) ResetField(name string) error {
 		return nil
 	case pipelinedefinition.FieldCreatedBy:
 		m.ResetCreatedBy()
+		return nil
+	case pipelinedefinition.FieldBlueprintSource:
+		m.ResetBlueprintSource()
+		return nil
+	case pipelinedefinition.FieldBlueprintID:
+		m.ResetBlueprintID()
+		return nil
+	case pipelinedefinition.FieldBlueprintHash:
+		m.ResetBlueprintHash()
+		return nil
+	case pipelinedefinition.FieldBlueprintYaml:
+		m.ResetBlueprintYaml()
+		return nil
+	case pipelinedefinition.FieldBlueprintInputs:
+		m.ResetBlueprintInputs()
 		return nil
 	case pipelinedefinition.FieldCreatedAt:
 		m.ResetCreatedAt()

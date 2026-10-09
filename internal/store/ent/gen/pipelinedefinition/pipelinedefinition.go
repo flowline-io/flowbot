@@ -28,6 +28,16 @@ const (
 	FieldStatus = "status"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
+	// FieldBlueprintSource holds the string denoting the blueprint_source field in the database.
+	FieldBlueprintSource = "blueprint_source"
+	// FieldBlueprintID holds the string denoting the blueprint_id field in the database.
+	FieldBlueprintID = "blueprint_id"
+	// FieldBlueprintHash holds the string denoting the blueprint_hash field in the database.
+	FieldBlueprintHash = "blueprint_hash"
+	// FieldBlueprintYaml holds the string denoting the blueprint_yaml field in the database.
+	FieldBlueprintYaml = "blueprint_yaml"
+	// FieldBlueprintInputs holds the string denoting the blueprint_inputs field in the database.
+	FieldBlueprintInputs = "blueprint_inputs"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -46,6 +56,11 @@ var Columns = []string{
 	FieldVersion,
 	FieldStatus,
 	FieldCreatedBy,
+	FieldBlueprintSource,
+	FieldBlueprintID,
+	FieldBlueprintHash,
+	FieldBlueprintYaml,
+	FieldBlueprintInputs,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -71,6 +86,14 @@ var (
 	DefaultVersion int
 	// DefaultCreatedBy holds the default value on creation for the "created_by" field.
 	DefaultCreatedBy string
+	// DefaultBlueprintSource holds the default value on creation for the "blueprint_source" field.
+	DefaultBlueprintSource string
+	// DefaultBlueprintID holds the default value on creation for the "blueprint_id" field.
+	DefaultBlueprintID string
+	// DefaultBlueprintHash holds the default value on creation for the "blueprint_hash" field.
+	DefaultBlueprintHash string
+	// DefaultBlueprintYaml holds the default value on creation for the "blueprint_yaml" field.
+	DefaultBlueprintYaml string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -146,6 +169,26 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByCreatedBy orders the results by the created_by field.
 func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
+}
+
+// ByBlueprintSource orders the results by the blueprint_source field.
+func ByBlueprintSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBlueprintSource, opts...).ToFunc()
+}
+
+// ByBlueprintID orders the results by the blueprint_id field.
+func ByBlueprintID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBlueprintID, opts...).ToFunc()
+}
+
+// ByBlueprintHash orders the results by the blueprint_hash field.
+func ByBlueprintHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBlueprintHash, opts...).ToFunc()
+}
+
+// ByBlueprintYaml orders the results by the blueprint_yaml field.
+func ByBlueprintYaml(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBlueprintYaml, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

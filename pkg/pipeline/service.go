@@ -56,6 +56,9 @@ func (s *Service) ApplyYAML(ctx context.Context, data []byte, createdBy string) 
 	if s == nil || s.catalog == nil {
 		return nil, types.Errorf(types.ErrUnavailable, "pipeline service not ready")
 	}
+	if LooksLikeBlueprint(data) {
+		return nil, types.Errorf(types.ErrInvalidArgument, "this file is a pipeline blueprint; instantiate it instead of apply")
+	}
 	ed, err := ParseEditorYAML(string(data))
 	if err != nil {
 		return nil, types.WrapError(types.ErrInvalidArgument, "invalid pipeline YAML", err)
@@ -81,6 +84,10 @@ func (s *Service) ApplyYAML(ctx context.Context, data []byte, createdBy string) 
 
 	if err := s.catalog.EnsureDefinitionCreatedBy(ctx, name, createdBy); err != nil {
 		flog.Error(fmt.Errorf("ensure pipeline created_by: %w", err))
+	}
+
+	if _, linked := OriginFromDefinition(def); linked {
+		return nil, types.Errorf(types.ErrConflict, "linked blueprint instances cannot apply YAML; take control first")
 	}
 
 	updated, err := s.catalog.UpdateDefinitionDraft(ctx, name, string(data), def.Version)

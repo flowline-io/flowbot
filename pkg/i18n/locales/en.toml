@@ -34,6 +34,9 @@ other = "Automate"
 [nav.pipelines]
 other = "Pipelines"
 
+[nav.blueprints]
+other = "Blueprints"
+
 [nav.workflows]
 other = "Workflows"
 
@@ -1979,6 +1982,9 @@ other = "Create"
 
 [page.doc_title.pipeline]
 other = "Pipeline: {{.Name}}"
+
+[page.doc_title.blueprint]
+other = "Blueprint: {{.Name}}"
 
 [page.doc_title.runs]
 other = "Runs: {{.Name}}"
@@ -5778,3 +5784,153 @@ other = "Title is required"
 
 [toast.life.reward_name_required]
 other = "Reward name is required"
+
+[page.blueprints.subtitle]
+other = "Parameterized pipeline templates. Instantiate with your channels and IDs."
+
+[blueprint.empty.title]
+other = "No blueprints yet"
+
+[blueprint.empty.detail]
+other = "Official templates appear here. Import a YAML file to add your own."
+
+[blueprint.import.btn]
+other = "Import YAML"
+
+[blueprint.import.title]
+other = "Import blueprint"
+
+[blueprint.import.yaml]
+other = "Blueprint YAML"
+
+[blueprint.import.placeholder]
+other = "kind: pipeline_blueprint\nid: my_template\n..."
+
+[blueprint.col.source]
+other = "Source"
+
+[blueprint.col.requires]
+other = "Missing"
+
+[blueprint.col.instances]
+other = "Uses"
+
+[blueprint.source.official]
+other = "Official"
+
+[blueprint.source.imported]
+other = "Imported"
+
+[blueprint.instantiate.btn]
+other = "Use"
+
+[blueprint.instantiate.title]
+other = "Create pipeline from blueprint"
+
+[blueprint.instantiate.name]
+other = "Pipeline name"
+
+[blueprint.instantiate.enable]
+other = "Enable after create"
+
+[blueprint.inputs.heading]
+other = "Inputs"
+
+[blueprint.inputs.empty]
+other = "This template has no inputs."
+
+[blueprint.inputs.save]
+other = "Save inputs"
+
+[blueprint.inputs.no_channels]
+other = "No notification channels configured."
+
+[blueprint.missing.detail]
+other = "Connect the missing apps in Hub before instantiating:"
+
+[blueprint.replace.title]
+other = "Replace YAML"
+
+[blueprint.replace.btn]
+other = "Replace"
+
+[blueprint.update.available]
+other = "A newer version of this template is available."
+
+[blueprint.update.btn]
+other = "Update"
+
+[blueprint.take_control.btn]
+other = "Take control"
+
+[blueprint.download]
+other = "Download"
+
+[confirm.delete_blueprint.message]
+other = "Delete this imported blueprint? Pipelines that still use it must be detached or deleted first."
+
+[confirm.delete_blueprint.title]
+other = "Delete blueprint"
+
+[confirm.delete_blueprint.btn]
+other = "Delete"
+
+[confirm.update_blueprint.message]
+other = "Replace this pipeline's template body with the latest version, keeping current input values?"
+
+[confirm.update_blueprint.title]
+other = "Update from blueprint"
+
+[confirm.update_blueprint.btn]
+other = "Update"
+
+[confirm.take_control.message]
+other = "Detach this pipeline from its blueprint? You can edit steps afterwards. This cannot be undone, and official updates will stop."
+
+[confirm.take_control.title]
+other = "Take control"
+
+[confirm.take_control.btn]
+other = "Take control"
+
+[toast.blueprint.replaced]
+other = "Blueprint replaced"
+
+[toast.blueprint.deleted]
+other = "Blueprint deleted"
+
+[toast.blueprint.inputs_saved]
+other = "Inputs saved"
+
+[toast.blueprint.updated]
+other = "Pipeline updated from blueprint"
+
+[toast.blueprint.took_control]
+other = "Pipeline is now a normal definition"
+
+[error.blueprint.official_delete]
+other = "Official blueprints cannot be deleted"
+
+[error.blueprint.in_use]
+other = "Detach or delete linked pipelines before deleting this blueprint"
+
+[error.blueprint.linked_readonly]
+other = "Linked blueprint instances cannot edit YAML. Change inputs or take control."
+
+[error.blueprint.unavailable]
+other = "Blueprint service is not ready"
+
+[error.blueprint.already_exists]
+other = "A blueprint with this id already exists"
+
+[error.blueprint.official_replace]
+other = "Official blueprints cannot be replaced"
+
+[error.blueprint.missing_caps]
+other = "Required capabilities are not connected. Open Hub to install them."
+
+[error.blueprint.not_instance]
+other = "This pipeline is not a blueprint instance"
+
+[error.blueprint.invalid]
+other = "Invalid blueprint input. Check the values and try again."

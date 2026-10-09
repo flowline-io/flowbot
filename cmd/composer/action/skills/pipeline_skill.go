@@ -86,6 +86,7 @@ Full list: [references/steps.md](references/steps.md#templates).
 | pipeline name is required / not found | apply first; check ` + "`" + `list` + "`" + `; draft-only pipelines are invisible to CLI |
 | conflict / 409 | someone else changed the draft; re-` + "`" + `export` + "`" + `/edit and ` + "`" + `apply` + "`" + ` again |
 | pipeline is disabled | set ` + "`" + `enabled: true` + "`" + ` in YAML and re-apply |
+| apply rejected as pipeline_blueprint | use ` + "`" + `flowbot blueprint instantiate` + "`" + `; do not pass wrapper YAML to ` + "`" + `pipeline apply` + "`" + ` |
 | ` + "`" + `function "…" not defined` + "`" + ` | replace with a helper from [references/steps.md](references/steps.md#templates) |
 `
 
@@ -200,6 +201,7 @@ steps:
 3. For each step, open ` + "`" + `capabilities/<type>.md` + "`" + ` and fill required params.
 4. Use ` + "`" + `event` + "`" + ` / ` + "`" + `step` + "`" + ` helpers only from [steps.md](steps.md).
 5. ` + "`" + `flowbot pipeline apply --file ...` + "`" + ` then ` + "`" + `get` + "`" + ` / ` + "`" + `run` + "`" + `.
+   ` + "`" + `apply` + "`" + ` rejects ` + "`" + `kind: pipeline_blueprint` + "`" + `. Instantiate via ` + "`" + `flowbot blueprint instantiate` + "`" + ` (catalog: ` + "`" + `pkg/pipeline/blueprints/` + "`" + `).
 `
 
 const pipelineCapabilitiesIndexTemplate = `# Pipeline capability operations reference
@@ -300,9 +302,19 @@ func platformPipelineSpec() platformSpec {
 				Title:       "Apply a definition from YAML",
 				Description: "When the user already has a pipeline YAML file to create or replace (publishes immediately):",
 				Steps: []workflowStep{
-					{Step: 1, Note: "Validate against references/schema.md: name, triggers, steps, and event/step templates."},
+					{Step: 1, Note: "Validate against references/schema.md: name, triggers, steps, and event/step templates. Reject files with kind: pipeline_blueprint."},
 					{Step: 2, Command: "flowbot pipeline apply --file path/to/pipeline.yaml"},
 					{Step: 3, Command: "flowbot pipeline get <name>"},
+				},
+			},
+			{
+				Title:       "Instantiate a pipeline blueprint",
+				Description: "When the user wants a parameterized official or imported template instead of writing YAML:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot blueprint list"},
+					{Step: 2, Note: "If required capabilities are missing, instantiate is disabled until those apps are connected in Hub."},
+					{Step: 3, Command: "flowbot blueprint instantiate builtin webhook_notify --name my_webhook --inputs '{\"webhook_path\":\"hooks/notify\",\"notify_channel\":[\"default\"],\"template_id\":\"demo.new_item\"}'"},
+					{Step: 4, Command: "flowbot pipeline get my_webhook"},
 				},
 			},
 			{

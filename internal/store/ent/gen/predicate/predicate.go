@@ -210,6 +210,9 @@ type PageData func(*sql.Selector)
 // Parameter is the predicate function for parameter builders.
 type Parameter func(*sql.Selector)
 
+// PipelineBlueprintTemplate is the predicate function for pipelineblueprinttemplate builders.
+type PipelineBlueprintTemplate func(*sql.Selector)
+
 // PipelineDefinition is the predicate function for pipelinedefinition builders.
 type PipelineDefinition func(*sql.Selector)
 

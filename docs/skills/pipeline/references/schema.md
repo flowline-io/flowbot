@@ -53,3 +53,4 @@ steps:
 3. For each step, open `capabilities/<type>.md` and fill required params.
 4. Use `event` / `step` helpers only from [steps.md](steps.md).
 5. `flowbot pipeline apply --file ...` then `get` / `run`.
+   `apply` rejects `kind: pipeline_blueprint`. Instantiate via `flowbot blueprint instantiate` (catalog: `pkg/pipeline/blueprints/`).

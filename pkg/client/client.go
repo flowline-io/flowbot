@@ -45,6 +45,7 @@ type Client struct {
 	Server       *ServerClient
 	Hub          *HubClient
 	Pipeline     *PipelineClient
+	Blueprint    *BlueprintClient
 	Function     *FunctionClient
 	Workflow     *WorkflowClient
 	Forge        *ForgeClient
@@ -87,6 +88,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Server = &ServerClient{c: c}
 	c.Hub = &HubClient{c: c}
 	c.Pipeline = &PipelineClient{c: c}
+	c.Blueprint = &BlueprintClient{c: c}
 	c.Function = &FunctionClient{c: c}
 	c.Workflow = &WorkflowClient{c: c}
 	c.Forge = &ForgeClient{c: c}

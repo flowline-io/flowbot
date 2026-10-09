@@ -1,0 +1,95 @@
+package partials
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+)
+
+templ BlueprintListTable(ctx context.Context, entries []BlueprintListEntry) {
+	if len(entries) == 0 {
+		<div class="text-center py-12" data-testid="blueprint-empty">
+			@EmptyStateOnClickCTA(
+				i18n.T(ctx, "blueprint.empty.title"),
+				i18n.T(ctx, "blueprint.empty.detail"),
+				"document.getElementById('import-modal').showModal()",
+				i18n.T(ctx, "blueprint.import.btn"),
+			)
+		</div>
+	} else {
+		<div class="flowbot-surface" data-testid="blueprint-table">
+			<div class="overflow-x-auto">
+			<table class="table table-fixed w-full min-w-[48rem]">
+				<thead>
+					<tr>
+						<th class="w-[28%]">{ i18n.T(ctx, "table.col.name") }</th>
+						<th class="w-24">{ i18n.T(ctx, "blueprint.col.source") }</th>
+						<th>{ i18n.T(ctx, "table.col.description") }</th>
+						<th class="w-28">{ i18n.T(ctx, "blueprint.col.requires") }</th>
+						<th class="w-20 text-center">{ i18n.T(ctx, "blueprint.col.instances") }</th>
+						<th class="w-56 text-right">{ i18n.T(ctx, "table.col.actions") }</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, entry := range entries {
+						<tr class="hover" data-testid={ "blueprint-row-" + entry.ID }>
+							<td class="font-medium text-base-content min-w-0">
+								<a href={ templ.URL(BlueprintWebPath(entry.Source, entry.ID)) } class="link link-hover truncate block">{ entry.Title }</a>
+								<div class="text-xs text-base-content/50 font-mono truncate">{ entry.ID }</div>
+							</td>
+							<td>
+								if entry.Official {
+									<span class="flowbot-chip flowbot-chip-primary">{ i18n.T(ctx, "blueprint.source.official") }</span>
+								} else {
+									<span class="flowbot-chip flowbot-chip-muted">{ i18n.T(ctx, "blueprint.source.imported") }</span>
+								}
+							</td>
+							<td class="text-sm text-base-content/70">{ entry.Description }</td>
+							<td>
+								if len(entry.Missing) == 0 {
+									<span class="text-base-content/40 text-xs">—</span>
+								} else {
+									<div class="flex flex-col gap-1">
+										for _, cap := range entry.Missing {
+											<a href="/service/web/hub" class="link link-hover text-xs text-warning" data-testid={ "blueprint-missing-" + entry.ID + "-" + cap }>{ cap }</a>
+										}
+									</div>
+								}
+							</td>
+							<td class="text-center tabular-nums text-sm">{ fmt.Sprintf("%d", entry.InstanceCount) }</td>
+							<td class="text-right">
+								<div class="flex justify-end gap-1">
+									if len(entry.Missing) == 0 {
+										<a href={ templ.URL(BlueprintInstantiatePath(entry.Source, entry.ID)) }
+											class="btn btn-primary btn-xs"
+											data-testid={ "btn-instantiate-" + entry.ID }>{ i18n.T(ctx, "blueprint.instantiate.btn") }</a>
+									} else {
+										<button type="button" class="btn btn-primary btn-xs btn-disabled" disabled
+											data-testid={ "btn-instantiate-" + entry.ID }>{ i18n.T(ctx, "blueprint.instantiate.btn") }</button>
+									}
+									<a href={ templ.URL(BlueprintDownloadPath(entry.Source, entry.ID)) }
+										class="btn btn-ghost btn-xs"
+										data-testid={ "btn-download-" + entry.ID }>{ i18n.T(ctx, "blueprint.download") }</a>
+									if !entry.Official {
+										<button type="button"
+											class="btn btn-ghost btn-xs btn-error"
+											data-testid={ "btn-delete-" + entry.ID }
+											hx-delete={ templ.URL(BlueprintWebPath(entry.Source, entry.ID)) }
+											hx-target="#blueprint-list-container"
+											hx-swap="innerHTML"
+											data-confirm={ i18n.T(ctx, "confirm.delete_blueprint.message") }
+											data-confirm-title={ i18n.T(ctx, "confirm.delete_blueprint.title") }
+											data-confirm-btn={ i18n.T(ctx, "confirm.delete_blueprint.btn") }
+											data-confirm-class="btn-error">{ i18n.T(ctx, "common.delete") }</button>
+									}
+								</div>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+			</div>
+		</div>
+	}
+}

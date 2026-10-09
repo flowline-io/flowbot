@@ -1,0 +1,48 @@
+package pages
+
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ BlueprintListPage(ctx context.Context, entries []partials.BlueprintListEntry) {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.blueprints")) {
+		<div class="max-w-6xl mx-auto">
+			@partials.PageHeader(ctx, "nav.blueprints", "page.blueprints.subtitle") {
+				<button type="button"
+					onclick="document.getElementById('import-modal').showModal()"
+					data-testid="btn-import-blueprint"
+					class="btn btn-primary">
+					{ i18n.T(ctx, "blueprint.import.btn") }
+				</button>
+			}
+			<div id="blueprint-list-container" data-testid="blueprint-list-container">
+				@partials.BlueprintListTable(ctx, entries)
+			</div>
+		</div>
+		<dialog id="import-modal" class="modal" data-testid="import-modal">
+			<div class="modal-box max-w-2xl">
+				<h3 class="text-lg font-medium text-base-content mb-4">{ i18n.T(ctx, "blueprint.import.title") }</h3>
+				<form hx-post="/service/web/blueprints/import" hx-target="body" data-testid="import-form">
+					<div id="form-error" data-testid="form-error-slot"></div>
+					<label class="label">
+						<span class="label-text">{ i18n.T(ctx, "blueprint.import.yaml") }</span>
+					</label>
+					<textarea name="yaml" required rows="12"
+						class="textarea textarea-bordered w-full font-mono text-sm mb-4"
+						placeholder={ i18n.T(ctx, "blueprint.import.placeholder") }
+						data-testid="input-blueprint-yaml"></textarea>
+					<div class="modal-action">
+						<button type="button" onclick="document.getElementById('import-modal').close()"
+							class="btn btn-ghost" data-testid="btn-cancel-import">{ i18n.T(ctx, "common.cancel") }</button>
+						<button type="submit" class="btn btn-primary" data-testid="btn-submit-import">{ i18n.T(ctx, "blueprint.import.btn") }</button>
+					</div>
+				</form>
+			</div>
+			<form method="dialog" class="modal-backdrop"><button>{ i18n.T(ctx, "common.close") }</button></form>
+		</dialog>
+	}
+}

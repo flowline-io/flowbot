@@ -3,6 +3,7 @@
 package gen
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -31,6 +32,16 @@ type PipelineDefinition struct {
 	Status pipelinedefinition.Status `json:"status,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy string `json:"created_by,omitempty"`
+	// BlueprintSource holds the value of the "blueprint_source" field.
+	BlueprintSource string `json:"blueprint_source,omitempty"`
+	// BlueprintID holds the value of the "blueprint_id" field.
+	BlueprintID string `json:"blueprint_id,omitempty"`
+	// BlueprintHash holds the value of the "blueprint_hash" field.
+	BlueprintHash string `json:"blueprint_hash,omitempty"`
+	// BlueprintYaml holds the value of the "blueprint_yaml" field.
+	BlueprintYaml string `json:"blueprint_yaml,omitempty"`
+	// BlueprintInputs holds the value of the "blueprint_inputs" field.
+	BlueprintInputs map[string]interface{} `json:"blueprint_inputs,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -43,9 +54,11 @@ func (*PipelineDefinition) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case pipelinedefinition.FieldBlueprintInputs:
+			values[i] = new([]byte)
 		case pipelinedefinition.FieldID, pipelinedefinition.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case pipelinedefinition.FieldName, pipelinedefinition.FieldDescription, pipelinedefinition.FieldYamlDraft, pipelinedefinition.FieldYamlPublished, pipelinedefinition.FieldStatus, pipelinedefinition.FieldCreatedBy:
+		case pipelinedefinition.FieldName, pipelinedefinition.FieldDescription, pipelinedefinition.FieldYamlDraft, pipelinedefinition.FieldYamlPublished, pipelinedefinition.FieldStatus, pipelinedefinition.FieldCreatedBy, pipelinedefinition.FieldBlueprintSource, pipelinedefinition.FieldBlueprintID, pipelinedefinition.FieldBlueprintHash, pipelinedefinition.FieldBlueprintYaml:
 			values[i] = new(sql.NullString)
 		case pipelinedefinition.FieldCreatedAt, pipelinedefinition.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -112,6 +125,38 @@ func (_m *PipelineDefinition) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field created_by", values[i])
 			} else if value.Valid {
 				_m.CreatedBy = value.String
+			}
+		case pipelinedefinition.FieldBlueprintSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field blueprint_source", values[i])
+			} else if value.Valid {
+				_m.BlueprintSource = value.String
+			}
+		case pipelinedefinition.FieldBlueprintID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field blueprint_id", values[i])
+			} else if value.Valid {
+				_m.BlueprintID = value.String
+			}
+		case pipelinedefinition.FieldBlueprintHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field blueprint_hash", values[i])
+			} else if value.Valid {
+				_m.BlueprintHash = value.String
+			}
+		case pipelinedefinition.FieldBlueprintYaml:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field blueprint_yaml", values[i])
+			} else if value.Valid {
+				_m.BlueprintYaml = value.String
+			}
+		case pipelinedefinition.FieldBlueprintInputs:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field blueprint_inputs", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.BlueprintInputs); err != nil {
+					return fmt.Errorf("unmarshal field blueprint_inputs: %w", err)
+				}
 			}
 		case pipelinedefinition.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -183,6 +228,21 @@ func (_m *PipelineDefinition) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(_m.CreatedBy)
+	builder.WriteString(", ")
+	builder.WriteString("blueprint_source=")
+	builder.WriteString(_m.BlueprintSource)
+	builder.WriteString(", ")
+	builder.WriteString("blueprint_id=")
+	builder.WriteString(_m.BlueprintID)
+	builder.WriteString(", ")
+	builder.WriteString("blueprint_hash=")
+	builder.WriteString(_m.BlueprintHash)
+	builder.WriteString(", ")
+	builder.WriteString("blueprint_yaml=")
+	builder.WriteString(_m.BlueprintYaml)
+	builder.WriteString(", ")
+	builder.WriteString("blueprint_inputs=")
+	builder.WriteString(fmt.Sprintf("%v", _m.BlueprintInputs))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

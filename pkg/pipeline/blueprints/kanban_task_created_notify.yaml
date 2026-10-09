@@ -1,0 +1,32 @@
+kind: pipeline_blueprint
+id: kanban_task_created_notify
+title: Kanban task created notification
+description: Notify when Kanboard creates a task.
+requires:
+  capabilities:
+    - kanboard
+inputs:
+  - name: notify_channel
+    type: notify_channel
+    required: true
+    description: Notification channels
+  - name: template_id
+    type: string
+    required: true
+    description: Notification template ID from Notify settings
+definition:
+  description: Notify on kanban.task.created
+  resumable: true
+  triggers:
+    - type: event
+      enabled: true
+      event: kanban.task.created
+  steps:
+    - name: notify
+      capability: core
+      operation: notify_send
+      params:
+        template_id: "{{inputs.template_id}}"
+        channels: "{{inputs.notify_channel}}"
+        payload:
+          title: Kanban task created

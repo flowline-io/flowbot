@@ -80,6 +80,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelineblueprinttemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
@@ -225,6 +226,7 @@ func checkColumn(t, c string) error {
 			page.Table:                      page.ValidColumn,
 			pagedata.Table:                  pagedata.ValidColumn,
 			parameter.Table:                 parameter.ValidColumn,
+			pipelineblueprinttemplate.Table: pipelineblueprinttemplate.ValidColumn,
 			pipelinedefinition.Table:        pipelinedefinition.ValidColumn,
 			pipelinedefinitionversion.Table: pipelinedefinitionversion.ValidColumn,
 			pipelinerun.Table:               pipelinerun.ValidColumn,

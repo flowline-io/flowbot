@@ -148,6 +148,8 @@ type Tx struct {
 	PageData *PageDataClient
 	// Parameter is the client for interacting with the Parameter builders.
 	Parameter *ParameterClient
+	// PipelineBlueprintTemplate is the client for interacting with the PipelineBlueprintTemplate builders.
+	PipelineBlueprintTemplate *PipelineBlueprintTemplateClient
 	// PipelineDefinition is the client for interacting with the PipelineDefinition builders.
 	PipelineDefinition *PipelineDefinitionClient
 	// PipelineDefinitionVersion is the client for interacting with the PipelineDefinitionVersion builders.
@@ -381,6 +383,7 @@ func (tx *Tx) init() {
 	tx.Page = NewPageClient(tx.config)
 	tx.PageData = NewPageDataClient(tx.config)
 	tx.Parameter = NewParameterClient(tx.config)
+	tx.PipelineBlueprintTemplate = NewPipelineBlueprintTemplateClient(tx.config)
 	tx.PipelineDefinition = NewPipelineDefinitionClient(tx.config)
 	tx.PipelineDefinitionVersion = NewPipelineDefinitionVersionClient(tx.config)
 	tx.PipelineRun = NewPipelineRunClient(tx.config)

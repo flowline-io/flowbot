@@ -82,6 +82,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelineblueprinttemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
@@ -242,6 +243,8 @@ type Client struct {
 	PageData *PageDataClient
 	// Parameter is the client for interacting with the Parameter builders.
 	Parameter *ParameterClient
+	// PipelineBlueprintTemplate is the client for interacting with the PipelineBlueprintTemplate builders.
+	PipelineBlueprintTemplate *PipelineBlueprintTemplateClient
 	// PipelineDefinition is the client for interacting with the PipelineDefinition builders.
 	PipelineDefinition *PipelineDefinitionClient
 	// PipelineDefinitionVersion is the client for interacting with the PipelineDefinitionVersion builders.
@@ -355,6 +358,7 @@ func (c *Client) init() {
 	c.Page = NewPageClient(c.config)
 	c.PageData = NewPageDataClient(c.config)
 	c.Parameter = NewParameterClient(c.config)
+	c.PipelineBlueprintTemplate = NewPipelineBlueprintTemplateClient(c.config)
 	c.PipelineDefinition = NewPipelineDefinitionClient(c.config)
 	c.PipelineDefinitionVersion = NewPipelineDefinitionVersionClient(c.config)
 	c.PipelineRun = NewPipelineRunClient(c.config)
@@ -532,6 +536,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Page:                      NewPageClient(cfg),
 		PageData:                  NewPageDataClient(cfg),
 		Parameter:                 NewParameterClient(cfg),
+		PipelineBlueprintTemplate: NewPipelineBlueprintTemplateClient(cfg),
 		PipelineDefinition:        NewPipelineDefinitionClient(cfg),
 		PipelineDefinitionVersion: NewPipelineDefinitionVersionClient(cfg),
 		PipelineRun:               NewPipelineRunClient(cfg),
@@ -636,6 +641,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Page:                      NewPageClient(cfg),
 		PageData:                  NewPageDataClient(cfg),
 		Parameter:                 NewParameterClient(cfg),
+		PipelineBlueprintTemplate: NewPipelineBlueprintTemplateClient(cfg),
 		PipelineDefinition:        NewPipelineDefinitionClient(cfg),
 		PipelineDefinitionVersion: NewPipelineDefinitionVersionClient(cfg),
 		PipelineRun:               NewPipelineRunClient(cfg),
@@ -697,11 +703,12 @@ func (c *Client) Use(hooks ...Hook) {
 		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
 		c.LifeReward, c.LifeRewardRedemption, c.LifeSkill, c.Message,
 		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser, c.PollingState,
-		c.ResourceLink, c.User, c.WebAccount, c.Workflow, c.WorkflowRun,
-		c.WorkflowStepRun, c.WorkflowTask, c.WorkflowTrigger,
+		c.Page, c.PageData, c.Parameter, c.PipelineBlueprintTemplate,
+		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformChannel, c.PlatformChannelUser,
+		c.PlatformUser, c.PollingState, c.ResourceLink, c.User, c.WebAccount,
+		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
+		c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -726,11 +733,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
 		c.LifeReward, c.LifeRewardRedemption, c.LifeSkill, c.Message,
 		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser, c.PollingState,
-		c.ResourceLink, c.User, c.WebAccount, c.Workflow, c.WorkflowRun,
-		c.WorkflowStepRun, c.WorkflowTask, c.WorkflowTrigger,
+		c.Page, c.PageData, c.Parameter, c.PipelineBlueprintTemplate,
+		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformChannel, c.PlatformChannelUser,
+		c.PlatformUser, c.PollingState, c.ResourceLink, c.User, c.WebAccount,
+		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
+		c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -875,6 +883,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PageData.mutate(ctx, m)
 	case *ParameterMutation:
 		return c.Parameter.mutate(ctx, m)
+	case *PipelineBlueprintTemplateMutation:
+		return c.PipelineBlueprintTemplate.mutate(ctx, m)
 	case *PipelineDefinitionMutation:
 		return c.PipelineDefinition.mutate(ctx, m)
 	case *PipelineDefinitionVersionMutation:
@@ -9958,6 +9968,139 @@ func (c *ParameterClient) mutate(ctx context.Context, m *ParameterMutation) (Val
 	}
 }
 
+// PipelineBlueprintTemplateClient is a client for the PipelineBlueprintTemplate schema.
+type PipelineBlueprintTemplateClient struct {
+	config
+}
+
+// NewPipelineBlueprintTemplateClient returns a client for the PipelineBlueprintTemplate from the given config.
+func NewPipelineBlueprintTemplateClient(c config) *PipelineBlueprintTemplateClient {
+	return &PipelineBlueprintTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pipelineblueprinttemplate.Hooks(f(g(h())))`.
+func (c *PipelineBlueprintTemplateClient) Use(hooks ...Hook) {
+	c.hooks.PipelineBlueprintTemplate = append(c.hooks.PipelineBlueprintTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pipelineblueprinttemplate.Intercept(f(g(h())))`.
+func (c *PipelineBlueprintTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PipelineBlueprintTemplate = append(c.inters.PipelineBlueprintTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a PipelineBlueprintTemplate entity.
+func (c *PipelineBlueprintTemplateClient) Create() *PipelineBlueprintTemplateCreate {
+	mutation := newPipelineBlueprintTemplateMutation(c.config, OpCreate)
+	return &PipelineBlueprintTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PipelineBlueprintTemplate entities.
+func (c *PipelineBlueprintTemplateClient) CreateBulk(builders ...*PipelineBlueprintTemplateCreate) *PipelineBlueprintTemplateCreateBulk {
+	return &PipelineBlueprintTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PipelineBlueprintTemplateClient) MapCreateBulk(slice any, setFunc func(*PipelineBlueprintTemplateCreate, int)) *PipelineBlueprintTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PipelineBlueprintTemplateCreateBulk{err: fmt.Errorf("calling to PipelineBlueprintTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PipelineBlueprintTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PipelineBlueprintTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PipelineBlueprintTemplate.
+func (c *PipelineBlueprintTemplateClient) Update() *PipelineBlueprintTemplateUpdate {
+	mutation := newPipelineBlueprintTemplateMutation(c.config, OpUpdate)
+	return &PipelineBlueprintTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PipelineBlueprintTemplateClient) UpdateOne(_m *PipelineBlueprintTemplate) *PipelineBlueprintTemplateUpdateOne {
+	mutation := newPipelineBlueprintTemplateMutation(c.config, OpUpdateOne, withPipelineBlueprintTemplate(_m))
+	return &PipelineBlueprintTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PipelineBlueprintTemplateClient) UpdateOneID(id int64) *PipelineBlueprintTemplateUpdateOne {
+	mutation := newPipelineBlueprintTemplateMutation(c.config, OpUpdateOne, withPipelineBlueprintTemplateID(id))
+	return &PipelineBlueprintTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PipelineBlueprintTemplate.
+func (c *PipelineBlueprintTemplateClient) Delete() *PipelineBlueprintTemplateDelete {
+	mutation := newPipelineBlueprintTemplateMutation(c.config, OpDelete)
+	return &PipelineBlueprintTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PipelineBlueprintTemplateClient) DeleteOne(_m *PipelineBlueprintTemplate) *PipelineBlueprintTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PipelineBlueprintTemplateClient) DeleteOneID(id int64) *PipelineBlueprintTemplateDeleteOne {
+	builder := c.Delete().Where(pipelineblueprinttemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PipelineBlueprintTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for PipelineBlueprintTemplate.
+func (c *PipelineBlueprintTemplateClient) Query() *PipelineBlueprintTemplateQuery {
+	return &PipelineBlueprintTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePipelineBlueprintTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PipelineBlueprintTemplate entity by its id.
+func (c *PipelineBlueprintTemplateClient) Get(ctx context.Context, id int64) (*PipelineBlueprintTemplate, error) {
+	return c.Query().Where(pipelineblueprinttemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PipelineBlueprintTemplateClient) GetX(ctx context.Context, id int64) *PipelineBlueprintTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PipelineBlueprintTemplateClient) Hooks() []Hook {
+	return c.hooks.PipelineBlueprintTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *PipelineBlueprintTemplateClient) Interceptors() []Interceptor {
+	return c.inters.PipelineBlueprintTemplate
+}
+
+func (c *PipelineBlueprintTemplateClient) mutate(ctx context.Context, m *PipelineBlueprintTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PipelineBlueprintTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PipelineBlueprintTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PipelineBlueprintTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PipelineBlueprintTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PipelineBlueprintTemplate mutation op: %q", m.Op())
+	}
+}
+
 // PipelineDefinitionClient is a client for the PipelineDefinition schema.
 type PipelineDefinitionClient struct {
 	config
@@ -12235,10 +12378,10 @@ type (
 		LifeInventory, LifeLootTable, LifePlanNode, LifeProfile, LifeQuest, LifeReward,
 		LifeRewardRedemption, LifeSkill, Message, NotificationRecord, NotifyChannel,
 		NotifyRule, NotifyTemplate, OAuth, Page, PageData, Parameter,
-		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
-		Platform, PlatformChannel, PlatformChannelUser, PlatformUser, PollingState,
-		ResourceLink, User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun,
-		WorkflowTask, WorkflowTrigger []ent.Hook
+		PipelineBlueprintTemplate, PipelineDefinition, PipelineDefinitionVersion,
+		PipelineRun, PipelineStepRun, Platform, PlatformChannel, PlatformChannelUser,
+		PlatformUser, PollingState, ResourceLink, User, WebAccount, Workflow,
+		WorkflowRun, WorkflowStepRun, WorkflowTask, WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, AgentKnowledge, AgentMemoryFact, AgentPlan, AgentSessionSummary,
@@ -12254,9 +12397,9 @@ type (
 		LifeInventory, LifeLootTable, LifePlanNode, LifeProfile, LifeQuest, LifeReward,
 		LifeRewardRedemption, LifeSkill, Message, NotificationRecord, NotifyChannel,
 		NotifyRule, NotifyTemplate, OAuth, Page, PageData, Parameter,
-		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
-		Platform, PlatformChannel, PlatformChannelUser, PlatformUser, PollingState,
-		ResourceLink, User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun,
-		WorkflowTask, WorkflowTrigger []ent.Interceptor
+		PipelineBlueprintTemplate, PipelineDefinition, PipelineDefinitionVersion,
+		PipelineRun, PipelineStepRun, Platform, PlatformChannel, PlatformChannelUser,
+		PlatformUser, PollingState, ResourceLink, User, WebAccount, Workflow,
+		WorkflowRun, WorkflowStepRun, WorkflowTask, WorkflowTrigger []ent.Interceptor
 	}
 )

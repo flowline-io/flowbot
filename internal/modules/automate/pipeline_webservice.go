@@ -19,6 +19,16 @@ var pipelineRules = []webservice.Rule{
 	webservice.Delete("/delete/:name", deletePipeline),
 	webservice.Post("/run", runPipeline),
 	webservice.Get("/runs/:name", listPipelineRuns),
+	webservice.Get("/blueprints", listBlueprints),
+	webservice.Post("/blueprints/import", importBlueprintJSON),
+	webservice.Get("/blueprints/:source/:id", getBlueprintJSON),
+	webservice.Get("/blueprints/:source/:id/export", exportBlueprintJSON),
+	webservice.Put("/blueprints/:source/:id", replaceBlueprintJSON),
+	webservice.Delete("/blueprints/:source/:id", deleteBlueprintJSON),
+	webservice.Post("/blueprints/:source/:id/instantiate", instantiateBlueprintJSON),
+	webservice.Post("/instances/:name/inputs", updateBlueprintInputsJSON),
+	webservice.Post("/instances/:name/update", confirmBlueprintUpdateJSON),
+	webservice.Post("/instances/:name/take-control", takeBlueprintControlJSON),
 }
 
 func applyPipeline(ctx fiber.Ctx) error {

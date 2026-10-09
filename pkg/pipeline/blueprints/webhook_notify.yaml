@@ -1,0 +1,34 @@
+kind: pipeline_blueprint
+id: webhook_notify
+title: Incoming webhook notification
+description: Notify when a pipeline webhook is invoked. Always instantiable (core only).
+inputs:
+  - name: webhook_path
+    type: string
+    required: true
+    description: Webhook path segment (for example hooks/notify)
+  - name: notify_channel
+    type: notify_channel
+    required: true
+    description: Notification channels
+  - name: template_id
+    type: string
+    required: true
+    description: Notification template ID from Notify settings
+definition:
+  description: Notify on incoming webhook
+  resumable: true
+  triggers:
+    - type: webhook
+      enabled: true
+      webhook:
+        path: "{{inputs.webhook_path}}"
+  steps:
+    - name: notify
+      capability: core
+      operation: notify_send
+      params:
+        template_id: "{{inputs.template_id}}"
+        channels: "{{inputs.notify_channel}}"
+        payload:
+          title: Webhook received

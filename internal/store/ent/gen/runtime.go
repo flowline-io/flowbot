@@ -73,6 +73,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelineblueprinttemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
@@ -2174,6 +2175,42 @@ func init() {
 	parameter.DefaultUpdatedAt = parameterDescUpdatedAt.Default.(func() time.Time)
 	// parameter.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	parameter.UpdateDefaultUpdatedAt = parameterDescUpdatedAt.UpdateDefault.(func() time.Time)
+	pipelineblueprinttemplateFields := schema.PipelineBlueprintTemplate{}.Fields()
+	_ = pipelineblueprinttemplateFields
+	// pipelineblueprinttemplateDescBlueprintID is the schema descriptor for blueprint_id field.
+	pipelineblueprinttemplateDescBlueprintID := pipelineblueprinttemplateFields[1].Descriptor()
+	// pipelineblueprinttemplate.BlueprintIDValidator is a validator for the "blueprint_id" field. It is called by the builders before save.
+	pipelineblueprinttemplate.BlueprintIDValidator = pipelineblueprinttemplateDescBlueprintID.Validators[0].(func(string) error)
+	// pipelineblueprinttemplateDescTitle is the schema descriptor for title field.
+	pipelineblueprinttemplateDescTitle := pipelineblueprinttemplateFields[2].Descriptor()
+	// pipelineblueprinttemplate.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	pipelineblueprinttemplate.TitleValidator = pipelineblueprinttemplateDescTitle.Validators[0].(func(string) error)
+	// pipelineblueprinttemplateDescDescription is the schema descriptor for description field.
+	pipelineblueprinttemplateDescDescription := pipelineblueprinttemplateFields[3].Descriptor()
+	// pipelineblueprinttemplate.DefaultDescription holds the default value on creation for the description field.
+	pipelineblueprinttemplate.DefaultDescription = pipelineblueprinttemplateDescDescription.Default.(string)
+	// pipelineblueprinttemplateDescYaml is the schema descriptor for yaml field.
+	pipelineblueprinttemplateDescYaml := pipelineblueprinttemplateFields[4].Descriptor()
+	// pipelineblueprinttemplate.YamlValidator is a validator for the "yaml" field. It is called by the builders before save.
+	pipelineblueprinttemplate.YamlValidator = pipelineblueprinttemplateDescYaml.Validators[0].(func(string) error)
+	// pipelineblueprinttemplateDescContentHash is the schema descriptor for content_hash field.
+	pipelineblueprinttemplateDescContentHash := pipelineblueprinttemplateFields[5].Descriptor()
+	// pipelineblueprinttemplate.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	pipelineblueprinttemplate.ContentHashValidator = pipelineblueprinttemplateDescContentHash.Validators[0].(func(string) error)
+	// pipelineblueprinttemplateDescCreatedBy is the schema descriptor for created_by field.
+	pipelineblueprinttemplateDescCreatedBy := pipelineblueprinttemplateFields[6].Descriptor()
+	// pipelineblueprinttemplate.DefaultCreatedBy holds the default value on creation for the created_by field.
+	pipelineblueprinttemplate.DefaultCreatedBy = pipelineblueprinttemplateDescCreatedBy.Default.(string)
+	// pipelineblueprinttemplateDescCreatedAt is the schema descriptor for created_at field.
+	pipelineblueprinttemplateDescCreatedAt := pipelineblueprinttemplateFields[7].Descriptor()
+	// pipelineblueprinttemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pipelineblueprinttemplate.DefaultCreatedAt = pipelineblueprinttemplateDescCreatedAt.Default.(func() time.Time)
+	// pipelineblueprinttemplateDescUpdatedAt is the schema descriptor for updated_at field.
+	pipelineblueprinttemplateDescUpdatedAt := pipelineblueprinttemplateFields[8].Descriptor()
+	// pipelineblueprinttemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	pipelineblueprinttemplate.DefaultUpdatedAt = pipelineblueprinttemplateDescUpdatedAt.Default.(func() time.Time)
+	// pipelineblueprinttemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	pipelineblueprinttemplate.UpdateDefaultUpdatedAt = pipelineblueprinttemplateDescUpdatedAt.UpdateDefault.(func() time.Time)
 	pipelinedefinitionFields := schema.PipelineDefinition{}.Fields()
 	_ = pipelinedefinitionFields
 	// pipelinedefinitionDescName is the schema descriptor for name field.
@@ -2210,12 +2247,28 @@ func init() {
 	pipelinedefinitionDescCreatedBy := pipelinedefinitionFields[7].Descriptor()
 	// pipelinedefinition.DefaultCreatedBy holds the default value on creation for the created_by field.
 	pipelinedefinition.DefaultCreatedBy = pipelinedefinitionDescCreatedBy.Default.(string)
+	// pipelinedefinitionDescBlueprintSource is the schema descriptor for blueprint_source field.
+	pipelinedefinitionDescBlueprintSource := pipelinedefinitionFields[8].Descriptor()
+	// pipelinedefinition.DefaultBlueprintSource holds the default value on creation for the blueprint_source field.
+	pipelinedefinition.DefaultBlueprintSource = pipelinedefinitionDescBlueprintSource.Default.(string)
+	// pipelinedefinitionDescBlueprintID is the schema descriptor for blueprint_id field.
+	pipelinedefinitionDescBlueprintID := pipelinedefinitionFields[9].Descriptor()
+	// pipelinedefinition.DefaultBlueprintID holds the default value on creation for the blueprint_id field.
+	pipelinedefinition.DefaultBlueprintID = pipelinedefinitionDescBlueprintID.Default.(string)
+	// pipelinedefinitionDescBlueprintHash is the schema descriptor for blueprint_hash field.
+	pipelinedefinitionDescBlueprintHash := pipelinedefinitionFields[10].Descriptor()
+	// pipelinedefinition.DefaultBlueprintHash holds the default value on creation for the blueprint_hash field.
+	pipelinedefinition.DefaultBlueprintHash = pipelinedefinitionDescBlueprintHash.Default.(string)
+	// pipelinedefinitionDescBlueprintYaml is the schema descriptor for blueprint_yaml field.
+	pipelinedefinitionDescBlueprintYaml := pipelinedefinitionFields[11].Descriptor()
+	// pipelinedefinition.DefaultBlueprintYaml holds the default value on creation for the blueprint_yaml field.
+	pipelinedefinition.DefaultBlueprintYaml = pipelinedefinitionDescBlueprintYaml.Default.(string)
 	// pipelinedefinitionDescCreatedAt is the schema descriptor for created_at field.
-	pipelinedefinitionDescCreatedAt := pipelinedefinitionFields[8].Descriptor()
+	pipelinedefinitionDescCreatedAt := pipelinedefinitionFields[13].Descriptor()
 	// pipelinedefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
 	pipelinedefinition.DefaultCreatedAt = pipelinedefinitionDescCreatedAt.Default.(func() time.Time)
 	// pipelinedefinitionDescUpdatedAt is the schema descriptor for updated_at field.
-	pipelinedefinitionDescUpdatedAt := pipelinedefinitionFields[9].Descriptor()
+	pipelinedefinitionDescUpdatedAt := pipelinedefinitionFields[14].Descriptor()
 	// pipelinedefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	pipelinedefinition.DefaultUpdatedAt = pipelinedefinitionDescUpdatedAt.Default.(func() time.Time)
 	// pipelinedefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

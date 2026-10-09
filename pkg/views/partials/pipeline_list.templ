@@ -54,6 +54,9 @@ templ PipelineListTable(ctx context.Context, entries []PipelineListEntry) {
 						<tr class="hover">
 							<td class="font-medium text-base-content min-w-0">
 								<a href={ templ.URL(PipelineWebPath(entry.Name)) } class="link link-hover truncate block">{ entry.Name }</a>
+								if entry.BlueprintID != "" {
+									<span class="flowbot-chip flowbot-chip-muted mt-1" data-testid={ "pipeline-blueprint-" + entry.Name }>{ entry.BlueprintID }</span>
+								}
 							</td>
 							<td>
 				if entry.Status == "published" {

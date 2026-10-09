@@ -55,6 +55,7 @@ tests/
 │   ├── notify_spec_test.go             # Notify module
 │   ├── functions_spec_test.go          # Named functions (FaaS) module
 │   ├── pipeline_spec_test.go           # Pipeline engine
+│   ├── blueprint_page_spec_test.go     # Pipeline blueprint library pages
 │   ├── provider_event_source_spec_test.go # Provider event source
 │   ├── reader_spec_test.go             # Reader module
 │   ├── server_spec_test.go             # Server module

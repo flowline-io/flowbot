@@ -7,6 +7,7 @@ Core concepts and usage guides for Flowbot's orchestration engines.
 - [Homelab App Discovery](./homelab-discovery.md) — Automatic API endpoint and auth mechanism discovery via labels and runtime probes
 - [Capability Webhooks](./capability-webhooks.md) — Provider inbound webhooks (`/webhook/provider/*`), paths, and signature / token auth
 - [Pipeline Engine](./pipeline.md) — Event-driven multi-step automation with retry and checkpointing
+- [Pipeline Blueprints](./blueprints.md) — Parameterized pipeline templates, official catalog, and import
 - [Pipeline Template Engine](./pipeline-template.md) — Go `text/template`-based parameter rendering with conditionals, loops, and FuncMap
 - [Workflow Engine](./workflow.md) — YAML-defined task DAGs with capability invocation, shell commands, Docker, and remote machines
 - [Notifications](./notifications.md) — Multi-channel notification configuration (Slack, Pushover, ntfy, Message Pusher, inapp)

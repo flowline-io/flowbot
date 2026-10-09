@@ -12,6 +12,17 @@ type PipelineDefinition struct {
 	CreatedBy     string  `json:"created_by,omitempty"`
 	YamlDraft     string  `json:"yaml_draft,omitempty"`
 	YamlPublished *string `json:"yaml_published,omitempty"`
+	// BlueprintSource is builtin or upload when this pipeline is a linked blueprint instance.
+	BlueprintSource string         `json:"blueprint_source,omitempty"`
+	BlueprintID     string         `json:"blueprint_id,omitempty"`
+	BlueprintHash   string         `json:"blueprint_hash,omitempty"`
+	BlueprintYAML   string         `json:"blueprint_yaml,omitempty"`
+	BlueprintInputs map[string]any `json:"blueprint_inputs,omitempty"`
+}
+
+// LinkedBlueprint reports whether the pipeline is still bound to a blueprint template.
+func (d PipelineDefinition) LinkedBlueprint() bool {
+	return d.BlueprintSource != "" && d.BlueprintID != ""
 }
 
 // PipelineRun is a pipeline run row for UI and engine persistence.

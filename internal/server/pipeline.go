@@ -239,8 +239,10 @@ func initPipeline(
 	pipeline.SetActiveEngine(engine)
 
 	if store.Database != nil && store.Database.GetClient() != nil {
-		svc := pipeline.NewService(store.NewPipelineCatalogAdapter(store.PipelineStoreFromDB()))
-		pipeline.SetActiveService(svc)
+		ps := store.PipelineStoreFromDB()
+		catalog := store.PipelineCatalogAdapter{S: ps}
+		pipeline.SetActiveService(pipeline.NewService(catalog))
+		pipeline.SetActiveBlueprintService(pipeline.NewBlueprintService(ps, catalog))
 	}
 
 	if err := setupAbilityEmitter(cfg, ac); err != nil {
@@ -254,6 +256,7 @@ func initPipeline(
 		OnStop: func(_ context.Context) error {
 			pipeline.SetActiveEngine(nil)
 			pipeline.SetActiveService(nil)
+			pipeline.SetActiveBlueprintService(nil)
 			return nil
 		},
 	})

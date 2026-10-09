@@ -107,7 +107,7 @@ Standard errors, unified pagination, provider adapters behind `pkg/capability/<p
 
 ### Declarative Pipeline
 
-Cross-service data flows stored in PostgreSQL (apply via `flowbot pipeline apply` or the Web UI), triggered by durable events:
+Cross-service data flows stored in PostgreSQL (apply via `flowbot pipeline apply` or the Web UI), triggered by durable events. Parameterized starters: [pipeline blueprints](docs/user-guide/blueprints.md).
 
 ```yaml
 # When a new bookmark is saved, notify
@@ -277,7 +277,7 @@ Full template: [`docs/reference/config.yaml`](docs/reference/config.yaml). Field
 ## Documentation
 
 - [Getting Started](docs/getting-started/README.md)
-- [User Guide](docs/user-guide/README.md) — pipelines, workflows, notifications, homelab discovery
+- [User Guide](docs/user-guide/README.md) — pipelines, blueprints, workflows, notifications, homelab discovery
 - [Architecture](docs/architecture/README.md)
 - [API Reference](docs/api/README.md)
 - [Configuration](docs/reference/config-reference.md)

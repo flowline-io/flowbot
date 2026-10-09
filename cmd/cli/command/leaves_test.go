@@ -16,6 +16,7 @@ func TestAllLeafCommandsHaveRunE(t *testing.T) {
 		{name: "login", fn: LoginCommand},
 		{name: "hub", fn: HubCommand},
 		{name: "pipeline", fn: PipelineCommand},
+		{name: "blueprint", fn: BlueprintCommand},
 		{name: "workflow", fn: WorkflowCommand},
 		{name: "bookmark", fn: BookmarkCommand},
 		{name: "kanban", fn: KanbanCommand},

@@ -1,0 +1,61 @@
+package pages
+
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ BlueprintDetailPage(ctx context.Context, data partials.BlueprintDetailData) {
+	@layout.Base(ctx, DocTitleNamed(ctx, "page.doc_title.blueprint", map[string]any{"Name": data.Entry.Title})) {
+		<div class="max-w-4xl mx-auto">
+			@partials.PageHeaderLiteral(ctx, data.Entry.Title, data.Entry.ID) {
+				<a href="/service/web/blueprints" class="btn btn-ghost btn-sm">{ i18n.T(ctx, "common.back") }</a>
+				if len(data.Entry.Missing) == 0 {
+					<a href={ templ.URL(partials.BlueprintInstantiatePath(data.Entry.Source, data.Entry.ID)) }
+						class="btn btn-primary btn-sm" data-testid="btn-instantiate">{ i18n.T(ctx, "blueprint.instantiate.btn") }</a>
+				} else {
+					<button type="button" class="btn btn-primary btn-sm btn-disabled" disabled
+						data-testid="btn-instantiate">{ i18n.T(ctx, "blueprint.instantiate.btn") }</button>
+				}
+				<a href={ templ.URL(partials.BlueprintDownloadPath(data.Entry.Source, data.Entry.ID)) }
+					class="btn btn-ghost btn-sm" data-testid="btn-download">{ i18n.T(ctx, "blueprint.download") }</a>
+			}
+			if len(data.Entry.Missing) > 0 {
+				<div class="alert mb-4" data-testid="blueprint-missing-caps">
+					<span>{ i18n.T(ctx, "blueprint.missing.detail") }</span>
+					<a href="/service/web/hub" class="link">{ i18n.T(ctx, "nav.apps") }</a>
+				</div>
+			}
+			<div class="flowbot-surface p-4 mb-4">
+				<p class="text-sm text-base-content/70 mb-3">{ data.Entry.Description }</p>
+				<h3 class="text-sm font-semibold tracking-tight mb-2">{ i18n.T(ctx, "blueprint.inputs.heading") }</h3>
+				if len(data.Inputs) == 0 {
+					<p class="text-sm text-base-content/50">{ i18n.T(ctx, "blueprint.inputs.empty") }</p>
+				} else {
+					<ul class="text-sm space-y-1">
+						for _, in := range data.Inputs {
+							<li><span class="font-mono">{ in.Name }</span> <span class="text-base-content/50">({ in.Type })</span> { in.Description }</li>
+						}
+					</ul>
+				}
+			</div>
+			if !data.Entry.Official {
+				<div class="flowbot-surface p-4 mb-4">
+					<h3 class="text-sm font-semibold tracking-tight mb-2">{ i18n.T(ctx, "blueprint.replace.title") }</h3>
+					<form hx-post={ templ.URL(partials.BlueprintWebPath(data.Entry.Source, data.Entry.ID) + "/replace") }
+						hx-target="#form-error" hx-swap="innerHTML" data-testid="replace-form">
+						<div id="form-error" data-testid="form-error-slot"></div>
+						<textarea name="yaml" required rows="8"
+							class="textarea textarea-bordered w-full font-mono text-sm mb-3"
+							data-testid="input-replace-yaml">{ data.YAML }</textarea>
+						<button type="submit" class="btn btn-primary btn-sm" data-testid="btn-replace">{ i18n.T(ctx, "blueprint.replace.btn") }</button>
+					</form>
+				</div>
+			}
+			<pre class="flowbot-surface p-4 overflow-x-auto text-xs font-mono" data-testid="blueprint-yaml">{ data.YAML }</pre>
+		</div>
+	}
+}

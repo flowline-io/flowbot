@@ -12,14 +12,19 @@ func mapPipelineDefinition(row *gen.PipelineDefinition) model.PipelineDefinition
 		return model.PipelineDefinition{}
 	}
 	return model.PipelineDefinition{
-		ID:            row.ID,
-		Name:          row.Name,
-		Description:   row.Description,
-		Status:        string(row.Status),
-		Version:       row.Version,
-		CreatedBy:     row.CreatedBy,
-		YamlDraft:     row.YamlDraft,
-		YamlPublished: row.YamlPublished,
+		ID:              row.ID,
+		Name:            row.Name,
+		Description:     row.Description,
+		Status:          string(row.Status),
+		Version:         row.Version,
+		CreatedBy:       row.CreatedBy,
+		YamlDraft:       row.YamlDraft,
+		YamlPublished:   row.YamlPublished,
+		BlueprintSource: row.BlueprintSource,
+		BlueprintID:     row.BlueprintID,
+		BlueprintHash:   row.BlueprintHash,
+		BlueprintYAML:   row.BlueprintYaml,
+		BlueprintInputs: row.BlueprintInputs,
 	}
 }
 

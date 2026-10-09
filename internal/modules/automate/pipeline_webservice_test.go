@@ -210,6 +210,14 @@ func TestPipelineHandlers(t *testing.T) {
 			wantSubstr: "yaml",
 		},
 		{
+			name:       "apply rejects pipeline_blueprint",
+			method:     http.MethodPost,
+			path:       "/service/automate/pipeline/apply",
+			body:       `{"yaml":` + mustJSONString(t, "kind: pipeline_blueprint\nid: webhook_notify\n") + `}`,
+			wantStatus: http.StatusBadRequest,
+			wantSubstr: "blueprint",
+		},
+		{
 			name:       "apply accepts file_content fallback",
 			method:     http.MethodPost,
 			path:       "/service/automate/pipeline/apply",

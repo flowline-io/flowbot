@@ -1,0 +1,32 @@
+kind: pipeline_blueprint
+id: reader_entry_notify
+title: RSS new article notification
+description: Notify when Miniflux reports new feed entries.
+requires:
+  capabilities:
+    - miniflux
+inputs:
+  - name: notify_channel
+    type: notify_channel
+    required: true
+    description: Notification channels
+  - name: template_id
+    type: string
+    required: true
+    description: Notification template ID from Notify settings
+definition:
+  description: Notify on reader.entry.new
+  resumable: true
+  triggers:
+    - type: event
+      enabled: true
+      event: reader.entry.new
+  steps:
+    - name: notify
+      capability: core
+      operation: notify_send
+      params:
+        template_id: "{{inputs.template_id}}"
+        channels: "{{inputs.notify_channel}}"
+        payload:
+          title: New RSS entries
