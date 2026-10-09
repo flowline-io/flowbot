@@ -24,7 +24,7 @@ templ AgentScheduledTaskStatePanel(task model.AgentScheduledTask) {
 				<span class="label-text text-xs text-base-content/60">{ i18n.T(ctx, "scheduled_task.set_state") }</span>
 				<select name="state" class="select select-bordered select-sm" data-testid="agent-scheduled-task-state-select">
 					for _, option := range AgentScheduledTaskStateOptions() {
-						<option value={ option } selected={ templ.KV(option == task.State, true) }>{ option }</option>
+						<option value={ option } selected?={ option == task.State }>{ option }</option>
 					}
 				</select>
 			</label>

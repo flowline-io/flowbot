@@ -17,10 +17,10 @@ templ EventPagination(info PageInfo) {
 					hx-target="#events-table-container"
 					hx-swap="innerHTML"
 					data-testid="per-page-select">
-					<option value="10" selected={ templ.KV(info.PerPage == 10, true) }>10</option>
-					<option value="20" selected={ templ.KV(info.PerPage == 20, true) }>20</option>
-					<option value="50" selected={ templ.KV(info.PerPage == 50, true) }>50</option>
-					<option value="100" selected={ templ.KV(info.PerPage == 100, true) }>100</option>
+					<option value="10" selected?={ info.PerPage == 10 }>10</option>
+					<option value="20" selected?={ info.PerPage == 20 }>20</option>
+					<option value="50" selected?={ info.PerPage == 50 }>50</option>
+					<option value="100" selected?={ info.PerPage == 100 }>100</option>
 				</select>
 			</div>
 			<div class="text-xs text-base-content/70">

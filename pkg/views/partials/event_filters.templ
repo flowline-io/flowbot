@@ -68,7 +68,7 @@ templ FilterBar(ctx context.Context, p FilterBarParams) {
 						data-testid="pipeline-select">
 						<option value="">{ i18n.T(ctx, "events.filter.all_pipelines") }</option>
 						for _, name := range p.PipelineNames {
-							<option value={ name } selected={ templ.KV(name == p.PipelineFilter, true) }>{ name }</option>
+							<option value={ name } selected?={ name == p.PipelineFilter }>{ name }</option>
 						}
 					</select>
 					<select class="select select-bordered select-sm flowbot-event-filter-select"
@@ -79,7 +79,7 @@ templ FilterBar(ctx context.Context, p FilterBarParams) {
 						data-testid="source-select">
 						<option value="">{ i18n.T(ctx, "events.filter.all_sources") }</option>
 						for _, s := range p.Sources {
-							<option value={ s } selected={ templ.KV(s == p.SourceFilter, true) }>{ s }</option>
+							<option value={ s } selected?={ s == p.SourceFilter }>{ s }</option>
 						}
 					</select>
 					<select class="select select-bordered select-sm flowbot-event-filter-select"
@@ -90,7 +90,7 @@ templ FilterBar(ctx context.Context, p FilterBarParams) {
 						data-testid="type-select">
 						<option value="">{ i18n.T(ctx, "events.filter.all_types") }</option>
 						for _, t := range p.EventTypes {
-							<option value={ t } selected={ templ.KV(t == p.TypeFilter, true) }>{ t }</option>
+							<option value={ t } selected?={ t == p.TypeFilter }>{ t }</option>
 						}
 					</select>
 				</div>
