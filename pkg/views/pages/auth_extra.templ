@@ -99,56 +99,62 @@ templ SetupForm(ctx context.Context, errorMsg string, csrfToken string) {
 
 templ Enroll2FAPage(ctx context.Context, secret string, otpauthURI string, errorMsg string, csrfToken string) {
 	@layout.Auth(ctx, "Flowbot — Enable 2FA") {
-		<form hx-post="/service/web/setup/2fa"
-			hx-target="this"
-			hx-swap="outerHTML"
-			data-testid="enroll-2fa-form"
-			class="w-full max-w-sm border-t border-base-300 pt-6">
-			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.enable_authenticator") }</h1>
-			<p class="text-sm text-base-content/60 mb-4">{ i18n.T(ctx, "auth.enable_authenticator_hint") }</p>
-			<input type="hidden" name="csrf_token" value={ csrfToken }/>
-			<div class="flex justify-center mb-4">
-				<div data-testid="enroll-2fa-qr" data-otpauth-uri={ otpauthURI } class="bg-white p-2 border border-base-300 inline-block min-h-[216px] min-w-[216px]"></div>
-			</div>
-			<div class="mb-4">
-				<label class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.enter_secret_manually") }</label>
-				<code class="block text-xs break-all bg-base-300/40 p-3 rounded" data-testid="enroll-2fa-secret">{ secret }</code>
-			</div>
-			<div class="mb-5">
-				<label for="code" class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.verification_code") }</label>
-				<input type="text" id="code" name="code" autocomplete="one-time-code" inputmode="numeric"
-					required maxlength="8"
-					data-testid="enroll-2fa-code"
-					class="input input-bordered w-full"/>
-			</div>
-			if errorMsg != "" {
-				<p class="text-error text-sm mb-4" data-testid="enroll-2fa-error">{ errorMsg }</p>
-			}
-			<button type="submit" data-testid="enroll-2fa-submit" class="btn btn-primary w-full">{ i18n.T(ctx, "auth.confirm_and_continue") }</button>
-		</form>
+		@Enroll2FAForm(ctx, secret, otpauthURI, errorMsg, csrfToken)
 		<script src="/static/vendor/qrcode.min.js"></script>
 		<script src="/static/js/totp-enroll.js"></script>
 	}
 }
 
-templ BackupCodesPage(ctx context.Context, codes []string, csrfToken string) {
-	@layout.Auth(ctx, "Flowbot — Backup codes") {
-		<div class="w-full max-w-sm border-t border-base-300 pt-6" data-testid="backup-codes-page">
-			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.save_backup_codes") }</h1>
-			<p class="text-sm text-base-content/60 mb-4">{ i18n.T(ctx, "auth.backup_codes_hint") }</p>
-			<ul class="font-mono text-sm space-y-1 mb-6 bg-base-300/40 p-3 rounded" data-testid="backup-codes-list">
-				for _, c := range codes {
-					<li>{ c }</li>
-				}
-			</ul>
-			<form method="post" action="/service/web/setup/backup-codes/ack"
-				data-testid="backup-codes-ack-form"
-				class="w-full">
-				<input type="hidden" name="csrf_token" value={ csrfToken }/>
-				<button type="submit" class="btn btn-primary w-full" data-testid="backup-codes-continue">{ i18n.T(ctx, "auth.continue_to_flowbot") }</button>
-			</form>
+// Enroll2FAForm renders the TOTP enroll form without the auth layout.
+// Used for HTMX responses where only the form fragment should be swapped.
+templ Enroll2FAForm(ctx context.Context, secret string, otpauthURI string, errorMsg string, csrfToken string) {
+	<form hx-post="/service/web/setup/2fa"
+		hx-target="this"
+		hx-swap="outerHTML"
+		data-testid="enroll-2fa-form"
+		class="w-full max-w-sm border-t border-base-300 pt-6">
+		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.enable_authenticator") }</h1>
+		<p class="text-sm text-base-content/60 mb-4">{ i18n.T(ctx, "auth.enable_authenticator_hint") }</p>
+		<input type="hidden" name="csrf_token" value={ csrfToken }/>
+		<div class="flex justify-center mb-4">
+			<div data-testid="enroll-2fa-qr" data-otpauth-uri={ otpauthURI } class="bg-white p-2 border border-base-300 inline-block min-h-[216px] min-w-[216px]"></div>
 		</div>
-	}
+		<div class="mb-4">
+			<label class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.enter_secret_manually") }</label>
+			<code class="block text-xs break-all bg-base-300/40 p-3 rounded" data-testid="enroll-2fa-secret">{ secret }</code>
+		</div>
+		<div class="mb-5">
+			<label for="code" class="block text-sm font-medium mb-1.5">{ i18n.T(ctx, "auth.verification_code") }</label>
+			<input type="text" id="code" name="code" autocomplete="one-time-code" inputmode="numeric"
+				required maxlength="8"
+				data-testid="enroll-2fa-code"
+				class="input input-bordered w-full"/>
+		</div>
+		if errorMsg != "" {
+			<p class="text-error text-sm mb-4" data-testid="enroll-2fa-error">{ errorMsg }</p>
+		}
+		<button type="submit" data-testid="enroll-2fa-submit" class="btn btn-primary w-full">{ i18n.T(ctx, "auth.confirm_and_continue") }</button>
+	</form>
+}
+
+// BackupCodesPanel renders one-time backup codes without the auth layout.
+// Used for HTMX responses after successful TOTP enrollment.
+templ BackupCodesPanel(ctx context.Context, codes []string, csrfToken string) {
+	<div class="w-full max-w-sm border-t border-base-300 pt-6" data-testid="backup-codes-page">
+		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">{ i18n.T(ctx, "auth.save_backup_codes") }</h1>
+		<p class="text-sm text-base-content/60 mb-4">{ i18n.T(ctx, "auth.backup_codes_hint") }</p>
+		<ul class="font-mono text-sm space-y-1 mb-6 bg-base-300/40 p-3 rounded" data-testid="backup-codes-list">
+			for _, c := range codes {
+				<li>{ c }</li>
+			}
+		</ul>
+		<form method="post" action="/service/web/setup/backup-codes/ack"
+			data-testid="backup-codes-ack-form"
+			class="w-full">
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
+			<button type="submit" class="btn btn-primary w-full" data-testid="backup-codes-continue">{ i18n.T(ctx, "auth.continue_to_flowbot") }</button>
+		</form>
+	</div>
 }
 
 templ BackupCodesAckPage(ctx context.Context, csrfToken string) {

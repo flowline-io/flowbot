@@ -434,7 +434,7 @@ func enroll2FASubmit(ctx fiber.Ctx) error {
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.BackupCodesPage(ctx.Context(), codes, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.BackupCodesPanel(ctx.Context(), codes, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func renderEnroll2FAError(ctx fiber.Ctx, pending *pendingSession, msg string) error {
@@ -454,7 +454,7 @@ func renderEnroll2FAError(ctx fiber.Ctx, pending *pendingSession, msg string) er
 	}
 	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.Enroll2FAPage(ctx.Context(), secret, uri, msg, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.Enroll2FAForm(ctx.Context(), secret, uri, msg, csrfTok).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func backupCodesPage(ctx fiber.Ctx) error {

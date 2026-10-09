@@ -527,3 +527,119 @@ func TestSetupBlockedWhenAccountExists(t *testing.T) {
 		t.Fatalf("want login redirect, got %q", loc)
 	}
 }
+
+func TestEnroll2FAHTMXFragments(t *testing.T) {
+	const authBrandClass = "w-14 h-14 text-primary"
+	tests := []struct {
+		name         string
+		post         bool
+		validCode    bool
+		wantContains []string
+		wantLayout   bool
+	}{
+		{
+			name:         "GET enroll page is a full document with the auth brand",
+			wantContains: []string{"enroll-2fa-form", "Enable authenticator"},
+			wantLayout:   true,
+		},
+		{
+			name:         "invalid code returns enroll form fragment without auth layout",
+			post:         true,
+			wantContains: []string{"enroll-2fa-form", "Invalid verification code"},
+			wantLayout:   false,
+		},
+		{
+			name:         "valid code returns backup codes fragment without auth layout",
+			post:         true,
+			validCode:    true,
+			wantContains: []string{"backup-codes-page", "Save backup codes"},
+			wantLayout:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _, client := setupTestAppWithDB(t)
+			seedWebAccount(t, client, "admin", "flowbot-dev-pass", false)
+			account, err := store.NewWebAccountStore(client).GetByUsername(context.Background(), "admin")
+			require.NoError(t, err)
+
+			pendingToken := "pending-enroll-" + strings.ReplaceAll(tt.name, " ", "-")
+			require.NoError(t, store.NewModuleDataStore(client).ParameterSet(
+				context.Background(),
+				auth.HashToken(pendingToken),
+				map[string]any{
+					"uid": account.UID, "username": "admin", "topic": "web", "kind": webauth.KindPendingEnroll,
+				},
+				time.Now().Add(time.Minute),
+			))
+
+			getReq := httptest.NewRequest(http.MethodGet, "/service/web/setup/2fa", http.NoBody)
+			getReq.AddCookie(&http.Cookie{Name: webauth.CookiePending, Value: pendingToken})
+			AttachCSRFForTest(getReq)
+			getResp, err := app.Test(getReq, fiber.TestConfig{Timeout: 5 * time.Second})
+			require.NoError(t, err)
+			require.NotNil(t, getResp)
+			defer getResp.Body.Close()
+			getBody, err := io.ReadAll(getResp.Body)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, getResp.StatusCode, string(getBody))
+
+			body := getBody
+			if tt.post {
+				code := "000000"
+				if tt.validCode {
+					secret := enrollSecretFromHTML(t, string(getBody))
+					code, err = webauth.CodeAt(secret, time.Now())
+					require.NoError(t, err)
+				}
+				form := url.Values{}
+				form.Set("code", code)
+				req := httptest.NewRequest(http.MethodPost, "/service/web/setup/2fa", strings.NewReader(form.Encode()))
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				req.AddCookie(&http.Cookie{Name: webauth.CookiePending, Value: pendingToken})
+				AttachCSRFForTest(req)
+				resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+				defer resp.Body.Close()
+				body, err = io.ReadAll(resp.Body)
+				require.NoError(t, err)
+				require.Equal(t, http.StatusOK, resp.StatusCode, string(body))
+			}
+
+			html := string(body)
+			hasDoctype := strings.Contains(strings.ToLower(html), "<!doctype html>")
+			hasBrand := strings.Contains(html, authBrandClass)
+			if tt.wantLayout != hasDoctype {
+				t.Errorf("DOCTYPE present=%v, want %v", hasDoctype, tt.wantLayout)
+			}
+			if tt.wantLayout != hasBrand {
+				t.Errorf("auth brand present=%v, want %v", hasBrand, tt.wantLayout)
+			}
+			for _, s := range tt.wantContains {
+				if !strings.Contains(html, s) {
+					t.Errorf("want body containing %q", s)
+				}
+			}
+		})
+	}
+}
+
+func enrollSecretFromHTML(t *testing.T, html string) string {
+	t.Helper()
+	const marker = `data-testid="enroll-2fa-secret">`
+	i := strings.Index(html, marker)
+	if i < 0 {
+		t.Fatalf("enroll secret marker missing: %s", html)
+	}
+	rest := html[i+len(marker):]
+	j := strings.Index(rest, "<")
+	if j < 0 {
+		t.Fatalf("enroll secret not closed: %s", html)
+	}
+	secret := strings.TrimSpace(rest[:j])
+	if secret == "" {
+		t.Fatal("enroll secret empty")
+	}
+	return secret
+}
