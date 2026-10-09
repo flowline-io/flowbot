@@ -17,7 +17,7 @@ require (
 	github.com/bytedance/sonic v1.15.4
 	github.com/chromedp/cdproto v0.157.9
 	github.com/chromedp/chromedp v0.20.1
-	github.com/chromedp/chromedp/remote v0.1.0
+	github.com/chromedp/chromedp/remote v0.2.0
 	github.com/containerd/errdefs v1.0.0
 	github.com/creachadair/jrpc2 v1.3.5
 	github.com/dgraph-io/ristretto/v2 v2.4.2
