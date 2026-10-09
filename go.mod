@@ -15,8 +15,8 @@ require (
 	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/bytedance/sonic v1.15.4
-	github.com/chromedp/cdproto v0.157.4
-	github.com/chromedp/chromedp v0.19.1
+	github.com/chromedp/cdproto v0.157.8
+	github.com/chromedp/chromedp v0.20.1
 	github.com/chromedp/chromedp/remote v0.1.0
 	github.com/containerd/errdefs v1.0.0
 	github.com/creachadair/jrpc2 v1.3.5
@@ -265,6 +265,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.9.0 // indirect
 	github.com/go-git/go-git/v5 v5.19.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	github.com/go-json-experiment/json v0.0.0-20260213210345-44df1a37e875 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
