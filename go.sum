@@ -348,8 +348,8 @@ github.com/chromedp/cdproto v0.157.9 h1:ICBpkCmLcbma7m0ImhsQLoTGgrJwYsKcoIs55AZ3
 github.com/chromedp/cdproto v0.157.9/go.mod h1:h68JaIuFr9o3yiayxEYhBdvaxgYO3shDrPSYhNlyfu0=
 github.com/chromedp/chromedp v0.20.1 h1:983T9wmyM09JtROWlxhLQwljKOQovqt8CVE89W3U0NA=
 github.com/chromedp/chromedp v0.20.1/go.mod h1:6z1Y5FdKUxRzxx2qcC5h1xjaBJrSWrZp1mjgITfNZig=
-github.com/chromedp/chromedp/remote v0.1.0 h1:6won8bzvDGbbBw6NbshFaGJ5Ce1CPYqdftbcWN+CGxw=
-github.com/chromedp/chromedp/remote v0.1.0/go.mod h1:Cs94KW93gUpgYYS9pAVuO/TqjnXGvFxIfhHz6t27vww=
+github.com/chromedp/chromedp/remote v0.2.0 h1:Jo5OuOEXMuH3IAOiY5RhXO5JvOpfKMFCZ+cPv6qIksM=
+github.com/chromedp/chromedp/remote v0.2.0/go.mod h1:XW8uWIvN8Z4EUxHzYCb6p0lmeTYheYRrEEQpv5FHOH8=
 github.com/cli/browser v1.3.0 h1:LejqCrpWr+1pRqmEPDGnTZOjsMe7sehifLynZJuqJpo=
 github.com/cli/browser v1.3.0/go.mod h1:HH8s+fOAxjhQoBUAsKuPCbqUuxZDhQ2/aD+SzsEfBTk=
 github.com/clipperhouse/displaywidth v0.11.0 h1:lBc6kY44VFw+TDx4I8opi/EtL9m20WSEFgwIwO+UVM8=
