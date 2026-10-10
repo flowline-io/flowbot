@@ -202,7 +202,6 @@ func replaceLists(s string) string {
 func findInnermostList(s string) (start, end int, tag, inner string, ok bool) {
 	matches := htmlListOpenTag.FindAllStringSubmatchIndex(s, -1)
 	for _, m := range slices.Backward(matches) {
-
 		openStart, openEnd := m[0], m[1]
 		tagName := s[m[2]:m[3]]
 		_, closeEnd, body, found := findBalancedClose(s, openEnd, tagName)

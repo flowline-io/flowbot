@@ -270,7 +270,6 @@ func extendingNoProgressCount(history []callRecord, argsHash string) int {
 func noProgressStreak(history []callRecord, argsHash string) noProgressInfo {
 	var info noProgressInfo
 	for _, rec := range slices.Backward(history) {
-
 		if rec.argsHash != argsHash {
 			continue
 		}
@@ -307,7 +306,6 @@ func identicalTripleCount(history []callRecord, argsHash string) int {
 	}
 	count := 0
 	for _, rec := range slices.Backward(history) {
-
 		if rec.argsHash == latest.argsHash && rec.resultHash == latest.resultHash && rec.toolName == latest.toolName {
 			count++
 			continue

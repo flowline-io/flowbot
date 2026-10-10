@@ -26,7 +26,6 @@ func ResolveDeliveryContext(ctx context.Context, sessionID string) ScheduledDeli
 		return ScheduledDelivery{}
 	}
 	for _, msg := range slices.Backward(messages) {
-
 		if msg.Topic == "" {
 			continue
 		}

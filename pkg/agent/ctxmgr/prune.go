@@ -137,7 +137,6 @@ func latestVisibleToolResultEntries(path []session.TreeEntry) []session.TreeEntr
 	seen := make(map[string]struct{}, len(visible))
 	latest := make([]session.TreeEntry, 0, len(visible))
 	for _, entry := range slices.Backward(visible) {
-
 		toolResult, ok := entry.Message.(msg.ToolResultMessage)
 		if !ok {
 			continue

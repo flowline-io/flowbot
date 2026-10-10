@@ -62,7 +62,6 @@ func PrepareBranchSummary(entries []session.TreeEntry, contextWindow int, settin
 	selected := make([]session.TreeEntry, 0, len(entries))
 	totalTokens := 0
 	for _, entry := range slices.Backward(entries) {
-
 		message, ok := messageFromEntry(entry)
 		if !ok {
 			continue

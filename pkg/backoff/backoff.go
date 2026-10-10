@@ -181,6 +181,7 @@ func jitterDuration(d time.Duration) time.Duration {
 
 // retryableError is an optional interface that errors can implement to guide retry decisions.
 type retryableError interface {
+	error
 	RetryableCode() string
 	IsRetryableError() bool
 }
