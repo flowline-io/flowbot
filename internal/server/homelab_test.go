@@ -1,14 +1,18 @@
 package server
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/homelab/probe"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestHomelabConfig(t *testing.T) {
@@ -301,6 +305,75 @@ func TestRunHomelabScan(t *testing.T) {
 			t.Parallel()
 			err := RunHomelabScan(tt.cfg)
 			assert.Error(t, err)
+		})
+	}
+}
+
+func TestDataEventFromImageUpdate(t *testing.T) {
+	t.Parallel()
+	ev := dataEventFromImageUpdate(homelab.ImageUpdate{
+		AppName:       "karakeep",
+		Service:       "web",
+		Image:         "ghcr.io/karakeep/karakeep:latest",
+		Tag:           "latest",
+		CurrentDigest: "sha256:old",
+		RemoteDigest:  "sha256:new",
+		Capability:    "karakeep",
+	})
+	assert.Equal(t, types.EventHomelabImageUpdateAvailable, ev.EventType)
+	assert.Equal(t, homelab.ImageCheckSource, ev.Source)
+	assert.Equal(t, "karakeep", ev.App)
+	assert.Equal(t, "karakeep", ev.Capability)
+	assert.Equal(t, "karakeep/web", ev.EntityID)
+	assert.Equal(t, "karakeep/web/sha256:new", ev.IdempotencyKey)
+	assert.NotEmpty(t, ev.EventID)
+	assert.Equal(t, "ghcr.io/karakeep/karakeep:latest", ev.Data["image"])
+	assert.Equal(t, "latest", ev.Data["tag"])
+	assert.Equal(t, "sha256:old", ev.Data["current_digest"])
+	assert.Equal(t, "sha256:new", ev.Data["remote_digest"])
+}
+
+func TestPublishHomelabImageUpdates(t *testing.T) {
+	t.Parallel()
+	u := homelab.ImageUpdate{AppName: "app", Service: "web", RemoteDigest: "sha256:new"}
+	tests := []struct {
+		name      string
+		exists    func(context.Context, string, string) (bool, error)
+		emitErr   error
+		wantEmits int
+	}{
+		{
+			name:      "emits when not seen",
+			exists:    func(context.Context, string, string) (bool, error) { return false, nil },
+			wantEmits: 1,
+		},
+		{
+			name:      "skips when already recorded",
+			exists:    func(context.Context, string, string) (bool, error) { return true, nil },
+			wantEmits: 0,
+		},
+		{
+			name:      "skips emit when exists lookup fails",
+			exists:    func(context.Context, string, string) (bool, error) { return false, errors.New("db") },
+			wantEmits: 0,
+		},
+		{
+			name:      "records the emit attempt when persist fails",
+			exists:    func(context.Context, string, string) (bool, error) { return false, nil },
+			emitErr:   errors.New("publish"),
+			wantEmits: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			emits := 0
+			publishHomelabImageUpdates(t.Context(), []homelab.ImageUpdate{u}, tt.exists, func(_ context.Context, de types.DataEvent) error {
+				emits++
+				require.Equal(t, types.EventHomelabImageUpdateAvailable, de.EventType)
+				return tt.emitErr
+			})
+			assert.Equal(t, tt.wantEmits, emits)
 		})
 	}
 }

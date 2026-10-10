@@ -99,7 +99,7 @@ func (r *SSHRuntime) connect(ctx context.Context) (*ssh.Client, error) {
 	return ssh.NewClient(c, chans, reqs), nil
 }
 
-func (r *SSHRuntime) runRemote(ctx context.Context, app App, args ...string) (string, error) {
+func (r *SSHRuntime) sshRun(ctx context.Context, cmdStr string, combined bool) (string, error) {
 	client, err := r.connect(ctx)
 	if err != nil {
 		return "", err
@@ -112,18 +112,26 @@ func (r *SSHRuntime) runRemote(ctx context.Context, app App, args ...string) (st
 	}
 	defer session.Close()
 
+	var output []byte
+	if combined {
+		output, err = session.CombinedOutput(cmdStr)
+	} else {
+		output, err = session.Output(cmdStr)
+	}
+	if err != nil {
+		return string(output), fmt.Errorf("%s: %w", strings.TrimSpace(string(output)), err)
+	}
+	return string(output), nil
+}
+
+func (r *SSHRuntime) runRemote(ctx context.Context, app App, args ...string) (string, error) {
 	composeFile := composeFileName(app.ComposeFile)
 	cmdArgs := append([]string{"compose", "-f", shellQuote(composeFile)}, args...)
 	cmdStr := "docker " + strings.Join(cmdArgs, " ")
 	if app.Path != "" {
 		cmdStr = "cd " + shellQuote(app.Path) + " && " + cmdStr
 	}
-
-	output, err := session.CombinedOutput(cmdStr)
-	if err != nil {
-		return string(output), fmt.Errorf("%s: %w", strings.TrimSpace(string(output)), err)
-	}
-	return string(output), nil
+	return r.sshRun(ctx, cmdStr, true)
 }
 
 func (r *SSHRuntime) validatePath(app App) error {
@@ -249,4 +257,26 @@ func (r *SSHRuntime) Update(ctx context.Context, app App) error {
 		return types.WrapError(types.ErrProvider, "docker compose up via ssh", err)
 	}
 	return nil
+}
+
+func (r *SSHRuntime) runRemoteDocker(ctx context.Context, args ...string) (string, error) {
+	quoted := make([]string, len(args))
+	for i, a := range args {
+		quoted[i] = shellQuote(a)
+	}
+	return r.sshRun(ctx, "docker "+strings.Join(quoted, " "), false)
+}
+
+func (r *SSHRuntime) ImageRepoDigest(ctx context.Context, app App, svc ComposeService) (string, error) {
+	if err := r.validatePath(app); err != nil {
+		return "", err
+	}
+	return fetchImageRepoDigest(ctx, app, svc, r.runRemote, r.runRemoteDocker, "docker inspect via ssh", "docker image inspect via ssh")
+}
+
+func (r *SSHRuntime) RemoteManifestDigest(ctx context.Context, app App, imageRef string) (string, error) {
+	if err := r.validatePath(app); err != nil {
+		return "", err
+	}
+	return fetchRemoteManifestDigest(ctx, imageRef, r.runRemoteDocker, "docker buildx imagetools inspect via ssh")
 }

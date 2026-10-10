@@ -71,6 +71,9 @@ services:
 			require.Len(t, services, tt.expectedCount)
 			assert.ElementsMatch(t, tt.expectedNetworks, networks)
 			assert.Equal(t, tt.expectedLabels, labels)
+			if tt.expectedCount > 0 && len(tt.expectedLabels) > 0 {
+				assert.Equal(t, tt.expectedLabels, services[0].Labels)
+			}
 		})
 	}
 }

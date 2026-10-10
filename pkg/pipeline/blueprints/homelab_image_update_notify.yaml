@@ -1,0 +1,29 @@
+kind: pipeline_blueprint
+id: homelab_image_update_notify
+title: Homelab image update notification
+description: Notify when a scanned compose service has a newer image digest.
+inputs:
+  - name: notify_channel
+    type: notify_channel
+    required: true
+    description: Notification channels
+  - name: template_id
+    type: string
+    required: true
+    description: Notification template ID from Notify settings
+definition:
+  description: Notify on homelab.image.update_available
+  resumable: true
+  triggers:
+    - type: event
+      enabled: true
+      event: homelab.image.update_available
+  steps:
+    - name: notify
+      capability: core
+      operation: notify_send
+      params:
+        template_id: "{{inputs.template_id}}"
+        channels: "{{inputs.notify_channel}}"
+        payload:
+          title: Homelab image update available

@@ -265,3 +265,5 @@ go test ./pkg/hub/ -run TestAutoBind
 # Full homelab suite
 go test ./pkg/homelab/...
 ```
+
+Image digest inspection and `homelab.image.update_available` live in [homelab-image-updates.md](./homelab-image-updates.md).

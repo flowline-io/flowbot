@@ -5,6 +5,7 @@ Core concepts and usage guides for Flowbot's orchestration engines.
 ## Contents
 
 - [Homelab App Discovery](./homelab-discovery.md) — Automatic API endpoint and auth mechanism discovery via labels and runtime probes
+- [Homelab image update checks](./homelab-image-updates.md) — Digest inspection, `homelab.image.update_available`, and the notify blueprint
 - [Capability Webhooks](./capability-webhooks.md) — Provider inbound webhooks (`/webhook/provider/*`), paths, and signature / token auth
 - [Pipeline Engine](./pipeline.md) — Event-driven multi-step automation with retry and checkpointing
 - [Pipeline Blueprints](./blueprints.md) — Parameterized pipeline templates, official catalog, and import

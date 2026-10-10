@@ -267,6 +267,9 @@ homelab:
     fingerprint_enabled: true
     # When true, label-derived data overrides probe results
     label_priority: true
+  # Periodic image digest inspection (docker_socket/ssh). Empty interval defaults to 6h; 0 or 0s disables.
+  image_check:
+    interval: ""
 
 # Pipeline definitions are stored in PostgreSQL (published YAML).
 # Manage via Web UI (/service/web/pipelines) or CLI: flowbot pipeline apply|list|get|export|delete|run|runs.

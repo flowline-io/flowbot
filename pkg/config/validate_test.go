@@ -138,6 +138,20 @@ func TestValidate_Format(t *testing.T) {
 			wantErr: "probe_timeout",
 		},
 		{
+			name: "invalid image check interval",
+			mutate: func(c *Type) {
+				c.Homelab.ImageCheck.Interval = "xyz"
+			},
+			wantErr: "image_check.interval",
+		},
+		{
+			name: "bare zero image check interval is valid",
+			mutate: func(c *Type) {
+				c.Homelab.ImageCheck.Interval = "0"
+			},
+			noErr: true,
+		},
+		{
 			name: "invalid expiry duration",
 			mutate: func(c *Type) {
 				c.Capability.EventPool.ExpiryDuration = "bad"

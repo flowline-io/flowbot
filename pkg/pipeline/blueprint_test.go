@@ -70,6 +70,8 @@ func TestLoadBuiltinBlueprints(t *testing.T) {
 	require.NoError(t, err)
 	_, ok := ids["webhook_notify"]
 	assert.True(t, ok)
+	_, ok = ids["homelab_image_update_notify"]
+	assert.True(t, ok)
 }
 
 func TestMissingCapabilities(t *testing.T) {

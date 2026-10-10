@@ -476,6 +476,14 @@ type Homelab struct {
 	Allowlist   []string           `json:"allowlist" yaml:"allowlist" mapstructure:"allowlist"`
 	Permissions HomelabPermissions `json:"permissions" yaml:"permissions" mapstructure:"permissions"`
 	Discovery   HomelabDiscovery   `json:"discovery" yaml:"discovery" mapstructure:"discovery"`
+	// ImageCheck configures periodic registry digest inspection of scanned compose services.
+	ImageCheck HomelabImageCheck `json:"image_check" yaml:"image_check" mapstructure:"image_check"`
+}
+
+// HomelabImageCheck configures periodic registry digest inspection.
+type HomelabImageCheck struct {
+	// Interval between digest inspections. Empty defaults to 6h when runtime is docker_socket or ssh. 0, 0s, or a negative duration disables.
+	Interval string `json:"interval" yaml:"interval" mapstructure:"interval"`
 }
 
 type HomelabRuntime struct {

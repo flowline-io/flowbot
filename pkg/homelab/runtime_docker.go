@@ -1,6 +1,7 @@
 package homelab
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -254,4 +255,37 @@ func (r *DockerComposeRuntime) Update(ctx context.Context, app App) error {
 		return types.WrapError(types.ErrProvider, "docker compose up", err)
 	}
 	return nil
+}
+
+func (r *DockerComposeRuntime) runDocker(ctx context.Context, args ...string) (string, error) {
+	cmd := exec.CommandContext(ctx, "docker", args...)
+	cmd.Env = r.composeEnv()
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	if err != nil {
+		msg := strings.TrimSpace(stderr.String())
+		if msg == "" {
+			msg = strings.TrimSpace(string(out))
+		}
+		if msg != "" {
+			return string(out), fmt.Errorf("%s: %w", msg, err)
+		}
+		return string(out), err
+	}
+	return string(out), nil
+}
+
+func (r *DockerComposeRuntime) ImageRepoDigest(ctx context.Context, app App, svc ComposeService) (string, error) {
+	if err := r.validatePath(app); err != nil {
+		return "", err
+	}
+	return fetchImageRepoDigest(ctx, app, svc, r.runCmd, r.runDocker, "docker inspect", "docker image inspect")
+}
+
+func (r *DockerComposeRuntime) RemoteManifestDigest(ctx context.Context, app App, imageRef string) (string, error) {
+	if err := r.validatePath(app); err != nil {
+		return "", err
+	}
+	return fetchRemoteManifestDigest(ctx, imageRef, r.runDocker, "docker buildx imagetools inspect")
 }

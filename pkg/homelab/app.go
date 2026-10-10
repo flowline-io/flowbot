@@ -19,10 +19,11 @@ type App struct {
 
 // ComposeService describes a single service entry within a Docker Compose file.
 type ComposeService struct {
-	Name      string        `json:"name"`
-	Image     string        `json:"image,omitzero"`
-	Container string        `json:"container,omitzero"`
-	Ports     []PortMapping `json:"ports,omitzero"`
+	Name      string            `json:"name"`
+	Image     string            `json:"image,omitzero"`
+	Container string            `json:"container,omitzero"`
+	Ports     []PortMapping     `json:"ports,omitzero"`
+	Labels    map[string]string `json:"labels,omitzero"`
 }
 
 // PortMapping represents a single host-to-container port binding.

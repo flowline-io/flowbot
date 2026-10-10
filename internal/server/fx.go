@@ -58,6 +58,7 @@ var Modules = fx.Options(
 		initGatewayAbility,
 		initChatAgentScheduler,
 		handleModules,
+		startHomelabImageCheckLoop,
 		handlePlatform,
 		RunServer,
 		profiling.NewProfiler,

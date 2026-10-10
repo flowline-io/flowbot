@@ -324,6 +324,12 @@ other = "WorkerStaleAfter 在 heartbeat 超过此时间后将 worker 标记为�
 ["settings.desc.homelab"]
 other = "Homelab 应用注册与生命周期配置"
 
+["settings.desc.homelab.image_check"]
+other = "定期检查已扫描 compose 服务的镜像 digest。"
+
+["settings.desc.homelab.image_check.interval"]
+other = "两次 digest 巡检的间隔。runtime 为 docker_socket 或 ssh 时留空默认 6h；0、0s 或负数关闭。"
+
 ["settings.desc.http"]
 other = "HTTP 边界设置（CORS、rate limit、HSTS）。"
 

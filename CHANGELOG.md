@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Homelab image digest checks: periodic RepoDigest vs registry manifest comparison emits `homelab.image.update_available`; official blueprint `homelab_image_update_notify`. See [.agents/notes/implemented/feature/2026-10-10-homelab-image-update-check.md](.agents/notes/implemented/feature/2026-10-10-homelab-image-update-check.md).
+
 ## [0.99.13]
 
 ### Breaking

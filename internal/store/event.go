@@ -402,6 +402,29 @@ func (s *EventStore) ListDistinctEventTypes(ctx context.Context, since time.Dura
 	return distinctTypes, nil
 }
 
+// DataEventExists reports whether a data_events row with the given event type
+// and idempotency key already exists. Empty keys are treated as not found.
+func (s *EventStore) DataEventExists(ctx context.Context, eventType, idempotencyKey string) (bool, error) {
+	if s == nil || s.client == nil {
+		return false, nil
+	}
+	eventType = strings.TrimSpace(eventType)
+	idempotencyKey = strings.TrimSpace(idempotencyKey)
+	if eventType == "" || idempotencyKey == "" {
+		return false, nil
+	}
+	exists, err := s.client.DataEvent.Query().
+		Where(
+			dataevent.EventType(eventType),
+			dataevent.IdempotencyKey(idempotencyKey),
+		).
+		Exist(ctx)
+	if err != nil {
+		return false, fmt.Errorf("data event exists: %w", err)
+	}
+	return exists, nil
+}
+
 // GetDataEventByEventID looks up a single data event by its event_id.
 func (s *EventStore) GetDataEventByEventID(ctx context.Context, eventID string) (*gen.DataEvent, error) {
 	if s == nil || s.client == nil {

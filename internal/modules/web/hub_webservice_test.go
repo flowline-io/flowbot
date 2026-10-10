@@ -528,6 +528,12 @@ func (*stubHubRuntime) Stop(context.Context, homelab.App) error    { return nil 
 func (*stubHubRuntime) Restart(context.Context, homelab.App) error { return nil }
 func (*stubHubRuntime) Pull(context.Context, homelab.App) error    { return nil }
 func (*stubHubRuntime) Update(context.Context, homelab.App) error  { return nil }
+func (*stubHubRuntime) ImageRepoDigest(context.Context, homelab.App, homelab.ComposeService) (string, error) {
+	return "", nil
+}
+func (*stubHubRuntime) RemoteManifestDigest(context.Context, homelab.App, string) (string, error) {
+	return "", nil
+}
 
 func TestEnrichAppStatuses(t *testing.T) {
 	tests := []struct {

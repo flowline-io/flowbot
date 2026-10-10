@@ -19,6 +19,7 @@ const (
 	LabelAuthPrefix        = "flowbot.auth.prefix"
 	LabelAuthTokenKey      = "flowbot.auth.token_key"
 	LabelAuthTokenSource   = "flowbot.auth.token_source"
+	LabelImageWatch        = "flowbot.image.watch"
 )
 
 // knownCapabilities maps label values to capability type constants.

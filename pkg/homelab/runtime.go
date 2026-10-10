@@ -17,6 +17,12 @@ type Runtime interface {
 	Restart(ctx context.Context, app App) error
 	Pull(ctx context.Context, app App) error
 	Update(ctx context.Context, app App) error
+	// ImageRepoDigest returns the local registry manifest digest (RepoDigest)
+	// for the service image. Empty with a nil error means the digest is unavailable.
+	ImageRepoDigest(ctx context.Context, app App, svc ComposeService) (string, error)
+	// RemoteManifestDigest returns the registry manifest digest the image
+	// reference currently resolves to.
+	RemoteManifestDigest(ctx context.Context, app App, imageRef string) (string, error)
 }
 
 // DefaultRuntime is the process-wide runtime used when no explicit runtime
@@ -72,6 +78,14 @@ func (NoopRuntime) Pull(ctx context.Context, _ App) error {
 
 func (NoopRuntime) Update(ctx context.Context, _ App) error {
 	return notImplemented(ctx, "update")
+}
+
+func (NoopRuntime) ImageRepoDigest(ctx context.Context, _ App, _ ComposeService) (string, error) {
+	return "", notImplemented(ctx, "image digest")
+}
+
+func (NoopRuntime) RemoteManifestDigest(ctx context.Context, _ App, _ string) (string, error) {
+	return "", notImplemented(ctx, "remote manifest digest")
 }
 
 func notImplemented(ctx context.Context, operation string) error {

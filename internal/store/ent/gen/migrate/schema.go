@@ -662,6 +662,11 @@ var (
 				Columns: []*schema.Column{DataEventsColumns[2]},
 			},
 			{
+				Name:    "dataevent_event_type_idempotency_key",
+				Unique:  false,
+				Columns: []*schema.Column{DataEventsColumns[2], DataEventsColumns[8]},
+			},
+			{
 				Name:    "dataevent_tags",
 				Unique:  false,
 				Columns: []*schema.Column{DataEventsColumns[12]},

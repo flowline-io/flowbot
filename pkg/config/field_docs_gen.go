@@ -112,6 +112,8 @@ var FieldDocs = map[string]string{
 	"gateway.run_timeout":                                 "RunTimeout is how long capability run waits for a terminal job status.",
 	"gateway.worker_stale_after":                          "WorkerStaleAfter marks workers unhealthy when heartbeat is older than this.",
 	"homelab":                                             "Homelab app registry and lifecycle configuration",
+	"homelab.image_check":                                 "ImageCheck configures periodic registry digest inspection of scanned compose services.",
+	"homelab.image_check.interval":                        "Interval between digest inspections. Empty defaults to 6h when runtime is docker_socket or ssh. 0, 0s, or a negative duration disables.",
 	"http":                                                "HTTP boundary settings (CORS, rate limit, HSTS).",
 	"http.cors":                                           "CORS configures cross-origin resource sharing. Empty allow_origins disables CORS reflection.",
 	"http.cors.allow_origins":                             "AllowOrigins is the Origin whitelist. Empty means no Origin is reflected (same-origin Web UI does not need CORS).",

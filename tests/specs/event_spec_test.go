@@ -195,6 +195,47 @@ var _ = Describe("Event System", Label("event"), func() {
 			Expect(types.EventReaderEntryRead).To(Equal("reader.entry.read"))
 			Expect(types.EventKanbanTaskCreated).To(Equal("kanban.task.created"))
 			Expect(types.EventKanbanTaskCompleted).To(Equal("kanban.task.completed"))
+			Expect(types.EventHomelabImageUpdateAvailable).To(Equal("homelab.image.update_available"))
+		})
+	})
+
+	Describe("Homelab image update events", func() {
+		It("persists homelab.image.update_available with the digest contract", func() {
+			key := "karakeep/web/sha256:" + types.Id()
+			event := types.DataEvent{
+				EventID:        "image-upd-" + types.Id(),
+				EventType:      types.EventHomelabImageUpdateAvailable,
+				Source:         "homelab_image_check",
+				App:            "karakeep",
+				Capability:     "karakeep",
+				EntityID:       "karakeep/web",
+				IdempotencyKey: key,
+				Data: types.KV{
+					"image":          "ghcr.io/karakeep/karakeep:latest",
+					"tag":            "latest",
+					"current_digest": "sha256:old",
+					"remote_digest":  "sha256:new",
+				},
+			}
+
+			eventStore := store.NewEventStore(EntClient)
+			Expect(eventStore.AppendDataEvent(context.Background(), event)).To(Succeed())
+			Expect(eventStore.AppendEventOutbox(context.Background(), event)).To(Succeed())
+
+			saved, err := EntClient.DataEvent.Query().Where(dataevent.EventID(event.EventID)).Only(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(saved.EventType).To(Equal(types.EventHomelabImageUpdateAvailable))
+			Expect(saved.Source).To(Equal("homelab_image_check"))
+			Expect(saved.App).To(Equal("karakeep"))
+			Expect(saved.IdempotencyKey).To(Equal(key))
+
+			outbox, err := EntClient.EventOutbox.Query().Where(eventoutbox.EventID(event.EventID)).Only(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(outbox.Published).To(BeFalse())
+
+			exists, err := eventStore.DataEventExists(context.Background(), types.EventHomelabImageUpdateAvailable, key)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(exists).To(BeTrue())
 		})
 	})
 

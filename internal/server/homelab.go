@@ -2,15 +2,19 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
-	"errors"
+	"go.uber.org/fx"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/homelab/probe"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 var homelabRuntime homelab.Runtime = homelab.NoopRuntime{}
@@ -140,4 +144,98 @@ func mergeProbeResults(apps []homelab.App, probeResults []probe.ProbeResult) []h
 		}
 	}
 	return apps
+}
+
+func startHomelabImageCheckLoop(lc fx.Lifecycle) {
+	interval, ok := homelab.ImageCheckInterval(
+		homelab.RuntimeMode(config.App.Homelab.Runtime.Mode),
+		config.App.Homelab.ImageCheck.Interval,
+	)
+	if !ok {
+		flog.Info("homelab image check disabled")
+		return
+	}
+	stop := make(chan struct{})
+	lc.Append(fx.Hook{
+		OnStart: func(_ context.Context) error {
+			go homelabImageCheckLoop(stop, interval, runHomelabImageCheck)
+			flog.Info("homelab image check started (interval=%s)", interval)
+			return nil
+		},
+		OnStop: func(_ context.Context) error {
+			close(stop)
+			return nil
+		},
+	})
+}
+
+func homelabImageCheckLoop(stop <-chan struct{}, interval time.Duration, run func()) {
+	timer := time.NewTimer(interval)
+	defer timer.Stop()
+	for {
+		select {
+		case <-stop:
+			return
+		case <-timer.C:
+			run()
+			timer.Reset(interval)
+		}
+	}
+}
+
+func runHomelabImageCheck() {
+	ctx := context.Background()
+	updates := homelab.CheckImageUpdates(ctx, homelabRuntime, homelab.DefaultRegistry.List())
+	if len(updates) == 0 {
+		return
+	}
+	if store.Database == nil || store.Database.GetClient() == nil {
+		flog.Warn("homelab image check: skipped emit, store not ready")
+		return
+	}
+	eventStore := store.EventStoreFromDB()
+	publishHomelabImageUpdates(ctx, updates, eventStore.DataEventExists, func(ctx context.Context, de types.DataEvent) error {
+		return persistAndPublishDataEvent(ctx, eventStore, event.PublishMessage, DataEventTopic, de, "homelab_image_check")
+	})
+}
+
+func publishHomelabImageUpdates(
+	ctx context.Context,
+	updates []homelab.ImageUpdate,
+	exists func(context.Context, string, string) (bool, error),
+	emit func(context.Context, types.DataEvent) error,
+) {
+	for _, u := range updates {
+		key := homelab.ImageUpdateIdempotencyKey(u.AppName, u.Service, u.RemoteDigest)
+		found, err := exists(ctx, types.EventHomelabImageUpdateAvailable, key)
+		if err != nil {
+			flog.Warn("homelab image check: exists %s: %v", key, err)
+			continue
+		}
+		if found {
+			continue
+		}
+		if err := emit(ctx, dataEventFromImageUpdate(u)); err != nil {
+			flog.Warn("homelab image check: emit %s: %v", key, err)
+		}
+	}
+}
+
+func dataEventFromImageUpdate(u homelab.ImageUpdate) types.DataEvent {
+	return types.DataEvent{
+		EventID:        types.Id(),
+		EventType:      types.EventHomelabImageUpdateAvailable,
+		Source:         homelab.ImageCheckSource,
+		App:            u.AppName,
+		Capability:     u.Capability,
+		EntityID:       homelab.ImageUpdateEntityID(u.AppName, u.Service),
+		IdempotencyKey: homelab.ImageUpdateIdempotencyKey(u.AppName, u.Service, u.RemoteDigest),
+		CreatedAt:      time.Now(),
+		Data: types.KV{
+			"image":          u.Image,
+			"tag":            u.Tag,
+			"current_digest": u.CurrentDigest,
+			"remote_digest":  u.RemoteDigest,
+		},
+	}
 }

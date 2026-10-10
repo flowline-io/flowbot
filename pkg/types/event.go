@@ -77,6 +77,8 @@ const (
 	EventForgeIssueReopened = "forge.issue.reopened"
 	EventForgeIssueEdited   = "forge.issue.edited"
 	EventForgePush          = "forge.push"
+
+	EventHomelabImageUpdateAvailable = "homelab.image.update_available"
 )
 
 // DataEvent is the durable business event contract emitted by ability write operations.

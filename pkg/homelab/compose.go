@@ -44,14 +44,19 @@ func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[s
 	for _, name := range serviceNames {
 		svc := doc.Services[name]
 		servicePorts := parsePorts(svc.Ports)
+		svcLabels := normalizeLabels(svc.Labels)
+		if len(svcLabels) == 0 {
+			svcLabels = nil
+		}
 		services = append(services, ComposeService{
 			Name:      name,
 			Image:     svc.Image,
 			Container: svc.ContainerName,
 			Ports:     servicePorts,
+			Labels:    svcLabels,
 		})
 		ports = append(ports, servicePorts...)
-		maps.Copy(labels, normalizeLabels(svc.Labels))
+		maps.Copy(labels, svcLabels)
 	}
 	var networks []string
 	for name := range doc.Networks {

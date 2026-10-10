@@ -269,7 +269,11 @@ func TestNoopRuntime_AllOperations(t *testing.T) {
 				require.Error(t, r.Stop(ctx, tt.app))
 				require.Error(t, r.Restart(ctx, tt.app))
 				require.Error(t, r.Pull(ctx, tt.app))
-				assert.Error(t, r.Update(ctx, tt.app))
+				require.Error(t, r.Update(ctx, tt.app))
+				_, err = r.ImageRepoDigest(ctx, tt.app, ComposeService{Name: "web", Image: "nginx:latest"})
+				require.Error(t, err)
+				_, err = r.RemoteManifestDigest(ctx, tt.app, "nginx:latest")
+				require.Error(t, err)
 			} else {
 				require.NoError(t, r.Start(ctx, tt.app))
 				require.NoError(t, r.Stop(ctx, tt.app))

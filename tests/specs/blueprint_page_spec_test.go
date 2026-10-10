@@ -91,6 +91,7 @@ var _ = Describe("Blueprint library pages", Label("module", "web", "blueprint"),
 			body := string(ReadBody(resp))
 			Expect(body).To(ContainSubstring(`data-testid="blueprint-table"`))
 			Expect(body).To(ContainSubstring("webhook_notify"))
+			Expect(body).To(ContainSubstring("homelab_image_update_notify"))
 		})
 	})
 
@@ -106,6 +107,20 @@ var _ = Describe("Blueprint library pages", Label("module", "web", "blueprint"),
 			body := string(ReadBody(resp))
 			Expect(body).To(ContainSubstring("kind: pipeline_blueprint"))
 			Expect(body).To(ContainSubstring("id: webhook_notify"))
+		})
+
+		It("downloads the homelab image update notify blueprint", func() {
+			req := MakeRequest(http.MethodGet, "/service/web/blueprints/builtin/homelab_image_update_notify/download", nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: adapter.uid})
+			webmod.AttachCSRFForTest(req)
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			defer resp.Body.Close()
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			body := string(ReadBody(resp))
+			Expect(body).To(ContainSubstring("id: homelab_image_update_notify"))
+			Expect(body).To(ContainSubstring("event: homelab.image.update_available"))
+			Expect(body).NotTo(ContainSubstring("requires:"))
 		})
 	})
 })
