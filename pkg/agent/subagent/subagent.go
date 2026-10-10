@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/tmc/langchaingo/llms"
 	"go.opentelemetry.io/otel/attribute"
@@ -119,8 +120,8 @@ func Run(ctx context.Context, def Definition, deps Deps, prompt string, onProgre
 
 // FinalText returns the concatenated text of the last assistant message in the run.
 func FinalText(messages []msg.AgentMessage) string {
-	for i := len(messages) - 1; i >= 0; i-- {
-		if assistant, ok := messages[i].(msg.AssistantMessage); ok {
+	for _, message := range slices.Backward(messages) {
+		if assistant, ok := message.(msg.AssistantMessage); ok {
 			if text := assistant.TextContent(); text != "" {
 				return text
 			}

@@ -39,8 +39,7 @@ func newTestApp() *fiber.App {
 				return ctx.Status(status).
 					JSON(protocol.NewFailedResponse(err))
 			}
-			var e oops.OopsError
-			if errors.As(err, &e) {
+			if e, ok := errors.AsType[oops.OopsError](err); ok {
 				if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
 					return ctx.Status(fiber.StatusUnauthorized).
 						JSON(protocol.NewFailedResponse(e))

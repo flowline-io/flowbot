@@ -204,8 +204,7 @@ func NewOverflowError(message string, cause error) OverflowError {
 
 // CodeOf returns the stable code for a typed agent error, or empty string.
 func CodeOf(err error) string {
-	var coded CodedError
-	if errors.As(err, &coded) {
+	if coded, ok := errors.AsType[CodedError](err); ok {
 		return coded.Code()
 	}
 	return ""

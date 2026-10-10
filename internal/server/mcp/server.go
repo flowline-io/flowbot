@@ -63,7 +63,6 @@ func newSDKServer(ident Identity, auditor audit.Auditor) *mcpsdk.Server {
 	}, nil)
 	specs := FilterByScopes(catalogFromConfig(), ident.Scopes)
 	for _, spec := range specs {
-		spec := spec
 		tool := &mcpsdk.Tool{
 			Name:        spec.Name,
 			Description: spec.Description,

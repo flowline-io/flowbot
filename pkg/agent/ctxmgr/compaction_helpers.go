@@ -1,6 +1,8 @@
 package ctxmgr
 
 import (
+	"slices"
+
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -15,8 +17,8 @@ type compactionBounds struct {
 }
 
 func lastCompactionIndex(pathEntries []session.TreeEntry) int {
-	for i := len(pathEntries) - 1; i >= 0; i-- {
-		if pathEntries[i].Type == session.EntryCompaction {
+	for i, pathEntrie := range slices.Backward(pathEntries) {
+		if pathEntrie.Type == session.EntryCompaction {
 			return i
 		}
 	}

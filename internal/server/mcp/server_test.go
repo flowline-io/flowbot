@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -45,9 +46,7 @@ func (m *memoryTokenStore) Set(_ context.Context, flag string, params types.KV, 
 		m.rows = map[string]route.AccessToken{}
 	}
 	cp := map[string]any{}
-	for k, v := range params {
-		cp[k] = v
-	}
+	maps.Copy(cp, params)
 	m.rows[flag] = route.AccessToken{ID: 1, Flag: flag, Params: cp, ExpiredAt: expiredAt}
 	return nil
 }
@@ -85,12 +84,10 @@ func TestRegisterMethodAndAuth(t *testing.T) {
 			if status, ok := domainStatus(err); ok {
 				return ctx.Status(status).JSON(protocol.NewFailedResponse(err))
 			}
-			var fiberErr *fiber.Error
-			if errors.As(err, &fiberErr) {
+			if fiberErr, ok := errors.AsType[*fiber.Error](err); ok {
 				return ctx.Status(fiberErr.Code).JSON(protocol.NewFailedResponse(err))
 			}
-			var e oops.OopsError
-			if errors.As(err, &e) {
+			if e, ok := errors.AsType[oops.OopsError](err); ok {
 				if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
 					return ctx.Status(fiber.StatusUnauthorized).JSON(protocol.NewFailedResponse(e))
 				}

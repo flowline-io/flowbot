@@ -2,6 +2,7 @@ package loopdetect
 
 import (
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -268,8 +269,8 @@ func extendingNoProgressCount(history []callRecord, argsHash string) int {
 
 func noProgressStreak(history []callRecord, argsHash string) noProgressInfo {
 	var info noProgressInfo
-	for i := len(history) - 1; i >= 0; i-- {
-		rec := history[i]
+	for _, rec := range slices.Backward(history) {
+
 		if rec.argsHash != argsHash {
 			continue
 		}
@@ -305,8 +306,8 @@ func identicalTripleCount(history []callRecord, argsHash string) int {
 		return 0
 	}
 	count := 0
-	for i := len(history) - 1; i >= 0; i-- {
-		rec := history[i]
+	for _, rec := range slices.Backward(history) {
+
 		if rec.argsHash == latest.argsHash && rec.resultHash == latest.resultHash && rec.toolName == latest.toolName {
 			count++
 			continue
@@ -353,12 +354,12 @@ func pingPongStreak(history []callRecord, pendingArgsHash string) pingPongInfo {
 	}
 
 	alternating := 0
-	for i := len(history) - 1; i >= 0; i-- {
+	for _, h := range slices.Backward(history) {
 		expected := last.argsHash
 		if alternating%2 == 1 {
 			expected = other
 		}
-		if history[i].argsHash != expected {
+		if h.argsHash != expected {
 			break
 		}
 		alternating++

@@ -92,8 +92,7 @@ func parseGPUCount(s string) (int, error) {
 	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		var numErr *strconv.NumError
-		if errors.As(err, &numErr) {
+		if numErr, ok := errors.AsType[*strconv.NumError](err); ok {
 			err = numErr.Err
 		}
 		return 0, fmt.Errorf(`invalid count (%s): value must be either "all" or an integer: %w`, s, err)

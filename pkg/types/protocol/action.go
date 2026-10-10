@@ -62,8 +62,7 @@ func NewError(code int64, message string) oops.OopsErrorBuilder {
 // The returned string is the same value stored in OopsError.Code() when the error is materialized.
 func ErrorCode(b oops.OopsErrorBuilder) string {
 	err := b.New("")
-	var e oops.OopsError
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[oops.OopsError](err); ok {
 		if s, ok := e.Code().(string); ok {
 			return s
 		}
@@ -199,16 +198,14 @@ func NewFailedResponse(err error) Response {
 			Message: "Unknown Error",
 		}
 	}
-	var te *types.Error
-	if errors.As(err, &te) {
+	if te, ok := errors.AsType[*types.Error](err); ok {
 		return Response{
 			Status:  Failed,
 			RetCode: domainRetCode(te),
 			Message: clientSafeDomainMessage(te),
 		}
 	}
-	var e oops.OopsError
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[oops.OopsError](err); ok {
 		message := e.Public()
 		if message == "" {
 			message = "Unknown Error"

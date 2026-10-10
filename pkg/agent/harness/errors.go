@@ -12,8 +12,7 @@ func normalizeHarnessError(subsystem, message string, cause error) error {
 	if cause == nil {
 		return result.NewHarnessError(subsystem, message, nil)
 	}
-	var harnessErr result.HarnessError
-	if errors.As(cause, &harnessErr) {
+	if _, ok := errors.AsType[result.HarnessError](cause); ok {
 		return cause
 	}
 	return result.ToHarnessError(subsystem, message, cause)

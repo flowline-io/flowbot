@@ -78,8 +78,7 @@ func (c *Cursor) Run(ctx context.Context, job *types.GatewayJob, workspace strin
 	}
 	code := 0
 	if err != nil {
-		var ee *exec.ExitError
-		if errors.As(err, &ee) {
+		if ee, ok := errors.AsType[*exec.ExitError](err); ok {
 			code = ee.ExitCode()
 		} else {
 			code = 1

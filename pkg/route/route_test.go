@@ -65,14 +65,12 @@ func TestSetAuditor_NilSafe(t *testing.T) {
 func newTestApp() *fiber.App {
 	return fiber.New(fiber.Config{
 		ErrorHandler: func(c fiber.Ctx, err error) error {
-			var fiberErr *fiber.Error
-			if errors.As(err, &fiberErr) {
+			if fiberErr, ok := errors.AsType[*fiber.Error](err); ok {
 				if fiberErr.Code >= 300 && fiberErr.Code < 400 {
 					return nil
 				}
 			}
-			var e oops.OopsError
-			if errors.As(err, &e) {
+			if e, ok := errors.AsType[oops.OopsError](err); ok {
 				if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
 					return c.Status(fiber.StatusUnauthorized).SendString(e.Error())
 				}

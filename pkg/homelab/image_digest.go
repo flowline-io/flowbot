@@ -2,6 +2,7 @@ package homelab
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/bytedance/sonic"
@@ -17,8 +18,8 @@ func normalizeDigest(s string) string {
 
 func parseManifestDigest(output string) string {
 	lines := strings.Split(output, "\n")
-	for i := len(lines) - 1; i >= 0; i-- {
-		d := normalizeDigest(lines[i])
+	for _, line := range slices.Backward(lines) {
+		d := normalizeDigest(line)
 		if strings.HasPrefix(d, "sha256:") && len(d) > len("sha256:") {
 			return d
 		}
@@ -82,7 +83,7 @@ func repoDigestFromInspect(output, image string) (string, error) {
 }
 
 func firstNonEmptyLine(s string) string {
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		if t := strings.TrimSpace(line); t != "" {
 			return t
 		}

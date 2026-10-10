@@ -2,6 +2,7 @@ package ctxmgr
 
 import (
 	"context"
+	"slices"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
@@ -60,8 +61,8 @@ func PrepareBranchSummary(entries []session.TreeEntry, contextWindow int, settin
 
 	selected := make([]session.TreeEntry, 0, len(entries))
 	totalTokens := 0
-	for i := len(entries) - 1; i >= 0; i-- {
-		entry := entries[i]
+	for _, entry := range slices.Backward(entries) {
+
 		message, ok := messageFromEntry(entry)
 		if !ok {
 			continue

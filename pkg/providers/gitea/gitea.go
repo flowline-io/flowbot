@@ -79,12 +79,10 @@ func (v *Gitea) GetMyUserInfo() (*gitea.User, error) {
 
 func (v *Gitea) ListIssues(owner string, page, pageSize int) ([]*gitea.Issue, error) {
 	list, resp, err := v.c.ListIssues(gitea.ListIssueOption{
-		ListOptions: gitea.ListOptions{
-			Page:     page,
-			PageSize: pageSize,
-		},
-		State: gitea.StateOpen,
-		Owner: owner,
+		Page:     page,
+		PageSize: pageSize,
+		State:    gitea.StateOpen,
+		Owner:    owner,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list issues, %w", err)

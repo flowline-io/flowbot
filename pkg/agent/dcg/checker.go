@@ -129,8 +129,7 @@ func defaultRunner(ctx context.Context, name string, args, env []string) (string
 	cmd.Stderr = nil
 	err := cmd.Run()
 	if err != nil {
-		var ee *exec.ExitError
-		if errors.As(err, &ee) {
+		if ee, ok := errors.AsType[*exec.ExitError](err); ok {
 			return stdout.String(), ee.ExitCode(), nil
 		}
 		return stdout.String(), 0, err

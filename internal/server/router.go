@@ -416,8 +416,7 @@ func (c *Controller) platformCallback(ctx fiber.Ctx) error {
 		return protocol.ErrNotFound.Public("platform not found").New("platform not found")
 	}
 	if err != nil {
-		var e oops.OopsError
-		if errors.As(err, &e) {
+		if e, ok := errors.AsType[oops.OopsError](err); ok {
 			return e
 		}
 		return err

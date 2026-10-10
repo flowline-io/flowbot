@@ -93,8 +93,8 @@ func TestUpload_Validation(t *testing.T) {
 		{
 			name: "sets defaults then fails without client",
 			fdef: &types.FileDef{
-				ObjHeader: types.ObjHeader{Id: "id-1"},
-				Size:      4,
+				Id:   "id-1",
+				Size: 4,
 			},
 			wantErr: "failed to create file record",
 		},

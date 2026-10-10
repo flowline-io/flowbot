@@ -77,7 +77,7 @@ func settingGroupName(path string) string {
 	if path == "" || !strings.Contains(path, ".") {
 		return "root"
 	}
-	base := strings.SplitN(path, ".", 2)[0]
+	base, _, _ := strings.Cut(path, ".")
 	return indexSegmentPattern.ReplaceAllString(base, "")
 }
 
@@ -489,7 +489,7 @@ func isEmptyAny(v any) bool {
 func fieldPathKey(sf reflect.StructField) string {
 	for _, tag := range []string{"yaml", "mapstructure", "json"} {
 		if v := sf.Tag.Get(tag); v != "" {
-			name := strings.Split(v, ",")[0]
+			name, _, _ := strings.Cut(v, ",")
 			if name == "-" {
 				// Prefer another tag; if all are "-", fall through to field name.
 				continue

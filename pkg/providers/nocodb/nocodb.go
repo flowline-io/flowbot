@@ -379,8 +379,7 @@ func validateListQuery(q ListRecordsQuery) error {
 
 // AsStatusError extracts a StatusError from err if present.
 func AsStatusError(err error) (*StatusError, bool) {
-	var se *StatusError
-	if errors.As(err, &se) {
+	if se, ok := errors.AsType[*StatusError](err); ok {
 		return se, true
 	}
 	return nil, false

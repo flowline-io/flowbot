@@ -36,9 +36,9 @@ func TestGetOrCreateModelReusesCachedInstance(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			llm.ResetModelPoolForTest()
-			var created int32
+			var created atomic.Int32
 			llm.SetModelCreatorForTest(func(_ context.Context, modelName string) (llms.Model, string, error) {
-				atomic.AddInt32(&created, 1)
+				created.Add(1)
 				return stubModel{}, modelName, nil
 			})
 			t.Cleanup(llm.ResetModelPoolForTest)
@@ -54,7 +54,7 @@ func TestGetOrCreateModelReusesCachedInstance(t *testing.T) {
 				}
 				assert.Equal(t, first, model)
 			}
-			assert.EqualValues(t, 1, atomic.LoadInt32(&created))
+			assert.EqualValues(t, 1, created.Load())
 		})
 	}
 }

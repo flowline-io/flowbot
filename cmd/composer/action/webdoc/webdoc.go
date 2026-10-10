@@ -256,7 +256,7 @@ func collectPages(srcDir string, pages *[]docPageInfo) error {
 func buildSectionsWithActive(pages []docPageInfo, activeIndex int) []DocSection {
 	secMap := make(map[string][]DocNavPage)
 	for i, p := range pages {
-		dir := strings.SplitN(p.SourcePath, "/", 2)[0]
+		dir, _, _ := strings.Cut(p.SourcePath, "/")
 		secMap[dir] = append(secMap[dir], DocNavPage{
 			Title:  p.Title,
 			URL:    p.OutURL,

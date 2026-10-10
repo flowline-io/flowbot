@@ -132,8 +132,7 @@ func newHTTPServer() *fiber.App {
 			}
 
 			// Fiber errors (e.g. ErrNotFound, ErrMethodNotAllowed)
-			var fiberErr *fiber.Error
-			if errors.As(err, &fiberErr) {
+			if fiberErr, ok := errors.AsType[*fiber.Error](err); ok {
 				if fiberErr.Code >= 300 && fiberErr.Code < 400 {
 					return nil
 				}
@@ -142,8 +141,7 @@ func newHTTPServer() *fiber.App {
 			}
 
 			// custom error
-			var e oops.OopsError
-			if errors.As(err, &e) {
+			if e, ok := errors.AsType[oops.OopsError](err); ok {
 				if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
 					return ctx.Status(fiber.StatusUnauthorized).
 						JSON(protocol.NewFailedResponse(e))

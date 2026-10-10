@@ -55,7 +55,7 @@ type BlueprintDocument struct {
 	ID          string              `json:"id" yaml:"id"`
 	Title       string              `json:"title" yaml:"title"`
 	Description string              `json:"description,omitempty" yaml:"description,omitempty"`
-	Requires    BlueprintRequires   `json:"requires,omitempty" yaml:"requires,omitempty"`
+	Requires    BlueprintRequires   `json:"requires" yaml:"requires,omitempty"`
 	Inputs      []BlueprintInputDef `json:"inputs,omitempty" yaml:"inputs,omitempty"`
 	Definition  map[string]any      `json:"definition" yaml:"definition"`
 }

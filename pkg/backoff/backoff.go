@@ -193,8 +193,7 @@ func shouldRetry(err error, cfg *Config) bool {
 	if len(cfg.RetryOn) == 0 {
 		return true
 	}
-	var re retryableError
-	if errors.As(err, &re) {
+	if re, ok := errors.AsType[retryableError](err); ok {
 		if re.IsRetryableError() {
 			return true
 		}

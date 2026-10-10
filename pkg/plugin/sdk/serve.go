@@ -29,11 +29,9 @@ func (*ModulePlugin) GRPCClient(_ context.Context, _ *goPlugin.GRPCBroker, c *gr
 // Called from the plugin binary's main().
 func ServeModule(m Module) {
 	goPlugin.Serve(&goPlugin.ServeConfig{
-		HandshakeConfig: goPlugin.HandshakeConfig{
-			ProtocolVersion:  1,
-			MagicCookieKey:   "FLOWBOT_PLUGIN",
-			MagicCookieValue: "flowbot-plugin-v1",
-		},
+		ProtocolVersion:  1,
+		MagicCookieKey:   "FLOWBOT_PLUGIN",
+		MagicCookieValue: "flowbot-plugin-v1",
 		Plugins: map[string]goPlugin.Plugin{
 			"module": &ModulePlugin{impl: m},
 		},

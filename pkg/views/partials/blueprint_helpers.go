@@ -3,6 +3,7 @@ package partials
 import (
 	"fmt"
 	"net/url"
+	"slices"
 
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -77,10 +78,8 @@ func notifyChannelChecked(values map[string]any, inputName, channel string) bool
 	}
 	switch v := raw.(type) {
 	case []string:
-		for _, item := range v {
-			if item == channel {
-				return true
-			}
+		if slices.Contains(v, channel) {
+			return true
 		}
 	case []any:
 		for _, item := range v {

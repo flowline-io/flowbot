@@ -480,7 +480,7 @@ func (r *Registry) EmitSessionBeforeTree(ctx context.Context, event SessionBefor
 // reduceFirstCancelOrLast walks handlers in order: first cancel wins, else last non-nil value.
 func reduceFirstCancelOrLast[T any](n int, each func(i int) (cancel bool, value *T, err error)) (bool, *T, error) {
 	var last *T
-	for i := 0; i < n; i++ {
+	for i := range n {
 		cancel, value, err := each(i)
 		if err != nil {
 			return false, nil, err

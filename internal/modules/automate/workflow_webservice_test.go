@@ -117,8 +117,7 @@ func newWorkflowHandlerApp() *fiber.App {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
-			var te *types.Error
-			if errors.As(err, &te) {
+			if te, ok := errors.AsType[*types.Error](err); ok {
 				switch te.Kind {
 				case types.ErrInvalidArgument:
 					code = fiber.StatusBadRequest

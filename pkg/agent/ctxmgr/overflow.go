@@ -1,6 +1,7 @@
 package ctxmgr
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -57,8 +58,8 @@ func IsOverflowResult(err error, messages []msg.AgentMessage, contextWindow int)
 	if IsContextOverflowErr(err) {
 		return true
 	}
-	for i := len(messages) - 1; i >= 0; i-- {
-		assistant, ok := messages[i].(msg.AssistantMessage)
+	for _, message := range slices.Backward(messages) {
+		assistant, ok := message.(msg.AssistantMessage)
 		if !ok {
 			continue
 		}

@@ -119,15 +119,13 @@ func (s *FileStore) FileDeleteUnused(ctx context.Context, olderThan time.Time, l
 
 func entFileuploadToFileDef(f *gen.Fileupload) *types.FileDef {
 	return &types.FileDef{
-		ObjHeader: types.ObjHeader{
-			Id:        f.Fid,
-			CreatedAt: f.CreatedAt,
-			UpdatedAt: f.UpdatedAt,
-		},
-		Name:     f.Name,
-		MimeType: f.Mimetype,
-		Size:     f.Size,
-		Location: f.Location,
-		User:     f.UID,
+		Id:        f.Fid,
+		CreatedAt: f.CreatedAt,
+		UpdatedAt: f.UpdatedAt,
+		Name:      f.Name,
+		MimeType:  f.Mimetype,
+		Size:      f.Size,
+		Location:  f.Location,
+		User:      f.UID,
 	}
 }

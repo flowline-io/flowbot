@@ -99,8 +99,7 @@ func TestPrintJSONErrorShape(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			resp := protocol.NewFailedResponse(tt.err)
-			var apiErr *client.APIError
-			if errors.As(tt.err, &apiErr) {
+			if apiErr, ok := errors.AsType[*client.APIError](tt.err); ok {
 				if apiErr.Message != "" {
 					resp.Message = apiErr.Message
 				}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -443,8 +444,8 @@ func ensureSessionActive(ctx context.Context, sessionID string) error {
 }
 
 func extractAssistantReply(messages []any) string {
-	for i := len(messages) - 1; i >= 0; i-- {
-		message, ok := messages[i].(agent.AgentMessage)
+	for _, message := range slices.Backward(messages) {
+		message, ok := message.(agent.AgentMessage)
 		if !ok {
 			continue
 		}

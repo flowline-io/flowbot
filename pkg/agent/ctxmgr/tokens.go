@@ -2,6 +2,7 @@ package ctxmgr
 
 import (
 	"math"
+	"slices"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -87,8 +88,8 @@ type assistantUsageInfo struct {
 }
 
 func lastAssistantUsageInfo(messages []msg.AgentMessage) *assistantUsageInfo {
-	for i := len(messages) - 1; i >= 0; i-- {
-		assistant, ok := messages[i].(msg.AssistantMessage)
+	for i, message := range slices.Backward(messages) {
+		assistant, ok := message.(msg.AssistantMessage)
 		if !ok {
 			continue
 		}

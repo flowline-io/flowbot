@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -200,8 +201,8 @@ func replaceLists(s string) string {
 
 func findInnermostList(s string) (start, end int, tag, inner string, ok bool) {
 	matches := htmlListOpenTag.FindAllStringSubmatchIndex(s, -1)
-	for i := len(matches) - 1; i >= 0; i-- {
-		m := matches[i]
+	for _, m := range slices.Backward(matches) {
+
 		openStart, openEnd := m[0], m[1]
 		tagName := s[m[2]:m[3]]
 		_, closeEnd, body, found := findBalancedClose(s, openEnd, tagName)
@@ -225,8 +226,8 @@ func findInnermostBlock(s, tag string) (start, end int, inner string, ok bool) {
 		return 0, 0, "", false
 	}
 	matches := openRe.FindAllStringIndex(s, -1)
-	for i := len(matches) - 1; i >= 0; i-- {
-		openStart, openEnd := matches[i][0], matches[i][1]
+	for _, matche := range slices.Backward(matches) {
+		openStart, openEnd := matche[0], matche[1]
 		_, closeEnd, body, found := findBalancedClose(s, openEnd, tag)
 		if !found {
 			continue

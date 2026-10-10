@@ -182,7 +182,7 @@ func pathKey(field *ast.Field, fieldName string) string {
 		if v == "" {
 			continue
 		}
-		name := strings.Split(v, ",")[0]
+		name, _, _ := strings.Cut(v, ",")
 		if name == "-" {
 			continue
 		}

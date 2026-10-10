@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 
 	"github.com/flowline-io/flowbot/internal/platforms"
@@ -24,8 +25,8 @@ func ResolveDeliveryContext(ctx context.Context, sessionID string) ScheduledDeli
 		flog.Debug("[chat-agent] delivery context session=%s: %v", sessionID, err)
 		return ScheduledDelivery{}
 	}
-	for i := len(messages) - 1; i >= 0; i-- {
-		msg := messages[i]
+	for _, msg := range slices.Backward(messages) {
+
 		if msg.Topic == "" {
 			continue
 		}

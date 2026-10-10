@@ -48,8 +48,7 @@ func PrintEmptyList(cmd *cobra.Command, tableMsg string) error {
 // surface err.Error() so operators see actionable diagnostics on the console.
 func PrintJSONError(err error) {
 	resp := protocol.NewFailedResponse(err)
-	var apiErr *client.APIError
-	if errors.As(err, &apiErr) {
+	if apiErr, ok := errors.AsType[*client.APIError](err); ok {
 		if apiErr.Message != "" {
 			resp.Message = apiErr.Message
 		}

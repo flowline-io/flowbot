@@ -37,8 +37,7 @@ func IsContextOverflowErr(err error) bool {
 	if err == nil {
 		return false
 	}
-	var overflow OverflowError
-	if errors.As(err, &overflow) {
+	if _, ok := errors.AsType[OverflowError](err); ok {
 		return true
 	}
 	errText := err.Error()

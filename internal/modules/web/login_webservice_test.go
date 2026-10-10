@@ -628,11 +628,11 @@ func TestEnroll2FAHTMXFragments(t *testing.T) {
 func enrollSecretFromHTML(t *testing.T, html string) string {
 	t.Helper()
 	const marker = `data-testid="enroll-2fa-secret">`
-	i := strings.Index(html, marker)
-	if i < 0 {
+	_, after, ok := strings.Cut(html, marker)
+	if !ok {
 		t.Fatalf("enroll secret marker missing: %s", html)
 	}
-	rest := html[i+len(marker):]
+	rest := after
 	j := strings.Index(rest, "<")
 	if j < 0 {
 		t.Fatalf("enroll secret not closed: %s", html)

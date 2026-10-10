@@ -651,8 +651,7 @@ func (s *Service) finishInvoke(ctx context.Context, name string, ver *model.Func
 func runFailureDetails(err error) (string, *int) {
 	errMsg := err.Error()
 	var exitCode *int
-	var fre *functionRunError
-	if errors.As(err, &fre) {
+	if fre, ok := errors.AsType[*functionRunError](err); ok {
 		exitCode = fre.exitCode
 		errMsg = fre.msg
 	}

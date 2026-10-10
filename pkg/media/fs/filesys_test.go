@@ -191,10 +191,10 @@ func TestUpload(t *testing.T) {
 			require.NoError(t, fh.Init(fmt.Sprintf(`{"upload_dir":%q,"serve_url":"/v0/file/s/"}`, dir)))
 
 			fdef := &types.FileDef{
-				ObjHeader: types.ObjHeader{Id: "file-1"},
-				User:      "user-1",
-				MimeType:  tt.mime,
-				Size:      tt.size,
+				Id:       "file-1",
+				User:     "user-1",
+				MimeType: tt.mime,
+				Size:     tt.size,
 			}
 			url, n, err := fh.Upload(fdef, strings.NewReader(tt.body))
 			if tt.wantErr != "" {
@@ -262,8 +262,8 @@ func TestDownloadAndOpenByID(t *testing.T) {
 	path := filepath.Join(dir, "on-disk")
 	require.NoError(t, os.WriteFile(path, []byte("hello"), 0o600))
 	store.files["fid-1"] = &types.FileDef{
-		ObjHeader: types.ObjHeader{Id: "fid-1"},
-		Location:  path,
+		Id:       "fid-1",
+		Location: path,
 	}
 
 	t.Run("download bad url", func(t *testing.T) {
@@ -280,8 +280,8 @@ func TestDownloadAndOpenByID(t *testing.T) {
 
 	t.Run("download missing disk file", func(t *testing.T) {
 		store.files["fid-gone"] = &types.FileDef{
-			ObjHeader: types.ObjHeader{Id: "fid-gone"},
-			Location:  filepath.Join(dir, "nope"),
+			Id:       "fid-gone",
+			Location: filepath.Join(dir, "nope"),
 		}
 		_, _, err := fh.Download(fh.serveURL + "fid-gone")
 		require.Error(t, err)

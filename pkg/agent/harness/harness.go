@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -600,8 +601,8 @@ func applyRunDuration(messages []any, runStart time.Time) []any {
 
 	targetIdx := -1
 	fallbackIdx := -1
-	for i := len(messages) - 1; i >= 0; i-- {
-		assistant, ok := messages[i].(msg.AssistantMessage)
+	for i, message := range slices.Backward(messages) {
+		assistant, ok := message.(msg.AssistantMessage)
 		if !ok {
 			continue
 		}

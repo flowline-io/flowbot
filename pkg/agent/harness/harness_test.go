@@ -3,6 +3,7 @@ package harness_test
 import (
 	"context"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -98,8 +99,8 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 			}
 			require.NoError(t, result.Err)
 			reply := ""
-			for i := len(result.Messages) - 1; i >= 0; i-- {
-				assistant, ok := result.Messages[i].(msg.AssistantMessage)
+			for _, v := range slices.Backward(result.Messages) {
+				assistant, ok := v.(msg.AssistantMessage)
 				if !ok {
 					continue
 				}

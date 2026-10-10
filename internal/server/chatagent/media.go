@@ -95,11 +95,11 @@ func UploadSessionMedia(ctx context.Context, sessionID, ownerUID, filename, mime
 		return MediaUploadResult{}, types.Errorf(types.ErrInvalidArgument, "empty file")
 	}
 	fdef := &types.FileDef{
-		ObjHeader: types.ObjHeader{Id: types.Id()},
-		Name:      filename,
-		MimeType:  mimeType,
-		Size:      size,
-		User:      ownerUID,
+		Id:       types.Id(),
+		Name:     filename,
+		MimeType: mimeType,
+		Size:     size,
+		User:     ownerUID,
 	}
 	_, written, err := media.FileSystem.Upload(fdef, r)
 	if err != nil {

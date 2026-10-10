@@ -3,6 +3,7 @@ package ctxmgr
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -135,8 +136,8 @@ func latestVisibleToolResultEntries(path []session.TreeEntry) []session.TreeEntr
 	visible := visibleMessageEntries(path)
 	seen := make(map[string]struct{}, len(visible))
 	latest := make([]session.TreeEntry, 0, len(visible))
-	for i := len(visible) - 1; i >= 0; i-- {
-		entry := visible[i]
+	for _, entry := range slices.Backward(visible) {
+
 		toolResult, ok := entry.Message.(msg.ToolResultMessage)
 		if !ok {
 			continue

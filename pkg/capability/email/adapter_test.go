@@ -95,8 +95,8 @@ func TestAdapter_ListGetMark(t *testing.T) {
 		}},
 		listNext: "2",
 		getMsg: &provider.Message{
-			MessageMeta: provider.MessageMeta{ID: "1:2", Subject: "Hello"},
-			Text:        "body",
+			ID: "1:2", Subject: "Hello",
+			Text: "body",
 		},
 	}
 	svc := NewWithClient(fc)

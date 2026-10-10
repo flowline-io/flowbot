@@ -43,11 +43,9 @@ func NewGrpcRunner(m *plugin.Manifest) (*GrpcRunner, error) {
 	return &GrpcRunner{
 		manifest: m,
 		client: goPlugin.NewClient(&goPlugin.ClientConfig{
-			HandshakeConfig: goPlugin.HandshakeConfig{
-				ProtocolVersion:  handshakeVersion,
-				MagicCookieKey:   magicCookieKey,
-				MagicCookieValue: magicCookieValue,
-			},
+			ProtocolVersion:  handshakeVersion,
+			MagicCookieKey:   magicCookieKey,
+			MagicCookieValue: magicCookieValue,
 			Plugins: map[string]goPlugin.Plugin{
 				"module": &GrpcPlugin{},
 			},

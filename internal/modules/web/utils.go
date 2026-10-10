@@ -88,8 +88,7 @@ func clientSafeErrorMessage(c fiber.Ctx, err error) string {
 	if err == nil {
 		return webMsg(c, "error.server")
 	}
-	var te *types.Error
-	if errors.As(err, &te) {
+	if te, ok := errors.AsType[*types.Error](err); ok {
 		switch {
 		case errors.Is(te.Kind, types.ErrInvalidArgument),
 			errors.Is(te.Kind, types.ErrNotFound),

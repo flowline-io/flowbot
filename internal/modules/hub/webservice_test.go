@@ -34,8 +34,7 @@ func errorHandler(ctx fiber.Ctx, err error) error {
 	if code, ok := mapDomainErrors(err); ok {
 		return ctx.Status(code).SendString(err.Error())
 	}
-	var e oops.OopsError
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[oops.OopsError](err); ok {
 		if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
 			return ctx.Status(fiber.StatusUnauthorized).SendString(err.Error())
 		}
