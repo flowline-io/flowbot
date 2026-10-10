@@ -1,9 +1,14 @@
 package chatagent
 
 import (
+	"context"
+
+	"go.uber.org/fx"
+
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
 	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
 	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
+	agentmcp "github.com/flowline-io/flowbot/internal/server/chatagent/tools/mcp"
 	agentnotify "github.com/flowline-io/flowbot/internal/server/chatagent/tools/notify"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
@@ -28,6 +33,9 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 		return nil, err
 	}
 	if err := registerProductTools(registry); err != nil {
+		return nil, err
+	}
+	if err := agentmcp.Register(registry); err != nil {
 		return nil, err
 	}
 	uid := registryUID(taskDeps, scheduleDeps)
@@ -128,6 +136,7 @@ func ActiveToolNames() []string {
 	names = append(names, agenthtml.ActiveToolNames()...)
 	names = append(names, agentnotify.ActiveToolNames()...)
 	names = append(names, agentgw.ActiveToolNames()...)
+	names = append(names, agentmcp.ActiveToolNames()...)
 	names = append(names, "read_skill", delegateSubagentToolName)
 	names = append(names, KnowledgeToolNames()...)
 	names = append(names, scheduleToolNames()...)
@@ -199,4 +208,18 @@ func executionEnvForWorkspace(ws coding.Workspace) env.ExecutionEnv {
 		return nil
 	}
 	return sandbox.New(sandbox.ConfigFromChatAgent(cfg, ws.Root), env.Default(), nil)
+}
+
+// StartMCPClients connects chat_agent.mcp_servers for the process lifetime.
+func StartMCPClients(lc fx.Lifecycle) {
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			mgr := &agentmcp.Manager{}
+			agentmcp.SetDefault(mgr)
+			return mgr.Start(ctx, config.App.ChatAgent.MCPServers, config.App.Listen, config.App.ApiPath)
+		},
+		OnStop: func(ctx context.Context) error {
+			return agentmcp.StopDefault(ctx)
+		},
+	})
 }

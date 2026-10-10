@@ -54,7 +54,7 @@ Covers:
 - Redis (`redis.url` + optional pool)
 - Logging, metrics, profiling, tracing
 - Media storage (fs / MinIO) when enabled
-- Executor, models, chat agent, homelab
+- Executor, models, chat agent, inbound MCP (`mcp`) and outbound MCP (`chat_agent.mcp_servers`), homelab
 - Platform integrations (Slack, Discord, Tailchat; Telegram struct only)
 - Module settings (web auth)
 - Third-party vendor stubs
@@ -94,9 +94,12 @@ See [examples/workflows/](../examples/workflows/) for workflow configuration exa
 | `modules.web.auth.encryption_key_dir` | `.` |
 | `modules.web.auth.brute_force` | enabled; 5 / 10 / 15m / 15m |
 | `metrics.enabled` | false (prefer false without a metrics backend) |
+| `mcp.enabled` | false |
+| `chat_agent.mcp_servers` | empty |
 
 ## Related
 
+- [MCP](../user-guide/mcp.md)
 - [Homelab App Discovery](../user-guide/homelab-discovery.md)
 - [Homelab image update checks](../user-guide/homelab-image-updates.md)
 - [Notification gateway](../user-guide/notification-gateway.md)

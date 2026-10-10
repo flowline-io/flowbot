@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	pkgmcp "github.com/flowline-io/flowbot/pkg/mcp"
 )
 
 // FlaggedResult describes whether a tool call needs aux review.
@@ -68,7 +69,7 @@ func IsReadonlyTool(tool string) bool {
 		permission.ToolReadSkill:
 		return true
 	default:
-		return false
+		return permission.MCPToolReadOnly(tool)
 	}
 }
 
@@ -81,6 +82,16 @@ func EvaluateFlagged(req permission.Request) FlaggedResult {
 
 	if req.ExternalPath || len(inputs.ExternalPaths) > 0 {
 		return FlaggedResult{Flagged: true, Reason: "workspace-external path access"}
+	}
+
+	if pkgmcp.IsAgentTool(req.Tool) {
+		if permission.MCPToolReadOnly(req.Tool) {
+			return FlaggedResult{}
+		}
+		if permission.MCPToolDestructive(req.Tool) {
+			return FlaggedResult{Flagged: true, Reason: "mcp destructive tool"}
+		}
+		return FlaggedResult{Flagged: true, Reason: "mcp write tool"}
 	}
 
 	switch req.Tool {

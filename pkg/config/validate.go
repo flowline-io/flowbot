@@ -16,6 +16,8 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"errors"
+
+	pkgmcp "github.com/flowline-io/flowbot/pkg/mcp"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
@@ -55,6 +57,7 @@ func (t *Type) Validate() error {
 	modelNames := make(map[string]bool)
 	errs, modelNames = t.validateModels(errs, modelNames)
 	errs = t.validateChatAgent(errs, modelNames)
+	errs = t.validateMCPServers(errs)
 	errs = t.validatePII(errs)
 
 	if len(errs) > 0 {
@@ -224,6 +227,37 @@ func (t *Type) validateChatAgent(errs ValidationErrors, modelNames map[string]bo
 					"chat_agent: chat_model %q (provider %q) and tool_model %q (provider %q) must use the same provider. Fix: align providers in flowbot.yaml",
 					chat, chatProvider, tool, toolProvider,
 				))
+			}
+		}
+	}
+	return errs
+}
+
+func (t *Type) validateMCPServers(errs ValidationErrors) ValidationErrors {
+	seen := map[string]struct{}{}
+	for i, srv := range t.ChatAgent.MCPServers {
+		prefix := fmt.Sprintf("chat_agent.mcp_servers[%d]", i)
+		name := strings.TrimSpace(srv.Name)
+		if err := pkgmcp.ValidateServerName(name); err != nil {
+			errs = append(errs, fmt.Errorf("%s.name: %w. Fix: use a lowercase name matching [a-z][a-z0-9-]*", prefix, err))
+		} else if _, ok := seen[name]; ok {
+			errs = append(errs, fmt.Errorf("%s.name: duplicate MCP server name %q. Fix: give each mcp_servers entry a unique name", prefix, name))
+		} else {
+			seen[name] = struct{}{}
+		}
+		rawURL := strings.TrimSpace(srv.URL)
+		cmd := strings.TrimSpace(srv.Command)
+		switch {
+		case rawURL == "" && cmd == "":
+			errs = append(errs, fmt.Errorf("%s: url or command is required. Fix: set url for HTTP MCP or command for stdio", prefix))
+		case rawURL != "" && cmd != "":
+			errs = append(errs, fmt.Errorf("%s: url and command are mutually exclusive. Fix: choose HTTP or stdio", prefix))
+		case rawURL != "":
+			u, err := url.Parse(rawURL)
+			if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+				errs = append(errs, fmt.Errorf("%s.url: invalid HTTP URL %q. Fix: set an http(s) Streamable HTTP endpoint", prefix, rawURL))
+			} else if pkgmcp.IsSelfMCP(rawURL, t.Listen, t.ApiPath) {
+				errs = append(errs, fmt.Errorf("%s.url: must not point at this process /mcp. Fix: connect only to external MCP servers", prefix))
 			}
 		}
 	}

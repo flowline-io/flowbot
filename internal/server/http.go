@@ -186,6 +186,8 @@ func newHTTPServer() *fiber.App {
 			"X-AccessToken",
 			"X-Request-ID",
 			"X-Csrf-Token",
+			"MCP-Protocol-Version",
+			"Mcp-Session-Id",
 		},
 		AllowCredentials: corsAllowCredentials(config.App.HTTP.CORS.AllowOrigins),
 	}))

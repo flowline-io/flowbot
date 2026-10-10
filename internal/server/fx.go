@@ -5,6 +5,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/modules"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	storepkg "github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -57,6 +58,7 @@ var Modules = fx.Options(
 		initClipAbility,
 		initGatewayAbility,
 		initChatAgentScheduler,
+		chatagent.StartMCPClients,
 		handleModules,
 		startHomelabImageCheckLoop,
 		handlePlatform,

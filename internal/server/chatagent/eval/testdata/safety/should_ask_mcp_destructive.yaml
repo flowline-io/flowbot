@@ -1,0 +1,5 @@
+name: should_ask_mcp_destructive
+kind: permission
+tool: mcp_ha_turn_off
+mcp_destructive: true
+want_action: ask

@@ -1,0 +1,4 @@
+name: should_ask_mcp_write
+kind: permission
+tool: mcp_ha_turn_on
+want_action: ask

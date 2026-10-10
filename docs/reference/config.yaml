@@ -197,6 +197,22 @@ chat_agent:
   #   allow_private: false
   #   allow_hosts: []             # host or CIDR exceptions
   #   timeout: 30s
+  # mcp_servers:
+  #   - name: ha
+  #     url: "http://127.0.0.1:8123/mcp"
+  #     headers:
+  #       Authorization: "Bearer ..."
+  #     include: []
+  #     exclude: []
+  #   - name: files
+  #     command: /usr/local/bin/mcp-filesystem
+  #     args: ["/data"]
+
+# Inbound MCP server (Streamable HTTP POST /mcp; GET/DELETE 405). Default off.
+# mcp:
+#   enabled: false
+#   include: []   # capability or tool name; empty = all allowed by token minus deny-list
+#   exclude: []
 
 # CapCore runtime primitives (http_request, run_*, kv_*). Workspace falls back to chat_agent.workspace.
 core:

@@ -29,8 +29,9 @@ Look at the package directory for the full file set; prefer hot-path names above
 
 ## Routing
 
-- `/service/{module}/*`, `/hub/*`, `/chatagent/*`, `/static/*` (webassets), `/platform/{platform}` (Slack, Tailchat)
+- `/service/{module}/*`, `/hub/*`, `/chatagent/*`, `/mcp` (when `mcp.enabled`), `/static/*` (webassets), `/platform/{platform}` (Slack, Tailchat)
 - Also: `/oauth/:provider/:flag`, `/form`, `/agent`, `/metrics`, `/livez`, `/readyz`, `/swagger/*` (`-tags swagger`)
+- MCP: [user guide](../../docs/user-guide/mcp.md); [note](../../.agents/notes/implemented/feature/2026-10-10-mcp-server-and-client.md)
 
 ## Testing
 

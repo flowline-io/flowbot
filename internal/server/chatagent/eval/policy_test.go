@@ -27,6 +27,8 @@ type policyCase struct {
 	WantAction     string         `yaml:"want_action"`
 	WantDCGAllow   *bool          `yaml:"want_dcg_allow"`
 	PermissionJSON string         `yaml:"permission_json"`
+	MCPReadOnly    bool           `yaml:"mcp_read_only"`
+	MCPDestructive bool           `yaml:"mcp_destructive"`
 }
 
 func TestPolicyOutcomesFromTestdata(t *testing.T) {
@@ -64,6 +66,10 @@ func TestPolicyOutcomesFromTestdata(t *testing.T) {
 				}
 				if tc.Command != "" {
 					args["command"] = tc.Command
+				}
+				if tc.MCPReadOnly || tc.MCPDestructive {
+					permission.SetMCPToolMeta(tc.Tool, tc.MCPReadOnly, tc.MCPDestructive)
+					t.Cleanup(func() { permission.ClearMCPToolMeta(tc.Tool) })
 				}
 				got := ev.Evaluate(permission.Request{
 					Tool:         tc.Tool,

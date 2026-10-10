@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/mattn/go-shellwords"
+
+	pkgmcp "github.com/flowline-io/flowbot/pkg/mcp"
 )
 
 // Tool names used by the chat agent coding toolkit.
@@ -65,8 +67,19 @@ func PermissionKeyForTool(tool string) string {
 	case ToolRunCursor:
 		return KeyGateway
 	default:
+		if key := permissionKeyForMCPTool(tool); key != "" {
+			return key
+		}
 		return KeyWildcard
 	}
+}
+
+func permissionKeyForMCPTool(tool string) string {
+	server, ok := pkgmcp.ServerFromAgentTool(tool)
+	if !ok {
+		return ""
+	}
+	return pkgmcp.PermissionKey(server)
 }
 
 func permissionKeyForBrowserTool(tool string) string {
@@ -142,6 +155,12 @@ func extractToolPrimary(req Request) (string, ParseBashCommand, []string) {
 	case ToolWebFetch:
 		return strings.TrimSpace(fmt.Sprint(req.Args["url"])), ParseBashCommand{}, nil
 	default:
+		if pkgmcp.IsAgentTool(req.Tool) {
+			if MCPToolReadOnly(req.Tool) {
+				return "read", ParseBashCommand{}, nil
+			}
+			return "write", ParseBashCommand{}, nil
+		}
 		if primary, bash, paths, ok := extractBrowserToolPrimary(req); ok {
 			return primary, bash, paths
 		}

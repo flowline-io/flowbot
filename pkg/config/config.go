@@ -83,6 +83,9 @@ type Type struct {
 	// ChatAgent configures the direct-message agent.
 	ChatAgent ChatAgentConfig `json:"chat_agent" yaml:"chat_agent" mapstructure:"chat_agent"`
 
+	// MCP configures the inbound Streamable HTTP MCP server at /mcp.
+	MCP MCPConfig `json:"mcp" yaml:"mcp" mapstructure:"mcp"`
+
 	// Homelab app registry and lifecycle configuration
 	Homelab Homelab `json:"homelab" yaml:"homelab" mapstructure:"homelab"`
 
@@ -679,6 +682,38 @@ type ChatAgentConfig struct {
 	Browser ChatAgentBrowserConfig `json:"browser" yaml:"browser" mapstructure:"browser"`
 	// Media configures multimodal attachment signing and public fetch URLs.
 	Media ChatAgentMediaConfig `json:"media" yaml:"media" mapstructure:"media"`
+	// MCPServers lists outbound MCP servers registered as agent tools.
+	MCPServers []ChatAgentMCPServer `json:"mcp_servers" yaml:"mcp_servers" mapstructure:"mcp_servers"`
+}
+
+// ChatAgentMCPServer is one outbound MCP server (HTTP or stdio) for the chat agent.
+type ChatAgentMCPServer struct {
+	// Name is the server id used in tool names (mcp_<name>_*) and permission keys (mcp.<name>).
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	// URL is the Streamable HTTP endpoint (mutually exclusive with Command).
+	URL string `json:"url" yaml:"url" mapstructure:"url"`
+	// Headers are extra HTTP headers for URL transports (for example Authorization).
+	Headers map[string]string `json:"headers" yaml:"headers" mapstructure:"headers"`
+	// Command is an absolute or PATH-resolved binary for stdio MCP (no shell).
+	Command string `json:"command" yaml:"command" mapstructure:"command"`
+	// Args are command arguments passed without a shell.
+	Args []string `json:"args" yaml:"args" mapstructure:"args"`
+	// Env is extra environment for the stdio process (merged over the server env).
+	Env map[string]string `json:"env" yaml:"env" mapstructure:"env"`
+	// Include limits tools from this server (server name or remote tool name). Empty means all.
+	Include []string `json:"include" yaml:"include" mapstructure:"include"`
+	// Exclude removes tools from this server. Exclude wins over include.
+	Exclude []string `json:"exclude" yaml:"exclude" mapstructure:"exclude"`
+}
+
+// MCPConfig configures the inbound MCP server mounted at /mcp.
+type MCPConfig struct {
+	// Enabled mounts POST /mcp when true. GET and DELETE return 405 (stateless). Default false.
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Include limits tools advertised on /mcp (capability or full tool name). Empty means all allowed by token scope minus the deny-list.
+	Include []string `json:"include" yaml:"include" mapstructure:"include"`
+	// Exclude removes tools from /mcp. Exclude wins over include; the deny-list cannot be overridden.
+	Exclude []string `json:"exclude" yaml:"exclude" mapstructure:"exclude"`
 }
 
 // ChatAgentBrowserConfig configures interactive browser tools over CDP.

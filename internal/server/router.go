@@ -18,6 +18,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
+	serversmcp "github.com/flowline-io/flowbot/internal/server/mcp"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
@@ -72,6 +73,7 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	RegisterChatAgentSignedMediaRoute(a)
 	RegisterGatewayRoutes(a)
 	RegisterAgentLLMRoutes(a)
+	serversmcp.Register(a, ctl.auditor)
 	// platform
 	a.All("/platform/:platform", ctl.platformCallback)
 }

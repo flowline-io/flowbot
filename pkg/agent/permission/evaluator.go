@@ -1,5 +1,7 @@
 package permission
 
+import "strings"
+
 // Result is the outcome of one permission evaluation.
 type Result struct {
 	Action            Action
@@ -163,7 +165,11 @@ func attachSuggestion(result *Result, inputs ExtractedInputs) {
 func (e *Evaluator) resolveKey(key, input string) Action {
 	rs, ok := e.config[key]
 	if !ok {
-		rs = e.config[KeyWildcard]
+		if strings.HasPrefix(key, KeyMCPPrefix) {
+			rs = mcpDefaultRuleSet()
+		} else {
+			rs = e.config[KeyWildcard]
+		}
 	}
 	if len(rs.Patterns) == 0 {
 		if rs.Default.Valid() {

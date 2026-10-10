@@ -123,6 +123,12 @@ func TestCommandForTool(t *testing.T) {
 			args:   map[string]any{"path": "a.go"},
 			wantOK: false,
 		},
+		{
+			name:   "outbound mcp skipped",
+			tool:   "mcp_ha_turn_on",
+			args:   map[string]any{"entity_id": "light.x"},
+			wantOK: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

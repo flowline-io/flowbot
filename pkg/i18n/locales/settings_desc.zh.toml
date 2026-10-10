@@ -135,6 +135,33 @@ other = "MaxSteps 限制每轮用户输入的 agent Observe-Think-Act 迭代次�
 ["settings.desc.chat_agent.max_tool_output"]
 other = "MaxToolOutput 按字节截断超出此大小的 tool stdout。"
 
+["settings.desc.chat_agent.mcp_servers"]
+other = "MCPServers 列出注册为智能体工具的出站 MCP 服务器。"
+
+["settings.desc.chat_agent.mcp_servers.args"]
+other = "Args 是不经 shell 直接传给 stdio 命令的参数。"
+
+["settings.desc.chat_agent.mcp_servers.command"]
+other = "Command 是 stdio MCP 的可执行文件（绝对路径或 PATH 中的名字，不经 shell）。"
+
+["settings.desc.chat_agent.mcp_servers.env"]
+other = "Env 是追加给 stdio 进程的环境变量（覆盖同名项）。"
+
+["settings.desc.chat_agent.mcp_servers.exclude"]
+other = "Exclude 从该服务器去掉工具。Exclude 优先于 include。"
+
+["settings.desc.chat_agent.mcp_servers.headers"]
+other = "Headers 是 URL 传输的额外 HTTP 头（例如 Authorization）。"
+
+["settings.desc.chat_agent.mcp_servers.include"]
+other = "Include 限制该服务器上的工具（服务器名或完整工具名）。空表示全部。"
+
+["settings.desc.chat_agent.mcp_servers.name"]
+other = "Name 是服务器 id，用于工具名 mcp_<name>_* 和权限键 mcp.<name>。"
+
+["settings.desc.chat_agent.mcp_servers.url"]
+other = "URL 是 Streamable HTTP 端点（与 Command 互斥）。"
+
 ["settings.desc.chat_agent.media"]
 other = "Media 配置多模态附件签名与公共 fetch URL。"
 
@@ -404,6 +431,18 @@ other = "Period 是采样窗口（秒）"
 
 ["settings.desc.log.stackTrace"]
 other = "StackTrace 在 error 上启用完整 stack trace"
+
+["settings.desc.mcp"]
+other = "MCP 配置入站 Streamable HTTP 服务（路径 /mcp）。"
+
+["settings.desc.mcp.enabled"]
+other = "Enabled 为 true 时挂载 POST /mcp。GET 和 DELETE 返回 405（无会话）。默认 false。"
+
+["settings.desc.mcp.exclude"]
+other = "Exclude 从 /mcp 去掉工具。Exclude 优先于 include；deny-list 不可覆盖。"
+
+["settings.desc.mcp.include"]
+other = "Include 限制 /mcp 公布的工具（能力名或完整工具名）。空表示令牌 scope 允许的全部（减去 deny-list）。"
 
 ["settings.desc.media"]
 other = "Media 大文件存储配置（可选；省略则禁用上传）。"

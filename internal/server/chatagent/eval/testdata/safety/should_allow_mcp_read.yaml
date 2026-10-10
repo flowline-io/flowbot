@@ -1,0 +1,5 @@
+name: should_allow_mcp_read
+kind: permission
+tool: mcp_ha_get_state
+mcp_read_only: true
+want_action: allow

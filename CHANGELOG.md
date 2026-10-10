@@ -4,6 +4,7 @@
 
 ### Added
 
+- MCP: inbound Streamable HTTP `/mcp` (default off, header tokens, capability tools plus pipeline/workflow/function list/get/run/get_run and hub read) and chat-agent outbound MCP client (`chat_agent.mcp_servers`). See [.agents/notes/implemented/feature/2026-10-10-mcp-server-and-client.md](.agents/notes/implemented/feature/2026-10-10-mcp-server-and-client.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
 - Homelab image digest checks: periodic RepoDigest vs registry manifest comparison emits `homelab.image.update_available`; official blueprint `homelab_image_update_notify`. See [.agents/notes/implemented/feature/2026-10-10-homelab-image-update-check.md](.agents/notes/implemented/feature/2026-10-10-homelab-image-update-check.md).
 
 ## [0.99.13]

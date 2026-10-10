@@ -66,4 +66,20 @@ var _ = Describe("Agent Eval Policy", Label("module", "agent"), func() {
 		}, permission.NewSessionState())
 		Expect(got.Action).To(Equal(permission.ActionAllow))
 	})
+
+	It("allows read-only outbound MCP tools with DefaultConfig", func() {
+		permission.SetMCPToolMeta("mcp_ha_get_state", true, false)
+		DeferCleanup(func() { permission.ClearMCPToolMeta("mcp_ha_get_state") })
+		ev := permission.NewEvaluator(permission.DefaultConfig())
+		got := ev.Evaluate(permission.Request{Tool: "mcp_ha_get_state"}, permission.NewSessionState())
+		Expect(got.Action).To(Equal(permission.ActionAllow))
+		Expect(got.PermissionKey).To(Equal("mcp.ha"))
+	})
+
+	It("asks on outbound MCP write tools with DefaultConfig", func() {
+		ev := permission.NewEvaluator(permission.DefaultConfig())
+		got := ev.Evaluate(permission.Request{Tool: "mcp_ha_turn_on"}, permission.NewSessionState())
+		Expect(got.Action).To(Equal(permission.ActionAsk))
+		Expect(got.PermissionKey).To(Equal("mcp.ha"))
+	})
 })

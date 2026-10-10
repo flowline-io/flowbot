@@ -1,6 +1,10 @@
 package permission
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+
+	pkgmcp "github.com/flowline-io/flowbot/pkg/mcp"
+)
 
 // KeyDoomLoop is the permission key for loop-detection critical hits (ask/deny/allow).
 const KeyDoomLoop = "doom_loop"
@@ -34,6 +38,9 @@ const KeyHTML = "html"
 
 // KeyGateway is the permission key for local CLI gateway tools (run_cursor).
 const KeyGateway = "gateway"
+
+// KeyMCPPrefix prefixes per-server MCP permission keys (mcp.<name>).
+const KeyMCPPrefix = pkgmcp.PermissionKeyPrefix
 
 // KeyBrowser is the permission key for interactive browser_* tools.
 const KeyBrowser = "browser"

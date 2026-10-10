@@ -527,3 +527,66 @@ func TestReachabilityCheck_PostgresUnreachable(t *testing.T) {
 		})
 	}
 }
+
+func TestValidate_MCPServers(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		mutate  func(*Type)
+		wantErr string
+		noErr   bool
+	}{
+		{
+			name: "http server ok",
+			mutate: func(c *Type) {
+				c.Listen = "127.0.0.1:6060"
+				c.ChatAgent.MCPServers = []ChatAgentMCPServer{{Name: "ha", URL: "http://192.168.1.10:8123/mcp"}}
+			},
+			noErr: true,
+		},
+		{
+			name: "self mcp rejected",
+			mutate: func(c *Type) {
+				c.Listen = "127.0.0.1:6060"
+				c.ChatAgent.MCPServers = []ChatAgentMCPServer{{Name: "loop", URL: "http://127.0.0.1:6060/mcp"}}
+			},
+			wantErr: "must not point at this process /mcp",
+		},
+		{
+			name: "underscore name rejected",
+			mutate: func(c *Type) {
+				c.ChatAgent.MCPServers = []ChatAgentMCPServer{{Name: "ha_mcp", Command: "/usr/bin/ha-mcp"}}
+			},
+			wantErr: "chat_agent.mcp_servers[0].name",
+		},
+		{
+			name: "url and command exclusive",
+			mutate: func(c *Type) {
+				c.ChatAgent.MCPServers = []ChatAgentMCPServer{{Name: "ha", URL: "http://example.com/mcp", Command: "/bin/ha"}}
+			},
+			wantErr: "mutually exclusive",
+		},
+		{
+			name: "missing transport",
+			mutate: func(c *Type) {
+				c.ChatAgent.MCPServers = []ChatAgentMCPServer{{Name: "ha"}}
+			},
+			wantErr: "url or command is required",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := validConfig()
+			tt.mutate(&cfg)
+			err := cfg.Validate()
+			if tt.noErr {
+				assert.NoError(t, err)
+				return
+			}
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tt.wantErr)
+			assert.Contains(t, err.Error(), "Fix:")
+		})
+	}
+}

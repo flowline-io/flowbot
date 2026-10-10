@@ -15,6 +15,7 @@ Primary HTTP surfaces:
 | `/service/{module}/*` | Module business routes (often aligned with capability IDs) |
 | `/hub/*` | Hub management (apps, capabilities, health) — requires scopes |
 | `/chatagent/*` | Chat agent HTTP API |
+| `/mcp` | MCP Streamable HTTP POST (when `mcp.enabled`; header token only; GET/DELETE 405) |
 | `/livez`, `/readyz`, `/startupz` | Probes (`/readyz` checks PostgreSQL + Redis) |
 | `/metrics` | Prometheus scrape (authenticated) |
 | `/swagger/*` | Swagger UI (when built with `-tags swagger`) |
