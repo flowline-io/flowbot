@@ -2,10 +2,28 @@
 
 ## Unreleased
 
+### Breaking
+
+- Agent-sandbox Playwright image variant and `playwright-*` GHCR tags are removed. Interactive browsing is CDP `browser_*` tools (`chat_agent.browser`) against Compose `lightpanda` or optional `playwright-cdp`. Pulls of `ghcr.io/flowline-io/flowbot-agent-sandbox:playwright-*` need those CDP services. See [.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md](.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md).
+
 ### Added
 
 - MCP: inbound Streamable HTTP `/mcp` (default off, header tokens, capability tools plus pipeline/workflow/function list/get/run/get_run and hub read) and chat-agent outbound MCP client (`chat_agent.mcp_servers`). See [.agents/notes/implemented/feature/2026-10-10-mcp-server-and-client.md](.agents/notes/implemented/feature/2026-10-10-mcp-server-and-client.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
 - Homelab image digest checks: periodic RepoDigest vs registry manifest comparison emits `homelab.image.update_available`; official blueprint `homelab_image_update_notify`. See [.agents/notes/implemented/feature/2026-10-10-homelab-image-update-check.md](.agents/notes/implemented/feature/2026-10-10-homelab-image-update-check.md).
+- Pipeline blueprints: parameterized `kind: pipeline_blueprint` templates (official embed in `pkg/pipeline/blueprints/` plus Web paste/upload at `/service/web/blueprints`). Instantiate creates a linked pipeline; inputs and the enable flag stay editable, steps stay read-only until Take control. `flowbot pipeline apply` rejects blueprint YAML and linked instances; `flowbot blueprint` lists, imports, exports, replaces, instantiates, updates, takes control, and deletes. See [.agents/notes/implemented/feature/2026-10-09-pipeline-blueprints.md](.agents/notes/implemented/feature/2026-10-09-pipeline-blueprints.md) and [docs/user-guide/blueprints.md](docs/user-guide/blueprints.md).
+- Chat agent browser tools (`browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_scroll`, `browser_wait`, `browser_screenshot`) over remote CDP when `chat_agent.browser.enabled`. Drivers `lightpanda` and `playwright` share chromedp; `playwright` is Chromium remote-debugging CDP. GHCR `flowbot-lightpanda` and `flowbot-playwright-cdp` publish on `cdp-v*` tags; playwright-cdp proxies container `0.0.0.0:9222` to loopback CDP. Navigate-time URL gating uses `allow_hosts` / `allow_private`. Permission key `browser` defaults to ask; the scheduled overlay denies it. See [.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md](.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md) and [docs/agent/browser.md](docs/agent/browser.md).
+- Optional Presidio Analyzer sidecar for reversible anonymization of outbound LLM text (`pii.enabled`, Compose profile `pii`). Placeholders such as `{{PII_EMAIL_ADDRESS_1}}` are restored on streamed text, reasoning, and tool-call arguments; PostgreSQL chat history stays plaintext; Analyzer errors fail closed. English and Chinese medium spaCy models plus CN phone/ID recognizers. GHCR `flowbot-presidio-analyzer` publishes on `presidio-v*`; the image build checks `recognizers.yaml`. See [.agents/notes/implemented/architecture/2026-09-18-llm-presidio-anonymizer.md](.agents/notes/implemented/architecture/2026-09-18-llm-presidio-anonymizer.md) and [docs/self-hosting.md](docs/self-hosting.md#optional-llm-pii-presidio).
+
+### Changed
+
+- Agent Skills identity rules (`pkg/validate`: name, description, compatibility, name↔directory) apply on zip import, Web create/update, and composer generation. `go tool task skills` runs `skills-ref@0.1.5`; CI workflow `.github/workflows/skills.yml` fails when `docs/skills` is dirty or validation fails. See [.agents/notes/implemented/process/2026-09-16-agent-skills-name-validation-skills-ref.md](.agents/notes/implemented/process/2026-09-16-agent-skills-name-validation-skills-ref.md).
+- `github.com/a-h/templ` upgraded to v0.3.1070. Boolean HTML attributes use `attr?={ cond }`. See [.agents/notes/implemented/process/2026-10-09-templ-0.3.1070-upgrade.md](.agents/notes/implemented/process/2026-10-09-templ-0.3.1070-upgrade.md).
+- Server image CI smokes the published GHCR tag for baked artifacts (`/opt/app/flowbot`, `flowbot-cli_linux_amd64`, `composer`, `dcg`, `wget`) without starting the HTTP server. See [.agents/notes/implemented/testing/2026-09-18-server-image-ci-smoke.md](.agents/notes/implemented/testing/2026-09-18-server-image-ci-smoke.md).
+
+### Fixed
+
+- Trajectory log emits CALL before TOOL and shows the tool name and arguments. Trajectory JSON uses role `call` for tool calls, and tool-result `raw` may include `arguments`. See [.agents/notes/implemented/bug-fix/2026-09-16-trajectory-tool-call-visibility.md](.agents/notes/implemented/bug-fix/2026-09-16-trajectory-tool-call-visibility.md).
+- 2FA enrollment HTMX POST returns the enroll form or backup-code panel only, so a rejected verification code no longer nests a second auth layout. See [.agents/notes/implemented/bug-fix/2026-10-09-enroll-2fa-htmx-fragment.md](.agents/notes/implemented/bug-fix/2026-10-09-enroll-2fa-htmx-fragment.md).
 
 ## [0.99.13]
 
