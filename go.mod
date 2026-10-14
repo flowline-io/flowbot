@@ -79,7 +79,7 @@ require (
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/fx v1.24.0
 	golang.org/x/crypto v0.58.0
-	golang.org/x/net v0.60.0
+	golang.org/x/net v0.61.0
 	golang.org/x/sys v0.49.0
 	golang.org/x/term v0.47.0
 	golang.org/x/text v0.43.0
