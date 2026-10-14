@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -51,6 +52,7 @@ func TestFireflyIII_About(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/v1/about", r.URL.Path)
 				assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+				assert.Contains(t, r.Header.Get("Accept"), "application/json")
 				w.Header().Set("Content-Type", "application/json")
 
 				w.WriteHeader(tt.statusCode)
@@ -249,6 +251,16 @@ func TestConvertResponseData(t *testing.T) {
 			statusCode: http.StatusNotFound,
 			wantErr:    true,
 		},
+		{
+			name: "nil data on 200",
+			response: &Response{
+				Data:      nil,
+				Message:   "",
+				Exception: "",
+			},
+			statusCode: http.StatusOK,
+			wantErr:    true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -290,4 +302,48 @@ func TestNewFireflyIII(t *testing.T) {
 			assert.NotNil(t, client.c)
 		})
 	}
+}
+
+func TestFireflyIII_AboutUnauthenticatedJSON(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Contains(t, r.Header.Get("Accept"), "application/json")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = io.WriteString(w, `{"message":"Unauthenticated.","exception":"AuthenticationException"}`)
+	}))
+	t.Cleanup(server.Close)
+
+	client := NewFireflyIII(server.URL, "bad-token")
+	_, err := client.About()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "401")
+	assert.Contains(t, err.Error(), "Unauthenticated")
+}
+
+func TestFireflyIII_AboutLoginHTMLRedirect(t *testing.T) {
+	t.Parallel()
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/about", func(w http.ResponseWriter, r *http.Request) {
+		// Mimic Firefly when Accept is missing: redirect to login.
+		if !strings.Contains(r.Header.Get("Accept"), "application/json") {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = io.WriteString(w, `{"message":"Unauthenticated.","exception":"AuthenticationException"}`)
+	})
+	mux.HandleFunc("/login", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, "<html><body>login</body></html>")
+	})
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+
+	client := NewFireflyIII(server.URL, "bad-token")
+	_, err := client.About()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "401")
 }

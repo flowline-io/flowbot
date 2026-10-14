@@ -17,6 +17,10 @@ func ConvertResponseData[T any](resp *Response, statusCode int) (*T, error) {
 		return nil, fmt.Errorf("response status code %d, message: %s, exception: %s", statusCode, resp.Message, resp.Exception)
 	}
 
+	if resp.Data == nil {
+		return nil, fmt.Errorf("response data is empty (status %d, message: %s)", statusCode, resp.Message)
+	}
+
 	var result T
 	b, err := sonic.Marshal(resp.Data)
 	if err != nil {
