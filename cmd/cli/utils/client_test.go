@@ -271,3 +271,59 @@ func TestNewClientFlagOverridesStored(t *testing.T) {
 		})
 	}
 }
+
+func TestNewPublicClient(t *testing.T) {
+	tests := []struct {
+		name       string
+		serverURL  string
+		storeURL   string
+		wantOK     bool
+		wantBase   string
+		wantErrSub string
+	}{
+		{
+			name:      "flag server URL without token",
+			serverURL: "https://flag.example.com",
+			wantOK:    true,
+			wantBase:  "https://flag.example.com",
+		},
+		{
+			name:     "stored server URL without token",
+			storeURL: "https://stored.example.com",
+			wantOK:   true,
+			wantBase: "https://stored.example.com",
+		},
+		{
+			name:       "missing server URL",
+			wantOK:     false,
+			wantErrSub: "server URL is required",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+			t.Setenv("FLOWBOT_SERVER_URL", "")
+			t.Setenv("FLOWBOT_TOKEN", "")
+
+			if tt.storeURL != "" {
+				cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
+				require.NoError(t, os.MkdirAll(cfgDir, 0750))
+				require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte(tt.storeURL), 0600))
+			}
+
+			cmd := newTestCmd(tt.serverURL, "", false)
+			c, err := NewPublicClient(cmd)
+			if !tt.wantOK {
+				require.Error(t, err)
+				require.Nil(t, c)
+				require.Contains(t, err.Error(), tt.wantErrSub)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, c)
+			require.Equal(t, tt.wantBase, c.BaseURL())
+			require.Empty(t, c.AccessToken())
+		})
+	}
+}

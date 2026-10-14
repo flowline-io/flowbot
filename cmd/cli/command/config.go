@@ -8,6 +8,7 @@ import (
 
 	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/store"
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
 // ConfigCommand returns the config parent command
@@ -176,13 +177,26 @@ func formatBool(b bool) string {
 }
 
 // VersionCommand returns the version command
-func VersionCommand(version string) *cobra.Command {
+func VersionCommand(clientVersion string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print version information",
-		Long:  "Display the version of flowbot CLI",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			_, _ = fmt.Printf("flowbot version %s\n", version)
+		Long:  "Display the client and server versions of flowbot",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Client version: %s\n", clientVersion)
+
+			serverVersion := "unavailable"
+			cl, err := utils.NewPublicClient(cmd)
+			if err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Server version: %s (%v)\n", serverVersion, err)
+				return nil
+			}
+			info, err := cl.Version(cmd.Context())
+			if err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Server version: %s (%v)\n", serverVersion, err)
+				return nil
+			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Server version: %s\n", info.Version)
 			return nil
 		},
 	}

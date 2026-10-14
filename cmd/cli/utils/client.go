@@ -12,10 +12,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
-// NewClient builds an API client from CLI flags, environment variables, and stored config.
-// Server URL resolution order: --server-url, FLOWBOT_SERVER_URL, then stored server_url.
-// Token resolution order: FLOWBOT_TOKEN, then stored token file.
-func NewClient(cmd *cobra.Command) (*client.Client, error) {
+// ResolveServerURL returns the Flowbot server URL from flags, env, or stored config.
+// Resolution order: --server-url, FLOWBOT_SERVER_URL, then stored server_url.
+func ResolveServerURL(cmd *cobra.Command) (string, error) {
 	profile, _ := cmd.Flags().GetString("profile")
 
 	serverURL, _ := cmd.Flags().GetString("server-url")
@@ -25,20 +24,33 @@ func NewClient(cmd *cobra.Command) (*client.Client, error) {
 	if serverURL == "" {
 		stored, err := store.LoadServerURL(profile)
 		if err != nil {
-			return nil, fmt.Errorf("load server URL: %w", err)
+			return "", fmt.Errorf("load server URL: %w", err)
 		}
 		if stored == "" {
-			return nil, errors.New("server URL is required (use --server-url, FLOWBOT_SERVER_URL, or 'flowbot config set server-url <url>')")
+			return "", errors.New("server URL is required (use --server-url, FLOWBOT_SERVER_URL, or 'flowbot config set server-url <url>')")
 		}
 		serverURL = stored
+	}
+	return serverURL, nil
+}
+
+// NewClient builds an API client from CLI flags, environment variables, and stored config.
+// Server URL resolution order: --server-url, FLOWBOT_SERVER_URL, then stored server_url.
+// Token resolution order: FLOWBOT_TOKEN, then stored token file.
+func NewClient(cmd *cobra.Command) (*client.Client, error) {
+	profile, _ := cmd.Flags().GetString("profile")
+
+	serverURL, err := ResolveServerURL(cmd)
+	if err != nil {
+		return nil, err
 	}
 
 	token := os.Getenv("FLOWBOT_TOKEN")
 	if token == "" {
-		var err error
-		token, err = store.LoadToken(profile)
-		if err != nil {
-			return nil, fmt.Errorf("load token: %w", err)
+		var loadErr error
+		token, loadErr = store.LoadToken(profile)
+		if loadErr != nil {
+			return nil, fmt.Errorf("load token: %w", loadErr)
 		}
 	}
 	if token == "" {
@@ -46,7 +58,24 @@ func NewClient(cmd *cobra.Command) (*client.Client, error) {
 	}
 
 	cl := client.NewClient(serverURL, token)
+	applyDebug(cmd, profile, cl)
+	return cl, nil
+}
 
+// NewPublicClient builds an API client that can call public endpoints without a token.
+// Server URL resolution matches NewClient. Returns an error when no server URL is configured.
+func NewPublicClient(cmd *cobra.Command) (*client.Client, error) {
+	profile, _ := cmd.Flags().GetString("profile")
+	serverURL, err := ResolveServerURL(cmd)
+	if err != nil {
+		return nil, err
+	}
+	cl := client.NewClient(serverURL, "")
+	applyDebug(cmd, profile, cl)
+	return cl, nil
+}
+
+func applyDebug(cmd *cobra.Command, profile string, cl *client.Client) {
 	debug, _ := cmd.Flags().GetBool("debug")
 	if !debug {
 		debugEnv := os.Getenv("FLOWBOT_DEBUG")
@@ -61,6 +90,4 @@ func NewClient(cmd *cobra.Command) (*client.Client, error) {
 	if debug {
 		cl.SetDebug(true)
 	}
-
-	return cl, nil
 }

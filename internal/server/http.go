@@ -66,6 +66,7 @@ var (
 		healthcheck.ReadinessEndpoint,
 		healthcheck.StartupEndpoint,
 		"/",
+		"/version",
 		"/metrics",
 		"/service/user/metrics",
 	}

@@ -61,6 +61,7 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.Get(healthcheck.LivenessEndpoint, healthcheck.New())
 	a.Get(healthcheck.ReadinessEndpoint, readinessHandler)
 	a.Get(healthcheck.StartupEndpoint, healthcheck.New())
+	a.Get("/version", versionHandler)
 	a.All("/oauth/:provider/:flag", ctl.storeOAuth)
 	// metrics - expose prometheus metrics for scraping (bearer_token or admin:metrics scope)
 	a.Get("/metrics", metricsAuth, adaptor.HTTPHandler(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{})))

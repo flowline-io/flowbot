@@ -1329,16 +1329,31 @@ func TestVersionRunE(t *testing.T) {
 		name    string
 		version string
 	}{
-		{name: "prints version string", version: "9.9.9-test"},
-		{name: "prints semver version", version: "1.2.3"},
-		{name: "prints dev version", version: "dev"},
+		{name: "prints client version without server", version: "9.9.9-test"},
+		{name: "prints semver client version", version: "1.2.3"},
+		{name: "prints dev client version", version: "dev"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+			t.Setenv("FLOWBOT_SERVER_URL", "")
 			out := runCommand(t, VersionCommand(tt.version))
-			assert.Contains(t, out, fmt.Sprintf("flowbot version %s", tt.version))
+			assert.Contains(t, out, fmt.Sprintf("Client version: %s", tt.version))
+			assert.Contains(t, out, "Server version: unavailable")
 		})
 	}
+}
+
+func TestVersionRunEWithServer(t *testing.T) {
+	setupMockCLI(t, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/version", r.URL.Path)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(okJSON(`{"version":"v1.2.3-server","buildstamp":"2026-10-14T00:00:00Z"}`)))
+	})
+	out := runCommand(t, VersionCommand("9.9.9-client"))
+	assert.Contains(t, out, "Client version: 9.9.9-client")
+	assert.Contains(t, out, "Server version: v1.2.3-server")
 }
 
 func TestKanbanUpdateDeleteMoveRunE(t *testing.T) {

@@ -414,6 +414,7 @@ func TestRouteRegistration(t *testing.T) {
 		{name: "liveness", expectedPath: "/livez"},
 		{name: "readiness", expectedPath: "/readyz"},
 		{name: "startup", expectedPath: "/startupz"},
+		{name: "version", expectedPath: "/version"},
 		{name: "oauth", expectedPath: "/oauth/:provider/:flag"},
 		{name: "form", expectedPath: "/form"},
 		{name: "agent", expectedPath: "/agent"},
@@ -430,6 +431,7 @@ func TestRouteRegistration(t *testing.T) {
 			app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
 			app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
 			app.Get(healthcheck.StartupEndpoint, healthcheck.New())
+			app.Get("/version", versionHandler)
 			app.All("/oauth/:provider/:flag", ctl.storeOAuth)
 			app.Post("/form", ctl.postForm)
 			app.Post("/agent", ctl.agentData)
