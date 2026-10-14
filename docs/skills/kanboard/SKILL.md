@@ -33,7 +33,7 @@ Prefer the workflows below; load [references/cli.md](references/cli.md) only whe
 When a user wants to create a well-structured task:
 1. Ask for or discover project_id (do not assume 1).
 2. `flowbot kanban column list -p <project_id>`
-3. `flowbot kanban create -t "<task title>" -d "<description>" -p <project_id> -c <column_id>`
+3. `flowbot kanban create -t "<task title>" --description "<description>" -p <project_id> -c <column_id>`
 4. `flowbot kanban subtask create <task_id> -t "<subtask 1>" -e <minutes>`
 5. `flowbot kanban subtask create <task_id> -t "<subtask 2>" -e <minutes>`
 

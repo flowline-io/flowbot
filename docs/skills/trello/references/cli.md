@@ -20,7 +20,7 @@ Flags: `--cursor` string — Pagination cursor; `--limit` int — Maximum items 
 
 `flowbot trello card --list-id <list-id> --name <name> [flags]`
 
-Flags: `--desc` (`-d`) string — Card description; `--list-id` string, required — Target list ID; `--name` (`-n`) string, required — Card title
+Flags: `--desc` string — Card description; `--list-id` string, required — Target list ID; `--name` (`-n`) string, required — Card title
 
 ### List cards on a board
 
@@ -42,7 +42,7 @@ Flags: `--limit` int — Maximum results; `--query` (`-q`) string, required — 
 
 `flowbot trello card [card_id] [flags]`
 
-Flags: `--desc` (`-d`) string — New description; `--name` (`-n`) string — New title
+Flags: `--desc` string — New description; `--name` (`-n`) string — New title
 
 ### Move a card to another list
 

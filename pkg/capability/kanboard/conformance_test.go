@@ -77,6 +77,9 @@ func abilityTaskToProvider(item *capability.Task) *provider.Task {
 		ColumnID:    item.ColumnID,
 		Tags:        tagsToAny(item.Tags),
 		Reference:   item.Reference,
+		DateDue:     item.DateDue,
+		CategoryID:  item.CategoryID,
+		SwimlaneID:  item.SwimlaneID,
 	}
 }
 

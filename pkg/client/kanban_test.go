@@ -1725,6 +1725,23 @@ func TestValidateUpdateRequest(t *testing.T) {
 			wantErr:    true,
 			errContain: "description exceeds maximum length",
 		},
+		{
+			name: "clear due date with zero pointer",
+			req: func() *KanbanUpdateRequest {
+				z := 0
+				return &KanbanUpdateRequest{DateDue: &z}
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "negative category id",
+			req: func() *KanbanUpdateRequest {
+				n := -1
+				return &KanbanUpdateRequest{CategoryID: &n}
+			}(),
+			wantErr:    true,
+			errContain: "category_id must be non-negative",
+		},
 	}
 
 	for _, tt := range tests {
@@ -1810,4 +1827,114 @@ func makeLen(n int) string {
 		result[i] = 'a'
 	}
 	return string(result)
+}
+
+func TestKanbanProjectsSwimlanesCategories(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		path    string
+		method  string
+		run     func(c *Client) error
+		body    string
+		wantErr bool
+		errSub  string
+	}{
+		{
+			name:   "list projects",
+			path:   "/service/kanboard/projects",
+			method: http.MethodGet,
+			body:   `{"status":"ok","data":[{"id":1,"name":"flowbot"}]}`,
+			run: func(c *Client) error {
+				items, err := c.Kanban.ListProjects(context.Background())
+				if err != nil {
+					return err
+				}
+				require.Len(t, items, 1)
+				assert.Equal(t, "flowbot", items[0].Name)
+				return nil
+			},
+		},
+		{
+			name:   "create project",
+			path:   "/service/kanboard/projects",
+			method: http.MethodPost,
+			body:   `{"status":"ok","data":{"id":9,"name":"flowbot"}}`,
+			run: func(c *Client) error {
+				item, err := c.Kanban.CreateProject(context.Background(), KanbanCreateProjectRequest{Name: "flowbot"})
+				if err != nil {
+					return err
+				}
+				assert.Equal(t, 9, item.ID)
+				return nil
+			},
+		},
+		{
+			name: "create project requires name",
+			run: func(c *Client) error {
+				_, err := c.Kanban.CreateProject(context.Background(), KanbanCreateProjectRequest{})
+				return err
+			},
+			wantErr: true,
+			errSub:  "name is required",
+		},
+		{
+			name:   "list swimlanes",
+			path:   "/service/kanboard/swimlanes",
+			method: http.MethodGet,
+			body:   `{"status":"ok","data":[{"id":2,"name":"Default","project_id":7}]}`,
+			run: func(c *Client) error {
+				items, err := c.Kanban.ListSwimlanes(context.Background(), 7)
+				if err != nil {
+					return err
+				}
+				require.Len(t, items, 1)
+				assert.Equal(t, 2, items[0].ID)
+				return nil
+			},
+		},
+		{
+			name:    "list swimlanes rejects non-positive project",
+			run:     func(c *Client) error { _, err := c.Kanban.ListSwimlanes(context.Background(), 0); return err },
+			wantErr: true,
+			errSub:  "project_id must be positive",
+		},
+		{
+			name:   "list categories",
+			path:   "/service/kanboard/categories",
+			method: http.MethodGet,
+			body:   `{"status":"ok","data":[{"id":3,"name":"Bug","project_id":7}]}`,
+			run: func(c *Client) error {
+				items, err := c.Kanban.ListCategories(context.Background(), 7)
+				if err != nil {
+					return err
+				}
+				require.Len(t, items, 1)
+				assert.Equal(t, "Bug", items[0].Name)
+				return nil
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if tt.path != "" {
+					assert.Equal(t, tt.method, r.Method)
+					assert.Contains(t, r.URL.Path, tt.path)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			defer server.Close()
+			c := NewClient(server.URL, "token")
+			err := tt.run(c)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errSub)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
 }

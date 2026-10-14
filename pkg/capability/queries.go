@@ -42,11 +42,24 @@ type KanbanCreateTaskRequest struct {
 	ColumnID    int
 	Tags        []string
 	Reference   string
+	DateDue     int
+	CategoryID  int
+	SwimlaneID  int
 }
 
 // KanbanUpdateTaskRequest holds fields for updating a task.
+// Nil pointer fields are omitted; non-nil ints (including 0) clear or set the value.
 type KanbanUpdateTaskRequest struct {
 	Title       string
+	Description string
+	DateDue     *int
+	CategoryID  *int
+	SwimlaneID  *int
+}
+
+// KanbanCreateProjectRequest holds fields for creating a project.
+type KanbanCreateProjectRequest struct {
+	Name        string
 	Description string
 }
 

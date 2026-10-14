@@ -380,6 +380,106 @@ func TestCreateTask_ValidationAndSuccess(t *testing.T) {
 	}
 }
 
+func TestKanbanProjectsAndTaxonomyRoutes(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		path       string
+		body       string
+		op         string
+		wantStatus int
+		wantParam  map[string]any
+	}{
+		{
+			name:       "list projects",
+			method:     fiber.MethodGet,
+			path:       "/projects",
+			op:         capability.OpKanbanListProjects,
+			wantStatus: 200,
+		},
+		{
+			name:       "create project success",
+			method:     fiber.MethodPost,
+			path:       "/projects",
+			body:       `{"name":"flowbot"}`,
+			op:         capability.OpKanbanCreateProject,
+			wantStatus: 200,
+		},
+		{
+			name:       "create project missing name",
+			method:     fiber.MethodPost,
+			path:       "/projects",
+			body:       `{}`,
+			wantStatus: 400,
+		},
+		{
+			name:       "list swimlanes with project",
+			method:     fiber.MethodGet,
+			path:       "/swimlanes?project_id=7",
+			op:         capability.OpKanbanListSwimlanes,
+			wantStatus: 200,
+			wantParam:  map[string]any{"project_id": 7},
+		},
+		{
+			name:       "list swimlanes invalid project_id",
+			method:     fiber.MethodGet,
+			path:       "/swimlanes?project_id=abc",
+			wantStatus: 400,
+		},
+		{
+			name:       "list categories invalid project_id",
+			method:     fiber.MethodGet,
+			path:       "/categories?project_id=0",
+			wantStatus: 400,
+		},
+		{
+			name:       "update task clears due date",
+			method:     fiber.MethodPatch,
+			path:       "/42",
+			body:       `{"date_due":0}`,
+			op:         capability.OpKanbanUpdateTask,
+			wantStatus: 200,
+			wantParam:  map[string]any{"id": 42, "date_due": 0},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var gotParams map[string]any
+			if tt.op != "" {
+				registerTestInvoker(t, hub.CapKanboard, tt.op, func(_ context.Context, params map[string]any) (*capability.InvokeResult, error) {
+					gotParams = params
+					return &capability.InvokeResult{Data: map[string]any{"ok": true}}, nil
+				})
+			}
+			app := fiber.New(fiber.Config{ErrorHandler: errorHandler})
+			app.Get("/projects", listProjects)
+			app.Post("/projects", createProject)
+			app.Get("/swimlanes", listSwimlanes)
+			app.Get("/categories", listCategories)
+			app.Patch("/:id", updateTask)
+
+			var bodyReader io.Reader = http.NoBody
+			if tt.body != "" {
+				bodyReader = strings.NewReader(tt.body)
+			}
+			req := httptest.NewRequest(tt.method, tt.path, bodyReader)
+			if tt.body != "" {
+				req.Header.Set("Content-Type", "application/json")
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantParam != nil {
+				for k, want := range tt.wantParam {
+					got, ok := gotParams[k]
+					require.True(t, ok, "missing param %s", k)
+					assert.EqualValues(t, want, got, "param %s", k)
+				}
+			}
+		})
+	}
+}
+
 func TestListNotes_InvokeSuccess(t *testing.T) {
 	registerTestInvoker(t, hub.CapTrilium, capability.OpNoteList, func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
 		return &capability.InvokeResult{Data: map[string]any{"items": []any{}}}, nil

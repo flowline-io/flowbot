@@ -63,6 +63,9 @@ type KanbanCreateRequest struct {
 	Description string `json:"description,omitempty"`
 	ProjectID   int    `json:"project_id,omitempty"`
 	ColumnID    int    `json:"column_id,omitempty"`
+	DateDue     int    `json:"date_due,omitempty"`
+	CategoryID  int    `json:"category_id,omitempty"`
+	SwimlaneID  int    `json:"swimlane_id,omitempty"`
 }
 
 // Create creates a new kanban task.
@@ -89,13 +92,30 @@ func validateCreateRequest(req *KanbanCreateRequest) error {
 	if len(req.Description) > validate.DescMaxLen {
 		return fmt.Errorf("description exceeds maximum length of %d", validate.DescMaxLen)
 	}
+	return validateNonNegIDs(req.DateDue, req.CategoryID, req.SwimlaneID)
+}
+
+func validateNonNegIDs(dateDue, categoryID, swimlaneID int) error {
+	if dateDue < 0 {
+		return fmt.Errorf("date_due must be non-negative, got %d", dateDue)
+	}
+	if categoryID < 0 {
+		return fmt.Errorf("category_id must be non-negative, got %d", categoryID)
+	}
+	if swimlaneID < 0 {
+		return fmt.Errorf("swimlane_id must be non-negative, got %d", swimlaneID)
+	}
 	return nil
 }
 
 // KanbanUpdateRequest contains the data for updating a kanban task.
+// Nil pointer fields are omitted; non-nil ints (including 0) clear or set the value.
 type KanbanUpdateRequest struct {
 	Title       string `json:"title,omitempty"`
 	Description string `json:"description,omitempty"`
+	DateDue     *int   `json:"date_due,omitempty"`
+	CategoryID  *int   `json:"category_id,omitempty"`
+	SwimlaneID  *int   `json:"swimlane_id,omitempty"`
 }
 
 // KanbanUpdateResult contains the result of updating a kanban task.
@@ -128,7 +148,71 @@ func validateUpdateRequest(req *KanbanUpdateRequest) error {
 	if len(req.Description) > validate.DescMaxLen {
 		return fmt.Errorf("description exceeds maximum length of %d", validate.DescMaxLen)
 	}
-	return nil
+	dateDue, categoryID, swimlaneID := 0, 0, 0
+	if req.DateDue != nil {
+		dateDue = *req.DateDue
+	}
+	if req.CategoryID != nil {
+		categoryID = *req.CategoryID
+	}
+	if req.SwimlaneID != nil {
+		swimlaneID = *req.SwimlaneID
+	}
+	return validateNonNegIDs(dateDue, categoryID, swimlaneID)
+}
+
+// KanbanCreateProjectRequest contains the data needed to create a project.
+type KanbanCreateProjectRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+}
+
+// ListProjects returns all kanban projects.
+func (k *KanbanClient) ListProjects(ctx context.Context) ([]*capability.KanbanProject, error) {
+	var result []*capability.KanbanProject
+	err := k.c.Get(ctx, "/service/kanboard/projects", &result)
+	return result, err
+}
+
+// CreateProject creates a new kanban project.
+func (k *KanbanClient) CreateProject(ctx context.Context, req KanbanCreateProjectRequest) (*capability.KanbanProject, error) {
+	if req.Name == "" {
+		return nil, errors.New("name is required")
+	}
+	if len(req.Name) > validate.TitleMaxLen {
+		return nil, fmt.Errorf("name exceeds maximum length of %d", validate.TitleMaxLen)
+	}
+	if len(req.Description) > validate.DescMaxLen {
+		return nil, fmt.Errorf("description exceeds maximum length of %d", validate.DescMaxLen)
+	}
+	var result capability.KanbanProject
+	err := k.c.Post(ctx, "/service/kanboard/projects", req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// ListSwimlanes returns swimlanes for the given project.
+func (k *KanbanClient) ListSwimlanes(ctx context.Context, projectID int) ([]*capability.KanbanSwimlane, error) {
+	if projectID <= 0 {
+		return nil, fmt.Errorf("project_id must be positive, got %d", projectID)
+	}
+	var result []*capability.KanbanSwimlane
+	path := fmt.Sprintf("/service/kanboard/swimlanes?project_id=%d", projectID)
+	err := k.c.Get(ctx, path, &result)
+	return result, err
+}
+
+// ListCategories returns categories for the given project.
+func (k *KanbanClient) ListCategories(ctx context.Context, projectID int) ([]*capability.KanbanCategory, error) {
+	if projectID <= 0 {
+		return nil, fmt.Errorf("project_id must be positive, got %d", projectID)
+	}
+	var result []*capability.KanbanCategory
+	path := fmt.Sprintf("/service/kanboard/categories?project_id=%d", projectID)
+	err := k.c.Get(ctx, path, &result)
+	return result, err
 }
 
 // Close closes (deletes) a kanban task.

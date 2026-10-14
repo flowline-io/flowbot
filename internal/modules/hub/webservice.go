@@ -286,10 +286,21 @@ type createTaskRequest struct {
 	Description string `json:"description" validate:"max=2000"`
 	ProjectID   int    `json:"project_id" validate:"gte=0"`
 	ColumnID    int    `json:"column_id" validate:"gte=0"`
+	DateDue     int    `json:"date_due" validate:"gte=0"`
+	CategoryID  int    `json:"category_id" validate:"gte=0"`
+	SwimlaneID  int    `json:"swimlane_id" validate:"gte=0"`
 }
 
 type updateTaskRequest struct {
 	Title       string `json:"title" validate:"omitempty,min=1,max=200"`
+	Description string `json:"description" validate:"max=2000"`
+	DateDue     *int   `json:"date_due" validate:"omitempty,gte=0"`
+	CategoryID  *int   `json:"category_id" validate:"omitempty,gte=0"`
+	SwimlaneID  *int   `json:"swimlane_id" validate:"omitempty,gte=0"`
+}
+
+type createProjectRequest struct {
+	Name        string `json:"name" validate:"required,min=1,max=200"`
 	Description string `json:"description" validate:"max=2000"`
 }
 
@@ -335,21 +346,25 @@ type updateSubtaskRequest struct {
 var kanbanWebserviceRules = []webservice.Rule{
 	webservice.Get("/", listTasks),
 	webservice.Get("/search", searchTasks),
-	webservice.Get("/:id", getTask),
-	webservice.Post("/", createTask),
-	webservice.Patch("/:id", updateTask),
-	webservice.Delete("/:id", deleteTask),
-	webservice.Post("/:id/move", moveTask),
+	webservice.Get("/projects", listProjects),
+	webservice.Post("/projects", createProject),
+	webservice.Get("/swimlanes", listSwimlanes),
+	webservice.Get("/categories", listCategories),
 	webservice.Get("/columns", listColumns),
-	webservice.Get("/:id/metadata", getTaskMetadata),
-	webservice.Get("/:id/metadata/:name", getTaskMetadataByName),
-	webservice.Post("/:id/metadata", saveTaskMetadata),
-	webservice.Delete("/:id/metadata/:name", removeTaskMetadata),
 	webservice.Get("/tags", getAllTags),
 	webservice.Get("/tags/project", getTagsByProject),
 	webservice.Post("/tags", createTag),
 	webservice.Patch("/tags/:id", updateTag),
 	webservice.Delete("/tags/:id", removeTag),
+	webservice.Get("/:id", getTask),
+	webservice.Post("/", createTask),
+	webservice.Patch("/:id", updateTask),
+	webservice.Delete("/:id", deleteTask),
+	webservice.Post("/:id/move", moveTask),
+	webservice.Get("/:id/metadata", getTaskMetadata),
+	webservice.Get("/:id/metadata/:name", getTaskMetadataByName),
+	webservice.Post("/:id/metadata", saveTaskMetadata),
+	webservice.Delete("/:id/metadata/:name", removeTaskMetadata),
 	webservice.Get("/:id/tags", getTaskTags),
 	webservice.Post("/:id/tags", setTaskTags),
 	webservice.Get("/:id/subtasks", listSubtasks),
@@ -412,6 +427,9 @@ func createTask(ctx fiber.Ctx) error {
 		"description": body.Description,
 		"project_id":  body.ProjectID,
 		"column_id":   body.ColumnID,
+		"date_due":    body.DateDue,
+		"category_id": body.CategoryID,
+		"swimlane_id": body.SwimlaneID,
 	})
 	if err != nil {
 		return err
@@ -437,15 +455,90 @@ func updateTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanUpdateTask, map[string]any{
+	params := map[string]any{
 		"id":          id,
 		"title":       body.Title,
+		"description": body.Description,
+	}
+	if body.DateDue != nil {
+		params["date_due"] = *body.DateDue
+	}
+	if body.CategoryID != nil {
+		params["category_id"] = *body.CategoryID
+	}
+	if body.SwimlaneID != nil {
+		params["swimlane_id"] = *body.SwimlaneID
+	}
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanUpdateTask, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func listProjects(ctx fiber.Ctx) error {
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanListProjects, map[string]any{})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func createProject(ctx fiber.Ctx) error {
+	var body createProjectRequest
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanCreateProject, map[string]any{
+		"name":        body.Name,
 		"description": body.Description,
 	})
 	if err != nil {
 		return err
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func listSwimlanes(ctx fiber.Ctx) error {
+	params, err := kanbanProjectIDParams(ctx)
+	if err != nil {
+		return err
+	}
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanListSwimlanes, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func listCategories(ctx fiber.Ctx) error {
+	params, err := kanbanProjectIDParams(ctx)
+	if err != nil {
+		return err
+	}
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanListCategories, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+// kanbanProjectIDParams reads optional project_id query; empty uses capability default, invalid returns 400.
+func kanbanProjectIDParams(ctx fiber.Ctx) (map[string]any, error) {
+	params := map[string]any{}
+	v := ctx.Query("project_id")
+	if v == "" {
+		return params, nil
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n <= 0 {
+		return nil, protocol.ErrBadParam.New("project_id must be a positive integer")
+	}
+	params["project_id"] = n
+	return params, nil
 }
 
 func deleteTask(ctx fiber.Ctx) error {

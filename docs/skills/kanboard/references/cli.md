@@ -12,7 +12,7 @@ Global flags: `--server-url`, `--profile`, `--debug` / `-d`. Most commands accep
 
 Create a new task in the specified column
 
-Flags: `--column` (`-c`) int — Column ID; `--description` (`-d`) string — Card description; `--project` (`-p`) int — Project ID; `--title` (`-t`) string, required — Card title
+Flags: `--category` int — Category ID; `--column` (`-c`) int — Column ID; `--description` string — Card description; `--due` string — Due date (YYYY-MM-DD, local midnight); `--project` (`-p`) int — Project ID; `--swimlane` int — Swimlane ID; `--title` (`-t`) string, required — Card title
 
 ### Delete a card from a kanban board
 
@@ -28,7 +28,15 @@ Flags: `--yes` (`-y`) bool — Skip confirmation
 
 Move a task to a different column
 
-Flags: `--column` (`-c`) int, required — Destination column ID; `--position` (`-p`) int — Position in column (0 = first); `--project` (`-r`) int — Project ID
+Flags: `--column` (`-c`) int, required — Destination column ID; `--position` (`-p`) int — Position in column (0 = first); `--project` (`-r`) int — Project ID; `--swimlane` int — Swimlane ID
+
+### List categories in a project
+
+`flowbot kanban category list [flags]`
+
+Display all categories in the specified project
+
+Flags: `--project` (`-p`) int — Project ID
 
 ### List columns in a project
 
@@ -44,7 +52,7 @@ Flags: `--project` (`-p`) int — Project ID
 
 Add a new task to the kanban board
 
-Flags: `--column` (`-c`) int — Column ID; `--description` (`-d`) string — Task description; `--project` (`-p`) int — Project ID; `--title` (`-t`) string, required — Task title
+Flags: `--category` int — Category ID; `--column` (`-c`) int — Column ID; `--description` string — Task description; `--due` string — Due date (YYYY-MM-DD, local midnight); `--project` (`-p`) int — Project ID; `--swimlane` int — Swimlane ID; `--title` (`-t`) string, required — Task title
 
 ### Close a kanban task
 
@@ -94,7 +102,21 @@ Set one or more metadata values for a task
 
 Move a task to a different column
 
-Flags: `--column` (`-c`) int, required — Destination column ID; `--position` (`-p`) int — Position in column (0 = first); `--project` (`-r`) int — Project ID
+Flags: `--column` (`-c`) int, required — Destination column ID; `--position` (`-p`) int — Position in column (0 = first); `--project` (`-r`) int — Project ID; `--swimlane` int — Swimlane ID
+
+### Create a kanban project
+
+`flowbot kanban project create --name <name> [flags]`
+
+Create a new kanban project
+
+Flags: `--description` string — Project description; `--name` (`-n`) string, required — Project name
+
+### List kanban projects
+
+`flowbot kanban project list`
+
+Display all kanban projects
 
 ### Search kanban tasks
 
@@ -172,6 +194,14 @@ Modify an existing subtask
 
 Flags: `--status` int — Status (0=Todo, 1=In progress, 2=Done, -1 to leave unchanged); `--time-estimated` (`-e`) int — Estimated time (minutes, -1 to clear); `--time-spent` (`-s`) int — Time spent (minutes, -1 to clear); `--title` (`-t`) string — New title; `--user` (`-u`) int — User ID to assign (-1 to unassign)
 
+### List swimlanes in a project
+
+`flowbot kanban swimlane list [flags]`
+
+Display all swimlanes in the specified project
+
+Flags: `--project` (`-p`) int — Project ID
+
 ### Create a new tag
 
 `flowbot kanban tag create --name <name> [flags]`
@@ -224,4 +254,4 @@ Flags: `--color` (`-c`) string — Color ID; `--name` (`-n`) string, required �
 
 Modify an existing kanban task
 
-Flags: `--description` (`-d`) string — New description; `--title` (`-t`) string — New title
+Flags: `--category` int — Category ID; `--description` string — New description; `--due` string — Due date (YYYY-MM-DD, local midnight); `--swimlane` int — Swimlane ID; `--title` (`-t`) string — New title

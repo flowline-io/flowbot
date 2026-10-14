@@ -257,7 +257,8 @@ func (v *Kanboard) GetTask(ctx context.Context, taskId int) (task *Task, err err
 	return task, err
 }
 
-func (v *Kanboard) UpdateTask(ctx context.Context, taskId int, task *Task) (result bool, err error) {
+// UpdateTask updates a task. Nil pointer fields on task are omitted from the RPC payload.
+func (v *Kanboard) UpdateTask(ctx context.Context, taskId int, task *TaskUpdate) (result bool, err error) {
 	params := types.KV{"id": taskId}
 	if task.Title != "" {
 		params["title"] = task.Title
@@ -265,12 +266,65 @@ func (v *Kanboard) UpdateTask(ctx context.Context, taskId int, task *Task) (resu
 	if task.Description != "" {
 		params["description"] = task.Description
 	}
+	if task.DateDue != nil {
+		params["date_due"] = *task.DateDue
+	}
+	if task.CategoryID != nil {
+		params["category_id"] = *task.CategoryID
+	}
+	if task.SwimlaneID != nil {
+		params["swimlane_id"] = *task.SwimlaneID
+	}
 	err = v.c.CallResult(ctx, "updateTask", params, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to update task, %w", err)
 		return result, err
 	}
 	return result, err
+}
+
+// GetAllProjects returns every Kanboard project.
+func (v *Kanboard) GetAllProjects(ctx context.Context) (projects []*Project, err error) {
+	err = v.c.CallResult(ctx, "getAllProjects", nil, &projects)
+	if err != nil {
+		err = fmt.Errorf("failed to get all projects, %w", err)
+		return projects, err
+	}
+	return projects, err
+}
+
+// CreateProject creates a project and returns its ID.
+func (v *Kanboard) CreateProject(ctx context.Context, name, description string) (projectId int64, err error) {
+	params := types.KV{"name": name}
+	if description != "" {
+		params["description"] = description
+	}
+	err = v.c.CallResult(ctx, "createProject", params, &projectId)
+	if err != nil {
+		err = fmt.Errorf("failed to create project, %w", err)
+		return projectId, err
+	}
+	return projectId, err
+}
+
+// GetAllSwimlanes returns swimlanes for a project.
+func (v *Kanboard) GetAllSwimlanes(ctx context.Context, projectId int) (swimlanes []*Swimlane, err error) {
+	err = v.c.CallResult(ctx, "getAllSwimlanes", types.KV{"project_id": projectId}, &swimlanes)
+	if err != nil {
+		err = fmt.Errorf("failed to get all swimlanes, %w", err)
+		return swimlanes, err
+	}
+	return swimlanes, err
+}
+
+// GetAllCategories returns categories for a project.
+func (v *Kanboard) GetAllCategories(ctx context.Context, projectId int) (categories []*Category, err error) {
+	err = v.c.CallResult(ctx, "getAllCategories", types.KV{"project_id": projectId}, &categories)
+	if err != nil {
+		err = fmt.Errorf("failed to get all categories, %w", err)
+		return categories, err
+	}
+	return categories, err
 }
 
 func (v *Kanboard) CloseTask(ctx context.Context, taskId int) (result bool, err error) {

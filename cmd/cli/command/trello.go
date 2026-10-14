@@ -204,7 +204,7 @@ func trelloCardCreateCommand() *cobra.Command {
 	}
 	cmd.Flags().String("list-id", "", "Target list ID")
 	cmd.Flags().StringP("name", "n", "", "Card title")
-	cmd.Flags().StringP("desc", "d", "", "Card description")
+	cmd.Flags().String("desc", "", "Card description")
 	_ = cmd.MarkFlagRequired("list-id")
 	_ = cmd.MarkFlagRequired("name")
 	return cmd
@@ -233,7 +233,7 @@ func trelloCardUpdateCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("name", "n", "", "New title")
-	cmd.Flags().StringP("desc", "d", "", "New description")
+	cmd.Flags().String("desc", "", "New description")
 	return cmd
 }
 

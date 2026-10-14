@@ -18,6 +18,9 @@ type UpdateTaskRequest = capability.KanbanUpdateTaskRequest
 // MoveTaskRequest holds fields for moving a task.
 type MoveTaskRequest = capability.KanbanMoveTaskRequest
 
+// CreateProjectRequest holds fields for creating a project.
+type CreateProjectRequest = capability.KanbanCreateProjectRequest
+
 // SearchQuery wraps pagination for searching tasks.
 type SearchQuery = capability.KanbanSearchQuery
 
@@ -32,5 +35,9 @@ type Service interface {
 	CompleteTask(ctx context.Context, id int) error
 	GetColumns(ctx context.Context, projectID int) ([]map[string]any, error)
 	SearchTasks(ctx context.Context, q *SearchQuery) (*capability.ListResult[capability.Task], error)
+	ListProjects(ctx context.Context) ([]*capability.KanbanProject, error)
+	CreateProject(ctx context.Context, req CreateProjectRequest) (*capability.KanbanProject, error)
+	ListSwimlanes(ctx context.Context, projectID int) ([]*capability.KanbanSwimlane, error)
+	ListCategories(ctx context.Context, projectID int) ([]*capability.KanbanCategory, error)
 	HealthCheck(ctx context.Context) (bool, error)
 }

@@ -158,3 +158,38 @@ type User struct {
 	Email    string `json:"email,omitempty"`
 	Role     string `json:"role,omitempty"`
 }
+
+// TaskUpdate holds fields for updateTask.
+// Nil pointer fields are omitted; non-nil ints (including 0) are sent to clear or set.
+type TaskUpdate struct {
+	Title       string
+	Description string
+	DateDue     *int
+	CategoryID  *int
+	SwimlaneID  *int
+}
+
+// Project is a Kanboard project.
+type Project struct {
+	ID          int    `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	IsActive    int    `json:"is_active,omitempty"`
+}
+
+// Swimlane is a Kanboard swimlane within a project.
+type Swimlane struct {
+	ID        int    `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Position  int    `json:"position,omitempty"`
+	ProjectID int    `json:"project_id,omitempty"`
+	IsActive  int    `json:"is_active,omitempty"`
+}
+
+// Category is a Kanboard category within a project.
+type Category struct {
+	ID          int    `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	ProjectID   int    `json:"project_id,omitempty"`
+	Description string `json:"description,omitempty"`
+}

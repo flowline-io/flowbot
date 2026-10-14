@@ -62,6 +62,9 @@ func buildSpec(app string, svc Service) capability.Spec {
 					{Name: "column_id", Type: "int", Required: false, Description: "Column ID"},
 					{Name: "tags", Type: "[]string", Required: false, Description: "Tags to assign"},
 					{Name: "reference", Type: "string", Required: false, Description: "Reference URL or text"},
+					{Name: "date_due", Type: "int", Required: false, Description: "Due date as unix timestamp"},
+					{Name: "category_id", Type: "int", Required: false, Description: "Category ID"},
+					{Name: "swimlane_id", Type: "int", Required: false, Description: "Swimlane ID"},
 				},
 				Handler: invokeCreateTask(svc, app),
 			},
@@ -71,6 +74,9 @@ func buildSpec(app string, svc Service) capability.Spec {
 					{Name: "id", Type: "int", Required: true, Description: "Task ID"},
 					{Name: "title", Type: "string", Required: false, Description: "New title"},
 					{Name: "description", Type: "string", Required: false, Description: "New description"},
+					{Name: "date_due", Type: "int", Required: false, Description: "Due date as unix timestamp"},
+					{Name: "category_id", Type: "int", Required: false, Description: "Category ID"},
+					{Name: "swimlane_id", Type: "int", Required: false, Description: "Swimlane ID"},
 				},
 				Handler: invokeUpdateTask(svc),
 			},
@@ -111,6 +117,28 @@ func buildSpec(app string, svc Service) capability.Spec {
 					{Name: "project_id", Type: "int", Required: false, Description: "Project ID filter"},
 				},
 				Handler: invokeSearchTasks(svc),
+			},
+			{
+				Name: OpListProjects, Description: "List projects", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Handler: invokeListProjects(svc),
+			},
+			{
+				Name: OpCreateProject, Description: "Create a project", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
+				Input: []hub.ParamDef{
+					{Name: "name", Type: "string", Required: true, Description: "Project name"},
+					{Name: "description", Type: "string", Required: false, Description: "Project description"},
+				},
+				Handler: invokeCreateProject(svc),
+			},
+			{
+				Name: OpListSwimlanes, Description: "List swimlanes", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Input:   []hub.ParamDef{{Name: "project_id", Type: "int", Required: false, Description: "Project ID (defaults to 1)"}},
+				Handler: invokeListSwimlanes(svc),
+			},
+			{
+				Name: OpListCategories, Description: "List categories", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Input:   []hub.ParamDef{{Name: "project_id", Type: "int", Required: false, Description: "Project ID (defaults to 1)"}},
+				Handler: invokeListCategories(svc),
 			},
 			{
 				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceKanbanRead},
@@ -169,6 +197,15 @@ func invokeCreateTask(svc Service, app string) capability.Invoker {
 			req.Tags = v
 		}
 		req.Reference, _ = capability.StringParam(params, "reference")
+		if v, ok := capability.IntParam(params, "date_due"); ok {
+			req.DateDue = v
+		}
+		if v, ok := capability.IntParam(params, "category_id"); ok {
+			req.CategoryID = v
+		}
+		if v, ok := capability.IntParam(params, "swimlane_id"); ok {
+			req.SwimlaneID = v
+		}
 		item, err := svc.CreateTask(ctx, req)
 		if err != nil {
 			return nil, err
@@ -201,6 +238,15 @@ func invokeUpdateTask(svc Service) capability.Invoker {
 		req := UpdateTaskRequest{}
 		req.Title, _ = capability.StringParam(params, "title")
 		req.Description, _ = capability.StringParam(params, "description")
+		if v, ok := capability.IntParam(params, "date_due"); ok {
+			req.DateDue = &v
+		}
+		if v, ok := capability.IntParam(params, "category_id"); ok {
+			req.CategoryID = &v
+		}
+		if v, ok := capability.IntParam(params, "swimlane_id"); ok {
+			req.SwimlaneID = &v
+		}
 		item, err := svc.UpdateTask(ctx, id, req)
 		if err != nil {
 			return nil, err
@@ -307,6 +353,69 @@ func invokeHealth(svc Service) capability.Invoker {
 			return nil, err
 		}
 		return &capability.InvokeResult{Data: ok}, nil
+	}
+}
+
+func invokeListProjects(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		items, err := svc.ListProjects(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if items == nil {
+			items = []*capability.KanbanProject{}
+		}
+		return &capability.InvokeResult{Data: items}, nil
+	}
+}
+
+func invokeCreateProject(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		name, err := capability.RequiredString(params, "name")
+		if err != nil {
+			return nil, err
+		}
+		req := CreateProjectRequest{Name: name}
+		req.Description, _ = capability.StringParam(params, "description")
+		item, err := svc.CreateProject(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: item, Text: "project created: " + item.Name}, nil
+	}
+}
+
+func invokeListSwimlanes(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		projectID := 1
+		if v, ok := capability.IntParam(params, "project_id"); ok {
+			projectID = v
+		}
+		items, err := svc.ListSwimlanes(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		if items == nil {
+			items = []*capability.KanbanSwimlane{}
+		}
+		return &capability.InvokeResult{Data: items}, nil
+	}
+}
+
+func invokeListCategories(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		projectID := 1
+		if v, ok := capability.IntParam(params, "project_id"); ok {
+			projectID = v
+		}
+		items, err := svc.ListCategories(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		if items == nil {
+			items = []*capability.KanbanCategory{}
+		}
+		return &capability.InvokeResult{Data: items}, nil
 	}
 }
 

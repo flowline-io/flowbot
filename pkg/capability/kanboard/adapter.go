@@ -20,12 +20,16 @@ type client interface {
 	GetAllTasks(ctx context.Context, projectID int, status provider.StatusId) ([]*provider.Task, error)
 	GetTask(ctx context.Context, taskID int) (*provider.Task, error)
 	CreateTask(ctx context.Context, task *provider.Task) (int64, error)
-	UpdateTask(ctx context.Context, taskID int, task *provider.Task) (bool, error)
+	UpdateTask(ctx context.Context, taskID int, task *provider.TaskUpdate) (bool, error)
 	CloseTask(ctx context.Context, taskID int) (bool, error)
 	RemoveTask(ctx context.Context, taskID int) (bool, error)
 	MoveTaskPosition(ctx context.Context, projectID, taskID, columnID, position, swimlaneID int) (bool, error)
 	GetColumns(ctx context.Context, projectID int) ([]types.KV, error)
 	SearchTasks(ctx context.Context, projectID int, query string) ([]*provider.Task, error)
+	GetAllProjects(ctx context.Context) ([]*provider.Project, error)
+	CreateProject(ctx context.Context, name, description string) (int64, error)
+	GetAllSwimlanes(ctx context.Context, projectID int) ([]*provider.Swimlane, error)
+	GetAllCategories(ctx context.Context, projectID int) ([]*provider.Category, error)
 }
 
 type Adapter struct {
@@ -126,6 +130,9 @@ func (a *Adapter) CreateTask(ctx context.Context, req CreateTaskRequest) (*capab
 		ColumnID:    req.ColumnID,
 		Tags:        tagsToAny(req.Tags),
 		Reference:   req.Reference,
+		DateDue:     req.DateDue,
+		CategoryID:  req.CategoryID,
+		SwimlaneID:  req.SwimlaneID,
 	})
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "kanboard create task", err)
@@ -138,6 +145,9 @@ func (a *Adapter) CreateTask(ctx context.Context, req CreateTaskRequest) (*capab
 		ColumnID:    req.ColumnID,
 		Tags:        req.Tags,
 		Reference:   req.Reference,
+		DateDue:     req.DateDue,
+		CategoryID:  req.CategoryID,
+		SwimlaneID:  req.SwimlaneID,
 	}, nil
 }
 
@@ -148,9 +158,12 @@ func (a *Adapter) UpdateTask(ctx context.Context, id int, req UpdateTaskRequest)
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "kanban update task canceled", err)
 	}
-	_, err := a.client.UpdateTask(ctx, id, &provider.Task{
+	_, err := a.client.UpdateTask(ctx, id, &provider.TaskUpdate{
 		Title:       req.Title,
 		Description: req.Description,
+		DateDue:     req.DateDue,
+		CategoryID:  req.CategoryID,
+		SwimlaneID:  req.SwimlaneID,
 	})
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "kanboard update task", err)
@@ -270,6 +283,113 @@ func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 	return version != "", nil
 }
 
+func (a *Adapter) ListProjects(ctx context.Context) ([]*capability.KanbanProject, error) {
+	if err := a.checkClient(); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "kanban list projects canceled", err)
+	}
+	projects, err := a.client.GetAllProjects(ctx)
+	if err != nil {
+		return nil, types.WrapError(types.ErrProvider, "kanboard list projects", err)
+	}
+	items := make([]*capability.KanbanProject, 0, len(projects))
+	for _, p := range projects {
+		if p == nil {
+			continue
+		}
+		items = append(items, &capability.KanbanProject{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+			IsActive:    p.IsActive,
+		})
+	}
+	return items, nil
+}
+
+func (a *Adapter) CreateProject(ctx context.Context, req CreateProjectRequest) (*capability.KanbanProject, error) {
+	if err := a.checkClient(); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "kanban create project canceled", err)
+	}
+	if req.Name == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "name is required")
+	}
+	id, err := a.client.CreateProject(ctx, req.Name, req.Description)
+	if err != nil {
+		return nil, types.WrapError(types.ErrProvider, "kanboard create project", err)
+	}
+	return &capability.KanbanProject{
+		ID:          int(id),
+		Name:        req.Name,
+		Description: req.Description,
+		IsActive:    1,
+	}, nil
+}
+
+func (a *Adapter) ListSwimlanes(ctx context.Context, projectID int) ([]*capability.KanbanSwimlane, error) {
+	if err := a.checkClient(); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "kanban list swimlanes canceled", err)
+	}
+	if projectID == 0 {
+		projectID = 1
+	}
+	swimlanes, err := a.client.GetAllSwimlanes(ctx, projectID)
+	if err != nil {
+		return nil, types.WrapError(types.ErrProvider, "kanboard list swimlanes", err)
+	}
+	items := make([]*capability.KanbanSwimlane, 0, len(swimlanes))
+	for _, s := range swimlanes {
+		if s == nil {
+			continue
+		}
+		items = append(items, &capability.KanbanSwimlane{
+			ID:        s.ID,
+			Name:      s.Name,
+			Position:  s.Position,
+			ProjectID: s.ProjectID,
+			IsActive:  s.IsActive,
+		})
+	}
+	return items, nil
+}
+
+func (a *Adapter) ListCategories(ctx context.Context, projectID int) ([]*capability.KanbanCategory, error) {
+	if err := a.checkClient(); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "kanban list categories canceled", err)
+	}
+	if projectID == 0 {
+		projectID = 1
+	}
+	categories, err := a.client.GetAllCategories(ctx, projectID)
+	if err != nil {
+		return nil, types.WrapError(types.ErrProvider, "kanboard list categories", err)
+	}
+	items := make([]*capability.KanbanCategory, 0, len(categories))
+	for _, c := range categories {
+		if c == nil {
+			continue
+		}
+		items = append(items, &capability.KanbanCategory{
+			ID:          c.ID,
+			Name:        c.Name,
+			ProjectID:   c.ProjectID,
+			Description: c.Description,
+		})
+	}
+	return items, nil
+}
+
 func toAbilityTask(t *provider.Task) *capability.Task {
 	if t == nil {
 		return nil
@@ -282,6 +402,9 @@ func toAbilityTask(t *provider.Task) *capability.Task {
 		ColumnID:    t.ColumnID,
 		Tags:        anyToStringSlice(t.Tags),
 		Reference:   t.Reference,
+		DateDue:     t.DateDue,
+		CategoryID:  t.CategoryID,
+		SwimlaneID:  t.SwimlaneID,
 	}
 }
 

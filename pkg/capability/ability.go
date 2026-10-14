@@ -58,6 +58,34 @@ type Task struct {
 	ColumnID    int      `json:"column_id"`
 	Tags        []string `json:"tags,omitzero"`
 	Reference   string   `json:"reference,omitzero"`
+	DateDue     int      `json:"date_due,omitzero"`
+	CategoryID  int      `json:"category_id,omitzero"`
+	SwimlaneID  int      `json:"swimlane_id,omitzero"`
+}
+
+// KanbanProject is a Kanboard project listing row.
+type KanbanProject struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitzero"`
+	IsActive    int    `json:"is_active,omitzero"`
+}
+
+// KanbanSwimlane is a Kanboard swimlane listing row.
+type KanbanSwimlane struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	Position  int    `json:"position,omitzero"`
+	ProjectID int    `json:"project_id"`
+	IsActive  int    `json:"is_active,omitzero"`
+}
+
+// KanbanCategory is a Kanboard category listing row.
+type KanbanCategory struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	ProjectID   int    `json:"project_id"`
+	Description string `json:"description,omitzero"`
 }
 
 // Host represents a discovered homelab service instance.

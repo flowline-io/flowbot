@@ -32,6 +32,9 @@ func KanbanCommand() *cobra.Command {
 		kanbanMoveCommand(),
 		kanbanCardCommand(),
 		kanbanColumnCommand(),
+		kanbanProjectCommand(),
+		kanbanSwimlaneCommand(),
+		kanbanCategoryCommand(),
 		kanbanMetadataCommand(),
 		kanbanTagCommand(),
 		kanbanSubtaskCommand(),
@@ -155,12 +158,21 @@ func kanbanCreateCommand() *cobra.Command {
 			description, _ := cmd.Flags().GetString("description")
 			projectId, _ := cmd.Flags().GetInt("project")
 			columnId, _ := cmd.Flags().GetInt("column")
+			dateDue, err := kanbanDueFlag(cmd)
+			if err != nil {
+				return err
+			}
+			categoryId, _ := cmd.Flags().GetInt("category")
+			swimlaneId, _ := cmd.Flags().GetInt("swimlane")
 
 			req := client.KanbanCreateRequest{
 				Title:       title,
 				Description: description,
 				ProjectID:   projectId,
 				ColumnID:    columnId,
+				DateDue:     dateDue,
+				CategoryID:  categoryId,
+				SwimlaneID:  swimlaneId,
 			}
 
 			result, err := c.Kanban.Create(cmd.Context(), req)
@@ -174,9 +186,12 @@ func kanbanCreateCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("title", "t", "", "Task title")
 	_ = cmd.MarkFlagRequired("title")
-	cmd.Flags().StringP("description", "d", "", "Task description")
+	cmd.Flags().String("description", "", "Task description")
 	cmd.Flags().IntP("project", "p", 1, "Project ID")
 	cmd.Flags().IntP("column", "c", 0, "Column ID")
+	cmd.Flags().String("due", "", "Due date (YYYY-MM-DD, local midnight)")
+	cmd.Flags().Int("category", 0, "Category ID")
+	cmd.Flags().Int("swimlane", 0, "Swimlane ID")
 	return cmd
 }
 
@@ -206,6 +221,21 @@ func kanbanUpdateCommand() *cobra.Command {
 			if desc, _ := cmd.Flags().GetString("description"); desc != "" {
 				req.Description = desc
 			}
+			if cmd.Flags().Changed("due") {
+				dateDue, err := kanbanDueFlag(cmd)
+				if err != nil {
+					return err
+				}
+				req.DateDue = &dateDue
+			}
+			if cmd.Flags().Changed("category") {
+				categoryId, _ := cmd.Flags().GetInt("category")
+				req.CategoryID = &categoryId
+			}
+			if cmd.Flags().Changed("swimlane") {
+				swimlaneId, _ := cmd.Flags().GetInt("swimlane")
+				req.SwimlaneID = &swimlaneId
+			}
 
 			_, err = c.Kanban.Update(cmd.Context(), id, req)
 			if err != nil {
@@ -217,7 +247,10 @@ func kanbanUpdateCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("title", "t", "", "New title")
-	cmd.Flags().StringP("description", "d", "", "New description")
+	cmd.Flags().String("description", "", "New description")
+	cmd.Flags().String("due", "", "Due date (YYYY-MM-DD, local midnight)")
+	cmd.Flags().Int("category", 0, "Category ID")
+	cmd.Flags().Int("swimlane", 0, "Swimlane ID")
 	return cmd
 }
 
@@ -288,11 +321,13 @@ func kanbanMoveCommand() *cobra.Command {
 			column, _ := cmd.Flags().GetInt("column")
 			position, _ := cmd.Flags().GetInt("position")
 			project, _ := cmd.Flags().GetInt("project")
+			swimlane, _ := cmd.Flags().GetInt("swimlane")
 
 			req := client.KanbanMoveRequest{
-				ColumnID:  column,
-				Position:  position,
-				ProjectID: project,
+				ColumnID:   column,
+				Position:   position,
+				ProjectID:  project,
+				SwimlaneID: swimlane,
 			}
 
 			_, err = c.Kanban.Move(cmd.Context(), id, req)
@@ -308,6 +343,7 @@ func kanbanMoveCommand() *cobra.Command {
 	_ = cmd.MarkFlagRequired("column")
 	cmd.Flags().IntP("position", "p", 0, "Position in column (0 = first)")
 	cmd.Flags().IntP("project", "r", 1, "Project ID")
+	cmd.Flags().Int("swimlane", 0, "Swimlane ID")
 	return cmd
 }
 
@@ -517,6 +553,18 @@ func formatTimestamp(ts int) string {
 	}
 	t := time.Unix(int64(ts), 0)
 	return t.Format(time.RFC3339)
+}
+
+func kanbanDueFlag(cmd *cobra.Command) (int, error) {
+	due, _ := cmd.Flags().GetString("due")
+	if due == "" {
+		return 0, nil
+	}
+	t, err := time.ParseInLocation("2006-01-02", due, time.Local)
+	if err != nil {
+		return 0, fmt.Errorf("invalid --due date %q, expected YYYY-MM-DD: %w", due, err)
+	}
+	return int(t.Unix()), nil
 }
 
 func kanbanSubtaskCommand() *cobra.Command {
@@ -1301,12 +1349,21 @@ func kanbanCardAddCommand() *cobra.Command {
 			description, _ := cmd.Flags().GetString("description")
 			project, _ := cmd.Flags().GetInt("project")
 			column, _ := cmd.Flags().GetInt("column")
+			dateDue, err := kanbanDueFlag(cmd)
+			if err != nil {
+				return err
+			}
+			categoryId, _ := cmd.Flags().GetInt("category")
+			swimlaneId, _ := cmd.Flags().GetInt("swimlane")
 
 			req := client.KanbanCreateRequest{
 				Title:       title,
 				Description: description,
 				ProjectID:   project,
 				ColumnID:    column,
+				DateDue:     dateDue,
+				CategoryID:  categoryId,
+				SwimlaneID:  swimlaneId,
 			}
 
 			result, err := c.Kanban.Create(cmd.Context(), req)
@@ -1320,9 +1377,12 @@ func kanbanCardAddCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("title", "t", "", "Card title")
 	_ = cmd.MarkFlagRequired("title")
-	cmd.Flags().StringP("description", "d", "", "Card description")
+	cmd.Flags().String("description", "", "Card description")
 	cmd.Flags().IntP("project", "p", 1, "Project ID")
 	cmd.Flags().IntP("column", "c", 0, "Column ID")
+	cmd.Flags().String("due", "", "Due date (YYYY-MM-DD, local midnight)")
+	cmd.Flags().Int("category", 0, "Category ID")
+	cmd.Flags().Int("swimlane", 0, "Swimlane ID")
 	return cmd
 }
 
@@ -1348,11 +1408,13 @@ func kanbanCardMoveCommand() *cobra.Command {
 			column, _ := cmd.Flags().GetInt("column")
 			position, _ := cmd.Flags().GetInt("position")
 			project, _ := cmd.Flags().GetInt("project")
+			swimlane, _ := cmd.Flags().GetInt("swimlane")
 
 			req := client.KanbanMoveRequest{
-				ColumnID:  column,
-				Position:  position,
-				ProjectID: project,
+				ColumnID:   column,
+				Position:   position,
+				ProjectID:  project,
+				SwimlaneID: swimlane,
 			}
 
 			_, err = c.Kanban.Move(cmd.Context(), id, req)
@@ -1368,6 +1430,7 @@ func kanbanCardMoveCommand() *cobra.Command {
 	_ = cmd.MarkFlagRequired("column")
 	cmd.Flags().IntP("position", "p", 0, "Position in column (0 = first)")
 	cmd.Flags().IntP("project", "r", 1, "Project ID")
+	cmd.Flags().Int("swimlane", 0, "Swimlane ID")
 	return cmd
 }
 
@@ -1423,6 +1486,192 @@ func kanbanColumnCommand() *cobra.Command {
 		Long:  "Manage columns within kanban boards",
 	}
 	cmd.AddCommand(kanbanColumnListCommand())
+	return cmd
+}
+
+func kanbanProjectCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "project",
+		Short: "Manage kanban projects",
+		Long:  "List and create kanban projects",
+	}
+	cmd.AddCommand(
+		kanbanProjectListCommand(),
+		kanbanProjectCreateCommand(),
+	)
+	return cmd
+}
+
+func kanbanProjectListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List kanban projects",
+		Long:  "Display all kanban projects",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			projects, err := c.Kanban.ListProjects(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("list projects: %w", err)
+			}
+			if len(projects) == 0 {
+				return PrintEmptyList(cmd, "No projects found")
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(projects)
+			}
+			_, _ = fmt.Printf("%-8s %-30s %-8s\n", "ID", "NAME", "ACTIVE")
+			_, _ = fmt.Println(strings.Repeat("-", 50))
+			for _, p := range projects {
+				if p == nil {
+					continue
+				}
+				name := p.Name
+				if len(name) > 28 {
+					name = name[:25] + "..."
+				}
+				_, _ = fmt.Printf("%-8d %-30s %-8d\n", p.ID, name, p.IsActive)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
+}
+
+func kanbanProjectCreateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a kanban project",
+		Long:  "Create a new kanban project",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			name, _ := cmd.Flags().GetString("name")
+			description, _ := cmd.Flags().GetString("description")
+			result, err := c.Kanban.CreateProject(cmd.Context(), client.KanbanCreateProjectRequest{
+				Name:        name,
+				Description: description,
+			})
+			if err != nil {
+				return fmt.Errorf("create project: %w", err)
+			}
+			_, _ = fmt.Printf("Project created: ID=%d Name=%s\n", result.ID, result.Name)
+			return nil
+		},
+	}
+	cmd.Flags().StringP("name", "n", "", "Project name")
+	_ = cmd.MarkFlagRequired("name")
+	cmd.Flags().String("description", "", "Project description")
+	return cmd
+}
+
+func kanbanSwimlaneCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "swimlane",
+		Short: "Work with kanban swimlanes",
+		Long:  "List swimlanes within a project",
+	}
+	cmd.AddCommand(kanbanSwimlaneListCommand())
+	return cmd
+}
+
+func kanbanSwimlaneListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List swimlanes in a project",
+		Long:  "Display all swimlanes in the specified project",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			projectId, _ := cmd.Flags().GetInt("project")
+			swimlanes, err := c.Kanban.ListSwimlanes(cmd.Context(), projectId)
+			if err != nil {
+				return fmt.Errorf("list swimlanes: %w", err)
+			}
+			if len(swimlanes) == 0 {
+				return PrintEmptyList(cmd, "No swimlanes found")
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(swimlanes)
+			}
+			_, _ = fmt.Printf("%-8s %-30s %-10s\n", "ID", "NAME", "PROJECT")
+			_, _ = fmt.Println(strings.Repeat("-", 50))
+			for _, s := range swimlanes {
+				if s == nil {
+					continue
+				}
+				name := s.Name
+				if len(name) > 28 {
+					name = name[:25] + "..."
+				}
+				_, _ = fmt.Printf("%-8d %-30s %-10d\n", s.ID, name, s.ProjectID)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	cmd.Flags().IntP("project", "p", 1, "Project ID")
+	return cmd
+}
+
+func kanbanCategoryCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "category",
+		Short: "Work with kanban categories",
+		Long:  "List categories within a project",
+	}
+	cmd.AddCommand(kanbanCategoryListCommand())
+	return cmd
+}
+
+func kanbanCategoryListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List categories in a project",
+		Long:  "Display all categories in the specified project",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+			projectId, _ := cmd.Flags().GetInt("project")
+			categories, err := c.Kanban.ListCategories(cmd.Context(), projectId)
+			if err != nil {
+				return fmt.Errorf("list categories: %w", err)
+			}
+			if len(categories) == 0 {
+				return PrintEmptyList(cmd, "No categories found")
+			}
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" {
+				return PrintJSON(categories)
+			}
+			_, _ = fmt.Printf("%-8s %-30s %-10s\n", "ID", "NAME", "PROJECT")
+			_, _ = fmt.Println(strings.Repeat("-", 50))
+			for _, cat := range categories {
+				if cat == nil {
+					continue
+				}
+				name := cat.Name
+				if len(name) > 28 {
+					name = name[:25] + "..."
+				}
+				_, _ = fmt.Printf("%-8d %-30s %-10d\n", cat.ID, name, cat.ProjectID)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	cmd.Flags().IntP("project", "p", 1, "Project ID")
 	return cmd
 }
 

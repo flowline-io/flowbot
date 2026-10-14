@@ -76,7 +76,7 @@ func (f *fakeClient) CreateTask(_ context.Context, _ *provider.Task) (int64, err
 	return 99, nil
 }
 
-func (f *fakeClient) UpdateTask(_ context.Context, _ int, _ *provider.Task) (bool, error) {
+func (f *fakeClient) UpdateTask(_ context.Context, _ int, _ *provider.TaskUpdate) (bool, error) {
 	if f.updateErr != nil {
 		return false, f.updateErr
 	}
@@ -129,6 +129,22 @@ func (f *fakeClient) SearchTasks(_ context.Context, _ int, _ string) ([]*provide
 		return []*provider.Task{}, nil
 	}
 	return f.searchTasks, nil
+}
+
+func (*fakeClient) GetAllProjects(_ context.Context) ([]*provider.Project, error) {
+	return []*provider.Project{{ID: 1, Name: "Default", IsActive: 1}}, nil
+}
+
+func (*fakeClient) CreateProject(_ context.Context, _, _ string) (int64, error) {
+	return 10, nil
+}
+
+func (*fakeClient) GetAllSwimlanes(_ context.Context, projectID int) ([]*provider.Swimlane, error) {
+	return []*provider.Swimlane{{ID: 1, Name: "Default", ProjectID: projectID, IsActive: 1}}, nil
+}
+
+func (*fakeClient) GetAllCategories(_ context.Context, projectID int) ([]*provider.Category, error) {
+	return []*provider.Category{{ID: 1, Name: "General", ProjectID: projectID}}, nil
 }
 
 func TestListTasksConvertsProviderTasks(t *testing.T) {

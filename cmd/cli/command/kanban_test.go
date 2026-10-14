@@ -34,6 +34,9 @@ func TestKanbanCommand(t *testing.T) {
 			require.Contains(t, subNames, "move")
 			require.Contains(t, subNames, "card")
 			require.Contains(t, subNames, "column")
+			require.Contains(t, subNames, "project")
+			require.Contains(t, subNames, "swimlane")
+			require.Contains(t, subNames, "category")
 			require.Contains(t, subNames, "metadata")
 			require.Contains(t, subNames, "tag")
 			require.Contains(t, subNames, "subtask")
@@ -90,6 +93,55 @@ func TestKanbanCreateRequiredFlags(t *testing.T) {
 			ann := title.Annotations[cobra.BashCompOneRequiredFlag]
 			require.NotNil(t, ann)
 			require.Contains(t, ann, "true")
+		})
+	}
+}
+
+func TestKanbanDescriptionDoesNotClaimDebugShorthand(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		args []string
+		find func(root *cobra.Command) *cobra.Command
+	}{
+		{
+			name: "create",
+			args: []string{"kanban", "create", "--help"},
+			find: func(root *cobra.Command) *cobra.Command {
+				return findSubcommand(findSubcommand(root, "kanban"), "create")
+			},
+		},
+		{
+			name: "update",
+			args: []string{"kanban", "update", "--help"},
+			find: func(root *cobra.Command) *cobra.Command {
+				return findSubcommand(findSubcommand(root, "kanban"), "update")
+			},
+		},
+		{
+			name: "card add",
+			args: []string{"kanban", "card", "add", "--help"},
+			find: func(root *cobra.Command) *cobra.Command {
+				return findSubcommand(findSubcommand(findSubcommand(root, "kanban"), "card"), "add")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			root := &cobra.Command{Use: "flowbot"}
+			root.PersistentFlags().BoolP("debug", "d", false, "Enable debug mode")
+			root.AddCommand(KanbanCommand())
+
+			cmd := tt.find(root)
+			require.NotNil(t, cmd)
+			desc := cmd.Flags().Lookup("description")
+			require.NotNil(t, desc)
+			require.Empty(t, desc.Shorthand)
+
+			root.SetArgs(tt.args)
+			require.NoError(t, root.Execute())
 		})
 	}
 }
@@ -260,6 +312,32 @@ func TestKanbanCardCommand(t *testing.T) {
 			require.Contains(t, subNames, "delete")
 		})
 	}
+}
+
+func TestKanbanProjectCreateRequiredFlags(t *testing.T) {
+	t.Parallel()
+	cmd := KanbanCommand()
+	projectCmd := findSubcommand(cmd, "project")
+	require.NotNil(t, projectCmd)
+	createCmd := findSubcommand(projectCmd, "create")
+	require.NotNil(t, createCmd)
+	name := createCmd.Flags().Lookup("name")
+	require.NotNil(t, name)
+	ann := name.Annotations[cobra.BashCompOneRequiredFlag]
+	require.NotNil(t, ann)
+	require.Contains(t, ann, "true")
+	desc := createCmd.Flags().Lookup("description")
+	require.NotNil(t, desc)
+	require.Empty(t, desc.Shorthand)
+}
+
+func TestKanbanCreateTaskExtraFlags(t *testing.T) {
+	t.Parallel()
+	createCmd := findSubcommand(KanbanCommand(), "create")
+	require.NotNil(t, createCmd)
+	require.NotNil(t, createCmd.Flags().Lookup("due"))
+	require.NotNil(t, createCmd.Flags().Lookup("category"))
+	require.NotNil(t, createCmd.Flags().Lookup("swimlane"))
 }
 
 func TestKanbanCardAddRequiredFlags(t *testing.T) {

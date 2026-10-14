@@ -214,7 +214,7 @@ var metaSpecs = []metaSpec{
 				Steps: []workflowStep{
 					{Step: 1, Note: "Ask for or discover project_id (do not assume 1)."},
 					{Step: 2, Command: "flowbot kanban column list -p <project_id>"},
-					{Step: 3, Command: "flowbot kanban create -t \"<task title>\" -d \"<description>\" -p <project_id> -c <column_id>"},
+					{Step: 3, Command: "flowbot kanban create -t \"<task title>\" --description \"<description>\" -p <project_id> -c <column_id>"},
 					{Step: 4, Command: "flowbot kanban subtask create <task_id> -t \"<subtask 1>\" -e <minutes>"},
 					{Step: 5, Command: "flowbot kanban subtask create <task_id> -t \"<subtask 2>\" -e <minutes>"},
 				},

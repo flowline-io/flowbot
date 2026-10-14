@@ -25,6 +25,29 @@ Complete a task (**mutation**)
       id: 0  # required
 ```
 
+## `capability:kanboard.create_project`
+
+Create a project (**mutation**)
+
+**Inputs (params):**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | yes | Project name |
+| `description` | `string` | no | Project description |
+
+**Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
+
+**Usage:**
+
+```yaml
+  - id: create_project_step
+    action: capability:kanboard.create_project
+    params:
+      name: "..."  # required
+      description: "..."
+```
+
 ## `capability:kanboard.create_task`
 
 Create a task (**mutation**)
@@ -39,6 +62,9 @@ Create a task (**mutation**)
 | `column_id` | `int` | no | Column ID |
 | `tags` | `[]string` | no | Tags to assign |
 | `reference` | `string` | no | Reference URL or text |
+| `date_due` | `int` | no | Due date as unix timestamp |
+| `category_id` | `int` | no | Category ID |
+| `swimlane_id` | `int` | no | Swimlane ID |
 
 **Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
 
@@ -54,6 +80,9 @@ Create a task (**mutation**)
       column_id: 0
       tags: ["..."]
       reference: "..."
+      date_due: 0
+      category_id: 0
+      swimlane_id: 0
 ```
 
 ## `capability:kanboard.delete_task`
@@ -134,6 +163,65 @@ _(none)_
 ```yaml
   - id: health_step
     action: capability:kanboard.health
+```
+
+## `capability:kanboard.list_categories`
+
+List categories
+
+**Inputs (params):**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `project_id` | `int` | no | Project ID (defaults to 1) |
+
+**Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
+
+**Usage:**
+
+```yaml
+  - id: list_categories_step
+    action: capability:kanboard.list_categories
+    params:
+      project_id: 0
+```
+
+## `capability:kanboard.list_projects`
+
+List projects
+
+**Inputs (params):**
+
+_(none)_
+
+**Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
+
+**Usage:**
+
+```yaml
+  - id: list_projects_step
+    action: capability:kanboard.list_projects
+```
+
+## `capability:kanboard.list_swimlanes`
+
+List swimlanes
+
+**Inputs (params):**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `project_id` | `int` | no | Project ID (defaults to 1) |
+
+**Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
+
+**Usage:**
+
+```yaml
+  - id: list_swimlanes_step
+    action: capability:kanboard.list_swimlanes
+    params:
+      project_id: 0
 ```
 
 ## `capability:kanboard.list_tasks`
@@ -238,6 +326,9 @@ Update a task (**mutation**)
 | `id` | `int` | yes | Task ID |
 | `title` | `string` | no | New title |
 | `description` | `string` | no | New description |
+| `date_due` | `int` | no | Due date as unix timestamp |
+| `category_id` | `int` | no | Category ID |
+| `swimlane_id` | `int` | no | Swimlane ID |
 
 **Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
 
@@ -250,4 +341,7 @@ Update a task (**mutation**)
       id: 0  # required
       title: "..."
       description: "..."
+      date_due: 0
+      category_id: 0
+      swimlane_id: 0
 ```

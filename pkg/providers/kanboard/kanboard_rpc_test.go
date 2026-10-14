@@ -339,7 +339,7 @@ func TestKanboard_UpdateAndCloseTask(t *testing.T) {
 			name:   "update task",
 			method: "updateTask",
 			call: func(ctx context.Context, kb *Kanboard) (bool, error) {
-				return kb.UpdateTask(ctx, 1, &Task{Title: "Updated"})
+				return kb.UpdateTask(ctx, 1, &TaskUpdate{Title: "Updated"})
 			},
 		},
 		{
@@ -579,4 +579,108 @@ func TestTruncateForError(t *testing.T) {
 	assert.Empty(t, truncateForError(nil, 10))
 	assert.Equal(t, "hello world", truncateForError([]byte("  hello\nworld  "), 64))
 	assert.Equal(t, "abcd…", truncateForError([]byte("abcdefgh"), 4))
+}
+
+func TestKanboard_GetAllProjects(t *testing.T) {
+	t.Parallel()
+	srv := newKanboardRPCServer(t, map[string]func(json.RawMessage) any{
+		"getAllProjects": func(_ json.RawMessage) any {
+			return []*Project{{ID: 1, Name: "flowbot", Description: "hub"}}
+		},
+	})
+	defer srv.Close()
+
+	kb, err := NewKanboard(srv.URL, "u", "p")
+	require.NoError(t, err)
+	projects, err := kb.GetAllProjects(context.Background())
+	require.NoError(t, err)
+	require.Len(t, projects, 1)
+	assert.Equal(t, "flowbot", projects[0].Name)
+}
+
+func TestKanboard_CreateProject(t *testing.T) {
+	t.Parallel()
+	var gotParams types.KV
+	srv := newKanboardRPCServer(t, map[string]func(json.RawMessage) any{
+		"createProject": func(params json.RawMessage) any {
+			require.NoError(t, sonic.Unmarshal(params, &gotParams))
+			return int64(42)
+		},
+	})
+	defer srv.Close()
+
+	kb, err := NewKanboard(srv.URL, "u", "p")
+	require.NoError(t, err)
+	id, err := kb.CreateProject(context.Background(), "flowbot", "desc")
+	require.NoError(t, err)
+	assert.Equal(t, int64(42), id)
+	assert.Equal(t, "flowbot", gotParams["name"])
+	assert.Equal(t, "desc", gotParams["description"])
+}
+
+func TestKanboard_GetAllSwimlanesAndCategories(t *testing.T) {
+	t.Parallel()
+	srv := newKanboardRPCServer(t, map[string]func(json.RawMessage) any{
+		"getAllSwimlanes": func(params json.RawMessage) any {
+			var p types.KV
+			require.NoError(t, sonic.Unmarshal(params, &p))
+			assert.EqualValues(t, 7, p["project_id"])
+			return []*Swimlane{{ID: 2, Name: "Default", ProjectID: 7}}
+		},
+		"getAllCategories": func(params json.RawMessage) any {
+			var p types.KV
+			require.NoError(t, sonic.Unmarshal(params, &p))
+			assert.EqualValues(t, 7, p["project_id"])
+			return []*Category{{ID: 3, Name: "Bug", ProjectID: 7}}
+		},
+	})
+	defer srv.Close()
+
+	kb, err := NewKanboard(srv.URL, "u", "p")
+	require.NoError(t, err)
+
+	swimlanes, err := kb.GetAllSwimlanes(context.Background(), 7)
+	require.NoError(t, err)
+	require.Len(t, swimlanes, 1)
+	assert.Equal(t, "Default", swimlanes[0].Name)
+
+	categories, err := kb.GetAllCategories(context.Background(), 7)
+	require.NoError(t, err)
+	require.Len(t, categories, 1)
+	assert.Equal(t, "Bug", categories[0].Name)
+}
+
+func TestKanboard_UpdateTask_ExtraFields(t *testing.T) {
+	t.Parallel()
+	var gotParams types.KV
+	srv := newKanboardRPCServer(t, map[string]func(json.RawMessage) any{
+		"updateTask": func(params json.RawMessage) any {
+			require.NoError(t, sonic.Unmarshal(params, &gotParams))
+			return true
+		},
+	})
+	defer srv.Close()
+
+	kb, err := NewKanboard(srv.URL, "u", "p")
+	require.NoError(t, err)
+	due, category, swimlane := 1700000000, 4, 5
+	ok, err := kb.UpdateTask(context.Background(), 9, &TaskUpdate{
+		Title:      "T",
+		DateDue:    &due,
+		CategoryID: &category,
+		SwimlaneID: &swimlane,
+	})
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.EqualValues(t, 9, gotParams["id"])
+	assert.EqualValues(t, 1700000000, gotParams["date_due"])
+	assert.EqualValues(t, 4, gotParams["category_id"])
+	assert.EqualValues(t, 5, gotParams["swimlane_id"])
+
+	clearDue := 0
+	gotParams = types.KV{}
+	ok, err = kb.UpdateTask(context.Background(), 9, &TaskUpdate{DateDue: &clearDue})
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.EqualValues(t, 0, gotParams["date_due"])
 }

@@ -24,6 +24,28 @@ Complete a task (**mutation**)
       id: 0  # required
 ```
 
+## `create_project`
+
+Create a project (**mutation**)
+
+**Inputs (params):**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | yes | Project name |
+| `description` | `string` | no | Project description |
+
+**Usage:**
+
+```yaml
+  - name: create_project_step
+    capability: kanboard
+    operation: create_project
+    params:
+      name: "..."  # required
+      description: "..."
+```
+
 ## `create_task`
 
 Create a task (**mutation**)
@@ -38,6 +60,9 @@ Create a task (**mutation**)
 | `column_id` | `int` | no | Column ID |
 | `tags` | `[]string` | no | Tags to assign |
 | `reference` | `string` | no | Reference URL or text |
+| `date_due` | `int` | no | Due date as unix timestamp |
+| `category_id` | `int` | no | Category ID |
+| `swimlane_id` | `int` | no | Swimlane ID |
 
 **Usage:**
 
@@ -52,6 +77,9 @@ Create a task (**mutation**)
       column_id: 0
       tags: ["..."]
       reference: "..."
+      date_due: 0
+      category_id: 0
+      swimlane_id: 0
 ```
 
 ## `delete_task`
@@ -128,6 +156,62 @@ _(none)_
   - name: health_step
     capability: kanboard
     operation: health
+```
+
+## `list_categories`
+
+List categories
+
+**Inputs (params):**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `project_id` | `int` | no | Project ID (defaults to 1) |
+
+**Usage:**
+
+```yaml
+  - name: list_categories_step
+    capability: kanboard
+    operation: list_categories
+    params:
+      project_id: 0
+```
+
+## `list_projects`
+
+List projects
+
+**Inputs (params):**
+
+_(none)_
+
+**Usage:**
+
+```yaml
+  - name: list_projects_step
+    capability: kanboard
+    operation: list_projects
+```
+
+## `list_swimlanes`
+
+List swimlanes
+
+**Inputs (params):**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `project_id` | `int` | no | Project ID (defaults to 1) |
+
+**Usage:**
+
+```yaml
+  - name: list_swimlanes_step
+    capability: kanboard
+    operation: list_swimlanes
+    params:
+      project_id: 0
 ```
 
 ## `list_tasks`
@@ -229,6 +313,9 @@ Update a task (**mutation**)
 | `id` | `int` | yes | Task ID |
 | `title` | `string` | no | New title |
 | `description` | `string` | no | New description |
+| `date_due` | `int` | no | Due date as unix timestamp |
+| `category_id` | `int` | no | Category ID |
+| `swimlane_id` | `int` | no | Swimlane ID |
 
 **Usage:**
 
@@ -240,4 +327,7 @@ Update a task (**mutation**)
       id: 0  # required
       title: "..."
       description: "..."
+      date_due: 0
+      category_id: 0
+      swimlane_id: 0
 ```
