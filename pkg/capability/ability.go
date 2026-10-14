@@ -161,16 +161,21 @@ type Note struct {
 
 // Transaction represents a finance transaction from Firefly III.
 type Transaction struct {
-	ID              string `json:"id"`
-	Type            string `json:"type,omitzero"`
-	Amount          string `json:"amount,omitzero"`
-	Description     string `json:"description,omitzero"`
-	Date            string `json:"date,omitzero"`
-	CurrencyCode    string `json:"currency_code,omitzero"`
-	SourceName      string `json:"source_name,omitzero"`
-	DestinationName string `json:"destination_name,omitzero"`
-	CategoryName    string `json:"category_name,omitzero"`
-	Notes           string `json:"notes,omitzero"`
+	ID              string   `json:"id"`
+	Type            string   `json:"type,omitzero"`
+	Amount          string   `json:"amount,omitzero"`
+	Description     string   `json:"description,omitzero"`
+	Date            string   `json:"date,omitzero"`
+	CurrencyCode    string   `json:"currency_code,omitzero"`
+	SourceID        string   `json:"source_id,omitzero"`
+	SourceName      string   `json:"source_name,omitzero"`
+	DestinationID   string   `json:"destination_id,omitzero"`
+	DestinationName string   `json:"destination_name,omitzero"`
+	CategoryName    string   `json:"category_name,omitzero"`
+	BudgetName      string   `json:"budget_name,omitzero"`
+	BillName        string   `json:"bill_name,omitzero"`
+	Notes           string   `json:"notes,omitzero"`
+	Tags            []string `json:"tags,omitzero"`
 }
 
 // FinanceAbout holds Firefly III instance metadata.
@@ -187,6 +192,39 @@ type FinanceUser struct {
 	ID    string `json:"id"`
 	Email string `json:"email,omitzero"`
 	Role  string `json:"role,omitzero"`
+}
+
+// FinanceAccount is a thin Firefly III account listing row.
+type FinanceAccount struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type,omitzero"`
+}
+
+// FinanceCategory is a thin Firefly III category listing row.
+type FinanceCategory struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// FinanceBudget is a thin Firefly III budget listing row.
+type FinanceBudget struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Active bool   `json:"active"`
+}
+
+// FinanceBill is a thin Firefly III bill listing row.
+type FinanceBill struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Active bool   `json:"active"`
+}
+
+// FinanceTag is a thin Firefly III tag listing row.
+type FinanceTag struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 // Torrent represents a BitTorrent download managed by Transmission.

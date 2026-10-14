@@ -1,7 +1,7 @@
 ---
 name: fireflyiii
 description: >-
-  Create Firefly III transactions and inspect instance health via flowbot fireflyiii. Use when the user mentions fireflyiii, firefly, finance, transactions, expenses, budgeting, accounting.
+  Manage Firefly III transactions (CRUD) and list accounts, categories, budgets, bills, and tags via flowbot fireflyiii. Use when the user mentions fireflyiii, firefly, finance, transactions, expenses, budgeting, accounting, accounts, categories, budgets, bills, tags.
 compatibility: Requires flowbot CLI, network access to a Flowbot server
 metadata:
   capability: fireflyiii
@@ -14,7 +14,7 @@ Use `flowbot fireflyiii` for capability `fireflyiii`.
 **CLI root is `fireflyiii`** — do not invent `flowbot fireflyiii` unless cli.md lists it as an alias.
 Prefer the workflows below; load [references/cli.md](references/cli.md) only when you need a flag or subcommand not covered here.
 
-**JSON fields:** Transaction id is a string field `id` in create output.
+**JSON fields:** Transaction id is the Firefly transaction group id (string `id`). List/get map the first split only.
 
 ## Setup
 
@@ -29,8 +29,26 @@ Prefer the workflows below; load [references/cli.md](references/cli.md) only whe
 ### Record an expense
 
 When a user wants to log a withdrawal or purchase:
-1. `flowbot fireflyiii create -t withdrawal --date <YYYY-MM-DD> -a <amount> -m "<description>" --source-name "<account>" --destination-name "<payee>"`
-2. Report back with the transaction ID. Source and destination must each use --*-id or --*-name.
+1. `flowbot fireflyiii accounts -t asset`
+2. `flowbot fireflyiii create -t withdrawal --date <YYYY-MM-DD> -a <amount> -m "<description>" --source-name "<account>" --destination-name "<payee>" [--category "<cat>"] [--budget-name "<budget>"] [--tag <tag>]`
+3. Report back with the transaction ID. Source and destination must each use --*-id or --*-name.
+
+### Review and fix a transaction
+
+When a user wants to find, update, or delete a transaction:
+1. `flowbot fireflyiii list --start <YYYY-MM-DD> --end <YYYY-MM-DD> [-t withdrawal]`
+2. `flowbot fireflyiii get <id>`
+3. `flowbot fireflyiii update <id> -a <amount> -m "<description>"`
+4. For delete use `flowbot fireflyiii delete <id> -y` in non-interactive sessions.
+
+### Browse finance reference data
+
+When a user needs accounts, categories, budgets, bills, or tags:
+1. `flowbot fireflyiii accounts [-t asset|expense|revenue]`
+2. `flowbot fireflyiii categories`
+3. `flowbot fireflyiii budgets`
+4. `flowbot fireflyiii bills`
+5. `flowbot fireflyiii tags`
 
 ### Check Firefly III connectivity
 

@@ -304,6 +304,136 @@ func TestNewFireflyIII(t *testing.T) {
 	}
 }
 
+func TestFireflyIII_ListTransactions(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/v1/transactions", r.URL.Path)
+		assert.Equal(t, "withdrawal", r.URL.Query().Get("type"))
+		assert.Equal(t, "2026-01-01", r.URL.Query().Get("start"))
+		assert.Equal(t, "2026-01-31", r.URL.Query().Get("end"))
+		assert.Equal(t, "5", r.URL.Query().Get("account_id"))
+		assert.Equal(t, "1", r.URL.Query().Get("page"))
+		assert.Equal(t, "25", r.URL.Query().Get("limit"))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{
+			"data":[{"type":"transactions","id":"10","attributes":{"transactions":[{"type":"withdrawal","amount":"12.00","description":"Coffee","source_name":"Cash","destination_name":"Cafe","date":"2026-01-15T00:00:00+00:00"}]}}],
+			"meta":{"pagination":{"total":1,"count":1,"per_page":25,"current_page":1,"total_pages":1}}
+		}`)
+	}))
+	t.Cleanup(server.Close)
+
+	client := NewFireflyIII(server.URL, "test-token")
+	result, err := client.ListTransactions(TransactionListQuery{
+		ListQuery: ListQuery{Page: 1, PerPage: 25},
+		Type:      "withdrawal",
+		Start:     "2026-01-01",
+		End:       "2026-01-31",
+		AccountID: "5",
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Items, 1)
+	assert.Equal(t, "10", result.Items[0].Id)
+	assert.Equal(t, 1, result.Pagination.TotalPages)
+}
+
+func TestFireflyIII_GetUpdateDeleteTransaction(t *testing.T) {
+	t.Parallel()
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/transactions/42", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.Method {
+		case http.MethodGet, http.MethodPut:
+			w.WriteHeader(http.StatusOK)
+			_, _ = io.WriteString(w, `{"data":{"type":"transactions","id":"42","attributes":{"transactions":[{"type":"withdrawal","amount":"9.00","description":"Updated","date":"2026-01-02T00:00:00+00:00"}]}}}`)
+		case http.MethodDelete:
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	})
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+
+	client := NewFireflyIII(server.URL, "test-token")
+	got, err := client.GetTransaction("42")
+	require.NoError(t, err)
+	assert.Equal(t, "42", got.Id)
+
+	updated, err := client.UpdateTransaction("42", Transaction{
+		Transactions: []TransactionRecord{{Type: "withdrawal", Amount: "9.00", Description: "Updated", Date: "2026-01-02"}},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "42", updated.Id)
+
+	require.NoError(t, client.DeleteTransaction("42"))
+}
+
+func TestFireflyIII_ListResources(t *testing.T) {
+	t.Parallel()
+	mux := http.NewServeMux()
+	writeList := func(w http.ResponseWriter, body string) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, body)
+	}
+	mux.HandleFunc("/v1/accounts", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "asset", r.URL.Query().Get("type"))
+		writeList(w, `{"data":[{"type":"accounts","id":"1","attributes":{"name":"Cash","type":"asset"}}],"meta":{"pagination":{"current_page":1,"total_pages":1,"per_page":50}}}`)
+	})
+	mux.HandleFunc("/v1/categories", func(w http.ResponseWriter, _ *http.Request) {
+		writeList(w, `{"data":[{"type":"categories","id":"2","attributes":{"name":"Food"}}],"meta":{"pagination":{"current_page":1,"total_pages":1,"per_page":50}}}`)
+	})
+	mux.HandleFunc("/v1/budgets", func(w http.ResponseWriter, _ *http.Request) {
+		writeList(w, `{"data":[{"type":"budgets","id":"3","attributes":{"name":"Groceries","active":true}}],"meta":{"pagination":{"current_page":1,"total_pages":1,"per_page":50}}}`)
+	})
+	mux.HandleFunc("/v1/bills", func(w http.ResponseWriter, _ *http.Request) {
+		writeList(w, `{"data":[{"type":"bills","id":"4","attributes":{"name":"Rent","active":true}}],"meta":{"pagination":{"current_page":1,"total_pages":1,"per_page":50}}}`)
+	})
+	mux.HandleFunc("/v1/tags", func(w http.ResponseWriter, _ *http.Request) {
+		writeList(w, `{"data":[{"type":"tags","id":"5","attributes":{"tag":"travel"}}],"meta":{"pagination":{"current_page":1,"total_pages":2,"per_page":50}}}`)
+	})
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+
+	client := NewFireflyIII(server.URL, "test-token")
+	accounts, err := client.ListAccounts(AccountListQuery{Type: "asset"})
+	require.NoError(t, err)
+	require.Len(t, accounts.Items, 1)
+	assert.Equal(t, "Cash", accounts.Items[0].Attributes.Name)
+
+	categories, err := client.ListCategories(ListQuery{})
+	require.NoError(t, err)
+	assert.Equal(t, "Food", categories.Items[0].Attributes.Name)
+
+	budgets, err := client.ListBudgets(ListQuery{})
+	require.NoError(t, err)
+	assert.True(t, budgets.Items[0].Attributes.Active)
+
+	bills, err := client.ListBills(ListQuery{})
+	require.NoError(t, err)
+	assert.Equal(t, "Rent", bills.Items[0].Attributes.Name)
+
+	tags, err := client.ListTags(ListQuery{})
+	require.NoError(t, err)
+	assert.Equal(t, "travel", tags.Items[0].Attributes.Tag)
+	assert.Equal(t, 2, tags.Pagination.TotalPages)
+}
+
+func TestConvertListResponseData(t *testing.T) {
+	t.Parallel()
+	result, err := ConvertListResponseData[Account](&Response{
+		Data: []any{map[string]any{"type": "accounts", "id": "1", "attributes": map[string]any{"name": "Cash", "type": "asset"}}},
+		Meta: &Meta{Pagination: Pagination{CurrentPage: 1, TotalPages: 1}},
+	}, http.StatusOK)
+	require.NoError(t, err)
+	require.Len(t, result.Items, 1)
+	assert.Equal(t, "1", result.Items[0].Id)
+
+	_, err = ConvertListResponseData[Account](&Response{Data: nil}, http.StatusOK)
+	assert.Error(t, err)
+}
+
 func TestFireflyIII_AboutUnauthenticatedJSON(t *testing.T) {
 	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

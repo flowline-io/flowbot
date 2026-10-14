@@ -23,10 +23,13 @@ func TestFireflyiiiCommand(t *testing.T) {
 			require.True(t, cmd.HasSubCommands())
 
 			subNames := subcommandNames(cmd)
-			require.Contains(t, subNames, "create")
-			require.Contains(t, subNames, "about")
-			require.Contains(t, subNames, "user")
-			require.Contains(t, subNames, "health")
+			for _, name := range []string{
+				"create", "list", "get", "update", "delete",
+				"accounts", "categories", "budgets", "bills", "tags",
+				"about", "user", "health",
+			} {
+				require.Contains(t, subNames, name)
+			}
 
 			createCmd := findSubcommand(cmd, "create")
 			require.NotNil(t, createCmd)

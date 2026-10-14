@@ -381,17 +381,39 @@ var metaSpecs = []metaSpec{
 		Name:         string(hub.CapFireflyiii),
 		Title:        "Firefly III",
 		CommandFn:    command.FireflyiiiCommand,
-		Description:  "Create Firefly III transactions and inspect instance health via flowbot fireflyiii.",
-		Keywords:     "fireflyiii, firefly, finance, transactions, expenses, budgeting, accounting",
+		Description:  "Manage Firefly III transactions (CRUD) and list accounts, categories, budgets, bills, and tags via flowbot fireflyiii.",
+		Keywords:     "fireflyiii, firefly, finance, transactions, expenses, budgeting, accounting, accounts, categories, budgets, bills, tags",
 		ScopesNote:   "`service:fireflyiii:read` / `service:fireflyiii:write`",
-		ResponseHint: "Transaction id is a string field `id` in create output.",
+		ResponseHint: "Transaction id is the Firefly transaction group id (string `id`). List/get map the first split only.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Record an expense",
 				Description: "When a user wants to log a withdrawal or purchase:",
 				Steps: []workflowStep{
-					{Step: 1, Command: "flowbot fireflyiii create -t withdrawal --date <YYYY-MM-DD> -a <amount> -m \"<description>\" --source-name \"<account>\" --destination-name \"<payee>\""},
-					{Step: 2, Note: "Report back with the transaction ID. Source and destination must each use --*-id or --*-name."},
+					{Step: 1, Command: "flowbot fireflyiii accounts -t asset"},
+					{Step: 2, Command: "flowbot fireflyiii create -t withdrawal --date <YYYY-MM-DD> -a <amount> -m \"<description>\" --source-name \"<account>\" --destination-name \"<payee>\" [--category \"<cat>\"] [--budget-name \"<budget>\"] [--tag <tag>]"},
+					{Step: 3, Note: "Report back with the transaction ID. Source and destination must each use --*-id or --*-name."},
+				},
+			},
+			{
+				Title:       "Review and fix a transaction",
+				Description: "When a user wants to find, update, or delete a transaction:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot fireflyiii list --start <YYYY-MM-DD> --end <YYYY-MM-DD> [-t withdrawal]"},
+					{Step: 2, Command: "flowbot fireflyiii get <id>"},
+					{Step: 3, Command: "flowbot fireflyiii update <id> -a <amount> -m \"<description>\""},
+					{Step: 4, Note: "For delete use `flowbot fireflyiii delete <id> -y` in non-interactive sessions."},
+				},
+			},
+			{
+				Title:       "Browse finance reference data",
+				Description: "When a user needs accounts, categories, budgets, bills, or tags:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot fireflyiii accounts [-t asset|expense|revenue]"},
+					{Step: 2, Command: "flowbot fireflyiii categories"},
+					{Step: 3, Command: "flowbot fireflyiii budgets"},
+					{Step: 4, Command: "flowbot fireflyiii bills"},
+					{Step: 5, Command: "flowbot fireflyiii tags"},
 				},
 			},
 			{

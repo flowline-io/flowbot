@@ -25,7 +25,7 @@ and run on generate (`go tool task skills`), import, Web forms, and CI (`skills-
 | `miniflux`     | `reader`   | Subscribe to RSS/Atom feeds, read entries, mark status |
 | `memos`        | `memo`     | Create, list, update, and delete memos                 |
 | `trilium`      | `trilium`  | Create, list, search, update, and delete trilium notes |
-| `fireflyiii`   | `fireflyiii` | Create transactions and check Firefly III health     |
+| `fireflyiii`   | `fireflyiii` | Transaction CRUD plus accounts/categories/budgets/bills/tags lists |
 | `transmission` | `transmission` | Add, list, stop, and remove Transmission torrents  |
 | `nocodb`       | `nocodb`   | Discover bases/tables and CRUD NocoDB records          |
 | `devops`       | `devops`   | Query beszel, uptimekuma, traefik, grafana, wakapi, dozzle |

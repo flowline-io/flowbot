@@ -16,6 +16,31 @@ type mockService struct{}
 func (*mockService) CreateTransaction(_ context.Context, _ CreateTransactionInput) (*capability.Transaction, error) {
 	return &capability.Transaction{ID: "1"}, nil
 }
+func (*mockService) ListTransactions(_ context.Context, _ TransactionListQuery) (*capability.ListResult[capability.Transaction], error) {
+	return &capability.ListResult[capability.Transaction]{Items: []*capability.Transaction{{ID: "1"}}, Page: &capability.PageInfo{}}, nil
+}
+func (*mockService) GetTransaction(_ context.Context, _ string) (*capability.Transaction, error) {
+	return &capability.Transaction{ID: "1"}, nil
+}
+func (*mockService) UpdateTransaction(_ context.Context, _ UpdateTransactionInput) (*capability.Transaction, error) {
+	return &capability.Transaction{ID: "1"}, nil
+}
+func (*mockService) DeleteTransaction(_ context.Context, _ string) error { return nil }
+func (*mockService) ListAccounts(_ context.Context, _ AccountListQuery) (*capability.ListResult[capability.FinanceAccount], error) {
+	return &capability.ListResult[capability.FinanceAccount]{Items: []*capability.FinanceAccount{}, Page: &capability.PageInfo{}}, nil
+}
+func (*mockService) ListCategories(_ context.Context, _ ResourceListQuery) (*capability.ListResult[capability.FinanceCategory], error) {
+	return &capability.ListResult[capability.FinanceCategory]{Items: []*capability.FinanceCategory{}, Page: &capability.PageInfo{}}, nil
+}
+func (*mockService) ListBudgets(_ context.Context, _ ResourceListQuery) (*capability.ListResult[capability.FinanceBudget], error) {
+	return &capability.ListResult[capability.FinanceBudget]{Items: []*capability.FinanceBudget{}, Page: &capability.PageInfo{}}, nil
+}
+func (*mockService) ListBills(_ context.Context, _ ResourceListQuery) (*capability.ListResult[capability.FinanceBill], error) {
+	return &capability.ListResult[capability.FinanceBill]{Items: []*capability.FinanceBill{}, Page: &capability.PageInfo{}}, nil
+}
+func (*mockService) ListTags(_ context.Context, _ ResourceListQuery) (*capability.ListResult[capability.FinanceTag], error) {
+	return &capability.ListResult[capability.FinanceTag]{Items: []*capability.FinanceTag{}, Page: &capability.PageInfo{}}, nil
+}
 func (*mockService) About(_ context.Context) (*capability.FinanceAbout, error) {
 	return &capability.FinanceAbout{Version: "6.0.0"}, nil
 }
@@ -54,13 +79,22 @@ func TestRegister_Operations(t *testing.T) {
 	assert.Equal(t, hub.CapFireflyiii, desc.Type)
 	assert.Equal(t, "fireflyiii", desc.App)
 	assert.True(t, desc.Healthy)
-	assert.Len(t, desc.Operations, 4)
+	assert.Len(t, desc.Operations, 13)
 
 	tests := []struct {
 		name string
 		op   string
 	}{
 		{"has create_transaction", OpCreateTransaction},
+		{"has list_transactions", OpListTransactions},
+		{"has get_transaction", OpGetTransaction},
+		{"has update_transaction", OpUpdateTransaction},
+		{"has delete_transaction", OpDeleteTransaction},
+		{"has list_accounts", OpListAccounts},
+		{"has list_categories", OpListCategories},
+		{"has list_budgets", OpListBudgets},
+		{"has list_bills", OpListBills},
+		{"has list_tags", OpListTags},
 		{"has about", OpAbout},
 		{"has current_user", OpCurrentUser},
 		{"has health", OpHealth},

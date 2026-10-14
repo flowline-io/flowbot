@@ -1285,25 +1285,41 @@ func invokeMemo(ctx fiber.Ctx, operation string, params map[string]any) error {
 // --- Firefly III routes (registered under /service/fireflyiii) ---
 
 var fireflyiiiWebserviceRules = []webservice.Rule{
+	webservice.Get("/transactions", listFireflyTransactions),
 	webservice.Post("/transactions", createFireflyTransaction),
+	webservice.Get("/transactions/:id", getFireflyTransaction),
+	webservice.Put("/transactions/:id", updateFireflyTransaction),
+	webservice.Delete("/transactions/:id", deleteFireflyTransaction),
+	webservice.Get("/accounts", listFireflyAccounts),
+	webservice.Get("/categories", listFireflyCategories),
+	webservice.Get("/budgets", listFireflyBudgets),
+	webservice.Get("/bills", listFireflyBills),
+	webservice.Get("/tags", listFireflyTags),
 	webservice.Get("/about", getFireflyAbout),
 	webservice.Get("/user", getFireflyCurrentUser),
 	webservice.Get("/health", fireflyHealth),
 }
 
+type fireflyTransactionBody struct {
+	Type            string   `json:"type"`
+	Date            string   `json:"date"`
+	Amount          string   `json:"amount"`
+	Description     string   `json:"description"`
+	SourceID        string   `json:"source_id"`
+	SourceName      string   `json:"source_name"`
+	DestinationID   string   `json:"destination_id"`
+	DestinationName string   `json:"destination_name"`
+	CategoryName    string   `json:"category_name"`
+	BudgetID        string   `json:"budget_id"`
+	BudgetName      string   `json:"budget_name"`
+	BillID          string   `json:"bill_id"`
+	BillName        string   `json:"bill_name"`
+	Notes           string   `json:"notes"`
+	Tags            []string `json:"tags"`
+}
+
 func createFireflyTransaction(ctx fiber.Ctx) error {
-	var body struct {
-		Type            string `json:"type"`
-		Date            string `json:"date"`
-		Amount          string `json:"amount"`
-		Description     string `json:"description"`
-		SourceID        string `json:"source_id"`
-		SourceName      string `json:"source_name"`
-		DestinationID   string `json:"destination_id"`
-		DestinationName string `json:"destination_name"`
-		CategoryName    string `json:"category_name"`
-		Notes           string `json:"notes"`
-	}
+	var body fireflyTransactionBody
 	if err := ctx.Bind().Body(&body); err != nil {
 		return types.WrapError(types.ErrInvalidArgument, "decode fireflyiii transaction request", err)
 	}
@@ -1325,18 +1341,117 @@ func createFireflyTransaction(ctx fiber.Ctx) error {
 	if body.DestinationID == "" && body.DestinationName == "" {
 		return types.Errorf(types.ErrInvalidArgument, "destination_id or destination_name is required")
 	}
-	return invokeFireflyiii(ctx, capability.OpFinanceCreateTransaction, map[string]any{
-		"type":             body.Type,
-		"date":             body.Date,
-		"amount":           body.Amount,
-		"description":      body.Description,
-		"source_id":        body.SourceID,
-		"source_name":      body.SourceName,
-		"destination_id":   body.DestinationID,
-		"destination_name": body.DestinationName,
-		"category_name":    body.CategoryName,
-		"notes":            body.Notes,
-	})
+	return invokeFireflyiii(ctx, capability.OpFinanceCreateTransaction, fireflyTransactionParams(body))
+}
+
+func listFireflyTransactions(ctx fiber.Ctx) error {
+	params := pageParams(ctx)
+	if v := ctx.Query("type"); v != "" {
+		params["type"] = v
+	}
+	if v := ctx.Query("start"); v != "" {
+		params["start"] = v
+	}
+	if v := ctx.Query("end"); v != "" {
+		params["end"] = v
+	}
+	if v := ctx.Query("account_id"); v != "" {
+		params["account_id"] = v
+	}
+	return invokeFireflyiii(ctx, capability.OpFinanceListTransactions, params)
+}
+
+func getFireflyTransaction(ctx fiber.Ctx) error {
+	id := ctx.Params("id")
+	if id == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	return invokeFireflyiii(ctx, capability.OpFinanceGetTransaction, map[string]any{"id": id})
+}
+
+type fireflyTransactionUpdateBody struct {
+	Type            *string   `json:"type"`
+	Date            *string   `json:"date"`
+	Amount          *string   `json:"amount"`
+	Description     *string   `json:"description"`
+	SourceID        *string   `json:"source_id"`
+	SourceName      *string   `json:"source_name"`
+	DestinationID   *string   `json:"destination_id"`
+	DestinationName *string   `json:"destination_name"`
+	CategoryName    *string   `json:"category_name"`
+	BudgetID        *string   `json:"budget_id"`
+	BudgetName      *string   `json:"budget_name"`
+	BillID          *string   `json:"bill_id"`
+	BillName        *string   `json:"bill_name"`
+	Notes           *string   `json:"notes"`
+	Tags            *[]string `json:"tags"`
+}
+
+func updateFireflyTransaction(ctx fiber.Ctx) error {
+	id := ctx.Params("id")
+	if id == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	var body fireflyTransactionUpdateBody
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode fireflyiii update transaction request", err)
+	}
+	params := map[string]any{"id": id}
+	setUpdateString := func(key string, v *string) {
+		if v != nil {
+			params[key] = *v
+		}
+	}
+	setUpdateString("type", body.Type)
+	setUpdateString("date", body.Date)
+	setUpdateString("amount", body.Amount)
+	setUpdateString("description", body.Description)
+	setUpdateString("source_id", body.SourceID)
+	setUpdateString("source_name", body.SourceName)
+	setUpdateString("destination_id", body.DestinationID)
+	setUpdateString("destination_name", body.DestinationName)
+	setUpdateString("category_name", body.CategoryName)
+	setUpdateString("budget_id", body.BudgetID)
+	setUpdateString("budget_name", body.BudgetName)
+	setUpdateString("bill_id", body.BillID)
+	setUpdateString("bill_name", body.BillName)
+	setUpdateString("notes", body.Notes)
+	if body.Tags != nil {
+		params["tags"] = *body.Tags
+	}
+	return invokeFireflyiii(ctx, capability.OpFinanceUpdateTransaction, params)
+}
+
+func deleteFireflyTransaction(ctx fiber.Ctx) error {
+	id := ctx.Params("id")
+	if id == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	return invokeFireflyiii(ctx, capability.OpFinanceDeleteTransaction, map[string]any{"id": id})
+}
+
+func listFireflyAccounts(ctx fiber.Ctx) error {
+	params := pageParams(ctx)
+	if v := ctx.Query("type"); v != "" {
+		params["type"] = v
+	}
+	return invokeFireflyiii(ctx, capability.OpFinanceListAccounts, params)
+}
+
+func listFireflyCategories(ctx fiber.Ctx) error {
+	return invokeFireflyiii(ctx, capability.OpFinanceListCategories, pageParams(ctx))
+}
+
+func listFireflyBudgets(ctx fiber.Ctx) error {
+	return invokeFireflyiii(ctx, capability.OpFinanceListBudgets, pageParams(ctx))
+}
+
+func listFireflyBills(ctx fiber.Ctx) error {
+	return invokeFireflyiii(ctx, capability.OpFinanceListBills, pageParams(ctx))
+}
+
+func listFireflyTags(ctx fiber.Ctx) error {
+	return invokeFireflyiii(ctx, capability.OpFinanceListTags, pageParams(ctx))
 }
 
 func getFireflyAbout(ctx fiber.Ctx) error {
@@ -1349,6 +1464,29 @@ func getFireflyCurrentUser(ctx fiber.Ctx) error {
 
 func fireflyHealth(ctx fiber.Ctx) error {
 	return invokeFireflyiii(ctx, capability.OpFinanceHealth, map[string]any{})
+}
+
+func fireflyTransactionParams(body fireflyTransactionBody) map[string]any {
+	params := map[string]any{
+		"type":             body.Type,
+		"date":             body.Date,
+		"amount":           body.Amount,
+		"description":      body.Description,
+		"source_id":        body.SourceID,
+		"source_name":      body.SourceName,
+		"destination_id":   body.DestinationID,
+		"destination_name": body.DestinationName,
+		"category_name":    body.CategoryName,
+		"budget_id":        body.BudgetID,
+		"budget_name":      body.BudgetName,
+		"bill_id":          body.BillID,
+		"bill_name":        body.BillName,
+		"notes":            body.Notes,
+	}
+	if body.Tags != nil {
+		params["tags"] = body.Tags
+	}
+	return params
 }
 
 func invokeFireflyiii(ctx fiber.Ctx, operation string, params map[string]any) error {

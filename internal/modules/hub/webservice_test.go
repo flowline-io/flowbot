@@ -198,6 +198,12 @@ func TestFireflyiiiWebserviceRules_Structure(t *testing.T) {
 				}
 				for _, expected := range []string{
 					"/transactions",
+					"/transactions/:id",
+					"/accounts",
+					"/categories",
+					"/budgets",
+					"/bills",
+					"/tags",
 					"/about",
 					"/user",
 					"/health",
@@ -207,10 +213,10 @@ func TestFireflyiiiWebserviceRules_Structure(t *testing.T) {
 			},
 		},
 		{
-			name: "should have four rules",
+			name: "should have thirteen rules",
 			test: func(t *testing.T) {
 				t.Parallel()
-				assert.Len(t, fireflyiiiWebserviceRules, 4)
+				assert.Len(t, fireflyiiiWebserviceRules, 13)
 			},
 		},
 	}

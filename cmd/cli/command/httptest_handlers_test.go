@@ -865,6 +865,50 @@ func TestFireflyiiiRunEHandlers(t *testing.T) {
 			},
 			wantSubstr: "Firefly III backend is healthy",
 		},
+		{
+			name: "fireflyiii list success",
+			cmd:  fireflyiiiListCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodGet, r.Method)
+				assert.Equal(t, "/service/fireflyiii/transactions", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"10","description":"Coffee","amount":"3.50","date":"2026-01-15","source_name":"Cash","destination_name":"Cafe"}],"page":{"limit":20,"has_more":false}}`)))
+			},
+			wantSubstr: "Coffee",
+		},
+		{
+			name: "fireflyiii get success",
+			cmd:  fireflyiiiGetCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/fireflyiii/transactions/10", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"10","description":"Coffee","amount":"3.50"}}`)))
+			},
+			args:       []string{"10"},
+			wantSubstr: "Coffee",
+		},
+		{
+			name: "fireflyiii delete with yes",
+			cmd:  fireflyiiiDeleteCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodDelete, r.Method)
+				assert.Equal(t, "/service/fireflyiii/transactions/10", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":true}`)))
+			},
+			args:       []string{"--yes", "10"},
+			wantSubstr: "Transaction deleted: 10",
+		},
+		{
+			name: "fireflyiii accounts success",
+			cmd:  fireflyiiiAccountsCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/fireflyiii/accounts", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"1","name":"Cash","type":"asset"}],"page":{"limit":50,"has_more":false}}`)))
+			},
+			wantSubstr: "Cash",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
