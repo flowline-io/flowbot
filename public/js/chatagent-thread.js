@@ -655,6 +655,120 @@
       },
     );
 
+    function handleStreamEvent(ev) {
+      if (ns.handleTrajectoryStreamEvent) {
+        ns.handleTrajectoryStreamEvent(ev, threadRoot);
+      }
+      if (ev.type === 'thinking') {
+        if (!thinkingState) {
+          thinkingState = appendThinkingBlock(messagesEl);
+        }
+        if (ev.status === 'completed') {
+          if (thinkingState.setDuration) {
+            thinkingState.setDuration(ev.duration_ms || 0);
+          }
+          return;
+        }
+        thinkingText += ev.text || '';
+        if (thinkingState.setPreview) {
+          thinkingState.setPreview(thinkingText);
+        }
+        thinkingRenderer.update(thinkingText);
+        return;
+      }
+      if (ev.type === 'tool') {
+        var card = upsertToolCard(messagesEl, ev, toolCards, assistantBody);
+        if (ns.handleTodoToolEvent) {
+          ns.handleTodoToolEvent(ev, card, threadRoot);
+        }
+        if (
+          ev.name === 'present_html' &&
+          ev.status === 'completed' &&
+          ev.html &&
+          ns.mountHtmlArtifact
+        ) {
+          ns.mountHtmlArtifact(card, ev);
+        }
+        return;
+      }
+      if (ev.type === 'turn') {
+        if (ev.duration_ms > 0) {
+          lastTurnDurationMs = ev.duration_ms;
+          syncAssistantDuration();
+        }
+        return;
+      }
+      if (ev.type === 'delta') {
+        var chunk = ev.text || '';
+        if (ns.isToolPayloadText(chunk) || ns.isRunningToolStatus(chunk)) {
+          return;
+        }
+        if (!assistantBody) {
+          assistantBody = appendAssistantMessage(messagesEl, '', true);
+          syncAssistantDuration();
+        }
+        assistantText += chunk;
+        mdRenderer.update(assistantText);
+        return;
+      }
+      if (ev.type === 'done') {
+        sawDone = true;
+        if (ev.text) {
+          assistantText = ev.text;
+        }
+        if (!assistantBody && assistantText.trim()) {
+          assistantBody = appendAssistantMessage(messagesEl, '', true);
+        }
+        if (assistantBody && assistantText.trim()) {
+          mdRenderer.update(assistantText);
+        }
+        if (assistantBody && assistantBody.parentElement) {
+          messagesEl.appendChild(assistantBody.parentElement);
+        }
+        if (ev.duration_ms > 0) {
+          lastRunDurationMs = ev.duration_ms;
+          showRunDuration(messagesEl, ev.duration_ms);
+        }
+        syncAssistantDuration();
+        if (ns.refreshTodosFromServer) {
+          ns.refreshTodosFromServer(threadRoot);
+        }
+        return;
+      }
+      if (ev.type === 'usage') {
+        if (ctxCtrl) {
+          ctxCtrl.handleUsage(ev);
+        }
+        return;
+      }
+      if (
+        approval &&
+        (ev.type === 'confirm' ||
+          ev.type === 'confirm_resolved' ||
+          ev.type === 'canceled')
+      ) {
+        if (ev.type === 'confirm') {
+          expandRunningToolCards(toolCards);
+        }
+        approval.handleStreamEvent(ev);
+        return;
+      }
+      if (ev.type === 'error') {
+        sawDone = true;
+        showThreadError(
+          errorEl,
+          ev.message ||
+            flowbotI18n('client.chatagent.run_failed', 'Run failed'),
+        );
+      } else if (ev.type === 'canceled') {
+        sawDone = true;
+        showThreadError(
+          errorEl,
+          ev.message ||
+            flowbotI18n('client.chatagent.run_canceled', 'Run canceled'),
+        );
+      }
+    }
     showThreadError(errorEl, '');
     ns.setRunning(true, threadRoot);
     appendUserMessage(messagesEl, text, pending, mediaURL);
@@ -752,121 +866,6 @@
         var reader = res.body.getReader();
         var decoder = new TextDecoder();
         var buffer = '';
-
-        function handleStreamEvent(ev) {
-          if (ns.handleTrajectoryStreamEvent) {
-            ns.handleTrajectoryStreamEvent(ev, threadRoot);
-          }
-          if (ev.type === 'thinking') {
-            if (!thinkingState) {
-              thinkingState = appendThinkingBlock(messagesEl);
-            }
-            if (ev.status === 'completed') {
-              if (thinkingState.setDuration) {
-                thinkingState.setDuration(ev.duration_ms || 0);
-              }
-              return;
-            }
-            thinkingText += ev.text || '';
-            if (thinkingState.setPreview) {
-              thinkingState.setPreview(thinkingText);
-            }
-            thinkingRenderer.update(thinkingText);
-            return;
-          }
-          if (ev.type === 'tool') {
-            var card = upsertToolCard(messagesEl, ev, toolCards, assistantBody);
-            if (ns.handleTodoToolEvent) {
-              ns.handleTodoToolEvent(ev, card, threadRoot);
-            }
-            if (
-              ev.name === 'present_html' &&
-              ev.status === 'completed' &&
-              ev.html &&
-              ns.mountHtmlArtifact
-            ) {
-              ns.mountHtmlArtifact(card, ev);
-            }
-            return;
-          }
-          if (ev.type === 'turn') {
-            if (ev.duration_ms > 0) {
-              lastTurnDurationMs = ev.duration_ms;
-              syncAssistantDuration();
-            }
-            return;
-          }
-          if (ev.type === 'delta') {
-            var chunk = ev.text || '';
-            if (ns.isToolPayloadText(chunk) || ns.isRunningToolStatus(chunk)) {
-              return;
-            }
-            if (!assistantBody) {
-              assistantBody = appendAssistantMessage(messagesEl, '', true);
-              syncAssistantDuration();
-            }
-            assistantText += chunk;
-            mdRenderer.update(assistantText);
-            return;
-          }
-          if (ev.type === 'done') {
-            sawDone = true;
-            if (ev.text) {
-              assistantText = ev.text;
-            }
-            if (!assistantBody && assistantText.trim()) {
-              assistantBody = appendAssistantMessage(messagesEl, '', true);
-            }
-            if (assistantBody && assistantText.trim()) {
-              mdRenderer.update(assistantText);
-            }
-            if (assistantBody && assistantBody.parentElement) {
-              messagesEl.appendChild(assistantBody.parentElement);
-            }
-            if (ev.duration_ms > 0) {
-              lastRunDurationMs = ev.duration_ms;
-              showRunDuration(messagesEl, ev.duration_ms);
-            }
-            syncAssistantDuration();
-            if (ns.refreshTodosFromServer) {
-              ns.refreshTodosFromServer(threadRoot);
-            }
-            return;
-          }
-          if (ev.type === 'usage') {
-            if (ctxCtrl) {
-              ctxCtrl.handleUsage(ev);
-            }
-            return;
-          }
-          if (
-            approval &&
-            (ev.type === 'confirm' ||
-              ev.type === 'confirm_resolved' ||
-              ev.type === 'canceled')
-          ) {
-            if (ev.type === 'confirm') {
-              expandRunningToolCards(toolCards);
-            }
-            approval.handleStreamEvent(ev);
-            return;
-          }
-          if (ev.type === 'error') {
-            sawDone = true;
-            showThreadError(
-              errorEl,
-              ev.message ||
-                flowbotI18n('client.chatagent.run_failed', 'Run failed'),
-            );
-          } else if (ev.type === 'canceled') {
-            sawDone = true;
-            showThreadError(
-              errorEl,
-              ev.message ||
-                flowbotI18n('client.chatagent.run_canceled', 'Run canceled'),
-            );
-          }
-        }
 
         function pump() {
           return reader.read().then(function (result) {
