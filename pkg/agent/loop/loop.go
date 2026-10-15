@@ -233,6 +233,11 @@ func streamAssistant(
 	result, err := agentllm.StreamAssistant(ctx, llmModel, current.SystemPrompt, llmMessages, streamOpts)
 	metrics.Agent().ObserveLLMDuration(modelName, time.Since(start).Seconds())
 	if err != nil {
+		if abortErr := abortLoopError(err); abortErr != err {
+			metrics.Agent().IncLLMRequest(modelName, "cancelled")
+			trace.RecordError(ctx, abortErr)
+			return msg.AssistantMessage{}, abortErr
+		}
 		err = agentresult.WrapOverflowError(err)
 		metrics.Agent().IncLLMRequest(modelName, "error")
 		trace.RecordError(ctx, err)
@@ -535,8 +540,13 @@ func toAgentMessages(messages []msg.AgentMessage) []msg.AgentMessage {
 }
 
 func abortLoopError(err error) error {
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return ErrAborted
+	if errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) ||
+		errors.Is(err, agentllm.ErrAborted) {
+		if errors.Is(err, ErrAborted) {
+			return err
+		}
+		return fmt.Errorf("%w: %w", ErrAborted, err)
 	}
 	return err
 }

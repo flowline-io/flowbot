@@ -19,6 +19,18 @@ import (
 // ErrAborted indicates the LLM call was cancelled.
 var ErrAborted = errors.New("agent llm: aborted")
 
+// abortedWithCause returns ErrAborted, wrapping cause when set so callers can
+// distinguish context.Canceled from context.DeadlineExceeded via errors.Is.
+func abortedWithCause(cause error) error {
+	if cause == nil {
+		return ErrAborted
+	}
+	if errors.Is(cause, ErrAborted) {
+		return cause
+	}
+	return fmt.Errorf("%w: %w", ErrAborted, cause)
+}
+
 // StreamOptions configures a streaming assistant request.
 type StreamOptions struct {
 	ModelName        string
@@ -64,7 +76,7 @@ func StreamAssistant(
 	opts StreamOptions,
 ) (AssistantResult, error) {
 	if ctx.Err() != nil {
-		return AssistantResult{}, ErrAborted
+		return AssistantResult{}, abortedWithCause(ctx.Err())
 	}
 
 	if systemPrompt != "" {
@@ -85,8 +97,11 @@ func StreamAssistant(
 		return nil
 	})
 	if err != nil {
-		if errors.Is(err, ErrAborted) || ctx.Err() != nil {
-			return AssistantResult{}, ErrAborted
+		if errors.Is(err, ErrAborted) {
+			return AssistantResult{}, err
+		}
+		if ctx.Err() != nil {
+			return AssistantResult{}, abortedWithCause(ctx.Err())
 		}
 		return AssistantResult{}, err
 	}
@@ -237,7 +252,7 @@ func mapGenerateError(ctx context.Context, err error, modelName string, streamSt
 		return AssistantResult{}, idleErr
 	}
 	if ctx.Err() != nil {
-		return AssistantResult{}, ErrAborted
+		return AssistantResult{}, abortedWithCause(ctx.Err())
 	}
 	wrappedErr := fmt.Errorf("agent llm: generate content model=%s: %w", modelName, err)
 	if streamStarted {
@@ -448,7 +463,7 @@ func runCompletion(ctx context.Context, params completeParams, retryCfg RetryCon
 		resp, callErr := params.model.GenerateContent(attemptCtx, messages, opts...)
 		if callErr != nil {
 			if attemptCtx.Err() != nil {
-				return ErrAborted
+				return abortedWithCause(attemptCtx.Err())
 			}
 			return fmt.Errorf("agent llm: complete model=%s: %w", params.modelName, callErr)
 		}
@@ -459,8 +474,11 @@ func runCompletion(ctx context.Context, params completeParams, retryCfg RetryCon
 		return nil
 	})
 	if err != nil {
-		if errors.Is(err, ErrAborted) || ctx.Err() != nil {
-			return "", ErrAborted
+		if errors.Is(err, ErrAborted) {
+			return "", err
+		}
+		if ctx.Err() != nil {
+			return "", abortedWithCause(ctx.Err())
 		}
 		return "", err
 	}

@@ -280,6 +280,9 @@ func (s *Service) executeRun(ctx context.Context, h *harness.Harness, req RunReq
 
 	result := h.LastRunResult()
 	if result.Err != nil {
+		if isRunInterrupted(result.Err) {
+			return "", awaitRunError(req.SessionID, start, result.Err)
+		}
 		flog.Error(fmt.Errorf("[chat-agent] agent loop session=%s: %w", req.SessionID, result.Err))
 		return "", result.Err
 	}
@@ -398,7 +401,7 @@ func deliverRunResult(ctx context.Context, h *harness.Harness, req RunRequest, r
 }
 
 func awaitRunError(sessionID string, start time.Time, err error) error {
-	if errors.Is(err, context.Canceled) {
+	if isRunAbortError(err) || errors.Is(err, context.DeadlineExceeded) {
 		flog.Info("[chat-agent] run cancelled session=%s duration=%s", sessionID, time.Since(start).Round(time.Millisecond))
 		return err
 	}
@@ -406,8 +409,29 @@ func awaitRunError(sessionID string, start time.Time, err error) error {
 	return err
 }
 
+// isRunAbortError reports whether err ends a run via cancel/abort sentinels.
+// LLM abort becomes agentllm.ErrAborted (often wrapping ctx.Err()); the loop
+// normalizes to agent.ErrAborted while preserving cancel vs deadline in the chain.
+// agentllm.ErrAborted is kept for defense when a path skips loop normalization.
+func isRunAbortError(err error) bool {
+	return errors.Is(err, context.Canceled) ||
+		errors.Is(err, agent.ErrAborted) ||
+		errors.Is(err, agentllm.ErrAborted)
+}
+
 func isRunInterrupted(err error) bool {
-	return errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
+	return isRunAbortError(err) || errors.Is(err, context.DeadlineExceeded)
+}
+
+// abortStreamMessage chooses the canceled SSE message from the error chain.
+func abortStreamMessage(err error) string {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "run timed out"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "run canceled by user"
+	}
+	return "run canceled"
 }
 
 // releaseHarnessAfterRunAbort stops an in-flight loop and waits for the pooled harness to

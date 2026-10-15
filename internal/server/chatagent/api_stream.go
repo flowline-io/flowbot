@@ -3,7 +3,6 @@ package chatagent
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
@@ -114,7 +113,7 @@ func (s *Service) StreamAPIRun(ctx context.Context, sessionID, text string, atta
 			Confirm:   gate,
 			OwnerUID:  ownerUID,
 		})
-		if runErr != nil && !errors.Is(runErr, context.Canceled) {
+		if runErr != nil && !isRunInterrupted(runErr) {
 			_ = publisher.Publish(StreamEvent{
 				Type:    EventTypeError,
 				Message: runErr.Error(),
@@ -171,10 +170,10 @@ func writeStreamEventsUntilRunDone(w SSEWriter, publisher *ChannelPublisher, run
 	if stopWriting || runErr == nil {
 		return
 	}
-	if errors.Is(runErr, context.Canceled) {
+	if isRunInterrupted(runErr) {
 		_ = w.WriteEvent(StreamEvent{
 			Type:    EventTypeCanceled,
-			Message: "run canceled by user",
+			Message: abortStreamMessage(runErr),
 		})
 		return
 	}

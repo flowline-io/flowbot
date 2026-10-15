@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -10,6 +11,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/agent"
+	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -75,6 +78,36 @@ func TestWriteStreamEventsUntilRunDone(t *testing.T) {
 			},
 			wantType: EventTypeCanceled,
 			wantMsg:  "run canceled by user",
+		},
+		{
+			name: "agent ErrAborted writes canceled event",
+			setup: func(t *testing.T, pub *ChannelPublisher, runDone chan error) {
+				t.Helper()
+				pub.Close()
+				runDone <- agent.ErrAborted
+			},
+			wantType: EventTypeCanceled,
+			wantMsg:  "run canceled",
+		},
+		{
+			name: "llm ErrAborted writes canceled event",
+			setup: func(t *testing.T, pub *ChannelPublisher, runDone chan error) {
+				t.Helper()
+				pub.Close()
+				runDone <- agentllm.ErrAborted
+			},
+			wantType: EventTypeCanceled,
+			wantMsg:  "run canceled",
+		},
+		{
+			name: "deadline exceeded writes timed out canceled event",
+			setup: func(t *testing.T, pub *ChannelPublisher, runDone chan error) {
+				t.Helper()
+				pub.Close()
+				runDone <- fmt.Errorf("%w: %w", agent.ErrAborted, context.DeadlineExceeded)
+			},
+			wantType: EventTypeCanceled,
+			wantMsg:  "run timed out",
 		},
 	}
 

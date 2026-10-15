@@ -143,7 +143,19 @@ func TestStreamAssistantAbort(t *testing.T) {
 	model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
 	_, err := agentllm.StreamAssistant(ctx, model, "", nil, agentllm.StreamOptions{ModelName: "test"})
 	require.ErrorIs(t, err, agentllm.ErrAborted)
+	require.ErrorIs(t, err, context.Canceled)
 	assert.Equal(t, 0, model.Calls())
+}
+
+func TestStreamAssistantAbortPreservesDeadline(t *testing.T) {
+	t.Parallel()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	defer cancel()
+	time.Sleep(time.Millisecond)
+	model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
+	_, err := agentllm.StreamAssistant(ctx, model, "", nil, agentllm.StreamOptions{ModelName: "test"})
+	require.ErrorIs(t, err, agentllm.ErrAborted)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
 }
 
 func TestCompleteWithRetry(t *testing.T) {

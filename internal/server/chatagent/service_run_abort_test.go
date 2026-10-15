@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -95,6 +96,8 @@ func TestIsRunInterrupted(t *testing.T) {
 		{name: "context canceled", err: context.Canceled, want: true},
 		{name: "deadline exceeded", err: context.DeadlineExceeded, want: true},
 		{name: "wrapped cancel", err: errors.Join(context.Canceled, assert.AnError), want: true},
+		{name: "agent aborted", err: agent.ErrAborted, want: true},
+		{name: "llm aborted", err: agentllm.ErrAborted, want: true},
 		{name: "other error", err: assert.AnError, want: false},
 	}
 
@@ -102,6 +105,47 @@ func TestIsRunInterrupted(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, isRunInterrupted(tt.err))
+		})
+	}
+}
+
+func TestIsRunAbortError(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{name: "context canceled", err: context.Canceled, want: true},
+		{name: "agent aborted", err: agent.ErrAborted, want: true},
+		{name: "llm aborted", err: agentllm.ErrAborted, want: true},
+		{name: "deadline exceeded", err: context.DeadlineExceeded, want: false},
+		{name: "other error", err: assert.AnError, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, isRunAbortError(tt.err))
+		})
+	}
+}
+
+func TestAbortStreamMessage(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want string
+	}{
+		{name: "user cancel", err: context.Canceled, want: "run canceled by user"},
+		{name: "deadline", err: context.DeadlineExceeded, want: "run timed out"},
+		{name: "wrapped deadline", err: fmt.Errorf("%w: %w", agent.ErrAborted, context.DeadlineExceeded), want: "run timed out"},
+		{name: "bare aborted", err: agent.ErrAborted, want: "run canceled"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, abortStreamMessage(tt.err))
 		})
 	}
 }
