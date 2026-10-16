@@ -48,7 +48,7 @@ func mcpConfigCommand() *cobra.Command {
 				return err
 			}
 			if IsJSON(cmd) {
-				return PrintJSON(snippet)
+				return render(cmd, snippet)
 			}
 			_, err = fmt.Fprint(cmd.OutOrStdout(), snippet.Snippet)
 			return err
@@ -60,7 +60,6 @@ func mcpConfigCommand() *cobra.Command {
 	cmd.Flags().String("token-env", "FLOWBOT_MCP_TOKEN", "Environment variable that holds the bearer token")
 	cmd.Flags().String("scope", "", "project or user (claude default user, cursor default project)")
 	cmd.Flags().String("approval", "writes", "Codex default_tools_approval_mode")
-	cmd.Flags().StringP("output", "o", "text", "Output format (text, json)")
 	_ = cmd.MarkFlagRequired("client")
 	return cmd
 }

@@ -55,6 +55,9 @@ func pipelineApplyCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("apply pipeline: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Applied pipeline %s (id=%d enabled=%v version=%d)\n",
 				result.Name, result.ID, result.Enabled, result.Version)
 			return nil
@@ -85,12 +88,8 @@ func pipelineListCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No pipelines configured")
 			}
 
-			output, err := cmd.Flags().GetString("output")
-			if err != nil {
-				return err
-			}
-			if output == "json" {
-				return PrintJSON(result.Pipelines)
+			if IsJSON(cmd) {
+				return render(cmd, result.Pipelines)
 			}
 			_, _ = fmt.Printf("%-32s %-10s %s\n", "NAME", "ENABLED", "TRIGGERS")
 			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 60))
@@ -105,7 +104,6 @@ func pipelineListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -125,10 +123,9 @@ func pipelineGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get pipeline: %w", err)
 			}
-			return PrintJSON(result)
+			return render(cmd, result)
 		},
 	}
-	cmd.Flags().StringP("output", "o", "json", "Output format (json)")
 	return cmd
 }
 
@@ -148,22 +145,28 @@ func pipelineExportCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("export pipeline: %w", err)
 			}
-			outPath, err := cmd.Flags().GetString("output")
+			outPath, err := cmd.Flags().GetString("file")
 			if err != nil {
 				return err
 			}
-			if outPath != "" && outPath != "json" && outPath != "table" {
+			if outPath != "" {
 				if err := os.WriteFile(outPath, []byte(result.YAML), 0o644); err != nil {
 					return fmt.Errorf("write export file: %w", err)
 				}
+				if IsJSON(cmd) {
+					return render(cmd, map[string]string{"path": outPath})
+				}
 				_, _ = fmt.Printf("Exported pipeline %s to %s\n", args[0], outPath)
 				return nil
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"yaml": result.YAML})
 			}
 			_, _ = fmt.Print(result.YAML)
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "", "Optional file path to write YAML")
+	cmd.Flags().String("file", "", "Optional file path to write YAML")
 	return cmd
 }
 
@@ -181,6 +184,9 @@ func pipelineDeleteCommand() *cobra.Command {
 			}
 			if err := c.Pipeline.Delete(cmd.Context(), args[0]); err != nil {
 				return fmt.Errorf("delete pipeline: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": args[0]})
 			}
 			_, _ = fmt.Printf("Deleted pipeline %s\n", args[0])
 			return nil
@@ -215,6 +221,9 @@ func pipelineRunCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("run pipeline: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Pipeline %s started: run_id=%d\n", args[0], result.RunID)
 			return nil
 		},
@@ -242,12 +251,8 @@ func pipelineRunsCommand() *cobra.Command {
 			if len(result.Runs) == 0 {
 				return PrintEmptyList(cmd, "No runs found")
 			}
-			output, err := cmd.Flags().GetString("output")
-			if err != nil {
-				return err
-			}
-			if output == "json" {
-				return PrintJSON(result.Runs)
+			if IsJSON(cmd) {
+				return render(cmd, result.Runs)
 			}
 			_, _ = fmt.Printf("%-10s %-12s %-12s\n", "ID", "STATUS", "TRIGGER")
 			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 40))
@@ -257,6 +262,5 @@ func pipelineRunsCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }

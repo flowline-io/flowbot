@@ -47,10 +47,10 @@ func confluenceSpaceListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list spaces: %w", err)
 			}
-			if len(result.Data) == 0 {
-				return PrintEmptyList(cmd, "No spaces found")
+			if done, err := stopAfterList(cmd, "No spaces found", result, len(result.Data)); done {
+				return err
 			}
-			return PrintJSON(result)
+			return render(cmd, result)
 		},
 	}
 	cmd.Flags().Int("limit", 0, "Maximum items per page")
@@ -74,10 +74,10 @@ func confluencePageListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list pages: %w", err)
 			}
-			if len(result.Data) == 0 {
-				return PrintEmptyList(cmd, "No pages found")
+			if done, err := stopAfterList(cmd, "No pages found", result, len(result.Data)); done {
+				return err
 			}
-			return PrintJSON(result)
+			return render(cmd, result)
 		},
 	}
 	cmd.Flags().Int("limit", 0, "Maximum items per page")
@@ -99,7 +99,7 @@ func confluencePageGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get page: %w", err)
 			}
-			return PrintJSON(page)
+			return render(cmd, page)
 		},
 	}
 }
@@ -117,6 +117,9 @@ func confluencePageContentCommand() *cobra.Command {
 			content, err := c.Confluence.GetPageContent(cmd.Context(), args[0])
 			if err != nil {
 				return fmt.Errorf("get page content: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, content)
 			}
 			_, _ = fmt.Println(content)
 			return nil
@@ -143,10 +146,10 @@ func confluencePageSearchCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("search pages: %w", err)
 			}
-			if len(result.Data) == 0 {
-				return PrintEmptyList(cmd, "No pages matched")
+			if done, err := stopAfterList(cmd, "No pages matched", result, len(result.Data)); done {
+				return err
 			}
-			return PrintJSON(result)
+			return render(cmd, result)
 		},
 	}
 	cmd.Flags().String("cql", "", "CQL query")
@@ -176,7 +179,7 @@ func confluencePageCreateCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("create page: %w", err)
 			}
-			return PrintJSON(page)
+			return render(cmd, page)
 		},
 	}
 	cmd.Flags().String("space-key", "", "Space key")
@@ -205,7 +208,7 @@ func confluencePageUpdateCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("update page: %w", err)
 			}
-			return PrintJSON(page)
+			return render(cmd, page)
 		},
 	}
 	cmd.Flags().StringP("title", "t", "", "New title")
@@ -226,6 +229,9 @@ func confluencePageDeleteCommand() *cobra.Command {
 			if err := c.Confluence.DeletePage(cmd.Context(), args[0]); err != nil {
 				return fmt.Errorf("delete page: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": args[0]})
+			}
 			_, _ = fmt.Printf("page deleted: %s\n", args[0])
 			return nil
 		},
@@ -244,6 +250,9 @@ func confluenceHealthCommand() *cobra.Command {
 			ok, err := c.Confluence.Health(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("health check: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": ok})
 			}
 			if !ok {
 				_, _ = fmt.Println("confluence unhealthy")

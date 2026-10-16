@@ -87,12 +87,11 @@ func emailListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list email: %w", err)
 			}
-			if items == nil || len(items.Items) == 0 {
-				return PrintEmptyList(cmd, "No messages found")
+			if items == nil {
+				items = &client.EmailListResult{}
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(items)
+			if done, err := stopAfterList(cmd, "No messages found", items, len(items.Items)); done {
+				return err
 			}
 			for _, item := range items.Items {
 				from := ""
@@ -111,7 +110,6 @@ func emailListCommand() *cobra.Command {
 	cmd.Flags().Bool("unseen-only", false, "Only unseen messages")
 	cmd.Flags().Int("limit", 20, "Page size")
 	cmd.Flags().String("cursor", "", "Pagination cursor")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -129,9 +127,8 @@ func emailGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get email: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(msg)
+			if IsJSON(cmd) {
+				return render(cmd, msg)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "ID: %s\nSubject: %s\nFrom: %s\nTo: %s\n",
 				msg.ID, msg.Subject, strings.Join(msg.From, ", "), strings.Join(msg.To, ", "))
@@ -143,7 +140,6 @@ func emailGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -173,12 +169,11 @@ func emailSearchCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("search email: %w", err)
 			}
-			if items == nil || len(items.Items) == 0 {
-				return PrintEmptyList(cmd, "No messages found")
+			if items == nil {
+				items = &client.EmailListResult{}
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(items)
+			if done, err := stopAfterList(cmd, "No messages found", items, len(items.Items)); done {
+				return err
 			}
 			for _, item := range items.Items {
 				from := ""
@@ -202,7 +197,6 @@ func emailSearchCommand() *cobra.Command {
 	cmd.Flags().Bool("unseen", false, "Unseen only")
 	cmd.Flags().Int("limit", 20, "Page size")
 	cmd.Flags().String("cursor", "", "Pagination cursor")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -258,6 +252,9 @@ func emailHealthCommand() *cobra.Command {
 			ok, err := c.Email.Health(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("email health: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": ok})
 			}
 			if ok {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "healthy")

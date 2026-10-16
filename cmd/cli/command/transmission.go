@@ -44,6 +44,9 @@ func transmissionAddCommand() *cobra.Command {
 				return fmt.Errorf("add torrent: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, torrent)
+			}
 			_, _ = fmt.Printf("Torrent added: %d\n", torrent.ID)
 			if torrent.Name != "" {
 				_, _ = fmt.Printf("Name: %s\n", torrent.Name)
@@ -76,9 +79,8 @@ func transmissionListCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No torrents found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(items)
+			if IsJSON(cmd) {
+				return render(cmd, items)
 			}
 			for _, item := range items {
 				_, _ = fmt.Printf("%d\t%s\t%s\t%.0f%%\n", item.ID, item.Status, item.Name, item.PercentDone*100)
@@ -86,7 +88,6 @@ func transmissionListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -104,6 +105,9 @@ func transmissionStopCommand() *cobra.Command {
 			ids, _ := cmd.Flags().GetInt64Slice("ids")
 			if err := c.Transmission.StopTorrents(cmd.Context(), ids); err != nil {
 				return fmt.Errorf("stop torrents: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]any{"ids": ids})
 			}
 			_, _ = fmt.Printf("Stopped %d torrent(s)\n", len(ids))
 			return nil
@@ -128,6 +132,9 @@ func transmissionRemoveCommand() *cobra.Command {
 			ids, _ := cmd.Flags().GetInt64Slice("ids")
 			if err := c.Transmission.RemoveTorrents(cmd.Context(), ids); err != nil {
 				return fmt.Errorf("remove torrents: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]any{"ids": ids})
 			}
 			_, _ = fmt.Printf("Removed %d torrent(s)\n", len(ids))
 			return nil
@@ -154,6 +161,9 @@ func transmissionHealthCommand() *cobra.Command {
 				return fmt.Errorf("check health: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": healthy})
+			}
 			if healthy {
 				_, _ = fmt.Println("Transmission backend is healthy")
 			} else {

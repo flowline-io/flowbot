@@ -55,6 +55,9 @@ func workflowApplyCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("apply workflow: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Applied workflow %s (id=%d enabled=%v)\n", result.Name, result.ID, result.Enabled)
 			return nil
 		},
@@ -80,9 +83,8 @@ func workflowListCommand() *cobra.Command {
 			if len(result.Workflows) == 0 {
 				return PrintEmptyList(cmd, "No workflows configured")
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result.Workflows)
+			if IsJSON(cmd) {
+				return render(cmd, result.Workflows)
 			}
 			_, _ = fmt.Printf("%-32s %-10s %s\n", "NAME", "ENABLED", "DESCRIBE")
 			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 60))
@@ -96,7 +98,6 @@ func workflowListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -116,14 +117,12 @@ func workflowGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get workflow: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if IsJSON(cmd) {
+				return render(cmd, result)
 			}
-			return PrintJSON(result)
+			return render(cmd, result)
 		},
 	}
-	cmd.Flags().StringP("output", "o", "json", "Output format (json)")
 	return cmd
 }
 
@@ -143,19 +142,25 @@ func workflowExportCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("export workflow: %w", err)
 			}
-			outPath, _ := cmd.Flags().GetString("output")
-			if outPath != "" && outPath != "json" && outPath != "table" {
+			outPath, _ := cmd.Flags().GetString("file")
+			if outPath != "" {
 				if err := os.WriteFile(outPath, []byte(result.YAML), 0o644); err != nil {
 					return fmt.Errorf("write export file: %w", err)
 				}
+				if IsJSON(cmd) {
+					return render(cmd, map[string]string{"path": outPath})
+				}
 				_, _ = fmt.Printf("Exported workflow %s to %s\n", args[0], outPath)
 				return nil
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"yaml": result.YAML})
 			}
 			_, _ = fmt.Print(result.YAML)
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "", "Optional file path to write YAML")
+	cmd.Flags().String("file", "", "Optional file path to write YAML")
 	return cmd
 }
 
@@ -173,6 +178,9 @@ func workflowDeleteCommand() *cobra.Command {
 			}
 			if err := c.Workflow.Delete(cmd.Context(), args[0]); err != nil {
 				return fmt.Errorf("delete workflow: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": args[0]})
 			}
 			_, _ = fmt.Printf("Deleted workflow %s\n", args[0])
 			return nil
@@ -204,6 +212,9 @@ func workflowRunCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("run workflow: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Workflow %s started: run_id=%d\n", args[0], result.RunID)
 			return nil
 		},
@@ -231,9 +242,8 @@ func workflowRunsCommand() *cobra.Command {
 			if len(result.Runs) == 0 {
 				return PrintEmptyList(cmd, "No runs found")
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result.Runs)
+			if IsJSON(cmd) {
+				return render(cmd, result.Runs)
 			}
 			_, _ = fmt.Printf("%-10s %-12s %-12s\n", "ID", "STATUS", "TRIGGER")
 			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 40))
@@ -243,6 +253,5 @@ func workflowRunsCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }

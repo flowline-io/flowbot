@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `get_commit_diff`
 
-Get commit diff
+Get commit diff for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 
@@ -30,7 +31,8 @@ Get commit diff
 
 ## `get_file_content`
 
-Get file content
+Get file content for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 
@@ -60,7 +62,8 @@ Get file content
 
 ## `get_issue`
 
-Get an issue
+Get an issue for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 
@@ -84,7 +87,8 @@ Get an issue
 
 ## `get_repo`
 
-Get a repository
+Get a repository for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 
@@ -106,7 +110,8 @@ Get a repository
 
 ## `get_user`
 
-Get authenticated user
+Get authenticated user for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -122,7 +127,8 @@ _(none)_
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -138,7 +144,8 @@ _(none)_
 
 ## `list_issues`
 
-List issues
+List issues for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 

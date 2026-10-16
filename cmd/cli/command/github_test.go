@@ -127,11 +127,8 @@ func TestGithubOutputFlags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cmd := GithubCommand()
-			sub := findSubcommand(cmd, tt.subcommand)
-			require.NotNil(t, sub)
-			flag := sub.Flags().Lookup("output")
-			require.NotNil(t, flag)
+			sub := findLeaf(t, NewRoot("test"), "github", tt.subcommand)
+			require.NotNil(t, lookupFlag(sub, "output"))
 		})
 	}
 }

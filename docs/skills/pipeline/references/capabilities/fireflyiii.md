@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `about`
 
-Get Firefly III about info
+Get Firefly III about info for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -22,7 +23,8 @@ _(none)_
 
 ## `create_transaction`
 
-Create a transaction (**mutation**)
+Create a transaction for the signed-in caller. Creates or updates data.
+Example: {"type":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -70,7 +72,8 @@ Create a transaction (**mutation**)
 
 ## `current_user`
 
-Get current Firefly III user
+Get current Firefly III user for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -86,7 +89,8 @@ _(none)_
 
 ## `delete_transaction`
 
-Delete a transaction (**mutation**)
+Delete a transaction for the signed-in caller. Deletes or removes data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -106,7 +110,8 @@ Delete a transaction (**mutation**)
 
 ## `get_transaction`
 
-Get a transaction by group ID
+Get a transaction by group ID for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -126,7 +131,8 @@ Get a transaction by group ID
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -142,7 +148,8 @@ _(none)_
 
 ## `list_accounts`
 
-List accounts
+List accounts for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -166,7 +173,8 @@ List accounts
 
 ## `list_bills`
 
-List bills
+List bills for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -188,7 +196,8 @@ List bills
 
 ## `list_budgets`
 
-List budgets
+List budgets for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -210,7 +219,8 @@ List budgets
 
 ## `list_categories`
 
-List categories
+List categories for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -232,7 +242,8 @@ List categories
 
 ## `list_tags`
 
-List tags
+List tags for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -254,7 +265,8 @@ List tags
 
 ## `list_transactions`
 
-List transactions
+List transactions for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -284,7 +296,8 @@ List transactions
 
 ## `update_transaction`
 
-Update a transaction (**mutation**)
+Update a transaction for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 

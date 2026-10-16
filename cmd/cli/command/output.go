@@ -1,67 +1,48 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
-	"github.com/flowline-io/flowbot/pkg/client"
-	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
 // IsJSON reports whether the command (or an ancestor) requested JSON output.
 func IsJSON(cmd *cobra.Command) bool {
-	if cmd == nil {
-		return false
-	}
-	for c := cmd; c != nil; c = c.Parent() {
-		if f := c.Flags().Lookup("output"); f != nil {
-			return f.Value.String() == "json"
-		}
-	}
-	return false
+	return utils.IsJSON(cmd)
 }
 
-// PrintJSON writes v as indented JSON to stdout.
-func PrintJSON(v any) error {
-	data, err := sonic.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshal json: %w", err)
-	}
-	_, _ = fmt.Println(string(data))
-	return nil
+func render(cmd *cobra.Command, v any) error {
+	return utils.Print(cmd, v, nil)
 }
 
-// PrintEmptyList writes an empty JSON array when -o json is set, otherwise tableMsg.
+// PrintEmptyList writes {"data":[]} when -o json is set, otherwise tableMsg.
+// Paginated commands keep their page by rendering the list result instead.
 func PrintEmptyList(cmd *cobra.Command, tableMsg string) error {
 	if IsJSON(cmd) {
-		return PrintJSON([]any{})
+		return utils.WriteEnvelope(cmd.OutOrStdout(), []any{}, nil)
 	}
-	_, _ = fmt.Println(tableMsg)
-	return nil
+	return writef(cmd, "%s\n", tableMsg)
 }
 
-// PrintJSONError writes a protocol-shaped failed response as JSON to stdout.
-// HTTP API responses stay client-safe via NewFailedResponse; local CLI errors
-// surface err.Error() so operators see actionable diagnostics on the console.
-func PrintJSONError(err error) {
-	resp := protocol.NewFailedResponse(err)
-	if apiErr, ok := errors.AsType[*client.APIError](err); ok {
-		if apiErr.Message != "" {
-			resp.Message = apiErr.Message
-		}
-		if apiErr.RetCode != "" {
-			resp.RetCode = apiErr.RetCode
-		}
-	} else if err != nil && (resp.Message == "" || resp.Message == "Unknown Error") {
-		resp.Message = err.Error()
+// stopAfterList reports whether the caller should return.
+// JSON mode renders payload, including an empty page.
+// Table mode prints tableMsg only when n is zero.
+func stopAfterList(cmd *cobra.Command, tableMsg string, payload any, n int) (bool, error) {
+	if IsJSON(cmd) {
+		return true, render(cmd, payload)
 	}
-	data, mErr := sonic.MarshalIndent(resp, "", "  ")
-	if mErr != nil {
-		_, _ = fmt.Printf("{\"status\":\"failed\",\"message\":%q}\n", err.Error())
-		return
+	if n == 0 {
+		return true, writef(cmd, "%s\n", tableMsg)
 	}
-	_, _ = fmt.Println(string(data))
+	return false, nil
+}
+
+func writef(cmd *cobra.Command, format string, args ...any) error {
+	_, err := fmt.Fprintf(cmd.OutOrStdout(), format, args...)
+	if err != nil {
+		return fmt.Errorf("write output: %w", err)
+	}
+	return nil
 }

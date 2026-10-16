@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `agent_health`
 
-Agent subsystem health
+Agent subsystem health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -22,7 +23,8 @@ _(none)_
 
 ## `agent_run`
 
-Execute one autonomous agent turn with a prompt (**mutation**)
+Execute one autonomous agent turn with a prompt for the signed-in caller. Creates or updates data.
+Example: {"prompt":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -50,7 +52,8 @@ Execute one autonomous agent turn with a prompt (**mutation**)
 
 ## `clip_create`
 
-Create a markdown clip and return its public URL (**mutation**)
+Create a markdown clip and return its public URL for the signed-in caller. Creates or updates data.
+Example: {"content":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -72,7 +75,8 @@ Create a markdown clip and return its public URL (**mutation**)
 
 ## `clip_get`
 
-Get a markdown clip by slug
+Get a markdown clip by slug for the signed-in caller. Read-only.
+Example: {"slug":"example"}
 
 **Inputs (params):**
 
@@ -92,7 +96,8 @@ Get a markdown clip by slug
 
 ## `clip_health`
 
-Clip subsystem health
+Clip subsystem health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -108,7 +113,8 @@ _(none)_
 
 ## `health`
 
-Core runtime health
+Core runtime health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -124,7 +130,8 @@ _(none)_
 
 ## `http_request`
 
-Perform an outbound HTTP request (**mutation**)
+Perform an outbound HTTP request for the signed-in caller. Creates or updates data.
+Example: {"url":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -152,7 +159,8 @@ Perform an outbound HTTP request (**mutation**)
 
 ## `kv_delete`
 
-Delete a persistent KV value (**mutation**)
+Delete a persistent KV value for the signed-in caller. Deletes or removes data.
+Example: {"namespace":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -176,7 +184,8 @@ Delete a persistent KV value (**mutation**)
 
 ## `kv_get`
 
-Get a persistent KV value
+Get a persistent KV value for the signed-in caller. Read-only.
+Example: {"namespace":"example"}
 
 **Inputs (params):**
 
@@ -200,7 +209,8 @@ Get a persistent KV value
 
 ## `kv_set`
 
-Set a persistent KV value (**mutation**)
+Set a persistent KV value for the signed-in caller. Creates or updates data.
+Example: {"namespace":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -228,7 +238,8 @@ Set a persistent KV value (**mutation**)
 
 ## `notify_health`
 
-Notify subsystem health
+Notify subsystem health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -244,7 +255,8 @@ _(none)_
 
 ## `notify_send`
 
-Send a notification using a template (**mutation**)
+Send a notification using a template for the signed-in caller. Creates or updates data.
+Example: {"template_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -270,7 +282,8 @@ Send a notification using a template (**mutation**)
 
 ## `run_code`
 
-Run source code in the configured workspace sandbox (**mutation**)
+Run source code in the configured workspace sandbox for the signed-in caller. Creates or updates data.
+Example: {"language":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -296,7 +309,8 @@ Run source code in the configured workspace sandbox (**mutation**)
 
 ## `run_terminal`
 
-Run a shell command in the configured workspace sandbox (**mutation**)
+Run a shell command in the configured workspace sandbox for the signed-in caller. Creates or updates data.
+Example: {"command":"example"} (**mutation**)
 
 **Inputs (params):**
 

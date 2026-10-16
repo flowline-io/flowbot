@@ -48,6 +48,9 @@ func memoCreateCommand() *cobra.Command {
 				return fmt.Errorf("create memo: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, memo)
+			}
 			_, _ = fmt.Printf("Memo created: %s\n", memo.Name)
 			_, _ = fmt.Printf("Content: %s\n", memo.Content)
 			if memo.Visibility != "" {
@@ -83,13 +86,8 @@ func memoListCommand() *cobra.Command {
 				return fmt.Errorf("list memos: %w", err)
 			}
 
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No memos found")
-			}
-
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result.Items)
+			if done, err := stopAfterList(cmd, "No memos found", result, len(result.Items)); done {
+				return err
 			}
 			for _, m := range result.Items {
 				pinned := ""
@@ -116,7 +114,6 @@ func memoListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of memos")
 	return cmd
 }
@@ -142,9 +139,8 @@ func memoGetCommand() *cobra.Command {
 				return fmt.Errorf("get memo: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(memo)
+			if IsJSON(cmd) {
+				return render(cmd, memo)
 			}
 			_, _ = fmt.Printf("Name:       %s\n", memo.Name)
 			_, _ = fmt.Printf("Content:    %s\n", memo.Content)
@@ -165,7 +161,6 @@ func memoGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -213,6 +208,9 @@ func memoUpdateCommand() *cobra.Command {
 				return fmt.Errorf("update memo: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, memo)
+			}
 			if memo.Pinned {
 				_, _ = fmt.Printf("Memo updated [pinned]: %s\n", memo.Name)
 			} else {
@@ -238,17 +236,8 @@ func memoDeleteCommand() *cobra.Command {
 			}
 			name := args[0]
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Delete memo %s? [y/N]: ", name)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Delete memo %s? [y/N]: ", name)); err != nil {
+				return err
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -260,11 +249,13 @@ func memoDeleteCommand() *cobra.Command {
 				return fmt.Errorf("delete memo: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": name})
+			}
 			_, _ = fmt.Printf("Memo deleted: %s\n", name)
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -284,6 +275,9 @@ func memoHealthCommand() *cobra.Command {
 				return fmt.Errorf("check health: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": healthy})
+			}
 			if healthy {
 				_, _ = fmt.Println("Memo backend is healthy")
 			} else {

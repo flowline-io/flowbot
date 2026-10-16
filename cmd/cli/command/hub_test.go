@@ -3,6 +3,8 @@ package command
 import (
 	"testing"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,12 +74,13 @@ func TestHubAppsListCommand(t *testing.T) {
 			require.NotNil(t, listCmd)
 			require.NotNil(t, listCmd.RunE)
 
-			output := listCmd.Flags().Lookup("output")
+			root := NewRoot("test")
+			list := findLeaf(t, root, "hub", "apps", "list")
+			output := lookupFlag(list, "output")
 			require.NotNil(t, output)
 			require.Equal(t, "output", output.Name)
 			require.Equal(t, "o", output.Shorthand)
-			defVal, _ := listCmd.Flags().GetString("output")
-			require.Equal(t, "table", defVal)
+			require.Equal(t, "table", output.DefValue)
 		})
 	}
 }
@@ -141,13 +144,32 @@ func TestHubHealthCommand(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			hubCmd := HubCommand()
-			healthCmd := findSubcommand(hubCmd, "health")
-			require.NotNil(t, healthCmd)
+			root := NewRoot("test")
+			healthCmd := findLeaf(t, root, "hub", "health")
 			require.NotNil(t, healthCmd.RunE)
-
-			output := healthCmd.Flags().Lookup("output")
-			require.NotNil(t, output)
+			require.NotNil(t, lookupFlag(healthCmd, "output"))
 		})
 	}
+}
+
+func findLeaf(t *testing.T, cmd *cobra.Command, names ...string) *cobra.Command {
+	t.Helper()
+	cur := cmd
+	for _, name := range names {
+		cur = findSubcommand(cur, name)
+		require.NotNilf(t, cur, "missing %s", name)
+	}
+	return cur
+}
+
+func lookupFlag(cmd *cobra.Command, name string) *pflag.Flag {
+	for c := cmd; c != nil; c = c.Parent() {
+		if f := c.PersistentFlags().Lookup(name); f != nil {
+			return f
+		}
+		if f := c.Flags().Lookup(name); f != nil {
+			return f
+		}
+	}
+	return nil
 }

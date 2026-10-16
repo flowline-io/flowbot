@@ -84,7 +84,7 @@ func TestTransmissionListAndHealth(t *testing.T) {
 			listCmd := findSubcommand(root, "list")
 			require.NotNil(t, listCmd)
 			require.NotNil(t, listCmd.RunE)
-			require.NotNil(t, listCmd.Flags().Lookup("output"))
+			require.NotNil(t, lookupFlag(findLeaf(t, NewRoot("test"), "transmission", "list"), "output"))
 
 			healthCmd := findSubcommand(root, "health")
 			require.NotNil(t, healthCmd)

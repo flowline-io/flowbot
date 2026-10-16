@@ -5,62 +5,20 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-
 	"github.com/flowline-io/flowbot/cmd/cli/command"
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/version"
 )
 
-const (
-	appName  = "flowbot"
-	appUsage = "Work seamlessly with Flowbot from the command line"
-)
-
 func main() {
-	rootCmd := &cobra.Command{
-		Use:           appName,
-		Short:         appUsage,
-		SilenceUsage:  true,
-		SilenceErrors: true,
-	}
-
-	rootCmd.PersistentFlags().String("profile", "", "Configuration profile name (e.g. dev)")
-	rootCmd.PersistentFlags().String("server-url", "", "Flowbot server URL")
-	rootCmd.PersistentFlags().BoolP("debug", "d", false, "Enable debug mode (prints HTTP request/response logs)")
-
-	rootCmd.AddCommand(
-		command.LoginCommand(),
-		command.HubCommand(),
-		command.PipelineCommand(),
-		command.BlueprintCommand(),
-		command.FunctionCommand(),
-		command.WorkflowCommand(),
-		command.BookmarkCommand(),
-		command.KanbanCommand(),
-		command.ReaderCommand(),
-		command.ForgeCommand(),
-		command.GithubCommand(),
-		command.MemoCommand(),
-		command.TriliumCommand(),
-		command.TrelloCommand(),
-		command.ConfluenceCommand(),
-		command.FireflyiiiCommand(),
-		command.TransmissionCommand(),
-		command.EmailCommand(),
-		command.NocodbCommand(),
-		command.DevopsCommand(),
-		command.ConfigCommand(),
-		command.MCPCommand(),
-		command.VersionCommand(version.Buildtags),
-	)
-
-	cmd, err := rootCmd.ExecuteC()
+	cmd, err := command.Execute(version.Buildtags)
 	if err != nil {
-		if command.IsJSON(cmd) {
-			command.PrintJSONError(err)
-		} else {
-			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		code := utils.ExitCode(err)
+		if printErr := utils.PrintError(os.Stderr, utils.IsJSON(cmd), err); printErr != nil {
+			if _, writeErr := fmt.Fprintf(os.Stderr, "Error: %v\n", err); writeErr != nil {
+				os.Exit(code)
+			}
 		}
-		os.Exit(1)
+		os.Exit(code)
 	}
 }

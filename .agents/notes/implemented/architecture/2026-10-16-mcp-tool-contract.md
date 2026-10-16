@@ -10,7 +10,7 @@ External agents could read only a text blob from `/mcp`. A rate limit, a bad arg
 
 Successful `structuredContent` is the existing result plus a sibling `trace`. JSON arrays are wrapped as `items` plus `trace` only for `pipeline.list`, `workflow.list`, `function.list`, and `hub.apps`. `get_run` without `run_id` returns `{runs, trace}`; a matching `run_id` returns that run object plus `trace`. Failed calls set `isError` and return only `error` and `trace`. Text content is that same JSON. `outputSchema` is a `oneOf` of the success shape and the error envelope for pipeline, workflow, and function `list` / `get` / `run` / `get_run`, `hub.apps`, `hub.health`, and capability operations whose names contain `list`. The success branch rejects a tool-error object (`error` with `code`, `message`, `retryable`, and `hint`). A domain string field named `error` still matches success.
 
-`error` always has `code`, `message`, `retryable`, and `hint`. `message` uses `types.ClientSafeDomainMessage`, except plain errors and `ErrInternal`, which are always `internal error`. `retry_after_ms`, `field`, `job_id`, and `confirmation_required` appear only when set. `types.Error` carries optional `Field`, `RetryAfter`, `JobID`, and `Confirmation`. v1.0 does not fill those optionals at call sites. `ToToolError` lives in `internal/server/mcp` because `pkg/config` already imports `pkg/mcp`, and `pkg/types` imports `pkg/config`.
+`error` always has `code`, `message`, `retryable`, and `hint`. `message` uses `types.ClientSafeDomainMessage`, except plain errors and `ErrInternal`, which are always `internal error`. `retry_after_ms`, `field`, `job_id`, and `confirmation_required` appear only when set. `types.Error` carries optional `Field`, `RetryAfter`, `JobID`, and `Confirmation`. v1.0 does not fill those optionals at call sites. `ToToolError` lives in `pkg/toolerr`. `internal/server/mcp` re-exports it. It stays out of `pkg/mcp` because `pkg/types` imports `pkg/config`, and `pkg/config` imports `pkg/mcp`. The CLI uses the same function; see [CLI agent output](../feature/2026-10-17-cli-agent-output.md).
 
 `trace.request_id` is the Fiber `X-Request-ID`. `trace.trace_id` is the current W3C span id when the span is valid. `correlation_id` is declared on the schema and omitted until a write emits a `DataEvent`.
 
@@ -28,7 +28,7 @@ Contract tests run from `.github/workflows/mcp-contract.yml` via `go tool task t
 - **Change `IsMutation` so capability overrides affect cache and audit.** Rejected: `run` is a write for every current caller, and cache behavior should not follow annotation tiers.
 - **Lock the future `truncated` / `returned` page shape in v1.0.** Rejected: handlers return `PageInfo` (`limit`, `has_more`, `next_cursor`) or bare arrays. The schema describes those values.
 - **Add the contract job inside `testing.yml`.** Rejected: `paths-ignore` on the workflow trigger applies to every job in that file.
-- **Put `ToToolError` in `pkg/mcp`.** Rejected: that import cycle is `pkg/types` → `pkg/config` → `pkg/mcp`.
+- **Put `ToToolError` in `pkg/mcp`.** Rejected: that import cycle is `pkg/types` → `pkg/config` → `pkg/mcp`. It lives in `pkg/toolerr` instead.
 
 ## Consequences
 

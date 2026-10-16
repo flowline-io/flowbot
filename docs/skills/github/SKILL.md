@@ -49,6 +49,6 @@ When a user wants an activity overview:
 | not logged in | `flowbot login` |
 | server URL is required | set `FLOWBOT_SERVER_URL` or pass `--server-url` |
 | permission denied / 403 | token missing service scopes (`service:github:read` / `service:github:write`) |
-| hung waiting for confirm | pass `-y` when the command supports it (see cli.md) |
+| hung waiting for confirm or exit 7 | pass `--yes` / `-y`. `--no-input` without `--yes` exits 7 and does not read stdin |
 | empty results | provider not configured, wrong id/name, or empty dataset |
 | unknown command | use `flowbot github`, not the capability id as the CLI verb |

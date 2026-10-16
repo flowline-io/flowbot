@@ -74,9 +74,8 @@ func kanbanListCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No kanban tasks found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(tasks)
+			if IsJSON(cmd) {
+				return render(cmd, tasks)
 			}
 			_, _ = fmt.Printf("%-8s %-30s %-12s %-12s\n", "ID", "TITLE", "COLUMN", "PROJECT")
 			_, _ = fmt.Println(strings.Repeat("-", 65))
@@ -94,7 +93,6 @@ func kanbanListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("project", "p", 1, "Project ID")
 	cmd.Flags().StringP("status", "s", "active", "Status filter (active, inactive, all)")
 	return cmd
@@ -124,9 +122,8 @@ func kanbanGetCommand() *cobra.Command {
 				return fmt.Errorf("get kanban task: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(task)
+			if IsJSON(cmd) {
+				return render(cmd, task)
 			}
 			_, _ = fmt.Printf("ID:          %d\n", task.ID)
 			_, _ = fmt.Printf("Title:       %s\n", task.Title)
@@ -139,7 +136,6 @@ func kanbanGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -180,6 +176,9 @@ func kanbanCreateCommand() *cobra.Command {
 				return fmt.Errorf("create kanban task: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Task created: ID=%d\n", result.ID)
 			return nil
 		},
@@ -237,11 +236,14 @@ func kanbanUpdateCommand() *cobra.Command {
 				req.SwimlaneID = &swimlaneId
 			}
 
-			_, err = c.Kanban.Update(cmd.Context(), id, req)
+			task, err := c.Kanban.Update(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("update kanban task: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, task)
+			}
 			_, _ = fmt.Printf("Task updated: %d\n", id)
 			return nil
 		},
@@ -268,17 +270,8 @@ func kanbanDeleteCommand() *cobra.Command {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Close task %d? [y/N]: ", id)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Close task %d? [y/N]: ", id)); err != nil {
+				return err
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -286,16 +279,18 @@ func kanbanDeleteCommand() *cobra.Command {
 				return err
 			}
 
-			_, err = c.Kanban.Close(cmd.Context(), id)
+			closed, err := c.Kanban.Close(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("close kanban task: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, closed)
+			}
 			_, _ = fmt.Printf("Task closed: %d\n", id)
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -330,11 +325,14 @@ func kanbanMoveCommand() *cobra.Command {
 				SwimlaneID: swimlane,
 			}
 
-			_, err = c.Kanban.Move(cmd.Context(), id, req)
+			moved, err := c.Kanban.Move(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("move kanban task: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, moved)
+			}
 			_, _ = fmt.Printf("Task moved: %d -> column %d\n", id, req.ColumnID)
 			return nil
 		},
@@ -373,9 +371,8 @@ func kanbanSearchCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No tasks found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(tasks)
+			if IsJSON(cmd) {
+				return render(cmd, tasks)
 			}
 			_, _ = fmt.Printf("%-8s %-30s %-12s %-12s\n", "ID", "TITLE", "COLUMN", "PROJECT")
 			_, _ = fmt.Println(strings.Repeat("-", 65))
@@ -393,7 +390,6 @@ func kanbanSearchCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("project", "p", 1, "Project ID")
 	return cmd
 }
@@ -437,6 +433,9 @@ func kanbanMetadataGetCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("get metadata: %w", err)
 				}
+				if IsJSON(cmd) {
+					return render(cmd, value)
+				}
 				_, _ = fmt.Println(value)
 				return nil
 			}
@@ -444,10 +443,9 @@ func kanbanMetadataGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get metadata: %w", err)
 			}
-			return PrintJSON(metadata)
+			return render(cmd, metadata)
 		},
 	}
-	cmd.Flags().StringP("output", "o", "json", "Output format (json, value)")
 	return cmd
 }
 
@@ -484,6 +482,9 @@ func kanbanMetadataSetCommand() *cobra.Command {
 				return fmt.Errorf("save metadata: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Success {
 				_, _ = fmt.Println("Metadata saved successfully")
 			} else {
@@ -511,17 +512,8 @@ func kanbanMetadataDeleteCommand() *cobra.Command {
 			}
 			name := args[1]
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Delete metadata '%s' from task %d? [y/N]: ", name, taskId)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Delete metadata '%s' from task %d? [y/N]: ", name, taskId)); err != nil {
+				return err
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -534,6 +526,9 @@ func kanbanMetadataDeleteCommand() *cobra.Command {
 				return fmt.Errorf("remove metadata: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Success {
 				_, _ = fmt.Printf("Metadata '%s' deleted from task %d\n", name, taskId)
 			} else {
@@ -543,7 +538,6 @@ func kanbanMetadataDeleteCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -612,9 +606,8 @@ func kanbanSubtaskListCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No subtasks found for this task")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(subtasks)
+			if IsJSON(cmd) {
+				return render(cmd, subtasks)
 			}
 			_, _ = fmt.Printf("%-8s %-30s %-10s %-12s %-12s\n", "ID", "TITLE", "STATUS", "ESTIMATED", "SPENT")
 			_, _ = fmt.Println(strings.Repeat("-", 80))
@@ -633,7 +626,6 @@ func kanbanSubtaskListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -665,9 +657,8 @@ func kanbanSubtaskGetCommand() *cobra.Command {
 				return fmt.Errorf("get subtask: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(subtask)
+			if IsJSON(cmd) {
+				return render(cmd, subtask)
 			}
 			_, _ = fmt.Printf("ID:          %s\n", subtask.ID)
 			_, _ = fmt.Printf("Title:       %s\n", subtask.Title)
@@ -682,7 +673,6 @@ func kanbanSubtaskGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -724,6 +714,9 @@ func kanbanSubtaskCreateCommand() *cobra.Command {
 				return fmt.Errorf("create subtask: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Subtask created: ID=%d\n", result.ID)
 			return nil
 		},
@@ -782,6 +775,9 @@ func kanbanSubtaskUpdateCommand() *cobra.Command {
 				return fmt.Errorf("update subtask: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Success {
 				_, _ = fmt.Printf("Subtask updated: %d\n", subtaskId)
 			} else {
@@ -816,17 +812,8 @@ func kanbanSubtaskDeleteCommand() *cobra.Command {
 				return fmt.Errorf("invalid subtask ID: %w", err)
 			}
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Delete subtask %d? [y/N]: ", subtaskId)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Delete subtask %d? [y/N]: ", subtaskId)); err != nil {
+				return err
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -839,6 +826,9 @@ func kanbanSubtaskDeleteCommand() *cobra.Command {
 				return fmt.Errorf("delete subtask: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Success {
 				_, _ = fmt.Printf("Subtask deleted: %d\n", subtaskId)
 			} else {
@@ -847,7 +837,6 @@ func kanbanSubtaskDeleteCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -895,6 +884,9 @@ func kanbanSubtaskTimerCheckCommand() *cobra.Command {
 				return fmt.Errorf("check subtask timer: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Result {
 				_, _ = fmt.Println("Timer is active")
 			} else {
@@ -936,6 +928,9 @@ func kanbanSubtaskTimerStartCommand() *cobra.Command {
 				return fmt.Errorf("start subtask timer: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Result {
 				_, _ = fmt.Println("Timer started successfully")
 			} else {
@@ -977,6 +972,9 @@ func kanbanSubtaskTimerStopCommand() *cobra.Command {
 				return fmt.Errorf("stop subtask timer: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Result {
 				_, _ = fmt.Println("Timer stopped successfully")
 			} else {
@@ -1018,6 +1016,9 @@ func kanbanSubtaskTimerSpentCommand() *cobra.Command {
 				return fmt.Errorf("get subtask time spent: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Time spent: %.2f hours\n", result.Result)
 			return nil
 		},
@@ -1068,9 +1069,8 @@ func kanbanTagListCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No tags found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(tags)
+			if IsJSON(cmd) {
+				return render(cmd, tags)
 			}
 			_, _ = fmt.Printf("%-8s %-30s %-10s\n", "ID", "NAME", "PROJECT")
 			_, _ = fmt.Println(strings.Repeat("-", 50))
@@ -1085,7 +1085,6 @@ func kanbanTagListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("project", "p", 0, "Project ID (if specified, list tags for this project)")
 	return cmd
 }
@@ -1116,6 +1115,9 @@ func kanbanTagCreateCommand() *cobra.Command {
 				return fmt.Errorf("create tag: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Tag created: ID=%d\n", result.ID)
 			return nil
 		},
@@ -1154,11 +1156,14 @@ func kanbanTagUpdateCommand() *cobra.Command {
 				ColorID: color,
 			}
 
-			_, err = c.Kanban.UpdateTag(cmd.Context(), id, req)
+			updated, err := c.Kanban.UpdateTag(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("update tag: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, updated)
+			}
 			_, _ = fmt.Printf("Tag updated: %d\n", id)
 			return nil
 		},
@@ -1183,17 +1188,8 @@ func kanbanTagDeleteCommand() *cobra.Command {
 				return fmt.Errorf("invalid tag ID: %w", err)
 			}
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Delete tag %d? [y/N]: ", id)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Delete tag %d? [y/N]: ", id)); err != nil {
+				return err
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -1201,16 +1197,18 @@ func kanbanTagDeleteCommand() *cobra.Command {
 				return err
 			}
 
-			_, err = c.Kanban.RemoveTag(cmd.Context(), id)
+			removed, err := c.Kanban.RemoveTag(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("delete tag: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, removed)
+			}
 			_, _ = fmt.Printf("Tag deleted: %d\n", id)
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -1255,9 +1253,8 @@ func kanbanTagTaskGetCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No tags assigned to this task")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(tags)
+			if IsJSON(cmd) {
+				return render(cmd, tags)
 			}
 			_, _ = fmt.Printf("%-8s %-30s\n", "ID", "NAME")
 			_, _ = fmt.Println(strings.Repeat("-", 40))
@@ -1268,7 +1265,6 @@ func kanbanTagTaskGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (json, table)")
 	return cmd
 }
 
@@ -1304,6 +1300,9 @@ func kanbanTagTaskSetCommand() *cobra.Command {
 				return fmt.Errorf("set task tags: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Success {
 				_, _ = fmt.Println("Task tags updated successfully")
 			} else {
@@ -1371,6 +1370,9 @@ func kanbanCardAddCommand() *cobra.Command {
 				return fmt.Errorf("create card: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Card created: ID=%d\n", result.ID)
 			return nil
 		},
@@ -1417,11 +1419,14 @@ func kanbanCardMoveCommand() *cobra.Command {
 				SwimlaneID: swimlane,
 			}
 
-			_, err = c.Kanban.Move(cmd.Context(), id, req)
+			moved, err := c.Kanban.Move(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("move card: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, moved)
+			}
 			_, _ = fmt.Printf("Card moved: %d -> column %d\n", id, req.ColumnID)
 			return nil
 		},
@@ -1448,17 +1453,8 @@ func kanbanCardDeleteCommand() *cobra.Command {
 				return fmt.Errorf("invalid card ID: %w", err)
 			}
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Close card %d? [y/N]: ", id)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Close card %d? [y/N]: ", id)); err != nil {
+				return err
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -1466,16 +1462,18 @@ func kanbanCardDeleteCommand() *cobra.Command {
 				return err
 			}
 
-			_, err = c.Kanban.Close(cmd.Context(), id)
+			closed, err := c.Kanban.Close(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("close card: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, closed)
+			}
 			_, _ = fmt.Printf("Card closed: %d\n", id)
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -1516,12 +1514,8 @@ func kanbanProjectListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list projects: %w", err)
 			}
-			if len(projects) == 0 {
-				return PrintEmptyList(cmd, "No projects found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(projects)
+			if done, err := stopAfterList(cmd, "No projects found", projects, len(projects)); done {
+				return err
 			}
 			_, _ = fmt.Printf("%-8s %-30s %-8s\n", "ID", "NAME", "ACTIVE")
 			_, _ = fmt.Println(strings.Repeat("-", 50))
@@ -1538,7 +1532,6 @@ func kanbanProjectListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -1560,6 +1553,9 @@ func kanbanProjectCreateCommand() *cobra.Command {
 			})
 			if err != nil {
 				return fmt.Errorf("create project: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
 			}
 			_, _ = fmt.Printf("Project created: ID=%d Name=%s\n", result.ID, result.Name)
 			return nil
@@ -1596,12 +1592,8 @@ func kanbanSwimlaneListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list swimlanes: %w", err)
 			}
-			if len(swimlanes) == 0 {
-				return PrintEmptyList(cmd, "No swimlanes found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(swimlanes)
+			if done, err := stopAfterList(cmd, "No swimlanes found", swimlanes, len(swimlanes)); done {
+				return err
 			}
 			_, _ = fmt.Printf("%-8s %-30s %-10s\n", "ID", "NAME", "PROJECT")
 			_, _ = fmt.Println(strings.Repeat("-", 50))
@@ -1618,7 +1610,6 @@ func kanbanSwimlaneListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("project", "p", 1, "Project ID")
 	return cmd
 }
@@ -1648,12 +1639,8 @@ func kanbanCategoryListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list categories: %w", err)
 			}
-			if len(categories) == 0 {
-				return PrintEmptyList(cmd, "No categories found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(categories)
+			if done, err := stopAfterList(cmd, "No categories found", categories, len(categories)); done {
+				return err
 			}
 			_, _ = fmt.Printf("%-8s %-30s %-10s\n", "ID", "NAME", "PROJECT")
 			_, _ = fmt.Println(strings.Repeat("-", 50))
@@ -1670,7 +1657,6 @@ func kanbanCategoryListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("project", "p", 1, "Project ID")
 	return cmd
 }
@@ -1693,9 +1679,8 @@ func kanbanColumnListCommand() *cobra.Command {
 				return fmt.Errorf("list columns: %w", err)
 			}
 
-			if len(columns) == 0 {
-				_, _ = fmt.Println("No columns found")
-				return nil
+			if done, err := stopAfterList(cmd, "No columns found", columns, len(columns)); done {
+				return err
 			}
 
 			_, _ = fmt.Printf("%-8s %-20s\n", "ID", "TITLE")

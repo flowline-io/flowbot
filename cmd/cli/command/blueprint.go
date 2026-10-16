@@ -48,12 +48,8 @@ func blueprintListCommand() *cobra.Command {
 			if len(result.Blueprints) == 0 {
 				return PrintEmptyList(cmd, "No blueprints")
 			}
-			output, err := cmd.Flags().GetString("output")
-			if err != nil {
-				return err
-			}
-			if output == "json" {
-				return PrintJSON(result.Blueprints)
+			if IsJSON(cmd) {
+				return render(cmd, result.Blueprints)
 			}
 			_, _ = fmt.Printf("%-10s %-32s %-8s %s\n", "SOURCE", "ID", "MISSING", "TITLE")
 			for _, b := range result.Blueprints {
@@ -66,7 +62,6 @@ func blueprintListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -83,6 +78,9 @@ func blueprintExportCommand() *cobra.Command {
 			result, err := c.Blueprint.Export(cmd.Context(), args[0], args[1])
 			if err != nil {
 				return fmt.Errorf("export blueprint: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"yaml": result.YAML})
 			}
 			_, _ = fmt.Fprint(cmd.OutOrStdout(), result.YAML)
 			return nil
@@ -111,6 +109,9 @@ func blueprintImportCommand() *cobra.Command {
 			result, err := c.Blueprint.Import(cmd.Context(), data)
 			if err != nil {
 				return fmt.Errorf("import blueprint: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
 			}
 			_, _ = fmt.Printf("Imported blueprint %s (%s)\n", result.ID, result.Hash)
 			return nil
@@ -143,6 +144,9 @@ func blueprintReplaceCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("replace blueprint: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Replaced blueprint %s (%s)\n", result.ID, result.Hash)
 			return nil
 		},
@@ -164,6 +168,9 @@ func blueprintDeleteCommand() *cobra.Command {
 			}
 			if err := c.Blueprint.Delete(cmd.Context(), args[0]); err != nil {
 				return fmt.Errorf("delete blueprint: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": args[0]})
 			}
 			_, _ = fmt.Printf("Deleted blueprint %s\n", args[0])
 			return nil
@@ -203,6 +210,9 @@ func blueprintInstantiateCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("instantiate blueprint: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Created pipeline %s (id=%d version=%d)\n", result.Name, result.ID, result.Version)
 			return nil
 		},
@@ -227,6 +237,9 @@ func blueprintTakeControlCommand() *cobra.Command {
 			if err := c.Blueprint.TakeControl(cmd.Context(), args[0]); err != nil {
 				return fmt.Errorf("take control: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": args[0]})
+			}
 			_, _ = fmt.Printf("Pipeline %s is now a normal definition\n", args[0])
 			return nil
 		},
@@ -246,6 +259,9 @@ func blueprintUpdateCommand() *cobra.Command {
 			result, err := c.Blueprint.ConfirmUpdate(cmd.Context(), args[0])
 			if err != nil {
 				return fmt.Errorf("update pipeline from blueprint: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
 			}
 			_, _ = fmt.Printf("Updated pipeline %s (version=%d)\n", result.Name, result.Version)
 			return nil

@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `archive`
 
-Archive a bookmark (**mutation**)
+Archive a bookmark for the signed-in caller. Deletes or removes data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -26,7 +27,8 @@ Archive a bookmark (**mutation**)
 
 ## `attach_tags`
 
-Attach tags (**mutation**)
+Attach tags for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -48,7 +50,8 @@ Attach tags (**mutation**)
 
 ## `check_url`
 
-Check whether a URL exists
+Check whether a URL exists for the signed-in caller. Read-only.
+Example: {"url":"example"}
 
 **Inputs (params):**
 
@@ -68,7 +71,8 @@ Check whether a URL exists
 
 ## `create`
 
-Create a bookmark (**mutation**)
+Create a bookmark for the signed-in caller. Creates or updates data.
+Example: {"url":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -88,7 +92,8 @@ Create a bookmark (**mutation**)
 
 ## `delete`
 
-Delete a bookmark (**mutation**)
+Delete a bookmark for the signed-in caller. Deletes or removes data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -108,7 +113,8 @@ Delete a bookmark (**mutation**)
 
 ## `detach_tags`
 
-Detach tags (**mutation**)
+Detach tags for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -130,7 +136,8 @@ Detach tags (**mutation**)
 
 ## `get`
 
-Get a bookmark
+Get a bookmark for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -150,7 +157,8 @@ Get a bookmark
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -166,7 +174,8 @@ _(none)_
 
 ## `list`
 
-List bookmarks
+List bookmarks for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -196,7 +205,8 @@ List bookmarks
 
 ## `search`
 
-Search bookmarks
+Search bookmarks for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 

@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:trello.create_card`
 
-Create a card (**mutation**)
+Create a card for the signed-in caller. Creates or updates data.
+Example: {"list_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -31,7 +32,8 @@ Create a card (**mutation**)
 
 ## `capability:trello.delete_card`
 
-Delete a card (**mutation**)
+Delete a card for the signed-in caller. Deletes or removes data.
+Example: {"card_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -52,7 +54,8 @@ Delete a card (**mutation**)
 
 ## `capability:trello.delete_webhook`
 
-Delete a Trello webhook (**mutation**)
+Delete a Trello webhook for the signed-in caller. Deletes or removes data.
+Example: {"webhook_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -73,7 +76,8 @@ Delete a Trello webhook (**mutation**)
 
 ## `capability:trello.get_board`
 
-Get a board
+Get a board for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -94,7 +98,8 @@ Get a board
 
 ## `capability:trello.get_card`
 
-Get a card
+Get a card for the signed-in caller. Read-only.
+Example: {"card_id":"example"}
 
 **Inputs (params):**
 
@@ -115,7 +120,8 @@ Get a card
 
 ## `capability:trello.health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -132,7 +138,8 @@ _(none)_
 
 ## `capability:trello.list_boards`
 
-List boards
+List boards for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -155,7 +162,8 @@ List boards
 
 ## `capability:trello.list_cards`
 
-List cards on a board
+List cards on a board for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -180,7 +188,8 @@ List cards on a board
 
 ## `capability:trello.list_lists`
 
-List lists on a board
+List lists on a board for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -201,7 +210,8 @@ List lists on a board
 
 ## `capability:trello.move_card`
 
-Move a card to another list (**mutation**)
+Move a card to another list for the signed-in caller. Creates or updates data.
+Example: {"card_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -224,7 +234,8 @@ Move a card to another list (**mutation**)
 
 ## `capability:trello.register_webhook`
 
-Register a Trello board webhook (**mutation**)
+Register a Trello board webhook for the signed-in caller. Creates or updates data.
+Example: {} (**mutation**)
 
 **Inputs (params):**
 
@@ -249,7 +260,8 @@ Register a Trello board webhook (**mutation**)
 
 ## `capability:trello.search_cards`
 
-Search cards
+Search cards for the signed-in caller. Read-only.
+Example: {"query":"example"}
 
 **Inputs (params):**
 
@@ -272,7 +284,8 @@ Search cards
 
 ## `capability:trello.update_card`
 
-Update a card (**mutation**)
+Update a card for the signed-in caller. Creates or updates data.
+Example: {"card_id":"example"} (**mutation**)
 
 **Inputs (params):**
 

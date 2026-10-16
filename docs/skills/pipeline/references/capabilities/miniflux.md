@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `create_feed`
 
-Create a feed (**mutation**)
+Create a feed for the signed-in caller. Creates or updates data.
+Example: {"feed_url":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -26,7 +27,8 @@ Create a feed (**mutation**)
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -42,7 +44,8 @@ _(none)_
 
 ## `list_entries`
 
-List entries
+List entries for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -72,7 +75,8 @@ List entries
 
 ## `list_feeds`
 
-List feeds
+List feeds for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -98,7 +102,8 @@ List feeds
 
 ## `mark_entry_read`
 
-Mark entry as read (**mutation**)
+Mark entry as read for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -118,7 +123,8 @@ Mark entry as read (**mutation**)
 
 ## `mark_entry_unread`
 
-Mark entry as unread (**mutation**)
+Mark entry as unread for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -138,7 +144,8 @@ Mark entry as unread (**mutation**)
 
 ## `star_entry`
 
-Star an entry (**mutation**)
+Star an entry for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -158,7 +165,8 @@ Star an entry (**mutation**)
 
 ## `unstar_entry`
 
-Unstar an entry (**mutation**)
+Unstar an entry for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 

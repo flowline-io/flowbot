@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:devops.beszel_get_system`
 
-Get a Beszel system
+Get a Beszel system for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -27,7 +28,8 @@ Get a Beszel system
 
 ## `capability:devops.beszel_list_systems`
 
-List Beszel systems
+List Beszel systems for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -44,7 +46,8 @@ _(none)_
 
 ## `capability:devops.dozzle_health`
 
-Dozzle health and version
+Dozzle health and version for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -61,7 +64,8 @@ _(none)_
 
 ## `capability:devops.grafana_health`
 
-Grafana health
+Grafana health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -78,7 +82,8 @@ _(none)_
 
 ## `capability:devops.grafana_list_datasources`
 
-List Grafana datasources
+List Grafana datasources for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -95,7 +100,8 @@ _(none)_
 
 ## `capability:devops.grafana_query`
 
-Query prometheus/alloy/loki/tempo/pyroscope via Grafana
+Query prometheus/alloy/loki/tempo/pyroscope via Grafana for the signed-in caller. Read-only.
+Example: {"backend":"example"}
 
 **Inputs (params):**
 
@@ -126,7 +132,8 @@ Query prometheus/alloy/loki/tempo/pyroscope via Grafana
 
 ## `capability:devops.grafana_search_dashboards`
 
-Search Grafana dashboards
+Search Grafana dashboards for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -147,7 +154,8 @@ Search Grafana dashboards
 
 ## `capability:devops.health`
 
-Aggregate health of configured devops backends
+Aggregate health of configured devops backends for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -164,7 +172,8 @@ _(none)_
 
 ## `capability:devops.netalertx_health`
 
-NetAlertX health
+NetAlertX health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -181,7 +190,8 @@ _(none)_
 
 ## `capability:devops.netalertx_list_devices`
 
-List NetAlertX devices
+List NetAlertX devices for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -198,7 +208,8 @@ _(none)_
 
 ## `capability:devops.netalertx_search_devices`
 
-Search NetAlertX devices
+Search NetAlertX devices for the signed-in caller. Read-only.
+Example: {"query":"example"}
 
 **Inputs (params):**
 
@@ -219,7 +230,8 @@ Search NetAlertX devices
 
 ## `capability:devops.netalertx_totals`
 
-NetAlertX device totals
+NetAlertX device totals for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -236,7 +248,8 @@ _(none)_
 
 ## `capability:devops.scanopy_get_host`
 
-Get a Scanopy host
+Get a Scanopy host for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -257,7 +270,8 @@ Get a Scanopy host
 
 ## `capability:devops.scanopy_health`
 
-Scanopy health
+Scanopy health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -274,7 +288,8 @@ _(none)_
 
 ## `capability:devops.scanopy_list_daemons`
 
-List Scanopy daemons
+List Scanopy daemons for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -299,7 +314,8 @@ List Scanopy daemons
 
 ## `capability:devops.scanopy_list_hosts`
 
-List Scanopy hosts
+List Scanopy hosts for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -326,7 +342,8 @@ List Scanopy hosts
 
 ## `capability:devops.scanopy_list_networks`
 
-List Scanopy networks
+List Scanopy networks for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -349,7 +366,8 @@ List Scanopy networks
 
 ## `capability:devops.scanopy_list_services`
 
-List Scanopy services
+List Scanopy services for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -378,7 +396,8 @@ List Scanopy services
 
 ## `capability:devops.scanopy_version`
 
-Scanopy API/server version
+Scanopy API/server version for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -395,7 +414,8 @@ _(none)_
 
 ## `capability:devops.status`
 
-Configured devops backends
+Configured devops backends for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -412,7 +432,8 @@ _(none)_
 
 ## `capability:devops.traefik_list_routers`
 
-List Traefik routers
+List Traefik routers for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -429,7 +450,8 @@ _(none)_
 
 ## `capability:devops.traefik_list_services`
 
-List Traefik services
+List Traefik services for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -446,7 +468,8 @@ _(none)_
 
 ## `capability:devops.traefik_overview`
 
-Traefik overview
+Traefik overview for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -463,7 +486,8 @@ _(none)_
 
 ## `capability:devops.uptimekuma_health`
 
-Uptime Kuma health
+Uptime Kuma health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -480,7 +504,8 @@ _(none)_
 
 ## `capability:devops.uptimekuma_metrics`
 
-Uptime Kuma metrics summary
+Uptime Kuma metrics summary for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -497,7 +522,8 @@ _(none)_
 
 ## `capability:devops.wakapi_all_time`
 
-Wakapi all-time coding stats
+Wakapi all-time coding stats for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -514,7 +540,8 @@ _(none)_
 
 ## `capability:devops.wakapi_health`
 
-Wakapi health
+Wakapi health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -531,7 +558,8 @@ _(none)_
 
 ## `capability:devops.wakapi_list_projects`
 
-List Wakapi projects
+List Wakapi projects for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -552,7 +580,8 @@ List Wakapi projects
 
 ## `capability:devops.wakapi_summary`
 
-Wakapi activity summary
+Wakapi activity summary for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 

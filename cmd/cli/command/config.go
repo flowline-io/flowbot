@@ -39,6 +39,8 @@ func configGetCommand() *cobra.Command {
 
 			profile, _ := cmd.Flags().GetString("profile")
 
+			var shown string
+			var value any
 			switch key {
 			case "server-url":
 				val, _ := cmd.Flags().GetString("server-url")
@@ -53,7 +55,8 @@ func configGetCommand() *cobra.Command {
 						val = "not set"
 					}
 				}
-				_, _ = fmt.Println(val)
+				shown = val
+				value = val
 			case "debug":
 				val, _ := cmd.Flags().GetBool("debug")
 				if !val {
@@ -63,17 +66,22 @@ func configGetCommand() *cobra.Command {
 					}
 					val = stored
 				}
-				_, _ = fmt.Println(formatBool(val))
+				shown = formatBool(val)
+				value = val
 			case "profile":
 				val, _ := cmd.Flags().GetString("profile")
 				if val == "" {
 					val = "default"
 				}
-				_, _ = fmt.Println(val)
+				shown = val
+				value = val
 			default:
 				return fmt.Errorf("unknown configuration key: %s", key)
 			}
-			return nil
+			if IsJSON(cmd) {
+				return render(cmd, map[string]any{"key": key, "value": value})
+			}
+			return writef(cmd, "%s\n", shown)
 		},
 	}
 	return cmd
@@ -93,21 +101,33 @@ func configSetCommand() *cobra.Command {
 
 			profile, _ := cmd.Flags().GetString("profile")
 
+			var stored any
+			note := ""
 			switch key {
 			case "server-url":
 				if err := store.SaveServerURL(value, profile); err != nil {
 					return fmt.Errorf("save server URL: %w", err)
 				}
-				_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, value)
+				stored = value
 			case "debug":
 				enabled := value == "on" || value == "true" || value == "1"
 				if err := store.SaveDebug(enabled, profile); err != nil {
 					return fmt.Errorf("save debug: %w", err)
 				}
-				_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, formatBool(enabled))
+				stored = enabled
+				value = formatBool(enabled)
 			default:
-				_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, value)
-				_, _ = fmt.Println("Note: Set environment variable FLOWBOT_" + toEnvKey(key) + "=" + value)
+				stored = value
+				note = "Note: Set environment variable FLOWBOT_" + toEnvKey(key) + "=" + value
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]any{"key": key, "value": stored})
+			}
+			if err := writef(cmd, "Configuration '%s' set to '%s'\n", key, value); err != nil {
+				return err
+			}
+			if note != "" {
+				return writef(cmd, "%s\n", note)
 			}
 			return nil
 		},
@@ -121,9 +141,6 @@ func configListCommand() *cobra.Command {
 		Short: "List all configuration values",
 		Long:  "Display all current configuration settings",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, _ = fmt.Println("Current Configuration:")
-			_, _ = fmt.Println("----------------------")
-
 			profile, _ := cmd.Flags().GetString("profile")
 
 			serverURL, _ := cmd.Flags().GetString("server-url")
@@ -135,31 +152,53 @@ func configListCommand() *cobra.Command {
 					serverURL = "not set (use 'config set server-url <url>' or FLOWBOT_SERVER_URL)"
 				}
 			}
-			_, _ = fmt.Printf("server-url: %s\n", serverURL)
 
 			displayProfile := profile
 			if displayProfile == "" {
 				displayProfile = "default"
 			}
-			_, _ = fmt.Printf("profile: %s\n", displayProfile)
 
+			tokenLabel := "[stored]"
 			token, err := store.LoadToken(profile)
 			if err != nil {
-				_, _ = fmt.Printf("token: error loading (%v)\n", err)
+				tokenLabel = fmt.Sprintf("error loading (%v)", err)
 			} else if token == "" {
-				_, _ = fmt.Println("token: not logged in")
-			} else {
-				_, _ = fmt.Println("token: [stored]")
+				tokenLabel = "not logged in"
 			}
 
+			debugLabel := ""
+			var debugValue any
 			debug, err := store.LoadDebug(profile)
 			if err != nil {
-				_, _ = fmt.Printf("debug: error loading (%v)\n", err)
+				debugLabel = fmt.Sprintf("error loading (%v)", err)
+				debugValue = debugLabel
 			} else {
-				_, _ = fmt.Printf("debug: %s\n", formatBool(debug))
+				debugLabel = formatBool(debug)
+				debugValue = debug
 			}
 
-			return nil
+			if IsJSON(cmd) {
+				return render(cmd, map[string]any{
+					"server-url": serverURL,
+					"profile":    displayProfile,
+					"token":      tokenLabel,
+					"debug":      debugValue,
+				})
+			}
+
+			if err := writef(cmd, "Current Configuration:\n----------------------\n"); err != nil {
+				return err
+			}
+			if err := writef(cmd, "server-url: %s\n", serverURL); err != nil {
+				return err
+			}
+			if err := writef(cmd, "profile: %s\n", displayProfile); err != nil {
+				return err
+			}
+			if err := writef(cmd, "token: %s\n", tokenLabel); err != nil {
+				return err
+			}
+			return writef(cmd, "debug: %s\n", debugLabel)
 		},
 	}
 	return cmd
@@ -183,21 +222,25 @@ func VersionCommand(clientVersion string) *cobra.Command {
 		Short: "Print version information",
 		Long:  "Display the client and server versions of flowbot",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Client version: %s\n", clientVersion)
-
-			serverVersion := "unavailable"
+			data := map[string]any{"client": clientVersion}
 			cl, err := utils.NewPublicClient(cmd)
 			if err != nil {
-				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Server version: %s (%v)\n", serverVersion, err)
-				return nil
+				data["server_error"] = err.Error()
+			} else if info, vErr := cl.Version(cmd.Context()); vErr != nil {
+				data["server_error"] = vErr.Error()
+			} else {
+				data["server"] = info.Version
 			}
-			info, err := cl.Version(cmd.Context())
-			if err != nil {
-				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Server version: %s (%v)\n", serverVersion, err)
-				return nil
+			if IsJSON(cmd) {
+				return render(cmd, data)
 			}
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Server version: %s\n", info.Version)
-			return nil
+			if err := writef(cmd, "Client version: %s\n", clientVersion); err != nil {
+				return err
+			}
+			if msg, ok := data["server_error"].(string); ok {
+				return writef(cmd, "Server version: unavailable (%s)\n", msg)
+			}
+			return writef(cmd, "Server version: %s\n", data["server"])
 		},
 	}
 	return cmd

@@ -48,17 +48,20 @@ func TestWorkflowSubcommands(t *testing.T) {
 		{name: "list has output flag", sub: "list", wantFlag: "output"},
 		{name: "run has input flag", sub: "run", wantFlag: "input"},
 		{name: "runs has output flag", sub: "runs", wantFlag: "output"},
-		{name: "export has output flag", sub: "export", wantFlag: "output"},
+		{name: "export has file flag", sub: "export", wantFlag: "file"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cmd := WorkflowCommand()
+			cmd := findSubcommand(NewRoot("test"), "workflow")
 			sub := findSubcommand(cmd, tt.sub)
 			require.NotNil(t, sub)
 			require.NotNil(t, sub.RunE)
 			flag := sub.Flags().Lookup(tt.wantFlag)
+			if flag == nil {
+				flag = lookupFlag(sub, tt.wantFlag)
+			}
 			require.NotNil(t, flag)
 		})
 	}

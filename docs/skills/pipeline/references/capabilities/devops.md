@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `beszel_get_system`
 
-Get a Beszel system
+Get a Beszel system for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -26,7 +27,8 @@ Get a Beszel system
 
 ## `beszel_list_systems`
 
-List Beszel systems
+List Beszel systems for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -42,7 +44,8 @@ _(none)_
 
 ## `dozzle_health`
 
-Dozzle health and version
+Dozzle health and version for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -58,7 +61,8 @@ _(none)_
 
 ## `grafana_health`
 
-Grafana health
+Grafana health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -74,7 +78,8 @@ _(none)_
 
 ## `grafana_list_datasources`
 
-List Grafana datasources
+List Grafana datasources for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -90,7 +95,8 @@ _(none)_
 
 ## `grafana_query`
 
-Query prometheus/alloy/loki/tempo/pyroscope via Grafana
+Query prometheus/alloy/loki/tempo/pyroscope via Grafana for the signed-in caller. Read-only.
+Example: {"backend":"example"}
 
 **Inputs (params):**
 
@@ -120,7 +126,8 @@ Query prometheus/alloy/loki/tempo/pyroscope via Grafana
 
 ## `grafana_search_dashboards`
 
-Search Grafana dashboards
+Search Grafana dashboards for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -140,7 +147,8 @@ Search Grafana dashboards
 
 ## `health`
 
-Aggregate health of configured devops backends
+Aggregate health of configured devops backends for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -156,7 +164,8 @@ _(none)_
 
 ## `netalertx_health`
 
-NetAlertX health
+NetAlertX health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -172,7 +181,8 @@ _(none)_
 
 ## `netalertx_list_devices`
 
-List NetAlertX devices
+List NetAlertX devices for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -188,7 +198,8 @@ _(none)_
 
 ## `netalertx_search_devices`
 
-Search NetAlertX devices
+Search NetAlertX devices for the signed-in caller. Read-only.
+Example: {"query":"example"}
 
 **Inputs (params):**
 
@@ -208,7 +219,8 @@ Search NetAlertX devices
 
 ## `netalertx_totals`
 
-NetAlertX device totals
+NetAlertX device totals for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -224,7 +236,8 @@ _(none)_
 
 ## `scanopy_get_host`
 
-Get a Scanopy host
+Get a Scanopy host for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -244,7 +257,8 @@ Get a Scanopy host
 
 ## `scanopy_health`
 
-Scanopy health
+Scanopy health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -260,7 +274,8 @@ _(none)_
 
 ## `scanopy_list_daemons`
 
-List Scanopy daemons
+List Scanopy daemons for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -284,7 +299,8 @@ List Scanopy daemons
 
 ## `scanopy_list_hosts`
 
-List Scanopy hosts
+List Scanopy hosts for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -310,7 +326,8 @@ List Scanopy hosts
 
 ## `scanopy_list_networks`
 
-List Scanopy networks
+List Scanopy networks for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -332,7 +349,8 @@ List Scanopy networks
 
 ## `scanopy_list_services`
 
-List Scanopy services
+List Scanopy services for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -360,7 +378,8 @@ List Scanopy services
 
 ## `scanopy_version`
 
-Scanopy API/server version
+Scanopy API/server version for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -376,7 +395,8 @@ _(none)_
 
 ## `status`
 
-Configured devops backends
+Configured devops backends for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -392,7 +412,8 @@ _(none)_
 
 ## `traefik_list_routers`
 
-List Traefik routers
+List Traefik routers for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -408,7 +429,8 @@ _(none)_
 
 ## `traefik_list_services`
 
-List Traefik services
+List Traefik services for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -424,7 +446,8 @@ _(none)_
 
 ## `traefik_overview`
 
-Traefik overview
+Traefik overview for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -440,7 +463,8 @@ _(none)_
 
 ## `uptimekuma_health`
 
-Uptime Kuma health
+Uptime Kuma health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -456,7 +480,8 @@ _(none)_
 
 ## `uptimekuma_metrics`
 
-Uptime Kuma metrics summary
+Uptime Kuma metrics summary for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -472,7 +497,8 @@ _(none)_
 
 ## `wakapi_all_time`
 
-Wakapi all-time coding stats
+Wakapi all-time coding stats for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -488,7 +514,8 @@ _(none)_
 
 ## `wakapi_health`
 
-Wakapi health
+Wakapi health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -504,7 +531,8 @@ _(none)_
 
 ## `wakapi_list_projects`
 
-List Wakapi projects
+List Wakapi projects for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -524,7 +552,8 @@ List Wakapi projects
 
 ## `wakapi_summary`
 
-Wakapi activity summary
+Wakapi activity summary for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 

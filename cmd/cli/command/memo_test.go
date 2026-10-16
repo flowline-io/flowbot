@@ -75,11 +75,10 @@ func TestMemoListCommand(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cmd := findSubcommand(MemoCommand(), "list")
-			require.NotNil(t, cmd)
+			cmd := findLeaf(t, NewRoot("test"), "memo", "list")
 			require.NotNil(t, cmd.RunE)
 			require.NotNil(t, cmd.Flags().Lookup("limit"))
-			require.NotNil(t, cmd.Flags().Lookup("output"))
+			require.NotNil(t, lookupFlag(cmd, "output"))
 		})
 	}
 }

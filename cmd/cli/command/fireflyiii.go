@@ -57,6 +57,9 @@ func fireflyiiiCreateCommand() *cobra.Command {
 				return fmt.Errorf("create transaction: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, tx)
+			}
 			_, _ = fmt.Printf("Transaction created: %s\n", tx.ID)
 			if tx.Description != "" {
 				_, _ = fmt.Printf("Description: %s\n", tx.Description)
@@ -97,12 +100,11 @@ func fireflyiiiListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list transactions: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if IsJSON(cmd) {
 				if result.Items == nil {
 					result.Items = []*capability.Transaction{}
 				}
-				return PrintJSON(result)
+				return render(cmd, result)
 			}
 			if len(result.Items) == 0 {
 				return PrintEmptyList(cmd, "No transactions found")
@@ -112,7 +114,6 @@ func fireflyiiiListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of transactions")
 	cmd.Flags().StringP("cursor", "c", "", "Pagination cursor")
 	cmd.Flags().StringP("type", "t", "", "Transaction type filter")
@@ -139,15 +140,13 @@ func fireflyiiiGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get transaction: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(tx)
+			if IsJSON(cmd) {
+				return render(cmd, tx)
 			}
 			printFireflyiiiTransactionDetail(tx)
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -172,6 +171,9 @@ func fireflyiiiUpdateCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("update transaction: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, tx)
+			}
 			_, _ = fmt.Printf("Transaction updated: %s\n", tx.ID)
 			return nil
 		},
@@ -190,17 +192,8 @@ func fireflyiiiDeleteCommand() *cobra.Command {
 				return errors.New("transaction ID is required")
 			}
 			id := args[0]
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Delete transaction %s? [y/N]: ", id)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Delete transaction %s? [y/N]: ", id)); err != nil {
+				return err
 			}
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -209,11 +202,13 @@ func fireflyiiiDeleteCommand() *cobra.Command {
 			if err := c.Fireflyiii.DeleteTransaction(cmd.Context(), id); err != nil {
 				return fmt.Errorf("delete transaction: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": id})
+			}
 			_, _ = fmt.Printf("Transaction deleted: %s\n", id)
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -236,12 +231,11 @@ func fireflyiiiAccountsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list accounts: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if IsJSON(cmd) {
 				if result.Items == nil {
 					result.Items = []*capability.FinanceAccount{}
 				}
-				return PrintJSON(result)
+				return render(cmd, result)
 			}
 			if len(result.Items) == 0 {
 				return PrintEmptyList(cmd, "No accounts found")
@@ -253,7 +247,6 @@ func fireflyiiiAccountsCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 50, "Maximum number of accounts")
 	cmd.Flags().StringP("cursor", "c", "", "Pagination cursor")
 	cmd.Flags().StringP("type", "t", "", "Account type filter (asset, expense, revenue, ...)")
@@ -274,12 +267,11 @@ func fireflyiiiCategoriesCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list categories: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if IsJSON(cmd) {
 				if result.Items == nil {
 					result.Items = []*capability.FinanceCategory{}
 				}
-				return PrintJSON(result)
+				return render(cmd, result)
 			}
 			if len(result.Items) == 0 {
 				return PrintEmptyList(cmd, "No categories found")
@@ -309,12 +301,11 @@ func fireflyiiiBudgetsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list budgets: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if IsJSON(cmd) {
 				if result.Items == nil {
 					result.Items = []*capability.FinanceBudget{}
 				}
-				return PrintJSON(result)
+				return render(cmd, result)
 			}
 			if len(result.Items) == 0 {
 				return PrintEmptyList(cmd, "No budgets found")
@@ -344,12 +335,11 @@ func fireflyiiiBillsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list bills: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if IsJSON(cmd) {
 				if result.Items == nil {
 					result.Items = []*capability.FinanceBill{}
 				}
-				return PrintJSON(result)
+				return render(cmd, result)
 			}
 			if len(result.Items) == 0 {
 				return PrintEmptyList(cmd, "No bills found")
@@ -379,12 +369,11 @@ func fireflyiiiTagsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list tags: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if IsJSON(cmd) {
 				if result.Items == nil {
 					result.Items = []*capability.FinanceTag{}
 				}
-				return PrintJSON(result)
+				return render(cmd, result)
 			}
 			if len(result.Items) == 0 {
 				return PrintEmptyList(cmd, "No tags found")
@@ -407,7 +396,6 @@ func fireflyiiiResourceQuery(cmd *cobra.Command) *client.ListResourcesQuery {
 }
 
 func addFireflyiiiResourceListFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 50, "Maximum number of items")
 	cmd.Flags().StringP("cursor", "c", "", "Pagination cursor")
 }
@@ -428,9 +416,8 @@ func fireflyiiiAboutCommand() *cobra.Command {
 				return fmt.Errorf("get about: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(info)
+			if IsJSON(cmd) {
+				return render(cmd, info)
 			}
 			_, _ = fmt.Printf("Version:     %s\n", info.Version)
 			_, _ = fmt.Printf("API version: %s\n", info.APIVersion)
@@ -440,7 +427,6 @@ func fireflyiiiAboutCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -460,9 +446,8 @@ func fireflyiiiUserCommand() *cobra.Command {
 				return fmt.Errorf("get current user: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(user)
+			if IsJSON(cmd) {
+				return render(cmd, user)
 			}
 			_, _ = fmt.Printf("ID:    %s\n", user.ID)
 			_, _ = fmt.Printf("Email: %s\n", user.Email)
@@ -470,7 +455,6 @@ func fireflyiiiUserCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -490,6 +474,9 @@ func fireflyiiiHealthCommand() *cobra.Command {
 				return fmt.Errorf("check health: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": healthy})
+			}
 			if healthy {
 				_, _ = fmt.Println("Firefly III backend is healthy")
 			} else {

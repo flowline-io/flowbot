@@ -80,9 +80,18 @@ Prefer the workflows below; load [references/cli.md](references/cli.md) only whe
 | not logged in | ` + "`" + `flowbot login` + "`" + ` |
 | server URL is required | set ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` or pass ` + "`" + `--server-url` + "`" + ` |
 | permission denied / 403 | token missing service scopes{{- if .ScopesNote}} ({{.ScopesNote}}){{- end}} |
-| hung waiting for confirm | pass ` + "`" + `-y` + "`" + ` when the command supports it (see cli.md) |
+| hung waiting for confirm or exit 7 | pass ` + "`" + `--yes` + "`" + ` / ` + "`" + `-y` + "`" + `. ` + "`" + `--no-input` + "`" + ` without ` + "`" + `--yes` + "`" + ` exits 7 and does not read stdin |
 | empty results | provider not configured, wrong id/name, or empty dataset |
 | unknown command | use ` + "`" + `flowbot {{.CLIRoot}}` + "`" + `, not the capability id as the CLI verb |
+`
+
+// cliOutputSection is the single home for the CLI JSON envelope and exit codes.
+// Capability and platform CLI references both embed it.
+const cliOutputSection = `## Output and exit codes
+
+` + "`" + `-o json` + "`" + ` writes a two-space indented object to stdout and a trailing newline: ` + "`" + `{"data": ...}` + "`" + `. Paginated commands also include ` + "`" + `page` + "`" + ` (` + "`" + `limit` + "`" + `, ` + "`" + `has_more` + "`" + `, and ` + "`" + `next_cursor` + "`" + ` when another page exists), including an empty page and the last page. Commands that are not paginated omit ` + "`" + `page` + "`" + `. ` + "`" + `data` + "`" + ` is the API object: a list is an array, an id-only delete is ` + "`" + `{"id":"..."}` + "`" + `, and an empty success is ` + "`" + `{}` + "`" + `. The default stays ` + "`" + `table` + "`" + `. A non-terminal stdin does not change the format; it implies ` + "`" + `--no-input` + "`" + `. A pseudo-terminal still prompts.
+
+Failures with ` + "`" + `-o json` + "`" + ` leave stdout empty and write ` + "`" + `{"error":{"code","message","retryable","hint"}}` + "`" + ` to stderr. Exit codes: 0 success, 1 ` + "`" + `internal` + "`" + ` / ` + "`" + `run_failed` + "`" + ` / ` + "`" + `cancelled` + "`" + ` / non-retryable ` + "`" + `provider_error` + "`" + `, 2 ` + "`" + `invalid_argument` + "`" + `, 3 ` + "`" + `unauthenticated` + "`" + ` or ` + "`" + `permission_denied` + "`" + `, 4 ` + "`" + `not_found` + "`" + `, 5 ` + "`" + `conflict` + "`" + ` or ` + "`" + `already_exists` + "`" + `, 6 retryable transient (` + "`" + `rate_limited` + "`" + `, ` + "`" + `unavailable` + "`" + `, ` + "`" + `timeout` + "`" + `, retryable ` + "`" + `provider_error` + "`" + `), 7 ` + "`" + `confirmation_required` + "`" + `, 8 ` + "`" + `not_implemented` + "`" + `. Retry the same call only on exit 6. ` + "`" + `conflict` + "`" + ` is exit 5 with ` + "`" + `retryable: true` + "`" + `: re-read, then write. Pass ` + "`" + `--yes` + "`" + ` to confirm. ` + "`" + `--no-input` + "`" + ` without ` + "`" + `--yes` + "`" + ` exits 7 and does not read stdin. A declined prompt is exit 1, code ` + "`" + `cancelled` + "`" + `. ` + "`" + `--help` + "`" + ` stays text. ` + "`" + `pipeline export` + "`" + ` and ` + "`" + `workflow export` + "`" + ` take ` + "`" + `--file` + "`" + ` for a YAML path; ` + "`" + `-o` + "`" + ` is only the format.
 `
 
 // cliReferenceTemplate is the on-demand CLI command reference.
@@ -90,8 +99,9 @@ const cliReferenceTemplate = `# {{.Title}} CLI reference
 
 Capability ` + "`" + `{{.Name}}` + "`" + `. Root command: ` + "`" + `flowbot {{.CLIRoot}}` + "`" + `.
 
-Global flags: ` + "`" + `--server-url` + "`" + `, ` + "`" + `--profile` + "`" + `, ` + "`" + `--debug` + "`" + ` / ` + "`" + `-d` + "`" + `. Most commands accept ` + "`" + `-o table|json` + "`" + ` (omitted below).
+Global flags: ` + "`" + `--server-url` + "`" + `, ` + "`" + `--profile` + "`" + `, ` + "`" + `--debug` + "`" + ` / ` + "`" + `-d` + "`" + `, ` + "`" + `--yes` + "`" + ` / ` + "`" + `-y` + "`" + `, ` + "`" + `--no-input` + "`" + `. Every leaf accepts ` + "`" + `-o table|json` + "`" + ` (default ` + "`" + `table` + "`" + `, omitted below).
 
+` + cliOutputSection + `
 ## Commands
 {{- range .Operations}}
 

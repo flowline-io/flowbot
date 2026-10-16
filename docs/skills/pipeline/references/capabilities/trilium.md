@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `create`
 
-Create a note (**mutation**)
+Create a note for the signed-in caller. Creates or updates data.
+Example: {"title":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -32,7 +33,8 @@ Create a note (**mutation**)
 
 ## `delete`
 
-Delete a note (**mutation**)
+Delete a note for the signed-in caller. Deletes or removes data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -52,7 +54,8 @@ Delete a note (**mutation**)
 
 ## `get`
 
-Get a note
+Get a note for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -72,7 +75,8 @@ Get a note
 
 ## `get_app_info`
 
-Get note server info
+Get note server info for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -88,7 +92,8 @@ _(none)_
 
 ## `get_content`
 
-Get note content
+Get note content for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -108,7 +113,8 @@ Get note content
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -124,7 +130,8 @@ _(none)_
 
 ## `list`
 
-List notes
+List notes for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -152,7 +159,8 @@ List notes
 
 ## `search`
 
-Search notes
+Search notes for the signed-in caller. Read-only.
+Example: {"query":"example"}
 
 **Inputs (params):**
 
@@ -172,7 +180,8 @@ Search notes
 
 ## `set_content`
 
-Set note content (**mutation**)
+Set note content for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -194,7 +203,8 @@ Set note content (**mutation**)
 
 ## `update`
 
-Update a note (**mutation**)
+Update a note for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 

@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:gitea.get_commit_diff`
 
-Get commit diff
+Get commit diff for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 
@@ -31,7 +32,8 @@ Get commit diff
 
 ## `capability:gitea.get_file_content`
 
-Get file content
+Get file content for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 
@@ -62,7 +64,8 @@ Get file content
 
 ## `capability:gitea.get_issue`
 
-Get an issue
+Get an issue for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 
@@ -87,7 +90,8 @@ Get an issue
 
 ## `capability:gitea.get_repo`
 
-Get a repository
+Get a repository for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 
@@ -110,7 +114,8 @@ Get a repository
 
 ## `capability:gitea.get_user`
 
-Get authenticated user
+Get authenticated user for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -127,7 +132,8 @@ _(none)_
 
 ## `capability:gitea.health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -144,7 +150,8 @@ _(none)_
 
 ## `capability:gitea.list_issues`
 
-List issues
+List issues for the signed-in caller. Read-only.
+Example: {"owner":"example"}
 
 **Inputs (params):**
 

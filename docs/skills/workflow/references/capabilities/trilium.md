@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:trilium.create`
 
-Create a note (**mutation**)
+Create a note for the signed-in caller. Creates or updates data.
+Example: {"title":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -33,7 +34,8 @@ Create a note (**mutation**)
 
 ## `capability:trilium.delete`
 
-Delete a note (**mutation**)
+Delete a note for the signed-in caller. Deletes or removes data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -54,7 +56,8 @@ Delete a note (**mutation**)
 
 ## `capability:trilium.get`
 
-Get a note
+Get a note for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -75,7 +78,8 @@ Get a note
 
 ## `capability:trilium.get_app_info`
 
-Get note server info
+Get note server info for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -92,7 +96,8 @@ _(none)_
 
 ## `capability:trilium.get_content`
 
-Get note content
+Get note content for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -113,7 +118,8 @@ Get note content
 
 ## `capability:trilium.health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -130,7 +136,8 @@ _(none)_
 
 ## `capability:trilium.list`
 
-List notes
+List notes for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -159,7 +166,8 @@ List notes
 
 ## `capability:trilium.search`
 
-Search notes
+Search notes for the signed-in caller. Read-only.
+Example: {"query":"example"}
 
 **Inputs (params):**
 
@@ -180,7 +188,8 @@ Search notes
 
 ## `capability:trilium.set_content`
 
-Set note content (**mutation**)
+Set note content for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -203,7 +212,8 @@ Set note content (**mutation**)
 
 ## `capability:trilium.update`
 
-Update a note (**mutation**)
+Update a note for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 

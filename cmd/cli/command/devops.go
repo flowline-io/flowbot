@@ -43,9 +43,8 @@ func devopsStatusCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("devops status: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(st)
+			if IsJSON(cmd) {
+				return render(cmd, st)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-12s %s\n", "BACKEND", "CONFIGURED")
 			for name, ok := range st.Backends {
@@ -54,7 +53,6 @@ func devopsStatusCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -80,12 +78,8 @@ func devopsBeszelSystemsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list systems: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No systems found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No systems found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-24s %-16s %s\n", "ID", "NAME", "STATUS")
 			for _, item := range result.Items {
@@ -94,7 +88,6 @@ func devopsBeszelSystemsCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -112,9 +105,8 @@ func devopsBeszelGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get system: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(item)
+			if IsJSON(cmd) {
+				return render(cmd, item)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "ID: %s\nName: %s\nStatus: %s\nHost: %s\n", item.ID, item.Name, item.Status, item.Host)
 			return nil
@@ -122,7 +114,6 @@ func devopsBeszelGetCommand() *cobra.Command {
 	}
 	cmd.Flags().String("id", "", "System ID")
 	_ = cmd.MarkFlagRequired("id")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -148,6 +139,9 @@ func devopsUptimekumaHealthCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("uptimekuma health: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": ok})
+			}
 			if ok {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Uptime Kuma backend is healthy")
 			} else {
@@ -171,12 +165,8 @@ func devopsUptimekumaMetricsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("uptimekuma metrics: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No metrics found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No metrics found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-40s %s\n", "NAME", "SAMPLES")
 			for _, item := range result.Items {
@@ -185,7 +175,6 @@ func devopsUptimekumaMetricsCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -211,15 +200,13 @@ func devopsTraefikOverviewCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("traefik overview: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(ov)
+			if IsJSON(cmd) {
+				return render(cmd, ov)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "HTTP routers: %d\nHTTP services: %d\n", ov.HTTPRouters, ov.HTTPServices)
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -236,12 +223,8 @@ func devopsTraefikRoutersCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list routers: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No routers found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No routers found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-32s %-12s %s\n", "NAME", "STATUS", "RULE")
 			for _, item := range result.Items {
@@ -250,7 +233,6 @@ func devopsTraefikRoutersCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -267,12 +249,8 @@ func devopsTraefikServicesCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list services: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No services found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No services found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-32s %-12s %s\n", "NAME", "STATUS", "TYPE")
 			for _, item := range result.Items {
@@ -281,7 +259,6 @@ func devopsTraefikServicesCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -312,15 +289,13 @@ func devopsGrafanaHealthCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("grafana health: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(h)
+			if IsJSON(cmd) {
+				return render(cmd, h)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Database: %s\nVersion: %s\n", h.Database, h.Version)
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -337,12 +312,8 @@ func devopsGrafanaDatasourcesCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list datasources: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No datasources found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No datasources found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-8s %-24s %s\n", "ID", "NAME", "TYPE")
 			for _, item := range result.Items {
@@ -351,7 +322,6 @@ func devopsGrafanaDatasourcesCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -369,12 +339,8 @@ func devopsGrafanaDashboardsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("search dashboards: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No dashboards found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No dashboards found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-16s %s\n", "UID", "TITLE")
 			for _, item := range result.Items {
@@ -384,7 +350,6 @@ func devopsGrafanaDashboardsCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().String("query", "", "Search query")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -409,9 +374,8 @@ func devopsGrafanaQueryCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("grafana query: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if IsJSON(cmd) {
+				return render(cmd, result)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Backend: %s\nDatasource: %s (%s)\nFrames: %d\n",
 				result.Backend, result.DatasourceUID, result.DatasourceType, len(result.Frames))
@@ -429,7 +393,6 @@ func devopsGrafanaQueryCommand() *cobra.Command {
 	cmd.Flags().String("from", "now-1h", "Grafana from time")
 	cmd.Flags().String("to", "now", "Grafana to time")
 	cmd.Flags().Int("max-lines", 100, "Loki max lines")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -460,15 +423,13 @@ func devopsWakapiHealthCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("wakapi health: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(health)
+			if IsJSON(cmd) {
+				return render(cmd, health)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "App: %v  DB: %v\n", health.AppOK, health.DBOK)
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -487,9 +448,8 @@ func devopsWakapiSummaryCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("wakapi summary: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(s)
+			if IsJSON(cmd) {
+				return render(cmd, s)
 			}
 			if s.HumanReadableTotal != "" {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Total: %s (%d seconds)\n", s.HumanReadableTotal, s.TotalSeconds)
@@ -501,7 +461,6 @@ func devopsWakapiSummaryCommand() *cobra.Command {
 	}
 	cmd.Flags().String("interval", "today", "Summary interval")
 	cmd.Flags().String("project", "", "Project filter")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -518,9 +477,8 @@ func devopsWakapiAllTimeCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("wakapi all-time: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(allTime)
+			if IsJSON(cmd) {
+				return render(cmd, allTime)
 			}
 			if allTime.Text != "" {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "All time: %s (%d seconds)\n", allTime.Text, allTime.TotalSeconds)
@@ -530,7 +488,6 @@ func devopsWakapiAllTimeCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -548,12 +505,8 @@ func devopsWakapiProjectsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list projects: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No projects found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No projects found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-24s %s\n", "ID", "NAME")
 			for _, item := range result.Items {
@@ -563,7 +516,6 @@ func devopsWakapiProjectsCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().String("query", "", "Project name filter")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -589,9 +541,8 @@ func devopsDozzleHealthCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("dozzle health: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(info)
+			if IsJSON(cmd) {
+				return render(cmd, info)
 			}
 			if info.Healthy {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Dozzle is healthy (version %s)\n", info.Version)
@@ -601,7 +552,6 @@ func devopsDozzleHealthCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -632,6 +582,9 @@ func devopsNetalertxHealthCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("netalertx health: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": ok})
+			}
 			if ok {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "NetAlertX backend is healthy")
 			} else {
@@ -655,12 +608,8 @@ func devopsNetalertxDevicesCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list devices: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No devices found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No devices found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-18s %-16s %s\n", "NAME", "MAC", "IP", "STATUS")
 			for _, item := range result.Items {
@@ -669,7 +618,6 @@ func devopsNetalertxDevicesCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -686,16 +634,14 @@ func devopsNetalertxTotalsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("netalertx totals: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(t)
+			if IsJSON(cmd) {
+				return render(cmd, t)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "All: %d\nConnected: %d\nFavorites: %d\nNew: %d\nDown: %d\nArchived: %d\n",
 				t.All, t.Connected, t.Favorites, t.New, t.Down, t.Archived)
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -713,12 +659,8 @@ func devopsNetalertxSearchCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("search devices: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No devices found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No devices found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-18s %-16s %s\n", "NAME", "MAC", "IP", "STATUS")
 			for _, item := range result.Items {
@@ -729,7 +671,6 @@ func devopsNetalertxSearchCommand() *cobra.Command {
 	}
 	cmd.Flags().String("query", "", "Search query (MAC, name, or IP)")
 	_ = cmd.MarkFlagRequired("query")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -763,6 +704,9 @@ func devopsScanopyHealthCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("scanopy health: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": ok})
+			}
 			if ok {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Scanopy backend is healthy")
 			} else {
@@ -786,15 +730,13 @@ func devopsScanopyVersionCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("scanopy version: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(v)
+			if IsJSON(cmd) {
+				return render(cmd, v)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "API: %d\nServer: %s\n", v.APIVersion, v.ServerVersion)
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -817,7 +759,6 @@ func addScanopyListFlags(cmd *cobra.Command, withHostID bool) {
 	cmd.Flags().String("search", "", "Free-text search")
 	cmd.Flags().Int("limit", 0, "Page size (default 50, max 1000)")
 	cmd.Flags().String("cursor", "", "Opaque pagination cursor")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 }
 
 func devopsScanopyNetworksCommand() *cobra.Command {
@@ -833,12 +774,8 @@ func devopsScanopyNetworksCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list networks: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No networks found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No networks found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-38s %s\n", "ID", "NAME")
 			for _, item := range result.Items {
@@ -864,12 +801,8 @@ func devopsScanopyHostsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list hosts: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No hosts found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No hosts found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-16s %-38s %s\n", "NAME", "HOSTNAME", "NETWORK", "IPS")
 			for _, item := range result.Items {
@@ -903,9 +836,8 @@ func devopsScanopyGetHostCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get host: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(host)
+			if IsJSON(cmd) {
+				return render(cmd, host)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "ID: %s\nName: %s\nHostname: %s\nNetwork: %s\nIPs: %v\nLast seen: %s\n",
 				host.ID, host.Name, host.Hostname, host.NetworkID, host.IPs, host.LastSeenAt)
@@ -914,7 +846,6 @@ func devopsScanopyGetHostCommand() *cobra.Command {
 	}
 	cmd.Flags().String("id", "", "Host UUID")
 	_ = cmd.MarkFlagRequired("id")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -931,12 +862,8 @@ func devopsScanopyServicesCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list services: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No services found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No services found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-20s %-38s %s\n", "NAME", "DEFINITION", "HOST", "NETWORK")
 			for _, item := range result.Items {
@@ -962,12 +889,8 @@ func devopsScanopyDaemonsCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list daemons: %w", err)
 			}
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No daemons found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No daemons found", result, len(result.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-20s %-12s %-10s %s\n", "NAME", "VERSION", "UNREACHABLE", "NETWORK")
 			for _, item := range result.Items {

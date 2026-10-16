@@ -55,6 +55,9 @@ func functionApplyCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("apply function: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Applied function %s (id=%d version=%d status=%s)\n",
 				result.Name, result.ID, result.Version, result.Status)
 			return nil
@@ -81,12 +84,8 @@ func functionListCommand() *cobra.Command {
 			if len(result.Functions) == 0 {
 				return PrintEmptyList(cmd, "No functions configured")
 			}
-			output, err := cmd.Flags().GetString("output")
-			if err != nil {
-				return err
-			}
-			if output == "json" {
-				return PrintJSON(result.Functions)
+			if IsJSON(cmd) {
+				return render(cmd, result.Functions)
 			}
 			_, _ = fmt.Printf("%-32s %-10s %s\n", "NAME", "VERSION", "STATUS")
 			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 54))
@@ -96,7 +95,6 @@ func functionListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -116,7 +114,7 @@ func functionGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get function: %w", err)
 			}
-			return PrintJSON(meta)
+			return render(cmd, meta)
 		},
 	}
 	return cmd
@@ -152,10 +150,17 @@ func functionExportCommand() *cobra.Command {
 				if err := os.WriteFile(filepath.Join(outDir, bundle.Entrypoint), []byte(bundle.Source), 0o644); err != nil {
 					return err
 				}
+				if IsJSON(cmd) {
+					return render(cmd, map[string]string{"path": outDir})
+				}
 				_, _ = fmt.Printf("Exported function %s v%d to %s\n", bundle.Name, bundle.Version, outDir)
 				return nil
 			}
-			return PrintJSON(bundle)
+			if IsJSON(cmd) {
+				return render(cmd, bundle)
+			}
+			_, _ = fmt.Printf("%s v%d %s\n", bundle.Name, bundle.Version, bundle.Entrypoint)
+			return nil
 		},
 	}
 	cmd.Flags().String("out", "", "Optional directory to write metadata.yaml + entrypoint")
@@ -176,6 +181,9 @@ func functionDeleteCommand() *cobra.Command {
 			}
 			if err := c.Function.Delete(cmd.Context(), args[0]); err != nil {
 				return fmt.Errorf("delete function: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": args[0]})
 			}
 			_, _ = fmt.Printf("Deleted function %s\n", args[0])
 			return nil
@@ -203,12 +211,8 @@ func functionRunsCommand() *cobra.Command {
 			if len(result.Runs) == 0 {
 				return PrintEmptyList(cmd, "No runs found")
 			}
-			output, err := cmd.Flags().GetString("output")
-			if err != nil {
-				return err
-			}
-			if output == "json" {
-				return PrintJSON(result.Runs)
+			if IsJSON(cmd) {
+				return render(cmd, result.Runs)
 			}
 			_, _ = fmt.Printf("%-8s %-8s %-12s %s\n", "ID", "VERSION", "STATUS", "DURATION_MS")
 			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 48))
@@ -218,6 +222,5 @@ func functionRunsCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }

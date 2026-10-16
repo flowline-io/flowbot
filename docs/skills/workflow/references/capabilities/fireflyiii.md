@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:fireflyiii.about`
 
-Get Firefly III about info
+Get Firefly III about info for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -23,7 +24,8 @@ _(none)_
 
 ## `capability:fireflyiii.create_transaction`
 
-Create a transaction (**mutation**)
+Create a transaction for the signed-in caller. Creates or updates data.
+Example: {"type":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -72,7 +74,8 @@ Create a transaction (**mutation**)
 
 ## `capability:fireflyiii.current_user`
 
-Get current Firefly III user
+Get current Firefly III user for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -89,7 +92,8 @@ _(none)_
 
 ## `capability:fireflyiii.delete_transaction`
 
-Delete a transaction (**mutation**)
+Delete a transaction for the signed-in caller. Deletes or removes data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -110,7 +114,8 @@ Delete a transaction (**mutation**)
 
 ## `capability:fireflyiii.get_transaction`
 
-Get a transaction by group ID
+Get a transaction by group ID for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -131,7 +136,8 @@ Get a transaction by group ID
 
 ## `capability:fireflyiii.health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -148,7 +154,8 @@ _(none)_
 
 ## `capability:fireflyiii.list_accounts`
 
-List accounts
+List accounts for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -173,7 +180,8 @@ List accounts
 
 ## `capability:fireflyiii.list_bills`
 
-List bills
+List bills for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -196,7 +204,8 @@ List bills
 
 ## `capability:fireflyiii.list_budgets`
 
-List budgets
+List budgets for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -219,7 +228,8 @@ List budgets
 
 ## `capability:fireflyiii.list_categories`
 
-List categories
+List categories for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -242,7 +252,8 @@ List categories
 
 ## `capability:fireflyiii.list_tags`
 
-List tags
+List tags for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -265,7 +276,8 @@ List tags
 
 ## `capability:fireflyiii.list_transactions`
 
-List transactions
+List transactions for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -296,7 +308,8 @@ List transactions
 
 ## `capability:fireflyiii.update_transaction`
 
-Update a transaction (**mutation**)
+Update a transaction for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 

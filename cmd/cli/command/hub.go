@@ -59,9 +59,8 @@ func hubAppsListCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No apps registered")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(apps)
+			if IsJSON(cmd) {
+				return render(cmd, apps)
 			}
 			_, _ = fmt.Printf("%-24s %-12s %-12s\n", "NAME", "STATUS", "HEALTH")
 			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 50))
@@ -72,7 +71,6 @@ func hubAppsListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -97,9 +95,8 @@ func hubAppsStatusCommand() *cobra.Command {
 				return fmt.Errorf("get app status: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(status)
+			if IsJSON(cmd) {
+				return render(cmd, status)
 			}
 			_, _ = fmt.Printf("App:    %s\n", status.Name)
 			_, _ = fmt.Printf("Status: %s\n", status.Status)
@@ -107,7 +104,6 @@ func hubAppsStatusCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -132,10 +128,16 @@ func hubAppsLogsCommand() *cobra.Command {
 				return fmt.Errorf("get app logs: %w", err)
 			}
 
-			for _, line := range logs.Logs {
+			lines := logs.Logs
+			if lines == nil {
+				lines = []string{}
+			}
+			if IsJSON(cmd) {
+				return render(cmd, lines)
+			}
+			for _, line := range lines {
 				_, _ = fmt.Println(line)
 			}
-
 			return nil
 		},
 	}
@@ -164,6 +166,9 @@ func hubAppsRestartCommand() *cobra.Command {
 				return fmt.Errorf("restart app: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("App %s: %v\n", name, result)
 			return nil
 		},
@@ -191,9 +196,8 @@ func hubCapabilitiesCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No capabilities registered")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(caps)
+			if IsJSON(cmd) {
+				return render(cmd, caps)
 			}
 			_, _ = fmt.Printf("%-18s %-14s %s\n", "CAPABILITY", "APP", "HEALTHY")
 			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 48))
@@ -208,7 +212,6 @@ func hubCapabilitiesCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -228,9 +231,8 @@ func hubHealthCommand() *cobra.Command {
 				return fmt.Errorf("check health: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(health)
+			if IsJSON(cmd) {
+				return render(cmd, health)
 			}
 			_, _ = fmt.Printf("Hub Status: %s\n", health.Status)
 			if health.Timestamp != "" {
@@ -262,6 +264,5 @@ func hubHealthCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }

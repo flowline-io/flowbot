@@ -151,8 +151,9 @@ const platformCLIReferenceTemplate = `# {{.Title}} CLI reference
 
 Platform skill (not a hub capability). Root command: ` + "`" + `flowbot {{.CLIRoot}}` + "`" + `.
 
-Global flags: ` + "`" + `--server-url` + "`" + `, ` + "`" + `--profile` + "`" + `, ` + "`" + `--debug` + "`" + ` / ` + "`" + `-d` + "`" + `. Most commands accept ` + "`" + `-o table|json` + "`" + ` (omitted below).
+Global flags: ` + "`" + `--server-url` + "`" + `, ` + "`" + `--profile` + "`" + `, ` + "`" + `--debug` + "`" + ` / ` + "`" + `-d` + "`" + `, ` + "`" + `--yes` + "`" + ` / ` + "`" + `-y` + "`" + `, ` + "`" + `--no-input` + "`" + `. Every leaf accepts ` + "`" + `-o table|json` + "`" + ` (default ` + "`" + `table` + "`" + `, omitted below).
 
+` + cliOutputSection + `
 ## Commands
 {{- range .Operations}}
 

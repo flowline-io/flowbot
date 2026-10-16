@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `complete_task`
 
-Complete a task (**mutation**)
+Complete a task for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -26,7 +27,8 @@ Complete a task (**mutation**)
 
 ## `create_project`
 
-Create a project (**mutation**)
+Create a project for the signed-in caller. Creates or updates data.
+Example: {"name":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -48,7 +50,8 @@ Create a project (**mutation**)
 
 ## `create_task`
 
-Create a task (**mutation**)
+Create a task for the signed-in caller. Creates or updates data.
+Example: {} (**mutation**)
 
 **Inputs (params):**
 
@@ -84,7 +87,8 @@ Create a task (**mutation**)
 
 ## `delete_task`
 
-Delete a task (**mutation**)
+Delete a task for the signed-in caller. Deletes or removes data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -104,7 +108,8 @@ Delete a task (**mutation**)
 
 ## `get_columns`
 
-Get columns
+Get columns for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -124,7 +129,8 @@ Get columns
 
 ## `get_task`
 
-Get a task
+Get a task for the signed-in caller. Read-only.
+Example: {"id":1}
 
 **Inputs (params):**
 
@@ -144,7 +150,8 @@ Get a task
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -160,7 +167,8 @@ _(none)_
 
 ## `list_categories`
 
-List categories
+List categories for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -180,7 +188,8 @@ List categories
 
 ## `list_projects`
 
-List projects
+List projects for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -196,7 +205,8 @@ _(none)_
 
 ## `list_swimlanes`
 
-List swimlanes
+List swimlanes for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -216,7 +226,8 @@ List swimlanes
 
 ## `list_tasks`
 
-List tasks
+List tasks for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -246,7 +257,8 @@ List tasks
 
 ## `move_task`
 
-Move a task (**mutation**)
+Move a task for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -274,7 +286,8 @@ Move a task (**mutation**)
 
 ## `search_tasks`
 
-Search tasks
+Search tasks for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -304,7 +317,8 @@ Search tasks
 
 ## `update_task`
 
-Update a task (**mutation**)
+Update a task for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 

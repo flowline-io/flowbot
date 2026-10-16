@@ -451,7 +451,7 @@ func TestKanbanConfirmCommands(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(strings.Join([]string{tt.parent, tt.leaf}, "/"), func(t *testing.T) {
 			t.Parallel()
-			cmd := KanbanCommand()
+			cmd := findSubcommand(NewRoot("test"), "kanban")
 
 			parentCmd := cmd
 			if tt.parent != "kanban" {
@@ -462,7 +462,7 @@ func TestKanbanConfirmCommands(t *testing.T) {
 			require.NotNil(t, leafCmd, "leaf %s not found under %s", tt.leaf, tt.parent)
 			require.NotNil(t, leafCmd.RunE)
 
-			yes := leafCmd.Flags().Lookup("yes")
+			yes := lookupFlag(leafCmd, "yes")
 			require.NotNil(t, yes, "--yes flag missing on %s/%s", tt.parent, tt.leaf)
 			require.Equal(t, "y", yes.Shorthand)
 		})

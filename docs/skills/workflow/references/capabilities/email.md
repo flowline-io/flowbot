@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:email.get`
 
-Get a message by id
+Get a message by id for the signed-in caller. Read-only.
+Example: {"id":"example"}
 
 **Inputs (params):**
 
@@ -27,7 +28,8 @@ Get a message by id
 
 ## `capability:email.health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -44,7 +46,8 @@ _(none)_
 
 ## `capability:email.list`
 
-List messages
+List messages for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -71,7 +74,8 @@ List messages
 
 ## `capability:email.mark_read`
 
-Mark a message as read (**mutation**)
+Mark a message as read for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -92,7 +96,8 @@ Mark a message as read (**mutation**)
 
 ## `capability:email.mark_unread`
 
-Mark a message as unread (**mutation**)
+Mark a message as unread for the signed-in caller. Creates or updates data.
+Example: {"id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -113,7 +118,8 @@ Mark a message as unread (**mutation**)
 
 ## `capability:email.search`
 
-Search messages
+Search messages for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -150,7 +156,8 @@ Search messages
 
 ## `capability:email.send`
 
-Send an email (**mutation**)
+Send an email for the signed-in caller. Creates or updates data.
+Example: {"to":"example"} (**mutation**)
 
 **Inputs (params):**
 

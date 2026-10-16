@@ -2,7 +2,13 @@
 
 Capability `kanboard`. Root command: `flowbot kanban`.
 
-Global flags: `--server-url`, `--profile`, `--debug` / `-d`. Most commands accept `-o table|json` (omitted below).
+Global flags: `--server-url`, `--profile`, `--debug` / `-d`, `--yes` / `-y`, `--no-input`. Every leaf accepts `-o table|json` (default `table`, omitted below).
+
+## Output and exit codes
+
+`-o json` writes a two-space indented object to stdout and a trailing newline: `{"data": ...}`. Paginated commands also include `page` (`limit`, `has_more`, and `next_cursor` when another page exists), including an empty page and the last page. Commands that are not paginated omit `page`. `data` is the API object: a list is an array, an id-only delete is `{"id":"..."}`, and an empty success is `{}`. The default stays `table`. A non-terminal stdin does not change the format; it implies `--no-input`. A pseudo-terminal still prompts.
+
+Failures with `-o json` leave stdout empty and write `{"error":{"code","message","retryable","hint"}}` to stderr. Exit codes: 0 success, 1 `internal` / `run_failed` / `cancelled` / non-retryable `provider_error`, 2 `invalid_argument`, 3 `unauthenticated` or `permission_denied`, 4 `not_found`, 5 `conflict` or `already_exists`, 6 retryable transient (`rate_limited`, `unavailable`, `timeout`, retryable `provider_error`), 7 `confirmation_required`, 8 `not_implemented`. Retry the same call only on exit 6. `conflict` is exit 5 with `retryable: true`: re-read, then write. Pass `--yes` to confirm. `--no-input` without `--yes` exits 7 and does not read stdin. A declined prompt is exit 1, code `cancelled`. `--help` stays text. `pipeline export` and `workflow export` take `--file` for a YAML path; `-o` is only the format.
 
 ## Commands
 
@@ -16,11 +22,9 @@ Flags: `--category` int — Category ID; `--column` (`-c`) int — Column ID; `-
 
 ### Delete a card from a kanban board
 
-`flowbot kanban card delete <card-id> [flags]`
+`flowbot kanban card delete <card-id>`
 
 Close a task by ID
-
-Flags: `--yes` (`-y`) bool — Skip confirmation
 
 ### Move a card to another column
 
@@ -56,11 +60,9 @@ Flags: `--category` int — Category ID; `--column` (`-c`) int — Column ID; `-
 
 ### Close a kanban task
 
-`flowbot kanban delete <id> [flags]`
+`flowbot kanban delete <id>`
 
 Close a task by ID
-
-Flags: `--yes` (`-y`) bool — Skip confirmation
 
 ### Get a kanban task by ID
 
@@ -78,11 +80,9 @@ Flags: `--project` (`-p`) int — Project ID; `--status` (`-s`) string — Statu
 
 ### Delete task metadata
 
-`flowbot kanban metadata delete <task_id> <name> [flags]`
+`flowbot kanban metadata delete <task_id> <name>`
 
 Delete a metadata entry from a task
-
-Flags: `--yes` (`-y`) bool — Skip confirmation
 
 ### Get task metadata
 
@@ -136,11 +136,9 @@ Flags: `--status` int — Status (0=Todo, 1=In progress, 2=Done); `--time-estima
 
 ### Delete a subtask
 
-`flowbot kanban subtask delete <task_id> <subtask_id> [flags]`
+`flowbot kanban subtask delete <task_id> <subtask_id>`
 
 Remove a subtask by ID
-
-Flags: `--yes` (`-y`) bool — Skip confirmation
 
 ### Get a subtask by ID
 
@@ -212,11 +210,9 @@ Flags: `--color` (`-c`) string — Color ID; `--name` (`-n`) string, required �
 
 ### Delete a tag
 
-`flowbot kanban tag delete <id> [flags]`
+`flowbot kanban tag delete <id>`
 
 Remove a tag by ID
-
-Flags: `--yes` (`-y`) bool — Skip confirmation
 
 ### List all tags
 

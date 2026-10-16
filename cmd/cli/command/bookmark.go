@@ -50,6 +50,9 @@ func bookmarkCreateCommand() *cobra.Command {
 				return fmt.Errorf("create bookmark: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, bookmark)
+			}
 			_, _ = fmt.Printf("Bookmark created: %s (%s)\n", bookmark.Title, bookmark.ID)
 			return nil
 		},
@@ -82,12 +85,11 @@ func bookmarkListCommand() *cobra.Command {
 				return fmt.Errorf("list bookmarks: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if IsJSON(cmd) {
 				if result.Items == nil {
 					result.Items = []*capability.Bookmark{}
 				}
-				return PrintJSON(result)
+				return render(cmd, result)
 			}
 			if len(result.Items) == 0 {
 				return PrintEmptyList(cmd, "No bookmarks found")
@@ -97,7 +99,6 @@ func bookmarkListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of bookmarks")
 	cmd.Flags().StringP("cursor", "c", "", "Pagination cursor")
 	return cmd
@@ -124,9 +125,8 @@ func bookmarkGetCommand() *cobra.Command {
 				return fmt.Errorf("get bookmark: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(bookmark)
+			if IsJSON(cmd) {
+				return render(cmd, bookmark)
 			}
 			_, _ = fmt.Printf("ID:          %s\n", bookmark.ID)
 			_, _ = fmt.Printf("Title:       %s\n", bookmark.Title)
@@ -141,7 +141,6 @@ func bookmarkGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -173,17 +172,8 @@ func bookmarkArchiveCommand() *cobra.Command {
 				newStatus = "unarchived"
 			}
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Bookmark is currently %s. Change to %s? [y/N]: ", currentStatus, newStatus)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Bookmark is currently %s. Change to %s? [y/N]: ", currentStatus, newStatus)); err != nil {
+				return err
 			}
 
 			result, err := c.Bookmark.Archive(cmd.Context(), id)
@@ -195,11 +185,13 @@ func bookmarkArchiveCommand() *cobra.Command {
 			if !result.Archived {
 				status = "unarchived"
 			}
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Bookmark %s: %s\n", status, id)
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -214,17 +206,8 @@ func bookmarkDeleteCommand() *cobra.Command {
 			}
 			id := args[0]
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Archive bookmark %s? [y/N]: ", id)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Archive bookmark %s? [y/N]: ", id)); err != nil {
+				return err
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -237,11 +220,13 @@ func bookmarkDeleteCommand() *cobra.Command {
 				return fmt.Errorf("delete bookmark: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": id})
+			}
 			_, _ = fmt.Printf("Bookmark archived: %s\n", id)
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -263,6 +248,9 @@ func bookmarkCheckUrlCommand() *cobra.Command {
 				return fmt.Errorf("check URL: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			if result.Exists && result.ID != "" {
 				_, _ = fmt.Printf("URL is bookmarked: %s (ID: %s)\n", urlStr, result.ID)
 			} else {
@@ -306,12 +294,11 @@ func bookmarkSearchCommand() *cobra.Command {
 				return fmt.Errorf("search bookmarks: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if IsJSON(cmd) {
 				if result.Items == nil {
 					result.Items = []*capability.Bookmark{}
 				}
-				return PrintJSON(result)
+				return render(cmd, result)
 			}
 			if len(result.Items) == 0 {
 				return PrintEmptyList(cmd, "No bookmarks found")
@@ -328,7 +315,6 @@ func bookmarkSearchCommand() *cobra.Command {
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of results")
 	cmd.Flags().StringP("cursor", "c", "", "Pagination cursor")
 	cmd.Flags().BoolP("include-content", "i", false, "Include full content in results")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 

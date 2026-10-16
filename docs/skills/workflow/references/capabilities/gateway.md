@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:gateway.cancel`
 
-Cancel a gateway job by id (**mutation**)
+Cancel a gateway job by id for the signed-in caller. Creates or updates data.
+Example: {"job_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -27,7 +28,8 @@ Cancel a gateway job by id (**mutation**)
 
 ## `capability:gateway.health`
 
-Report whether a fresh gateway worker is online
+Report whether a fresh gateway worker is online for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -44,7 +46,8 @@ _(none)_
 
 ## `capability:gateway.run`
 
-Create a local CLI job and wait for the terminal result (**mutation**)
+Create a local CLI job and wait for the terminal result for the signed-in caller. Creates or updates data.
+Example: {"prompt":"example"} (**mutation**)
 
 **Inputs (params):**
 

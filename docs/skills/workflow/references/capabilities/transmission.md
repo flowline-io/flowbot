@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:transmission.add`
 
-Add a torrent by magnet or HTTP(S) URL (**mutation**)
+Add a torrent by magnet or HTTP(S) URL for the signed-in caller. Creates or updates data.
+Example: {"url":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -27,7 +28,8 @@ Add a torrent by magnet or HTTP(S) URL (**mutation**)
 
 ## `capability:transmission.health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -44,7 +46,8 @@ _(none)_
 
 ## `capability:transmission.list`
 
-List torrents
+List torrents for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -61,7 +64,8 @@ _(none)_
 
 ## `capability:transmission.remove`
 
-Remove torrents by ID (**mutation**)
+Remove torrents by ID for the signed-in caller. Deletes or removes data.
+Example: {"ids":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -82,7 +86,8 @@ Remove torrents by ID (**mutation**)
 
 ## `capability:transmission.stop`
 
-Stop torrents by ID (**mutation**)
+Stop torrents by ID for the signed-in caller. Creates or updates data.
+Example: {"ids":1} (**mutation**)
 
 **Inputs (params):**
 

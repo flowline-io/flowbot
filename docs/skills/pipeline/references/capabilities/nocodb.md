@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `create_record`
 
-Create a record (**mutation**)
+Create a record for the signed-in caller. Creates or updates data.
+Example: {"table_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -28,7 +29,8 @@ Create a record (**mutation**)
 
 ## `delete_record`
 
-Delete a record (**mutation**)
+Delete a record for the signed-in caller. Deletes or removes data.
+Example: {"table_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -50,7 +52,8 @@ Delete a record (**mutation**)
 
 ## `get_record`
 
-Get a record by ID
+Get a record by ID for the signed-in caller. Read-only.
+Example: {"table_id":"example"}
 
 **Inputs (params):**
 
@@ -72,7 +75,8 @@ Get a record by ID
 
 ## `get_table`
 
-Get table metadata
+Get table metadata for the signed-in caller. Read-only.
+Example: {"table_id":"example"}
 
 **Inputs (params):**
 
@@ -92,7 +96,8 @@ Get table metadata
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -108,7 +113,8 @@ _(none)_
 
 ## `list_bases`
 
-List bases
+List bases for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -124,7 +130,8 @@ _(none)_
 
 ## `list_records`
 
-List records in a table
+List records in a table for the signed-in caller. Read-only.
+Example: {"table_id":"example"}
 
 **Inputs (params):**
 
@@ -154,7 +161,8 @@ List records in a table
 
 ## `list_tables`
 
-List tables in a base
+List tables in a base for the signed-in caller. Read-only.
+Example: {"base_id":"example"}
 
 **Inputs (params):**
 
@@ -174,7 +182,8 @@ List tables in a base
 
 ## `update_record`
 
-Update a record (**mutation**)
+Update a record for the signed-in caller. Creates or updates data.
+Example: {"table_id":"example"} (**mutation**)
 
 **Inputs (params):**
 

@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:core.agent_health`
 
-Agent subsystem health
+Agent subsystem health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -23,7 +24,8 @@ _(none)_
 
 ## `capability:core.agent_run`
 
-Execute one autonomous agent turn with a prompt (**mutation**)
+Execute one autonomous agent turn with a prompt for the signed-in caller. Creates or updates data.
+Example: {"prompt":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -52,7 +54,8 @@ Execute one autonomous agent turn with a prompt (**mutation**)
 
 ## `capability:core.clip_create`
 
-Create a markdown clip and return its public URL (**mutation**)
+Create a markdown clip and return its public URL for the signed-in caller. Creates or updates data.
+Example: {"content":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -75,7 +78,8 @@ Create a markdown clip and return its public URL (**mutation**)
 
 ## `capability:core.clip_get`
 
-Get a markdown clip by slug
+Get a markdown clip by slug for the signed-in caller. Read-only.
+Example: {"slug":"example"}
 
 **Inputs (params):**
 
@@ -96,7 +100,8 @@ Get a markdown clip by slug
 
 ## `capability:core.clip_health`
 
-Clip subsystem health
+Clip subsystem health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -113,7 +118,8 @@ _(none)_
 
 ## `capability:core.health`
 
-Core runtime health
+Core runtime health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -130,7 +136,8 @@ _(none)_
 
 ## `capability:core.http_request`
 
-Perform an outbound HTTP request (**mutation**)
+Perform an outbound HTTP request for the signed-in caller. Creates or updates data.
+Example: {"url":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -159,7 +166,8 @@ Perform an outbound HTTP request (**mutation**)
 
 ## `capability:core.kv_delete`
 
-Delete a persistent KV value (**mutation**)
+Delete a persistent KV value for the signed-in caller. Deletes or removes data.
+Example: {"namespace":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -184,7 +192,8 @@ Delete a persistent KV value (**mutation**)
 
 ## `capability:core.kv_get`
 
-Get a persistent KV value
+Get a persistent KV value for the signed-in caller. Read-only.
+Example: {"namespace":"example"}
 
 **Inputs (params):**
 
@@ -209,7 +218,8 @@ Get a persistent KV value
 
 ## `capability:core.kv_set`
 
-Set a persistent KV value (**mutation**)
+Set a persistent KV value for the signed-in caller. Creates or updates data.
+Example: {"namespace":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -238,7 +248,8 @@ Set a persistent KV value (**mutation**)
 
 ## `capability:core.notify_health`
 
-Notify subsystem health
+Notify subsystem health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -255,7 +266,8 @@ _(none)_
 
 ## `capability:core.notify_send`
 
-Send a notification using a template (**mutation**)
+Send a notification using a template for the signed-in caller. Creates or updates data.
+Example: {"template_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -282,7 +294,8 @@ Send a notification using a template (**mutation**)
 
 ## `capability:core.run_code`
 
-Run source code in the configured workspace sandbox (**mutation**)
+Run source code in the configured workspace sandbox for the signed-in caller. Creates or updates data.
+Example: {"language":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -309,7 +322,8 @@ Run source code in the configured workspace sandbox (**mutation**)
 
 ## `capability:core.run_terminal`
 
-Run a shell command in the configured workspace sandbox (**mutation**)
+Run a shell command in the configured workspace sandbox for the signed-in caller. Creates or updates data.
+Example: {"command":"example"} (**mutation**)
 
 **Inputs (params):**
 

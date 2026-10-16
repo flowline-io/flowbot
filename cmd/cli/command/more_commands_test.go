@@ -22,7 +22,7 @@ func TestGithubNotificationsCommand(t *testing.T) {
 			require.NotNil(t, notif)
 			require.NotNil(t, notif.RunE)
 			require.NotNil(t, notif.Flags().Lookup("limit"))
-			require.NotNil(t, notif.Flags().Lookup("output"))
+			require.NotNil(t, lookupFlag(findLeaf(t, NewRoot("test"), "github", "notifications"), "output"))
 		})
 	}
 }
@@ -42,7 +42,7 @@ func TestHubCapabilitiesCommand(t *testing.T) {
 			capCmd := findSubcommand(HubCommand(), "capabilities")
 			require.NotNil(t, capCmd)
 			require.NotNil(t, capCmd.RunE)
-			require.NotNil(t, capCmd.Flags().Lookup("output"))
+			require.NotNil(t, lookupFlag(findLeaf(t, NewRoot("test"), "hub", "capabilities"), "output"))
 		})
 	}
 }

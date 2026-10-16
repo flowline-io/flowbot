@@ -44,12 +44,8 @@ func nocodbBasesCommand() *cobra.Command {
 				return fmt.Errorf("list bases: %w", err)
 			}
 			items := result.Items
-			if len(items) == 0 {
-				return PrintEmptyList(cmd, "No bases found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No bases found", result, len(items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-24s %s\n", "ID", "TITLE")
 			for _, item := range items {
@@ -58,7 +54,6 @@ func nocodbBasesCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -78,12 +73,8 @@ func nocodbTablesCommand() *cobra.Command {
 				return fmt.Errorf("list tables: %w", err)
 			}
 			items := result.Items
-			if len(items) == 0 {
-				return PrintEmptyList(cmd, "No tables found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result)
+			if done, err := stopAfterList(cmd, "No tables found", result, len(items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-24s %s\n", "ID", "TITLE")
 			for _, item := range items {
@@ -94,7 +85,6 @@ func nocodbTablesCommand() *cobra.Command {
 	}
 	cmd.Flags().String("base-id", "", "Base ID")
 	_ = cmd.MarkFlagRequired("base-id")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -113,9 +103,8 @@ func nocodbTableCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get table: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(item)
+			if IsJSON(cmd) {
+				return render(cmd, item)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "ID: %s\n", item.ID)
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Title: %s\n", item.Title)
@@ -133,7 +122,6 @@ func nocodbTableCommand() *cobra.Command {
 	}
 	cmd.Flags().String("table-id", "", "Table ID")
 	_ = cmd.MarkFlagRequired("table-id")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -175,12 +163,8 @@ func nocodbRecordsListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list records: %w", err)
 			}
-			if len(items.Items) == 0 {
-				return PrintEmptyList(cmd, "No records found")
-			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(items)
+			if done, err := stopAfterList(cmd, "No records found", items, len(items.Items)); done {
+				return err
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%-12s %s\n", "ID", "FIELDS")
 			for _, item := range items.Items {
@@ -197,7 +181,6 @@ func nocodbRecordsListCommand() *cobra.Command {
 	cmd.Flags().String("where", "", "NocoDB where filter")
 	cmd.Flags().String("sort", "", "Sort expression")
 	cmd.Flags().String("fields", "", "Comma-separated field names")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -217,9 +200,8 @@ func nocodbRecordsGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get record: %w", err)
 			}
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(item)
+			if IsJSON(cmd) {
+				return render(cmd, item)
 			}
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "ID: %s\n", item.ID)
 			raw, _ := sonic.MarshalIndent(item.Fields, "", "  ")
@@ -231,7 +213,6 @@ func nocodbRecordsGetCommand() *cobra.Command {
 	_ = cmd.MarkFlagRequired("table-id")
 	cmd.Flags().String("record-id", "", "Record ID")
 	_ = cmd.MarkFlagRequired("record-id")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -254,6 +235,9 @@ func nocodbRecordsCreateCommand() *cobra.Command {
 			item, err := c.Nocodb.CreateRecord(cmd.Context(), tableID, fields)
 			if err != nil {
 				return fmt.Errorf("create record: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, item)
 			}
 			_, _ = fmt.Printf("Record created: %s\n", item.ID)
 			return nil
@@ -287,6 +271,9 @@ func nocodbRecordsUpdateCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("update record: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, item)
+			}
 			_, _ = fmt.Printf("Record updated: %s\n", item.ID)
 			return nil
 		},
@@ -315,6 +302,9 @@ func nocodbRecordsDeleteCommand() *cobra.Command {
 			if err := c.Nocodb.DeleteRecord(cmd.Context(), tableID, recordID); err != nil {
 				return fmt.Errorf("delete record: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": recordID})
+			}
 			_, _ = fmt.Printf("Record deleted: %s\n", recordID)
 			return nil
 		},
@@ -339,6 +329,9 @@ func nocodbHealthCommand() *cobra.Command {
 			ok, err := c.Nocodb.Health(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("health: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": ok})
 			}
 			if ok {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "NocoDB backend is healthy")

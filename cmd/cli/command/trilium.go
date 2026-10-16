@@ -57,6 +57,9 @@ func triliumCreateCommand() *cobra.Command {
 				return fmt.Errorf("create note: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, note)
+			}
 			_, _ = fmt.Printf("Note created: %s\n", note.ID)
 			_, _ = fmt.Printf("Title: %s\n", note.Title)
 			if note.Type != "" {
@@ -94,13 +97,8 @@ func triliumListCommand() *cobra.Command {
 				return fmt.Errorf("list notes: %w", err)
 			}
 
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No notes found")
-			}
-
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result.Items)
+			if done, err := stopAfterList(cmd, "No notes found", result, len(result.Items)); done {
+				return err
 			}
 			for _, n := range result.Items {
 				_, _ = fmt.Printf("[%s] %s", n.ID, n.Title)
@@ -119,7 +117,6 @@ func triliumListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of notes")
 	cmd.Flags().StringP("query", "q", "", "Optional search filter")
 	return cmd
@@ -146,9 +143,8 @@ func triliumGetCommand() *cobra.Command {
 				return fmt.Errorf("get note: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(note)
+			if IsJSON(cmd) {
+				return render(cmd, note)
 			}
 			_, _ = fmt.Printf("ID:       %s\n", note.ID)
 			_, _ = fmt.Printf("Title:    %s\n", note.Title)
@@ -169,7 +165,6 @@ func triliumGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -210,6 +205,9 @@ func triliumUpdateCommand() *cobra.Command {
 				return fmt.Errorf("update note: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, note)
+			}
 			_, _ = fmt.Printf("Note updated: %s\n", note.ID)
 			_, _ = fmt.Printf("Title: %s\n", note.Title)
 			return nil
@@ -231,17 +229,8 @@ func triliumDeleteCommand() *cobra.Command {
 			}
 			id := args[0]
 
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
-				_, _ = fmt.Printf("Delete note %s? [y/N]: ", id)
-				var response string
-				if _, err := fmt.Scanln(&response); err != nil {
-					return fmt.Errorf("read confirmation: %w", err)
-				}
-				if response != "y" && response != "Y" {
-					_, _ = fmt.Println("Cancelled")
-					return nil
-				}
+			if err := utils.Confirm(cmd, fmt.Sprintf("Delete note %s? [y/N]: ", id)); err != nil {
+				return err
 			}
 
 			c, err := utils.NewClient(cmd)
@@ -253,11 +242,13 @@ func triliumDeleteCommand() *cobra.Command {
 				return fmt.Errorf("delete note: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": id})
+			}
 			_, _ = fmt.Printf("Note deleted: %s\n", id)
 			return nil
 		},
 	}
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	return cmd
 }
 
@@ -278,13 +269,8 @@ func triliumSearchCommand() *cobra.Command {
 				return fmt.Errorf("search notes: %w", err)
 			}
 
-			if len(result.Items) == 0 {
-				return PrintEmptyList(cmd, "No notes found")
-			}
-
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(result.Items)
+			if done, err := stopAfterList(cmd, "No notes found", result, len(result.Items)); done {
+				return err
 			}
 			for _, n := range result.Items {
 				_, _ = fmt.Printf("[%s] %s\n", n.ID, n.Title)
@@ -294,7 +280,6 @@ func triliumSearchCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("query", "q", "", "Search query")
 	_ = cmd.MarkFlagRequired("query")
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -332,9 +317,8 @@ func triliumContentGetCommand() *cobra.Command {
 				return fmt.Errorf("get note content: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(map[string]string{"id": id, "content": content})
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": id, "content": content})
 			}
 			_, _ = fmt.Print(content)
 			if content != "" && content[len(content)-1] != '\n' {
@@ -343,7 +327,6 @@ func triliumContentGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -368,6 +351,9 @@ func triliumContentSetCommand() *cobra.Command {
 				return fmt.Errorf("set note content: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": id})
+			}
 			_, _ = fmt.Printf("Note content updated: %s\n", id)
 			return nil
 		},
@@ -393,6 +379,9 @@ func triliumHealthCommand() *cobra.Command {
 				return fmt.Errorf("check health: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, info)
+			}
 			_, _ = fmt.Println("Trilium backend is healthy")
 			if info.Title != "" {
 				_, _ = fmt.Printf("Info: %s\n", info.Title)

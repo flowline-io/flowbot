@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:functions.get`
 
-Get published function metadata without secrets
+Get published function metadata without secrets for the signed-in caller. Read-only.
+Example: {"name":"example"}
 
 **Inputs (params):**
 
@@ -29,7 +30,8 @@ Get published function metadata without secrets
 
 ## `capability:functions.health`
 
-Functions subsystem health
+Functions subsystem health for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -46,7 +48,8 @@ _(none)_
 
 ## `capability:functions.invoke`
 
-Invoke a published named function version (platform path; does not check function HTTP token/hmac) (**mutation**)
+Invoke a published named function version (platform path; does not check function HTTP token/hmac) for the signed-in caller. Creates or updates data.
+Example: {"name":"example"} (**mutation**)
 
 **Inputs (params):**
 

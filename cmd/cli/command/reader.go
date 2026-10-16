@@ -51,9 +51,8 @@ func readerFeedListCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No feeds found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(feeds)
+			if IsJSON(cmd) {
+				return render(cmd, feeds)
 			}
 			_, _ = fmt.Printf("%-8s %-30s %-40s %-15s\n", "ID", "TITLE", "FEED URL", "CATEGORY")
 			_, _ = fmt.Println(strings.Repeat("-", 95))
@@ -79,7 +78,6 @@ func readerFeedListCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -107,9 +105,8 @@ func readerFeedGetCommand() *cobra.Command {
 				return fmt.Errorf("get feed: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(feed)
+			if IsJSON(cmd) {
+				return render(cmd, feed)
 			}
 			_, _ = fmt.Printf("ID:          %d\n", feed.ID)
 			_, _ = fmt.Printf("Title:       %s\n", feed.Title)
@@ -120,7 +117,6 @@ func readerFeedGetCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -148,6 +144,9 @@ func readerFeedCreateCommand() *cobra.Command {
 				return fmt.Errorf("create feed: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, result)
+			}
 			_, _ = fmt.Printf("Feed created: ID=%d\n", result.ID)
 			if result.Title != "" {
 				_, _ = fmt.Printf("Title: %s\n", result.Title)
@@ -190,7 +189,6 @@ func readerEntryListCommand() *cobra.Command {
 			return printReaderEntries(cmd, entries)
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().StringP("status", "s", "", "Status filter (read, unread, removed)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of entries")
 	cmd.Flags().Int64P("feed", "f", 0, "Filter by feed ID")
@@ -216,11 +214,14 @@ func readerEntryUpdateCommand() *cobra.Command {
 				Status:   status,
 			}
 
-			_, err = c.Reader.UpdateEntriesStatus(cmd.Context(), req)
+			updated, err := c.Reader.UpdateEntriesStatus(cmd.Context(), req)
 			if err != nil {
 				return fmt.Errorf("update entries status: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, updated)
+			}
 			_, _ = fmt.Printf("Updated %d entries to status: %s\n", len(req.EntryIDs), req.Status)
 			return nil
 		},
@@ -267,7 +268,6 @@ func readerFeedEntriesCommand() *cobra.Command {
 			return printReaderEntries(cmd, entries)
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().StringP("status", "s", "", "Status filter (read, unread, removed)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of entries")
 	return cmd
@@ -279,7 +279,7 @@ func printReaderEntries(cmd *cobra.Command, entries []*capability.Entry) error {
 	}
 
 	if IsJSON(cmd) {
-		return PrintJSON(entries)
+		return render(cmd, entries)
 	}
 
 	_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "STATUS", "STARRED")

@@ -30,9 +30,24 @@ func setupMockCLI(t *testing.T, handler http.HandlerFunc) {
 }
 
 func wireClientFlags(cmd *cobra.Command) {
-	cmd.Flags().String("server-url", "", "")
-	cmd.Flags().String("profile", "", "")
-	cmd.Flags().Bool("debug", false, "")
+	if cmd.Flags().Lookup("server-url") == nil {
+		cmd.Flags().String("server-url", "", "")
+	}
+	if cmd.Flags().Lookup("profile") == nil {
+		cmd.Flags().String("profile", "", "")
+	}
+	if cmd.Flags().Lookup("debug") == nil {
+		cmd.Flags().Bool("debug", false, "")
+	}
+	if cmd.Flags().Lookup("output") == nil {
+		cmd.Flags().StringP("output", "o", "table", "")
+	}
+	if cmd.Flags().Lookup("yes") == nil {
+		cmd.Flags().BoolP("yes", "y", false, "")
+	}
+	if cmd.Flags().Lookup("no-input") == nil {
+		cmd.Flags().Bool("no-input", false, "")
+	}
 }
 
 func okJSON(data string) string {

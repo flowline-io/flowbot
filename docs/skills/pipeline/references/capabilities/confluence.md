@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `create_page`
 
-Create a page (**mutation**)
+Create a page for the signed-in caller. Creates or updates data.
+Example: {"space_key":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -30,7 +31,8 @@ Create a page (**mutation**)
 
 ## `delete_page`
 
-Delete a page (**mutation**)
+Delete a page for the signed-in caller. Deletes or removes data.
+Example: {"page_id":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -50,7 +52,8 @@ Delete a page (**mutation**)
 
 ## `get_page`
 
-Get a page
+Get a page for the signed-in caller. Read-only.
+Example: {"page_id":"example"}
 
 **Inputs (params):**
 
@@ -70,7 +73,8 @@ Get a page
 
 ## `get_page_content`
 
-Get page storage content
+Get page storage content for the signed-in caller. Read-only.
+Example: {"page_id":"example"}
 
 **Inputs (params):**
 
@@ -90,7 +94,8 @@ Get page storage content
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -106,7 +111,8 @@ _(none)_
 
 ## `list_pages`
 
-List pages in a space
+List pages in a space for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -130,7 +136,8 @@ List pages in a space
 
 ## `list_spaces`
 
-List spaces
+List spaces for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -152,7 +159,8 @@ List spaces
 
 ## `search_pages`
 
-Search pages with CQL
+Search pages with CQL for the signed-in caller. Read-only.
+Example: {"cql":"example"}
 
 **Inputs (params):**
 
@@ -176,7 +184,8 @@ Search pages with CQL
 
 ## `update_page`
 
-Update a page (**mutation**)
+Update a page for the signed-in caller. Creates or updates data.
+Example: {"page_id":"example"} (**mutation**)
 
 **Inputs (params):**
 

@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:miniflux.create_feed`
 
-Create a feed (**mutation**)
+Create a feed for the signed-in caller. Creates or updates data.
+Example: {"feed_url":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -27,7 +28,8 @@ Create a feed (**mutation**)
 
 ## `capability:miniflux.health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -44,7 +46,8 @@ _(none)_
 
 ## `capability:miniflux.list_entries`
 
-List entries
+List entries for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -75,7 +78,8 @@ List entries
 
 ## `capability:miniflux.list_feeds`
 
-List feeds
+List feeds for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -102,7 +106,8 @@ List feeds
 
 ## `capability:miniflux.mark_entry_read`
 
-Mark entry as read (**mutation**)
+Mark entry as read for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -123,7 +128,8 @@ Mark entry as read (**mutation**)
 
 ## `capability:miniflux.mark_entry_unread`
 
-Mark entry as unread (**mutation**)
+Mark entry as unread for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -144,7 +150,8 @@ Mark entry as unread (**mutation**)
 
 ## `capability:miniflux.star_entry`
 
-Star an entry (**mutation**)
+Star an entry for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -165,7 +172,8 @@ Star an entry (**mutation**)
 
 ## `capability:miniflux.unstar_entry`
 
-Unstar an entry (**mutation**)
+Unstar an entry for the signed-in caller. Creates or updates data.
+Example: {"id":1} (**mutation**)
 
 **Inputs (params):**
 

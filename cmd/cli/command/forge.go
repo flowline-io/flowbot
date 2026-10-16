@@ -44,9 +44,8 @@ func forgeUserCommand() *cobra.Command {
 				return fmt.Errorf("get forge user: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(user)
+			if IsJSON(cmd) {
+				return render(cmd, user)
 			}
 			_, _ = fmt.Printf("ID:        %d\n", user.ID)
 			_, _ = fmt.Printf("Username:  %s\n", user.UserName)
@@ -56,7 +55,6 @@ func forgeUserCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -77,9 +75,8 @@ func forgeRepoCommand() *cobra.Command {
 				return fmt.Errorf("get forge repo: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(repo)
+			if IsJSON(cmd) {
+				return render(cmd, repo)
 			}
 			_, _ = fmt.Printf("ID:          %d\n", repo.ID)
 			_, _ = fmt.Printf("Name:        %s\n", repo.Name)
@@ -93,7 +90,6 @@ func forgeRepoCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -128,9 +124,8 @@ func forgeIssuesCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No issues found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(issues)
+			if IsJSON(cmd) {
+				return render(cmd, issues)
 			}
 			_, _ = fmt.Printf("%-6s %-30s %-10s %-10s\n", "NUMBER", "TITLE", "STATE", "AUTHOR")
 			_, _ = fmt.Println("---------------------------------------------------------------")
@@ -145,7 +140,6 @@ func forgeIssuesCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().StringP("state", "s", "", "Issue state filter (open, closed)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of issues")
 	cmd.Flags().String("cursor", "", "Pagination cursor")
@@ -174,9 +168,8 @@ func forgeIssueCommand() *cobra.Command {
 				return fmt.Errorf("get forge issue: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(issue)
+			if IsJSON(cmd) {
+				return render(cmd, issue)
 			}
 			_, _ = fmt.Printf("ID:       %d\n", issue.ID)
 			_, _ = fmt.Printf("Number:   #%d\n", issue.Index)
@@ -189,7 +182,6 @@ func forgeIssueCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -210,9 +202,8 @@ func forgeDiffCommand() *cobra.Command {
 				return fmt.Errorf("get forge commit diff: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(diff)
+			if IsJSON(cmd) {
+				return render(cmd, diff)
 			}
 			_, _ = fmt.Printf("Commit:  %s\n", diff.CommitID)
 			_, _ = fmt.Printf("Message: %s\n", diff.CommitMessage)
@@ -222,7 +213,6 @@ func forgeDiffCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -254,6 +244,9 @@ func forgeFileCommand() *cobra.Command {
 				return fmt.Errorf("get forge file content: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, content)
+			}
 			_, _ = fmt.Println(content)
 			return nil
 		},

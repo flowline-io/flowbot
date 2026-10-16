@@ -6,7 +6,8 @@ Part of the pipeline capability catalog. Index: [../capabilities.md](../capabili
 
 ## `add`
 
-Add a torrent by magnet or HTTP(S) URL (**mutation**)
+Add a torrent by magnet or HTTP(S) URL for the signed-in caller. Creates or updates data.
+Example: {"url":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -26,7 +27,8 @@ Add a torrent by magnet or HTTP(S) URL (**mutation**)
 
 ## `health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -42,7 +44,8 @@ _(none)_
 
 ## `list`
 
-List torrents
+List torrents for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -58,7 +61,8 @@ _(none)_
 
 ## `remove`
 
-Remove torrents by ID (**mutation**)
+Remove torrents by ID for the signed-in caller. Deletes or removes data.
+Example: {"ids":1} (**mutation**)
 
 **Inputs (params):**
 
@@ -78,7 +82,8 @@ Remove torrents by ID (**mutation**)
 
 ## `stop`
 
-Stop torrents by ID (**mutation**)
+Stop torrents by ID for the signed-in caller. Creates or updates data.
+Example: {"ids":1} (**mutation**)
 
 **Inputs (params):**
 

@@ -46,9 +46,8 @@ func githubUserCommand() *cobra.Command {
 				return fmt.Errorf("get github user: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(user)
+			if IsJSON(cmd) {
+				return render(cmd, user)
 			}
 			_, _ = fmt.Printf("ID:        %d\n", user.ID)
 			_, _ = fmt.Printf("Username:  %s\n", user.UserName)
@@ -58,7 +57,6 @@ func githubUserCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -79,9 +77,8 @@ func githubUserByLoginCommand() *cobra.Command {
 				return fmt.Errorf("get github user by login: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(user)
+			if IsJSON(cmd) {
+				return render(cmd, user)
 			}
 			_, _ = fmt.Printf("ID:        %d\n", user.ID)
 			_, _ = fmt.Printf("Username:  %s\n", user.UserName)
@@ -91,7 +88,6 @@ func githubUserByLoginCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -112,9 +108,8 @@ func githubRepoCommand() *cobra.Command {
 				return fmt.Errorf("get github repo: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(repo)
+			if IsJSON(cmd) {
+				return render(cmd, repo)
 			}
 			_, _ = fmt.Printf("ID:          %d\n", repo.ID)
 			_, _ = fmt.Printf("Name:        %s\n", repo.Name)
@@ -128,7 +123,6 @@ func githubRepoCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -163,9 +157,8 @@ func githubIssuesCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No issues found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(issues)
+			if IsJSON(cmd) {
+				return render(cmd, issues)
 			}
 			_, _ = fmt.Printf("%-6s %-30s %-10s %-10s\n", "NUMBER", "TITLE", "STATE", "AUTHOR")
 			_, _ = fmt.Println("---------------------------------------------------------------")
@@ -180,7 +173,6 @@ func githubIssuesCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().StringP("state", "s", "", "Issue state filter (open, closed)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of issues")
 	cmd.Flags().String("cursor", "", "Pagination cursor")
@@ -209,9 +201,8 @@ func githubIssueCommand() *cobra.Command {
 				return fmt.Errorf("get github issue: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(issue)
+			if IsJSON(cmd) {
+				return render(cmd, issue)
 			}
 			_, _ = fmt.Printf("ID:       %d\n", issue.ID)
 			_, _ = fmt.Printf("Number:   #%d\n", issue.Index)
@@ -224,7 +215,6 @@ func githubIssueCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -245,9 +235,8 @@ func githubDiffCommand() *cobra.Command {
 				return fmt.Errorf("get github commit diff: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(diff)
+			if IsJSON(cmd) {
+				return render(cmd, diff)
 			}
 			_, _ = fmt.Printf("Commit:  %s\n", diff.CommitID)
 			_, _ = fmt.Printf("Message: %s\n", diff.CommitMessage)
@@ -257,7 +246,6 @@ func githubDiffCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
 }
 
@@ -289,6 +277,9 @@ func githubFileCommand() *cobra.Command {
 				return fmt.Errorf("get github file content: %w", err)
 			}
 
+			if IsJSON(cmd) {
+				return render(cmd, content)
+			}
 			_, _ = fmt.Println(content)
 			return nil
 		},
@@ -326,9 +317,8 @@ func githubNotificationsCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No notifications found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(notifications)
+			if IsJSON(cmd) {
+				return render(cmd, notifications)
 			}
 			_, _ = fmt.Printf("%-12s %-15s %-8s %-30s %-20s\n", "ID", "REASON", "UNREAD", "SUBJECT", "REPO")
 			_, _ = fmt.Println("---------------------------------------------------------------")
@@ -351,7 +341,6 @@ func githubNotificationsCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of notifications")
 	cmd.Flags().String("cursor", "", "Pagination cursor")
 	return cmd
@@ -386,9 +375,8 @@ func githubReleasesCommand() *cobra.Command {
 				return PrintEmptyList(cmd, "No releases found")
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return PrintJSON(releases)
+			if IsJSON(cmd) {
+				return render(cmd, releases)
 			}
 			_, _ = fmt.Printf("%-6s %-20s %-25s %-10s %-12s\n", "ID", "TAG", "NAME", "DRAFT", "PRERELEASE")
 			_, _ = fmt.Println("-----------------------------------------------------------------------------------")
@@ -411,7 +399,6 @@ func githubReleasesCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of releases")
 	cmd.Flags().String("cursor", "", "Pagination cursor")
 	return cmd

@@ -7,8 +7,9 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/store"
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // LoginCommand returns the login command
@@ -25,29 +26,46 @@ func LoginCommand() *cobra.Command {
 				if err := store.SaveServerURL(serverURL, profile); err != nil {
 					return fmt.Errorf("save server URL: %w", err)
 				}
-				_, _ = fmt.Printf("Server URL saved: %s\n", serverURL)
 			}
 
 			token, _ := cmd.Flags().GetString("token")
 			if token == "" {
-				_, _ = fmt.Print("Enter your API token: ")
+				if utils.NoInput(cmd) {
+					return types.Errorf(types.ErrInvalidArgument, "token is required")
+				}
+				if _, err := fmt.Fprint(cmd.OutOrStdout(), "Enter your API token: "); err != nil {
+					return fmt.Errorf("write token prompt: %w", err)
+				}
 				byteToken, err := term.ReadPassword(int(os.Stdin.Fd()))
 				if err != nil {
 					return fmt.Errorf("read token: %w", err)
 				}
 				token = string(byteToken)
-				_, _ = fmt.Println()
+				if _, err := fmt.Fprintln(cmd.OutOrStdout()); err != nil {
+					return fmt.Errorf("write token prompt: %w", err)
+				}
 			}
 
 			if token == "" {
-				return errors.New("token is required")
+				return types.Errorf(types.ErrInvalidArgument, "token is required")
 			}
 
 			if err := store.SaveToken(token, profile); err != nil {
 				return err
 			}
-			_, _ = fmt.Println("Login successful. Token saved.")
-			return nil
+			if IsJSON(cmd) {
+				data := map[string]any{}
+				if serverURL != "" {
+					data["server_url"] = serverURL
+				}
+				return render(cmd, data)
+			}
+			if serverURL != "" {
+				if err := writef(cmd, "Server URL saved: %s\n", serverURL); err != nil {
+					return err
+				}
+			}
+			return writef(cmd, "Login successful. Token saved.\n")
 		},
 	}
 	cmd.Flags().StringP("token", "t", "", "Access token for Flowbot server API")

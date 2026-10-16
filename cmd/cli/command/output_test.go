@@ -1,7 +1,7 @@
 package command
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
-	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
 func TestIsJSON(t *testing.T) {
@@ -63,62 +63,25 @@ func TestIsJSON(t *testing.T) {
 	}
 }
 
-func TestPrintJSONErrorShape(t *testing.T) {
+func TestJSONErrorEnvelope(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
-		name        string
-		err         error
-		wantMsg     string
-		wantRetCode string
-	}{
-		{
-			name:    "plain error",
-			err:     errors.New("boom"),
-			wantMsg: "boom",
-		},
-		{
-			name: "api error message",
-			err: &client.APIError{
-				StatusCode: 404,
-				RetCode:    "10009",
-				Message:    "not found",
-			},
-			wantMsg:     "not found",
-			wantRetCode: "10009",
-		},
-		{
-			name: "wrapped api error",
-			err: fmt.Errorf("list bookmarks: %w", &client.APIError{
-				StatusCode: 500,
-				Message:    "server error",
-			}),
-			wantMsg: "server error",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			resp := protocol.NewFailedResponse(tt.err)
-			if apiErr, ok := errors.AsType[*client.APIError](tt.err); ok {
-				if apiErr.Message != "" {
-					resp.Message = apiErr.Message
-				}
-				if apiErr.RetCode != "" {
-					resp.RetCode = apiErr.RetCode
-				}
-			} else if tt.err != nil && (resp.Message == "" || resp.Message == "Unknown Error") {
-				resp.Message = tt.err.Error()
-			}
-			assert.Equal(t, protocol.Failed, resp.Status)
-			assert.Equal(t, tt.wantMsg, resp.Message)
-			if tt.wantRetCode != "" {
-				assert.Equal(t, tt.wantRetCode, resp.RetCode)
-			}
-			data, err := sonic.Marshal(resp)
-			require.NoError(t, err)
-			assert.Contains(t, string(data), `"status":"failed"`)
-		})
-	}
+	err := fmt.Errorf("get bookmark: %w", &client.APIError{
+		StatusCode: 404,
+		RetCode:    "10009",
+		Message:    "not found",
+	})
+	var buf bytes.Buffer
+	require.NoError(t, utils.PrintError(&buf, true, err))
+	var env map[string]any
+	require.NoError(t, sonic.Unmarshal(buf.Bytes(), &env))
+	obj, ok := env["error"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "not_found", obj["code"])
+	assert.Equal(t, "not found", obj["message"])
+	assert.Equal(t, false, obj["retryable"])
+	assert.NotEmpty(t, obj["hint"])
+	assert.NotContains(t, env, "trace")
+	assert.NotContains(t, env, "status")
 }
 
 func TestPrintEmptyListUsesJSONFlag(t *testing.T) {

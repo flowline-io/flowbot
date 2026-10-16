@@ -51,10 +51,10 @@ func trelloBoardListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list boards: %w", err)
 			}
-			if len(result.Data) == 0 {
-				return PrintEmptyList(cmd, "No Trello boards found")
+			if done, err := stopAfterList(cmd, "No Trello boards found", result, len(result.Data)); done {
+				return err
 			}
-			return PrintJSON(result)
+			return render(cmd, result)
 		},
 	}
 	cmd.Flags().Int("limit", 0, "Maximum items per page")
@@ -76,7 +76,7 @@ func trelloBoardGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get board: %w", err)
 			}
-			return PrintJSON(board)
+			return render(cmd, board)
 		},
 	}
 }
@@ -98,7 +98,7 @@ func trelloListListCommand() *cobra.Command {
 			if len(lists) == 0 {
 				return PrintEmptyList(cmd, "No lists found")
 			}
-			return PrintJSON(lists)
+			return render(cmd, lists)
 		},
 	}
 }
@@ -119,10 +119,10 @@ func trelloCardListCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("list cards: %w", err)
 			}
-			if len(result.Data) == 0 {
-				return PrintEmptyList(cmd, "No cards found")
+			if done, err := stopAfterList(cmd, "No cards found", result, len(result.Data)); done {
+				return err
 			}
-			return PrintJSON(result)
+			return render(cmd, result)
 		},
 	}
 	cmd.Flags().Int("limit", 0, "Maximum items per page")
@@ -144,7 +144,7 @@ func trelloCardGetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get card: %w", err)
 			}
-			return PrintJSON(card)
+			return render(cmd, card)
 		},
 	}
 }
@@ -170,7 +170,7 @@ func trelloCardSearchCommand() *cobra.Command {
 			if len(cards) == 0 {
 				return PrintEmptyList(cmd, "No cards matched")
 			}
-			return PrintJSON(cards)
+			return render(cmd, cards)
 		},
 	}
 	cmd.Flags().StringP("query", "q", "", "Search query")
@@ -199,7 +199,7 @@ func trelloCardCreateCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("create card: %w", err)
 			}
-			return PrintJSON(card)
+			return render(cmd, card)
 		},
 	}
 	cmd.Flags().String("list-id", "", "Target list ID")
@@ -229,7 +229,7 @@ func trelloCardUpdateCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("update card: %w", err)
 			}
-			return PrintJSON(card)
+			return render(cmd, card)
 		},
 	}
 	cmd.Flags().StringP("name", "n", "", "New title")
@@ -252,7 +252,7 @@ func trelloCardMoveCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("move card: %w", err)
 			}
-			return PrintJSON(card)
+			return render(cmd, card)
 		},
 	}
 	cmd.Flags().String("list-id", "", "Target list ID")
@@ -272,6 +272,9 @@ func trelloCardDeleteCommand() *cobra.Command {
 			}
 			if err := c.Trello.DeleteCard(cmd.Context(), args[0]); err != nil {
 				return fmt.Errorf("delete card: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": args[0]})
 			}
 			_, _ = fmt.Printf("card deleted: %s\n", args[0])
 			return nil
@@ -300,7 +303,7 @@ func trelloWebhookRegisterCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("register webhook: %w", err)
 			}
-			return PrintJSON(webhook)
+			return render(cmd, webhook)
 		},
 	}
 	cmd.Flags().String("board-id", "", "Board ID")
@@ -322,6 +325,9 @@ func trelloWebhookDeleteCommand() *cobra.Command {
 			if err := c.Trello.DeleteWebhook(cmd.Context(), args[0]); err != nil {
 				return fmt.Errorf("delete webhook: %w", err)
 			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]string{"id": args[0]})
+			}
 			_, _ = fmt.Println("webhook deleted")
 			return nil
 		},
@@ -340,6 +346,9 @@ func trelloHealthCommand() *cobra.Command {
 			ok, err := c.Trello.Health(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("health check: %w", err)
+			}
+			if IsJSON(cmd) {
+				return render(cmd, map[string]bool{"healthy": ok})
 			}
 			if !ok {
 				_, _ = fmt.Println("trello unhealthy")

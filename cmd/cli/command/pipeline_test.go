@@ -41,10 +41,8 @@ func TestPipelineListCommand(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cmd := PipelineCommand()
-			listCmd, _, err := cmd.Find([]string{"list"})
-			require.NoError(t, err)
-			require.NotNil(t, listCmd.Flags().Lookup("output"))
+			listCmd := findLeaf(t, NewRoot("test"), "pipeline", "list")
+			require.NotNil(t, lookupFlag(listCmd, "output"))
 		})
 	}
 }

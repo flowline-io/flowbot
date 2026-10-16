@@ -75,11 +75,11 @@ func TestFireflyiiiAboutAndHealth(t *testing.T) {
 			aboutCmd := findSubcommand(root, "about")
 			require.NotNil(t, aboutCmd)
 			require.NotNil(t, aboutCmd.RunE)
-			require.NotNil(t, aboutCmd.Flags().Lookup("output"))
+			require.NotNil(t, lookupFlag(findLeaf(t, NewRoot("test"), "fireflyiii", "about"), "output"))
 
 			userCmd := findSubcommand(root, "user")
 			require.NotNil(t, userCmd)
-			require.NotNil(t, userCmd.Flags().Lookup("output"))
+			require.NotNil(t, lookupFlag(findLeaf(t, NewRoot("test"), "fireflyiii", "user"), "output"))
 
 			healthCmd := findSubcommand(root, "health")
 			require.NotNil(t, healthCmd)

@@ -6,7 +6,8 @@ Part of the workflow capability catalog. Result envelope and usage patterns: [..
 
 ## `capability:memos.create`
 
-Create a memo (**mutation**)
+Create a memo for the signed-in caller. Creates or updates data.
+Example: {"content":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -29,7 +30,8 @@ Create a memo (**mutation**)
 
 ## `capability:memos.delete`
 
-Delete a memo (**mutation**)
+Delete a memo for the signed-in caller. Deletes or removes data.
+Example: {"name":"example"} (**mutation**)
 
 **Inputs (params):**
 
@@ -50,7 +52,8 @@ Delete a memo (**mutation**)
 
 ## `capability:memos.get`
 
-Get a memo
+Get a memo for the signed-in caller. Read-only.
+Example: {"name":"example"}
 
 **Inputs (params):**
 
@@ -71,7 +74,8 @@ Get a memo
 
 ## `capability:memos.health`
 
-Health check
+Health check for the signed-in caller. Read-only.
+Example: {}
 
 **Inputs (params):**
 
@@ -88,7 +92,8 @@ _(none)_
 
 ## `capability:memos.list`
 
-List memos
+List memos for the signed-in caller. Read-only.
+Example: {"limit":20}
 
 **Inputs (params):**
 
@@ -115,7 +120,8 @@ List memos
 
 ## `capability:memos.update`
 
-Update a memo (**mutation**)
+Update a memo for the signed-in caller. Creates or updates data.
+Example: {"name":"example"} (**mutation**)
 
 **Inputs (params):**
 

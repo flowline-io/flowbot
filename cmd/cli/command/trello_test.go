@@ -23,9 +23,9 @@ func TestTrelloCommand(t *testing.T) {
 func TestTrelloDescDoesNotClaimDebugShorthand(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name   string
+		name      string
 		usePrefix string
-		args   []string
+		args      []string
 	}{
 		{name: "card create", usePrefix: "card create", args: []string{"trello", "card", "create", "--help"}},
 		{name: "card update", usePrefix: "card update", args: []string{"trello", "card", "update", "--help"}},
