@@ -118,6 +118,16 @@ type Type struct {
 type RetentionConfig struct {
 	// DataEventsDays deletes data_events older than this many days when > 0. Zero disables.
 	DataEventsDays int `json:"data_events_days" yaml:"data_events_days" mapstructure:"data_events_days"`
+	// FlowDailyDays deletes flow_edge_daily rows older than this many days. Zero uses 365.
+	FlowDailyDays int `json:"flow_daily_days" yaml:"flow_daily_days" mapstructure:"flow_daily_days"`
+}
+
+// FlowDailyRetentionDays returns the flow_edge_daily lifetime. Zero and negative values use 365.
+func (r RetentionConfig) FlowDailyRetentionDays() int {
+	if r.FlowDailyDays <= 0 {
+		return 365
+	}
+	return r.FlowDailyDays
 }
 
 // PIIConfig configures session-scoped reversible PII anonymization for LLM traffic.
@@ -716,6 +726,20 @@ type MCPConfig struct {
 	Exclude []string `json:"exclude" yaml:"exclude" mapstructure:"exclude"`
 	// MaxOutputBytes is the maximum UTF-8 size of one successful MCP tool result. Zero uses 32768.
 	MaxOutputBytes int `json:"max_output_bytes" yaml:"max_output_bytes" mapstructure:"max_output_bytes"`
+	// MaxArgumentBytes is the maximum UTF-8 size of tools/call params.arguments. Zero uses 65536.
+	MaxArgumentBytes int `json:"max_argument_bytes" yaml:"max_argument_bytes" mapstructure:"max_argument_bytes"`
+	// RateLimit is the per-token tools/call sliding window.
+	RateLimit MCPRateLimitConfig `json:"rate_limit" yaml:"rate_limit" mapstructure:"rate_limit"`
+}
+
+// MCPRateLimitConfig is the per-token tools/call budget. Zero values use the built-in defaults.
+type MCPRateLimitConfig struct {
+	// PerTokenRPM is the total tools/call budget per token per minute. Zero uses 120.
+	PerTokenRPM int `json:"per_token_rpm" yaml:"per_token_rpm" mapstructure:"per_token_rpm"`
+	// WritePerTokenRPM is the additional budget for write and destructive tools. Zero uses 20.
+	WritePerTokenRPM int `json:"write_per_token_rpm" yaml:"write_per_token_rpm" mapstructure:"write_per_token_rpm"`
+	// LineagePerTokenRPM is the additional budget for lineage and flow tools. Zero uses 30.
+	LineagePerTokenRPM int `json:"lineage_per_token_rpm" yaml:"lineage_per_token_rpm" mapstructure:"lineage_per_token_rpm"`
 }
 
 // ChatAgentBrowserConfig configures interactive browser tools over CDP.

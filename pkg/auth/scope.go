@@ -85,6 +85,8 @@ const (
 	ScopeAgentHeadless = "agent:headless"
 	// ScopeLineageRead allows reading event correlation and causation links.
 	ScopeLineageRead = "lineage:read"
+	// ScopeAuditRead allows reading the caller's own audit rows. admin:* reads every row.
+	ScopeAuditRead = "audit:read"
 )
 
 // legacyScopeStrings maps deprecated token scope strings to canonical provider scopes.
@@ -181,6 +183,10 @@ func MinimumServiceScope(group, method string) string {
 		return ScopeWorkflowRead
 	case "hub":
 		return ScopeHubCapabilitiesRead
+	case "lineage", "flows", "events":
+		return ScopeLineageRead
+	case "audit":
+		return ScopeAuditRead
 	default:
 		if isWriteHTTPMethod(method) {
 			return ServiceScope(group, "write")
@@ -199,7 +205,7 @@ func HasMinimumServiceScope(scopes []string, group, method string) bool {
 	}
 	if !isWriteHTTPMethod(method) {
 		switch group {
-		case "web", "hub":
+		case "web", "hub", "lineage", "flows", "events", "audit":
 			return false
 		case "automate/pipeline":
 			return HasScope(scopes, ScopePipelineRun)
@@ -287,5 +293,6 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeGatewayWorker, Description: "local CLI gateway worker"},
 		{Value: ScopeAgentHeadless, Description: "headless agent LLM proxy"},
 		{Value: ScopeLineageRead, Description: "read event lineage"},
+		{Value: ScopeAuditRead, Description: "read own audit log"},
 	}
 }

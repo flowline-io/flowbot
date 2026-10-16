@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/internal/modules/lineage"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -26,6 +29,9 @@ func executeTool(ctx context.Context, ident Identity, spec ToolSpec, args map[st
 		args = map[string]any{}
 	}
 	injectUID(spec, args, ident)
+	if spec.Mutation {
+		ctx = types.WithLineage(ctx, types.NewCorrelationID(), "")
+	}
 	if err := normalizeListArgs(spec, args); err != nil {
 		return nil, err
 	}
@@ -44,6 +50,8 @@ func executeTool(ctx context.Context, ident Identity, spec ToolSpec, args map[st
 		result, err = execFunction(ctx, spec.Operation, args)
 	case kindHub:
 		result, err = execHub(ctx, spec.Operation, args)
+	case kindAudit:
+		result, err = execAuditList(ctx, ident, args)
 	default:
 		err = fmt.Errorf("unknown mcp tool kind %s", spec.Kind)
 	}
@@ -221,16 +229,13 @@ func recordMutation(ctx context.Context, ident Identity, spec ToolSpec, args map
 		return
 	}
 	entry := audit.Entry{
-		Subject: &audit.Subject{
-			SubjectType: string(auth.SubjectToken),
-			SubjectID:   string(ident.UID),
-			UID:         string(ident.UID),
-			IPAddress:   ident.IP,
-			UserAgent:   ident.UserAgent,
-		},
+		Subject: auditSubject(ident),
 		Action:  "mcp.tool.call",
 		Target:  audit.Target{Type: "mcp_tool", ID: spec.Name},
 		Request: map[string]any{"tool": spec.Name, "args": args},
+	}
+	if lin, ok := types.LineageFrom(ctx); ok {
+		entry.CorrelationID = lin.CorrelationID
 	}
 	if callErr != nil {
 		if err := auditor.RecordFailure(ctx, entry, callErr); err != nil {
@@ -241,6 +246,60 @@ func recordMutation(ctx context.Context, ident Identity, spec ToolSpec, args map
 	if err := auditor.RecordSuccess(ctx, entry); err != nil {
 		flog.Error(fmt.Errorf("mcp audit success: %w", err))
 	}
+}
+
+func execAuditList(ctx context.Context, ident Identity, args map[string]any) (any, error) {
+	subject := stringArg(args, "subject_id")
+	opts := store.ListAuditOptions{
+		Action:     stringArg(args, "action"),
+		TargetType: stringArg(args, "target_type"),
+		Result:     stringArg(args, "result"),
+		Cursor:     stringArg(args, "cursor"),
+	}
+	if n, ok := intArg(args["limit"]); ok {
+		opts.Limit = n
+	}
+	if raw := stringArg(args, "since"); raw != "" {
+		ts, err := time.Parse(time.RFC3339, raw)
+		if err != nil {
+			return nil, &types.Error{Kind: types.ErrInvalidArgument, Message: "since must be RFC3339", Field: "since"}
+		}
+		opts.Since = ts
+	}
+	if raw := stringArg(args, "until"); raw != "" {
+		ts, err := time.Parse(time.RFC3339, raw)
+		if err != nil {
+			return nil, &types.Error{Kind: types.ErrInvalidArgument, Message: "until must be RFC3339", Field: "until"}
+		}
+		opts.Until = ts
+	}
+	rows, cursor, err := lineage.ListForCaller(ctx, string(ident.UID), auth.HasScope(ident.Scopes, auth.ScopeAdmin), subject, opts)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, row.Item())
+	}
+	return map[string]any{"items": items, "page": map[string]any{"cursor": cursor}}, nil
+}
+
+func auditSubject(ident Identity) *audit.Subject {
+	return &audit.Subject{
+		SubjectType: string(auth.SubjectToken),
+		SubjectID:   string(ident.UID),
+		UID:         string(ident.UID),
+		IPAddress:   ident.IP,
+		UserAgent:   ident.UserAgent,
+	}
+}
+
+func stringArg(args map[string]any, key string) string {
+	value, ok := args[key].(string)
+	if !ok {
+		return ""
+	}
+	return value
 }
 
 func withName(args map[string]any, fn func(name string) (any, error)) (any, error) {

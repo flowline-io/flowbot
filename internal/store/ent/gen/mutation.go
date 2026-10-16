@@ -8464,6 +8464,8 @@ type AuditLogMutation struct {
 	target_type   *string
 	target_id     *string
 	actor_uid     *string
+	result        *string
+	error_code    *string
 	details       *map[string]interface{}
 	created_at    *time.Time
 	clearedFields map[string]struct{}
@@ -8720,6 +8722,78 @@ func (m *AuditLogMutation) ResetActorUID() {
 	m.actor_uid = nil
 }
 
+// SetResult sets the "result" field.
+func (m *AuditLogMutation) SetResult(s string) {
+	m.result = &s
+}
+
+// Result returns the value of the "result" field in the mutation.
+func (m *AuditLogMutation) Result() (r string, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old "result" field's value of the AuditLog entity.
+// If the AuditLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AuditLogMutation) OldResult(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// ResetResult resets all changes to the "result" field.
+func (m *AuditLogMutation) ResetResult() {
+	m.result = nil
+}
+
+// SetErrorCode sets the "error_code" field.
+func (m *AuditLogMutation) SetErrorCode(s string) {
+	m.error_code = &s
+}
+
+// ErrorCode returns the value of the "error_code" field in the mutation.
+func (m *AuditLogMutation) ErrorCode() (r string, exists bool) {
+	v := m.error_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorCode returns the old "error_code" field's value of the AuditLog entity.
+// If the AuditLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AuditLogMutation) OldErrorCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorCode: %w", err)
+	}
+	return oldValue.ErrorCode, nil
+}
+
+// ResetErrorCode resets all changes to the "error_code" field.
+func (m *AuditLogMutation) ResetErrorCode() {
+	m.error_code = nil
+}
+
 // SetDetails sets the "details" field.
 func (m *AuditLogMutation) SetDetails(value map[string]interface{}) {
 	m.details = &value
@@ -8839,7 +8913,7 @@ func (m *AuditLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AuditLogMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 8)
 	if m.action != nil {
 		fields = append(fields, auditlog.FieldAction)
 	}
@@ -8851,6 +8925,12 @@ func (m *AuditLogMutation) Fields() []string {
 	}
 	if m.actor_uid != nil {
 		fields = append(fields, auditlog.FieldActorUID)
+	}
+	if m.result != nil {
+		fields = append(fields, auditlog.FieldResult)
+	}
+	if m.error_code != nil {
+		fields = append(fields, auditlog.FieldErrorCode)
 	}
 	if m.details != nil {
 		fields = append(fields, auditlog.FieldDetails)
@@ -8874,6 +8954,10 @@ func (m *AuditLogMutation) Field(name string) (ent.Value, bool) {
 		return m.TargetID()
 	case auditlog.FieldActorUID:
 		return m.ActorUID()
+	case auditlog.FieldResult:
+		return m.Result()
+	case auditlog.FieldErrorCode:
+		return m.ErrorCode()
 	case auditlog.FieldDetails:
 		return m.Details()
 	case auditlog.FieldCreatedAt:
@@ -8895,6 +8979,10 @@ func (m *AuditLogMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldTargetID(ctx)
 	case auditlog.FieldActorUID:
 		return m.OldActorUID(ctx)
+	case auditlog.FieldResult:
+		return m.OldResult(ctx)
+	case auditlog.FieldErrorCode:
+		return m.OldErrorCode(ctx)
 	case auditlog.FieldDetails:
 		return m.OldDetails(ctx)
 	case auditlog.FieldCreatedAt:
@@ -8935,6 +9023,20 @@ func (m *AuditLogMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetActorUID(v)
+		return nil
+	case auditlog.FieldResult:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
+		return nil
+	case auditlog.FieldErrorCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorCode(v)
 		return nil
 	case auditlog.FieldDetails:
 		v, ok := value.(map[string]interface{})
@@ -9019,6 +9121,12 @@ func (m *AuditLogMutation) ResetField(name string) error {
 		return nil
 	case auditlog.FieldActorUID:
 		m.ResetActorUID()
+		return nil
+	case auditlog.FieldResult:
+		m.ResetResult()
+		return nil
+	case auditlog.FieldErrorCode:
+		m.ResetErrorCode()
 		return nil
 	case auditlog.FieldDetails:
 		m.ResetDetails()

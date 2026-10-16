@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/modules/example"
 	"github.com/flowline-io/flowbot/internal/modules/hub"
 	"github.com/flowline-io/flowbot/internal/modules/life"
+	"github.com/flowline-io/flowbot/internal/modules/lineage"
 	"github.com/flowline-io/flowbot/internal/modules/web"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/plugin/manager"
@@ -45,6 +46,7 @@ var Modules = fx.Options(
 		example.Register,
 		hub.Register,
 		life.Register,
+		lineage.Register,
 		web.Register,
 		web.SetLoginRateLimiterCache,
 		automate.Register,

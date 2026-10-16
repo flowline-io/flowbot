@@ -325,6 +325,8 @@ var (
 		{Name: "target_type", Type: field.TypeString},
 		{Name: "target_id", Type: field.TypeString},
 		{Name: "actor_uid", Type: field.TypeString, Default: ""},
+		{Name: "result", Type: field.TypeString, Default: ""},
+		{Name: "error_code", Type: field.TypeString, Default: ""},
 		{Name: "details", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 	}
@@ -333,6 +335,23 @@ var (
 		Name:       "audit_logs",
 		Columns:    AuditLogsColumns,
 		PrimaryKey: []*schema.Column{AuditLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "auditlog_actor_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AuditLogsColumns[4], AuditLogsColumns[8]},
+			},
+			{
+				Name:    "auditlog_action_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AuditLogsColumns[1], AuditLogsColumns[8]},
+			},
+			{
+				Name:    "auditlog_result_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AuditLogsColumns[5], AuditLogsColumns[8]},
+			},
+		},
 	}
 	// BehaviorColumns holds the columns for the "behavior" table.
 	BehaviorColumns = []*schema.Column{

@@ -83,6 +83,34 @@ func (_u *AuditLogUpdate) SetNillableActorUID(v *string) *AuditLogUpdate {
 	return _u
 }
 
+// SetResult sets the "result" field.
+func (_u *AuditLogUpdate) SetResult(v string) *AuditLogUpdate {
+	_u.mutation.SetResult(v)
+	return _u
+}
+
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (_u *AuditLogUpdate) SetNillableResult(v *string) *AuditLogUpdate {
+	if v != nil {
+		_u.SetResult(*v)
+	}
+	return _u
+}
+
+// SetErrorCode sets the "error_code" field.
+func (_u *AuditLogUpdate) SetErrorCode(v string) *AuditLogUpdate {
+	_u.mutation.SetErrorCode(v)
+	return _u
+}
+
+// SetNillableErrorCode sets the "error_code" field if the given value is not nil.
+func (_u *AuditLogUpdate) SetNillableErrorCode(v *string) *AuditLogUpdate {
+	if v != nil {
+		_u.SetErrorCode(*v)
+	}
+	return _u
+}
+
 // SetDetails sets the "details" field.
 func (_u *AuditLogUpdate) SetDetails(v map[string]interface{}) *AuditLogUpdate {
 	_u.mutation.SetDetails(v)
@@ -171,6 +199,12 @@ func (_u *AuditLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.ActorUID(); ok {
 		_spec.SetField(auditlog.FieldActorUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Result(); ok {
+		_spec.SetField(auditlog.FieldResult, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ErrorCode(); ok {
+		_spec.SetField(auditlog.FieldErrorCode, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Details(); ok {
 		_spec.SetField(auditlog.FieldDetails, field.TypeJSON, value)
 	}
@@ -249,6 +283,34 @@ func (_u *AuditLogUpdateOne) SetActorUID(v string) *AuditLogUpdateOne {
 func (_u *AuditLogUpdateOne) SetNillableActorUID(v *string) *AuditLogUpdateOne {
 	if v != nil {
 		_u.SetActorUID(*v)
+	}
+	return _u
+}
+
+// SetResult sets the "result" field.
+func (_u *AuditLogUpdateOne) SetResult(v string) *AuditLogUpdateOne {
+	_u.mutation.SetResult(v)
+	return _u
+}
+
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (_u *AuditLogUpdateOne) SetNillableResult(v *string) *AuditLogUpdateOne {
+	if v != nil {
+		_u.SetResult(*v)
+	}
+	return _u
+}
+
+// SetErrorCode sets the "error_code" field.
+func (_u *AuditLogUpdateOne) SetErrorCode(v string) *AuditLogUpdateOne {
+	_u.mutation.SetErrorCode(v)
+	return _u
+}
+
+// SetNillableErrorCode sets the "error_code" field if the given value is not nil.
+func (_u *AuditLogUpdateOne) SetNillableErrorCode(v *string) *AuditLogUpdateOne {
+	if v != nil {
+		_u.SetErrorCode(*v)
 	}
 	return _u
 }
@@ -370,6 +432,12 @@ func (_u *AuditLogUpdateOne) sqlSave(ctx context.Context) (_node *AuditLog, err 
 	}
 	if value, ok := _u.mutation.ActorUID(); ok {
 		_spec.SetField(auditlog.FieldActorUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Result(); ok {
+		_spec.SetField(auditlog.FieldResult, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ErrorCode(); ok {
+		_spec.SetField(auditlog.FieldErrorCode, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Details(); ok {
 		_spec.SetField(auditlog.FieldDetails, field.TypeJSON, value)

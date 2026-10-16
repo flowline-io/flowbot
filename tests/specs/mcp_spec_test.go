@@ -56,6 +56,7 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 			},
 		})
 		app.Use(requestid.New())
+		serversmcp.SetRateRedis(Redis)
 		serversmcp.Register(app, nil)
 
 		uid := "bdd-mcp-user-" + types.Id()
@@ -73,6 +74,7 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 	})
 
 	AfterEach(func() {
+		serversmcp.SetRateRedis(nil)
 		config.App.MCP.Enabled = prevEnable
 	})
 

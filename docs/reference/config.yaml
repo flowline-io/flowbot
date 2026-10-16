@@ -23,6 +23,7 @@ listen: "127.0.0.1:6060"
 #
 # retention:
 #   data_events_days: 90  # 0 / omit = keep forever; also purges related pipeline/outbox history
+#   flow_daily_days: 365  # 0 uses 365; independent of data_events_days
 
 # Media uploads — omit to disable. Zero max_size/gc_* use code defaults (100MiB/60s/100).
 # media:
@@ -214,6 +215,11 @@ chat_agent:
 #   include: []   # capability or tool name; empty = all allowed by token minus deny-list
 #   exclude: []
 #   max_output_bytes: 32768  # 0 uses 32768; successful tool JSON is clamped to this size
+#   max_argument_bytes: 65536  # 0 uses 65536; tools/call params.arguments raw JSON
+#   rate_limit:
+#     per_token_rpm: 120
+#     write_per_token_rpm: 20
+#     lineage_per_token_rpm: 30
 
 # CapCore runtime primitives (http_request, run_*, kv_*). Workspace falls back to chat_agent.workspace.
 core:

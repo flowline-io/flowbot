@@ -503,8 +503,16 @@ func init() {
 	auditlogDescActorUID := auditlogFields[4].Descriptor()
 	// auditlog.DefaultActorUID holds the default value on creation for the actor_uid field.
 	auditlog.DefaultActorUID = auditlogDescActorUID.Default.(string)
+	// auditlogDescResult is the schema descriptor for result field.
+	auditlogDescResult := auditlogFields[5].Descriptor()
+	// auditlog.DefaultResult holds the default value on creation for the result field.
+	auditlog.DefaultResult = auditlogDescResult.Default.(string)
+	// auditlogDescErrorCode is the schema descriptor for error_code field.
+	auditlogDescErrorCode := auditlogFields[6].Descriptor()
+	// auditlog.DefaultErrorCode holds the default value on creation for the error_code field.
+	auditlog.DefaultErrorCode = auditlogDescErrorCode.Default.(string)
 	// auditlogDescCreatedAt is the schema descriptor for created_at field.
-	auditlogDescCreatedAt := auditlogFields[6].Descriptor()
+	auditlogDescCreatedAt := auditlogFields[8].Descriptor()
 	// auditlog.DefaultCreatedAt holds the default value on creation for the created_at field.
 	auditlog.DefaultCreatedAt = auditlogDescCreatedAt.Default.(func() time.Time)
 	behaviorFields := schema.Behavior{}.Fields()

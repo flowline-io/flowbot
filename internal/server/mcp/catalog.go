@@ -16,6 +16,7 @@ const (
 	kindWorkflow   = "workflow"
 	kindFunction   = "function"
 	kindHub        = "hub"
+	kindAudit      = "audit"
 )
 
 // ToolSpec is one MCP tool advertised on /mcp.
@@ -163,16 +164,45 @@ func extraTools(include, exclude []string) []ToolSpec {
 			Description: "Hub capability and app health for the signed-in caller. Read-only.\nExample: {\"name\":\"example\"}",
 			Scopes:      []string{auth.ScopeHubHealthRead},
 		},
+		{
+			Name: "audit.list", Group: kindAudit, Operation: "list", Kind: kindAudit,
+			Description: "List the caller's MCP and service audit rows. Read-only. admin:* may list every subject.\nExample: {\"action\":\"mcp.tool.call\",\"limit\":20}",
+			Scopes:      []string{auth.ScopeAuditRead},
+			Input: []hub.ParamDef{
+				{Name: "action", Type: "string", Description: "Audit action, for example mcp.tool.call"},
+				{Name: "subject_id", Type: "string", Description: "Subject id. Non-admins may only pass their own uid"},
+				{Name: "target_type", Type: "string", Description: "Target type, for example mcp_tool"},
+				{Name: "result", Type: "string", Description: "success, failure, or rejected", Enum: []string{"success", "failure", "rejected"}},
+				{Name: "since", Type: "string", Description: "Inclusive RFC3339 lower bound"},
+				{Name: "until", Type: "string", Description: "Inclusive RFC3339 upper bound"},
+				{Name: "limit", Type: "int", Description: "Page size, default 20, maximum 100"},
+				{Name: "cursor", Type: "string", Description: "Opaque cursor from the previous page"},
+			},
+		},
 	}
 	var out []ToolSpec
 	for _, spec := range specs {
 		if pkgmcp.Match(include, exclude, spec.Group, spec.Name) {
 			spec.Input = withPageParams(spec.Group, spec.Operation, spec.Input)
 			spec.Output = pkgmcp.OutputSchema(spec.Group, spec.Operation)
+			if spec.Name == "audit.list" {
+				spec.Output = auditListOutputSchema()
+			}
 			out = append(out, spec)
 		}
 	}
 	return out
+}
+
+func auditListOutputSchema() map[string]any {
+	return map[string]any{
+		"type": "object",
+		"properties": map[string]any{
+			"items": map[string]any{"type": "array"},
+			"page":  map[string]any{"type": "object"},
+		},
+		"required": []string{"items", "page"},
+	}
 }
 
 func withPageParams(group, op string, input []hub.ParamDef) []hub.ParamDef {

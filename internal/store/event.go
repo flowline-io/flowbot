@@ -50,6 +50,7 @@ func (s *EventStore) AppendDataEvent(ctx context.Context, event types.DataEvent)
 	if s == nil || s.client == nil {
 		return nil
 	}
+	event = types.EnsureCorrelation(ctx, event)
 	c := s.client.DataEvent.Create().
 		SetEventID(event.EventID).
 		SetEventType(event.EventType).

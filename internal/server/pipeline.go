@@ -380,6 +380,7 @@ func persistAndPublishDataEvent(
 	de types.DataEvent,
 	logPrefix string,
 ) error {
+	de = types.EnsureCorrelation(ctx, de)
 	if err := persister.AppendDataEvent(ctx, de); err != nil {
 		flog.Error(fmt.Errorf("%s: AppendDataEvent failed event_id=%s: %w", logPrefix, de.EventID, err))
 		return fmt.Errorf("%s: AppendDataEvent failed: %w", logPrefix, err)

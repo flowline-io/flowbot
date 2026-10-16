@@ -441,6 +441,7 @@ func failedStepRunsByName(stepRuns []*model.PipelineStepRun) map[string]*model.P
 }
 
 func (e *Engine) runRetrySteps(ctx context.Context, def Definition, event types.DataEvent, runID int64, startIdx int, stepRuns []*model.PipelineStepRun) error {
+	ctx, event = types.BindTriggerLineage(ctx, event)
 	ctx, span := trace.StartSpan(ctx, "pipeline."+def.Name+".retry",
 		otelattr.String("pipeline.name", def.Name),
 		otelattr.String("event.id", event.EventID),
@@ -477,6 +478,7 @@ func (e *Engine) runRetrySteps(ctx context.Context, def Definition, event types.
 }
 
 func (e *Engine) runPipelineSteps(ctx context.Context, def Definition, event types.DataEvent, runID int64) error {
+	ctx, event = types.BindTriggerLineage(ctx, event)
 	ctx, span := trace.StartSpan(ctx, "pipeline."+def.Name+".execute",
 		otelattr.String("pipeline.name", def.Name),
 		otelattr.String("event.id", event.EventID),
@@ -1028,6 +1030,7 @@ func (e *Engine) findResumableDef(name string) *Definition {
 // runResumeSteps executes pipeline steps from the checkpoint index, persisting
 // checkpoint state before each step. Returns whether the run failed and any error.
 func (e *Engine) runResumeSteps(ctx context.Context, rc *RenderContext, def *Definition, runID int64, cp *CheckpointData) (bool, error) {
+	ctx, cp.Event = types.BindTriggerLineage(ctx, cp.Event)
 	for i := cp.StepIndex; i < len(def.Steps); i++ {
 		step := def.Steps[i]
 		if cpErr := e.store.SaveCheckpoint(ctx, runID, &CheckpointData{

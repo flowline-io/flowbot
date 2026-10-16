@@ -9,14 +9,12 @@ import (
 
 func TestAllScopesIncludesLineageRead(t *testing.T) {
 	t.Parallel()
-	var found bool
+	found := map[string]bool{}
 	for _, info := range AllScopes() {
-		if info.Value == ScopeLineageRead {
-			found = true
-			assert.Equal(t, "lineage:read", info.Value)
-		}
+		found[info.Value] = true
 	}
-	assert.True(t, found)
+	assert.True(t, found[ScopeLineageRead])
+	assert.True(t, found[ScopeAuditRead])
 }
 
 func TestHasScope(t *testing.T) {
@@ -125,6 +123,10 @@ func TestMinimumServiceScope(t *testing.T) {
 		{name: "workflow GET", group: "automate/workflow", method: "GET", want: ScopeWorkflowRead},
 		{name: "workflow POST", group: "automate/workflow", method: "POST", want: ScopeWorkflowRun},
 		{name: "hub GET", group: "hub", method: "GET", want: ScopeHubCapabilitiesRead},
+		{name: "lineage GET", group: "lineage", method: "GET", want: ScopeLineageRead},
+		{name: "flows GET", group: "flows", method: "GET", want: ScopeLineageRead},
+		{name: "events GET", group: "events", method: "GET", want: ScopeLineageRead},
+		{name: "audit GET", group: "audit", method: "GET", want: ScopeAuditRead},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

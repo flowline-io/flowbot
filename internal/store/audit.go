@@ -3,11 +3,19 @@ package store
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
+	"github.com/bytedance/sonic"
+
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/predicate"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/toolerr"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 )
 
@@ -28,11 +36,41 @@ func AuditStoreFromDB() *AuditStore {
 	return NewAuditStore(ClientFromDB())
 }
 
+const (
+	auditResultSuccess  = "success"
+	auditResultFailure  = "failure"
+	auditResultRejected = "rejected"
+	auditRequestMaxByte = 4096
+)
+
 // Record writes an audit entry to persistent storage.
 // If the store or client is nil, the call is silently skipped.
 // Audit write failures are logged and do not propagate to the caller.
 // Sensitive fields in entry.Request are redacted before storage.
 func (s *AuditStore) Record(ctx context.Context, entry audit.Entry) error {
+	return s.writeEntry(ctx, entry, "", "")
+}
+
+// RecordSuccess writes a success audit entry.
+func (s *AuditStore) RecordSuccess(ctx context.Context, entry audit.Entry) error {
+	return s.writeEntry(ctx, entry, auditResultSuccess, "")
+}
+
+// RecordFailure writes a failure audit entry. The stored error_code is the tool error code.
+func (s *AuditStore) RecordFailure(ctx context.Context, entry audit.Entry, err error) error {
+	code := "internal"
+	if err != nil {
+		code = toolerr.ToToolError(err).Code
+	}
+	return s.writeEntry(ctx, entry, auditResultFailure, code)
+}
+
+// RecordRejected writes a rejected audit entry. A single error-code token is stored as error_code.
+func (s *AuditStore) RecordRejected(ctx context.Context, entry audit.Entry, reason string) error {
+	return s.writeEntry(ctx, entry, auditResultRejected, rejectedCode(reason))
+}
+
+func (s *AuditStore) writeEntry(ctx context.Context, entry audit.Entry, result, errorCode string) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
@@ -46,6 +84,9 @@ func (s *AuditStore) Record(ctx context.Context, entry audit.Entry) error {
 		details["ip_address"] = entry.Subject.IPAddress
 		details["user_agent"] = entry.Subject.UserAgent
 	}
+	if entry.CorrelationID != "" {
+		details["correlation_id"] = entry.CorrelationID
+	}
 	if entry.Request != nil {
 		details["request"] = sanitizeAuditValue(entry.Request)
 	}
@@ -55,6 +96,8 @@ func (s *AuditStore) Record(ctx context.Context, entry audit.Entry) error {
 		SetTargetType(entry.Target.Type).
 		SetTargetID(entry.Target.ID).
 		SetActorUID(actorUID).
+		SetResult(result).
+		SetErrorCode(errorCode).
 		SetDetails(details).
 		SetCreatedAt(now).
 		Save(ctx)
@@ -65,43 +108,171 @@ func (s *AuditStore) Record(ctx context.Context, entry audit.Entry) error {
 	return nil
 }
 
-// RecordSuccess writes a success audit entry.
-func (s *AuditStore) RecordSuccess(ctx context.Context, entry audit.Entry) error {
-	e := entry
-	e.Request = wrapResult(entry.Request, "result", "success")
-	return s.Record(ctx, e)
+// AuditRecord is one audit row returned by List.
+type AuditRecord struct {
+	ID            int64
+	At            time.Time
+	Action        string
+	SubjectType   string
+	SubjectID     string
+	TargetType    string
+	TargetID      string
+	Result        string
+	ErrorCode     string
+	Request       any
+	Truncated     bool
+	CorrelationID string
 }
 
-// RecordFailure writes a failure audit entry with the error message.
-func (s *AuditStore) RecordFailure(ctx context.Context, entry audit.Entry, err error) error {
-	e := entry
-	e.Request = wrapResult(entry.Request, "result", "failed")
-	if err != nil {
-		e.Request = wrapResult(e.Request, "error", err.Error())
+// ListAuditOptions filters audit rows. Limit defaults to 20 and caps at 100.
+type ListAuditOptions struct {
+	Action     string
+	SubjectID  string
+	TargetType string
+	Result     string
+	Since      time.Time
+	Until      time.Time
+	Limit      int
+	Cursor     string
+}
+
+// List returns audit rows newest first. The cursor is the last row id.
+// Rows are ordered by created_at and id descending; ids increase with inserts.
+// SubjectID matches details.uid, the caller uid stored on the row.
+func (s *AuditStore) List(ctx context.Context, opts ListAuditOptions) ([]AuditRecord, string, error) {
+	if s == nil || s.client == nil {
+		return nil, "", nil
 	}
-	return s.Record(ctx, e)
+	limit := auditPageLimit(opts.Limit)
+	q := s.client.AuditLog.Query()
+	if opts.Action != "" {
+		q = q.Where(auditlog.ActionEQ(opts.Action))
+	}
+	if opts.TargetType != "" {
+		q = q.Where(auditlog.TargetTypeEQ(opts.TargetType))
+	}
+	if opts.Result != "" {
+		q = q.Where(auditlog.ResultEQ(opts.Result))
+	}
+	if opts.SubjectID != "" {
+		q = q.Where(detailsUIDEQ(opts.SubjectID))
+	}
+	if !opts.Since.IsZero() {
+		q = q.Where(auditlog.CreatedAtGTE(opts.Since))
+	}
+	if !opts.Until.IsZero() {
+		q = q.Where(auditlog.CreatedAtLTE(opts.Until))
+	}
+	if id, ok := parseAuditCursor(opts.Cursor); ok {
+		q = q.Where(auditlog.IDLT(id))
+	}
+	rows, err := q.Order(auditlog.ByCreatedAt(sql.OrderDesc()), auditlog.ByID(sql.OrderDesc())).Limit(limit + 1).All(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+	next := ""
+	if len(rows) > limit {
+		last := rows[limit-1]
+		next = strconv.FormatInt(last.ID, 10)
+		rows = rows[:limit]
+	}
+	out := make([]AuditRecord, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, auditRecordFrom(row))
+	}
+	return out, next, nil
 }
 
-// RecordRejected writes a rejected audit entry with the reason.
-func (s *AuditStore) RecordRejected(ctx context.Context, entry audit.Entry, reason string) error {
-	e := entry
-	e.Request = wrapResult(entry.Request, "result", "rejected")
-	e.Request = wrapResult(e.Request, "error", reason)
-	return s.Record(ctx, e)
+func auditPageLimit(n int) int {
+	if n <= 0 {
+		return 20
+	}
+	if n > 100 {
+		return 100
+	}
+	return n
 }
 
-func wrapResult(request any, key, value string) map[string]any {
-	m := map[string]any{key: value}
-	if request != nil {
-		if existing, ok := request.(map[string]any); ok {
-			for k, v := range existing {
-				if _, exists := m[k]; !exists {
-					m[k] = v
-				}
-			}
+func detailsUIDEQ(uid string) predicate.AuditLog {
+	return predicate.AuditLog(func(s *sql.Selector) {
+		s.Where(sqljson.ValueEQ(s.C(auditlog.FieldDetails), uid, sqljson.Path("uid")))
+	})
+}
+
+func detailString(details map[string]any, key string) string {
+	value, ok := details[key].(string)
+	if !ok {
+		return ""
+	}
+	return value
+}
+
+func parseAuditCursor(cursor string) (int64, bool) {
+	id, err := strconv.ParseInt(cursor, 10, 64)
+	if err != nil || id <= 0 {
+		return 0, false
+	}
+	return id, true
+}
+
+func auditRecordFrom(row *gen.AuditLog) AuditRecord {
+	rec := AuditRecord{
+		ID:         row.ID,
+		At:         row.CreatedAt,
+		Action:     row.Action,
+		TargetType: row.TargetType,
+		TargetID:   row.TargetID,
+		Result:     row.Result,
+		ErrorCode:  row.ErrorCode,
+	}
+	if row.Details != nil {
+		rec.SubjectType = detailString(row.Details, "subject_type")
+		rec.SubjectID = detailString(row.Details, "subject_id")
+		rec.CorrelationID = detailString(row.Details, "correlation_id")
+		rec.Request = row.Details["request"]
+		if raw, err := sonic.Marshal(rec.Request); err == nil && len(raw) > auditRequestMaxByte {
+			rec.Request = map[string]any{"preview": string(raw[:auditRequestMaxByte])}
+			rec.Truncated = true
 		}
 	}
-	return m
+	return rec
+}
+
+// Item is the list payload shared by REST and MCP.
+func (r AuditRecord) Item() map[string]any {
+	item := map[string]any{
+		"id":     r.ID,
+		"at":     r.At.UTC().Format(time.RFC3339Nano),
+		"action": r.Action,
+		"subject": map[string]any{
+			"type": r.SubjectType,
+			"id":   r.SubjectID,
+		},
+		"target": map[string]any{
+			"type": r.TargetType,
+			"id":   r.TargetID,
+		},
+		"result":         r.Result,
+		"error_code":     r.ErrorCode,
+		"request":        r.Request,
+		"correlation_id": r.CorrelationID,
+	}
+	if r.Truncated {
+		item["truncated"] = true
+	}
+	return item
+}
+
+func rejectedCode(reason string) string {
+	if reason == "" {
+		return auditResultRejected
+	}
+	for _, r := range reason {
+		if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '_' {
+			return auditResultRejected
+		}
+	}
+	return reason
 }
 
 // auditSensitiveKeys lists request field names that are redacted from audit

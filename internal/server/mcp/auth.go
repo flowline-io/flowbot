@@ -15,7 +15,9 @@ import (
 
 // Identity is the authenticated MCP caller (API token, never a web session).
 type Identity struct {
-	UID       types.Uid
+	UID types.Uid
+	// TokenID is the access-token row id. Rate-limit keys use it.
+	TokenID   int64
 	Scopes    []string
 	IP        string
 	UserAgent string
@@ -46,6 +48,7 @@ func authenticate(c fiber.Ctx) (Identity, error) {
 	}
 	return Identity{
 		UID:       uid,
+		TokenID:   p.ID,
 		Scopes:    scopes,
 		IP:        c.IP(),
 		UserAgent: c.Get(fiber.HeaderUserAgent),

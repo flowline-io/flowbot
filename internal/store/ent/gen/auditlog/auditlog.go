@@ -21,6 +21,10 @@ const (
 	FieldTargetID = "target_id"
 	// FieldActorUID holds the string denoting the actor_uid field in the database.
 	FieldActorUID = "actor_uid"
+	// FieldResult holds the string denoting the result field in the database.
+	FieldResult = "result"
+	// FieldErrorCode holds the string denoting the error_code field in the database.
+	FieldErrorCode = "error_code"
 	// FieldDetails holds the string denoting the details field in the database.
 	FieldDetails = "details"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -36,6 +40,8 @@ var Columns = []string{
 	FieldTargetType,
 	FieldTargetID,
 	FieldActorUID,
+	FieldResult,
+	FieldErrorCode,
 	FieldDetails,
 	FieldCreatedAt,
 }
@@ -59,6 +65,10 @@ var (
 	TargetIDValidator func(string) error
 	// DefaultActorUID holds the default value on creation for the "actor_uid" field.
 	DefaultActorUID string
+	// DefaultResult holds the default value on creation for the "result" field.
+	DefaultResult string
+	// DefaultErrorCode holds the default value on creation for the "error_code" field.
+	DefaultErrorCode string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
@@ -89,6 +99,16 @@ func ByTargetID(opts ...sql.OrderTermOption) OrderOption {
 // ByActorUID orders the results by the actor_uid field.
 func ByActorUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldActorUID, opts...).ToFunc()
+}
+
+// ByResult orders the results by the result field.
+func ByResult(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResult, opts...).ToFunc()
+}
+
+// ByErrorCode orders the results by the error_code field.
+func ByErrorCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldErrorCode, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

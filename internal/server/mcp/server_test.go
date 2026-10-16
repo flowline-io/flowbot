@@ -160,6 +160,7 @@ func TestStreamableToolCallRequiresProtocolHeaders(t *testing.T) {
 
 	app := fiber.New()
 	app.Use(requestid.New())
+	useMiniredis(t)
 	Register(app, nil)
 
 	body := []byte(`{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"hub.health","arguments":{},"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}`)

@@ -26,6 +26,10 @@ type AuditLog struct {
 	TargetID string `json:"target_id,omitempty"`
 	// ActorUID holds the value of the "actor_uid" field.
 	ActorUID string `json:"actor_uid,omitempty"`
+	// Result holds the value of the "result" field.
+	Result string `json:"result,omitempty"`
+	// ErrorCode holds the value of the "error_code" field.
+	ErrorCode string `json:"error_code,omitempty"`
 	// Details holds the value of the "details" field.
 	Details map[string]interface{} `json:"details,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -42,7 +46,7 @@ func (*AuditLog) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case auditlog.FieldID:
 			values[i] = new(sql.NullInt64)
-		case auditlog.FieldAction, auditlog.FieldTargetType, auditlog.FieldTargetID, auditlog.FieldActorUID:
+		case auditlog.FieldAction, auditlog.FieldTargetType, auditlog.FieldTargetID, auditlog.FieldActorUID, auditlog.FieldResult, auditlog.FieldErrorCode:
 			values[i] = new(sql.NullString)
 		case auditlog.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -90,6 +94,18 @@ func (_m *AuditLog) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field actor_uid", values[i])
 			} else if value.Valid {
 				_m.ActorUID = value.String
+			}
+		case auditlog.FieldResult:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field result", values[i])
+			} else if value.Valid {
+				_m.Result = value.String
+			}
+		case auditlog.FieldErrorCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field error_code", values[i])
+			} else if value.Valid {
+				_m.ErrorCode = value.String
 			}
 		case auditlog.FieldDetails:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -152,6 +168,12 @@ func (_m *AuditLog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("actor_uid=")
 	builder.WriteString(_m.ActorUID)
+	builder.WriteString(", ")
+	builder.WriteString("result=")
+	builder.WriteString(_m.Result)
+	builder.WriteString(", ")
+	builder.WriteString("error_code=")
+	builder.WriteString(_m.ErrorCode)
 	builder.WriteString(", ")
 	builder.WriteString("details=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Details))

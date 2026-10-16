@@ -17,6 +17,8 @@ type Entry struct {
 	Action  string
 	Target  Target
 	Request any
+	// CorrelationID is copied into the stored details. Empty stays empty.
+	CorrelationID string
 }
 
 // Subject carries authenticated actor identity.

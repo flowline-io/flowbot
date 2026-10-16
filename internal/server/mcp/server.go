@@ -2,7 +2,10 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
@@ -89,7 +92,14 @@ func Register(app *fiber.App, auditor audit.Auditor) {
 		if err != nil {
 			return err
 		}
-		if raw, ok := scopeDeniedResponse(c.Body(), ident, catalogFromConfig()); ok {
+		body := c.Body()
+		specs := catalogFromConfig()
+		if raw, ok := preflightToolsCall(c.Context(), body, ident, specs); ok {
+			c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+			return c.Send(raw)
+		}
+		if raw, ok := scopeDeniedResponse(body, ident, specs); ok {
+			recordScopeRejection(c.Context(), body, ident, specs, auditor)
 			c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 			return c.Send(raw)
 		}
@@ -106,7 +116,80 @@ type toolsCallEnvelope struct {
 }
 
 type toolsCallParams struct {
-	Name string `json:"name"`
+	Name      string          `json:"name"`
+	Arguments json.RawMessage `json:"arguments"`
+}
+
+func preflightToolsCall(ctx context.Context, body []byte, ident Identity, specs []ToolSpec) ([]byte, bool) {
+	var msg toolsCallEnvelope
+	if err := sonic.Unmarshal(body, &msg); err != nil || msg.Method != "tools/call" || msg.Params.Name == "" {
+		return nil, false
+	}
+	if argumentByteCount(msg.Params.Arguments) > maxArgumentBytes() {
+		return rpcToolError(ctx, msg.ID, &types.Error{
+			Kind:    types.ErrInvalidArgument,
+			Message: "arguments exceed the configured size limit",
+			Field:   "arguments",
+		})
+	}
+	spec, found := findTool(specs, msg.Params.Name)
+	allowed, retryAfter, err := allowToolCall(ctx, bucketsForTool(ident.TokenID, spec, found), time.Now())
+	if err != nil {
+		return rpcToolError(ctx, msg.ID, err)
+	}
+	if !allowed {
+		return rpcToolError(ctx, msg.ID, &types.Error{
+			Kind:       types.ErrRateLimited,
+			Message:    "rate limit exceeded",
+			RetryAfter: retryAfter,
+		})
+	}
+	return nil, false
+}
+
+func findTool(specs []ToolSpec, name string) (ToolSpec, bool) {
+	for _, item := range specs {
+		if item.Name == name {
+			return item, true
+		}
+	}
+	return ToolSpec{}, false
+}
+
+func rpcToolError(ctx context.Context, id any, err error) ([]byte, bool) {
+	raw, marshalErr := sonic.Marshal(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      id,
+		"result":  toolError(ctx, err),
+	})
+	if marshalErr != nil {
+		return nil, false
+	}
+	return raw, true
+}
+
+func recordScopeRejection(ctx context.Context, body []byte, ident Identity, specs []ToolSpec, auditor audit.Auditor) {
+	if auditor == nil {
+		return
+	}
+	var msg toolsCallEnvelope
+	if err := sonic.Unmarshal(body, &msg); err != nil {
+		return
+	}
+	spec, found := findTool(specs, msg.Params.Name)
+	if !found || !spec.Mutation {
+		return
+	}
+	if err := auditor.RecordRejected(ctx, audit.Entry{
+		Subject: auditSubject(ident),
+		Action:  "mcp.tool.call",
+		Target:  audit.Target{Type: "mcp_tool", ID: spec.Name},
+		Request: map[string]any{
+			"tool": spec.Name,
+		},
+	}, "permission_denied"); err != nil {
+		flog.Error(fmt.Errorf("mcp audit rejected: %w", err))
+	}
 }
 
 func scopeDeniedResponse(body []byte, ident Identity, specs []ToolSpec) ([]byte, bool) {
@@ -114,15 +197,7 @@ func scopeDeniedResponse(body []byte, ident Identity, specs []ToolSpec) ([]byte,
 	if err := sonic.Unmarshal(body, &msg); err != nil || msg.Method != "tools/call" || msg.Params.Name == "" {
 		return nil, false
 	}
-	var spec ToolSpec
-	found := false
-	for _, item := range specs {
-		if item.Name == msg.Params.Name {
-			spec = item
-			found = true
-			break
-		}
-	}
+	spec, found := findTool(specs, msg.Params.Name)
 	if !found || spec.Allowed(ident.Scopes) {
 		return nil, false
 	}

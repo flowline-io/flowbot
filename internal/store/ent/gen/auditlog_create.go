@@ -54,6 +54,34 @@ func (_c *AuditLogCreate) SetNillableActorUID(v *string) *AuditLogCreate {
 	return _c
 }
 
+// SetResult sets the "result" field.
+func (_c *AuditLogCreate) SetResult(v string) *AuditLogCreate {
+	_c.mutation.SetResult(v)
+	return _c
+}
+
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (_c *AuditLogCreate) SetNillableResult(v *string) *AuditLogCreate {
+	if v != nil {
+		_c.SetResult(*v)
+	}
+	return _c
+}
+
+// SetErrorCode sets the "error_code" field.
+func (_c *AuditLogCreate) SetErrorCode(v string) *AuditLogCreate {
+	_c.mutation.SetErrorCode(v)
+	return _c
+}
+
+// SetNillableErrorCode sets the "error_code" field if the given value is not nil.
+func (_c *AuditLogCreate) SetNillableErrorCode(v *string) *AuditLogCreate {
+	if v != nil {
+		_c.SetErrorCode(*v)
+	}
+	return _c
+}
+
 // SetDetails sets the "details" field.
 func (_c *AuditLogCreate) SetDetails(v map[string]interface{}) *AuditLogCreate {
 	_c.mutation.SetDetails(v)
@@ -119,6 +147,14 @@ func (_c *AuditLogCreate) defaults() {
 		v := auditlog.DefaultActorUID
 		_c.mutation.SetActorUID(v)
 	}
+	if _, ok := _c.mutation.Result(); !ok {
+		v := auditlog.DefaultResult
+		_c.mutation.SetResult(v)
+	}
+	if _, ok := _c.mutation.ErrorCode(); !ok {
+		v := auditlog.DefaultErrorCode
+		_c.mutation.SetErrorCode(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := auditlog.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -153,6 +189,12 @@ func (_c *AuditLogCreate) check() error {
 	}
 	if _, ok := _c.mutation.ActorUID(); !ok {
 		return &ValidationError{Name: "actor_uid", err: errors.New(`gen: missing required field "AuditLog.actor_uid"`)}
+	}
+	if _, ok := _c.mutation.Result(); !ok {
+		return &ValidationError{Name: "result", err: errors.New(`gen: missing required field "AuditLog.result"`)}
+	}
+	if _, ok := _c.mutation.ErrorCode(); !ok {
+		return &ValidationError{Name: "error_code", err: errors.New(`gen: missing required field "AuditLog.error_code"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "AuditLog.created_at"`)}
@@ -205,6 +247,14 @@ func (_c *AuditLogCreate) createSpec() (*AuditLog, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ActorUID(); ok {
 		_spec.SetField(auditlog.FieldActorUID, field.TypeString, value)
 		_node.ActorUID = value
+	}
+	if value, ok := _c.mutation.Result(); ok {
+		_spec.SetField(auditlog.FieldResult, field.TypeString, value)
+		_node.Result = value
+	}
+	if value, ok := _c.mutation.ErrorCode(); ok {
+		_spec.SetField(auditlog.FieldErrorCode, field.TypeString, value)
+		_node.ErrorCode = value
 	}
 	if value, ok := _c.mutation.Details(); ok {
 		_spec.SetField(auditlog.FieldDetails, field.TypeJSON, value)
@@ -311,6 +361,30 @@ func (u *AuditLogUpsert) SetActorUID(v string) *AuditLogUpsert {
 // UpdateActorUID sets the "actor_uid" field to the value that was provided on create.
 func (u *AuditLogUpsert) UpdateActorUID() *AuditLogUpsert {
 	u.SetExcluded(auditlog.FieldActorUID)
+	return u
+}
+
+// SetResult sets the "result" field.
+func (u *AuditLogUpsert) SetResult(v string) *AuditLogUpsert {
+	u.Set(auditlog.FieldResult, v)
+	return u
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *AuditLogUpsert) UpdateResult() *AuditLogUpsert {
+	u.SetExcluded(auditlog.FieldResult)
+	return u
+}
+
+// SetErrorCode sets the "error_code" field.
+func (u *AuditLogUpsert) SetErrorCode(v string) *AuditLogUpsert {
+	u.Set(auditlog.FieldErrorCode, v)
+	return u
+}
+
+// UpdateErrorCode sets the "error_code" field to the value that was provided on create.
+func (u *AuditLogUpsert) UpdateErrorCode() *AuditLogUpsert {
+	u.SetExcluded(auditlog.FieldErrorCode)
 	return u
 }
 
@@ -436,6 +510,34 @@ func (u *AuditLogUpsertOne) SetActorUID(v string) *AuditLogUpsertOne {
 func (u *AuditLogUpsertOne) UpdateActorUID() *AuditLogUpsertOne {
 	return u.Update(func(s *AuditLogUpsert) {
 		s.UpdateActorUID()
+	})
+}
+
+// SetResult sets the "result" field.
+func (u *AuditLogUpsertOne) SetResult(v string) *AuditLogUpsertOne {
+	return u.Update(func(s *AuditLogUpsert) {
+		s.SetResult(v)
+	})
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *AuditLogUpsertOne) UpdateResult() *AuditLogUpsertOne {
+	return u.Update(func(s *AuditLogUpsert) {
+		s.UpdateResult()
+	})
+}
+
+// SetErrorCode sets the "error_code" field.
+func (u *AuditLogUpsertOne) SetErrorCode(v string) *AuditLogUpsertOne {
+	return u.Update(func(s *AuditLogUpsert) {
+		s.SetErrorCode(v)
+	})
+}
+
+// UpdateErrorCode sets the "error_code" field to the value that was provided on create.
+func (u *AuditLogUpsertOne) UpdateErrorCode() *AuditLogUpsertOne {
+	return u.Update(func(s *AuditLogUpsert) {
+		s.UpdateErrorCode()
 	})
 }
 
@@ -730,6 +832,34 @@ func (u *AuditLogUpsertBulk) SetActorUID(v string) *AuditLogUpsertBulk {
 func (u *AuditLogUpsertBulk) UpdateActorUID() *AuditLogUpsertBulk {
 	return u.Update(func(s *AuditLogUpsert) {
 		s.UpdateActorUID()
+	})
+}
+
+// SetResult sets the "result" field.
+func (u *AuditLogUpsertBulk) SetResult(v string) *AuditLogUpsertBulk {
+	return u.Update(func(s *AuditLogUpsert) {
+		s.SetResult(v)
+	})
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *AuditLogUpsertBulk) UpdateResult() *AuditLogUpsertBulk {
+	return u.Update(func(s *AuditLogUpsert) {
+		s.UpdateResult()
+	})
+}
+
+// SetErrorCode sets the "error_code" field.
+func (u *AuditLogUpsertBulk) SetErrorCode(v string) *AuditLogUpsertBulk {
+	return u.Update(func(s *AuditLogUpsert) {
+		s.SetErrorCode(v)
+	})
+}
+
+// UpdateErrorCode sets the "error_code" field to the value that was provided on create.
+func (u *AuditLogUpsertBulk) UpdateErrorCode() *AuditLogUpsertBulk {
+	return u.Update(func(s *AuditLogUpsert) {
+		s.UpdateErrorCode()
 	})
 }
 
