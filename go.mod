@@ -44,8 +44,8 @@ require (
 	github.com/moby/moby/client v0.6.2
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
-	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/oklog/ulid/v2 v2.1.2
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 	github.com/panjf2000/ants/v2 v2.12.1
 	github.com/pelletier/go-toml/v2 v2.4.3
@@ -600,3 +600,7 @@ tool (
 	golang.org/x/vuln/cmd/govulncheck
 	gotest.tools/gotestsum
 )
+
+// task v3.48.0 and actionlint v1.7.11 decode yaml.TypeError from v4.0.0-rc.3.
+// gosec v2.29.0 selects v4.0.0-rc.6, whose TypeError.Errors is []string.
+replace go.yaml.in/yaml/v4 => go.yaml.in/yaml/v4 v4.0.0-rc.3
