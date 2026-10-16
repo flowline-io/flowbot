@@ -3,12 +3,15 @@
 package specs
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"net/http"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/requestid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/samber/oops"
@@ -52,6 +55,7 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 				return ctx.Status(fiber.StatusBadRequest).JSON(protocol.NewFailedResponse(err))
 			},
 		})
+		app.Use(requestid.New())
 		serversmcp.Register(app, nil)
 
 		uid := "bdd-mcp-user-" + types.Id()
@@ -60,7 +64,7 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 		mds := store.NewModuleDataStore(EntClient)
 		Expect(mds.ParameterSet(context.Background(), auth.HashToken(apiToken), types.KV{
 			"uid": uid, "topic": "cli", "kind": "api",
-			"scopes": []string{auth.ScopePipelineRun},
+			"scopes": []string{auth.ScopePipelineRun, auth.ScopeHubAppsRead, auth.ScopeHubHealthRead},
 		}, time.Now().Add(time.Hour))).To(Succeed())
 		Expect(mds.ParameterSet(context.Background(), auth.HashToken(fullToken), types.KV{
 			"uid": uid, "topic": "web", "kind": webauth.KindFull,
@@ -113,4 +117,122 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 		Expect(resp.StatusCode).NotTo(Equal(http.StatusForbidden))
 		Expect(resp.StatusCode).NotTo(Equal(http.StatusMethodNotAllowed))
 	})
+
+	It("returns structuredContent.error when pipeline.get has no name", func() {
+		resp := postMCP(app, apiToken, mcpCallBody("pipeline.get", map[string]any{}))
+		body := ReadBody(resp)
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		result := mcpResult(body)
+		Expect(result["isError"]).To(BeTrue())
+		sc := structuredContent(result)
+		errObj, ok := sc["error"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(body))
+		Expect(errObj["code"]).To(Equal("invalid_argument"))
+		Expect(errObj["field"]).To(Equal("name"))
+		Expect(errObj["hint"]).To(Equal("Fix field name."))
+		Expect(errObj["retryable"]).To(BeFalse())
+		requestID := resp.Header.Get("X-Request-ID")
+		Expect(requestID).NotTo(BeEmpty())
+		trace, ok := sc["trace"].(map[string]any)
+		Expect(ok).To(BeTrue())
+		Expect(trace["request_id"]).To(Equal(requestID))
+		Expect(textJSON(result)).To(Equal(sc))
+	})
+
+	It("returns items and trace.request_id for hub.apps", func() {
+		resp := postMCP(app, apiToken, mcpCallBody("hub.apps", map[string]any{}))
+		body := ReadBody(resp)
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		result := mcpResult(body)
+		Expect(result["isError"]).NotTo(BeTrue())
+		sc := structuredContent(result)
+		Expect(sc["items"]).To(BeAssignableToTypeOf([]any{}))
+		requestID := resp.Header.Get("X-Request-ID")
+		Expect(requestID).NotTo(BeEmpty())
+		trace, ok := sc["trace"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(body))
+		Expect(trace["request_id"]).To(Equal(requestID))
+		Expect(textJSON(result)).To(Equal(sc))
+	})
+
+	It("returns an object and trace.request_id for hub.health", func() {
+		resp := postMCP(app, apiToken, mcpCallBody("hub.health", map[string]any{}))
+		body := ReadBody(resp)
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		result := mcpResult(body)
+		Expect(result["isError"]).NotTo(BeTrue())
+		sc := structuredContent(result)
+		Expect(sc["status"]).NotTo(BeEmpty())
+		Expect(sc).NotTo(HaveKey("items"))
+		requestID := resp.Header.Get("X-Request-ID")
+		Expect(requestID).NotTo(BeEmpty())
+		trace, ok := sc["trace"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(body))
+		Expect(trace["request_id"]).To(Equal(requestID))
+		Expect(textJSON(result)).To(Equal(sc))
+	})
 })
+
+func postMCP(app *fiber.App, token string, body []byte) *http.Response {
+	req := JSONRequest(http.MethodPost, "/mcp", body)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 30 * time.Second})
+	Expect(err).NotTo(HaveOccurred())
+	return resp
+}
+
+func mcpCallBody(name string, args map[string]any) []byte {
+	raw, err := sonic.Marshal(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      1,
+		"method":  "tools/call",
+		"params": map[string]any{
+			"name":      name,
+			"arguments": args,
+			"_meta": map[string]any{
+				"io.modelcontextprotocol/protocolVersion":    "2026-07-28",
+				"io.modelcontextprotocol/clientCapabilities": map[string]any{},
+			},
+		},
+	})
+	Expect(err).NotTo(HaveOccurred())
+	return raw
+}
+
+func mcpResult(body []byte) map[string]any {
+	raw := bytes.TrimSpace(body)
+	if bytes.HasPrefix(raw, []byte("event:")) || bytes.Contains(raw, []byte("\ndata:")) {
+		for _, line := range bytes.Split(raw, []byte("\n")) {
+			line = bytes.TrimSpace(line)
+			if bytes.HasPrefix(line, []byte("data:")) {
+				raw = bytes.TrimSpace(bytes.TrimPrefix(line, []byte("data:")))
+				break
+			}
+		}
+	}
+	var msg map[string]any
+	Expect(sonic.Unmarshal(raw, &msg)).To(Succeed(), string(body))
+	result, ok := msg["result"].(map[string]any)
+	Expect(ok).To(BeTrue(), string(body))
+	return result
+}
+
+func structuredContent(result map[string]any) map[string]any {
+	sc, ok := result["structuredContent"].(map[string]any)
+	Expect(ok).To(BeTrue())
+	return sc
+}
+
+func textJSON(result map[string]any) map[string]any {
+	content, ok := result["content"].([]any)
+	Expect(ok).To(BeTrue())
+	Expect(content).NotTo(BeEmpty())
+	first, ok := content[0].(map[string]any)
+	Expect(ok).To(BeTrue())
+	text, ok := first["text"].(string)
+	Expect(ok).To(BeTrue())
+	var parsed map[string]any
+	Expect(sonic.Unmarshal([]byte(text), &parsed)).To(Succeed())
+	return parsed
+}

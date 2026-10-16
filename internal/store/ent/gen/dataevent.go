@@ -38,6 +38,12 @@ type DataEvent struct {
 	UID string `json:"uid,omitempty"`
 	// Topic holds the value of the "topic" field.
 	Topic string `json:"topic,omitempty"`
+	// CorrelationID holds the value of the "correlation_id" field.
+	CorrelationID string `json:"correlation_id,omitempty"`
+	// CausationID holds the value of the "causation_id" field.
+	CausationID string `json:"causation_id,omitempty"`
+	// TraceID holds the value of the "trace_id" field.
+	TraceID string `json:"trace_id,omitempty"`
 	// Data holds the value of the "data" field.
 	Data map[string]interface{} `json:"data,omitempty"`
 	// Tags holds the value of the "tags" field.
@@ -56,7 +62,7 @@ func (*DataEvent) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case dataevent.FieldID:
 			values[i] = new(sql.NullInt64)
-		case dataevent.FieldEventID, dataevent.FieldEventType, dataevent.FieldSource, dataevent.FieldCapability, dataevent.FieldOperation, dataevent.FieldApp, dataevent.FieldEntityID, dataevent.FieldIdempotencyKey, dataevent.FieldUID, dataevent.FieldTopic:
+		case dataevent.FieldEventID, dataevent.FieldEventType, dataevent.FieldSource, dataevent.FieldCapability, dataevent.FieldOperation, dataevent.FieldApp, dataevent.FieldEntityID, dataevent.FieldIdempotencyKey, dataevent.FieldUID, dataevent.FieldTopic, dataevent.FieldCorrelationID, dataevent.FieldCausationID, dataevent.FieldTraceID:
 			values[i] = new(sql.NullString)
 		case dataevent.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -140,6 +146,24 @@ func (_m *DataEvent) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field topic", values[i])
 			} else if value.Valid {
 				_m.Topic = value.String
+			}
+		case dataevent.FieldCorrelationID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field correlation_id", values[i])
+			} else if value.Valid {
+				_m.CorrelationID = value.String
+			}
+		case dataevent.FieldCausationID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field causation_id", values[i])
+			} else if value.Valid {
+				_m.CausationID = value.String
+			}
+		case dataevent.FieldTraceID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field trace_id", values[i])
+			} else if value.Valid {
+				_m.TraceID = value.String
 			}
 		case dataevent.FieldData:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -228,6 +252,15 @@ func (_m *DataEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("topic=")
 	builder.WriteString(_m.Topic)
+	builder.WriteString(", ")
+	builder.WriteString("correlation_id=")
+	builder.WriteString(_m.CorrelationID)
+	builder.WriteString(", ")
+	builder.WriteString("causation_id=")
+	builder.WriteString(_m.CausationID)
+	builder.WriteString(", ")
+	builder.WriteString("trace_id=")
+	builder.WriteString(_m.TraceID)
 	builder.WriteString(", ")
 	builder.WriteString("data=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Data))

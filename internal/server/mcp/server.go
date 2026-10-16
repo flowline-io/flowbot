@@ -2,14 +2,16 @@ package mcp
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
+	"github.com/gofiber/fiber/v3/middleware/requestid"
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -20,6 +22,43 @@ import (
 )
 
 type identKey struct{}
+
+type requestIDCtxKey struct{}
+
+func withRequestID(ctx context.Context, id string) context.Context {
+	if id == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, requestIDCtxKey{}, id)
+}
+
+func requestIDFrom(ctx context.Context) string {
+	id, ok := ctx.Value(requestIDCtxKey{}).(string)
+	if !ok {
+		return ""
+	}
+	return id
+}
+
+func contextForTool(c fiber.Ctx, r *http.Request, ident Identity) context.Context {
+	base := context.Context(context.Background())
+	if r != nil && r.Context() != nil {
+		base = r.Context()
+	}
+	if fiberCtx, ok := adaptor.LocalContextFromHTTPRequest(r); ok && fiberCtx != nil {
+		base = fiberCtx
+	} else if c != nil {
+		base = c.Context()
+	}
+	rid := requestid.FromContext(base)
+	if rid == "" && c != nil {
+		rid = requestid.FromContext(c)
+	}
+	if rid == "" && r != nil {
+		rid = r.Header.Get("X-Request-ID")
+	}
+	return withIdentity(withRequestID(base, rid), ident)
+}
 
 func withIdentity(ctx context.Context, ident Identity) context.Context {
 	return context.WithValue(ctx, identKey{}, ident)
@@ -50,8 +89,8 @@ func Register(app *fiber.App, auditor audit.Auditor) {
 		if err != nil {
 			return err
 		}
-		return adaptor.HTTPHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			handler.ServeHTTP(w, r.WithContext(withIdentity(r.Context(), ident)))
+		return adaptor.HTTPHandlerWithContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler.ServeHTTP(w, r.WithContext(contextForTool(c, r, ident)))
 		}))(c)
 	})
 }
@@ -60,21 +99,28 @@ func newSDKServer(ident Identity, auditor audit.Auditor) *mcpsdk.Server {
 	srv := mcpsdk.NewServer(&mcpsdk.Implementation{
 		Name:    "flowbot",
 		Version: version.Buildtags,
-	}, nil)
+	}, &mcpsdk.ServerOptions{Instructions: pkgmcp.ServerInstructions})
 	specs := FilterByScopes(catalogFromConfig(), ident.Scopes)
 	for _, spec := range specs {
 		tool := &mcpsdk.Tool{
 			Name:        spec.Name,
 			Description: spec.Description,
 			InputSchema: schemaFromParams(spec.Input),
-			Annotations: toolHints(spec.Mutation),
+			Annotations: toolAnnotations(spec),
+		}
+		if spec.Output != nil {
+			tool.OutputSchema = spec.Output
 		}
 		srv.AddTool(tool, func(ctx context.Context, req *mcpsdk.CallToolRequest) (*mcpsdk.CallToolResult, error) {
 			args := map[string]any{}
 			if req != nil && req.Params != nil && len(req.Params.Arguments) > 0 {
 				parsed := map[string]any{}
 				if err := sonic.Unmarshal(req.Params.Arguments, &parsed); err != nil {
-					return toolError(err), nil
+					return toolError(ctx, &types.Error{
+						Kind:    types.ErrInvalidArgument,
+						Message: "arguments must be a JSON object",
+						Cause:   err,
+					}), nil
 				}
 				if parsed != nil {
 					args = parsed
@@ -87,53 +133,99 @@ func newSDKServer(ident Identity, auditor audit.Auditor) *mcpsdk.Server {
 			result, err := executeTool(ctx, callIdent, spec, args, auditor)
 			if err != nil {
 				flog.Error(err)
-				return toolError(err), nil
+				return toolError(ctx, err), nil
 			}
-			return toolOK(result)
+			out, err := toolOK(ctx, result, wrapListResult(spec))
+			if err != nil {
+				flog.Error(err)
+				return toolError(ctx, err), nil
+			}
+			return out, nil
 		})
 	}
 	return srv
 }
 
-func toolHints(mutation bool) *mcpsdk.ToolAnnotations {
-	if !mutation {
-		return &mcpsdk.ToolAnnotations{ReadOnlyHint: true}
+func toolAnnotations(spec ToolSpec) *mcpsdk.ToolAnnotations {
+	tier, idempotent := capability.Classify(spec.Group, spec.Operation)
+	open := pkgmcp.OpenWorld(spec.Group)
+	ann := &mcpsdk.ToolAnnotations{
+		Title:         pkgmcp.Title(spec.Group, spec.Description),
+		ReadOnlyHint:  tier == capability.TierRead,
+		OpenWorldHint: &open,
 	}
-	destructive := true
-	return &mcpsdk.ToolAnnotations{DestructiveHint: &destructive}
+	if tier != capability.TierRead {
+		destructive := tier == capability.TierDestructive
+		ann.DestructiveHint = &destructive
+		ann.IdempotentHint = idempotent
+	}
+	return ann
 }
 
-func toolOK(result any) (*mcpsdk.CallToolResult, error) {
-	text, err := marshalResult(result)
+func wrapListResult(spec ToolSpec) bool {
+	switch spec.Name {
+	case "pipeline.list", "workflow.list", "function.list", "hub.apps":
+		return true
+	default:
+		return false
+	}
+}
+
+func toolOK(ctx context.Context, result any, wrapItems bool) (*mcpsdk.CallToolResult, error) {
+	payload, err := pkgmcp.AttachTrace(result, traceFrom(ctx), wrapItems)
 	if err != nil {
-		return toolError(err), nil
+		return nil, err
+	}
+	return callResult(false, payload)
+}
+
+func toolError(ctx context.Context, err error) *mcpsdk.CallToolResult {
+	payload := pkgmcp.ErrorEnvelope(ToToolError(err).Object(), traceFrom(ctx))
+	res, marshalErr := callResult(true, payload)
+	if marshalErr != nil {
+		return internalToolError()
+	}
+	return res
+}
+
+func internalToolError() *mcpsdk.CallToolResult {
+	raw, err := sonic.Marshal(pkgmcp.ErrorEnvelope(ToToolError(nil).Object(), map[string]any{}))
+	text := ""
+	if err == nil {
+		text = string(raw)
 	}
 	return &mcpsdk.CallToolResult{
+		IsError: true,
 		Content: []mcpsdk.Content{&mcpsdk.TextContent{Text: text}},
+	}
+}
+
+func callResult(isError bool, payload any) (*mcpsdk.CallToolResult, error) {
+	raw, err := sonic.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	var generic any
+	if err := sonic.Unmarshal(raw, &generic); err != nil {
+		return nil, err
+	}
+	return &mcpsdk.CallToolResult{
+		IsError:           isError,
+		Content:           []mcpsdk.Content{&mcpsdk.TextContent{Text: string(raw)}},
+		StructuredContent: generic,
 	}, nil
 }
 
-func toolError(err error) *mcpsdk.CallToolResult {
-	return &mcpsdk.CallToolResult{
-		IsError: true,
-		Content: []mcpsdk.Content{&mcpsdk.TextContent{Text: clientToolMessage(err)}},
+func traceFrom(ctx context.Context) map[string]any {
+	trace := map[string]any{}
+	if id := requestIDFrom(ctx); id != "" {
+		trace["request_id"] = id
 	}
-}
-
-func clientToolMessage(err error) string {
-	if err == nil {
-		return "tool error"
+	sc := oteltrace.SpanFromContext(ctx).SpanContext()
+	if sc.IsValid() && sc.HasTraceID() {
+		trace["trace_id"] = sc.TraceID().String()
 	}
-	var te *types.Error
-	if errors.As(err, &te) && te != nil {
-		if te.Message != "" {
-			return te.Message
-		}
-		if te.Kind != nil {
-			return te.Kind.Error()
-		}
-	}
-	return "tool error"
+	return trace
 }
 
 func schemaFromParams(params []hub.ParamDef) map[string]any {
@@ -144,18 +236,4 @@ func schemaFromParams(params []hub.ParamDef) map[string]any {
 		})
 	}
 	return pkgmcp.SchemaFromFields(fields)
-}
-
-func marshalResult(result any) (string, error) {
-	if result == nil {
-		return "{}", nil
-	}
-	if s, ok := result.(string); ok {
-		return s, nil
-	}
-	raw, err := sonic.Marshal(result)
-	if err != nil {
-		return "", err
-	}
-	return string(raw), nil
 }

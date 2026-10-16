@@ -167,6 +167,48 @@ func (_u *DataEventUpdate) SetNillableTopic(v *string) *DataEventUpdate {
 	return _u
 }
 
+// SetCorrelationID sets the "correlation_id" field.
+func (_u *DataEventUpdate) SetCorrelationID(v string) *DataEventUpdate {
+	_u.mutation.SetCorrelationID(v)
+	return _u
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_u *DataEventUpdate) SetNillableCorrelationID(v *string) *DataEventUpdate {
+	if v != nil {
+		_u.SetCorrelationID(*v)
+	}
+	return _u
+}
+
+// SetCausationID sets the "causation_id" field.
+func (_u *DataEventUpdate) SetCausationID(v string) *DataEventUpdate {
+	_u.mutation.SetCausationID(v)
+	return _u
+}
+
+// SetNillableCausationID sets the "causation_id" field if the given value is not nil.
+func (_u *DataEventUpdate) SetNillableCausationID(v *string) *DataEventUpdate {
+	if v != nil {
+		_u.SetCausationID(*v)
+	}
+	return _u
+}
+
+// SetTraceID sets the "trace_id" field.
+func (_u *DataEventUpdate) SetTraceID(v string) *DataEventUpdate {
+	_u.mutation.SetTraceID(v)
+	return _u
+}
+
+// SetNillableTraceID sets the "trace_id" field if the given value is not nil.
+func (_u *DataEventUpdate) SetNillableTraceID(v *string) *DataEventUpdate {
+	if v != nil {
+		_u.SetTraceID(*v)
+	}
+	return _u
+}
+
 // SetData sets the "data" field.
 func (_u *DataEventUpdate) SetData(v map[string]interface{}) *DataEventUpdate {
 	_u.mutation.SetData(v)
@@ -279,6 +321,15 @@ func (_u *DataEventUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Topic(); ok {
 		_spec.SetField(dataevent.FieldTopic, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CorrelationID(); ok {
+		_spec.SetField(dataevent.FieldCorrelationID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CausationID(); ok {
+		_spec.SetField(dataevent.FieldCausationID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TraceID(); ok {
+		_spec.SetField(dataevent.FieldTraceID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Data(); ok {
 		_spec.SetField(dataevent.FieldData, field.TypeJSON, value)
@@ -452,6 +503,48 @@ func (_u *DataEventUpdateOne) SetNillableTopic(v *string) *DataEventUpdateOne {
 	return _u
 }
 
+// SetCorrelationID sets the "correlation_id" field.
+func (_u *DataEventUpdateOne) SetCorrelationID(v string) *DataEventUpdateOne {
+	_u.mutation.SetCorrelationID(v)
+	return _u
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_u *DataEventUpdateOne) SetNillableCorrelationID(v *string) *DataEventUpdateOne {
+	if v != nil {
+		_u.SetCorrelationID(*v)
+	}
+	return _u
+}
+
+// SetCausationID sets the "causation_id" field.
+func (_u *DataEventUpdateOne) SetCausationID(v string) *DataEventUpdateOne {
+	_u.mutation.SetCausationID(v)
+	return _u
+}
+
+// SetNillableCausationID sets the "causation_id" field if the given value is not nil.
+func (_u *DataEventUpdateOne) SetNillableCausationID(v *string) *DataEventUpdateOne {
+	if v != nil {
+		_u.SetCausationID(*v)
+	}
+	return _u
+}
+
+// SetTraceID sets the "trace_id" field.
+func (_u *DataEventUpdateOne) SetTraceID(v string) *DataEventUpdateOne {
+	_u.mutation.SetTraceID(v)
+	return _u
+}
+
+// SetNillableTraceID sets the "trace_id" field if the given value is not nil.
+func (_u *DataEventUpdateOne) SetNillableTraceID(v *string) *DataEventUpdateOne {
+	if v != nil {
+		_u.SetTraceID(*v)
+	}
+	return _u
+}
+
 // SetData sets the "data" field.
 func (_u *DataEventUpdateOne) SetData(v map[string]interface{}) *DataEventUpdateOne {
 	_u.mutation.SetData(v)
@@ -594,6 +687,15 @@ func (_u *DataEventUpdateOne) sqlSave(ctx context.Context) (_node *DataEvent, er
 	}
 	if value, ok := _u.mutation.Topic(); ok {
 		_spec.SetField(dataevent.FieldTopic, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CorrelationID(); ok {
+		_spec.SetField(dataevent.FieldCorrelationID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CausationID(); ok {
+		_spec.SetField(dataevent.FieldCausationID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TraceID(); ok {
+		_spec.SetField(dataevent.FieldTraceID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Data(); ok {
 		_spec.SetField(dataevent.FieldData, field.TypeJSON, value)

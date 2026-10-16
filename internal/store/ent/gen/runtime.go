@@ -893,8 +893,20 @@ func init() {
 	dataeventDescTopic := dataeventFields[10].Descriptor()
 	// dataevent.DefaultTopic holds the default value on creation for the topic field.
 	dataevent.DefaultTopic = dataeventDescTopic.Default.(string)
+	// dataeventDescCorrelationID is the schema descriptor for correlation_id field.
+	dataeventDescCorrelationID := dataeventFields[11].Descriptor()
+	// dataevent.DefaultCorrelationID holds the default value on creation for the correlation_id field.
+	dataevent.DefaultCorrelationID = dataeventDescCorrelationID.Default.(string)
+	// dataeventDescCausationID is the schema descriptor for causation_id field.
+	dataeventDescCausationID := dataeventFields[12].Descriptor()
+	// dataevent.DefaultCausationID holds the default value on creation for the causation_id field.
+	dataevent.DefaultCausationID = dataeventDescCausationID.Default.(string)
+	// dataeventDescTraceID is the schema descriptor for trace_id field.
+	dataeventDescTraceID := dataeventFields[13].Descriptor()
+	// dataevent.DefaultTraceID holds the default value on creation for the trace_id field.
+	dataevent.DefaultTraceID = dataeventDescTraceID.Default.(string)
 	// dataeventDescCreatedAt is the schema descriptor for created_at field.
-	dataeventDescCreatedAt := dataeventFields[13].Descriptor()
+	dataeventDescCreatedAt := dataeventFields[16].Descriptor()
 	// dataevent.DefaultCreatedAt holds the default value on creation for the created_at field.
 	dataevent.DefaultCreatedAt = dataeventDescCreatedAt.Default.(func() time.Time)
 	eventconsumptionFields := schema.EventConsumption{}.Fields()

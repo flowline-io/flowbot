@@ -7,6 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestAllScopesIncludesLineageRead(t *testing.T) {
+	t.Parallel()
+	var found bool
+	for _, info := range AllScopes() {
+		if info.Value == ScopeLineageRead {
+			found = true
+			assert.Equal(t, "lineage:read", info.Value)
+		}
+	}
+	assert.True(t, found)
+}
+
 func TestHasScope(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

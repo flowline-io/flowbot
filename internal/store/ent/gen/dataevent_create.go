@@ -146,6 +146,48 @@ func (_c *DataEventCreate) SetNillableTopic(v *string) *DataEventCreate {
 	return _c
 }
 
+// SetCorrelationID sets the "correlation_id" field.
+func (_c *DataEventCreate) SetCorrelationID(v string) *DataEventCreate {
+	_c.mutation.SetCorrelationID(v)
+	return _c
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_c *DataEventCreate) SetNillableCorrelationID(v *string) *DataEventCreate {
+	if v != nil {
+		_c.SetCorrelationID(*v)
+	}
+	return _c
+}
+
+// SetCausationID sets the "causation_id" field.
+func (_c *DataEventCreate) SetCausationID(v string) *DataEventCreate {
+	_c.mutation.SetCausationID(v)
+	return _c
+}
+
+// SetNillableCausationID sets the "causation_id" field if the given value is not nil.
+func (_c *DataEventCreate) SetNillableCausationID(v *string) *DataEventCreate {
+	if v != nil {
+		_c.SetCausationID(*v)
+	}
+	return _c
+}
+
+// SetTraceID sets the "trace_id" field.
+func (_c *DataEventCreate) SetTraceID(v string) *DataEventCreate {
+	_c.mutation.SetTraceID(v)
+	return _c
+}
+
+// SetNillableTraceID sets the "trace_id" field if the given value is not nil.
+func (_c *DataEventCreate) SetNillableTraceID(v *string) *DataEventCreate {
+	if v != nil {
+		_c.SetTraceID(*v)
+	}
+	return _c
+}
+
 // SetData sets the "data" field.
 func (_c *DataEventCreate) SetData(v map[string]interface{}) *DataEventCreate {
 	_c.mutation.SetData(v)
@@ -245,6 +287,18 @@ func (_c *DataEventCreate) defaults() {
 		v := dataevent.DefaultTopic
 		_c.mutation.SetTopic(v)
 	}
+	if _, ok := _c.mutation.CorrelationID(); !ok {
+		v := dataevent.DefaultCorrelationID
+		_c.mutation.SetCorrelationID(v)
+	}
+	if _, ok := _c.mutation.CausationID(); !ok {
+		v := dataevent.DefaultCausationID
+		_c.mutation.SetCausationID(v)
+	}
+	if _, ok := _c.mutation.TraceID(); !ok {
+		v := dataevent.DefaultTraceID
+		_c.mutation.SetTraceID(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := dataevent.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -292,6 +346,15 @@ func (_c *DataEventCreate) check() error {
 	}
 	if _, ok := _c.mutation.Topic(); !ok {
 		return &ValidationError{Name: "topic", err: errors.New(`gen: missing required field "DataEvent.topic"`)}
+	}
+	if _, ok := _c.mutation.CorrelationID(); !ok {
+		return &ValidationError{Name: "correlation_id", err: errors.New(`gen: missing required field "DataEvent.correlation_id"`)}
+	}
+	if _, ok := _c.mutation.CausationID(); !ok {
+		return &ValidationError{Name: "causation_id", err: errors.New(`gen: missing required field "DataEvent.causation_id"`)}
+	}
+	if _, ok := _c.mutation.TraceID(); !ok {
+		return &ValidationError{Name: "trace_id", err: errors.New(`gen: missing required field "DataEvent.trace_id"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "DataEvent.created_at"`)}
@@ -368,6 +431,18 @@ func (_c *DataEventCreate) createSpec() (*DataEvent, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Topic(); ok {
 		_spec.SetField(dataevent.FieldTopic, field.TypeString, value)
 		_node.Topic = value
+	}
+	if value, ok := _c.mutation.CorrelationID(); ok {
+		_spec.SetField(dataevent.FieldCorrelationID, field.TypeString, value)
+		_node.CorrelationID = value
+	}
+	if value, ok := _c.mutation.CausationID(); ok {
+		_spec.SetField(dataevent.FieldCausationID, field.TypeString, value)
+		_node.CausationID = value
+	}
+	if value, ok := _c.mutation.TraceID(); ok {
+		_spec.SetField(dataevent.FieldTraceID, field.TypeString, value)
+		_node.TraceID = value
 	}
 	if value, ok := _c.mutation.Data(); ok {
 		_spec.SetField(dataevent.FieldData, field.TypeJSON, value)
@@ -550,6 +625,42 @@ func (u *DataEventUpsert) SetTopic(v string) *DataEventUpsert {
 // UpdateTopic sets the "topic" field to the value that was provided on create.
 func (u *DataEventUpsert) UpdateTopic() *DataEventUpsert {
 	u.SetExcluded(dataevent.FieldTopic)
+	return u
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *DataEventUpsert) SetCorrelationID(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldCorrelationID, v)
+	return u
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateCorrelationID() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldCorrelationID)
+	return u
+}
+
+// SetCausationID sets the "causation_id" field.
+func (u *DataEventUpsert) SetCausationID(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldCausationID, v)
+	return u
+}
+
+// UpdateCausationID sets the "causation_id" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateCausationID() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldCausationID)
+	return u
+}
+
+// SetTraceID sets the "trace_id" field.
+func (u *DataEventUpsert) SetTraceID(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldTraceID, v)
+	return u
+}
+
+// UpdateTraceID sets the "trace_id" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateTraceID() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldTraceID)
 	return u
 }
 
@@ -777,6 +888,48 @@ func (u *DataEventUpsertOne) SetTopic(v string) *DataEventUpsertOne {
 func (u *DataEventUpsertOne) UpdateTopic() *DataEventUpsertOne {
 	return u.Update(func(s *DataEventUpsert) {
 		s.UpdateTopic()
+	})
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *DataEventUpsertOne) SetCorrelationID(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetCorrelationID(v)
+	})
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateCorrelationID() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateCorrelationID()
+	})
+}
+
+// SetCausationID sets the "causation_id" field.
+func (u *DataEventUpsertOne) SetCausationID(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetCausationID(v)
+	})
+}
+
+// UpdateCausationID sets the "causation_id" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateCausationID() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateCausationID()
+	})
+}
+
+// SetTraceID sets the "trace_id" field.
+func (u *DataEventUpsertOne) SetTraceID(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetTraceID(v)
+	})
+}
+
+// UpdateTraceID sets the "trace_id" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateTraceID() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateTraceID()
 	})
 }
 
@@ -1176,6 +1329,48 @@ func (u *DataEventUpsertBulk) SetTopic(v string) *DataEventUpsertBulk {
 func (u *DataEventUpsertBulk) UpdateTopic() *DataEventUpsertBulk {
 	return u.Update(func(s *DataEventUpsert) {
 		s.UpdateTopic()
+	})
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *DataEventUpsertBulk) SetCorrelationID(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetCorrelationID(v)
+	})
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateCorrelationID() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateCorrelationID()
+	})
+}
+
+// SetCausationID sets the "causation_id" field.
+func (u *DataEventUpsertBulk) SetCausationID(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetCausationID(v)
+	})
+}
+
+// UpdateCausationID sets the "causation_id" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateCausationID() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateCausationID()
+	})
+}
+
+// SetTraceID sets the "trace_id" field.
+func (u *DataEventUpsertBulk) SetTraceID(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetTraceID(v)
+	})
+}
+
+// UpdateTraceID sets the "trace_id" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateTraceID() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateTraceID()
 	})
 }
 

@@ -202,7 +202,7 @@ func NewFailedResponse(err error) Response {
 		return Response{
 			Status:  Failed,
 			RetCode: domainRetCode(te),
-			Message: clientSafeDomainMessage(te),
+			Message: types.ClientSafeDomainMessage(te),
 		}
 	}
 	if e, ok := errors.AsType[oops.OopsError](err); ok {
@@ -222,33 +222,6 @@ func NewFailedResponse(err error) Response {
 		RetCode: "10000",
 		Message: "Unknown Error",
 	}
-}
-
-// clientSafeDomainMessage returns the intentional API message for a domain error.
-// Validation failures (ErrInvalidArgument) include the cause text for repairability.
-func clientSafeDomainMessage(te *types.Error) string {
-	if te == nil {
-		return "Unknown Error"
-	}
-	message := te.Message
-	if message == "" && te.Kind != nil {
-		message = te.Kind.Error()
-	}
-	if message == "" {
-		return "Unknown Error"
-	}
-	if te.Cause == nil || !errors.Is(te.Kind, types.ErrInvalidArgument) {
-		return message
-	}
-	cause := te.Cause.Error()
-	if cause == "" || cause == message {
-		return message
-	}
-	// Avoid duplicating when callers already embedded the cause in Message.
-	if len(message) >= len(cause) && (message == cause || message[len(message)-len(cause):] == cause) {
-		return message
-	}
-	return message + ": " + cause
 }
 
 // domainRetCode maps a types.Error kind to a stable protocol retcode string.

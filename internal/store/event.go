@@ -61,6 +61,9 @@ func (s *EventStore) AppendDataEvent(ctx context.Context, event types.DataEvent)
 		SetIdempotencyKey(event.IdempotencyKey).
 		SetUID(event.UID).
 		SetTopic(event.Topic).
+		SetCorrelationID(event.CorrelationID).
+		SetCausationID(event.CausationID).
+		SetTraceID(event.TraceID).
 		SetCreatedAt(time.Now())
 	if event.Data != nil {
 		c = c.SetData(map[string]any(event.Data))
@@ -93,6 +96,9 @@ func (s *EventStore) AppendEventOutbox(ctx context.Context, event types.DataEven
 		"idempotency_key": event.IdempotencyKey,
 		"uid":             event.UID,
 		"topic":           event.Topic,
+		"correlation_id":  event.CorrelationID,
+		"causation_id":    event.CausationID,
+		"trace_id":        event.TraceID,
 	}
 	if event.Tags != nil {
 		payload["tags"] = map[string]any(event.Tags)
@@ -206,6 +212,9 @@ func dataEventFromOutboxPayload(payload map[string]any, createdAt time.Time) (ty
 		IdempotencyKey: stringField(payload, "idempotency_key"),
 		UID:            stringField(payload, "uid"),
 		Topic:          stringField(payload, "topic"),
+		CorrelationID:  stringField(payload, "correlation_id"),
+		CausationID:    stringField(payload, "causation_id"),
+		TraceID:        stringField(payload, "trace_id"),
 		CreatedAt:      createdAt,
 	}
 	if tags, ok := payload["tags"].(map[string]any); ok && len(tags) > 0 {
@@ -461,6 +470,9 @@ func DataEventFromRow(row *gen.DataEvent) types.DataEvent {
 		Topic:          row.Topic,
 		Data:           types.KV(row.Data),
 		Tags:           types.KV(row.Tags),
+		CorrelationID:  row.CorrelationID,
+		CausationID:    row.CausationID,
+		TraceID:        row.TraceID,
 	}
 }
 

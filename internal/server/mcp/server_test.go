@@ -12,12 +12,14 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/samber/oops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/config"
+	pkgmcp "github.com/flowline-io/flowbot/pkg/mcp"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -139,9 +141,30 @@ func domainStatus(err error) (int, bool) {
 	}
 }
 
-func TestClientToolMessageHidesProviderText(t *testing.T) {
+func TestToolErrorStructuredContent(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, "tool error", clientToolMessage(errors.New("postgres: password denied")))
-	assert.Equal(t, "name is required", clientToolMessage(types.Errorf(types.ErrInvalidArgument, "name is required")))
-	assert.Equal(t, "tool error", clientToolMessage(nil))
+	ctx := withRequestID(context.Background(), "req-test")
+	res := toolError(ctx, errors.New("postgres: password denied"))
+	require.True(t, res.IsError)
+	require.NotNil(t, res.StructuredContent)
+	body, ok := res.StructuredContent.(map[string]any)
+	require.True(t, ok)
+	errObj, ok := body["error"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "internal", errObj["code"])
+	assert.Equal(t, "internal error", errObj["message"])
+	assert.NotContains(t, errObj["message"], "postgres")
+	trace, ok := body["trace"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "req-test", trace["request_id"])
+	require.NotEmpty(t, res.Content)
+	text, ok := res.Content[0].(*mcpsdk.TextContent)
+	require.True(t, ok)
+	assert.Contains(t, text.Text, `"code":"internal"`)
+
+	invalid := toolError(ctx, types.Errorf(types.ErrInvalidArgument, "name is required"))
+	invalidBody, ok := invalid.StructuredContent.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "invalid_argument", invalidBody["error"].(map[string]any)["code"])
+	require.NoError(t, pkgmcp.ValidateOutput(pkgmcp.OutputSchema("pipeline", "list"), invalidBody))
 }

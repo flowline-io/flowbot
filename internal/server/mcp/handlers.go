@@ -215,16 +215,24 @@ func mapArg(args map[string]any, key string) map[string]any {
 func requiredString(args map[string]any, key string) (string, error) {
 	raw, ok := args[key]
 	if !ok || raw == nil {
-		return "", types.Errorf(types.ErrInvalidArgument, "%s is required", key)
+		return "", invalidArgument(key)
 	}
 	s, ok := raw.(string)
 	if !ok {
 		s = fmt.Sprint(raw)
 	}
 	if s == "" || s == "<nil>" {
-		return "", types.Errorf(types.ErrInvalidArgument, "%s is required", key)
+		return "", invalidArgument(key)
 	}
 	return s, nil
+}
+
+func invalidArgument(field string) error {
+	return &types.Error{
+		Kind:    types.ErrInvalidArgument,
+		Message: field + " is required",
+		Field:   field,
+	}
 }
 
 func intArg(v any) (int, bool) {
@@ -262,7 +270,10 @@ func int64Arg(v any) (int64, bool) {
 func filterModelRuns[T any](runs []T, runID any) (any, error) {
 	want, ok := int64Arg(runID)
 	if !ok {
-		return runs, nil
+		if runs == nil {
+			runs = []T{}
+		}
+		return map[string]any{"runs": runs}, nil
 	}
 	for _, r := range runs {
 		id, ok := runIDOf(r)

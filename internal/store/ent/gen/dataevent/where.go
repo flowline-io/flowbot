@@ -104,6 +104,21 @@ func Topic(v string) predicate.DataEvent {
 	return predicate.DataEvent(sql.FieldEQ(FieldTopic, v))
 }
 
+// CorrelationID applies equality check predicate on the "correlation_id" field. It's identical to CorrelationIDEQ.
+func CorrelationID(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEQ(FieldCorrelationID, v))
+}
+
+// CausationID applies equality check predicate on the "causation_id" field. It's identical to CausationIDEQ.
+func CausationID(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEQ(FieldCausationID, v))
+}
+
+// TraceID applies equality check predicate on the "trace_id" field. It's identical to TraceIDEQ.
+func TraceID(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEQ(FieldTraceID, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.DataEvent {
 	return predicate.DataEvent(sql.FieldEQ(FieldCreatedAt, v))
@@ -757,6 +772,201 @@ func TopicEqualFold(v string) predicate.DataEvent {
 // TopicContainsFold applies the ContainsFold predicate on the "topic" field.
 func TopicContainsFold(v string) predicate.DataEvent {
 	return predicate.DataEvent(sql.FieldContainsFold(FieldTopic, v))
+}
+
+// CorrelationIDEQ applies the EQ predicate on the "correlation_id" field.
+func CorrelationIDEQ(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEQ(FieldCorrelationID, v))
+}
+
+// CorrelationIDNEQ applies the NEQ predicate on the "correlation_id" field.
+func CorrelationIDNEQ(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldNEQ(FieldCorrelationID, v))
+}
+
+// CorrelationIDIn applies the In predicate on the "correlation_id" field.
+func CorrelationIDIn(vs ...string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldIn(FieldCorrelationID, vs...))
+}
+
+// CorrelationIDNotIn applies the NotIn predicate on the "correlation_id" field.
+func CorrelationIDNotIn(vs ...string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldNotIn(FieldCorrelationID, vs...))
+}
+
+// CorrelationIDGT applies the GT predicate on the "correlation_id" field.
+func CorrelationIDGT(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldGT(FieldCorrelationID, v))
+}
+
+// CorrelationIDGTE applies the GTE predicate on the "correlation_id" field.
+func CorrelationIDGTE(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldGTE(FieldCorrelationID, v))
+}
+
+// CorrelationIDLT applies the LT predicate on the "correlation_id" field.
+func CorrelationIDLT(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldLT(FieldCorrelationID, v))
+}
+
+// CorrelationIDLTE applies the LTE predicate on the "correlation_id" field.
+func CorrelationIDLTE(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldLTE(FieldCorrelationID, v))
+}
+
+// CorrelationIDContains applies the Contains predicate on the "correlation_id" field.
+func CorrelationIDContains(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldContains(FieldCorrelationID, v))
+}
+
+// CorrelationIDHasPrefix applies the HasPrefix predicate on the "correlation_id" field.
+func CorrelationIDHasPrefix(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldHasPrefix(FieldCorrelationID, v))
+}
+
+// CorrelationIDHasSuffix applies the HasSuffix predicate on the "correlation_id" field.
+func CorrelationIDHasSuffix(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldHasSuffix(FieldCorrelationID, v))
+}
+
+// CorrelationIDEqualFold applies the EqualFold predicate on the "correlation_id" field.
+func CorrelationIDEqualFold(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEqualFold(FieldCorrelationID, v))
+}
+
+// CorrelationIDContainsFold applies the ContainsFold predicate on the "correlation_id" field.
+func CorrelationIDContainsFold(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldContainsFold(FieldCorrelationID, v))
+}
+
+// CausationIDEQ applies the EQ predicate on the "causation_id" field.
+func CausationIDEQ(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEQ(FieldCausationID, v))
+}
+
+// CausationIDNEQ applies the NEQ predicate on the "causation_id" field.
+func CausationIDNEQ(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldNEQ(FieldCausationID, v))
+}
+
+// CausationIDIn applies the In predicate on the "causation_id" field.
+func CausationIDIn(vs ...string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldIn(FieldCausationID, vs...))
+}
+
+// CausationIDNotIn applies the NotIn predicate on the "causation_id" field.
+func CausationIDNotIn(vs ...string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldNotIn(FieldCausationID, vs...))
+}
+
+// CausationIDGT applies the GT predicate on the "causation_id" field.
+func CausationIDGT(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldGT(FieldCausationID, v))
+}
+
+// CausationIDGTE applies the GTE predicate on the "causation_id" field.
+func CausationIDGTE(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldGTE(FieldCausationID, v))
+}
+
+// CausationIDLT applies the LT predicate on the "causation_id" field.
+func CausationIDLT(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldLT(FieldCausationID, v))
+}
+
+// CausationIDLTE applies the LTE predicate on the "causation_id" field.
+func CausationIDLTE(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldLTE(FieldCausationID, v))
+}
+
+// CausationIDContains applies the Contains predicate on the "causation_id" field.
+func CausationIDContains(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldContains(FieldCausationID, v))
+}
+
+// CausationIDHasPrefix applies the HasPrefix predicate on the "causation_id" field.
+func CausationIDHasPrefix(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldHasPrefix(FieldCausationID, v))
+}
+
+// CausationIDHasSuffix applies the HasSuffix predicate on the "causation_id" field.
+func CausationIDHasSuffix(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldHasSuffix(FieldCausationID, v))
+}
+
+// CausationIDEqualFold applies the EqualFold predicate on the "causation_id" field.
+func CausationIDEqualFold(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEqualFold(FieldCausationID, v))
+}
+
+// CausationIDContainsFold applies the ContainsFold predicate on the "causation_id" field.
+func CausationIDContainsFold(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldContainsFold(FieldCausationID, v))
+}
+
+// TraceIDEQ applies the EQ predicate on the "trace_id" field.
+func TraceIDEQ(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEQ(FieldTraceID, v))
+}
+
+// TraceIDNEQ applies the NEQ predicate on the "trace_id" field.
+func TraceIDNEQ(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldNEQ(FieldTraceID, v))
+}
+
+// TraceIDIn applies the In predicate on the "trace_id" field.
+func TraceIDIn(vs ...string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldIn(FieldTraceID, vs...))
+}
+
+// TraceIDNotIn applies the NotIn predicate on the "trace_id" field.
+func TraceIDNotIn(vs ...string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldNotIn(FieldTraceID, vs...))
+}
+
+// TraceIDGT applies the GT predicate on the "trace_id" field.
+func TraceIDGT(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldGT(FieldTraceID, v))
+}
+
+// TraceIDGTE applies the GTE predicate on the "trace_id" field.
+func TraceIDGTE(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldGTE(FieldTraceID, v))
+}
+
+// TraceIDLT applies the LT predicate on the "trace_id" field.
+func TraceIDLT(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldLT(FieldTraceID, v))
+}
+
+// TraceIDLTE applies the LTE predicate on the "trace_id" field.
+func TraceIDLTE(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldLTE(FieldTraceID, v))
+}
+
+// TraceIDContains applies the Contains predicate on the "trace_id" field.
+func TraceIDContains(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldContains(FieldTraceID, v))
+}
+
+// TraceIDHasPrefix applies the HasPrefix predicate on the "trace_id" field.
+func TraceIDHasPrefix(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldHasPrefix(FieldTraceID, v))
+}
+
+// TraceIDHasSuffix applies the HasSuffix predicate on the "trace_id" field.
+func TraceIDHasSuffix(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldHasSuffix(FieldTraceID, v))
+}
+
+// TraceIDEqualFold applies the EqualFold predicate on the "trace_id" field.
+func TraceIDEqualFold(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldEqualFold(FieldTraceID, v))
+}
+
+// TraceIDContainsFold applies the ContainsFold predicate on the "trace_id" field.
+func TraceIDContainsFold(v string) predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldContainsFold(FieldTraceID, v))
 }
 
 // DataIsNil applies the IsNil predicate on the "data" field.

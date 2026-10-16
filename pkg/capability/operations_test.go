@@ -162,6 +162,47 @@ func TestIsMutation(t *testing.T) {
 	}
 }
 
+func TestClassify(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		op         string
+		tier       Tier
+		idempotent bool
+	}{
+		{op: "list", tier: TierRead},
+		{op: "create", tier: TierWrite},
+		{op: "delete", tier: TierDestructive},
+		{op: "delete_task", tier: TierDestructive},
+		{op: "kv_delete", tier: TierDestructive},
+		{op: "archive", tier: TierDestructive},
+		{op: "remove", tier: TierDestructive},
+		{op: "stop", tier: TierWrite},
+		{op: "run", tier: TierWrite},
+		{op: "update", tier: TierWrite, idempotent: true},
+		{op: "update_card", tier: TierWrite, idempotent: true},
+		{op: "set_content", tier: TierWrite, idempotent: true},
+		{op: "kv_set", tier: TierWrite, idempotent: true},
+		{op: "attach_tags", tier: TierWrite, idempotent: true},
+		{op: "detach_tags", tier: TierWrite, idempotent: true},
+		{op: "mark_entry_read", tier: TierWrite, idempotent: true},
+		{op: "star_entry", tier: TierWrite, idempotent: true},
+		{op: "unstar_entry", tier: TierWrite, idempotent: true},
+		{op: "notify_send", tier: TierWrite},
+		{op: "complete_task", tier: TierWrite},
+	}
+	for _, tt := range tests {
+		t.Run(tt.op, func(t *testing.T) {
+			t.Parallel()
+			tier, idempotent := Classify("karakeep", tt.op)
+			assert.Equal(t, tt.tier, tier)
+			assert.Equal(t, tt.idempotent, idempotent)
+			tier2, idempotent2 := Classify("example", tt.op)
+			assert.Equal(t, tier, tier2)
+			assert.Equal(t, idempotent, idempotent2)
+		})
+	}
+}
+
 func TestOperationConstants(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

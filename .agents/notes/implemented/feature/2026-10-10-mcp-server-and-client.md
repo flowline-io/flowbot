@@ -30,6 +30,7 @@ CLI and `docs/skills` remain a third AI path.
 
 ## Consequences
 
+- Tool result and error shapes are a separate contract: [MCP tool contract](../architecture/2026-10-16-mcp-tool-contract.md).
 - Operators must mint a scoped API token and set `mcp.enabled: true` before Cursor can connect.
 - `admin:*` still sees every non-deny-list tool; include/exclude is the operational control for catalog size.
 - stdio MCP processes run as the Flowbot user for the process lifetime.

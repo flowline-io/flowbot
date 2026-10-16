@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
 
 var (
@@ -34,6 +35,14 @@ type Error struct {
 	Provider   string
 	Retryable  bool
 	Cause      error
+	// Field is the argument name a caller should correct, when known.
+	Field string
+	// RetryAfter is how long to wait before retrying, when known.
+	RetryAfter time.Duration
+	// JobID names a background job the caller can poll, when known.
+	JobID string
+	// Confirmation is approval data the caller must complete, when known.
+	Confirmation map[string]any
 }
 
 // Error returns the operator-facing text: Message joined with Cause when both are set.
@@ -74,6 +83,33 @@ func (e *Error) Unwrap() error {
 		return nil
 	}
 	return e.Cause
+}
+
+// ClientSafeDomainMessage returns the client-facing text for a domain error.
+// ErrInvalidArgument appends Cause so callers can repair bad input.
+// Other kinds return Message without Cause. A nil error yields "Unknown Error".
+func ClientSafeDomainMessage(te *Error) string {
+	if te == nil {
+		return "Unknown Error"
+	}
+	message := te.Message
+	if message == "" && te.Kind != nil {
+		message = te.Kind.Error()
+	}
+	if message == "" {
+		return "Unknown Error"
+	}
+	if te.Cause == nil || !errors.Is(te.Kind, ErrInvalidArgument) {
+		return message
+	}
+	cause := te.Cause.Error()
+	if cause == "" || cause == message {
+		return message
+	}
+	if len(message) >= len(cause) && (message == cause || message[len(message)-len(cause):] == cause) {
+		return message
+	}
+	return message + ": " + cause
 }
 
 // ClientMessage returns the domain Message without Cause, for HTTP JSON bodies.

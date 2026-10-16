@@ -28,6 +28,7 @@ type ToolSpec struct {
 	Kind        string
 	Input       []hub.ParamDef
 	Scopes      []string
+	Output      map[string]any
 }
 
 // BuildCatalog returns capability, pipeline/workflow/function, and hub tools
@@ -54,6 +55,7 @@ func BuildCatalog(descs []hub.Descriptor, include, exclude []string) []ToolSpec 
 				Kind:        kindCapability,
 				Input:       op.Input,
 				Scopes:      expandScopes(op.Scopes, capName, mutation),
+				Output:      pkgmcp.OutputSchema(capName, op.Name),
 			})
 		}
 	}
@@ -165,6 +167,7 @@ func extraTools(include, exclude []string) []ToolSpec {
 	var out []ToolSpec
 	for _, spec := range specs {
 		if pkgmcp.Match(include, exclude, spec.Group, spec.Name) {
+			spec.Output = pkgmcp.OutputSchema(spec.Group, spec.Operation)
 			out = append(out, spec)
 		}
 	}

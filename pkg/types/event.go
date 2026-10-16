@@ -96,4 +96,7 @@ type DataEvent struct {
 	Topic          string    `json:"topic"`
 	Data           KV        `json:"data"`
 	Tags           KV        `json:"tags,omitempty"`
+	CorrelationID  string    `json:"correlation_id,omitempty"`
+	CausationID    string    `json:"causation_id,omitempty"`
+	TraceID        string    `json:"trace_id,omitempty"`
 }

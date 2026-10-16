@@ -33,6 +33,12 @@ const (
 	FieldUID = "uid"
 	// FieldTopic holds the string denoting the topic field in the database.
 	FieldTopic = "topic"
+	// FieldCorrelationID holds the string denoting the correlation_id field in the database.
+	FieldCorrelationID = "correlation_id"
+	// FieldCausationID holds the string denoting the causation_id field in the database.
+	FieldCausationID = "causation_id"
+	// FieldTraceID holds the string denoting the trace_id field in the database.
+	FieldTraceID = "trace_id"
 	// FieldData holds the string denoting the data field in the database.
 	FieldData = "data"
 	// FieldTags holds the string denoting the tags field in the database.
@@ -56,6 +62,9 @@ var Columns = []string{
 	FieldIdempotencyKey,
 	FieldUID,
 	FieldTopic,
+	FieldCorrelationID,
+	FieldCausationID,
+	FieldTraceID,
 	FieldData,
 	FieldTags,
 	FieldCreatedAt,
@@ -92,6 +101,12 @@ var (
 	DefaultUID string
 	// DefaultTopic holds the default value on creation for the "topic" field.
 	DefaultTopic string
+	// DefaultCorrelationID holds the default value on creation for the "correlation_id" field.
+	DefaultCorrelationID string
+	// DefaultCausationID holds the default value on creation for the "causation_id" field.
+	DefaultCausationID string
+	// DefaultTraceID holds the default value on creation for the "trace_id" field.
+	DefaultTraceID string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
@@ -152,6 +167,21 @@ func ByUID(opts ...sql.OrderTermOption) OrderOption {
 // ByTopic orders the results by the topic field.
 func ByTopic(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTopic, opts...).ToFunc()
+}
+
+// ByCorrelationID orders the results by the correlation_id field.
+func ByCorrelationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrelationID, opts...).ToFunc()
+}
+
+// ByCausationID orders the results by the causation_id field.
+func ByCausationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCausationID, opts...).ToFunc()
+}
+
+// ByTraceID orders the results by the trace_id field.
+func ByTraceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTraceID, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

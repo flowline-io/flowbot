@@ -646,6 +646,9 @@ var (
 		{Name: "idempotency_key", Type: field.TypeString, Default: ""},
 		{Name: "uid", Type: field.TypeString, Default: ""},
 		{Name: "topic", Type: field.TypeString, Default: ""},
+		{Name: "correlation_id", Type: field.TypeString, Default: ""},
+		{Name: "causation_id", Type: field.TypeString, Default: ""},
+		{Name: "trace_id", Type: field.TypeString, Default: ""},
 		{Name: "data", Type: field.TypeJSON, Nullable: true},
 		{Name: "tags", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
@@ -669,7 +672,7 @@ var (
 			{
 				Name:    "dataevent_tags",
 				Unique:  false,
-				Columns: []*schema.Column{DataEventsColumns[12]},
+				Columns: []*schema.Column{DataEventsColumns[15]},
 				Annotation: &entsql.IndexAnnotation{
 					Type: "GIN",
 				},
@@ -677,12 +680,17 @@ var (
 			{
 				Name:    "dataevent_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{DataEventsColumns[13]},
+				Columns: []*schema.Column{DataEventsColumns[16]},
 			},
 			{
 				Name:    "dataevent_source_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{DataEventsColumns[3], DataEventsColumns[13]},
+				Columns: []*schema.Column{DataEventsColumns[3], DataEventsColumns[16]},
+			},
+			{
+				Name:    "dataevent_correlation_id",
+				Unique:  false,
+				Columns: []*schema.Column{DataEventsColumns[11]},
 			},
 		},
 	}

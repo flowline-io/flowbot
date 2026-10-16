@@ -83,6 +83,8 @@ const (
 	ScopeGatewayWorker = "gateway:worker"
 	// ScopeAgentHeadless authorizes flowbot-agent LLM proxy (OpenAI-compatible completions).
 	ScopeAgentHeadless = "agent:headless"
+	// ScopeLineageRead allows reading event correlation and causation links.
+	ScopeLineageRead = "lineage:read"
 )
 
 // legacyScopeStrings maps deprecated token scope strings to canonical provider scopes.
@@ -284,5 +286,6 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeChatAgentChat, Description: "agent"},
 		{Value: ScopeGatewayWorker, Description: "local CLI gateway worker"},
 		{Value: ScopeAgentHeadless, Description: "headless agent LLM proxy"},
+		{Value: ScopeLineageRead, Description: "read event lineage"},
 	}
 }

@@ -17495,6 +17495,9 @@ type DataEventMutation struct {
 	idempotency_key *string
 	uid             *string
 	topic           *string
+	correlation_id  *string
+	causation_id    *string
+	trace_id        *string
 	data            *map[string]interface{}
 	tags            *map[string]interface{}
 	created_at      *time.Time
@@ -17968,6 +17971,114 @@ func (m *DataEventMutation) ResetTopic() {
 	m.topic = nil
 }
 
+// SetCorrelationID sets the "correlation_id" field.
+func (m *DataEventMutation) SetCorrelationID(s string) {
+	m.correlation_id = &s
+}
+
+// CorrelationID returns the value of the "correlation_id" field in the mutation.
+func (m *DataEventMutation) CorrelationID() (r string, exists bool) {
+	v := m.correlation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCorrelationID returns the old "correlation_id" field's value of the DataEvent entity.
+// If the DataEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DataEventMutation) OldCorrelationID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCorrelationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCorrelationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCorrelationID: %w", err)
+	}
+	return oldValue.CorrelationID, nil
+}
+
+// ResetCorrelationID resets all changes to the "correlation_id" field.
+func (m *DataEventMutation) ResetCorrelationID() {
+	m.correlation_id = nil
+}
+
+// SetCausationID sets the "causation_id" field.
+func (m *DataEventMutation) SetCausationID(s string) {
+	m.causation_id = &s
+}
+
+// CausationID returns the value of the "causation_id" field in the mutation.
+func (m *DataEventMutation) CausationID() (r string, exists bool) {
+	v := m.causation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCausationID returns the old "causation_id" field's value of the DataEvent entity.
+// If the DataEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DataEventMutation) OldCausationID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCausationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCausationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCausationID: %w", err)
+	}
+	return oldValue.CausationID, nil
+}
+
+// ResetCausationID resets all changes to the "causation_id" field.
+func (m *DataEventMutation) ResetCausationID() {
+	m.causation_id = nil
+}
+
+// SetTraceID sets the "trace_id" field.
+func (m *DataEventMutation) SetTraceID(s string) {
+	m.trace_id = &s
+}
+
+// TraceID returns the value of the "trace_id" field in the mutation.
+func (m *DataEventMutation) TraceID() (r string, exists bool) {
+	v := m.trace_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTraceID returns the old "trace_id" field's value of the DataEvent entity.
+// If the DataEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DataEventMutation) OldTraceID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTraceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTraceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTraceID: %w", err)
+	}
+	return oldValue.TraceID, nil
+}
+
+// ResetTraceID resets all changes to the "trace_id" field.
+func (m *DataEventMutation) ResetTraceID() {
+	m.trace_id = nil
+}
+
 // SetData sets the "data" field.
 func (m *DataEventMutation) SetData(value map[string]interface{}) {
 	m.data = &value
@@ -18136,7 +18247,7 @@ func (m *DataEventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DataEventMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 16)
 	if m.event_id != nil {
 		fields = append(fields, dataevent.FieldEventID)
 	}
@@ -18166,6 +18277,15 @@ func (m *DataEventMutation) Fields() []string {
 	}
 	if m.topic != nil {
 		fields = append(fields, dataevent.FieldTopic)
+	}
+	if m.correlation_id != nil {
+		fields = append(fields, dataevent.FieldCorrelationID)
+	}
+	if m.causation_id != nil {
+		fields = append(fields, dataevent.FieldCausationID)
+	}
+	if m.trace_id != nil {
+		fields = append(fields, dataevent.FieldTraceID)
 	}
 	if m.data != nil {
 		fields = append(fields, dataevent.FieldData)
@@ -18204,6 +18324,12 @@ func (m *DataEventMutation) Field(name string) (ent.Value, bool) {
 		return m.UID()
 	case dataevent.FieldTopic:
 		return m.Topic()
+	case dataevent.FieldCorrelationID:
+		return m.CorrelationID()
+	case dataevent.FieldCausationID:
+		return m.CausationID()
+	case dataevent.FieldTraceID:
+		return m.TraceID()
 	case dataevent.FieldData:
 		return m.Data()
 	case dataevent.FieldTags:
@@ -18239,6 +18365,12 @@ func (m *DataEventMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldUID(ctx)
 	case dataevent.FieldTopic:
 		return m.OldTopic(ctx)
+	case dataevent.FieldCorrelationID:
+		return m.OldCorrelationID(ctx)
+	case dataevent.FieldCausationID:
+		return m.OldCausationID(ctx)
+	case dataevent.FieldTraceID:
+		return m.OldTraceID(ctx)
 	case dataevent.FieldData:
 		return m.OldData(ctx)
 	case dataevent.FieldTags:
@@ -18323,6 +18455,27 @@ func (m *DataEventMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTopic(v)
+		return nil
+	case dataevent.FieldCorrelationID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCorrelationID(v)
+		return nil
+	case dataevent.FieldCausationID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCausationID(v)
+		return nil
+	case dataevent.FieldTraceID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTraceID(v)
 		return nil
 	case dataevent.FieldData:
 		v, ok := value.(map[string]interface{})
@@ -18438,6 +18591,15 @@ func (m *DataEventMutation) ResetField(name string) error {
 		return nil
 	case dataevent.FieldTopic:
 		m.ResetTopic()
+		return nil
+	case dataevent.FieldCorrelationID:
+		m.ResetCorrelationID()
+		return nil
+	case dataevent.FieldCausationID:
+		m.ResetCausationID()
+		return nil
+	case dataevent.FieldTraceID:
+		m.ResetTraceID()
 		return nil
 	case dataevent.FieldData:
 		m.ResetData()

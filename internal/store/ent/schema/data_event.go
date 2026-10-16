@@ -27,6 +27,9 @@ func (DataEvent) Fields() []ent.Field {
 		field.String("idempotency_key").Default(""),
 		field.String("uid").Default(""),
 		field.String("topic").Default(""),
+		field.String("correlation_id").Default(""),
+		field.String("causation_id").Default(""),
+		field.String("trace_id").Default(""),
 		field.JSON("data", map[string]any{}).Optional(),
 		field.JSON("tags", map[string]any{}).Optional(),
 		field.Time("created_at").Immutable().Default(time.Now),
@@ -42,6 +45,7 @@ func (DataEvent) Indexes() []ent.Index {
 		index.Fields("created_at"),
 		// Filtered pagination by source
 		index.Fields("source", "created_at"),
+		index.Fields("correlation_id"),
 	}
 }
 
