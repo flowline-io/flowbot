@@ -225,6 +225,22 @@ func postMCP(app *fiber.App, token string, body []byte) *http.Response {
 	req := JSONRequest(http.MethodPost, "/mcp", body)
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", "application/json, text/event-stream")
+	// Protocol 2026-07-28: the header must match _meta, and tools/call also needs method and name.
+	req.Header.Set("Mcp-Protocol-Version", "2026-07-28")
+	var msg struct {
+		Method string `json:"method"`
+		Params struct {
+			Name string `json:"name"`
+		} `json:"params"`
+	}
+	if err := sonic.Unmarshal(body, &msg); err == nil {
+		if msg.Method != "" {
+			req.Header.Set("Mcp-Method", msg.Method)
+		}
+		if msg.Params.Name != "" {
+			req.Header.Set("Mcp-Name", msg.Params.Name)
+		}
+	}
 	resp, err := app.Test(req, fiber.TestConfig{Timeout: 30 * time.Second})
 	Expect(err).NotTo(HaveOccurred())
 	return resp

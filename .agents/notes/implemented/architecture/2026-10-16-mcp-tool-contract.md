@@ -41,7 +41,7 @@ Contract tests run from `.github/workflows/mcp-contract.yml` via `go tool task t
 ## Verification
 
 - `go tool task test:mcp-contract`
-- BDD: `tests/specs/mcp_spec_test.go` (`tools/call` error envelope, `hub.apps` items, `hub.health` object)
+- BDD: `tests/specs/mcp_spec_test.go` (`tools/call` error envelope, `hub.apps` items, `hub.health` object). Those calls send `Mcp-Protocol-Version: 2026-07-28` matching `_meta`, plus `Mcp-Method` and `Mcp-Name`. The streamable handler returns 400 when that protocol is declared and the headers are absent.
 - `go test ./pkg/types/protocol/ ./pkg/mcp/ ./internal/server/mcp/ ./pkg/capability/ -count=1 -run "TestNewFailedResponse|TestToToolError|TestOutputSchemaContract|TestClassify|TestContractAnnotations"`
 - `go test ./internal/store/ -count=1 -run TestDataEventTraceColumns`
 - User guide: [mcp.md](../../../docs/user-guide/mcp.md)

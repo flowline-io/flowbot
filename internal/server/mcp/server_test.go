@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/requestid"
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/samber/oops"
 	"github.com/stretchr/testify/assert"
@@ -139,6 +141,58 @@ func domainStatus(err error) (int, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func TestStreamableToolCallRequiresProtocolHeaders(t *testing.T) {
+	prevEnabled := config.App.MCP.Enabled
+	config.App.MCP.Enabled = true
+	t.Cleanup(func() { config.App.MCP.Enabled = prevEnabled })
+
+	store := &memoryTokenStore{rows: map[string]route.AccessToken{}}
+	route.SetAccessTokenStore(store)
+	t.Cleanup(func() { route.SetAccessTokenStore(nil) })
+
+	token := "mcp-protocol-token"
+	require.NoError(t, store.Set(context.Background(), auth.HashToken(token), types.KV{
+		"uid": "user-1", "kind": "api",
+		"scopes": []string{auth.ScopeHubAppsRead, auth.ScopeHubHealthRead},
+	}, time.Now().Add(time.Hour)))
+
+	app := fiber.New()
+	app.Use(requestid.New())
+	Register(app, nil)
+
+	body := []byte(`{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"hub.health","arguments":{},"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}`)
+
+	t.Run("missing protocol headers is 400", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/mcp", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json, text/event-stream")
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("matching headers return hub.health", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/mcp", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json, text/event-stream")
+		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Mcp-Protocol-Version", "2026-07-28")
+		req.Header.Set("Mcp-Method", "tools/call")
+		req.Header.Set("Mcp-Name", "hub.health")
+		resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		raw, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, string(raw))
+		require.NotEmpty(t, resp.Header.Get("X-Request-ID"))
+		assert.Contains(t, string(raw), `"status"`)
+		assert.Contains(t, string(raw), resp.Header.Get("X-Request-ID"))
+	})
 }
 
 func TestToolErrorStructuredContent(t *testing.T) {
