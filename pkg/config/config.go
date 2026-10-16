@@ -714,6 +714,8 @@ type MCPConfig struct {
 	Include []string `json:"include" yaml:"include" mapstructure:"include"`
 	// Exclude removes tools from /mcp. Exclude wins over include; the deny-list cannot be overridden.
 	Exclude []string `json:"exclude" yaml:"exclude" mapstructure:"exclude"`
+	// MaxOutputBytes is the maximum UTF-8 size of one successful MCP tool result. Zero uses 32768.
+	MaxOutputBytes int `json:"max_output_bytes" yaml:"max_output_bytes" mapstructure:"max_output_bytes"`
 }
 
 // ChatAgentBrowserConfig configures interactive browser tools over CDP.

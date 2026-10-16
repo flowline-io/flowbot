@@ -13,6 +13,8 @@ type PageInfo struct {
 	NextCursor string `json:"next_cursor,omitzero"`
 	PrevCursor string `json:"prev_cursor,omitzero"`
 	Total      *int64 `json:"total,omitzero"`
+	// Truncated reports that this page was shortened to fit the caller's output budget.
+	Truncated bool `json:"truncated,omitzero"`
 }
 
 type ListResult[T any] struct {

@@ -89,10 +89,53 @@ func Register(app *fiber.App, auditor audit.Auditor) {
 		if err != nil {
 			return err
 		}
+		if raw, ok := scopeDeniedResponse(c.Body(), ident, catalogFromConfig()); ok {
+			c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+			return c.Send(raw)
+		}
 		return adaptor.HTTPHandlerWithContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			handler.ServeHTTP(w, r.WithContext(contextForTool(c, r, ident)))
 		}))(c)
 	})
+}
+
+type toolsCallEnvelope struct {
+	ID     any             `json:"id"`
+	Method string          `json:"method"`
+	Params toolsCallParams `json:"params"`
+}
+
+type toolsCallParams struct {
+	Name string `json:"name"`
+}
+
+func scopeDeniedResponse(body []byte, ident Identity, specs []ToolSpec) ([]byte, bool) {
+	var msg toolsCallEnvelope
+	if err := sonic.Unmarshal(body, &msg); err != nil || msg.Method != "tools/call" || msg.Params.Name == "" {
+		return nil, false
+	}
+	var spec ToolSpec
+	found := false
+	for _, item := range specs {
+		if item.Name == msg.Params.Name {
+			spec = item
+			found = true
+			break
+		}
+	}
+	if !found || spec.Allowed(ident.Scopes) {
+		return nil, false
+	}
+	result := toolError(context.Background(), types.Errorf(types.ErrForbidden, "missing scope"))
+	raw, err := sonic.Marshal(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      msg.ID,
+		"result":  result,
+	})
+	if err != nil {
+		return nil, false
+	}
+	return raw, true
 }
 
 func newSDKServer(ident Identity, auditor audit.Auditor) *mcpsdk.Server {
@@ -129,6 +172,17 @@ func newSDKServer(ident Identity, auditor audit.Auditor) *mcpsdk.Server {
 			callIdent := identityFrom(ctx)
 			if callIdent.UID.IsZero() {
 				callIdent = ident
+			}
+			ctx = capability.WithCursorSecretBox(ctx)
+			if pkgmcp.IsListTool(spec.Group, spec.Operation) {
+				maxOut := config.App.MCP.MaxOutputBytes
+				if maxOut <= 0 {
+					maxOut = capability.DefaultMaxOutputBytes
+				}
+				ctx = capability.WithPageBudget(ctx, capability.PageBudget{
+					Max:     maxOut,
+					Measure: measureToolJSON(spec, traceFrom(ctx)),
+				})
 			}
 			result, err := executeTool(ctx, callIdent, spec, args, auditor)
 			if err != nil {
@@ -228,11 +282,29 @@ func traceFrom(ctx context.Context) map[string]any {
 	return trace
 }
 
+func measureToolJSON(spec ToolSpec, trace map[string]any) func(items []any, page map[string]any) (int, error) {
+	return func(items []any, page map[string]any) (int, error) {
+		doc := map[string]any{"page": page, "trace": trace}
+		if spec.Kind == kindCapability {
+			doc["capability"] = spec.Group
+			doc["operation"] = spec.Operation
+			doc["data"] = items
+		} else {
+			doc["items"] = items
+		}
+		raw, err := sonic.Marshal(doc)
+		if err != nil {
+			return 0, err
+		}
+		return len(raw), nil
+	}
+}
+
 func schemaFromParams(params []hub.ParamDef) map[string]any {
 	fields := make([]pkgmcp.Field, 0, len(params))
 	for _, p := range params {
 		fields = append(fields, pkgmcp.Field{
-			Name: p.Name, Type: p.Type, Description: p.Description, Required: p.Required,
+			Name: p.Name, Type: p.Type, Description: p.Description, Required: p.Required, Enum: p.Enum,
 		})
 	}
 	return pkgmcp.SchemaFromFields(fields)

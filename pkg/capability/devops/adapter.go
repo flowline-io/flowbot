@@ -830,6 +830,7 @@ func (a *Adapter) ScanopyVersion(ctx context.Context) (*capability.DevopsScanopy
 
 // ScanopyListNetworks lists Scanopy networks.
 func (a *Adapter) ScanopyListNetworks(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyNetwork], error) {
+	capability.PublishCursorSecret(ctx, scanopyCursorSecret)
 	if a.scanopy == nil {
 		return nil, notConfigured("scanopy")
 	}
@@ -858,6 +859,7 @@ func (a *Adapter) ScanopyListNetworks(ctx context.Context, in ScanopyListInput) 
 
 // ScanopyListHosts lists Scanopy hosts.
 func (a *Adapter) ScanopyListHosts(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyHost], error) {
+	capability.PublishCursorSecret(ctx, scanopyCursorSecret)
 	if a.scanopy == nil {
 		return nil, notConfigured("scanopy")
 	}
@@ -905,6 +907,7 @@ func (a *Adapter) ScanopyGetHost(ctx context.Context, in ScanopyGetHostInput) (*
 
 // ScanopyListServices lists Scanopy services.
 func (a *Adapter) ScanopyListServices(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyService], error) {
+	capability.PublishCursorSecret(ctx, scanopyCursorSecret)
 	if a.scanopy == nil {
 		return nil, notConfigured("scanopy")
 	}
@@ -933,6 +936,7 @@ func (a *Adapter) ScanopyListServices(ctx context.Context, in ScanopyListInput) 
 
 // ScanopyListDaemons lists Scanopy daemons.
 func (a *Adapter) ScanopyListDaemons(ctx context.Context, in ScanopyListInput) (*capability.ListResult[capability.DevopsScanopyDaemon], error) {
+	capability.PublishCursorSecret(ctx, scanopyCursorSecret)
 	if a.scanopy == nil {
 		return nil, notConfigured("scanopy")
 	}

@@ -41,6 +41,7 @@ func NewWithClient(client client) Service {
 }
 
 func (a *Adapter) ListFeeds(ctx context.Context, q *FeedQuery) (*capability.ListResult[capability.Feed], error) {
+	capability.PublishCursorSecret(ctx, a.cursorSecret)
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "reader list feeds canceled", err)
 	}
@@ -94,6 +95,7 @@ func (a *Adapter) CreateFeed(ctx context.Context, feedURL string) (*capability.F
 }
 
 func (a *Adapter) ListEntries(ctx context.Context, q *EntryQuery) (*capability.ListResult[capability.Entry], error) {
+	capability.PublishCursorSecret(ctx, a.cursorSecret)
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "reader list entries canceled", err)
 	}

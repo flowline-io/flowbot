@@ -79,6 +79,7 @@ func normalizedLimit(limit int) int {
 }
 
 func (a *Adapter) ListSpaces(ctx context.Context, q *ListQuery) (*capability.ListResult[capability.ConfluenceSpace], error) {
+	capability.PublishCursorSecret(ctx, a.cursorSecret)
 	if err := a.checkClient(); err != nil {
 		return nil, err
 	}
@@ -99,6 +100,7 @@ func (a *Adapter) ListSpaces(ctx context.Context, q *ListQuery) (*capability.Lis
 }
 
 func (a *Adapter) ListPages(ctx context.Context, spaceKey string, q *ListQuery) (*capability.ListResult[capability.ConfluencePage], error) {
+	capability.PublishCursorSecret(ctx, a.cursorSecret)
 	if err := a.checkClient(); err != nil {
 		return nil, err
 	}

@@ -155,6 +155,54 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 		Expect(textJSON(result)).To(Equal(sc))
 	})
 
+	It("returns permission_denied when a read token calls pipeline.run", func() {
+		readToken := "bdd-mcp-read-" + types.Id()
+		uid := "bdd-mcp-read-user-" + types.Id()
+		mds := store.NewModuleDataStore(EntClient)
+		Expect(mds.ParameterSet(context.Background(), auth.HashToken(readToken), types.KV{
+			"uid": uid, "topic": "cli", "kind": "api",
+			"scopes": []string{auth.ScopePipelineRead, auth.ScopeHubAppsRead},
+		}, time.Now().Add(time.Hour))).To(Succeed())
+		resp := postMCP(app, readToken, mcpCallBody("pipeline.run", map[string]any{"name": "daily"}))
+		body := ReadBody(resp)
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		result := mcpResult(body)
+		Expect(result["isError"]).To(BeTrue())
+		errObj, ok := structuredContent(result)["error"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(body))
+		Expect(errObj["code"]).To(Equal("permission_denied"))
+	})
+
+	It("uses limit 20 when hub.apps omits limit", func() {
+		resp := postMCP(app, apiToken, mcpCallBody("hub.apps", map[string]any{}))
+		body := ReadBody(resp)
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		page, ok := structuredContent(mcpResult(body))["page"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(body))
+		Expect(page["limit"]).To(Equal(float64(20)))
+	})
+
+	It("clamps hub.apps limit above 100 to 100", func() {
+		resp := postMCP(app, apiToken, mcpCallBody("hub.apps", map[string]any{"limit": 500}))
+		body := ReadBody(resp)
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		page, ok := structuredContent(mcpResult(body))["page"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(body))
+		Expect(page["limit"]).To(Equal(float64(100)))
+	})
+
+	It("sets page.truncated when hub.apps exceeds mcp.max_output_bytes", func() {
+		prev := config.App.MCP.MaxOutputBytes
+		config.App.MCP.MaxOutputBytes = 1
+		defer func() { config.App.MCP.MaxOutputBytes = prev }()
+		resp := postMCP(app, apiToken, mcpCallBody("hub.apps", map[string]any{"limit": 20}))
+		body := ReadBody(resp)
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		page, ok := structuredContent(mcpResult(body))["page"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(body))
+		Expect(page["truncated"]).To(BeTrue())
+	})
+
 	It("returns an object and trace.request_id for hub.health", func() {
 		resp := postMCP(app, apiToken, mcpCallBody("hub.health", map[string]any{}))
 		body := ReadBody(resp)

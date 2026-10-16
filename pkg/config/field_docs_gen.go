@@ -152,6 +152,7 @@ var FieldDocs = map[string]string{
 	"mcp.enabled":                                         "Enabled mounts POST /mcp when true. GET and DELETE return 405 (stateless). Default false.",
 	"mcp.exclude":                                         "Exclude removes tools from /mcp. Exclude wins over include; the deny-list cannot be overridden.",
 	"mcp.include":                                         "Include limits tools advertised on /mcp (capability or full tool name). Empty means all allowed by token scope minus the deny-list.",
+	"mcp.max_output_bytes":                                "MaxOutputBytes is the maximum UTF-8 size of one successful MCP tool result. Zero uses 32768.",
 	"media":                                               "Media large-file storage configuration (optional; omit to disable uploads).",
 	"media.gc_block_size":                                 "Number of entries to delete in one pass (0 = default 100).",
 	"media.gc_period":                                     "Garbage collection period in seconds (0 = default 60).",

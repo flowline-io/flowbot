@@ -66,6 +66,7 @@ func (a *Adapter) checkClient() error {
 }
 
 func (a *Adapter) ListTasks(ctx context.Context, q *TaskQuery) (*capability.ListResult[capability.Task], error) {
+	capability.PublishCursorSecret(ctx, a.cursorSecret)
 	if err := a.checkClient(); err != nil {
 		return nil, err
 	}

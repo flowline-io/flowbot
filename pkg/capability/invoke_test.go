@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -1044,4 +1045,32 @@ func TestRegistry_InvokeSkipsCacheOnKeyError(t *testing.T) {
 	_, err = r.Invoke(t.Context(), hub.CapKarakeep, "list", params)
 	require.NoError(t, err)
 	assert.Equal(t, 2, callCount, "unmarshalable params must not be cached")
+}
+
+func TestInvokeCacheHitClampsToBudget(t *testing.T) {
+	t.Cleanup(func() { cache.Instance = nil })
+	_ = setupTestCache(t)
+
+	r := NewRegistry()
+	items := make([]map[string]string, 0, 4)
+	for i := range 4 {
+		items = append(items, map[string]string{`id`: string(rune('a' + i)), "body": strings.Repeat("x", 8000)})
+	}
+	calls := 0
+	require.NoError(t, r.Register(hub.CapExample, "list", func(context.Context, map[string]any) (*InvokeResult, error) {
+		calls++
+		return &InvokeResult{Data: items}, nil
+	}))
+	ctx := WithPageBudget(t.Context(), PageBudget{Max: 2000, Measure: measureDataPage})
+	_, err := r.Invoke(ctx, hub.CapExample, "list", map[string]any{"limit": 20})
+	require.NoError(t, err)
+	cache.Instance.Wait()
+	second, err := r.Invoke(ctx, hub.CapExample, "list", map[string]any{"limit": 20})
+	require.NoError(t, err)
+	assert.Equal(t, 1, calls)
+	require.NotNil(t, second.Page)
+	assert.True(t, second.Page.Truncated)
+	raw, err := sonic.Marshal(map[string]any{"data": second.Data, "page": second.Page, "trace": map[string]any{"request_id": "req"}})
+	require.NoError(t, err)
+	assert.LessOrEqual(t, len(raw), 2000)
 }

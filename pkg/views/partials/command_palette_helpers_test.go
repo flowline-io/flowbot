@@ -26,6 +26,7 @@ func TestCommandPaletteNavPages(t *testing.T) {
 		{name: "includes homelab registry", wantHref: "/service/web/homelab", wantTitle: "Registry"},
 		{name: "includes about", wantHref: "/service/web/about", wantTitle: "About"},
 		{name: "includes settings", wantHref: "/service/web/settings", wantTitle: "Settings"},
+		{name: "includes mcp", wantHref: "/service/web/settings/mcp", wantTitle: "MCP"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

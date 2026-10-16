@@ -49,6 +49,7 @@ func CommandPaletteNavPages(ctx context.Context) []CommandPaletteNavPage {
 		{"nav.tokens", "nav.group.system", "/service/web/tokens"},
 		{"nav.configs", "nav.group.system", "/service/web/configs"},
 		{"nav.settings", "nav.group.system", "/service/web/settings"},
+		{"nav.mcp", "nav.group.system", "/service/web/settings/mcp"},
 		{"nav.about", "nav.group.system", "/service/web/about"},
 	}
 	out := make([]CommandPaletteNavPage, 0, len(catalog))

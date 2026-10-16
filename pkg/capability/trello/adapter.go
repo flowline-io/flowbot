@@ -72,6 +72,7 @@ func resolveBoardID(boardID string) (string, error) {
 }
 
 func (a *Adapter) ListBoards(ctx context.Context, q *ListQuery) (*capability.ListResult[capability.TrelloBoard], error) {
+	capability.PublishCursorSecret(ctx, a.cursorSecret)
 	if err := a.checkClient(); err != nil {
 		return nil, err
 	}
@@ -120,6 +121,7 @@ func (a *Adapter) ListLists(ctx context.Context, boardID string) ([]*capability.
 }
 
 func (a *Adapter) ListCards(ctx context.Context, boardID string, q *ListQuery) (*capability.ListResult[capability.TrelloCard], error) {
+	capability.PublishCursorSecret(ctx, a.cursorSecret)
 	if err := a.checkClient(); err != nil {
 		return nil, err
 	}

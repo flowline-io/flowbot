@@ -18,12 +18,12 @@ func Register(app string, svc Service) error {
 		Description: "Example capability for demonstration",
 		Instance:    svc,
 		Ops: []capability.OpDef{
-			{Name: OpList, Description: "List items", Scopes: []string{auth.ScopeServiceExampleRead}, Handler: invokeList(svc)},
-			{Name: OpGet, Description: "Get an item", Scopes: []string{auth.ScopeServiceExampleRead}, Handler: invokeGet(svc)},
-			{Name: OpCreate, Description: "Create an item", Scopes: []string{auth.ScopeServiceExampleWrite}, Mutation: true, Handler: invokeCreate(svc, app)},
-			{Name: OpUpdate, Description: "Update an item", Scopes: []string{auth.ScopeServiceExampleWrite}, Mutation: true, Handler: invokeUpdate(svc)},
-			{Name: OpDelete, Description: "Delete an item", Scopes: []string{auth.ScopeServiceExampleWrite}, Mutation: true, Handler: invokeDelete(svc)},
-			{Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceExampleRead}, Handler: invokeHealth(svc)},
+			{Name: OpList, Description: "List items for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceExampleRead}, Handler: invokeList(svc)},
+			{Name: OpGet, Description: "Get an item for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceExampleRead}, Handler: invokeGet(svc)},
+			{Name: OpCreate, Description: "Create an item for the signed-in caller. Creates or updates data.\nExample: {}", Scopes: []string{auth.ScopeServiceExampleWrite}, Mutation: true, Handler: invokeCreate(svc, app)},
+			{Name: OpUpdate, Description: "Update an item for the signed-in caller. Creates or updates data.\nExample: {}", Scopes: []string{auth.ScopeServiceExampleWrite}, Mutation: true, Handler: invokeUpdate(svc)},
+			{Name: OpDelete, Description: "Delete an item for the signed-in caller. Deletes or removes data.\nExample: {}", Scopes: []string{auth.ScopeServiceExampleWrite}, Mutation: true, Handler: invokeDelete(svc)},
+			{Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceExampleRead}, Handler: invokeHealth(svc)},
 		},
 	})
 }

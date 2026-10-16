@@ -34,7 +34,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		},
 		Ops: []capability.OpDef{
 			{
-				Name: OpListBoards, Description: "List boards", Scopes: []string{auth.ScopeServiceTrelloRead},
+				Name: OpListBoards, Description: "List boards for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceTrelloRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -42,17 +42,17 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListBoards(svc),
 			},
 			{
-				Name: OpGetBoard, Description: "Get a board", Scopes: []string{auth.ScopeServiceTrelloRead},
+				Name: OpGetBoard, Description: "Get a board for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceTrelloRead},
 				Input:   []hub.ParamDef{{Name: "board_id", Type: "string", Required: false, Description: "Board ID"}},
 				Handler: invokeGetBoard(svc),
 			},
 			{
-				Name: OpListLists, Description: "List lists on a board", Scopes: []string{auth.ScopeServiceTrelloRead},
+				Name: OpListLists, Description: "List lists on a board for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceTrelloRead},
 				Input:   []hub.ParamDef{{Name: "board_id", Type: "string", Required: false, Description: "Board ID"}},
 				Handler: invokeListLists(svc),
 			},
 			{
-				Name: OpListCards, Description: "List cards on a board", Scopes: []string{auth.ScopeServiceTrelloRead},
+				Name: OpListCards, Description: "List cards on a board for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceTrelloRead},
 				Input: []hub.ParamDef{
 					{Name: "board_id", Type: "string", Required: false, Description: "Board ID"},
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
@@ -61,12 +61,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListCards(svc),
 			},
 			{
-				Name: OpGetCard, Description: "Get a card", Scopes: []string{auth.ScopeServiceTrelloRead},
+				Name: OpGetCard, Description: "Get a card for the signed-in caller. Read-only.\nExample: {\"card_id\":\"example\"}", Scopes: []string{auth.ScopeServiceTrelloRead},
 				Input:   []hub.ParamDef{{Name: "card_id", Type: "string", Required: true, Description: "Card ID"}},
 				Handler: invokeGetCard(svc),
 			},
 			{
-				Name: OpSearchCards, Description: "Search cards", Scopes: []string{auth.ScopeServiceTrelloRead},
+				Name: OpSearchCards, Description: "Search cards for the signed-in caller. Read-only.\nExample: {\"query\":\"example\"}", Scopes: []string{auth.ScopeServiceTrelloRead},
 				Input: []hub.ParamDef{
 					{Name: "query", Type: "string", Required: true, Description: "Search query"},
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum results"},
@@ -74,7 +74,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeSearchCards(svc),
 			},
 			{
-				Name: OpCreateCard, Description: "Create a card", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
+				Name: OpCreateCard, Description: "Create a card for the signed-in caller. Creates or updates data.\nExample: {\"list_id\":\"example\"}", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "list_id", Type: "string", Required: true, Description: "Target list ID"},
 					{Name: "name", Type: "string", Required: true, Description: "Card title"},
@@ -83,7 +83,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeCreateCard(svc, app),
 			},
 			{
-				Name: OpUpdateCard, Description: "Update a card", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
+				Name: OpUpdateCard, Description: "Update a card for the signed-in caller. Creates or updates data.\nExample: {\"card_id\":\"example\"}", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "card_id", Type: "string", Required: true, Description: "Card ID"},
 					{Name: "name", Type: "string", Required: false, Description: "New title"},
@@ -92,7 +92,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeUpdateCard(svc, app),
 			},
 			{
-				Name: OpMoveCard, Description: "Move a card to another list", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
+				Name: OpMoveCard, Description: "Move a card to another list for the signed-in caller. Creates or updates data.\nExample: {\"card_id\":\"example\"}", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "card_id", Type: "string", Required: true, Description: "Card ID"},
 					{Name: "list_id", Type: "string", Required: true, Description: "Target list ID"},
@@ -100,12 +100,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeMoveCard(svc, app),
 			},
 			{
-				Name: OpDeleteCard, Description: "Delete a card", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
+				Name: OpDeleteCard, Description: "Delete a card for the signed-in caller. Deletes or removes data.\nExample: {\"card_id\":\"example\"}", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "card_id", Type: "string", Required: true, Description: "Card ID"}},
 				Handler: invokeDeleteCard(svc, app),
 			},
 			{
-				Name: OpRegisterWebhook, Description: "Register a Trello board webhook", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
+				Name: OpRegisterWebhook, Description: "Register a Trello board webhook for the signed-in caller. Creates or updates data.\nExample: {}", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "board_id", Type: "string", Required: false, Description: "Board ID"},
 					{Name: "callback_url", Type: "string", Required: false, Description: "Callback URL"},
@@ -114,12 +114,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeRegisterWebhook(svc),
 			},
 			{
-				Name: OpDeleteWebhook, Description: "Delete a Trello webhook", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
+				Name: OpDeleteWebhook, Description: "Delete a Trello webhook for the signed-in caller. Deletes or removes data.\nExample: {\"webhook_id\":\"example\"}", Scopes: []string{auth.ScopeServiceTrelloWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "webhook_id", Type: "string", Required: true, Description: "Webhook ID"}},
 				Handler: invokeDeleteWebhook(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceTrelloRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceTrelloRead},
 				Handler: invokeHealth(svc),
 			},
 		},

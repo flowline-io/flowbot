@@ -53,7 +53,7 @@ func BuildCatalog(descs []hub.Descriptor, include, exclude []string) []ToolSpec 
 				Description: op.Description,
 				Mutation:    mutation,
 				Kind:        kindCapability,
-				Input:       op.Input,
+				Input:       withPageParams(capName, op.Name, op.Input),
 				Scopes:      expandScopes(op.Scopes, capName, mutation),
 				Output:      pkgmcp.OutputSchema(capName, op.Name),
 			})
@@ -67,18 +67,18 @@ func extraTools(include, exclude []string) []ToolSpec {
 	specs := []ToolSpec{
 		{
 			Name: "pipeline.list", Group: kindPipeline, Operation: "list", Kind: kindPipeline,
-			Description: "List published pipelines",
+			Description: "List published pipelines for the signed-in caller. Read-only.\nExample: {\"limit\":20}",
 			Scopes:      []string{auth.ScopePipelineRead, auth.ScopePipelineRun},
 		},
 		{
 			Name: "pipeline.get", Group: kindPipeline, Operation: "get", Kind: kindPipeline,
-			Description: "Get a published pipeline by name",
+			Description: "Get a published pipeline by name for the signed-in caller. Read-only.\nExample: {\"name\":\"example\"}",
 			Input:       []hub.ParamDef{{Name: "name", Type: "string", Required: true, Description: "Pipeline name"}},
 			Scopes:      []string{auth.ScopePipelineRead, auth.ScopePipelineRun},
 		},
 		{
 			Name: "pipeline.run", Group: kindPipeline, Operation: "run", Kind: kindPipeline, Mutation: true,
-			Description: "Start a manual run of an existing published pipeline",
+			Description: "Start a manual run of an existing published pipeline for the signed-in caller. Creates or updates data.\nExample: {\"name\":\"example\"}",
 			Input: []hub.ParamDef{
 				{Name: "name", Type: "string", Required: true, Description: "Pipeline name"},
 				{Name: "event", Type: "object", Required: false, Description: "Optional event payload"},
@@ -87,7 +87,7 @@ func extraTools(include, exclude []string) []ToolSpec {
 		},
 		{
 			Name: "pipeline.get_run", Group: kindPipeline, Operation: "get_run", Kind: kindPipeline,
-			Description: "List recent runs for a pipeline, or one run when run_id is set",
+			Description: "List recent runs for a pipeline, or one run when run_id is set for the signed-in caller. Read-only.\nExample: {\"limit\":20}",
 			Input: []hub.ParamDef{
 				{Name: "name", Type: "string", Required: true, Description: "Pipeline name"},
 				{Name: "run_id", Type: "number", Required: false, Description: "Optional run id"},
@@ -96,18 +96,18 @@ func extraTools(include, exclude []string) []ToolSpec {
 		},
 		{
 			Name: "workflow.list", Group: kindWorkflow, Operation: "list", Kind: kindWorkflow,
-			Description: "List workflows",
+			Description: "List workflows for the signed-in caller. Read-only.\nExample: {\"limit\":20}",
 			Scopes:      []string{auth.ScopeWorkflowRead, auth.ScopeWorkflowRun},
 		},
 		{
 			Name: "workflow.get", Group: kindWorkflow, Operation: "get", Kind: kindWorkflow,
-			Description: "Get workflow metadata by name",
+			Description: "Get workflow metadata by name for the signed-in caller. Read-only.\nExample: {\"name\":\"example\"}",
 			Input:       []hub.ParamDef{{Name: "name", Type: "string", Required: true, Description: "Workflow name"}},
 			Scopes:      []string{auth.ScopeWorkflowRead, auth.ScopeWorkflowRun},
 		},
 		{
 			Name: "workflow.run", Group: kindWorkflow, Operation: "run", Kind: kindWorkflow, Mutation: true,
-			Description: "Start a manual run of an existing workflow",
+			Description: "Start a manual run of an existing workflow for the signed-in caller. Creates or updates data.\nExample: {\"name\":\"example\"}",
 			Input: []hub.ParamDef{
 				{Name: "name", Type: "string", Required: true, Description: "Workflow name"},
 				{Name: "input", Type: "object", Required: false, Description: "Optional workflow input"},
@@ -116,7 +116,7 @@ func extraTools(include, exclude []string) []ToolSpec {
 		},
 		{
 			Name: "workflow.get_run", Group: kindWorkflow, Operation: "get_run", Kind: kindWorkflow,
-			Description: "List recent runs for a workflow, or one run when run_id is set",
+			Description: "List recent runs for a workflow, or one run when run_id is set for the signed-in caller. Read-only.\nExample: {\"limit\":20}",
 			Input: []hub.ParamDef{
 				{Name: "name", Type: "string", Required: true, Description: "Workflow name"},
 				{Name: "run_id", Type: "number", Required: false, Description: "Optional run id"},
@@ -125,18 +125,18 @@ func extraTools(include, exclude []string) []ToolSpec {
 		},
 		{
 			Name: "function.list", Group: kindFunction, Operation: "list", Kind: kindFunction,
-			Description: "List published named functions",
+			Description: "List published named functions for the signed-in caller. Read-only.\nExample: {\"limit\":20}",
 			Scopes:      []string{auth.ScopeFunctionRead, auth.ScopeFunctionRun},
 		},
 		{
 			Name: "function.get", Group: kindFunction, Operation: "get", Kind: kindFunction,
-			Description: "Get published function metadata without secrets",
+			Description: "Get published function metadata without secrets for the signed-in caller. Read-only.\nExample: {\"name\":\"example\"}",
 			Input:       []hub.ParamDef{{Name: "name", Type: "string", Required: true, Description: "Function name"}},
 			Scopes:      []string{auth.ScopeFunctionRead, auth.ScopeFunctionRun},
 		},
 		{
 			Name: "function.run", Group: kindFunction, Operation: "run", Kind: kindFunction, Mutation: true,
-			Description: "Invoke an existing published named function",
+			Description: "Invoke an existing published named function for the signed-in caller. Creates or updates data.\nExample: {\"name\":\"example\"}",
 			Input: []hub.ParamDef{
 				{Name: "name", Type: "string", Required: true, Description: "Function name"},
 				{Name: "version", Type: "number", Required: false, Description: "Published version; latest when omitted"},
@@ -146,7 +146,7 @@ func extraTools(include, exclude []string) []ToolSpec {
 		},
 		{
 			Name: "function.get_run", Group: kindFunction, Operation: "get_run", Kind: kindFunction,
-			Description: "List recent runs for a function, or one run when run_id is set",
+			Description: "List recent runs for a function, or one run when run_id is set for the signed-in caller. Read-only.\nExample: {\"limit\":20}",
 			Input: []hub.ParamDef{
 				{Name: "name", Type: "string", Required: true, Description: "Function name"},
 				{Name: "run_id", Type: "number", Required: false, Description: "Optional run id"},
@@ -155,23 +155,58 @@ func extraTools(include, exclude []string) []ToolSpec {
 		},
 		{
 			Name: "hub.apps", Group: kindHub, Operation: "apps", Kind: kindHub,
-			Description: "List homelab apps known to the hub",
+			Description: "List homelab apps known to the hub for the signed-in caller. Read-only.\nExample: {\"limit\":20}",
 			Scopes:      []string{auth.ScopeHubAppsRead},
 		},
 		{
 			Name: "hub.health", Group: kindHub, Operation: "health", Kind: kindHub,
-			Description: "Hub capability and app health",
+			Description: "Hub capability and app health for the signed-in caller. Read-only.\nExample: {\"name\":\"example\"}",
 			Scopes:      []string{auth.ScopeHubHealthRead},
 		},
 	}
 	var out []ToolSpec
 	for _, spec := range specs {
 		if pkgmcp.Match(include, exclude, spec.Group, spec.Name) {
+			spec.Input = withPageParams(spec.Group, spec.Operation, spec.Input)
 			spec.Output = pkgmcp.OutputSchema(spec.Group, spec.Operation)
 			out = append(out, spec)
 		}
 	}
 	return out
+}
+
+func withPageParams(group, op string, input []hub.ParamDef) []hub.ParamDef {
+	if !pkgmcp.IsListTool(group, op) {
+		return input
+	}
+	hasLimit := false
+	hasCursor := false
+	for i, p := range input {
+		if p.Name == "sort_order" && len(p.Enum) == 0 {
+			input[i].Enum = []string{"asc", "desc"}
+		}
+		if p.Name == "limit" {
+			hasLimit = true
+		}
+		if p.Name == "cursor" {
+			hasCursor = true
+		}
+	}
+	if !hasLimit {
+		input = append(input, hub.ParamDef{
+			Name:        "limit",
+			Type:        "int",
+			Description: "Maximum items in this page. Defaults to 20 and cannot exceed 100.",
+		})
+	}
+	if !hasCursor {
+		input = append(input, hub.ParamDef{
+			Name:        "cursor",
+			Type:        "string",
+			Description: "Opaque cursor from the previous page. Omit on the first page.",
+		})
+	}
+	return input
 }
 
 func expandScopes(opScopes []string, capName string, mutation bool) []string {

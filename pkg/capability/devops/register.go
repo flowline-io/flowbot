@@ -26,28 +26,28 @@ func buildSpec(app string, svc Service) capability.Spec {
 		Description: "DevOps aggregator for beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx, and scanopy",
 		Instance:    svc,
 		Ops: []capability.OpDef{
-			{Name: OpHealth, Description: "Aggregate health of configured devops backends", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeHealth(svc)},
-			{Name: OpStatus, Description: "Configured devops backends", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeStatus(svc)},
-			{Name: OpBeszelListSystems, Description: "List Beszel systems", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeBeszelListSystems(svc)},
+			{Name: OpHealth, Description: "Aggregate health of configured devops backends for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeHealth(svc)},
+			{Name: OpStatus, Description: "Configured devops backends for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeStatus(svc)},
+			{Name: OpBeszelListSystems, Description: "List Beszel systems for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeBeszelListSystems(svc)},
 			{
-				Name: OpBeszelGetSystem, Description: "Get a Beszel system", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpBeszelGetSystem, Description: "Get a Beszel system for the signed-in caller. Read-only.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "System ID"}},
 				Handler: invokeBeszelGetSystem(svc),
 			},
-			{Name: OpUptimekumaHealth, Description: "Uptime Kuma health", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeUptimekumaHealth(svc)},
-			{Name: OpUptimekumaMetrics, Description: "Uptime Kuma metrics summary", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeUptimekumaMetrics(svc)},
-			{Name: OpTraefikOverview, Description: "Traefik overview", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeTraefikOverview(svc)},
-			{Name: OpTraefikListRouters, Description: "List Traefik routers", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeTraefikListRouters(svc)},
-			{Name: OpTraefikListServices, Description: "List Traefik services", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeTraefikListServices(svc)},
-			{Name: OpGrafanaHealth, Description: "Grafana health", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeGrafanaHealth(svc)},
-			{Name: OpGrafanaListDatasources, Description: "List Grafana datasources", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeGrafanaListDatasources(svc)},
+			{Name: OpUptimekumaHealth, Description: "Uptime Kuma health for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeUptimekumaHealth(svc)},
+			{Name: OpUptimekumaMetrics, Description: "Uptime Kuma metrics summary for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeUptimekumaMetrics(svc)},
+			{Name: OpTraefikOverview, Description: "Traefik overview for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeTraefikOverview(svc)},
+			{Name: OpTraefikListRouters, Description: "List Traefik routers for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeTraefikListRouters(svc)},
+			{Name: OpTraefikListServices, Description: "List Traefik services for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeTraefikListServices(svc)},
+			{Name: OpGrafanaHealth, Description: "Grafana health for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeGrafanaHealth(svc)},
+			{Name: OpGrafanaListDatasources, Description: "List Grafana datasources for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeGrafanaListDatasources(svc)},
 			{
-				Name: OpGrafanaSearchDashboards, Description: "Search Grafana dashboards", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpGrafanaSearchDashboards, Description: "Search Grafana dashboards for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input:   []hub.ParamDef{{Name: "query", Type: "string", Description: "Search query"}},
 				Handler: invokeGrafanaSearchDashboards(svc),
 			},
 			{
-				Name: OpGrafanaQuery, Description: "Query prometheus/alloy/loki/tempo/pyroscope via Grafana", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpGrafanaQuery, Description: "Query prometheus/alloy/loki/tempo/pyroscope via Grafana for the signed-in caller. Read-only.\nExample: {\"backend\":\"example\"}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input: []hub.ParamDef{
 					{Name: "backend", Type: "string", Required: true, Description: "prometheus|alloy|loki|tempo|pyroscope"},
 					{Name: "expr", Type: "string", Required: true, Description: "Query expression"},
@@ -59,36 +59,36 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeGrafanaQuery(svc),
 			},
 			{
-				Name: OpWakapiHealth, Description: "Wakapi health", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpWakapiHealth, Description: "Wakapi health for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Handler: invokeWakapiHealth(svc),
 			},
 			{
-				Name: OpWakapiSummary, Description: "Wakapi activity summary", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpWakapiSummary, Description: "Wakapi activity summary for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input: []hub.ParamDef{
 					{Name: "interval", Type: "string", Description: "Range interval (default today)"},
 					{Name: "project", Type: "string", Description: "Project filter"},
 				},
 				Handler: invokeWakapiSummary(svc),
 			},
-			{Name: OpWakapiAllTime, Description: "Wakapi all-time coding stats", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeWakapiAllTime(svc)},
+			{Name: OpWakapiAllTime, Description: "Wakapi all-time coding stats for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeWakapiAllTime(svc)},
 			{
-				Name: OpWakapiListProjects, Description: "List Wakapi projects", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpWakapiListProjects, Description: "List Wakapi projects for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input:   []hub.ParamDef{{Name: "query", Type: "string", Description: "Project name filter"}},
 				Handler: invokeWakapiListProjects(svc),
 			},
-			{Name: OpDozzleHealth, Description: "Dozzle health and version", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeDozzleHealth(svc)},
-			{Name: OpNetalertxHealth, Description: "NetAlertX health", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeNetalertxHealth(svc)},
-			{Name: OpNetalertxListDevices, Description: "List NetAlertX devices", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeNetalertxListDevices(svc)},
-			{Name: OpNetalertxTotals, Description: "NetAlertX device totals", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeNetalertxTotals(svc)},
+			{Name: OpDozzleHealth, Description: "Dozzle health and version for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeDozzleHealth(svc)},
+			{Name: OpNetalertxHealth, Description: "NetAlertX health for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeNetalertxHealth(svc)},
+			{Name: OpNetalertxListDevices, Description: "List NetAlertX devices for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeNetalertxListDevices(svc)},
+			{Name: OpNetalertxTotals, Description: "NetAlertX device totals for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeNetalertxTotals(svc)},
 			{
-				Name: OpNetalertxSearchDevices, Description: "Search NetAlertX devices", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpNetalertxSearchDevices, Description: "Search NetAlertX devices for the signed-in caller. Read-only.\nExample: {\"query\":\"example\"}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input:   []hub.ParamDef{{Name: "query", Type: "string", Required: true, Description: "Search query"}},
 				Handler: invokeNetalertxSearchDevices(svc),
 			},
-			{Name: OpScanopyHealth, Description: "Scanopy health", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeScanopyHealth(svc)},
-			{Name: OpScanopyVersion, Description: "Scanopy API/server version", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeScanopyVersion(svc)},
+			{Name: OpScanopyHealth, Description: "Scanopy health for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeScanopyHealth(svc)},
+			{Name: OpScanopyVersion, Description: "Scanopy API/server version for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeScanopyVersion(svc)},
 			{
-				Name: OpScanopyListNetworks, Description: "List Scanopy networks", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpScanopyListNetworks, Description: "List Scanopy networks for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "number", Description: "Page size (default 50, max 1000)"},
 					{Name: "cursor", Type: "string", Description: "Opaque pagination cursor"},
@@ -96,7 +96,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeScanopyListNetworks(svc),
 			},
 			{
-				Name: OpScanopyListHosts, Description: "List Scanopy hosts", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpScanopyListHosts, Description: "List Scanopy hosts for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input: []hub.ParamDef{
 					{Name: "network_id", Type: "string", Description: "Filter by network UUID"},
 					{Name: "search", Type: "string", Description: "Free-text search"},
@@ -106,12 +106,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeScanopyListHosts(svc),
 			},
 			{
-				Name: OpScanopyGetHost, Description: "Get a Scanopy host", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpScanopyGetHost, Description: "Get a Scanopy host for the signed-in caller. Read-only.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "Host UUID"}},
 				Handler: invokeScanopyGetHost(svc),
 			},
 			{
-				Name: OpScanopyListServices, Description: "List Scanopy services", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpScanopyListServices, Description: "List Scanopy services for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input: []hub.ParamDef{
 					{Name: "network_id", Type: "string", Description: "Filter by network UUID"},
 					{Name: "host_id", Type: "string", Description: "Filter by host UUID"},
@@ -122,7 +122,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeScanopyListServices(svc),
 			},
 			{
-				Name: OpScanopyListDaemons, Description: "List Scanopy daemons", Scopes: []string{auth.ScopeServiceDevopsRead},
+				Name: OpScanopyListDaemons, Description: "List Scanopy daemons for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceDevopsRead},
 				Input: []hub.ParamDef{
 					{Name: "network_id", Type: "string", Description: "Filter by network UUID"},
 					{Name: "limit", Type: "number", Description: "Page size (default 50, max 1000)"},

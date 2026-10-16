@@ -27,25 +27,25 @@ func buildSpec(app string, svc Service) capability.Spec {
 		Instance:    svc,
 		Ops: []capability.OpDef{
 			{
-				Name: OpListBases, Description: "List bases", Scopes: []string{auth.ScopeServiceNocodbRead},
+				Name: OpListBases, Description: "List bases for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceNocodbRead},
 				Handler: invokeListBases(svc),
 			},
 			{
-				Name: OpListTables, Description: "List tables in a base", Scopes: []string{auth.ScopeServiceNocodbRead},
+				Name: OpListTables, Description: "List tables in a base for the signed-in caller. Read-only.\nExample: {\"base_id\":\"example\"}", Scopes: []string{auth.ScopeServiceNocodbRead},
 				Input: []hub.ParamDef{
 					{Name: "base_id", Type: "string", Required: true, Description: "Base ID"},
 				},
 				Handler: invokeListTables(svc),
 			},
 			{
-				Name: OpGetTable, Description: "Get table metadata", Scopes: []string{auth.ScopeServiceNocodbRead},
+				Name: OpGetTable, Description: "Get table metadata for the signed-in caller. Read-only.\nExample: {\"table_id\":\"example\"}", Scopes: []string{auth.ScopeServiceNocodbRead},
 				Input: []hub.ParamDef{
 					{Name: "table_id", Type: "string", Required: true, Description: "Table ID"},
 				},
 				Handler: invokeGetTable(svc),
 			},
 			{
-				Name: OpListRecords, Description: "List records in a table", Scopes: []string{auth.ScopeServiceNocodbRead},
+				Name: OpListRecords, Description: "List records in a table for the signed-in caller. Read-only.\nExample: {\"table_id\":\"example\"}", Scopes: []string{auth.ScopeServiceNocodbRead},
 				Input: []hub.ParamDef{
 					{Name: "table_id", Type: "string", Required: true, Description: "Table ID"},
 					{Name: "limit", Type: "number", Description: "Max records to return"},
@@ -57,7 +57,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListRecords(svc),
 			},
 			{
-				Name: OpGetRecord, Description: "Get a record by ID", Scopes: []string{auth.ScopeServiceNocodbRead},
+				Name: OpGetRecord, Description: "Get a record by ID for the signed-in caller. Read-only.\nExample: {\"table_id\":\"example\"}", Scopes: []string{auth.ScopeServiceNocodbRead},
 				Input: []hub.ParamDef{
 					{Name: "table_id", Type: "string", Required: true, Description: "Table ID"},
 					{Name: "record_id", Type: "string", Required: true, Description: "Record ID"},
@@ -65,7 +65,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeGetRecord(svc),
 			},
 			{
-				Name: OpCreateRecord, Description: "Create a record", Scopes: []string{auth.ScopeServiceNocodbWrite}, Mutation: true,
+				Name: OpCreateRecord, Description: "Create a record for the signed-in caller. Creates or updates data.\nExample: {\"table_id\":\"example\"}", Scopes: []string{auth.ScopeServiceNocodbWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "table_id", Type: "string", Required: true, Description: "Table ID"},
 					{Name: "fields", Type: "object", Required: true, Description: "Field values"},
@@ -73,7 +73,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeCreateRecord(svc, app),
 			},
 			{
-				Name: OpUpdateRecord, Description: "Update a record", Scopes: []string{auth.ScopeServiceNocodbWrite}, Mutation: true,
+				Name: OpUpdateRecord, Description: "Update a record for the signed-in caller. Creates or updates data.\nExample: {\"table_id\":\"example\"}", Scopes: []string{auth.ScopeServiceNocodbWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "table_id", Type: "string", Required: true, Description: "Table ID"},
 					{Name: "record_id", Type: "string", Required: true, Description: "Record ID"},
@@ -82,7 +82,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeUpdateRecord(svc, app),
 			},
 			{
-				Name: OpDeleteRecord, Description: "Delete a record", Scopes: []string{auth.ScopeServiceNocodbWrite}, Mutation: true,
+				Name: OpDeleteRecord, Description: "Delete a record for the signed-in caller. Deletes or removes data.\nExample: {\"table_id\":\"example\"}", Scopes: []string{auth.ScopeServiceNocodbWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "table_id", Type: "string", Required: true, Description: "Table ID"},
 					{Name: "record_id", Type: "string", Required: true, Description: "Record ID"},
@@ -90,7 +90,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeDeleteRecord(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceNocodbRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceNocodbRead},
 				Handler: invokeHealth(svc),
 			},
 		},

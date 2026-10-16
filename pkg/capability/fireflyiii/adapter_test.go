@@ -22,15 +22,16 @@ type fakeClient struct {
 	lastCreate   *provider.Transaction
 	createCalled bool
 
-	listTxResp *provider.ListResult[provider.TransactionResult]
-	listTxErr  error
-	getTxResp  *provider.TransactionResult
-	getTxErr   error
-	updateResp *provider.TransactionResult
-	updateErr  error
-	lastUpdate *provider.Transaction
-	deleteErr  error
-	deletedID  string
+	listTxResp   *provider.ListResult[provider.TransactionResult]
+	listTxByPage map[int]*provider.ListResult[provider.TransactionResult]
+	listTxErr    error
+	getTxResp    *provider.TransactionResult
+	getTxErr     error
+	updateResp   *provider.TransactionResult
+	updateErr    error
+	lastUpdate   *provider.Transaction
+	deleteErr    error
+	deletedID    string
 
 	accountsResp   *provider.ListResult[provider.Account]
 	accountsErr    error
@@ -58,7 +59,12 @@ func (f *fakeClient) CreateTransaction(transaction provider.Transaction) (*provi
 	return f.createResp, f.createErr
 }
 
-func (f *fakeClient) ListTransactions(_ provider.TransactionListQuery) (*provider.ListResult[provider.TransactionResult], error) {
+func (f *fakeClient) ListTransactions(q provider.TransactionListQuery) (*provider.ListResult[provider.TransactionResult], error) {
+	if f.listTxByPage != nil {
+		if resp, ok := f.listTxByPage[q.Page]; ok {
+			return resp, nil
+		}
+	}
 	return f.listTxResp, f.listTxErr
 }
 
@@ -450,4 +456,31 @@ func TestAdapter_AboutUserHealth(t *testing.T) {
 func TestNew_NilWhenUnconfigured(t *testing.T) {
 	t.Parallel()
 	_ = New()
+}
+
+func TestAdapter_ListTransactionsTwoPagesDoNotRepeatIDs(t *testing.T) {
+	t.Parallel()
+	fc := &fakeClient{listTxByPage: map[int]*provider.ListResult[provider.TransactionResult]{
+		1: {
+			Items:      []provider.TransactionResult{*sampleTxResult("10")},
+			Pagination: provider.Pagination{CurrentPage: 1, TotalPages: 2, PerPage: 1},
+		},
+		2: {
+			Items:      []provider.TransactionResult{*sampleTxResult("11")},
+			Pagination: provider.Pagination{CurrentPage: 2, TotalPages: 2, PerPage: 1},
+		},
+	}}
+	adapter, ok := NewWithClient(fc).(*Adapter)
+	require.True(t, ok)
+	adapter.SetCursorSecret([]byte("test-secret-xxxxxxxxxxxxxxxx"))
+	first, err := adapter.ListTransactions(context.Background(), TransactionListQuery{Page: capability.PageRequest{Limit: 1}})
+	require.NoError(t, err)
+	require.Len(t, first.Items, 1)
+	require.NotEmpty(t, first.Page.NextCursor)
+	second, err := adapter.ListTransactions(context.Background(), TransactionListQuery{
+		Page: capability.PageRequest{Limit: 1, Cursor: first.Page.NextCursor},
+	})
+	require.NoError(t, err)
+	require.Len(t, second.Items, 1)
+	assert.NotEqual(t, first.Items[0].ID, second.Items[0].ID)
 }

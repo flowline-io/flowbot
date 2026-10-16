@@ -85,6 +85,9 @@ other = "配置"
 [nav.settings]
 other = "设置"
 
+[nav.mcp]
+other = "MCP"
+
 [nav.account]
 other = "账户"
 
@@ -369,6 +372,54 @@ other = "本实例的版本与构建信息。"
 
 [page.settings.subtitle]
 other = "本进程生效的 flowbot.yaml 配置只读视图，密钥已脱敏。"
+
+[page.mcp.subtitle]
+other = "创建受限令牌，并复制 /mcp 的客户端片段。"
+
+[page.mcp.enabled]
+other = "MCP 已启用，POST /mcp 已挂载。"
+
+[page.mcp.disabled]
+other = "MCP 未开启（mcp.enabled 为 false）。"
+
+[page.mcp.restart]
+other = "将 mcp.enabled 设为 true 并重启进程。/mcp 只在启动时挂载。"
+
+[page.mcp.url]
+other = "MCP 地址"
+
+[page.mcp.preset_read]
+other = "只读"
+
+[page.mcp.preset_run]
+other = "读并运行自动化"
+
+[page.mcp.preset_custom]
+other = "自定义"
+
+[page.mcp.preview]
+other = "刷新预览"
+
+[page.mcp.run_warning]
+other = "pipeline:run、function:run 和 workflow:run 同时放行 automate HTTP 的 apply 和 delete。"
+
+[page.mcp.expires]
+other = "有效期"
+
+[page.mcp.create_token]
+other = "创建令牌"
+
+[page.mcp.token_once]
+other = "请立即复制此令牌，之后不再显示。"
+
+[page.mcp.tier_read]
+other = "只读。"
+
+[page.mcp.tier_write]
+other = "会创建或更新数据。"
+
+[page.mcp.tier_destructive]
+other = "会删除或移除数据。"
 
 [page.inbox.title]
 other = "收件箱"

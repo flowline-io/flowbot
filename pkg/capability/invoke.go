@@ -20,6 +20,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 type Invoker func(ctx context.Context, params map[string]any) (*InvokeResult, error)
@@ -277,6 +278,7 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 		} else {
 			cacheKey = key
 			if cached := cacheRead(cacheKey); cached != nil {
+				pageListed(ctx, capability, operation, params, cached, true)
 				return cached, nil
 			}
 		}
@@ -313,6 +315,7 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	}
 	result.Capability = capability
 	result.Operation = operation
+	pageListed(ctx, capability, operation, params, result, false)
 
 	r.recordSuccessMetrics(capability, operation, start)
 	r.emitEvents(ctx, capability, operation, result)
@@ -320,9 +323,21 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	if !skipCache {
 		cacheWrite(cacheKey, capability, result)
 	}
+	pageListed(ctx, capability, operation, params, result, true)
 	if isMut {
 		cacheInvalidate(capability)
 	}
 
 	return result, nil
+}
+
+func pageListed(ctx context.Context, capability hub.CapabilityType, operation string, params map[string]any, result *InvokeResult, clamp bool) {
+	if result == nil || !validate.IsListTool(string(capability), operation) {
+		return
+	}
+	if clamp {
+		result.Data, result.Page = ClampListed(ctx, string(capability), params, result.Data, result.Page, nil)
+		return
+	}
+	result.Data, result.Page = ApplyFullListPage(ctx, string(capability), params, result.Data, result.Page)
 }

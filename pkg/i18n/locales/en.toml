@@ -85,6 +85,9 @@ other = "Configs"
 [nav.settings]
 other = "Settings"
 
+[nav.mcp]
+other = "MCP"
+
 [nav.account]
 other = "Account"
 
@@ -369,6 +372,54 @@ other = "Version and build information for this instance."
 
 [page.settings.subtitle]
 other = "Read-only view of the effective flowbot.yaml configuration for this process. Secrets are redacted."
+
+[page.mcp.subtitle]
+other = "Create a scoped token and copy a client snippet for /mcp."
+
+[page.mcp.enabled]
+other = "MCP is enabled. POST /mcp is mounted."
+
+[page.mcp.disabled]
+other = "MCP is off (mcp.enabled is false)."
+
+[page.mcp.restart]
+other = "Set mcp.enabled to true and restart the process. /mcp is mounted only at startup."
+
+[page.mcp.url]
+other = "MCP URL"
+
+[page.mcp.preset_read]
+other = "Read only"
+
+[page.mcp.preset_run]
+other = "Read and run automation"
+
+[page.mcp.preset_custom]
+other = "Custom"
+
+[page.mcp.preview]
+other = "Refresh preview"
+
+[page.mcp.run_warning]
+other = "pipeline:run, function:run, and workflow:run also allow apply and delete on the automate HTTP API."
+
+[page.mcp.expires]
+other = "Expires"
+
+[page.mcp.create_token]
+other = "Create token"
+
+[page.mcp.token_once]
+other = "Copy this token now. It is not shown again."
+
+[page.mcp.tier_read]
+other = "Read-only."
+
+[page.mcp.tier_write]
+other = "Creates or updates data."
+
+[page.mcp.tier_destructive]
+other = "Deletes or removes data."
 
 [page.inbox.title]
 other = "Inbox"

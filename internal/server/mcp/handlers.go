@@ -13,9 +13,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/functions"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	pkgmcp "github.com/flowline-io/flowbot/pkg/mcp"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
+	"github.com/flowline-io/flowbot/pkg/validate"
 	"github.com/flowline-io/flowbot/pkg/workflow"
 )
 
@@ -24,6 +26,9 @@ func executeTool(ctx context.Context, ident Identity, spec ToolSpec, args map[st
 		args = map[string]any{}
 	}
 	injectUID(spec, args, ident)
+	if err := normalizeListArgs(spec, args); err != nil {
+		return nil, err
+	}
 	var (
 		result any
 		err    error
@@ -38,7 +43,7 @@ func executeTool(ctx context.Context, ident Identity, spec ToolSpec, args map[st
 	case kindFunction:
 		result, err = execFunction(ctx, spec.Operation, args)
 	case kindHub:
-		result, err = execHub(ctx, spec.Operation)
+		result, err = execHub(ctx, spec.Operation, args)
 	default:
 		err = fmt.Errorf("unknown mcp tool kind %s", spec.Kind)
 	}
@@ -67,7 +72,11 @@ func execPipeline(ctx context.Context, ident Identity, op string, args map[strin
 	}
 	switch op {
 	case "list":
-		return svc.List(ctx)
+		recs, err := svc.List(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return pageToolList(ctx, "pipeline", args, recs)
 	case "get":
 		return withName(args, func(name string) (any, error) { return svc.Get(ctx, name) })
 	case "run":
@@ -98,7 +107,11 @@ func execWorkflow(ctx context.Context, op string, args map[string]any) (any, err
 	}
 	switch op {
 	case "list":
-		return svc.List(ctx)
+		recs, err := svc.List(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return pageToolList(ctx, "workflow", args, recs)
 	case "get":
 		return withName(args, func(name string) (any, error) { return svc.Get(ctx, name) })
 	case "run":
@@ -129,7 +142,11 @@ func execFunction(ctx context.Context, op string, args map[string]any) (any, err
 	}
 	switch op {
 	case "list":
-		return svc.List(ctx)
+		recs, err := svc.List(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return pageToolList(ctx, "function", args, recs)
 	case "get":
 		return withName(args, func(name string) (any, error) { return svc.GetPublic(ctx, name, nil) })
 	case "run":
@@ -154,15 +171,49 @@ func execFunction(ctx context.Context, op string, args map[string]any) (any, err
 	}
 }
 
-func execHub(ctx context.Context, op string) (any, error) {
+func execHub(ctx context.Context, op string, args map[string]any) (any, error) {
 	switch op {
 	case "apps":
-		return homelab.DefaultRegistry.List(), nil
+		return pageToolList(ctx, "hub", args, homelab.DefaultRegistry.List())
 	case "health":
 		return hub.NewChecker(hub.Default).Check(ctx), nil
 	default:
 		return nil, fmt.Errorf("unknown hub operation %s", op)
 	}
+}
+
+func pageToolList(ctx context.Context, capName string, args map[string]any, items any) (any, error) {
+	data, page := capability.ApplyFullListPage(ctx, capName, args, items, nil)
+	data, page = capability.ClampListed(ctx, capName, args, data, page, nil)
+	if data == nil {
+		data = []any{}
+	}
+	return map[string]any{"items": data, "page": page}, nil
+}
+
+func normalizeListArgs(spec ToolSpec, args map[string]any) error {
+	if !pkgmcp.IsListTool(spec.Group, spec.Operation) {
+		return nil
+	}
+	if raw, ok := args["cursor"].(string); ok && len(raw) > validate.CursorMaxLen {
+		return &types.Error{
+			Kind:    types.ErrInvalidArgument,
+			Message: fmt.Sprintf("cursor exceeds maximum length of %d", validate.CursorMaxLen),
+			Field:   "cursor",
+		}
+	}
+	limit := 20
+	if raw, ok := args["limit"]; ok && raw != nil {
+		n, conv := intArg(raw)
+		if conv && n > 0 {
+			limit = n
+		}
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	args["limit"] = limit
+	return nil
 }
 
 func recordMutation(ctx context.Context, ident Identity, spec ToolSpec, args map[string]any, auditor audit.Auditor, callErr error) {

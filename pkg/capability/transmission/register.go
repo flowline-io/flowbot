@@ -28,32 +28,32 @@ func buildSpec(app string, svc Service) capability.Spec {
 		Instance:    svc,
 		Ops: []capability.OpDef{
 			{
-				Name: OpAdd, Description: "Add a torrent by magnet or HTTP(S) URL", Scopes: []string{auth.ScopeServiceTransmissionWrite}, Mutation: true,
+				Name: OpAdd, Description: "Add a torrent by magnet or HTTP(S) URL for the signed-in caller. Creates or updates data.\nExample: {\"url\":\"example\"}", Scopes: []string{auth.ScopeServiceTransmissionWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "url", Type: "string", Required: true, Description: "Magnet link or torrent file URL"},
 				},
 				Handler: invokeAdd(svc, app),
 			},
 			{
-				Name: OpList, Description: "List torrents", Scopes: []string{auth.ScopeServiceTransmissionRead},
+				Name: OpList, Description: "List torrents for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceTransmissionRead},
 				Handler: invokeList(svc),
 			},
 			{
-				Name: OpStop, Description: "Stop torrents by ID", Scopes: []string{auth.ScopeServiceTransmissionWrite}, Mutation: true,
+				Name: OpStop, Description: "Stop torrents by ID for the signed-in caller. Creates or updates data.\nExample: {\"ids\":1}", Scopes: []string{auth.ScopeServiceTransmissionWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "ids", Type: "[]int64", Required: true, Description: "Torrent IDs to stop"},
 				},
 				Handler: invokeStop(svc),
 			},
 			{
-				Name: OpRemove, Description: "Remove torrents by ID", Scopes: []string{auth.ScopeServiceTransmissionWrite}, Mutation: true,
+				Name: OpRemove, Description: "Remove torrents by ID for the signed-in caller. Deletes or removes data.\nExample: {\"ids\":1}", Scopes: []string{auth.ScopeServiceTransmissionWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "ids", Type: "[]int64", Required: true, Description: "Torrent IDs to remove"},
 				},
 				Handler: invokeRemove(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceTransmissionRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceTransmissionRead},
 				Handler: invokeHealth(svc),
 			},
 		},

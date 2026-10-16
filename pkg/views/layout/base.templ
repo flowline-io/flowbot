@@ -72,7 +72,8 @@ templ Base(ctx context.Context, title string) {
 						<li><a href="/service/web/healthz">{ i18n.T(ctx, "nav.health") }</a></li>
 						<li><a href="/service/web/tokens">{ i18n.T(ctx, "nav.tokens") }</a></li>
 						<li><a href="/service/web/configs">{ i18n.T(ctx, "nav.configs") }</a></li>
-						<li><a href="/service/web/settings">{ i18n.T(ctx, "nav.settings") }</a></li>
+							<li><a href="/service/web/settings">{ i18n.T(ctx, "nav.settings") }</a></li>
+							<li><a href="/service/web/settings/mcp">{ i18n.T(ctx, "nav.mcp") }</a></li>
 						<li><a href="/service/web/account" data-testid="nav-mobile-account">{ i18n.T(ctx, "nav.account") }</a></li>
 						<li><a href="/service/web/about">{ i18n.T(ctx, "nav.about") }</a></li>
 						<li class="menu-title">{ i18n.T(ctx, "nav.group.user") }</li>
@@ -144,6 +145,7 @@ templ Base(ctx context.Context, title string) {
 							<li><a href="/service/web/tokens" data-testid="nav-tokens">{ i18n.T(ctx, "nav.tokens") }</a></li>
 							<li><a href="/service/web/configs" data-testid="nav-configs">{ i18n.T(ctx, "nav.configs") }</a></li>
 							<li><a href="/service/web/settings" data-testid="nav-settings">{ i18n.T(ctx, "nav.settings") }</a></li>
+							<li><a href="/service/web/settings/mcp" data-testid="nav-mcp">{ i18n.T(ctx, "nav.mcp") }</a></li>
 							<li><a href="/service/web/account" data-testid="nav-account">{ i18n.T(ctx, "nav.account") }</a></li>
 							<li><a href="/service/web/about" data-testid="nav-about">{ i18n.T(ctx, "nav.about") }</a></li>
 						</ul>

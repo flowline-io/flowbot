@@ -27,7 +27,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		Instance:    svc,
 		Ops: []capability.OpDef{
 			{
-				Name: OpList, Description: "List memos", Scopes: []string{auth.ScopeServiceMemoRead},
+				Name: OpList, Description: "List memos for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceMemoRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -37,12 +37,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeList(svc),
 			},
 			{
-				Name: OpGet, Description: "Get a memo", Scopes: []string{auth.ScopeServiceMemoRead},
+				Name: OpGet, Description: "Get a memo for the signed-in caller. Read-only.\nExample: {\"name\":\"example\"}", Scopes: []string{auth.ScopeServiceMemoRead},
 				Input:   []hub.ParamDef{{Name: "name", Type: "string", Required: true, Description: "Memo name"}},
 				Handler: invokeGet(svc),
 			},
 			{
-				Name: OpCreate, Description: "Create a memo", Scopes: []string{auth.ScopeServiceMemoWrite}, Mutation: true,
+				Name: OpCreate, Description: "Create a memo for the signed-in caller. Creates or updates data.\nExample: {\"content\":\"example\"}", Scopes: []string{auth.ScopeServiceMemoWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "content", Type: "string", Required: true, Description: "Memo content"},
 					{Name: "visibility", Type: "string", Required: false, Description: "Visibility setting"},
@@ -50,17 +50,17 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeCreate(svc, app),
 			},
 			{
-				Name: OpUpdate, Description: "Update a memo", Scopes: []string{auth.ScopeServiceMemoWrite}, Mutation: true,
+				Name: OpUpdate, Description: "Update a memo for the signed-in caller. Creates or updates data.\nExample: {\"name\":\"example\"}", Scopes: []string{auth.ScopeServiceMemoWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "name", Type: "string", Required: true, Description: "Memo name"}},
 				Handler: invokeUpdate(svc),
 			},
 			{
-				Name: OpDelete, Description: "Delete a memo", Scopes: []string{auth.ScopeServiceMemoWrite}, Mutation: true,
+				Name: OpDelete, Description: "Delete a memo for the signed-in caller. Deletes or removes data.\nExample: {\"name\":\"example\"}", Scopes: []string{auth.ScopeServiceMemoWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "name", Type: "string", Required: true, Description: "Memo name"}},
 				Handler: invokeDelete(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceMemoRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceMemoRead},
 				Handler: invokeHealth(svc),
 			},
 		},

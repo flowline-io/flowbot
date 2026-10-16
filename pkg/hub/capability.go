@@ -42,6 +42,8 @@ type ParamDef struct {
 	Type        string `json:"type"`
 	Description string `json:"description,omitzero"`
 	Required    bool   `json:"required,omitzero"`
+	// Enum lists the closed set of accepted values. Empty means the parameter is not an enum.
+	Enum []string `json:"enum,omitzero"`
 }
 
 // Operation describes a capability operation for discovery and auth scopes.

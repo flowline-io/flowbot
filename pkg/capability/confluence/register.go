@@ -33,7 +33,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		},
 		Ops: []capability.OpDef{
 			{
-				Name: OpListSpaces, Description: "List spaces", Scopes: []string{auth.ScopeServiceConfluenceRead},
+				Name: OpListSpaces, Description: "List spaces for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceConfluenceRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -41,7 +41,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListSpaces(svc),
 			},
 			{
-				Name: OpListPages, Description: "List pages in a space", Scopes: []string{auth.ScopeServiceConfluenceRead},
+				Name: OpListPages, Description: "List pages in a space for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceConfluenceRead},
 				Input: []hub.ParamDef{
 					{Name: "space_key", Type: "string", Required: false, Description: "Space key"},
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
@@ -50,17 +50,17 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListPages(svc),
 			},
 			{
-				Name: OpGetPage, Description: "Get a page", Scopes: []string{auth.ScopeServiceConfluenceRead},
+				Name: OpGetPage, Description: "Get a page for the signed-in caller. Read-only.\nExample: {\"page_id\":\"example\"}", Scopes: []string{auth.ScopeServiceConfluenceRead},
 				Input:   []hub.ParamDef{{Name: "page_id", Type: "string", Required: true, Description: "Page ID"}},
 				Handler: invokeGetPage(svc),
 			},
 			{
-				Name: OpGetPageContent, Description: "Get page storage content", Scopes: []string{auth.ScopeServiceConfluenceRead},
+				Name: OpGetPageContent, Description: "Get page storage content for the signed-in caller. Read-only.\nExample: {\"page_id\":\"example\"}", Scopes: []string{auth.ScopeServiceConfluenceRead},
 				Input:   []hub.ParamDef{{Name: "page_id", Type: "string", Required: true, Description: "Page ID"}},
 				Handler: invokeGetPageContent(svc),
 			},
 			{
-				Name: OpSearchPages, Description: "Search pages with CQL", Scopes: []string{auth.ScopeServiceConfluenceRead},
+				Name: OpSearchPages, Description: "Search pages with CQL for the signed-in caller. Read-only.\nExample: {\"cql\":\"example\"}", Scopes: []string{auth.ScopeServiceConfluenceRead},
 				Input: []hub.ParamDef{
 					{Name: "cql", Type: "string", Required: true, Description: "CQL query"},
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
@@ -69,7 +69,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeSearchPages(svc),
 			},
 			{
-				Name: OpCreatePage, Description: "Create a page", Scopes: []string{auth.ScopeServiceConfluenceWrite}, Mutation: true,
+				Name: OpCreatePage, Description: "Create a page for the signed-in caller. Creates or updates data.\nExample: {\"space_key\":\"example\"}", Scopes: []string{auth.ScopeServiceConfluenceWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "space_key", Type: "string", Required: false, Description: "Space key"},
 					{Name: "title", Type: "string", Required: true, Description: "Page title"},
@@ -78,7 +78,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeCreatePage(svc, app),
 			},
 			{
-				Name: OpUpdatePage, Description: "Update a page", Scopes: []string{auth.ScopeServiceConfluenceWrite}, Mutation: true,
+				Name: OpUpdatePage, Description: "Update a page for the signed-in caller. Creates or updates data.\nExample: {\"page_id\":\"example\"}", Scopes: []string{auth.ScopeServiceConfluenceWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "page_id", Type: "string", Required: true, Description: "Page ID"},
 					{Name: "title", Type: "string", Required: false, Description: "New title"},
@@ -87,12 +87,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeUpdatePage(svc, app),
 			},
 			{
-				Name: OpDeletePage, Description: "Delete a page", Scopes: []string{auth.ScopeServiceConfluenceWrite}, Mutation: true,
+				Name: OpDeletePage, Description: "Delete a page for the signed-in caller. Deletes or removes data.\nExample: {\"page_id\":\"example\"}", Scopes: []string{auth.ScopeServiceConfluenceWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "page_id", Type: "string", Required: true, Description: "Page ID"}},
 				Handler: invokeDeletePage(svc, app),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceConfluenceRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceConfluenceRead},
 				Handler: invokeHealth(svc),
 			},
 		},

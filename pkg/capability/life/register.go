@@ -14,20 +14,30 @@ func Register(svc Service) error {
 	if svc == nil {
 		svc = NewLLM()
 	}
-	return capability.Register(capability.Spec{
+	return capability.Register(buildSpec(svc))
+}
+
+// CatalogSpec returns capability metadata for documentation.
+// Handlers close over a nil service and must not be invoked.
+func CatalogSpec() capability.Spec {
+	return buildSpec(nil)
+}
+
+func buildSpec(svc Service) capability.Spec {
+	return capability.Spec{
 		Type:        hub.CapLife,
 		Description: "Life AI dungeon master: quest evaluation and item lore",
 		Instance:    svc,
 		Ops: []capability.OpDef{
 			{
-				Name: OpHealth, Description: "Life AI subsystem health",
+				Name: OpHealth, Description: "Life AI subsystem health for the signed-in caller. Read-only.\nExample: {}",
 				Handler: func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
 					return &capability.InvokeResult{Data: config.ChatAgentEnabled()}, nil
 				},
 			},
 			{
 				Name:        OpEvaluateQuest,
-				Description: "Evaluate a free-text quest prompt",
+				Description: "Evaluate a free-text quest prompt for the signed-in caller. Read-only.\nExample: {\"prompt\":\"example\"}",
 				Mutation:    false,
 				Input: []hub.ParamDef{
 					{Name: "prompt", Type: "string", Required: true, Description: "Quest description"},
@@ -42,7 +52,7 @@ func Register(svc Service) error {
 			},
 			{
 				Name:        OpAdjudicateQuest,
-				Description: "Adjudicate quest evidence into a suggested ruling",
+				Description: "Adjudicate quest evidence into a suggested ruling for the signed-in caller. Read-only.\nExample: {\"quest_title\":\"example\"}",
 				Mutation:    false,
 				Input: []hub.ParamDef{
 					{Name: "quest_title", Type: "string", Required: true, Description: "Quest title"},
@@ -62,7 +72,7 @@ func Register(svc Service) error {
 			},
 			{
 				Name:        OpGenerateInstanceLore,
-				Description: "Generate instance lore for a dropped item",
+				Description: "Generate instance lore for a dropped item for the signed-in caller. Read-only.\nExample: {\"equipment_name\":\"example\"}",
 				Mutation:    false,
 				Input: []hub.ParamDef{
 					{Name: "quest_title", Type: "string", Required: false, Description: "Source quest title"},
@@ -73,7 +83,7 @@ func Register(svc Service) error {
 			},
 			{
 				Name:        OpBreakdownGoalTree,
-				Description: "Suggest a structured life plan tree",
+				Description: "Suggest a structured life plan tree for the signed-in caller. Read-only.\nExample: {\"root_title\":\"example\"}",
 				Mutation:    false,
 				Input: []hub.ParamDef{
 					{Name: "root_title", Type: "string", Required: true, Description: "Root goal title"},
@@ -86,7 +96,7 @@ func Register(svc Service) error {
 				Handler: invokeBreakdown(svc),
 			},
 		},
-	})
+	}
 }
 
 func invokeEvaluate(svc Service) capability.Invoker {

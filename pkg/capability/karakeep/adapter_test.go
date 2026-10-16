@@ -14,6 +14,7 @@ import (
 type fakeClient struct {
 	listQuery     *provider.BookmarksQuery
 	listResp      *provider.BookmarksResponse
+	listByCursor  map[string]*provider.BookmarksResponse
 	listErr       error
 	getItem       *provider.Bookmark
 	getErr        error
@@ -35,6 +36,15 @@ func (f *fakeClient) GetAllBookmarks(_ context.Context, query *provider.Bookmark
 	f.listQuery = query
 	if f.listErr != nil {
 		return nil, f.listErr
+	}
+	if f.listByCursor != nil {
+		key := ""
+		if query != nil {
+			key = query.Cursor
+		}
+		if resp, ok := f.listByCursor[key]; ok {
+			return resp, nil
+		}
 	}
 	if f.listResp == nil {
 		f.listResp = &provider.BookmarksResponse{}
@@ -192,4 +202,26 @@ func TestToBookmark_CreatedAt(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAdapter_ListTwoPagesDoNotRepeatIDs(t *testing.T) {
+	t.Parallel()
+	fc := &fakeClient{listByCursor: map[string]*provider.BookmarksResponse{
+		"": {
+			Bookmarks:  []provider.Bookmark{*testBookmark("a", "https://a.example")},
+			NextCursor: "page-2",
+		},
+		"page-2": {
+			Bookmarks: []provider.Bookmark{*testBookmark("b", "https://b.example")},
+		},
+	}}
+	svc := NewWithClient(fc)
+	first, err := svc.List(context.Background(), &ListQuery{Page: capability.PageRequest{Limit: 1}})
+	require.NoError(t, err)
+	require.Len(t, first.Items, 1)
+	require.NotEmpty(t, first.Page.NextCursor)
+	second, err := svc.List(context.Background(), &ListQuery{Page: capability.PageRequest{Limit: 1, Cursor: first.Page.NextCursor}})
+	require.NoError(t, err)
+	require.Len(t, second.Items, 1)
+	assert.NotEqual(t, first.Items[0].ID, second.Items[0].ID)
 }

@@ -213,6 +213,7 @@ chat_agent:
 #   enabled: false
 #   include: []   # capability or tool name; empty = all allowed by token minus deny-list
 #   exclude: []
+#   max_output_bytes: 32768  # 0 uses 32768; successful tool JSON is clamped to this size
 
 # CapCore runtime primitives (http_request, run_*, kv_*). Workspace falls back to chat_agent.workspace.
 core:

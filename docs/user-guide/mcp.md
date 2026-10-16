@@ -29,6 +29,19 @@ Failed calls set `isError` and return `structuredContent.error` with `code`, `me
 
 Codes, hints, and schema scope: [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](../../.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md).
 
+List tools take `limit` (default 20, maximum 100) and an opaque `cursor`. The next page is `page.next_cursor`. When a result is shortened to `mcp.max_output_bytes` (default 32768), `page.truncated` is true. `flowbot mcp config --client codex|claude|cursor|generic` prints a snippet and does not write client files. The Web page `/service/web/settings/mcp` shows the same snippets and can mint a read or run token for the signed-in user. `mcp.enabled` is read from the process config; changing it requires a restart.
+
+## Client check
+
+Confirm a client against a running instance. Record the client version and the result with the change that introduces the client; this file does not store that record.
+
+1. Start an instance with `deployments/docker-compose.yaml`, `mcp.enabled: true`, and miniflux or karakeep test data.
+2. On `/service/web/settings/mcp`, create a read-only token and `export FLOWBOT_MCP_TOKEN=...`.
+3. Codex: paste the TOML, run `codex mcp list`, open `/mcp` in the TUI, and ask for the first 5 unread RSS entries. Confirm the page hint. A write call returns `permission_denied`.
+4. Claude Code: run the printed `claude mcp add` command, confirm `/mcp`, and run the same read task.
+5. Cursor: write `.cursor/mcp.json`, confirm the server and tools under Customize, run the same read task, and check MCP Logs.
+6. Switch to a read-and-run token. In Codex set `default_tools_approval_mode = "writes"` and run `pipeline.run`. Codex should ask before the call.
+
 ## Outbound client (chat agent)
 
 `chat_agent.mcp_servers` registers external MCP servers as agent tools named `mcp_<server>_<tool>`. HTTP uses `url` plus optional `headers`. stdio uses `command` + `args` (no shell, long-lived process). `npx` / `uvx` work but pull arbitrary code at start. There is no Web UI to add commands. URLs that would hit this process’s `/mcp` are rejected.

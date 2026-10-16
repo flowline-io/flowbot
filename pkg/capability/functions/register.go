@@ -30,7 +30,7 @@ func buildSpec() capability.Spec {
 		Instance:    serviceMarker{},
 		Ops: []capability.OpDef{
 			{
-				Name: OpInvoke, Description: "Invoke a published named function version (platform path; does not check function HTTP token/hmac)", Mutation: true,
+				Name: OpInvoke, Description: "Invoke a published named function version (platform path; does not check function HTTP token/hmac) for the signed-in caller. Creates or updates data.\nExample: {\"name\":\"example\"}", Mutation: true,
 				Scopes: []string{auth.ScopeFunctionRun},
 				Input: []hub.ParamDef{
 					{Name: "name", Type: "string", Required: true, Description: "Function name"},
@@ -40,7 +40,7 @@ func buildSpec() capability.Spec {
 				Handler: invokeInvoker,
 			},
 			{
-				Name: OpGet, Description: "Get published function metadata without secrets",
+				Name: OpGet, Description: "Get published function metadata without secrets for the signed-in caller. Read-only.\nExample: {\"name\":\"example\"}",
 				Scopes: []string{auth.ScopeFunctionRead},
 				Input: []hub.ParamDef{
 					{Name: "name", Type: "string", Required: true, Description: "Function name"},
@@ -49,7 +49,7 @@ func buildSpec() capability.Spec {
 				Handler: getInvoker,
 			},
 			{
-				Name: OpHealth, Description: "Functions subsystem health",
+				Name: OpHealth, Description: "Functions subsystem health for the signed-in caller. Read-only.\nExample: {}",
 				Scopes:  []string{auth.ScopeFunctionRead},
 				Handler: healthInvoker,
 			},

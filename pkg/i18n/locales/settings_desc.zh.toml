@@ -444,6 +444,9 @@ other = "Exclude 从 /mcp 去掉工具。Exclude 优先于 include；deny-list �
 ["settings.desc.mcp.include"]
 other = "Include 限制 /mcp 公布的工具（能力名或完整工具名）。空表示令牌 scope 允许的全部（减去 deny-list）。"
 
+["settings.desc.mcp.max_output_bytes"]
+other = "MaxOutputBytes 是单次成功 MCP 工具结果的 UTF-8 上限。0 表示 32768。"
+
 ["settings.desc.media"]
 other = "Media 大文件存储配置（可选；省略则禁用上传）。"
 

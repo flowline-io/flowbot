@@ -36,7 +36,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		},
 		Ops: []capability.OpDef{
 			{
-				Name: OpList, Description: "List bookmarks", Scopes: []string{auth.ScopeServiceBookmarkRead},
+				Name: OpList, Description: "List bookmarks for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceBookmarkRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -48,27 +48,27 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeList(svc),
 			},
 			{
-				Name: OpGet, Description: "Get a bookmark", Scopes: []string{auth.ScopeServiceBookmarkRead},
+				Name: OpGet, Description: "Get a bookmark for the signed-in caller. Read-only.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkRead},
 				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"}},
 				Handler: invokeGet(svc),
 			},
 			{
-				Name: OpCreate, Description: "Create a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
+				Name: OpCreate, Description: "Create a bookmark for the signed-in caller. Creates or updates data.\nExample: {\"url\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "url", Type: "string", Required: true, Description: "URL to bookmark"}},
 				Handler: invokeCreate(svc),
 			},
 			{
-				Name: OpDelete, Description: "Delete a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
+				Name: OpDelete, Description: "Delete a bookmark for the signed-in caller. Deletes or removes data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"}},
 				Handler: invokeDelete(svc),
 			},
 			{
-				Name: OpArchive, Description: "Archive a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
+				Name: OpArchive, Description: "Archive a bookmark for the signed-in caller. Deletes or removes data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"}},
 				Handler: invokeArchive(svc),
 			},
 			{
-				Name: OpSearch, Description: "Search bookmarks", Scopes: []string{auth.ScopeServiceBookmarkRead},
+				Name: OpSearch, Description: "Search bookmarks for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceBookmarkRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -79,7 +79,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeSearch(svc),
 			},
 			{
-				Name: OpAttachTags, Description: "Attach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
+				Name: OpAttachTags, Description: "Attach tags for the signed-in caller. Creates or updates data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"},
 					{Name: "tags", Type: "[]string", Required: true, Description: "Tags to attach"},
@@ -87,7 +87,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeAttachTags(svc),
 			},
 			{
-				Name: OpDetachTags, Description: "Detach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
+				Name: OpDetachTags, Description: "Detach tags for the signed-in caller. Creates or updates data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"},
 					{Name: "tags", Type: "[]string", Required: true, Description: "Tags to detach"},
@@ -95,12 +95,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeDetachTags(svc),
 			},
 			{
-				Name: OpCheckURL, Description: "Check whether a URL exists", Scopes: []string{auth.ScopeServiceBookmarkRead},
+				Name: OpCheckURL, Description: "Check whether a URL exists for the signed-in caller. Read-only.\nExample: {\"url\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkRead},
 				Input:   []hub.ParamDef{{Name: "url", Type: "string", Required: true, Description: "URL to check"}},
 				Handler: invokeCheckURL(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceBookmarkRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceBookmarkRead},
 				Handler: invokeHealth(svc),
 			},
 		},

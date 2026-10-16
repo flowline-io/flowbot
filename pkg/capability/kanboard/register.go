@@ -37,7 +37,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		},
 		Ops: []capability.OpDef{
 			{
-				Name: OpListTasks, Description: "List tasks", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Name: OpListTasks, Description: "List tasks for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceKanbanRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -49,12 +49,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListTasks(svc),
 			},
 			{
-				Name: OpGetTask, Description: "Get a task", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Name: OpGetTask, Description: "Get a task for the signed-in caller. Read-only.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceKanbanRead},
 				Input:   []hub.ParamDef{{Name: "id", Type: "int", Required: true, Description: "Task ID"}},
 				Handler: invokeGetTask(svc),
 			},
 			{
-				Name: OpCreateTask, Description: "Create a task", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
+				Name: OpCreateTask, Description: "Create a task for the signed-in caller. Creates or updates data.\nExample: {}", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "title", Type: "string", Required: false, Description: "Task title"},
 					{Name: "description", Type: "string", Required: false, Description: "Task description"},
@@ -69,7 +69,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeCreateTask(svc, app),
 			},
 			{
-				Name: OpUpdateTask, Description: "Update a task", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
+				Name: OpUpdateTask, Description: "Update a task for the signed-in caller. Creates or updates data.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "id", Type: "int", Required: true, Description: "Task ID"},
 					{Name: "title", Type: "string", Required: false, Description: "New title"},
@@ -81,12 +81,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeUpdateTask(svc),
 			},
 			{
-				Name: OpDeleteTask, Description: "Delete a task", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
+				Name: OpDeleteTask, Description: "Delete a task for the signed-in caller. Deletes or removes data.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "int", Required: true, Description: "Task ID"}},
 				Handler: invokeDeleteTask(svc),
 			},
 			{
-				Name: OpMoveTask, Description: "Move a task", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
+				Name: OpMoveTask, Description: "Move a task for the signed-in caller. Creates or updates data.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "id", Type: "int", Required: true, Description: "Task ID"},
 					{Name: "column_id", Type: "int", Required: false, Description: "Target column ID"},
@@ -97,17 +97,17 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeMoveTask(svc),
 			},
 			{
-				Name: OpCompleteTask, Description: "Complete a task", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
+				Name: OpCompleteTask, Description: "Complete a task for the signed-in caller. Creates or updates data.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "int", Required: true, Description: "Task ID"}},
 				Handler: invokeCompleteTask(svc),
 			},
 			{
-				Name: OpGetColumns, Description: "Get columns", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Name: OpGetColumns, Description: "Get columns for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceKanbanRead},
 				Input:   []hub.ParamDef{{Name: "project_id", Type: "int", Required: false, Description: "Project ID (defaults to 1)"}},
 				Handler: invokeGetColumns(svc),
 			},
 			{
-				Name: OpSearchTasks, Description: "Search tasks", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Name: OpSearchTasks, Description: "Search tasks for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceKanbanRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -119,11 +119,11 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeSearchTasks(svc),
 			},
 			{
-				Name: OpListProjects, Description: "List projects", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Name: OpListProjects, Description: "List projects for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceKanbanRead},
 				Handler: invokeListProjects(svc),
 			},
 			{
-				Name: OpCreateProject, Description: "Create a project", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
+				Name: OpCreateProject, Description: "Create a project for the signed-in caller. Creates or updates data.\nExample: {\"name\":\"example\"}", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "name", Type: "string", Required: true, Description: "Project name"},
 					{Name: "description", Type: "string", Required: false, Description: "Project description"},
@@ -131,17 +131,17 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeCreateProject(svc),
 			},
 			{
-				Name: OpListSwimlanes, Description: "List swimlanes", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Name: OpListSwimlanes, Description: "List swimlanes for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceKanbanRead},
 				Input:   []hub.ParamDef{{Name: "project_id", Type: "int", Required: false, Description: "Project ID (defaults to 1)"}},
 				Handler: invokeListSwimlanes(svc),
 			},
 			{
-				Name: OpListCategories, Description: "List categories", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Name: OpListCategories, Description: "List categories for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceKanbanRead},
 				Input:   []hub.ParamDef{{Name: "project_id", Type: "int", Required: false, Description: "Project ID (defaults to 1)"}},
 				Handler: invokeListCategories(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceKanbanRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceKanbanRead},
 				Handler: invokeHealth(svc),
 			},
 		},

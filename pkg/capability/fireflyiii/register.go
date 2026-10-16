@@ -27,7 +27,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		Instance:    svc,
 		Ops: []capability.OpDef{
 			{
-				Name: OpCreateTransaction, Description: "Create a transaction", Scopes: []string{auth.ScopeServiceFireflyiiiWrite}, Mutation: true,
+				Name: OpCreateTransaction, Description: "Create a transaction for the signed-in caller. Creates or updates data.\nExample: {\"type\":\"example\"}", Scopes: []string{auth.ScopeServiceFireflyiiiWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "type", Type: "string", Required: true, Description: "Transaction type (withdrawal, deposit, transfer)"},
 					{Name: "date", Type: "string", Required: true, Description: "Transaction date (YYYY-MM-DD)"},
@@ -48,7 +48,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeCreateTransaction(svc, app),
 			},
 			{
-				Name: OpListTransactions, Description: "List transactions", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpListTransactions, Description: "List transactions for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Opaque pagination cursor"},
@@ -60,14 +60,14 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListTransactions(svc),
 			},
 			{
-				Name: OpGetTransaction, Description: "Get a transaction by group ID", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpGetTransaction, Description: "Get a transaction by group ID for the signed-in caller. Read-only.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Input: []hub.ParamDef{
 					{Name: "id", Type: "string", Required: true, Description: "Transaction group ID"},
 				},
 				Handler: invokeGetTransaction(svc),
 			},
 			{
-				Name: OpUpdateTransaction, Description: "Update a transaction", Scopes: []string{auth.ScopeServiceFireflyiiiWrite}, Mutation: true,
+				Name: OpUpdateTransaction, Description: "Update a transaction for the signed-in caller. Creates or updates data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceFireflyiiiWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "id", Type: "string", Required: true, Description: "Transaction group ID"},
 					{Name: "type", Type: "string", Required: false, Description: "Transaction type (withdrawal, deposit, transfer)"},
@@ -89,14 +89,14 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeUpdateTransaction(svc, app),
 			},
 			{
-				Name: OpDeleteTransaction, Description: "Delete a transaction", Scopes: []string{auth.ScopeServiceFireflyiiiWrite}, Mutation: true,
+				Name: OpDeleteTransaction, Description: "Delete a transaction for the signed-in caller. Deletes or removes data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceFireflyiiiWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "id", Type: "string", Required: true, Description: "Transaction group ID"},
 				},
 				Handler: invokeDeleteTransaction(svc),
 			},
 			{
-				Name: OpListAccounts, Description: "List accounts", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpListAccounts, Description: "List accounts for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Opaque pagination cursor"},
@@ -105,35 +105,35 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListAccounts(svc),
 			},
 			{
-				Name: OpListCategories, Description: "List categories", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpListCategories, Description: "List categories for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Input: paginationParams(),
 				Handler: invokeListCategories(svc),
 			},
 			{
-				Name: OpListBudgets, Description: "List budgets", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpListBudgets, Description: "List budgets for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Input: paginationParams(),
 				Handler: invokeListBudgets(svc),
 			},
 			{
-				Name: OpListBills, Description: "List bills", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpListBills, Description: "List bills for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Input: paginationParams(),
 				Handler: invokeListBills(svc),
 			},
 			{
-				Name: OpListTags, Description: "List tags", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpListTags, Description: "List tags for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Input: paginationParams(),
 				Handler: invokeListTags(svc),
 			},
 			{
-				Name: OpAbout, Description: "Get Firefly III about info", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpAbout, Description: "Get Firefly III about info for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Handler: invokeAbout(svc),
 			},
 			{
-				Name: OpCurrentUser, Description: "Get current Firefly III user", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpCurrentUser, Description: "Get current Firefly III user for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Handler: invokeCurrentUser(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
 				Handler: invokeHealth(svc),
 			},
 		},

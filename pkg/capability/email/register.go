@@ -34,7 +34,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		},
 		Ops: []capability.OpDef{
 			{
-				Name: OpSend, Description: "Send an email", Scopes: []string{auth.ScopeServiceEmailWrite}, Mutation: true,
+				Name: OpSend, Description: "Send an email for the signed-in caller. Creates or updates data.\nExample: {\"to\":\"example\"}", Scopes: []string{auth.ScopeServiceEmailWrite}, Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "to", Type: "[]string", Required: true, Description: "Recipient addresses"},
 					{Name: "cc", Type: "[]string", Required: false, Description: "Cc addresses"},
@@ -47,7 +47,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeSend(svc),
 			},
 			{
-				Name: OpList, Description: "List messages", Scopes: []string{auth.ScopeServiceEmailRead},
+				Name: OpList, Description: "List messages for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceEmailRead},
 				Input: []hub.ParamDef{
 					{Name: "mailbox", Type: "string", Required: false, Description: "Mailbox name (default INBOX)"},
 					{Name: "unseen_only", Type: "bool", Required: false, Description: "Only unseen messages"},
@@ -57,12 +57,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeList(svc),
 			},
 			{
-				Name: OpGet, Description: "Get a message by id", Scopes: []string{auth.ScopeServiceEmailRead},
+				Name: OpGet, Description: "Get a message by id for the signed-in caller. Read-only.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceEmailRead},
 				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "Opaque message id"}},
 				Handler: invokeGet(svc),
 			},
 			{
-				Name: OpSearch, Description: "Search messages", Scopes: []string{auth.ScopeServiceEmailRead},
+				Name: OpSearch, Description: "Search messages for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceEmailRead},
 				Input: []hub.ParamDef{
 					{Name: "mailbox", Type: "string", Required: false, Description: "Mailbox name"},
 					{Name: "from", Type: "string", Required: false, Description: "From filter"},
@@ -77,17 +77,17 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeSearch(svc),
 			},
 			{
-				Name: OpMarkRead, Description: "Mark a message as read", Scopes: []string{auth.ScopeServiceEmailWrite}, Mutation: true,
+				Name: OpMarkRead, Description: "Mark a message as read for the signed-in caller. Creates or updates data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceEmailWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "Opaque message id"}},
 				Handler: invokeMark(svc, true),
 			},
 			{
-				Name: OpMarkUnread, Description: "Mark a message as unread", Scopes: []string{auth.ScopeServiceEmailWrite}, Mutation: true,
+				Name: OpMarkUnread, Description: "Mark a message as unread for the signed-in caller. Creates or updates data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceEmailWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "string", Required: true, Description: "Opaque message id"}},
 				Handler: invokeMark(svc, false),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceEmailRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceEmailRead},
 				Handler: invokeHealth(svc),
 			},
 		},

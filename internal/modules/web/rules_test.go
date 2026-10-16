@@ -13,9 +13,9 @@ func TestAllWebserviceRuleGroups(t *testing.T) {
 		wantLen   int
 		wantEmpty bool
 	}{
-		{name: "registers thirty-three route groups", wantLen: 33},
+		{name: "registers thirty-four route groups", wantLen: 34},
 		{name: "every group has at least one route", wantEmpty: false},
-		{name: "Rules matches allWebserviceRules length", wantLen: 33},
+		{name: "Rules matches allWebserviceRules length", wantLen: 34},
 	}
 
 	for _, tt := range tests {

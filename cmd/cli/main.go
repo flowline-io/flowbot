@@ -50,6 +50,7 @@ func main() {
 		command.NocodbCommand(),
 		command.DevopsCommand(),
 		command.ConfigCommand(),
+		command.MCPCommand(),
 		command.VersionCommand(version.Buildtags),
 	)
 

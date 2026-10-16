@@ -35,7 +35,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		},
 		Ops: []capability.OpDef{
 			{
-				Name: OpListFeeds, Description: "List feeds", Scopes: []string{auth.ScopeServiceReaderRead},
+				Name: OpListFeeds, Description: "List feeds for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceReaderRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -45,12 +45,12 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListFeeds(svc),
 			},
 			{
-				Name: OpCreateFeed, Description: "Create a feed", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
+				Name: OpCreateFeed, Description: "Create a feed for the signed-in caller. Creates or updates data.\nExample: {\"feed_url\":\"example\"}", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "feed_url", Type: "string", Required: true, Description: "Feed URL to subscribe to"}},
 				Handler: invokeCreateFeed(svc),
 			},
 			{
-				Name: OpListEntries, Description: "List entries", Scopes: []string{auth.ScopeServiceReaderRead},
+				Name: OpListEntries, Description: "List entries for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceReaderRead},
 				Input: []hub.ParamDef{
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
 					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
@@ -62,27 +62,27 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListEntries(svc),
 			},
 			{
-				Name: OpMarkEntryRead, Description: "Mark entry as read", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
+				Name: OpMarkEntryRead, Description: "Mark entry as read for the signed-in caller. Creates or updates data.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "int64", Required: true, Description: "Entry ID"}},
 				Handler: invokeMarkEntryRead(svc),
 			},
 			{
-				Name: OpMarkEntryUnread, Description: "Mark entry as unread", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
+				Name: OpMarkEntryUnread, Description: "Mark entry as unread for the signed-in caller. Creates or updates data.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "int64", Required: true, Description: "Entry ID"}},
 				Handler: invokeMarkEntryUnread(svc),
 			},
 			{
-				Name: OpStarEntry, Description: "Star an entry", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
+				Name: OpStarEntry, Description: "Star an entry for the signed-in caller. Creates or updates data.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "int64", Required: true, Description: "Entry ID"}},
 				Handler: invokeStarEntry(svc),
 			},
 			{
-				Name: OpUnstarEntry, Description: "Unstar an entry", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
+				Name: OpUnstarEntry, Description: "Unstar an entry for the signed-in caller. Creates or updates data.\nExample: {\"id\":1}", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "id", Type: "int64", Required: true, Description: "Entry ID"}},
 				Handler: invokeUnstarEntry(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceReaderRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceReaderRead},
 				Handler: invokeHealth(svc),
 			},
 		},

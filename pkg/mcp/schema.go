@@ -6,6 +6,8 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/santhosh-tekuri/jsonschema/v6"
+
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 // Field is one JSON-object property used to build an MCP input schema.
@@ -14,6 +16,7 @@ type Field struct {
 	Type        string
 	Description string
 	Required    bool
+	Enum        []string
 }
 
 // SchemaFromFields builds a JSON Schema object for MCP / agent tool parameters.
@@ -29,6 +32,9 @@ func SchemaFromFields(fields []Field) map[string]any {
 		}
 		if p.Description != "" {
 			prop["description"] = p.Description
+		}
+		if len(p.Enum) > 0 {
+			prop["enum"] = p.Enum
 		}
 		if items, ok := jsonSchemaItems(p.Type); ok {
 			prop["items"] = items
@@ -70,6 +76,11 @@ func jsonSchemaType(t string) string {
 	}
 }
 
+// IsListTool reports whether group.op is a paged list on /mcp.
+func IsListTool(group, op string) bool {
+	return validate.IsListTool(group, op)
+}
+
 // OutputSchema returns the MCP outputSchema for a tool, or nil when v1.0 does not publish one.
 // Listed tools are pipeline, workflow, and function list/get/run/get_run, hub apps and health,
 // and capability operations whose name contains "list".
@@ -94,7 +105,7 @@ func OutputSchema(group, op string) map[string]any {
 			return nil
 		}
 	default:
-		if strings.Contains(op, "list") {
+		if IsListTool(group, op) {
 			return oneOfOutput(invokeSuccessSchema())
 		}
 		return nil
@@ -143,6 +154,7 @@ func itemsSuccessSchema() map[string]any {
 		"additionalProperties": false,
 		"properties": map[string]any{
 			"items": map[string]any{"type": "array"},
+			"page":  pageSchema(),
 			"trace": traceSchema(),
 		},
 		"not": notToolErrorObject(),
@@ -204,6 +216,7 @@ func pageSchema() map[string]any {
 			"next_cursor": map[string]any{"type": "string"},
 			"prev_cursor": map[string]any{"type": "string"},
 			"total":       map[string]any{"type": "integer"},
+			"truncated":   map[string]any{"type": "boolean"},
 		},
 		"additionalProperties": false,
 	}

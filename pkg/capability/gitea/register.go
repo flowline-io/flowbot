@@ -37,11 +37,11 @@ func buildSpec(app string, svc Service) capability.Spec {
 		},
 		Ops: []capability.OpDef{
 			{
-				Name: OpGetUser, Description: "Get authenticated user", Scopes: []string{auth.ScopeServiceForgeRead},
+				Name: OpGetUser, Description: "Get authenticated user for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceForgeRead},
 				Handler: invokeGetUser(svc),
 			},
 			{
-				Name: OpGetRepo, Description: "Get a repository", Scopes: []string{auth.ScopeServiceForgeRead},
+				Name: OpGetRepo, Description: "Get a repository for the signed-in caller. Read-only.\nExample: {\"owner\":\"example\"}", Scopes: []string{auth.ScopeServiceForgeRead},
 				Input: []hub.ParamDef{
 					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
 					{Name: "repo", Type: "string", Required: true, Description: "Repository name"},
@@ -49,7 +49,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeGetRepo(svc),
 			},
 			{
-				Name: OpListIssues, Description: "List issues", Scopes: []string{auth.ScopeServiceForgeRead},
+				Name: OpListIssues, Description: "List issues for the signed-in caller. Read-only.\nExample: {\"owner\":\"example\"}", Scopes: []string{auth.ScopeServiceForgeRead},
 				Input: []hub.ParamDef{
 					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
 					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
@@ -61,7 +61,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeListIssues(svc),
 			},
 			{
-				Name: OpGetIssue, Description: "Get an issue", Scopes: []string{auth.ScopeServiceForgeRead},
+				Name: OpGetIssue, Description: "Get an issue for the signed-in caller. Read-only.\nExample: {\"owner\":\"example\"}", Scopes: []string{auth.ScopeServiceForgeRead},
 				Input: []hub.ParamDef{
 					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
 					{Name: "repo", Type: "string", Required: true, Description: "Repository name"},
@@ -70,7 +70,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeGetIssue(svc),
 			},
 			{
-				Name: OpGetCommitDiff, Description: "Get commit diff", Scopes: []string{auth.ScopeServiceForgeRead},
+				Name: OpGetCommitDiff, Description: "Get commit diff for the signed-in caller. Read-only.\nExample: {\"owner\":\"example\"}", Scopes: []string{auth.ScopeServiceForgeRead},
 				Input: []hub.ParamDef{
 					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
 					{Name: "repo", Type: "string", Required: true, Description: "Repository name"},
@@ -79,7 +79,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeGetCommitDiff(svc),
 			},
 			{
-				Name: OpGetFileContent, Description: "Get file content", Scopes: []string{auth.ScopeServiceForgeRead},
+				Name: OpGetFileContent, Description: "Get file content for the signed-in caller. Read-only.\nExample: {\"owner\":\"example\"}", Scopes: []string{auth.ScopeServiceForgeRead},
 				Input: []hub.ParamDef{
 					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
 					{Name: "repo", Type: "string", Required: true, Description: "Repository name"},
@@ -91,7 +91,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 				Handler: invokeGetFileContent(svc),
 			},
 			{
-				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceForgeRead},
+				Name: OpHealth, Description: "Health check for the signed-in caller. Read-only.\nExample: {}", Scopes: []string{auth.ScopeServiceForgeRead},
 				Handler: invokeHealth(svc),
 			},
 		},

@@ -13,31 +13,45 @@ import (
 )
 
 type fakeClient struct {
-	cfg        provider.Config
-	sendErr    error
-	listMeta   []provider.MessageMeta
-	listNext   string
-	listErr    error
-	searchMeta []provider.MessageMeta
-	searchNext string
-	searchErr  error
-	getMsg     *provider.Message
-	getErr     error
-	markErr    error
-	healthErr  error
-	rawItems   []map[string]any
-	rawNext    string
-	rawErr     error
-	lastSend   provider.SendInput
-	lastMarkID string
-	lastSeen   bool
+	cfg          provider.Config
+	sendErr      error
+	listMeta     []provider.MessageMeta
+	listNext     string
+	listByCursor map[string]emailPage
+	listErr      error
+	searchMeta   []provider.MessageMeta
+	searchNext   string
+	searchErr    error
+	getMsg       *provider.Message
+	getErr       error
+	markErr      error
+	healthErr    error
+	rawItems     []map[string]any
+	rawNext      string
+	rawErr       error
+	lastSend     provider.SendInput
+	lastMarkID   string
+	lastSeen     bool
 }
 
 func (f *fakeClient) Send(_ context.Context, in provider.SendInput) error {
 	f.lastSend = in
 	return f.sendErr
 }
-func (f *fakeClient) List(_ context.Context, _ string, _ bool, _ int, _ string) ([]provider.MessageMeta, string, error) {
+
+type emailPage struct {
+	metas []provider.MessageMeta
+	next  string
+}
+
+func (f *fakeClient) List(_ context.Context, _ string, _ bool, _ int, cursor string) ([]provider.MessageMeta, string, error) {
+	if f.listByCursor != nil {
+		page, ok := f.listByCursor[cursor]
+		if !ok {
+			return nil, "", f.listErr
+		}
+		return page.metas, page.next, nil
+	}
 	return f.listMeta, f.listNext, f.listErr
 }
 func (f *fakeClient) Search(_ context.Context, _ provider.SearchQuery) ([]provider.MessageMeta, string, error) {
@@ -158,4 +172,21 @@ func TestAdapter_MarkEmittedSeenRespectsConfig(t *testing.T) {
 	require.True(t, ok)
 	require.NoError(t, svc2.MarkEmittedSeen(context.Background(), []string{"abc"}))
 	assert.Empty(t, fc2.lastMarkID)
+}
+
+func TestAdapter_ListTwoPagesDoNotRepeatIDs(t *testing.T) {
+	t.Parallel()
+	fc := &fakeClient{listByCursor: map[string]emailPage{
+		"":      {metas: []provider.MessageMeta{{ID: "1:1", Subject: "one"}}, next: "uid-2"},
+		"uid-2": {metas: []provider.MessageMeta{{ID: "1:2", Subject: "two"}}},
+	}}
+	svc := NewWithClient(fc)
+	first, err := svc.List(context.Background(), ListInput{Page: capability.PageRequest{Limit: 1}})
+	require.NoError(t, err)
+	require.Len(t, first.Items, 1)
+	require.NotEmpty(t, first.Page.NextCursor)
+	second, err := svc.List(context.Background(), ListInput{Page: capability.PageRequest{Limit: 1, Cursor: first.Page.NextCursor}})
+	require.NoError(t, err)
+	require.Len(t, second.Items, 1)
+	assert.NotEqual(t, first.Items[0].ID, second.Items[0].ID)
 }

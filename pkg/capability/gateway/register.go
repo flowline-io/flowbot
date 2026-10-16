@@ -36,7 +36,7 @@ func buildSpec() capability.Spec {
 		Instance:    struct{}{},
 		Ops: []capability.OpDef{
 			{
-				Name: OpRun, Description: "Create a local CLI job and wait for the terminal result", Mutation: true,
+				Name: OpRun, Description: "Create a local CLI job and wait for the terminal result for the signed-in caller. Creates or updates data.\nExample: {\"prompt\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "prompt", Type: "string", Required: true, Description: "Prompt for the local Cursor CLI"},
 					{Name: "cwd", Type: "string", Required: false, Description: "Optional workspace path on the worker machine"},
@@ -45,9 +45,9 @@ func buildSpec() capability.Spec {
 				},
 				Handler: runInvoker,
 			},
-			{Name: OpHealth, Description: "Report whether a fresh gateway worker is online", Handler: healthInvoker},
+			{Name: OpHealth, Description: "Report whether a fresh gateway worker is online for the signed-in caller. Read-only.\nExample: {}", Handler: healthInvoker},
 			{
-				Name: OpCancel, Description: "Cancel a gateway job by id", Mutation: true,
+				Name: OpCancel, Description: "Cancel a gateway job by id for the signed-in caller. Creates or updates data.\nExample: {\"job_id\":\"example\"}", Mutation: true,
 				Input:   []hub.ParamDef{{Name: "job_id", Type: "string", Required: true, Description: "Job id"}},
 				Handler: cancelInvoker,
 			},

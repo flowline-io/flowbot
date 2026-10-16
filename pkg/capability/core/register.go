@@ -24,9 +24,9 @@ func buildSpec() capability.Spec {
 		Description: "Core runtime primitives: notify, clip, agent, HTTP, sandboxed exec, and KV",
 		Instance:    serviceMarker{},
 		Ops: []capability.OpDef{
-			{Name: OpHealth, Description: "Core runtime health", Handler: coreHealthInvoker},
+			{Name: OpHealth, Description: "Core runtime health for the signed-in caller. Read-only.\nExample: {}", Handler: coreHealthInvoker},
 			{
-				Name: OpNotifySend, Description: "Send a notification using a template", Mutation: true,
+				Name: OpNotifySend, Description: "Send a notification using a template for the signed-in caller. Creates or updates data.\nExample: {\"template_id\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "template_id", Type: "string", Required: true, Description: "Template ID to render"},
 					{Name: "channels", Type: "[]string", Required: true, Description: "Channels to send to"},
@@ -35,9 +35,9 @@ func buildSpec() capability.Spec {
 				},
 				Handler: notifySendInvoker,
 			},
-			{Name: OpNotifyHealth, Description: "Notify subsystem health", Handler: notifyHealthInvoker},
+			{Name: OpNotifyHealth, Description: "Notify subsystem health for the signed-in caller. Read-only.\nExample: {}", Handler: notifyHealthInvoker},
 			{
-				Name: OpClipCreate, Description: "Create a markdown clip and return its public URL", Mutation: true,
+				Name: OpClipCreate, Description: "Create a markdown clip and return its public URL for the signed-in caller. Creates or updates data.\nExample: {\"content\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "content", Type: "string", Required: true, Description: "Markdown body"},
 					{Name: "created_by", Type: "string", Required: false, Description: "Optional creator identifier"},
@@ -45,13 +45,13 @@ func buildSpec() capability.Spec {
 				Handler: clipCreateInvoker,
 			},
 			{
-				Name: OpClipGet, Description: "Get a markdown clip by slug",
+				Name: OpClipGet, Description: "Get a markdown clip by slug for the signed-in caller. Read-only.\nExample: {\"slug\":\"example\"}",
 				Input:   []hub.ParamDef{{Name: "slug", Type: "string", Required: true, Description: "Clip slug"}},
 				Handler: clipGetInvoker,
 			},
-			{Name: OpClipHealth, Description: "Clip subsystem health", Handler: clipHealthInvoker},
+			{Name: OpClipHealth, Description: "Clip subsystem health for the signed-in caller. Read-only.\nExample: {}", Handler: clipHealthInvoker},
 			{
-				Name: OpAgentRun, Description: "Execute one autonomous agent turn with a prompt", Mutation: true,
+				Name: OpAgentRun, Description: "Execute one autonomous agent turn with a prompt for the signed-in caller. Creates or updates data.\nExample: {\"prompt\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "prompt", Type: "string", Required: true, Description: "User prompt"},
 					{Name: "uid", Type: "string", Required: false, Description: "Owner UID"},
@@ -61,9 +61,9 @@ func buildSpec() capability.Spec {
 				},
 				Handler: agentRunInvoker,
 			},
-			{Name: OpAgentHealth, Description: "Agent subsystem health", Handler: agentHealthInvoker},
+			{Name: OpAgentHealth, Description: "Agent subsystem health for the signed-in caller. Read-only.\nExample: {}", Handler: agentHealthInvoker},
 			{
-				Name: OpHTTPRequest, Description: "Perform an outbound HTTP request", Mutation: true,
+				Name: OpHTTPRequest, Description: "Perform an outbound HTTP request for the signed-in caller. Creates or updates data.\nExample: {\"url\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "url", Type: "string", Required: true, Description: "Request URL"},
 					{Name: "method", Type: "string", Required: false, Description: "HTTP method (default GET)"},
@@ -74,7 +74,7 @@ func buildSpec() capability.Spec {
 				Handler: httpRequestInvoker,
 			},
 			{
-				Name: OpRunTerminal, Description: "Run a shell command in the configured workspace sandbox", Mutation: true,
+				Name: OpRunTerminal, Description: "Run a shell command in the configured workspace sandbox for the signed-in caller. Creates or updates data.\nExample: {\"command\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "command", Type: "string", Required: true, Description: "Shell command"},
 					{Name: "workdir", Type: "string", Required: false, Description: "Relative workdir under workspace"},
@@ -82,7 +82,7 @@ func buildSpec() capability.Spec {
 				Handler: runTerminalInvoker,
 			},
 			{
-				Name: OpRunCode, Description: "Run source code in the configured workspace sandbox", Mutation: true,
+				Name: OpRunCode, Description: "Run source code in the configured workspace sandbox for the signed-in caller. Creates or updates data.\nExample: {\"language\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "language", Type: "string", Required: true, Description: "python or shell"},
 					{Name: "code", Type: "string", Required: true, Description: "Source code"},
@@ -92,7 +92,7 @@ func buildSpec() capability.Spec {
 				Handler: runCodeInvoker,
 			},
 			{
-				Name: OpKVGet, Description: "Get a persistent KV value",
+				Name: OpKVGet, Description: "Get a persistent KV value for the signed-in caller. Read-only.\nExample: {\"namespace\":\"example\"}",
 				Input: []hub.ParamDef{
 					{Name: "namespace", Type: "string", Required: true, Description: "Namespace (core/ prefix applied)"},
 					{Name: "key", Type: "string", Required: true, Description: "Key"},
@@ -101,7 +101,7 @@ func buildSpec() capability.Spec {
 				Handler: kvGetInvoker,
 			},
 			{
-				Name: OpKVSet, Description: "Set a persistent KV value", Mutation: true,
+				Name: OpKVSet, Description: "Set a persistent KV value for the signed-in caller. Creates or updates data.\nExample: {\"namespace\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "namespace", Type: "string", Required: true, Description: "Namespace (core/ prefix applied)"},
 					{Name: "key", Type: "string", Required: true, Description: "Key"},
@@ -112,7 +112,7 @@ func buildSpec() capability.Spec {
 				Handler: kvSetInvoker,
 			},
 			{
-				Name: OpKVDelete, Description: "Delete a persistent KV value", Mutation: true,
+				Name: OpKVDelete, Description: "Delete a persistent KV value for the signed-in caller. Deletes or removes data.\nExample: {\"namespace\":\"example\"}", Mutation: true,
 				Input: []hub.ParamDef{
 					{Name: "namespace", Type: "string", Required: true, Description: "Namespace (core/ prefix applied)"},
 					{Name: "key", Type: "string", Required: true, Description: "Key"},
