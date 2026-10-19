@@ -146,7 +146,7 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 		body := ReadBody(resp)
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 		result := mcpResult(body)
-		Expect(result["isError"]).NotTo(BeTrue())
+		expectToolSucceeded(result)
 		sc := structuredContent(result)
 		Expect(sc["items"]).To(BeAssignableToTypeOf([]any{}))
 		requestID := resp.Header.Get("X-Request-ID")
@@ -210,7 +210,7 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 		body := ReadBody(resp)
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
 		result := mcpResult(body)
-		Expect(result["isError"]).NotTo(BeTrue())
+		expectToolSucceeded(result)
 		sc := structuredContent(result)
 		Expect(sc["status"]).NotTo(BeEmpty())
 		Expect(sc).NotTo(HaveKey("items"))
@@ -282,6 +282,14 @@ func mcpResult(body []byte) map[string]any {
 	result, ok := msg["result"].(map[string]any)
 	Expect(ok).To(BeTrue(), string(body))
 	return result
+}
+
+func expectToolSucceeded(result map[string]any) {
+	GinkgoHelper()
+	// CallToolResult omits isError when the call succeeded.
+	if v, ok := result["isError"]; ok {
+		Expect(v).To(Equal(false))
+	}
 }
 
 func structuredContent(result map[string]any) map[string]any {

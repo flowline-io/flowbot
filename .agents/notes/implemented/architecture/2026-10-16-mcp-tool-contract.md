@@ -12,6 +12,8 @@ Successful `structuredContent` is the existing result plus a sibling `trace`. JS
 
 `error` always has `code`, `message`, `retryable`, and `hint`. `message` uses `types.ClientSafeDomainMessage`, except plain errors and `ErrInternal`, which are always `internal error`. `retry_after_ms`, `field`, `job_id`, and `confirmation_required` appear only when set. `types.Error` carries optional `Field`, `RetryAfter`, `JobID`, and `Confirmation`. v1.0 does not fill those optionals at call sites. `ToToolError` lives in `pkg/toolerr`. `internal/server/mcp` re-exports it. It stays out of `pkg/mcp` because `pkg/types` imports `pkg/config`, and `pkg/config` imports `pkg/mcp`. The CLI uses the same function; see [CLI agent output](../feature/2026-10-17-cli-agent-output.md).
 
+`pipeline`, `workflow`, and `function` `get`, `run`, and `get_run` validate `name` before loading the service. A missing name is `invalid_argument` while that service is down. A present name still returns `unavailable` when the service is not wired. Successful `CallToolResult` omits `isError`; absence means the call succeeded.
+
 `trace.request_id` is the Fiber `X-Request-ID`. `trace.trace_id` is the current W3C span id when the span is valid. `correlation_id` is declared on the schema and omitted until a write emits a `DataEvent`.
 
 `capability.Classify` feeds MCP annotations only. `IsMutation` stays operation-name based for cache and pipelines. Destructive names are `delete`, `delete_*`, `kv_delete`, `archive`, and `remove`. `stop` and `run` are writes. Idempotent hints cover non-destructive `update`, `update_*`, `set_content`, `kv_set`, `attach_tags`, `detach_tags`, `mark_*`, `star_*`, and `unstar_*`. `openWorldHint` is false for `hub`, `pipeline`, `workflow`, and `example`. Titles reuse `{group}: {Description}`.
@@ -29,6 +31,7 @@ Contract tests run from `.github/workflows/mcp-contract.yml` via `go tool task t
 - **Lock the future `truncated` / `returned` page shape in v1.0.** Rejected: handlers return `PageInfo` (`limit`, `has_more`, `next_cursor`) or bare arrays. The schema describes those values.
 - **Add the contract job inside `testing.yml`.** Rejected: `paths-ignore` on the workflow trigger applies to every job in that file.
 - **Put `ToToolError` in `pkg/mcp`.** Rejected: that import cycle is `pkg/types` → `pkg/config` → `pkg/mcp`. It lives in `pkg/toolerr` instead.
+- **Check service readiness before required arguments.** Rejected: a missing `name` then looks like `unavailable`, so the agent retries instead of fixing the field.
 
 ## Consequences
 
@@ -42,6 +45,6 @@ Contract tests run from `.github/workflows/mcp-contract.yml` via `go tool task t
 
 - `go tool task test:mcp-contract`
 - BDD: `tests/specs/mcp_spec_test.go` (`tools/call` error envelope, `hub.apps` items, `hub.health` object). Those calls send `Mcp-Protocol-Version: 2026-07-28` matching `_meta`, plus `Mcp-Method` and `Mcp-Name`. The streamable handler returns 400 when that protocol is declared and the headers are absent.
-- `go test ./pkg/types/protocol/ ./pkg/mcp/ ./internal/server/mcp/ ./pkg/capability/ -count=1 -run "TestNewFailedResponse|TestToToolError|TestOutputSchemaContract|TestClassify|TestContractAnnotations"`
+- `go test ./pkg/types/protocol/ ./pkg/mcp/ ./internal/server/mcp/ ./pkg/capability/ -count=1 -run "TestNewFailedResponse|TestToToolError|TestOutputSchemaContract|TestClassify|TestContractAnnotations|TestNamedTool"`
 - `go test ./internal/store/ -count=1 -run TestDataEventTraceColumns`
 - User guide: [mcp.md](../../../docs/user-guide/mcp.md)

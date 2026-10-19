@@ -74,21 +74,31 @@ func injectUID(spec ToolSpec, args map[string]any, ident Identity) {
 }
 
 func execPipeline(ctx context.Context, ident Identity, op string, args map[string]any) (any, error) {
-	svc := pipeline.ActiveService()
-	if svc == nil {
-		return nil, types.Errorf(types.ErrUnavailable, "pipeline service not ready")
-	}
 	switch op {
 	case "list":
+		svc, err := requirePipeline()
+		if err != nil {
+			return nil, err
+		}
 		recs, err := svc.List(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return pageToolList(ctx, "pipeline", args, recs)
 	case "get":
-		return withName(args, func(name string) (any, error) { return svc.Get(ctx, name) })
+		return withName(args, func(name string) (any, error) {
+			svc, err := requirePipeline()
+			if err != nil {
+				return nil, err
+			}
+			return svc.Get(ctx, name)
+		})
 	case "run":
 		return withName(args, func(name string) (any, error) {
+			svc, err := requirePipeline()
+			if err != nil {
+				return nil, err
+			}
 			runID, err := svc.StartRunAsync(ctx, name, mapArg(args, "event"), string(ident.UID))
 			if err != nil {
 				return nil, err
@@ -97,6 +107,10 @@ func execPipeline(ctx context.Context, ident Identity, op string, args map[strin
 		})
 	case "get_run":
 		return withName(args, func(name string) (any, error) {
+			svc, err := requirePipeline()
+			if err != nil {
+				return nil, err
+			}
 			runs, err := svc.ListRuns(ctx, name)
 			if err != nil {
 				return nil, err
@@ -108,22 +122,40 @@ func execPipeline(ctx context.Context, ident Identity, op string, args map[strin
 	}
 }
 
-func execWorkflow(ctx context.Context, op string, args map[string]any) (any, error) {
-	svc := workflow.ActiveService()
+func requirePipeline() (*pipeline.Service, error) {
+	svc := pipeline.ActiveService()
 	if svc == nil {
-		return nil, types.Errorf(types.ErrUnavailable, "workflow service not ready")
+		return nil, types.Errorf(types.ErrUnavailable, "pipeline service not ready")
 	}
+	return svc, nil
+}
+
+func execWorkflow(ctx context.Context, op string, args map[string]any) (any, error) {
 	switch op {
 	case "list":
+		svc, err := requireWorkflow()
+		if err != nil {
+			return nil, err
+		}
 		recs, err := svc.List(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return pageToolList(ctx, "workflow", args, recs)
 	case "get":
-		return withName(args, func(name string) (any, error) { return svc.Get(ctx, name) })
+		return withName(args, func(name string) (any, error) {
+			svc, err := requireWorkflow()
+			if err != nil {
+				return nil, err
+			}
+			return svc.Get(ctx, name)
+		})
 	case "run":
 		return withName(args, func(name string) (any, error) {
+			svc, err := requireWorkflow()
+			if err != nil {
+				return nil, err
+			}
 			runID, err := svc.StartRunAsync(ctx, name, "manual", types.KV(mapArg(args, "input")))
 			if err != nil {
 				return nil, err
@@ -132,6 +164,10 @@ func execWorkflow(ctx context.Context, op string, args map[string]any) (any, err
 		})
 	case "get_run":
 		return withName(args, func(name string) (any, error) {
+			svc, err := requireWorkflow()
+			if err != nil {
+				return nil, err
+			}
 			runs, err := svc.ListRuns(ctx, name)
 			if err != nil {
 				return nil, err
@@ -143,22 +179,40 @@ func execWorkflow(ctx context.Context, op string, args map[string]any) (any, err
 	}
 }
 
-func execFunction(ctx context.Context, op string, args map[string]any) (any, error) {
-	svc := functions.ActiveService()
+func requireWorkflow() (*workflow.Service, error) {
+	svc := workflow.ActiveService()
 	if svc == nil {
-		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+		return nil, types.Errorf(types.ErrUnavailable, "workflow service not ready")
 	}
+	return svc, nil
+}
+
+func execFunction(ctx context.Context, op string, args map[string]any) (any, error) {
 	switch op {
 	case "list":
+		svc, err := requireFunction()
+		if err != nil {
+			return nil, err
+		}
 		recs, err := svc.List(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return pageToolList(ctx, "function", args, recs)
 	case "get":
-		return withName(args, func(name string) (any, error) { return svc.GetPublic(ctx, name, nil) })
+		return withName(args, func(name string) (any, error) {
+			svc, err := requireFunction()
+			if err != nil {
+				return nil, err
+			}
+			return svc.GetPublic(ctx, name, nil)
+		})
 	case "run":
 		return withName(args, func(name string) (any, error) {
+			svc, err := requireFunction()
+			if err != nil {
+				return nil, err
+			}
 			req := functions.InvokeRequest{Name: name, Event: args["event"]}
 			if v, ok := intArg(args["version"]); ok {
 				ver := v
@@ -168,6 +222,10 @@ func execFunction(ctx context.Context, op string, args map[string]any) (any, err
 		})
 	case "get_run":
 		return withName(args, func(name string) (any, error) {
+			svc, err := requireFunction()
+			if err != nil {
+				return nil, err
+			}
 			runs, err := svc.ListRuns(ctx, name)
 			if err != nil {
 				return nil, err
@@ -177,6 +235,14 @@ func execFunction(ctx context.Context, op string, args map[string]any) (any, err
 	default:
 		return nil, fmt.Errorf("unknown function operation %s", op)
 	}
+}
+
+func requireFunction() (*functions.Service, error) {
+	svc := functions.ActiveService()
+	if svc == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+	}
+	return svc, nil
 }
 
 func execHub(ctx context.Context, op string, args map[string]any) (any, error) {
