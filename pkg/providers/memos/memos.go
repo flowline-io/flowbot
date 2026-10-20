@@ -78,15 +78,15 @@ func normalizeEndpoint(endpoint string) string {
 }
 
 // CreateMemo creates a new memo via POST /api/v1/memos.
+// gRPC-gateway binds body: "memo", so the JSON body is the Memo itself.
+// A wrapper object drops content and stores a blank memo.
 func (v *Memos) CreateMemo(ctx context.Context, content, visibility string) (*Memo, error) {
 	if visibility == "" {
 		visibility = "PRIVATE"
 	}
-	body := CreateMemoRequest{
-		Memo: Memo{
-			Content:    content,
-			Visibility: visibility,
-		},
+	body := Memo{
+		Content:    content,
+		Visibility: visibility,
 	}
 	resp := &Memo{}
 	httpResp, err := v.c.R().
@@ -152,6 +152,7 @@ func (v *Memos) ListMemos(ctx context.Context, params ListMemosParams) (*ListMem
 // UpdateMemo updates a memo via PATCH /api/v1/{memo.name}.
 // name is the resource name (e.g., "memos/123").
 // fields lists the field mask paths to update (e.g., ["content", "visibility"]).
+// The JSON body is the Memo; updateMask is a query parameter because only memo is the HTTP body.
 func (v *Memos) UpdateMemo(ctx context.Context, name, content, visibility string, pinned *bool, fields []string) (*Memo, error) {
 	memo := Memo{
 		Name: name,
@@ -165,17 +166,16 @@ func (v *Memos) UpdateMemo(ctx context.Context, name, content, visibility string
 	if pinned != nil {
 		memo.Pinned = *pinned
 	}
-	body := UpdateMemoRequest{
-		Memo:       memo,
-		UpdateMask: fields,
-	}
 	resp := &Memo{}
-	httpResp, err := v.c.R().
+	req := v.c.R().
 		SetContext(ctx).
-		SetBody(body).
+		SetBody(memo).
 		SetResult(resp).
-		SetPathParam("name", name).
-		Patch("/api/v1/{name}")
+		SetPathParam("name", name)
+	if len(fields) > 0 {
+		req.SetQueryParam("updateMask", strings.Join(fields, ","))
+	}
+	httpResp, err := req.Patch("/api/v1/{name}")
 	if err != nil {
 		return nil, fmt.Errorf("memos update memo %s: %w", name, err)
 	}

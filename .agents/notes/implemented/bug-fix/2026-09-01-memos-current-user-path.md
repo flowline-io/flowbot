@@ -26,7 +26,7 @@ This is a recorded shim for an external consumer that cannot move in the same ch
 
 - One extra round trip on 0.25.x health checks (404 then session GET).
 - 0.26+ keeps a single request.
-- Memo CRUD paths are unchanged; this note does not claim 0.25/0.26 request-body compatibility for create/update.
+- Create and update request bodies are specified in [memos create body](2026-10-20-memos-create-body.md).
 
 ## Verification
 

@@ -3,10 +3,13 @@ package memos
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -142,6 +145,7 @@ func TestCreateMemo(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, http.MethodPost, r.Method)
 				assert.Equal(t, "/api/v1/memos", r.URL.Path)
+				assertMemoBody(t, r, tt.content, visibilityOrPrivate(tt.visibility))
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(tt.statusCode)
 				_, _ = w.Write([]byte(tt.respBody))
@@ -333,6 +337,8 @@ func TestUpdateMemo(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, http.MethodPatch, r.Method)
 				assert.Equal(t, "/api/v1/"+tt.memoName, r.URL.Path)
+				assert.Equal(t, strings.Join(tt.fields, ","), r.URL.Query().Get("updateMask"))
+				assertMemoBody(t, r, tt.content, tt.visibility)
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(tt.statusCode)
 				_, _ = w.Write([]byte(tt.respBody))
@@ -580,4 +586,35 @@ func TestListRawEvents_ContextCanceled(t *testing.T) {
 	c := NewMemos(srv.URL, "")
 	_, _, err := c.ListRawEvents(ctx, "")
 	assert.Error(t, err)
+}
+
+func visibilityOrPrivate(visibility string) string {
+	if visibility == "" {
+		return "PRIVATE"
+	}
+	return visibility
+}
+
+// assertMemoBody checks the grpc-gateway body for CreateMemo and UpdateMemo.
+// Those RPCs set body to the Memo message, so content and visibility are top-level fields.
+func assertMemoBody(t *testing.T, r *http.Request, content, visibility string) {
+	t.Helper()
+	raw, err := io.ReadAll(r.Body)
+	require.NoError(t, err)
+	var got map[string]any
+	require.NoError(t, sonic.Unmarshal(raw, &got))
+	_, wrapped := got["memo"]
+	assert.False(t, wrapped)
+	if content == "" {
+		_, ok := got["content"]
+		assert.False(t, ok)
+	} else {
+		assert.Equal(t, content, got["content"])
+	}
+	if visibility == "" {
+		_, ok := got["visibility"]
+		assert.False(t, ok)
+	} else {
+		assert.Equal(t, visibility, got["visibility"])
+	}
 }

@@ -198,18 +198,6 @@ type ListMemosParams struct {
 	Filter string
 }
 
-// CreateMemoRequest is the request body for creating a memo.
-type CreateMemoRequest struct {
-	Memo   Memo   `json:"memo"`
-	MemoID string `json:"memoId,omitempty"`
-}
-
-// UpdateMemoRequest is the request body for updating a memo.
-type UpdateMemoRequest struct {
-	Memo       Memo     `json:"memo"`
-	UpdateMask []string `json:"updateMask,omitempty"`
-}
-
 // LinkMetadata holds metadata for a link extracted by the server.
 type LinkMetadata struct {
 	URL         string `json:"url,omitempty"`
