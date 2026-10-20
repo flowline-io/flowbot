@@ -28,7 +28,7 @@ require (
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-playground/validator/v10 v10.30.5
 	github.com/goccy/go-yaml v1.19.2
-	github.com/gofiber/contrib/v3/swaggo v1.0.12
+	github.com/gofiber/contrib/v3/swaggo v1.0.13
 	github.com/gofiber/contrib/v3/zerolog v1.1.7
 	github.com/gofiber/fiber/v3 v3.6.1
 	github.com/google/uuid v1.6.0
