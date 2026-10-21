@@ -506,14 +506,23 @@ other = "创建令牌"
 [page.mcp.token_once]
 other = "请立即复制此令牌，之后不再显示。"
 
+[page.mcp.tools]
+other = "工具"
+
+[page.mcp.tools_empty]
+other = "这些权限下没有工具。"
+
+[page.mcp.clients]
+other = "客户端配置"
+
 [page.mcp.tier_read]
-other = "只读。"
+other = "只读"
 
 [page.mcp.tier_write]
-other = "会创建或更新数据。"
+other = "会创建或更新数据"
 
 [page.mcp.tier_destructive]
-other = "会删除或移除数据。"
+other = "会删除或移除数据"
 
 [page.inbox.title]
 other = "收件箱"

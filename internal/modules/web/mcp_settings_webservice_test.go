@@ -44,6 +44,9 @@ func TestMCPSettingsPage(t *testing.T) {
 	for _, want := range []string{
 		`data-testid="mcp-settings-page"`,
 		`data-testid="mcp-restart-note"`,
+		`class="flowbot-surface mcp-settings"`,
+		`class="select select-bordered select-sm w-full"`,
+		`data-clip-copy`,
 		`data-testid="mcp-snippet-codex"`,
 		`data-testid="mcp-snippet-claude"`,
 		`data-testid="mcp-snippet-cursor"`,

@@ -506,14 +506,23 @@ other = "Create token"
 [page.mcp.token_once]
 other = "Copy this token now. It is not shown again."
 
+[page.mcp.tools]
+other = "Tools"
+
+[page.mcp.tools_empty]
+other = "No tools match these scopes."
+
+[page.mcp.clients]
+other = "Client setup"
+
 [page.mcp.tier_read]
-other = "Read-only."
+other = "Read-only"
 
 [page.mcp.tier_write]
-other = "Creates or updates data."
+other = "Creates or updates data"
 
 [page.mcp.tier_destructive]
-other = "Deletes or removes data."
+other = "Deletes or removes data"
 
 [page.inbox.title]
 other = "Inbox"

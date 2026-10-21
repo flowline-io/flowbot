@@ -4,6 +4,19 @@ package pages
 type MCPToolPreview struct {
 	Name string
 	Tier string
+	// Kind is read, write, or destructive. It selects the tier chip.
+	Kind string
+}
+
+func mcpTierChipClass(kind string) string {
+	switch kind {
+	case "write":
+		return "flowbot-chip flowbot-chip-warning"
+	case "destructive":
+		return "flowbot-chip flowbot-chip-error"
+	default:
+		return "flowbot-chip flowbot-chip-muted"
+	}
 }
 
 // MCPSettingsData is the MCP settings page.

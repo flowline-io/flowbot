@@ -10,78 +10,112 @@ import (
 
 templ MCPSettingsPage(ctx context.Context, data MCPSettingsData) {
 	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.mcp")) {
+		@partials.ClipCopyScripts()
 		@partials.PageHeader(ctx, "nav.mcp", "page.mcp.subtitle")
-		<div class="flowbot-surface" data-testid="mcp-settings-page">
+		<div class="flowbot-surface mcp-settings" data-testid="mcp-settings-page">
 			if data.Enabled {
-				<p data-testid="mcp-enabled-state">{ i18n.T(ctx, "page.mcp.enabled") }</p>
+				<div class="mcp-callout mcp-callout-ok">
+					<p data-testid="mcp-enabled-state">{ i18n.T(ctx, "page.mcp.enabled") }</p>
+				</div>
 			} else {
-				<p data-testid="mcp-enabled-state">{ i18n.T(ctx, "page.mcp.disabled") }</p>
-				<p data-testid="mcp-restart-note">{ i18n.T(ctx, "page.mcp.restart") }</p>
+				<div class="mcp-callout mcp-callout-off">
+					<p data-testid="mcp-enabled-state">{ i18n.T(ctx, "page.mcp.disabled") }</p>
+					<p data-testid="mcp-restart-note">{ i18n.T(ctx, "page.mcp.restart") }</p>
+				</div>
 			}
 			if data.Error != "" {
-				<div class="alert alert-error" data-testid="mcp-error">{ data.Error }</div>
+				<div class="alert alert-error text-sm" data-testid="mcp-error">{ data.Error }</div>
 			}
 			if data.Token != "" {
-				<div class="alert alert-success" data-testid="mcp-token-alert">
+				<div class="alert alert-success text-sm" data-testid="mcp-token-alert">
 					<span>{ i18n.T(ctx, "page.mcp.token_once") }</span>
-					<code class="font-mono text-xs" data-testid="mcp-token">{ data.Token }</code>
+					<code class="font-mono text-xs mcp-token-value" data-testid="mcp-token">{ data.Token }</code>
 				</div>
 			}
-			<form method="get" action="/service/web/settings/mcp" class="flex flex-col gap-3" data-testid="mcp-preview-form">
-				<label class="form-control">
-					<span class="label-text">{ i18n.T(ctx, "page.mcp.url") }</span>
-					<input class="input input-bordered" name="url" value={ data.URL } data-testid="mcp-url"/>
-				</label>
-				<div class="flex gap-4" data-testid="mcp-presets">
-					<label><input type="radio" name="preset" value="read" checked?={ data.Preset == "read" }/> { i18n.T(ctx, "page.mcp.preset_read") }</label>
-					<label><input type="radio" name="preset" value="run" checked?={ data.Preset == "run" }/> { i18n.T(ctx, "page.mcp.preset_run") }</label>
-					<label><input type="radio" name="preset" value="custom" checked?={ data.Preset == "custom" }/> { i18n.T(ctx, "page.mcp.preset_custom") }</label>
+			<form method="get" action="/service/web/settings/mcp" class="mcp-form" data-testid="mcp-preview-form">
+				<div class="mcp-field">
+					<label class="mcp-label" for="mcp-url">{ i18n.T(ctx, "page.mcp.url") }</label>
+					<input id="mcp-url" class="input input-bordered input-sm w-full font-mono" name="url" value={ data.URL } data-testid="mcp-url"/>
+				</div>
+				<div class="mcp-preset-row">
+					<div class="mcp-presets" data-testid="mcp-presets">
+						<label>
+							<input type="radio" class="radio" name="preset" value="read" checked?={ data.Preset == "read" }/>
+							{ i18n.T(ctx, "page.mcp.preset_read") }
+						</label>
+						<label>
+							<input type="radio" class="radio" name="preset" value="run" checked?={ data.Preset == "run" }/>
+							{ i18n.T(ctx, "page.mcp.preset_run") }
+						</label>
+						<label>
+							<input type="radio" class="radio" name="preset" value="custom" checked?={ data.Preset == "custom" }/>
+							{ i18n.T(ctx, "page.mcp.preset_custom") }
+						</label>
+					</div>
+					<button class="btn btn-outline btn-sm" type="submit" data-testid="mcp-preview-refresh">{ i18n.T(ctx, "page.mcp.preview") }</button>
 				</div>
 				if data.Preset == "custom" {
-					<div class="flex flex-col gap-1" data-testid="mcp-custom-scopes">
+					<div class="mcp-scopes" data-testid="mcp-custom-scopes">
 						for _, scope := range data.Custom {
 							<label>
-								<input type="checkbox" name="scopes" value={ scope.Value } checked?={ scope.Checked }/>
+								<input type="checkbox" class="checkbox checkbox-sm" name="scopes" value={ scope.Value } checked?={ scope.Checked }/>
 								{ scope.Value }
 							</label>
 						}
 					</div>
 				}
-				<button class="btn btn-sm" type="submit" data-testid="mcp-preview-refresh">{ i18n.T(ctx, "page.mcp.preview") }</button>
 			</form>
-			<p data-testid="mcp-run-warning">{ i18n.T(ctx, "page.mcp.run_warning") }</p>
-			<ul data-testid="mcp-tool-preview">
-				for _, tool := range data.Tools {
-					<li data-testid={ "mcp-tool-" + tool.Name }>{ tool.Name } — { tool.Tier }</li>
+			<p class="mcp-callout mcp-callout-warn" data-testid="mcp-run-warning">{ i18n.T(ctx, "page.mcp.run_warning") }</p>
+			<section>
+				<h2 class="mcp-section-title">{ i18n.T(ctx, "page.mcp.tools") }</h2>
+				if len(data.Tools) == 0 {
+					<p class="mcp-empty" data-testid="mcp-tool-preview">{ i18n.T(ctx, "page.mcp.tools_empty") }</p>
+				} else {
+					<ul class="mcp-tools" data-testid="mcp-tool-preview">
+						for _, tool := range data.Tools {
+							<li data-testid={ "mcp-tool-" + tool.Name }>
+								<code>{ tool.Name }</code>
+								<span class={ mcpTierChipClass(tool.Kind) }>{ tool.Tier }</span>
+							</li>
+						}
+					</ul>
 				}
-			</ul>
-			<form method="post" action="/service/web/settings/mcp/token" class="flex flex-col gap-3" data-testid="mcp-token-form">
+			</section>
+			<form method="post" action="/service/web/settings/mcp/token" class="mcp-token-row" data-testid="mcp-token-form">
 				<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
 				<input type="hidden" name="preset" value={ data.Preset }/>
 				<input type="hidden" name="url" value={ data.URL }/>
 				for _, scope := range data.Scopes {
 					<input type="hidden" name="scopes" value={ scope }/>
 				}
-				<label class="form-control">
-					<span class="label-text">{ i18n.T(ctx, "page.mcp.expires") }</span>
-					<select name="expires" data-testid="mcp-expires">
+				<div class="mcp-field">
+					<label class="mcp-label" for="mcp-expires">{ i18n.T(ctx, "page.mcp.expires") }</label>
+					<select id="mcp-expires" name="expires" class="select select-bordered select-sm w-full" data-testid="mcp-expires">
 						<option value="168h">{ i18n.T(ctx, "token.form.expires_7d") }</option>
 						<option value="720h">{ i18n.T(ctx, "token.form.expires_30d") }</option>
 						<option value="2160h" selected>{ i18n.T(ctx, "token.form.expires_90d") }</option>
 						<option value="8760h">{ i18n.T(ctx, "token.form.expires_1y") }</option>
 					</select>
-				</label>
+				</div>
 				<button class="btn btn-primary btn-sm" type="submit" data-testid="mcp-token-create">{ i18n.T(ctx, "page.mcp.create_token") }</button>
 			</form>
-			<div data-testid="mcp-snippets">
-				for _, snip := range data.Snippets {
-					<section data-testid={ "mcp-snippet-" + snip.Client }>
-						<h2>{ snip.Client }</h2>
-						<p>{ snip.Target }</p>
-						<pre>{ snip.Snippet }</pre>
-					</section>
-				}
-			</div>
+			<section>
+				<h2 class="mcp-section-title">{ i18n.T(ctx, "page.mcp.clients") }</h2>
+				<div class="mcp-snippets" data-testid="mcp-snippets">
+					for _, snip := range data.Snippets {
+						<section class="mcp-snippet" data-testid={ "mcp-snippet-" + snip.Client }>
+							<div class="mcp-snippet-head">
+								<div class="min-w-0">
+									<h3>{ snip.Client }</h3>
+									<p>{ snip.Target }</p>
+								</div>
+								@partials.ClipCopyIconButton("mcp-copy-"+snip.Client, snip.Snippet, i18n.T(ctx, "common.copy"))
+							</div>
+							<pre>{ snip.Snippet }</pre>
+						</section>
+					}
+				</div>
+			</section>
 		</div>
 	}
 }

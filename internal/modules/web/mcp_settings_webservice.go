@@ -98,7 +98,8 @@ func buildMCPSettings(ctx fiber.Ctx, preset string, scopes []string, endpoint, t
 	tools := serversmcp.FilterByScopes(serversmcp.BuildCatalog(hub.Default.List(), pkgconfig.App.MCP.Include, pkgconfig.App.MCP.Exclude), scopes)
 	preview := make([]pages.MCPToolPreview, 0, len(tools))
 	for _, tool := range tools {
-		preview = append(preview, pages.MCPToolPreview{Name: tool.Name, Tier: tierLabel(ctx, tool.Group, tool.Operation)})
+		label, kind := tierLabel(ctx, tool.Group, tool.Operation)
+		preview = append(preview, pages.MCPToolPreview{Name: tool.Name, Tier: label, Kind: kind})
 	}
 	custom := make([]pages.MCPScopeChoice, 0)
 	selected := map[string]bool{}
@@ -144,15 +145,15 @@ func wizardScopes(preset string, custom []string) []string {
 	}
 }
 
-func tierLabel(ctx fiber.Ctx, group, op string) string {
+func tierLabel(ctx fiber.Ctx, group, op string) (label, kind string) {
 	tier, _ := capability.Classify(group, op)
 	switch tier {
 	case capability.TierDestructive:
-		return i18n.T(ctx, "page.mcp.tier_destructive")
+		return i18n.T(ctx, "page.mcp.tier_destructive"), "destructive"
 	case capability.TierWrite:
-		return i18n.T(ctx, "page.mcp.tier_write")
+		return i18n.T(ctx, "page.mcp.tier_write"), "write"
 	default:
-		return i18n.T(ctx, "page.mcp.tier_read")
+		return i18n.T(ctx, "page.mcp.tier_read"), "read"
 	}
 }
 
