@@ -2,6 +2,7 @@ package command
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/pelletier/go-toml/v2"
@@ -69,8 +70,10 @@ func TestMCPConfigCommandPrintsCodex(t *testing.T) {
 	cmd.SetOut(buf)
 	cmd.SetArgs([]string{"config", "--client", "codex", "--url", "https://flowbot.lan/mcp"})
 	require.NoError(t, cmd.Execute())
-	assert.Contains(t, buf.String(), `bearer_token_env_var = "FLOWBOT_MCP_TOKEN"`)
-	assert.NotContains(t, buf.String(), "eyJ")
+	out := buf.String()
+	assert.True(t, strings.HasPrefix(out, "server card: https://flowbot.lan/mcp/server-card\n"))
+	assert.Contains(t, out, `bearer_token_env_var = "FLOWBOT_MCP_TOKEN"`)
+	assert.NotContains(t, out, "eyJ")
 }
 
 func TestMCPConfigRejectsExplicitApprovalOnClaude(t *testing.T) {

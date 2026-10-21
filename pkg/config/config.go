@@ -689,6 +689,8 @@ type ChatAgentMCPServer struct {
 type MCPConfig struct {
 	// Enabled mounts POST /mcp when true. GET and DELETE return 405 (stateless). Default false.
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// ServerCard publishes GET /mcp/server-card when nil or true, and only while Enabled is true. False leaves /mcp mounted without the card.
+	ServerCard *bool `json:"server_card" yaml:"server_card" mapstructure:"server_card"`
 	// Include limits tools advertised on /mcp (capability or full tool name). Empty means all allowed by token scope minus the deny-list.
 	Include []string `json:"include" yaml:"include" mapstructure:"include"`
 	// Exclude removes tools from /mcp. Exclude wins over include; the deny-list cannot be overridden.
@@ -709,6 +711,15 @@ type MCPRateLimitConfig struct {
 	WritePerTokenRPM int `json:"write_per_token_rpm" yaml:"write_per_token_rpm" mapstructure:"write_per_token_rpm"`
 	// LineagePerTokenRPM is the additional budget for lineage and flow tools. Zero uses 30.
 	LineagePerTokenRPM int `json:"lineage_per_token_rpm" yaml:"lineage_per_token_rpm" mapstructure:"lineage_per_token_rpm"`
+}
+
+// PublishServerCard reports whether GET /mcp/server-card is mounted.
+// A nil ServerCard follows Enabled. An explicit false leaves /mcp up and does not publish the card.
+func (c MCPConfig) PublishServerCard() bool {
+	if !c.Enabled {
+		return false
+	}
+	return c.ServerCard == nil || *c.ServerCard
 }
 
 // ChatAgentBrowserConfig configures interactive browser tools over CDP.

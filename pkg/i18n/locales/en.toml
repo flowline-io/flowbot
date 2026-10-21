@@ -482,6 +482,9 @@ other = "Set mcp.enabled to true and restart the process. /mcp is mounted only a
 [page.mcp.url]
 other = "MCP URL"
 
+[page.mcp.server_card]
+other = "Server card"
+
 [page.mcp.preset_read]
 other = "Read only"
 

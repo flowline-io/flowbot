@@ -21,16 +21,17 @@ func mcpTierChipClass(kind string) string {
 
 // MCPSettingsData is the MCP settings page.
 type MCPSettingsData struct {
-	Enabled   bool
-	URL       string
-	Preset    string
-	Scopes    []string
-	Custom    []MCPScopeChoice
-	Tools     []MCPToolPreview
-	Snippets  []MCPSnippet
-	Token     string
-	CSRFToken string
-	Error     string
+	Enabled       bool
+	URL           string
+	ServerCardURL string
+	Preset        string
+	Scopes        []string
+	Custom        []MCPScopeChoice
+	Tools         []MCPToolPreview
+	Snippets      []MCPSnippet
+	Token         string
+	CSRFToken     string
+	Error         string
 }
 
 // MCPScopeChoice is one checkbox on the custom preset.

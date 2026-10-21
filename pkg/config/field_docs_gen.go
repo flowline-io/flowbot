@@ -151,6 +151,7 @@ var FieldDocs = map[string]string{
 	"mcp.rate_limit.lineage_per_token_rpm":                "LineagePerTokenRPM is the additional budget for lineage and flow tools. Zero uses 30.",
 	"mcp.rate_limit.per_token_rpm":                        "PerTokenRPM is the total tools/call budget per token per minute. Zero uses 120.",
 	"mcp.rate_limit.write_per_token_rpm":                  "WritePerTokenRPM is the additional budget for write and destructive tools. Zero uses 20.",
+	"mcp.server_card":                                     "ServerCard publishes GET /mcp/server-card when nil or true, and only while Enabled is true. False leaves /mcp mounted without the card.",
 	"media":                                               "Media large-file storage configuration (optional; omit to disable uploads).",
 	"media.gc_block_size":                                 "Number of entries to delete in one pass (0 = default 100).",
 	"media.gc_period":                                     "Garbage collection period in seconds (0 = default 60).",

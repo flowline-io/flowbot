@@ -482,6 +482,9 @@ other = "将 mcp.enabled 设为 true 并重启进程。/mcp 只在启动时挂�
 [page.mcp.url]
 other = "MCP 地址"
 
+[page.mcp.server_card]
+other = "Server Card"
+
 [page.mcp.preset_read]
 other = "只读"
 

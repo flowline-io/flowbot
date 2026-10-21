@@ -37,6 +37,15 @@ templ MCPSettingsPage(ctx context.Context, data MCPSettingsData) {
 					<label class="mcp-label" for="mcp-url">{ i18n.T(ctx, "page.mcp.url") }</label>
 					<input id="mcp-url" class="input input-bordered input-sm w-full font-mono" name="url" value={ data.URL } data-testid="mcp-url"/>
 				</div>
+				if data.ServerCardURL != "" {
+					<div class="mcp-field">
+						<label class="mcp-label" for="mcp-server-card">{ i18n.T(ctx, "page.mcp.server_card") }</label>
+						<div class="flex items-center gap-2">
+							<input id="mcp-server-card" class="input input-bordered input-sm w-full font-mono" readonly="readonly" value={ data.ServerCardURL } data-testid="mcp-server-card"/>
+							@partials.ClipCopyIconButton("mcp-copy-server-card", data.ServerCardURL, i18n.T(ctx, "common.copy"))
+						</div>
+					</div>
+				}
 				<div class="mcp-preset-row">
 					<div class="mcp-presets" data-testid="mcp-presets">
 						<label>

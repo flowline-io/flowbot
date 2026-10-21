@@ -29,13 +29,16 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 	var (
 		app        *fiber.App
 		prevEnable bool
+		prevCard   *bool
 		apiToken   string
 		fullToken  string
 	)
 
 	BeforeEach(func() {
 		prevEnable = config.App.MCP.Enabled
+		prevCard = config.App.MCP.ServerCard
 		config.App.MCP.Enabled = true
+		config.App.MCP.ServerCard = nil
 		app = fiber.New(fiber.Config{
 			ErrorHandler: func(ctx fiber.Ctx, err error) error {
 				if err == nil {
@@ -76,6 +79,40 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 	AfterEach(func() {
 		serversmcp.SetRateRedis(nil)
 		config.App.MCP.Enabled = prevEnable
+		config.App.MCP.ServerCard = prevCard
+	})
+
+	It("returns the public server card without a token", func() {
+		prevOrigin := config.App.Flowbot.URL
+		config.App.Flowbot.URL = ""
+		DeferCleanup(func() { config.App.Flowbot.URL = prevOrigin })
+		resp, err := app.Test(MakeRequest(http.MethodGet, "/mcp/server-card", nil))
+		Expect(err).NotTo(HaveOccurred())
+		defer resp.Body.Close()
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		Expect(resp.Header.Get("Content-Type")).To(Equal("application/mcp-server-card+json"))
+		var doc map[string]any
+		Expect(sonic.Unmarshal(ReadBody(resp), &doc)).To(Succeed())
+		Expect(doc["name"]).To(Equal("flowline-io/flowbot"))
+		Expect(doc).NotTo(HaveKey("tools"))
+		remotes, ok := doc["remotes"].([]any)
+		Expect(ok).To(BeTrue())
+		Expect(remotes).To(HaveLen(1))
+		remote, ok := remotes[0].(map[string]any)
+		Expect(ok).To(BeTrue())
+		Expect(remote["url"]).To(Equal("http://localhost/mcp"))
+		Expect(remote["supportedProtocolVersions"]).To(Equal([]any{"2026-07-28"}))
+	})
+
+	It("hides the server card when mcp.server_card is false", func() {
+		off := false
+		config.App.MCP.ServerCard = &off
+		hidden := fiber.New()
+		serversmcp.Register(hidden, nil)
+		resp, err := hidden.Test(MakeRequest(http.MethodGet, "/mcp/server-card", nil))
+		Expect(err).NotTo(HaveOccurred())
+		defer resp.Body.Close()
+		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 	})
 
 	It("returns 405 for GET without a token", func() {

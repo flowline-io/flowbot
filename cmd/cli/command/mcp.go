@@ -50,6 +50,11 @@ func mcpConfigCommand() *cobra.Command {
 			if IsJSON(cmd) {
 				return render(cmd, snippet)
 			}
+			if snippet.ServerCard != "" {
+				if _, err := fmt.Fprintf(cmd.OutOrStdout(), "server card: %s\n", snippet.ServerCard); err != nil {
+					return err
+				}
+			}
 			_, err = fmt.Fprint(cmd.OutOrStdout(), snippet.Snippet)
 			return err
 		},

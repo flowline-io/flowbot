@@ -109,16 +109,21 @@ func buildMCPSettings(ctx fiber.Ctx, preset string, scopes []string, endpoint, t
 	for _, info := range auth.MCPWizardScopes() {
 		custom = append(custom, pages.MCPScopeChoice{Value: info.Value, Checked: selected[info.Value]})
 	}
+	cardURL := ""
+	if pkgconfig.App.MCP.PublishServerCard() {
+		cardURL = pkgmcp.ServerCardURLOrEmpty(endpoint)
+	}
 	return pages.MCPSettingsData{
-		Enabled:   pkgconfig.App.MCP.Enabled,
-		URL:       endpoint,
-		Preset:    preset,
-		Scopes:    scopes,
-		Custom:    custom,
-		Tools:     preview,
-		Snippets:  mcpSnippets(endpoint),
-		Token:     token,
-		CSRFToken: csrf.TokenFromContext(ctx),
+		Enabled:       pkgconfig.App.MCP.Enabled,
+		URL:           endpoint,
+		ServerCardURL: cardURL,
+		Preset:        preset,
+		Scopes:        scopes,
+		Custom:        custom,
+		Tools:         preview,
+		Snippets:      mcpSnippets(endpoint),
+		Token:         token,
+		CSRFToken:     csrf.TokenFromContext(ctx),
 	}
 }
 

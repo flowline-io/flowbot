@@ -210,8 +210,10 @@ chat_agent:
   #     args: ["/data"]
 
 # Inbound MCP server (Streamable HTTP POST /mcp; GET/DELETE 405). Default off.
+# GET /mcp/server-card is a public Server Card when enabled is true, unless server_card is false.
 # mcp:
 #   enabled: false
+#   server_card: true  # omit to follow enabled; false hides /mcp/server-card
 #   include: []   # capability or tool name; empty = all allowed by token minus deny-list
 #   exclude: []
 #   max_output_bytes: 32768  # 0 uses 32768; successful tool JSON is clamped to this size

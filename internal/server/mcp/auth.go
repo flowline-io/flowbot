@@ -1,4 +1,5 @@
-// Package mcp serves Flowbot capabilities over Streamable HTTP at /mcp.
+// Package mcp serves Flowbot capabilities over Streamable HTTP at /mcp
+// and, unless mcp.server_card is false, a public Server Card at /mcp/server-card.
 package mcp
 
 import (

@@ -80,6 +80,7 @@ func Register(app *fiber.App, auditor audit.Auditor) {
 	if app == nil || !config.App.MCP.Enabled {
 		return
 	}
+	registerServerCard(app)
 	handler := mcpsdk.NewStreamableHTTPHandler(func(r *http.Request) *mcpsdk.Server {
 		return newSDKServer(identityFrom(r.Context()), auditor)
 	}, &mcpsdk.StreamableHTTPOptions{Stateless: true})

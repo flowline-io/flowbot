@@ -98,6 +98,21 @@ var _ = Describe("MCP settings /service/web/settings/mcp", Label("mcp", "web"), 
 		Expect(body).To(ContainSubstring(`data-testid="mcp-settings-page"`))
 		Expect(body).To(ContainSubstring(`data-testid="mcp-restart-note"`))
 		Expect(body).To(ContainSubstring(`data-testid="mcp-snippet-codex"`))
+		Expect(body).NotTo(ContainSubstring(`data-testid="mcp-server-card"`))
+	})
+
+	It("shows the server card URL while the card is published", func() {
+		pkgconfig.App.MCP.Enabled = true
+		req := MakeRequest(http.MethodGet, "/service/web/settings/mcp", nil)
+		req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-mcp-settings-token"})
+		webmod.AttachCSRFForTest(req)
+		resp, err := App.Test(req)
+		Expect(err).NotTo(HaveOccurred())
+		defer resp.Body.Close()
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		body := string(ReadBody(resp))
+		Expect(body).To(ContainSubstring(`data-testid="mcp-server-card"`))
+		Expect(body).To(ContainSubstring(`/mcp/server-card`))
 	})
 
 	It("mints a token for the signed-in user", func() {

@@ -6,6 +6,8 @@ Flowbot speaks MCP in two directions. CLI and generated `docs/skills` stay as th
 
 Set `mcp.enabled: true` and connect a client with a **header** token (`Authorization: Bearer` or `X-AccessToken`). Cookies and full web sessions (`kind=full`) are rejected. The endpoint is Streamable HTTP, stateless (MCP `2026-07-28`): POST is the protocol; GET and DELETE return 405. Default is off.
 
+`GET /mcp/server-card` is a public [MCP Server Card](https://modelcontextprotocol.io/seps/2127-mcp-server-cards) (no token) when `mcp.enabled` is true and `mcp.server_card` is not false. The JSON is `$schema`, `name` (`flowline-io/flowbot`), `version`, `description`, and one `streamable-http` remote with protocol `2026-07-28`. The remote is `flowbot.url` plus `/mcp` when `flowbot.url` is set; otherwise it is the request host, and `X-Forwarded-Proto: https` or a TLS request selects https. It does not list tools. The extension schema is still pre-release, so those fields can change. `flowbot mcp config` prints that URL as the first stdout line, then the snippet. `-o json` puts it on `data.server_card`. The CLI prints the path for the endpoint you pass; it does not read this process's `mcp.server_card`. `/service/web/settings/mcp` shows the URL only while this process publishes the card.
+
 Cursor example (`mcp.json`):
 
 ```json
@@ -29,7 +31,7 @@ Failed calls set `isError` and return `structuredContent.error` with `code`, `me
 
 Codes, hints, and schema scope: [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](../../.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md).
 
-List tools take `limit` (default 20, maximum 100) and an opaque `cursor`. The next page is `page.next_cursor`. When a result is shortened to `mcp.max_output_bytes` (default 32768), `page.truncated` is true. `flowbot mcp config --client codex|claude|cursor|generic` prints a snippet and does not write client files. The Web page `/service/web/settings/mcp` shows the same snippets and can mint a read or run token for the signed-in user. `mcp.enabled` is read from the process config; changing it requires a restart.
+List tools take `limit` (default 20, maximum 100) and an opaque `cursor`. The next page is `page.next_cursor`. When a result is shortened to `mcp.max_output_bytes` (default 32768), `page.truncated` is true. `flowbot mcp config --client codex|claude|cursor|generic` prints a snippet and does not write client files. The Web page `/service/web/settings/mcp` shows the same snippets and can mint a read or run token for the signed-in user. `mcp.enabled` and `mcp.server_card` are read from the process config; changing them requires a restart.
 
 ## Client check
 

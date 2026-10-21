@@ -44,26 +44,35 @@ type Snippet struct {
 	Client  string `json:"client"`
 	Target  string `json:"target"`
 	Snippet string `json:"snippet"`
+	// ServerCard is the public discovery URL for URL. Empty when URL is not http or https.
+	ServerCard string `json:"server_card,omitempty"`
 }
 
 // RenderSnippet builds a paste-ready client snippet. The token value is never included.
+// ServerCard is set when URL is an HTTP endpoint. The snippet text does not include it.
 func RenderSnippet(client Client, opt SnippetOptions) (Snippet, error) {
 	name, tokenEnv, endpoint, approval, err := normalizeSnippet(opt)
 	if err != nil {
 		return Snippet{}, err
 	}
+	var snippet Snippet
 	switch client {
 	case ClientCodex:
-		return renderCodex(name, endpoint, tokenEnv, approval, opt.Scope)
+		snippet, err = renderCodex(name, endpoint, tokenEnv, approval, opt.Scope)
 	case ClientClaude:
-		return renderClaude(name, endpoint, tokenEnv, opt)
+		snippet, err = renderClaude(name, endpoint, tokenEnv, opt)
 	case ClientCursor:
-		return renderCursor(name, endpoint, tokenEnv, opt)
+		snippet, err = renderCursor(name, endpoint, tokenEnv, opt)
 	case ClientGeneric:
-		return renderGeneric(endpoint, tokenEnv, opt.Approval)
+		snippet, err = renderGeneric(endpoint, tokenEnv, opt.Approval)
 	default:
 		return Snippet{}, errors.New("client must be codex, claude, cursor, or generic")
 	}
+	if err != nil {
+		return Snippet{}, err
+	}
+	snippet.ServerCard = ServerCardURLOrEmpty(endpoint)
+	return snippet, nil
 }
 
 func normalizeSnippet(opt SnippetOptions) (name, tokenEnv, endpoint, approval string, err error) {

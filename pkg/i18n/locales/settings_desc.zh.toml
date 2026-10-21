@@ -441,6 +441,9 @@ other = "PerTokenRPM is the total tools/call budget per token per minute. Zero u
 ["settings.desc.mcp.rate_limit.write_per_token_rpm"]
 other = "WritePerTokenRPM is the additional budget for write and destructive tools. Zero uses 20."
 
+["settings.desc.mcp.server_card"]
+other = "ServerCard 在省略或为 true 时发布 GET /mcp/server-card，且仅在 Enabled 为 true 时挂载。false 时保留 /mcp、不发布卡片。"
+
 ["settings.desc.media"]
 other = "Media 大文件存储配置（可选；省略则禁用上传）。"
 

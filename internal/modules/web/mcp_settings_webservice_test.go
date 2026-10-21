@@ -58,4 +58,28 @@ func TestMCPSettingsPage(t *testing.T) {
 			t.Fatalf("missing %s", want)
 		}
 	}
+	if strings.Contains(html, `data-testid="mcp-server-card"`) {
+		t.Fatalf("unpublished card URL was shown: %s", html)
+	}
+
+	pkgconfig.App.MCP.Enabled = true
+	req = httptest.NewRequest(http.MethodGet, "/service/web/settings/mcp", http.NoBody)
+	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	AttachCSRFForTest(req)
+	resp, err = app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test: %v", err)
+	}
+	defer resp.Body.Close()
+	body, err = io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status %d body %s", resp.StatusCode, body)
+	}
+	html = string(body)
+	if !strings.Contains(html, `data-testid="mcp-server-card"`) || !strings.Contains(html, `/mcp/server-card`) {
+		t.Fatalf("published card URL missing: %s", html)
+	}
 }
