@@ -8,6 +8,7 @@ import (
 
 	"github.com/samber/oops"
 
+	"github.com/flowline-io/flowbot/pkg/toolerr"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -51,6 +52,8 @@ type Response struct {
 	// Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
 	// or an empty string when it succeeds.
 	Message string `json:"message,omitempty"`
+	// Error is the agent error object for idempotency_unknown.
+	Error any `json:"error,omitempty"`
 }
 
 func NewError(code int64, message string) oops.OopsErrorBuilder {
@@ -199,11 +202,15 @@ func NewFailedResponse(err error) Response {
 		}
 	}
 	if te, ok := errors.AsType[*types.Error](err); ok {
-		return Response{
+		resp := Response{
 			Status:  Failed,
 			RetCode: domainRetCode(te),
 			Message: types.ClientSafeDomainMessage(te),
 		}
+		if errors.Is(te.Kind, types.ErrIdempotencyUnknown) || te.RetryAfter > 0 {
+			resp.Error = toolerr.ToToolError(te).Object()
+		}
+		return resp
 	}
 	if e, ok := errors.AsType[oops.OopsError](err); ok {
 		message := e.Public()
@@ -240,6 +247,8 @@ func domainRetCode(te *types.Error) string {
 		return "10009"
 	case errors.Is(te.Kind, types.ErrAlreadyExists), errors.Is(te.Kind, types.ErrConflict):
 		return "10010"
+	case errors.Is(te.Kind, types.ErrIdempotencyUnknown):
+		return "10015"
 	case errors.Is(te.Kind, types.ErrRateLimited):
 		return "10011"
 	case errors.Is(te.Kind, types.ErrUnavailable):

@@ -22,6 +22,8 @@ var (
 	ErrInternal        = errors.New("internal error")
 	// ErrInvokeRun marks a published function entrypoint that exited non-zero or returned invalid stdout JSON.
 	ErrInvokeRun = errors.New("function invoke run failed")
+	// ErrIdempotencyUnknown means a write key's side effect may already have happened.
+	ErrIdempotencyUnknown = errors.New("idempotency unknown")
 )
 
 // Error carries machine-readable domain error metadata across ability, hub,

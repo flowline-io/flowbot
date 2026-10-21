@@ -27,18 +27,19 @@ const prefix = "service"
 func WebService(app *fiber.App, group string, rs ...*Router) {
 	path := "/" + prefix + "/" + group
 	for _, router := range rs {
-		handler := authorizeWithLevel(router.AuthLevel, group, router.Method, router.Function)
+		fullPath := path + router.Path
+		handler := authorizeWithLevel(router.AuthLevel, group, router.Method, wrapIdempotency(group, router.Method, fullPath, router.Function))
 		switch router.Method {
 		case "GET":
-			app.Get(path+router.Path, handler)
+			app.Get(fullPath, handler)
 		case "POST":
-			app.Post(path+router.Path, handler)
+			app.Post(fullPath, handler)
 		case "PUT":
-			app.Put(path+router.Path, handler)
+			app.Put(fullPath, handler)
 		case "PATCH":
-			app.Patch(path+router.Path, handler)
+			app.Patch(fullPath, handler)
 		case "DELETE":
-			app.Delete(path+router.Path, handler)
+			app.Delete(fullPath, handler)
 		default:
 			continue
 		}
@@ -94,7 +95,8 @@ func SetAuditor(a audit.Auditor) {
 	routeAuditorMu.Unlock()
 }
 
-func getRouteAuditor() audit.Auditor {
+// Auditor returns the process-wide route auditor. It is nil until SetAuditor runs.
+func Auditor() audit.Auditor {
 	routeAuditorMu.RLock()
 	a := routeAuditor
 	routeAuditorMu.RUnlock()
@@ -449,7 +451,7 @@ func RequireScope(scope string, handler fiber.Handler) fiber.Handler {
 }
 
 func auditAuthReject(ctx fiber.Ctx, action, reason string) {
-	a := getRouteAuditor()
+	a := Auditor()
 	if a == nil {
 		return
 	}
@@ -467,7 +469,7 @@ func auditAuthReject(ctx fiber.Ctx, action, reason string) {
 }
 
 func auditScopeDeny(ctx fiber.Ctx, scope string) {
-	a := getRouteAuditor()
+	a := Auditor()
 	if a == nil {
 		return
 	}
@@ -502,7 +504,7 @@ func WarnLegacyWebhookQueryToken(ctx fiber.Ctx, targetType, targetID string) {
 	if ctx == nil || strings.TrimSpace(ctx.Query("token")) == "" {
 		return
 	}
-	a := getRouteAuditor()
+	a := Auditor()
 	if a == nil {
 		return
 	}

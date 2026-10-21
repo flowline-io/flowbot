@@ -107,6 +107,7 @@ func codeRules() []codeRule {
 		{types.ErrNotFound, "not_found", false, "Call the matching list or get tool, then retry.", 4},
 		{types.ErrAlreadyExists, "already_exists", false, "", 5},
 		{types.ErrConflict, "conflict", true, "Read the current value, then write again.", 5},
+		{types.ErrIdempotencyUnknown, "idempotency_unknown", false, "Call the matching list or get. Use a new idempotency key only if that read shows the effect did not happen.", 5},
 		{types.ErrRateLimited, "rate_limited", true, "Wait retry_after_ms, then retry the same call.", 6},
 		{types.ErrUnavailable, "unavailable", true, "Retry with backoff.", 6},
 		{types.ErrTimeout, "timeout", true, "Retry with backoff.", 6},

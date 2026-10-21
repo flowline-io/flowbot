@@ -2,12 +2,13 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
-	"errors"
 	"github.com/flowline-io/flowbot/cmd/cli/store"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
@@ -59,6 +60,9 @@ func NewClient(cmd *cobra.Command) (*client.Client, error) {
 
 	cl := client.NewClient(serverURL, token)
 	applyDebug(cmd, profile, cl)
+	if err := applyIdempotencyKey(cmd, cl); err != nil {
+		return nil, err
+	}
 	return cl, nil
 }
 
@@ -90,4 +94,30 @@ func applyDebug(cmd *cobra.Command, profile string, cl *client.Client) {
 	if debug {
 		cl.SetDebug(true)
 	}
+}
+
+const idempotencyReplayedAnnotation = "idempotency_replayed"
+
+func applyIdempotencyKey(cmd *cobra.Command, cl *client.Client) error {
+	if cmd == nil || cl == nil {
+		return nil
+	}
+	if cmd.Flags().Lookup("idempotency-key") == nil {
+		return nil
+	}
+	key, err := cmd.Flags().GetString("idempotency-key")
+	if err != nil {
+		return fmt.Errorf("read idempotency-key: %w", err)
+	}
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return nil
+	}
+	cl.SetIdempotencyKey(key, func() {
+		if cmd.Annotations == nil {
+			cmd.Annotations = map[string]string{}
+		}
+		cmd.Annotations[idempotencyReplayedAnnotation] = "true"
+	})
+	return nil
 }

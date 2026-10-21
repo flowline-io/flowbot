@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -69,7 +70,7 @@ func TestErrorObject(t *testing.T) {
 func TestWriteEnvelope(t *testing.T) {
 	t.Parallel()
 	var buf bytes.Buffer
-	require.NoError(t, WriteEnvelope(&buf, map[string]string{"id": "a"}, nil))
+	require.NoError(t, WriteEnvelope(&buf, map[string]string{"id": "a"}, nil, false))
 	assert.Contains(t, buf.String(), "{\n  \"data\": {")
 	assert.NotContains(t, buf.String(), "\"page\"")
 
@@ -78,7 +79,7 @@ func TestWriteEnvelope(t *testing.T) {
 		"data": []any{},
 		"page": map[string]any{"limit": 20, "has_more": false},
 	}
-	require.NoError(t, WriteEnvelope(&buf, listed, nil))
+	require.NoError(t, WriteEnvelope(&buf, listed, nil, false))
 	var got map[string]any
 	require.NoError(t, sonic.Unmarshal(buf.Bytes(), &got))
 	_, dataIsObject := got["data"].(map[string]any)
@@ -87,7 +88,7 @@ func TestWriteEnvelope(t *testing.T) {
 
 	buf.Reset()
 	var items []string
-	require.NoError(t, WriteEnvelope(&buf, items, nil))
+	require.NoError(t, WriteEnvelope(&buf, items, nil, false))
 	require.NoError(t, sonic.Unmarshal(buf.Bytes(), &got))
 	assert.Equal(t, []any{}, got["data"])
 }
@@ -100,4 +101,18 @@ func TestPrintUsesCommandStdout(t *testing.T) {
 	cmd.SetOut(&buf)
 	require.NoError(t, Print(cmd, map[string]string{"id": "1"}, nil))
 	assert.Contains(t, buf.String(), "\"data\"")
+}
+
+func TestNormalizeUnavailableKeepsRetryAfter(t *testing.T) {
+	t.Parallel()
+	err := Normalize(&client.APIError{
+		StatusCode: 503,
+		RetCode:    "10012",
+		Message:    "idempotency key is already in progress",
+		RetryAfter: time.Second,
+	})
+	var te *types.Error
+	require.ErrorAs(t, err, &te)
+	require.ErrorIs(t, te.Kind, types.ErrUnavailable)
+	require.Equal(t, int64(1000), te.RetryAfter.Milliseconds())
 }

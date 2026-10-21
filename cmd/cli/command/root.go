@@ -27,6 +27,7 @@ func NewRoot(buildtags string) *cobra.Command {
 	rootCmd.PersistentFlags().StringP("output", "o", "table", "Output format (table, json)")
 	rootCmd.PersistentFlags().BoolP("yes", "y", false, "Skip confirmation prompts")
 	rootCmd.PersistentFlags().Bool("no-input", false, "Fail instead of prompting; implied when stdin is not a terminal")
+	rootCmd.PersistentFlags().String("idempotency-key", "", "Optional write idempotency key. Mint it before the first write and reuse it on every retry.")
 	rootCmd.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
 		return types.Errorf(types.ErrInvalidArgument, "%s", err.Error())
 	})

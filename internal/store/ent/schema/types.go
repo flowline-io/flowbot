@@ -157,6 +157,15 @@ const (
 	PipelineFailed       = types.PipelineFailed
 )
 
+// IdempotencyStatus is owned by pkg/types; this alias keeps schema call sites on that enum.
+type IdempotencyStatus = types.IdempotencyStatus
+
+const (
+	IdempotencyInProgress = types.IdempotencyInProgress
+	IdempotencySucceeded  = types.IdempotencySucceeded
+	IdempotencyUnknown    = types.IdempotencyUnknown
+)
+
 // WorkflowRunState represents the execution state of a local workflow engine run.
 type WorkflowRunState = types.WorkflowRunState
 

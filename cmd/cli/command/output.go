@@ -21,7 +21,7 @@ func render(cmd *cobra.Command, v any) error {
 // Paginated commands keep their page by rendering the list result instead.
 func PrintEmptyList(cmd *cobra.Command, tableMsg string) error {
 	if IsJSON(cmd) {
-		return utils.WriteEnvelope(cmd.OutOrStdout(), []any{}, nil)
+		return utils.WriteEnvelope(cmd.OutOrStdout(), []any{}, nil, false)
 	}
 	return writef(cmd, "%s\n", tableMsg)
 }

@@ -102,6 +102,9 @@ type FunctionDefinitionVersion func(*sql.Selector)
 // FunctionRun is the predicate function for functionrun builders.
 type FunctionRun func(*sql.Selector)
 
+// IdempotencyRecord is the predicate function for idempotencyrecord builders.
+type IdempotencyRecord func(*sql.Selector)
+
 // LLMUsageRecord is the predicate function for llmusagerecord builders.
 type LLMUsageRecord func(*sql.Selector)
 

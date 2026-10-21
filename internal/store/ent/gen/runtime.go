@@ -37,6 +37,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/idempotencyrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
@@ -1077,6 +1078,70 @@ func init() {
 	functionrunDescCreatedAt := functionrunFields[9].Descriptor()
 	// functionrun.DefaultCreatedAt holds the default value on creation for the created_at field.
 	functionrun.DefaultCreatedAt = functionrunDescCreatedAt.Default.(func() time.Time)
+	idempotencyrecordFields := schema.IdempotencyRecord{}.Fields()
+	_ = idempotencyrecordFields
+	// idempotencyrecordDescOperation is the schema descriptor for operation field.
+	idempotencyrecordDescOperation := idempotencyrecordFields[2].Descriptor()
+	// idempotencyrecord.OperationValidator is a validator for the "operation" field. It is called by the builders before save.
+	idempotencyrecord.OperationValidator = func() func(string) error {
+		validators := idempotencyrecordDescOperation.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(operation string) error {
+			for _, fn := range fns {
+				if err := fn(operation); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// idempotencyrecordDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	idempotencyrecordDescIdempotencyKey := idempotencyrecordFields[3].Descriptor()
+	// idempotencyrecord.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	idempotencyrecord.IdempotencyKeyValidator = func() func(string) error {
+		validators := idempotencyrecordDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// idempotencyrecordDescParamHash is the schema descriptor for param_hash field.
+	idempotencyrecordDescParamHash := idempotencyrecordFields[4].Descriptor()
+	// idempotencyrecord.ParamHashValidator is a validator for the "param_hash" field. It is called by the builders before save.
+	idempotencyrecord.ParamHashValidator = func() func(string) error {
+		validators := idempotencyrecordDescParamHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(param_hash string) error {
+			for _, fn := range fns {
+				if err := fn(param_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// idempotencyrecordDescCorrelationID is the schema descriptor for correlation_id field.
+	idempotencyrecordDescCorrelationID := idempotencyrecordFields[7].Descriptor()
+	// idempotencyrecord.DefaultCorrelationID holds the default value on creation for the correlation_id field.
+	idempotencyrecord.DefaultCorrelationID = idempotencyrecordDescCorrelationID.Default.(string)
+	// idempotencyrecordDescCreatedAt is the schema descriptor for created_at field.
+	idempotencyrecordDescCreatedAt := idempotencyrecordFields[8].Descriptor()
+	// idempotencyrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
+	idempotencyrecord.DefaultCreatedAt = idempotencyrecordDescCreatedAt.Default.(func() time.Time)
 	llmusagerecordFields := schema.LLMUsageRecord{}.Fields()
 	_ = llmusagerecordFields
 	// llmusagerecordDescUID is the schema descriptor for uid field.

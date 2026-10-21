@@ -54,6 +54,26 @@ func SchemaFromFields(fields []Field) map[string]any {
 	return schema
 }
 
+// WithIdempotencyKey adds the optional write idempotency key to an input schema.
+func WithIdempotencyKey(schema map[string]any) map[string]any {
+	if schema == nil {
+		schema = map[string]any{"type": "object", "properties": map[string]any{}}
+	}
+	props, ok := schema["properties"].(map[string]any)
+	if !ok || props == nil {
+		props = map[string]any{}
+		schema["properties"] = props
+	}
+	props["idempotency_key"] = map[string]any{
+		"type":        "string",
+		"description": "Optional. Mint before the first write and reuse on every retry.",
+		"minLength":   1,
+		"maxLength":   255,
+		"pattern":     "^[A-Za-z0-9._~-]+$",
+	}
+	return schema
+}
+
 func jsonSchemaType(t string) string {
 	t = strings.TrimSpace(t)
 	switch t {
@@ -231,6 +251,7 @@ func traceSchema() map[string]any {
 			"request_id":     map[string]any{"type": "string", "minLength": 1},
 			"trace_id":       map[string]any{"type": "string", "pattern": "^[0-9a-f]{32}$"},
 			"correlation_id": map[string]any{"type": "string", "minLength": 1},
+			"replayed":       map[string]any{"type": "boolean"},
 		},
 	}
 }

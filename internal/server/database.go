@@ -29,6 +29,9 @@ func newDatabaseAdapter(lc fx.Lifecycle, _ *config.Type) (store.Adapter, error) 
 	if err := store.Migrate(); err != nil {
 		return nil, fmt.Errorf("failed to migrate DB, %w", err)
 	}
+	if err := store.IdempotencyStoreFromDB().SweepInProgress(context.Background()); err != nil {
+		return nil, fmt.Errorf("failed to sweep idempotency claims: %w", err)
+	}
 
 	if err := chatagent.ImportBundledSkills(context.Background()); err != nil {
 		return nil, fmt.Errorf("failed to import bundled skills: %w", err)

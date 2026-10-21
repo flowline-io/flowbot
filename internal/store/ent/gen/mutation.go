@@ -43,6 +43,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/idempotencyrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
@@ -116,6 +117,7 @@ const (
 	TypeFunctionDefinition        = "FunctionDefinition"
 	TypeFunctionDefinitionVersion = "FunctionDefinitionVersion"
 	TypeFunctionRun               = "FunctionRun"
+	TypeIdempotencyRecord         = "IdempotencyRecord"
 	TypeLLMUsageRecord            = "LLMUsageRecord"
 	TypeMessage                   = "Message"
 	TypeNotificationRecord        = "NotificationRecord"
@@ -23911,6 +23913,774 @@ func (m *FunctionRunMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *FunctionRunMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown FunctionRun edge %s", name)
+}
+
+// IdempotencyRecordMutation represents an operation that mutates the IdempotencyRecord nodes in the graph.
+type IdempotencyRecordMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int64
+	token_id        *int64
+	addtoken_id     *int64
+	operation       *string
+	idempotency_key *string
+	param_hash      *string
+	status          *idempotencyrecord.Status
+	result_json     *string
+	correlation_id  *string
+	created_at      *time.Time
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*IdempotencyRecord, error)
+	predicates      []predicate.IdempotencyRecord
+}
+
+var _ ent.Mutation = (*IdempotencyRecordMutation)(nil)
+
+// idempotencyrecordOption allows management of the mutation configuration using functional options.
+type idempotencyrecordOption func(*IdempotencyRecordMutation)
+
+// newIdempotencyRecordMutation creates new mutation for the IdempotencyRecord entity.
+func newIdempotencyRecordMutation(c config, op Op, opts ...idempotencyrecordOption) *IdempotencyRecordMutation {
+	m := &IdempotencyRecordMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeIdempotencyRecord,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withIdempotencyRecordID sets the ID field of the mutation.
+func withIdempotencyRecordID(id int64) idempotencyrecordOption {
+	return func(m *IdempotencyRecordMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *IdempotencyRecord
+		)
+		m.oldValue = func(ctx context.Context) (*IdempotencyRecord, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().IdempotencyRecord.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withIdempotencyRecord sets the old IdempotencyRecord of the mutation.
+func withIdempotencyRecord(node *IdempotencyRecord) idempotencyrecordOption {
+	return func(m *IdempotencyRecordMutation) {
+		m.oldValue = func(context.Context) (*IdempotencyRecord, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m IdempotencyRecordMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m IdempotencyRecordMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of IdempotencyRecord entities.
+func (m *IdempotencyRecordMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *IdempotencyRecordMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *IdempotencyRecordMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().IdempotencyRecord.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTokenID sets the "token_id" field.
+func (m *IdempotencyRecordMutation) SetTokenID(i int64) {
+	m.token_id = &i
+	m.addtoken_id = nil
+}
+
+// TokenID returns the value of the "token_id" field in the mutation.
+func (m *IdempotencyRecordMutation) TokenID() (r int64, exists bool) {
+	v := m.token_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenID returns the old "token_id" field's value of the IdempotencyRecord entity.
+// If the IdempotencyRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdempotencyRecordMutation) OldTokenID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenID: %w", err)
+	}
+	return oldValue.TokenID, nil
+}
+
+// AddTokenID adds i to the "token_id" field.
+func (m *IdempotencyRecordMutation) AddTokenID(i int64) {
+	if m.addtoken_id != nil {
+		*m.addtoken_id += i
+	} else {
+		m.addtoken_id = &i
+	}
+}
+
+// AddedTokenID returns the value that was added to the "token_id" field in this mutation.
+func (m *IdempotencyRecordMutation) AddedTokenID() (r int64, exists bool) {
+	v := m.addtoken_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTokenID resets all changes to the "token_id" field.
+func (m *IdempotencyRecordMutation) ResetTokenID() {
+	m.token_id = nil
+	m.addtoken_id = nil
+}
+
+// SetOperation sets the "operation" field.
+func (m *IdempotencyRecordMutation) SetOperation(s string) {
+	m.operation = &s
+}
+
+// Operation returns the value of the "operation" field in the mutation.
+func (m *IdempotencyRecordMutation) Operation() (r string, exists bool) {
+	v := m.operation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperation returns the old "operation" field's value of the IdempotencyRecord entity.
+// If the IdempotencyRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdempotencyRecordMutation) OldOperation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperation: %w", err)
+	}
+	return oldValue.Operation, nil
+}
+
+// ResetOperation resets all changes to the "operation" field.
+func (m *IdempotencyRecordMutation) ResetOperation() {
+	m.operation = nil
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *IdempotencyRecordMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *IdempotencyRecordMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the IdempotencyRecord entity.
+// If the IdempotencyRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdempotencyRecordMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *IdempotencyRecordMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetParamHash sets the "param_hash" field.
+func (m *IdempotencyRecordMutation) SetParamHash(s string) {
+	m.param_hash = &s
+}
+
+// ParamHash returns the value of the "param_hash" field in the mutation.
+func (m *IdempotencyRecordMutation) ParamHash() (r string, exists bool) {
+	v := m.param_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParamHash returns the old "param_hash" field's value of the IdempotencyRecord entity.
+// If the IdempotencyRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdempotencyRecordMutation) OldParamHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParamHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParamHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParamHash: %w", err)
+	}
+	return oldValue.ParamHash, nil
+}
+
+// ResetParamHash resets all changes to the "param_hash" field.
+func (m *IdempotencyRecordMutation) ResetParamHash() {
+	m.param_hash = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *IdempotencyRecordMutation) SetStatus(i idempotencyrecord.Status) {
+	m.status = &i
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *IdempotencyRecordMutation) Status() (r idempotencyrecord.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the IdempotencyRecord entity.
+// If the IdempotencyRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdempotencyRecordMutation) OldStatus(ctx context.Context) (v idempotencyrecord.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *IdempotencyRecordMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetResultJSON sets the "result_json" field.
+func (m *IdempotencyRecordMutation) SetResultJSON(s string) {
+	m.result_json = &s
+}
+
+// ResultJSON returns the value of the "result_json" field in the mutation.
+func (m *IdempotencyRecordMutation) ResultJSON() (r string, exists bool) {
+	v := m.result_json
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResultJSON returns the old "result_json" field's value of the IdempotencyRecord entity.
+// If the IdempotencyRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdempotencyRecordMutation) OldResultJSON(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResultJSON is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResultJSON requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResultJSON: %w", err)
+	}
+	return oldValue.ResultJSON, nil
+}
+
+// ClearResultJSON clears the value of the "result_json" field.
+func (m *IdempotencyRecordMutation) ClearResultJSON() {
+	m.result_json = nil
+	m.clearedFields[idempotencyrecord.FieldResultJSON] = struct{}{}
+}
+
+// ResultJSONCleared returns if the "result_json" field was cleared in this mutation.
+func (m *IdempotencyRecordMutation) ResultJSONCleared() bool {
+	_, ok := m.clearedFields[idempotencyrecord.FieldResultJSON]
+	return ok
+}
+
+// ResetResultJSON resets all changes to the "result_json" field.
+func (m *IdempotencyRecordMutation) ResetResultJSON() {
+	m.result_json = nil
+	delete(m.clearedFields, idempotencyrecord.FieldResultJSON)
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (m *IdempotencyRecordMutation) SetCorrelationID(s string) {
+	m.correlation_id = &s
+}
+
+// CorrelationID returns the value of the "correlation_id" field in the mutation.
+func (m *IdempotencyRecordMutation) CorrelationID() (r string, exists bool) {
+	v := m.correlation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCorrelationID returns the old "correlation_id" field's value of the IdempotencyRecord entity.
+// If the IdempotencyRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdempotencyRecordMutation) OldCorrelationID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCorrelationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCorrelationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCorrelationID: %w", err)
+	}
+	return oldValue.CorrelationID, nil
+}
+
+// ResetCorrelationID resets all changes to the "correlation_id" field.
+func (m *IdempotencyRecordMutation) ResetCorrelationID() {
+	m.correlation_id = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *IdempotencyRecordMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *IdempotencyRecordMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the IdempotencyRecord entity.
+// If the IdempotencyRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdempotencyRecordMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *IdempotencyRecordMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the IdempotencyRecordMutation builder.
+func (m *IdempotencyRecordMutation) Where(ps ...predicate.IdempotencyRecord) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the IdempotencyRecordMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *IdempotencyRecordMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.IdempotencyRecord, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *IdempotencyRecordMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *IdempotencyRecordMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (IdempotencyRecord).
+func (m *IdempotencyRecordMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *IdempotencyRecordMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.token_id != nil {
+		fields = append(fields, idempotencyrecord.FieldTokenID)
+	}
+	if m.operation != nil {
+		fields = append(fields, idempotencyrecord.FieldOperation)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, idempotencyrecord.FieldIdempotencyKey)
+	}
+	if m.param_hash != nil {
+		fields = append(fields, idempotencyrecord.FieldParamHash)
+	}
+	if m.status != nil {
+		fields = append(fields, idempotencyrecord.FieldStatus)
+	}
+	if m.result_json != nil {
+		fields = append(fields, idempotencyrecord.FieldResultJSON)
+	}
+	if m.correlation_id != nil {
+		fields = append(fields, idempotencyrecord.FieldCorrelationID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, idempotencyrecord.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *IdempotencyRecordMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case idempotencyrecord.FieldTokenID:
+		return m.TokenID()
+	case idempotencyrecord.FieldOperation:
+		return m.Operation()
+	case idempotencyrecord.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case idempotencyrecord.FieldParamHash:
+		return m.ParamHash()
+	case idempotencyrecord.FieldStatus:
+		return m.Status()
+	case idempotencyrecord.FieldResultJSON:
+		return m.ResultJSON()
+	case idempotencyrecord.FieldCorrelationID:
+		return m.CorrelationID()
+	case idempotencyrecord.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *IdempotencyRecordMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case idempotencyrecord.FieldTokenID:
+		return m.OldTokenID(ctx)
+	case idempotencyrecord.FieldOperation:
+		return m.OldOperation(ctx)
+	case idempotencyrecord.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case idempotencyrecord.FieldParamHash:
+		return m.OldParamHash(ctx)
+	case idempotencyrecord.FieldStatus:
+		return m.OldStatus(ctx)
+	case idempotencyrecord.FieldResultJSON:
+		return m.OldResultJSON(ctx)
+	case idempotencyrecord.FieldCorrelationID:
+		return m.OldCorrelationID(ctx)
+	case idempotencyrecord.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown IdempotencyRecord field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IdempotencyRecordMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case idempotencyrecord.FieldTokenID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenID(v)
+		return nil
+	case idempotencyrecord.FieldOperation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperation(v)
+		return nil
+	case idempotencyrecord.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case idempotencyrecord.FieldParamHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParamHash(v)
+		return nil
+	case idempotencyrecord.FieldStatus:
+		v, ok := value.(idempotencyrecord.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case idempotencyrecord.FieldResultJSON:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResultJSON(v)
+		return nil
+	case idempotencyrecord.FieldCorrelationID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCorrelationID(v)
+		return nil
+	case idempotencyrecord.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IdempotencyRecord field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *IdempotencyRecordMutation) AddedFields() []string {
+	var fields []string
+	if m.addtoken_id != nil {
+		fields = append(fields, idempotencyrecord.FieldTokenID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *IdempotencyRecordMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case idempotencyrecord.FieldTokenID:
+		return m.AddedTokenID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IdempotencyRecordMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case idempotencyrecord.FieldTokenID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTokenID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IdempotencyRecord numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *IdempotencyRecordMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(idempotencyrecord.FieldResultJSON) {
+		fields = append(fields, idempotencyrecord.FieldResultJSON)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *IdempotencyRecordMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *IdempotencyRecordMutation) ClearField(name string) error {
+	switch name {
+	case idempotencyrecord.FieldResultJSON:
+		m.ClearResultJSON()
+		return nil
+	}
+	return fmt.Errorf("unknown IdempotencyRecord nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *IdempotencyRecordMutation) ResetField(name string) error {
+	switch name {
+	case idempotencyrecord.FieldTokenID:
+		m.ResetTokenID()
+		return nil
+	case idempotencyrecord.FieldOperation:
+		m.ResetOperation()
+		return nil
+	case idempotencyrecord.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case idempotencyrecord.FieldParamHash:
+		m.ResetParamHash()
+		return nil
+	case idempotencyrecord.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case idempotencyrecord.FieldResultJSON:
+		m.ResetResultJSON()
+		return nil
+	case idempotencyrecord.FieldCorrelationID:
+		m.ResetCorrelationID()
+		return nil
+	case idempotencyrecord.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown IdempotencyRecord field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *IdempotencyRecordMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *IdempotencyRecordMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *IdempotencyRecordMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *IdempotencyRecordMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *IdempotencyRecordMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *IdempotencyRecordMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *IdempotencyRecordMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown IdempotencyRecord unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *IdempotencyRecordMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown IdempotencyRecord edge %s", name)
 }
 
 // LLMUsageRecordMutation represents an operation that mutates the LLMUsageRecord nodes in the graph.

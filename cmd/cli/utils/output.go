@@ -100,16 +100,20 @@ func Print(cmd *cobra.Command, data, page any) error {
 		w = cmd.OutOrStdout()
 	}
 	if IsJSON(cmd) {
-		return WriteEnvelope(w, data, page)
+		return WriteEnvelope(w, data, page, commandReplayed(cmd))
 	}
 	return WritePlain(w, data)
 }
 
 // WriteEnvelope writes {"data": ...} and page when page is non-nil.
-func WriteEnvelope(w io.Writer, data, page any) error {
+// replayed adds replayed: true when this success repeated a stored write.
+func WriteEnvelope(w io.Writer, data, page any, replayed bool) error {
 	payload := data
 	if page == nil {
 		if env, ok := asDataPage(data); ok {
+			if replayed {
+				env["replayed"] = true
+			}
 			raw, err := sonic.MarshalIndent(env, "", "  ")
 			if err != nil {
 				return fmt.Errorf("marshal json: %w", err)
@@ -122,12 +126,22 @@ func WriteEnvelope(w io.Writer, data, page any) error {
 	if page != nil {
 		obj["page"] = page
 	}
+	if replayed {
+		obj["replayed"] = true
+	}
 	raw, err := sonic.MarshalIndent(obj, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshal json: %w", err)
 	}
 	_, err = fmt.Fprintln(w, string(raw))
 	return err
+}
+
+func commandReplayed(cmd *cobra.Command) bool {
+	if cmd == nil || cmd.Annotations == nil {
+		return false
+	}
+	return cmd.Annotations[idempotencyReplayedAnnotation] == "true"
 }
 
 // WritePlain writes a line-oriented view of v for table mode.
@@ -211,7 +225,14 @@ func Normalize(err error) error {
 		if message == "" {
 			message = api.Error()
 		}
-		return types.WrapError(kindFromAPI(api), message, err)
+		wrapped := types.WrapError(kindFromAPI(api), message, err)
+		if api.RetryAfter > 0 {
+			var domain *types.Error
+			if errors.As(wrapped, &domain) && domain != nil {
+				domain.RetryAfter = api.RetryAfter
+			}
+		}
+		return wrapped
 	}
 	if isUsageError(err) {
 		return types.Errorf(types.ErrInvalidArgument, "%s", err.Error())
@@ -245,6 +266,7 @@ var apiRetCode = map[string]error{
 	"10013": types.ErrTimeout,
 	"10002": types.ErrNotImplemented,
 	"10014": types.ErrProvider,
+	"10015": types.ErrIdempotencyUnknown,
 }
 
 var apiStatus = map[int]error{

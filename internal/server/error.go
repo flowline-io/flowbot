@@ -18,7 +18,7 @@ func domainErrorStatus(err error) (int, bool) {
 		return fiber.StatusForbidden, true
 	case errors.Is(err, types.ErrNotFound):
 		return fiber.StatusNotFound, true
-	case errors.Is(err, types.ErrAlreadyExists), errors.Is(err, types.ErrConflict):
+	case errors.Is(err, types.ErrAlreadyExists), errors.Is(err, types.ErrConflict), errors.Is(err, types.ErrIdempotencyUnknown):
 		return fiber.StatusConflict, true
 	case errors.Is(err, types.ErrRateLimited):
 		return fiber.StatusTooManyRequests, true

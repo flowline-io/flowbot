@@ -178,6 +178,27 @@ var _ = Describe("MCP /mcp", Label("mcp"), func() {
 		Expect(textJSON(result)).To(Equal(sc))
 	})
 
+	It("does not keep an idempotency key when pipeline.run is missing name", func() {
+		key := "bdd-" + types.Id()
+		resp := postMCP(app, apiToken, mcpCallBody("pipeline.run", map[string]any{"idempotency_key": key}))
+		body := ReadBody(resp)
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		sc := structuredContent(mcpResult(body))
+		errObj, ok := sc["error"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(body))
+		Expect(errObj["code"]).To(Equal("invalid_argument"))
+		Expect(errObj["field"]).To(Equal("name"))
+
+		again := postMCP(app, apiToken, mcpCallBody("pipeline.run", map[string]any{
+			"idempotency_key": key,
+			"name":            "missing-pipeline-" + types.Id(),
+		}))
+		againBody := ReadBody(again)
+		againErr, ok := structuredContent(mcpResult(againBody))["error"].(map[string]any)
+		Expect(ok).To(BeTrue(), string(againBody))
+		Expect(againErr["code"]).NotTo(Equal("idempotency_unknown"))
+	})
+
 	It("returns items and trace.request_id for hub.apps", func() {
 		resp := postMCP(app, apiToken, mcpCallBody("hub.apps", map[string]any{}))
 		body := ReadBody(resp)

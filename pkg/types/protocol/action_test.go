@@ -3,6 +3,7 @@ package protocol_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -148,4 +149,17 @@ func TestNewFailedResponse(t *testing.T) {
 			require.NotEqual(t, protocol.Success, resp.Status)
 		})
 	}
+}
+
+func TestNewFailedResponseCarriesRetryAfter(t *testing.T) {
+	t.Parallel()
+	resp := protocol.NewFailedResponse(&types.Error{
+		Kind:       types.ErrUnavailable,
+		Message:    "idempotency key is already in progress",
+		RetryAfter: time.Second,
+	})
+	obj, ok := resp.Error.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "unavailable", obj["code"])
+	assert.Equal(t, int64(1000), obj["retry_after_ms"])
 }

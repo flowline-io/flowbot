@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -23,16 +24,21 @@ import (
 	"github.com/flowline-io/flowbot/pkg/workflow"
 )
 
-func executeTool(ctx context.Context, ident Identity, spec ToolSpec, args map[string]any, auditor audit.Auditor) (any, error) {
+func executeTool(ctx context.Context, ident Identity, spec ToolSpec, args map[string]any, auditor audit.Auditor, idempotencyKey string) (any, string, error) {
 	if args == nil {
 		args = map[string]any{}
 	}
 	injectUID(spec, args, ident)
-	if spec.Mutation {
-		ctx = types.WithLineage(ctx, types.NewCorrelationID(), "")
+	correlation := ""
+	if lin, ok := types.LineageFrom(ctx); ok {
+		correlation = lin.CorrelationID
+	}
+	if correlation == "" && (spec.Mutation || idempotencyKey != "") {
+		correlation = types.NewCorrelationID()
+		ctx = types.WithLineage(ctx, correlation, "")
 	}
 	if err := normalizeListArgs(spec, args); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	var (
 		result any
@@ -55,9 +61,9 @@ func executeTool(ctx context.Context, ident Identity, spec ToolSpec, args map[st
 		err = fmt.Errorf("unknown mcp tool kind %s", spec.Kind)
 	}
 	if spec.Mutation {
-		recordMutation(ctx, ident, spec, args, auditor, err)
+		recordMutation(ctx, ident, spec, args, auditor, idempotencyKey, err)
 	}
-	return result, err
+	return result, correlation, err
 }
 
 func injectUID(spec ToolSpec, args map[string]any, ident Identity) {
@@ -289,15 +295,20 @@ func normalizeListArgs(spec ToolSpec, args map[string]any) error {
 	return nil
 }
 
-func recordMutation(ctx context.Context, ident Identity, spec ToolSpec, args map[string]any, auditor audit.Auditor, callErr error) {
+func recordMutation(ctx context.Context, ident Identity, spec ToolSpec, args map[string]any, auditor audit.Auditor, idempotencyKey string, callErr error) {
 	if auditor == nil {
 		return
+	}
+	request := map[string]any{"tool": spec.Name, "args": args}
+	if idempotencyKey != "" {
+		request["idempotency_key"] = idempotencyKey
+		request["replayed"] = false
 	}
 	entry := audit.Entry{
 		Subject: auditSubject(ident),
 		Action:  "mcp.tool.call",
 		Target:  audit.Target{Type: "mcp_tool", ID: spec.Name},
-		Request: map[string]any{"tool": spec.Name, "args": args},
+		Request: request,
 	}
 	if lin, ok := types.LineageFrom(ctx); ok {
 		entry.CorrelationID = lin.CorrelationID
@@ -389,6 +400,25 @@ func mapArg(args map[string]any, key string) map[string]any {
 		return nil
 	}
 	return m
+}
+
+func validateWriteArgs(spec ToolSpec, args map[string]any) error {
+	if err := normalizeListArgs(spec, args); err != nil {
+		return err
+	}
+	for _, param := range spec.Input {
+		if !param.Required || param.Name == "idempotency_key" {
+			continue
+		}
+		raw, ok := args[param.Name]
+		if !ok || raw == nil {
+			return invalidArgument(param.Name)
+		}
+		if text, isString := raw.(string); isString && strings.TrimSpace(text) == "" {
+			return invalidArgument(param.Name)
+		}
+	}
+	return nil
 }
 
 func requiredString(args map[string]any, key string) (string, error) {

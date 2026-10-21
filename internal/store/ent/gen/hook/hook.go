@@ -393,6 +393,18 @@ func (f FunctionRunFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FunctionRunMutation", m)
 }
 
+// The IdempotencyRecordFunc type is an adapter to allow the use of ordinary
+// function as IdempotencyRecord mutator.
+type IdempotencyRecordFunc func(context.Context, *gen.IdempotencyRecordMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IdempotencyRecordFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.IdempotencyRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.IdempotencyRecordMutation", m)
+}
+
 // The LLMUsageRecordFunc type is an adapter to allow the use of ordinary
 // function as LLMUsageRecord mutator.
 type LLMUsageRecordFunc func(context.Context, *gen.LLMUsageRecordMutation) (gen.Value, error)

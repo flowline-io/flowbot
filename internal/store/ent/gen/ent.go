@@ -44,6 +44,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/idempotencyrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
@@ -164,6 +165,7 @@ func checkColumn(t, c string) error {
 			functiondefinition.Table:        functiondefinition.ValidColumn,
 			functiondefinitionversion.Table: functiondefinitionversion.ValidColumn,
 			functionrun.Table:               functionrun.ValidColumn,
+			idempotencyrecord.Table:         idempotencyrecord.ValidColumn,
 			llmusagerecord.Table:            llmusagerecord.ValidColumn,
 			message.Table:                   message.ValidColumn,
 			notificationrecord.Table:        notificationrecord.ValidColumn,

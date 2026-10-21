@@ -8,7 +8,7 @@ import (
 )
 
 // ServerInstructions is the MCP initialize instructions string.
-const ServerInstructions = "flowbot operates a self-hosted homelab. Read before write: call .list or .get first. Tools with destructiveHint delete or remove data. On error, parse structuredContent.error; the text body is the same JSON. Retry only when retryable is true, honoring retry_after_ms when present. Use hint and field to correct arguments. Every result includes trace.request_id. Capability pages use page.next_cursor when that field is present."
+const ServerInstructions = "flowbot operates a self-hosted homelab. Read before write: call .list or .get first. Tools with destructiveHint delete or remove data. On error, parse structuredContent.error; the text body is the same JSON. Retry only when retryable is true, honoring retry_after_ms when present. Use hint and field to correct arguments. Every result includes trace.request_id. Pages use page.next_cursor when present. Mint an idempotency_key before the first write and send that same key on every retry."
 
 // OpenWorld reports whether tools in group may affect systems outside this process.
 // hub, pipeline, workflow, and example stay closed.

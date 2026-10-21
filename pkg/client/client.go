@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -188,6 +189,24 @@ func (c *Client) Delete(ctx context.Context, path string, body, result any) erro
 	return parseResponse(resp, result)
 }
 
+// SetIdempotencyKey sends Idempotency-Key on later requests from this client.
+// onReplayed runs when a response carries Idempotency-Replayed: true.
+func (c *Client) SetIdempotencyKey(key string, onReplayed func()) {
+	if c == nil || c.rc == nil || key == "" {
+		return
+	}
+	c.rc.SetHeader("Idempotency-Key", key)
+	if onReplayed == nil {
+		return
+	}
+	c.rc.AddResponseMiddleware(func(_ *resty.Client, resp *resty.Response) error {
+		if resp != nil && strings.EqualFold(resp.Header().Get("Idempotency-Replayed"), "true") {
+			onReplayed()
+		}
+		return nil
+	})
+}
+
 // RawRequest returns a resty request builder for custom requests.
 // Use this when you need full control over the request.
 func (c *Client) RawRequest() *resty.Request {
@@ -222,6 +241,7 @@ func parseResponse(resp *resty.Response, result any) error {
 			StatusCode: resp.StatusCode(),
 			RetCode:    r.RetCode,
 			Message:    msg,
+			RetryAfter: retryAfterFrom(r.Error),
 		}
 	}
 
@@ -243,6 +263,7 @@ type APIError struct {
 	StatusCode int
 	RetCode    string
 	Message    string
+	RetryAfter time.Duration
 }
 
 func (e *APIError) Error() string {
@@ -250,6 +271,18 @@ func (e *APIError) Error() string {
 		return fmt.Sprintf("API error (code %s): %s", e.RetCode, e.Message)
 	}
 	return fmt.Sprintf("API error (status %d): %s", e.StatusCode, e.Message)
+}
+
+func retryAfterFrom(field any) time.Duration {
+	obj, ok := field.(map[string]any)
+	if !ok {
+		return 0
+	}
+	ms, ok := obj["retry_after_ms"].(float64)
+	if !ok || ms <= 0 {
+		return 0
+	}
+	return time.Duration(ms) * time.Millisecond
 }
 
 // IsNotFound returns true if the error indicates a resource was not found.

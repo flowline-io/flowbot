@@ -95,12 +95,12 @@ func Register(app *fiber.App, auditor audit.Auditor) {
 		}
 		body := c.Body()
 		specs := catalogFromConfig()
-		if raw, ok := preflightToolsCall(c.Context(), body, ident, specs); ok {
+		if raw, ok := scopeDeniedResponse(body, ident, specs); ok {
+			recordScopeRejection(c.Context(), body, ident, specs, auditor)
 			c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 			return c.Send(raw)
 		}
-		if raw, ok := scopeDeniedResponse(body, ident, specs); ok {
-			recordScopeRejection(c.Context(), body, ident, specs, auditor)
+		if raw, ok := preflightToolsCall(c, body, ident, specs, auditor); ok {
 			c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 			return c.Send(raw)
 		}
@@ -121,19 +121,25 @@ type toolsCallParams struct {
 	Arguments json.RawMessage `json:"arguments"`
 }
 
-func preflightToolsCall(ctx context.Context, body []byte, ident Identity, specs []ToolSpec) ([]byte, bool) {
+func preflightToolsCall(c fiber.Ctx, body []byte, ident Identity, specs []ToolSpec, auditor audit.Auditor) ([]byte, bool) {
 	var msg toolsCallEnvelope
 	if err := sonic.Unmarshal(body, &msg); err != nil || msg.Method != "tools/call" || msg.Params.Name == "" {
 		return nil, false
 	}
 	if argumentByteCount(msg.Params.Arguments) > maxArgumentBytes() {
-		return rpcToolError(ctx, msg.ID, &types.Error{
+		return rpcToolError(c.Context(), msg.ID, &types.Error{
 			Kind:    types.ErrInvalidArgument,
 			Message: "arguments exceed the configured size limit",
 			Field:   "arguments",
 		})
 	}
+	ctx := withRequestID(c.Context(), requestid.FromContext(c))
 	spec, found := findTool(specs, msg.Params.Name)
+	if found {
+		if raw, handled := preflightIdempotency(ctx, ident, spec, msg, auditor); handled {
+			return raw, true
+		}
+	}
 	allowed, retryAfter, err := allowToolCall(ctx, bucketsForTool(ident.TokenID, spec, found), time.Now())
 	if err != nil {
 		return rpcToolError(ctx, msg.ID, err)
@@ -224,7 +230,7 @@ func newSDKServer(ident Identity, auditor audit.Auditor) *mcpsdk.Server {
 		tool := &mcpsdk.Tool{
 			Name:        spec.Name,
 			Description: spec.Description,
-			InputSchema: schemaFromParams(spec.Input),
+			InputSchema: toolInputSchema(spec),
 			Annotations: toolAnnotations(spec),
 		}
 		if spec.Output != nil {
@@ -249,28 +255,7 @@ func newSDKServer(ident Identity, auditor audit.Auditor) *mcpsdk.Server {
 			if callIdent.UID.IsZero() {
 				callIdent = ident
 			}
-			ctx = capability.WithCursorSecretBox(ctx)
-			if pkgmcp.IsListTool(spec.Group, spec.Operation) {
-				maxOut := config.App.MCP.MaxOutputBytes
-				if maxOut <= 0 {
-					maxOut = capability.DefaultMaxOutputBytes
-				}
-				ctx = capability.WithPageBudget(ctx, capability.PageBudget{
-					Max:     maxOut,
-					Measure: measureToolJSON(spec, traceFrom(ctx)),
-				})
-			}
-			result, err := executeTool(ctx, callIdent, spec, args, auditor)
-			if err != nil {
-				flog.Error(err)
-				return toolError(ctx, err), nil
-			}
-			out, err := toolOK(ctx, result, wrapListResult(spec))
-			if err != nil {
-				flog.Error(err)
-				return toolError(ctx, err), nil
-			}
-			return out, nil
+			return runTool(ctx, callIdent, spec, args, auditor)
 		})
 	}
 	return srv
@@ -355,7 +340,22 @@ func traceFrom(ctx context.Context) map[string]any {
 	if sc.IsValid() && sc.HasTraceID() {
 		trace["trace_id"] = sc.TraceID().String()
 	}
+	if replayed, ok := ctx.Value(replayedCtxKey{}).(bool); ok && replayed {
+		trace["replayed"] = true
+		if lin, ok := types.LineageFrom(ctx); ok && lin.CorrelationID != "" {
+			trace["correlation_id"] = lin.CorrelationID
+		}
+	}
 	return trace
+}
+
+type replayedCtxKey struct{}
+
+func withReplayed(ctx context.Context, correlationID string) context.Context {
+	if correlationID != "" {
+		ctx = types.WithLineage(ctx, correlationID, "")
+	}
+	return context.WithValue(ctx, replayedCtxKey{}, true)
 }
 
 func measureToolJSON(spec ToolSpec, trace map[string]any) func(items []any, page map[string]any) (int, error) {

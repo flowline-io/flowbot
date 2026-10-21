@@ -890,6 +890,31 @@ var (
 			},
 		},
 	}
+	// IdempotencyRecordsColumns holds the columns for the "idempotency_records" table.
+	IdempotencyRecordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "token_id", Type: field.TypeInt64},
+		{Name: "operation", Type: field.TypeString, Size: 512},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 255},
+		{Name: "param_hash", Type: field.TypeString, Size: 64},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"in_progress", "succeeded", "unknown"}, Default: "in_progress"},
+		{Name: "result_json", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "correlation_id", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// IdempotencyRecordsTable holds the schema information for the "idempotency_records" table.
+	IdempotencyRecordsTable = &schema.Table{
+		Name:       "idempotency_records",
+		Columns:    IdempotencyRecordsColumns,
+		PrimaryKey: []*schema.Column{IdempotencyRecordsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "idempotencyrecord_token_id_operation_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{IdempotencyRecordsColumns[1], IdempotencyRecordsColumns[2], IdempotencyRecordsColumns[3]},
+			},
+		},
+	}
 	// LlmUsageRecordsColumns holds the columns for the "llm_usage_records" table.
 	LlmUsageRecordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1735,6 +1760,7 @@ var (
 		FunctionDefinitionsTable,
 		FunctionDefinitionVersionsTable,
 		FunctionRunsTable,
+		IdempotencyRecordsTable,
 		LlmUsageRecordsTable,
 		MessagesTable,
 		NotificationRecordsTable,
@@ -1862,6 +1888,9 @@ func init() {
 	}
 	FunctionRunsTable.Annotation = &entsql.Annotation{
 		Table: "function_runs",
+	}
+	IdempotencyRecordsTable.Annotation = &entsql.Annotation{
+		Table: "idempotency_records",
 	}
 	LlmUsageRecordsTable.Annotation = &entsql.Annotation{
 		Table: "llm_usage_records",
