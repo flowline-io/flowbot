@@ -120,6 +120,64 @@ func validatedExecCommand(command string) (string, bool) {
 	return command, true
 }
 
+// resolveHostExecutable finds a real program for a bare command name on Windows.
+// App Execution Aliases under WindowsApps are zero-byte reparse points; CreateProcess
+// on them exits 9009 even when a later PATH entry is the real binary.
+func resolveHostExecutable(name string) string {
+	if runtime.GOOS != "windows" || name == "" || strings.ContainsAny(name, `/\`) {
+		return name
+	}
+	pathExt := os.Getenv("PATHEXT")
+	if pathExt == "" {
+		pathExt = ".COM;.EXE;.BAT;.CMD"
+	}
+	if found := lookupExecutable(name, os.Getenv("PATH"), pathExt); found != "" {
+		return found
+	}
+	return name
+}
+
+// lookupExecutable returns the first regular, non-empty file for name on pathEnv.
+// Directories named WindowsApps are skipped. pathExt uses Windows PATHEXT form
+// (semicolon-separated extensions such as ".EXE"). An empty result means no match.
+func lookupExecutable(name, pathEnv, pathExt string) string {
+	for _, dir := range filepath.SplitList(pathEnv) {
+		if dir == "" || strings.EqualFold(filepath.Base(dir), "WindowsApps") {
+			continue
+		}
+		for _, candidateName := range executableNames(name, pathExt) {
+			candidate := filepath.Join(dir, candidateName)
+			info, err := os.Lstat(candidate)
+			if err != nil || !info.Mode().IsRegular() || info.Size() == 0 {
+				continue
+			}
+			return candidate
+		}
+	}
+	return ""
+}
+
+func executableNames(name, pathExt string) []string {
+	if filepath.Ext(name) != "" {
+		return []string{name}
+	}
+	var names []string
+	for ext := range strings.SplitSeq(pathExt, ";") {
+		ext = strings.TrimSpace(ext)
+		if ext == "" {
+			continue
+		}
+		if !strings.HasPrefix(ext, ".") {
+			ext = "." + ext
+		}
+		names = append(names, name+ext)
+	}
+	if len(names) == 0 {
+		return []string{name}
+	}
+	return names
+}
+
 func validatedExecArgv(argv []string) ([]string, bool) {
 	if len(argv) == 0 {
 		return nil, false
@@ -209,6 +267,7 @@ func buildExecCmd(runCtx context.Context, opts ExecOptions) (*exec.Cmd, result.E
 		if !ok {
 			return nil, result.NewExecutionError("spawn_error", "invalid argv", nil), false
 		}
+		argv[0] = resolveHostExecutable(argv[0])
 		return exec.CommandContext(runCtx, argv[0], argv[1:]...), result.ExecutionError{}, true
 	case strings.TrimSpace(opts.Command) != "":
 		command, ok := validatedExecCommand(opts.Command)

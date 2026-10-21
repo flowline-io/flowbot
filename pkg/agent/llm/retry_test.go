@@ -149,9 +149,10 @@ func TestStreamAssistantAbort(t *testing.T) {
 
 func TestStreamAssistantAbortPreservesDeadline(t *testing.T) {
 	t.Parallel()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	// A deadline already in the past is canceled before WithDeadline returns.
+	// Sleeping after a nanosecond timeout is not reliable on coarse OS timers.
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
 	defer cancel()
-	time.Sleep(time.Millisecond)
 	model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
 	_, err := agentllm.StreamAssistant(ctx, model, "", nil, agentllm.StreamOptions{ModelName: "test"})
 	require.ErrorIs(t, err, agentllm.ErrAborted)
