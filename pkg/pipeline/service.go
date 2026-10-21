@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"maps"
 	"strings"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -22,6 +23,19 @@ type DefinitionCatalog interface {
 	DeleteDefinitionByName(ctx context.Context, name string) (int64, error)
 	ListPublishedDefinitions(ctx context.Context) ([]DefinitionRecord, error)
 	GetRunsByParentName(ctx context.Context, parentName string) ([]*model.PipelineRun, error)
+	ListDefinitions(ctx context.Context) ([]*model.PipelineDefinition, error)
+	RenameDefinition(ctx context.Context, oldName, newName string) (*model.PipelineDefinition, error)
+	SetDefinitionEnabled(ctx context.Context, name string, enabled bool) (*model.PipelineDefinition, error)
+	ListDefinitionVersions(ctx context.Context, name string) ([]model.PipelineDefinitionVersion, error)
+	GetDefinitionVersion(ctx context.Context, name string, version int) (*model.PipelineDefinitionVersion, error)
+	LatestRunStartedAtByParentNames(ctx context.Context, names []string) (map[string]time.Time, error)
+	RunLatencyStatsByParentNames(ctx context.Context, names []string, since time.Time) (map[string]types.RunLatencyStats, error)
+	Stats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.PipelineStats, error)
+}
+
+// EventLoader loads the data event that started a pipeline run.
+type EventLoader interface {
+	LoadDataEvent(ctx context.Context, eventID string) (types.DataEvent, error)
 }
 
 // ListInfo is a published pipeline summary for list APIs.
@@ -44,11 +58,29 @@ type ApplyResult struct {
 // Service orchestrates DB-backed pipeline apply/run and engine reload.
 type Service struct {
 	catalog DefinitionCatalog
+	runs    RunStore
+	events  EventLoader
 }
 
 // NewService creates a pipeline definition Service.
 func NewService(catalog DefinitionCatalog) *Service {
 	return &Service{catalog: catalog}
+}
+
+// SetRunStore attaches run and step persistence. The engine keeps its own RunStore.
+func (s *Service) SetRunStore(runs RunStore) {
+	if s == nil {
+		return
+	}
+	s.runs = runs
+}
+
+// SetEventLoader attaches the data-event lookup used by Retry.
+func (s *Service) SetEventLoader(events EventLoader) {
+	if s == nil {
+		return
+	}
+	s.events = events
 }
 
 // ApplyYAML parses YAML, writes draft, publishes immediately, and reloads the engine.

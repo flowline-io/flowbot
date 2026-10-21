@@ -259,14 +259,16 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 	}
 }
 
-func TestGetWorkflowServiceReusesFallbackAndStopsCron(t *testing.T) {
+func TestGetWorkflowServiceReusesInstalledService(t *testing.T) {
 	_, _, _ = setupTestAppWithDB(t)
 	pkgworkflow.SetReloadService(nil)
+	require.Nil(t, getWorkflowService())
 
+	InstallPageServices()
 	first := getWorkflowService()
 	require.NotNil(t, first)
 	second := getWorkflowService()
-	require.Same(t, first, second, "fallback workflow service must be reused to avoid cron leaks")
+	require.Same(t, first, second, "installed workflow service must be reused to avoid cron leaks")
 
 	before := runtime.NumGoroutine()
 	for range 15 {
@@ -282,7 +284,7 @@ func TestGetWorkflowServiceReusesFallbackAndStopsCron(t *testing.T) {
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	require.Less(t, grew, 5, "ReloadTriggers on fallback service leaked goroutines: before=%d grew=%d", before, grew)
+	require.Less(t, grew, 5, "ReloadTriggers on installed service leaked goroutines: before=%d grew=%d", before, grew)
 }
 
 func TestSetWorkflowEnabledDisableAndEnable(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -147,6 +148,60 @@ func (m *mockCatalog) ClearBlueprintOrigin(_ context.Context, name string) error
 	def.BlueprintYAML = ""
 	def.BlueprintInputs = nil
 	return nil
+}
+
+func (m *mockCatalog) ListDefinitions(context.Context) ([]*model.PipelineDefinition, error) {
+	out := make([]*model.PipelineDefinition, 0, len(m.defs))
+	for _, def := range m.defs {
+		cp := *def
+		out = append(out, &cp)
+	}
+	return out, nil
+}
+
+func (m *mockCatalog) RenameDefinition(_ context.Context, oldName, newName string) (*model.PipelineDefinition, error) {
+	def, ok := m.defs[oldName]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	delete(m.defs, oldName)
+	def.Name = newName
+	m.defs[newName] = def
+	cp := *def
+	return &cp, nil
+}
+
+func (m *mockCatalog) SetDefinitionEnabled(_ context.Context, name string, enabled bool) (*model.PipelineDefinition, error) {
+	def, ok := m.defs[name]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	if def.YamlPublished == nil {
+		return nil, types.ErrInvalidArgument
+	}
+	_ = enabled
+	cp := *def
+	return &cp, nil
+}
+
+func (*mockCatalog) ListDefinitionVersions(context.Context, string) ([]model.PipelineDefinitionVersion, error) {
+	return nil, nil
+}
+
+func (*mockCatalog) GetDefinitionVersion(context.Context, string, int) (*model.PipelineDefinitionVersion, error) {
+	return nil, types.ErrNotFound
+}
+
+func (*mockCatalog) LatestRunStartedAtByParentNames(context.Context, []string) (map[string]time.Time, error) {
+	return map[string]time.Time{}, nil
+}
+
+func (*mockCatalog) RunLatencyStatsByParentNames(context.Context, []string, time.Time) (map[string]types.RunLatencyStats, error) {
+	return map[string]types.RunLatencyStats{}, nil
+}
+
+func (*mockCatalog) Stats(context.Context, string, time.Time, time.Time, string) (*types.PipelineStats, error) {
+	return &types.PipelineStats{}, nil
 }
 
 func (m *mockCatalog) ListLinkedPipelineNames(_ context.Context, source, blueprintID string) ([]string, error) {

@@ -51,6 +51,28 @@ func (*mockCatalog) ListRunsByName(_ context.Context, _ string) ([]*model.Workfl
 	return nil, nil
 }
 
+func (*mockCatalog) ListTriggers(context.Context) ([]*model.WorkflowTrigger, error) {
+	return nil, nil
+}
+func (*mockCatalog) TriggersByName(context.Context, string) ([]*model.WorkflowTrigger, error) {
+	return nil, nil
+}
+func (*mockCatalog) SetEnabled(context.Context, string, bool) (*model.Workflow, error) {
+	return nil, errors.New("not implemented")
+}
+func (*mockCatalog) SetTriggerEnabled(context.Context, string, int64, bool) (*model.WorkflowTrigger, error) {
+	return nil, errors.New("not implemented")
+}
+func (*mockCatalog) LatestRunStartedAtByNames(context.Context, []string) (map[string]time.Time, error) {
+	return nil, nil
+}
+func (*mockCatalog) RunLatencyStatsByNames(context.Context, []string, time.Time) (map[string]types.RunLatencyStats, error) {
+	return nil, nil
+}
+func (*mockCatalog) Stats(context.Context, string, time.Time, time.Time, string) (*types.WorkflowStats, error) {
+	return &types.WorkflowStats{}, nil
+}
+
 type mockRunStore struct {
 	mu      sync.Mutex
 	created []*model.WorkflowRun
@@ -92,6 +114,9 @@ func (*mockRunStore) GetRun(context.Context, int64) (*model.WorkflowRun, error) 
 	return nil, errors.New("not found")
 }
 func (*mockRunStore) UpdateRunHeartbeat(context.Context, int64) error { return nil }
+func (*mockRunStore) ListStepRuns(context.Context, int64) ([]*model.WorkflowStepRun, error) {
+	return nil, nil
+}
 
 func sampleMeta(name string) *types.WorkflowMetadata {
 	return &types.WorkflowMetadata{

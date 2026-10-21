@@ -2,6 +2,13 @@ package model
 
 import "time"
 
+// PipelineDefinitionVersion is one published YAML snapshot of a pipeline definition.
+type PipelineDefinitionVersion struct {
+	Version   int       `json:"version"`
+	YAML      string    `json:"yaml"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // PipelineDefinition is a pipeline definition row for UI and engine catalog use.
 type PipelineDefinition struct {
 	ID            int64   `json:"id"`

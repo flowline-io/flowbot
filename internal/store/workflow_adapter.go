@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"maps"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -106,6 +107,60 @@ func (a WorkflowCatalogAdapter) DeleteDefinitionByName(ctx context.Context, name
 	return a.S.DeleteDefinitionByName(ctx, name)
 }
 
+// ListTriggers implements workflow.Catalog.
+func (a WorkflowCatalogAdapter) ListTriggers(ctx context.Context) ([]*model.WorkflowTrigger, error) {
+	rows, err := a.S.ListTriggers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return mapWorkflowTriggerDTOs(rows), nil
+}
+
+// TriggersByName implements workflow.Catalog.
+func (a WorkflowCatalogAdapter) TriggersByName(ctx context.Context, name string) ([]*model.WorkflowTrigger, error) {
+	dto, err := a.S.GetDefinitionByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	if dto == nil {
+		return nil, types.Errorf(types.ErrNotFound, "workflow %s", name)
+	}
+	return mapWorkflowTriggerDTOs(dto.Triggers), nil
+}
+
+// SetEnabled implements workflow.Catalog.
+func (a WorkflowCatalogAdapter) SetEnabled(ctx context.Context, name string, enabled bool) (*model.Workflow, error) {
+	row, err := a.S.SetEnabled(ctx, name, enabled)
+	if err != nil {
+		return nil, err
+	}
+	return mapWorkflowDTO(row), nil
+}
+
+// SetTriggerEnabled implements workflow.Catalog.
+func (a WorkflowCatalogAdapter) SetTriggerEnabled(ctx context.Context, workflowName string, triggerID int64, enabled bool) (*model.WorkflowTrigger, error) {
+	row, err := a.S.SetTriggerEnabled(ctx, workflowName, triggerID, enabled)
+	if err != nil {
+		return nil, err
+	}
+	return mapWorkflowTriggerDTO(row), nil
+}
+
+// LatestRunStartedAtByNames implements workflow.Catalog.
+func (a WorkflowCatalogAdapter) LatestRunStartedAtByNames(ctx context.Context, names []string) (map[string]time.Time, error) {
+	return a.S.LatestRunStartedAtByNames(ctx, names)
+}
+
+// RunLatencyStatsByNames implements workflow.Catalog.
+func (a WorkflowCatalogAdapter) RunLatencyStatsByNames(ctx context.Context, names []string, since time.Time) (map[string]types.RunLatencyStats, error) {
+	return a.S.RunLatencyStatsByNames(ctx, names, since)
+}
+
+// Stats implements workflow.Catalog.
+func (a WorkflowCatalogAdapter) Stats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.WorkflowStats, error) {
+	return a.S.WorkflowStats(ctx, name, since, until, groupBy)
+}
+
 // ListRunsByName implements workflow.Catalog.
 func (a WorkflowCatalogAdapter) ListRunsByName(ctx context.Context, name string) ([]*model.WorkflowRun, error) {
 	rows, err := a.S.ListRunsByName(ctx, name)
@@ -126,6 +181,15 @@ func NewWorkflowRunStoreAdapter(s *WorkflowRunStore) workflow.WorkflowRunStore {
 		return nil
 	}
 	return WorkflowRunStoreAdapter{S: s}
+}
+
+// WorkflowServiceAdapters returns the catalog and run store backed by Database.
+// Both are nil when the database is closed.
+func WorkflowServiceAdapters() (workflow.Catalog, workflow.WorkflowRunStore) {
+	if Database == nil || Database.GetClient() == nil {
+		return nil, nil
+	}
+	return NewWorkflowCatalogAdapter(WorkflowStoreFromDB()), NewWorkflowRunStoreAdapter(NewWorkflowRunStore(Database.GetClient()))
 }
 
 // CreateRun implements workflow.WorkflowRunStore.
@@ -179,14 +243,57 @@ func (a WorkflowRunStoreAdapter) GetCheckpoint(ctx context.Context, runID int64,
 func (a WorkflowRunStoreAdapter) GetRun(ctx context.Context, runID int64) (*model.WorkflowRun, error) {
 	row, err := a.S.GetRun(ctx, runID)
 	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
 		return nil, err
 	}
 	return mapWorkflowRunDTO(row), nil
 }
 
+// ListStepRuns implements workflow.WorkflowRunStore.
+func (a WorkflowRunStoreAdapter) ListStepRuns(ctx context.Context, runID int64) ([]*model.WorkflowStepRun, error) {
+	rows, err := a.S.GetStepRunsByRunID(ctx, runID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.WorkflowStepRun, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		out = append(out, mapWorkflowStepRunDTO(row))
+	}
+	return out, nil
+}
+
 // UpdateRunHeartbeat implements workflow.WorkflowRunStore.
 func (a WorkflowRunStoreAdapter) UpdateRunHeartbeat(ctx context.Context, runID int64) error {
 	return a.S.UpdateRunHeartbeat(ctx, runID)
+}
+
+func mapWorkflowTriggerDTO(row *gen.WorkflowTrigger) *model.WorkflowTrigger {
+	if row == nil {
+		return nil
+	}
+	return &model.WorkflowTrigger{
+		ID:         row.ID,
+		WorkflowID: row.WorkflowID,
+		Type:       row.Type,
+		Enabled:    row.Enabled,
+		Rule:       cloneJSONMap(row.Rule),
+	}
+}
+
+func mapWorkflowTriggerDTOs(rows []*gen.WorkflowTrigger) []*model.WorkflowTrigger {
+	out := make([]*model.WorkflowTrigger, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		out = append(out, mapWorkflowTriggerDTO(row))
+	}
+	return out
 }
 
 func mapWorkflowDTO(row *gen.Workflow) *model.Workflow {

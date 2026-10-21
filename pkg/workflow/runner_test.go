@@ -172,6 +172,10 @@ func (m *mockWorkflowStore) GetRun(_ context.Context, runID int64) (*model.Workf
 	return run, nil
 }
 
+func (*mockWorkflowStore) ListStepRuns(context.Context, int64) ([]*model.WorkflowStepRun, error) {
+	return nil, nil
+}
+
 func (m *mockWorkflowStore) UpdateRunHeartbeat(context.Context, int64) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()

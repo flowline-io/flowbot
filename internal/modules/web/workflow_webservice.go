@@ -13,8 +13,6 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -37,48 +35,8 @@ var workflowWebserviceRules = []webservice.Rule{
 	webservice.Post("/workflows/:name/run", workflowRunNow),
 }
 
-func getWorkflowStore() *store.WorkflowStore {
-	if store.Database == nil {
-		return nil
-	}
-	return store.WorkflowStoreFromDB()
-}
-
-func getWorkflowCatalog() pkgworkflow.Catalog {
-	ws := getWorkflowStore()
-	if ws == nil {
-		return nil
-	}
-	return store.NewWorkflowCatalogAdapter(ws)
-}
-
-func getWorkflowRunStore() *store.WorkflowRunStore {
-	if store.Database == nil || store.Database.GetClient() == nil {
-		return nil
-	}
-	return store.NewWorkflowRunStore(store.Database.GetClient())
-}
-
 func getWorkflowService() *pkgworkflow.Service {
-	if svc := pkgworkflow.ActiveService(); svc != nil {
-		return svc
-	}
-	ws := getWorkflowStore()
-	rs := getWorkflowRunStore()
-	if ws == nil {
-		return nil
-	}
-	// Local fallback for tests / when server lifecycle has not wired ActiveService.
-	// Must be registered: callers may ReloadTriggers, which starts a cron goroutine
-	// that would otherwise leak on every fresh NewService.
-	svc := pkgworkflow.NewService(
-		store.NewWorkflowCatalogAdapter(ws),
-		store.NewWorkflowRunStoreAdapter(rs),
-		nil,
-		nil,
-	)
-	pkgworkflow.SetReloadService(svc)
-	return svc
+	return pkgworkflow.ActiveService()
 }
 
 func stopFallbackWorkflowService() {
@@ -125,15 +83,15 @@ func workflowListTable(c fiber.Ctx) error {
 }
 
 func loadWorkflowListEntries(ctx context.Context) ([]partials.WorkflowListEntry, error) {
-	s := getWorkflowStore()
-	if s == nil {
-		return nil, errors.New("workflow store not available")
+	svc := getWorkflowService()
+	if svc == nil {
+		return nil, errors.New("workflow service not ready")
 	}
-	defs, err := s.ListDefinitions(ctx)
+	defs, err := svc.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	triggers, err := s.ListTriggers(ctx)
+	triggers, err := svc.ListTriggers(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -143,13 +101,13 @@ func loadWorkflowListEntries(ctx context.Context) ([]partials.WorkflowListEntry,
 			names = append(names, def.Name)
 		}
 	}
-	lastRuns, err := s.LatestRunStartedAtByNames(ctx, names)
+	lastRuns, err := svc.LatestRunStartedAt(ctx, names)
 	if err != nil {
 		return nil, err
 	}
-	entries := partials.BuildWorkflowListEntries(ctx, mapWorkflows(defs), mapWorkflowTriggers(triggers), lastRuns)
+	entries := partials.BuildWorkflowListEntries(ctx, derefSlice(defs), derefSlice(triggers), lastRuns)
 	since := time.Now().Add(-7 * 24 * time.Hour)
-	stats, err := s.RunLatencyStatsByNames(ctx, names, since)
+	stats, err := svc.RunLatencyStats(ctx, names, since)
 	if err != nil {
 		return nil, err
 	}
@@ -169,12 +127,12 @@ func workflowStats(c fiber.Ctx) error {
 		return err
 	}
 
-	s := getWorkflowStore()
-	if s == nil {
-		return types.Errorf(types.ErrInternal, "workflow store not available")
+	svc := getWorkflowService()
+	if svc == nil {
+		return types.Errorf(types.ErrInternal, "workflow service not ready")
 	}
 	if name != "" {
-		_, err = s.GetDefinitionByName(c.Context(), name)
+		_, err = svc.Get(c.Context(), name)
 		if err != nil {
 			if errors.Is(err, types.ErrNotFound) {
 				return types.Errorf(types.ErrNotFound, "workflow %s not found", name)
@@ -183,7 +141,7 @@ func workflowStats(c fiber.Ctx) error {
 		}
 	}
 
-	stats, err := s.WorkflowStats(c.Context(), name, since, time.Time{}, tabs.GroupBy)
+	stats, err := svc.Stats(c.Context(), name, since, time.Time{}, tabs.GroupBy)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "workflow stats: %v", err)
 	}
@@ -204,27 +162,26 @@ func workflowDetailPage(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getWorkflowStore()
-	catalog := getWorkflowCatalog()
-	if s == nil || catalog == nil {
-		return types.Errorf(types.ErrInternal, "workflow store not available")
+	svc := getWorkflowService()
+	if svc == nil {
+		return types.Errorf(types.ErrInternal, "workflow service not ready")
 	}
-	dto, err := s.GetDefinitionByName(c.Context(), name)
+	meta, err := svc.Get(c.Context(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.workflow_not_found"))
 		}
-		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
-	}
-	meta, err := catalog.GetMetadata(c.Context(), name)
-	if err != nil {
 		return types.Errorf(types.ErrInternal, "workflow metadata: %v", err)
+	}
+	triggers, err := svc.TriggersByName(c.Context(), name)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "workflow triggers: %v", err)
 	}
 	yamlBytes, err := pkgworkflow.ExportYAML(meta)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "export workflow yaml: %v", err)
 	}
-	runs, err := s.ListRunsByName(c.Context(), name)
+	runs, err := svc.ListRuns(c.Context(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list workflow runs: %v", err)
 	}
@@ -232,7 +189,7 @@ func workflowDetailPage(c fiber.Ctx) error {
 		runs = runs[:10]
 	}
 	c.Type("html")
-	return pages.WorkflowDetailPage(c.Context(), meta, mapWorkflowTriggers(dto.Triggers), mapWorkflowRuns(runs), string(yamlBytes), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
+	return pages.WorkflowDetailPage(c.Context(), meta, derefSlice(triggers), derefSlice(runs), string(yamlBytes), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func setWorkflowEnabled(c fiber.Ctx) error {
@@ -249,22 +206,17 @@ func setWorkflowEnabled(c fiber.Ctx) error {
 	if err := c.Bind().Body(&body); err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
-	s := getWorkflowStore()
-	if s == nil {
-		return types.Errorf(types.ErrInternal, "workflow store not available")
+	svc := getWorkflowService()
+	if svc == nil {
+		return types.Errorf(types.ErrInternal, "workflow service not ready")
 	}
-	if _, err := s.SetEnabled(c.Context(), name, body.Enabled); err != nil {
+	if err := svc.SetEnabled(c.Context(), name, body.Enabled); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{
 				"error": fiber.Map{"code": "NOT_FOUND", "message": "Workflow not found"},
 			})
 		}
 		return types.Errorf(types.ErrInternal, "set workflow enabled: %v", err)
-	}
-	if svc := getWorkflowService(); svc != nil {
-		if reloadErr := svc.ReloadTriggers(c.Context()); reloadErr != nil {
-			flog.Warn("workflow: reload triggers after enabled toggle: %v", reloadErr)
-		}
 	}
 	entries, err := loadWorkflowListEntries(c.Context())
 	if err != nil {
@@ -292,11 +244,11 @@ func setWorkflowTriggerEnabled(c fiber.Ctx) error {
 	if err := c.Bind().Body(&body); err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
-	s := getWorkflowStore()
-	if s == nil {
-		return types.Errorf(types.ErrInternal, "workflow store not available")
+	svc := getWorkflowService()
+	if svc == nil {
+		return types.Errorf(types.ErrInternal, "workflow service not ready")
 	}
-	if _, err := s.SetTriggerEnabled(c.Context(), name, triggerID, body.Enabled); err != nil {
+	if err := svc.SetTriggerEnabled(c.Context(), name, triggerID, body.Enabled); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{
 				"error": fiber.Map{"code": "NOT_FOUND", "message": "Workflow trigger not found"},
@@ -304,17 +256,12 @@ func setWorkflowTriggerEnabled(c fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "set workflow trigger enabled: %v", err)
 	}
-	if svc := getWorkflowService(); svc != nil {
-		if reloadErr := svc.ReloadTriggers(c.Context()); reloadErr != nil {
-			flog.Warn("workflow: reload triggers after trigger enabled toggle: %v", reloadErr)
-		}
-	}
-	dto, err := s.GetDefinitionByName(c.Context(), name)
+	triggers, err := svc.TriggersByName(c.Context(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
 	}
 	c.Type("html")
-	return partials.WorkflowTriggersTable(c.Context(), name, mapWorkflowTriggers(dto.Triggers), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowTriggersTable(c.Context(), name, derefSlice(triggers), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunsPage(c fiber.Ctx) error {
@@ -325,22 +272,22 @@ func workflowRunsPage(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getWorkflowStore()
-	if s == nil {
-		return types.Errorf(types.ErrInternal, "workflow store not available")
+	svc := getWorkflowService()
+	if svc == nil {
+		return types.Errorf(types.ErrInternal, "workflow service not ready")
 	}
-	if _, err := s.GetDefinitionByName(c.Context(), name); err != nil {
+	if _, err := svc.Get(c.Context(), name); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.workflow_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
 	}
-	runs, err := s.ListRunsByName(c.Context(), name)
+	runs, err := svc.ListRuns(c.Context(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list workflow runs: %v", err)
 	}
 	c.Type("html")
-	return pages.WorkflowRunsPage(c.Context(), name, mapWorkflowRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
+	return pages.WorkflowRunsPage(c.Context(), name, derefSlice(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunsTable(c fiber.Ctx) error {
@@ -351,18 +298,18 @@ func workflowRunsTable(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getWorkflowStore()
-	if s == nil {
+	svc := getWorkflowService()
+	if svc == nil {
 		c.Status(http.StatusInternalServerError)
 		return renderErrorKey(c, "error.workflow_store_unavailable")
 	}
-	runs, err := s.ListRunsByName(c.Context(), name)
+	runs, err := svc.ListRuns(c.Context(), name)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return renderErrorKey(c, "error.failed_load_workflow_runs")
 	}
 	c.Type("html")
-	return partials.WorkflowRunsTable(c.Context(), name, mapWorkflowRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowRunsTable(c.Context(), name, derefSlice(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunSteps(c fiber.Ctx) error {
@@ -377,13 +324,13 @@ func workflowRunSteps(c fiber.Ctx) error {
 	if err != nil || runID <= 0 {
 		return c.Status(http.StatusBadRequest).SendString(webMsg(c, "error.workflow.invalid_run_id"))
 	}
-	rs := getWorkflowRunStore()
-	if rs == nil {
-		return types.Errorf(types.ErrInternal, "workflow run store not available")
+	svc := getWorkflowService()
+	if svc == nil {
+		return types.Errorf(types.ErrInternal, "workflow service not ready")
 	}
-	run, err := rs.GetRun(c.Context(), runID)
+	run, err := svc.GetRun(c.Context(), runID)
 	if err != nil {
-		if gen.IsNotFound(err) {
+		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.workflow.run_not_found"))
 		}
 		return types.Errorf(types.ErrInternal, "get workflow run: %v", err)
@@ -391,12 +338,12 @@ func workflowRunSteps(c fiber.Ctx) error {
 	if run == nil || run.WorkflowName != name {
 		return c.Status(http.StatusNotFound).SendString(webMsg(c, "error.workflow.run_not_found"))
 	}
-	steps, err := rs.GetStepRunsByRunID(c.Context(), runID)
+	steps, err := svc.ListStepRuns(c.Context(), runID)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "get workflow step runs: %v", err)
 	}
 	c.Type("html")
-	return partials.WorkflowStepRunsDetail(c.Context(), mapWorkflowStepRuns(steps)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowStepRunsDetail(c.Context(), derefSlice(steps)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunNow(c fiber.Ctx) error {
@@ -407,13 +354,12 @@ func workflowRunNow(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	catalog := getWorkflowCatalog()
 	svc := getWorkflowService()
-	if catalog == nil || svc == nil {
+	if svc == nil {
 		c.Status(http.StatusServiceUnavailable)
 		return renderFormErrorKey(c, "#form-error", "error.workflow_run_unavailable")
 	}
-	meta, err := catalog.GetMetadata(c.Context(), name)
+	meta, err := svc.Get(c.Context(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			c.Status(http.StatusNotFound)

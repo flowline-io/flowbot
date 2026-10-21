@@ -32,6 +32,8 @@ var (
 	ErrRetryDefMissing = errors.New("pipeline definition is not loaded")
 	// ErrRetryStepMissing is returned when the failed step name is gone from the published YAML.
 	ErrRetryStepMissing = errors.New("failed step is not in the published definition")
+	// ErrRetryEventMissing is returned when the data event that started a run is gone.
+	ErrRetryEventMissing = errors.New("pipeline retry event is missing")
 )
 
 // CheckpointData is the intermediate state saved at each pipeline step boundary.
@@ -80,6 +82,7 @@ type RunStore interface {
 	UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error
 	CreateStepRun(ctx context.Context, runID int64, stepName, capName, operation string, params map[string]any, attempt int) (*model.PipelineStepRun, error)
 	UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error
+	// ListStepRuns returns step runs ordered by creation time.
 	ListStepRuns(ctx context.Context, runID int64) ([]*model.PipelineStepRun, error)
 	ClaimFailedRun(ctx context.Context, runID int64) error
 	PrepareStepRetry(ctx context.Context, stepRunID int64, params map[string]any, attempt int) error
@@ -91,6 +94,8 @@ type RunStore interface {
 	HasConsumed(ctx context.Context, consumerName, eventID string) (bool, error)
 	RecordConsumption(ctx context.Context, consumerName, eventID string) error
 	RecordResourceLink(ctx context.Context, link model.ResourceLink) error
+	// ListStepRunsByID returns step runs ordered by id, at most 200.
+	ListStepRunsByID(ctx context.Context, runID int64) ([]*model.PipelineStepRun, error)
 }
 
 type Engine struct {

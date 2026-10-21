@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
@@ -62,6 +63,27 @@ func (c *workflowHandlerCatalog) DeleteDefinitionByName(_ context.Context, name 
 func (*workflowHandlerCatalog) ListRunsByName(context.Context, string) ([]*model.WorkflowRun, error) {
 	return nil, nil
 }
+func (*workflowHandlerCatalog) ListTriggers(context.Context) ([]*model.WorkflowTrigger, error) {
+	return nil, nil
+}
+func (*workflowHandlerCatalog) TriggersByName(context.Context, string) ([]*model.WorkflowTrigger, error) {
+	return nil, nil
+}
+func (*workflowHandlerCatalog) SetEnabled(context.Context, string, bool) (*model.Workflow, error) {
+	return nil, types.ErrNotImplemented
+}
+func (*workflowHandlerCatalog) SetTriggerEnabled(context.Context, string, int64, bool) (*model.WorkflowTrigger, error) {
+	return nil, types.ErrNotImplemented
+}
+func (*workflowHandlerCatalog) LatestRunStartedAtByNames(context.Context, []string) (map[string]time.Time, error) {
+	return nil, nil
+}
+func (*workflowHandlerCatalog) RunLatencyStatsByNames(context.Context, []string, time.Time) (map[string]types.RunLatencyStats, error) {
+	return nil, nil
+}
+func (*workflowHandlerCatalog) Stats(context.Context, string, time.Time, time.Time, string) (*types.WorkflowStats, error) {
+	return &types.WorkflowStats{}, nil
+}
 
 type handlerRunStore struct {
 	mu     sync.Mutex
@@ -103,6 +125,9 @@ func (*handlerRunStore) GetRun(context.Context, int64) (*model.WorkflowRun, erro
 	return nil, types.Errorf(types.ErrNotFound, "run")
 }
 func (*handlerRunStore) UpdateRunHeartbeat(context.Context, int64) error { return nil }
+func (*handlerRunStore) ListStepRuns(context.Context, int64) ([]*model.WorkflowStepRun, error) {
+	return nil, nil
+}
 
 func withWorkflowService(t *testing.T, svc *pkgworkflow.Service) {
 	t.Helper()

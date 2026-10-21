@@ -120,6 +120,31 @@ func (c *pipelineHandlerCatalog) GetRunsByParentName(_ context.Context, parentNa
 	return c.runs[parentName], nil
 }
 
+func (*pipelineHandlerCatalog) ListDefinitions(context.Context) ([]*model.PipelineDefinition, error) {
+	return nil, nil
+}
+func (*pipelineHandlerCatalog) RenameDefinition(context.Context, string, string) (*model.PipelineDefinition, error) {
+	return nil, types.ErrNotImplemented
+}
+func (*pipelineHandlerCatalog) SetDefinitionEnabled(context.Context, string, bool) (*model.PipelineDefinition, error) {
+	return nil, types.ErrNotImplemented
+}
+func (*pipelineHandlerCatalog) ListDefinitionVersions(context.Context, string) ([]model.PipelineDefinitionVersion, error) {
+	return nil, nil
+}
+func (*pipelineHandlerCatalog) GetDefinitionVersion(context.Context, string, int) (*model.PipelineDefinitionVersion, error) {
+	return nil, types.ErrNotFound
+}
+func (*pipelineHandlerCatalog) LatestRunStartedAtByParentNames(context.Context, []string) (map[string]time.Time, error) {
+	return nil, nil
+}
+func (*pipelineHandlerCatalog) RunLatencyStatsByParentNames(context.Context, []string, time.Time) (map[string]types.RunLatencyStats, error) {
+	return nil, nil
+}
+func (*pipelineHandlerCatalog) Stats(context.Context, string, time.Time, time.Time, string) (*types.PipelineStats, error) {
+	return &types.PipelineStats{}, nil
+}
+
 func withPipelineService(t *testing.T, svc *pkgpipeline.Service) {
 	t.Helper()
 	prev := pkgpipeline.ActiveService()

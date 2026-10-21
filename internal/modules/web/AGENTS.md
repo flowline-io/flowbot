@@ -4,7 +4,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 
 ## Boundaries
 
-- **Allowed**: store call sites per [store AGENTS.md](../../store/AGENTS.md); `capability.Invoke`; shared `*chatagent.Service` via `SetChatAgentService` (`chatagent_service.go`); already-wired `pkg/agent` packages listed in [pkg/agent/AGENTS.md](../../../pkg/agent/AGENTS.md) (`permission`; tests: `model` / `msg` / `session`).
+- **Allowed**: store call sites per [store AGENTS.md](../../store/AGENTS.md), except `pipeline_webservice.go`, `workflow_webservice.go`, and `function_webservice.go`, which call `pkg/pipeline`, `pkg/workflow`, and `pkg/functions` active services ([note](../../../.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md)); `capability.Invoke`; shared `*chatagent.Service` via `SetChatAgentService` (`chatagent_service.go`); already-wired `pkg/agent` packages listed in [pkg/agent/AGENTS.md](../../../pkg/agent/AGENTS.md) (`permission`; tests: `model` / `msg` / `session`).
 - **Forbidden**: provider clients; SQL or Ent queries in handlers; ent types in templates (map to `pkg/types/model` in this package first); view templates under `internal/modules/`.
 
 ## Entry points

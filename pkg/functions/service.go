@@ -497,6 +497,22 @@ func (s *Service) ListRuns(ctx context.Context, name string) ([]*model.FunctionR
 	return s.catalog.ListRuns(ctx, name)
 }
 
+// Stats returns aggregated invoke statistics for one function, or every function when name is empty.
+func (s *Service) Stats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.FunctionStats, error) {
+	if s == nil || s.catalog == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+	}
+	return s.catalog.Stats(ctx, name, since, until, groupBy)
+}
+
+// PublishedVersionNumbers returns published version numbers for each function name, newest first.
+func (s *Service) PublishedVersionNumbers(ctx context.Context, names []string) (map[string][]int, error) {
+	if s == nil || s.catalog == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "function service not ready")
+	}
+	return s.catalog.ListPublishedVersionNumbersByNames(ctx, names)
+}
+
 // Invoke runs a published function version with concurrency and idempotency controls.
 func (s *Service) Invoke(ctx context.Context, req InvokeRequest) (*InvokeResult, error) {
 	name, err := s.validateInvokeRequest(req)

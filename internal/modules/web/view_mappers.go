@@ -28,6 +28,17 @@ func mapPipelineDefinition(row *gen.PipelineDefinition) model.PipelineDefinition
 	}
 }
 
+func derefSlice[T any](rows []*T) []T {
+	out := make([]T, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		out = append(out, *row)
+	}
+	return out
+}
+
 func mapPipelineDefinitions(rows []*gen.PipelineDefinition) []model.PipelineDefinition {
 	out := make([]model.PipelineDefinition, 0, len(rows))
 	for _, row := range rows {

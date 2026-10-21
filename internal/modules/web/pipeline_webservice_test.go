@@ -452,6 +452,21 @@ func seedFailedPipelineRun(t *testing.T, client *store.Client, parent, eventID s
 	return run.ID
 }
 
+func TestPipelineRunLivePage_missingRun(t *testing.T) {
+	app, _, _ := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/missing-pl/runs/999999/live", http.NoBody)
+	addWebAuth(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Contains(t, string(body), "Run not found")
+}
+
 func TestPipelineRunSteps_showsConfirmOnFailedRun(t *testing.T) {
 	app, _, client := setupTestAppWithDB(t)
 	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
@@ -557,6 +572,12 @@ func TestRetryPipelineRun_Toasts(t *testing.T) {
 			parent: "toast-unpublished",
 			runID:  unpublishedID,
 			want:   "This pipeline is no longer published",
+		},
+		{
+			name:   "run missing",
+			parent: "toast-pl",
+			runID:  999999,
+			want:   "Run not found",
 		},
 	}
 	for _, tt := range tests {

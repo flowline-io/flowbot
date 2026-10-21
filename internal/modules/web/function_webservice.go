@@ -9,7 +9,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	capfunctions "github.com/flowline-io/flowbot/pkg/capability/functions"
 	pkgfunctions "github.com/flowline-io/flowbot/pkg/functions"
@@ -36,13 +35,6 @@ var functionWebserviceRules = []webservice.Rule{
 
 func getFunctionService() *pkgfunctions.Service {
 	return pkgfunctions.ActiveService()
-}
-
-func getFunctionStore() *store.FunctionStore {
-	if store.Database == nil {
-		return nil
-	}
-	return store.FunctionStoreFromDB()
 }
 
 func functionNameParam(c fiber.Ctx) (string, error) {
@@ -110,11 +102,7 @@ func functionStats(c fiber.Ctx) error {
 		}
 	}
 
-	s := getFunctionStore()
-	if s == nil {
-		return types.Errorf(types.ErrInternal, "function store not available")
-	}
-	stats, err := s.FunctionStats(context.Background(), name, since, time.Time{}, tabs.GroupBy)
+	stats, err := svc.Stats(context.Background(), name, since, time.Time{}, tabs.GroupBy)
 	if err != nil {
 		return types.WrapError(types.ErrInternal, "function stats", err)
 	}

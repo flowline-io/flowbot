@@ -22,6 +22,7 @@
 
 ### Changed
 
+- Deleting a pipeline from the web page reloads the pipeline engine. See [.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md](.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md).
 - Agent Skills identity rules (`pkg/validate`: name, description, compatibility, name↔directory) apply on zip import, Web create/update, and composer generation. `go tool task skills` runs `skills-ref@0.1.5`; CI workflow `.github/workflows/skills.yml` fails when `docs/skills` is dirty or validation fails. See [.agents/notes/implemented/process/2026-09-16-agent-skills-name-validation-skills-ref.md](.agents/notes/implemented/process/2026-09-16-agent-skills-name-validation-skills-ref.md).
 - `github.com/a-h/templ` upgraded to v0.3.1070. Boolean HTML attributes use `attr?={ cond }`. See [.agents/notes/implemented/process/2026-10-09-templ-0.3.1070-upgrade.md](.agents/notes/implemented/process/2026-10-09-templ-0.3.1070-upgrade.md).
 - Server image CI smokes the published GHCR tag for baked artifacts (`/opt/app/flowbot`, `flowbot-cli_linux_amd64`, `composer`, `dcg`, `wget`) without starting the HTTP server. See [.agents/notes/implemented/testing/2026-09-18-server-image-ci-smoke.md](.agents/notes/implemented/testing/2026-09-18-server-image-ci-smoke.md).

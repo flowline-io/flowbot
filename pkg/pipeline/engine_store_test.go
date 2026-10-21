@@ -111,6 +111,10 @@ func (m *mockPipelineStore) UpdateStepRun(_ context.Context, stepRunID int64, st
 	return nil
 }
 
+func (m *mockPipelineStore) ListStepRunsByID(ctx context.Context, runID int64) ([]*model.PipelineStepRun, error) {
+	return m.ListStepRuns(ctx, runID)
+}
+
 func (m *mockPipelineStore) ListStepRuns(_ context.Context, runID int64) ([]*model.PipelineStepRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

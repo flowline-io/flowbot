@@ -240,8 +240,8 @@ func initPipeline(
 
 	if store.Database != nil && store.Database.GetClient() != nil {
 		ps := store.PipelineStoreFromDB()
-		catalog := store.PipelineCatalogAdapter{S: ps}
-		pipeline.SetActiveService(pipeline.NewService(catalog))
+		svc, catalog := store.NewPipelineService(ps, store.EventStoreFromDB())
+		pipeline.SetActiveService(svc)
 		pipeline.SetActiveBlueprintService(pipeline.NewBlueprintService(ps, catalog))
 	}
 

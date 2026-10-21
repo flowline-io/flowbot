@@ -28,6 +28,7 @@ type WorkflowRunStore interface {
 	GetCheckpoint(ctx context.Context, runID int64, target any) error
 	GetRun(ctx context.Context, runID int64) (*model.WorkflowRun, error)
 	UpdateRunHeartbeat(ctx context.Context, runID int64) error
+	ListStepRuns(ctx context.Context, runID int64) ([]*model.WorkflowStepRun, error)
 }
 
 // DefinitionStore loads workflow definitions by name for resume and DB-backed runs.

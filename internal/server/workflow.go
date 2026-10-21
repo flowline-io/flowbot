@@ -35,8 +35,7 @@ func initWorkflow(
 		return nil
 	}
 
-	catalog := store.NewWorkflowCatalogAdapter(store.WorkflowStoreFromDB())
-	runs := store.NewWorkflowRunStoreAdapter(store.NewWorkflowRunStore(store.Database.GetClient()))
+	catalog, runs := store.WorkflowServiceAdapters()
 	svc := workflow.NewService(catalog, runs, auditor, wc)
 	if err := svc.ReloadTriggers(context.Background()); err != nil {
 		return fmt.Errorf("reload workflow triggers: %w", err)

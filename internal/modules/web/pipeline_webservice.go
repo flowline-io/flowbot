@@ -16,8 +16,6 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -59,56 +57,54 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines/:name/versions/:version", getPipelineVersion),
 }
 
-func getPipelineDefStore() *store.PipelineStore {
-	if store.Database == nil {
-		return nil
+func pipelineSvc() (*pipeline.Service, error) {
+	svc := pipeline.ActiveService()
+	if svc == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "pipeline service not ready")
 	}
-	return store.PipelineStoreFromDB()
+	return svc, nil
 }
 
 func pipelineListPage(c fiber.Ctx) error {
-	s := getPipelineDefStore()
-	defs, err := s.ListDefinitions(context.Background())
+	entries, err := loadPipelineListEntries(context.Background())
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
-	}
-	entries, err := buildPipelineListEntries(context.Background(), s, defs)
-	if err != nil {
-		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
 	return pages.PipelineListPage(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func pipelineListTable(c fiber.Ctx) error {
-	s := getPipelineDefStore()
-	defs, err := s.ListDefinitions(context.Background())
+	entries, err := loadPipelineListEntries(context.Background())
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
-	}
-	entries, err := buildPipelineListEntries(context.Background(), s, defs)
-	if err != nil {
-		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
 	return partials.PipelineListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
 }
 
-// buildPipelineListEntries loads last-run timestamps and latency stats and builds pipeline list rows.
-func buildPipelineListEntries(ctx context.Context, s *store.PipelineStore, defs []*gen.PipelineDefinition) ([]partials.PipelineListEntry, error) {
+func loadPipelineListEntries(ctx context.Context) ([]partials.PipelineListEntry, error) {
+	svc, err := pipelineSvc()
+	if err != nil {
+		return nil, err
+	}
+	defs, err := svc.ListDefinitions(ctx)
+	if err != nil {
+		return nil, err
+	}
 	names := make([]string, 0, len(defs))
 	for _, def := range defs {
 		if def != nil {
 			names = append(names, def.Name)
 		}
 	}
-	lastRuns, err := s.LatestRunStartedAtByParentNames(ctx, names)
+	lastRuns, err := svc.LatestRunStartedAt(ctx, names)
 	if err != nil {
 		return nil, err
 	}
-	entries := partials.BuildPipelineListEntries(mapPipelineDefinitions(defs), lastRuns)
+	entries := partials.BuildPipelineListEntries(derefSlice(defs), lastRuns)
 	since := time.Now().Add(-7 * 24 * time.Hour)
-	stats, err := s.RunLatencyStatsByParentNames(ctx, names, since)
+	stats, err := svc.RunLatencyStats(ctx, names, since)
 	if err != nil {
 		return nil, err
 	}
@@ -120,12 +116,18 @@ func pipelineEditorPage(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getPipelineDefStore()
-	row, err := s.GetDefinitionByName(context.Background(), name)
+	svc, err := pipelineSvc()
 	if err != nil {
 		return err
 	}
-	def := mapPipelineDefinition(row)
+	row, err := svc.GetDefinition(context.Background(), name)
+	if err != nil {
+		return err
+	}
+	def := model.PipelineDefinition{}
+	if row != nil {
+		def = *row
+	}
 	if def.LinkedBlueprint() {
 		return renderLinkedPipelinePage(c, def)
 	}
@@ -140,8 +142,11 @@ func createPipeline(c fiber.Ctx) error {
 		c.Status(fiber.StatusUnprocessableEntity)
 		return renderFormErrorKey(c, "#form-error", "error.validation")
 	}
-	s := getPipelineDefStore()
-	if err := s.CreateDefinition(context.Background(), name, description, getUID(c)); err != nil {
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	if err := svc.Create(context.Background(), name, description, getUID(c)); err != nil {
 		if errors.Is(err, types.ErrAlreadyExists) {
 			c.Status(fiber.StatusUnprocessableEntity)
 			return renderFormError(c, "#form-error", webMsgData(c, "error.pipeline.already_exists", map[string]any{"Name": name}))
@@ -164,8 +169,11 @@ func updatePipelineDraft(c fiber.Ctx) error {
 	if err := c.Bind().Body(&body); err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
-	s := getPipelineDefStore()
-	existing, err := s.GetDefinitionByName(context.Background(), name)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	existing, err := svc.GetDefinition(context.Background(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{
@@ -174,12 +182,12 @@ func updatePipelineDraft(c fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "get pipeline: %v", err)
 	}
-	if existing.BlueprintID != "" {
+	if existing != nil && existing.BlueprintID != "" {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 			"error": fiber.Map{"code": "LINKED_BLUEPRINT", "message": webMsg(c, "error.blueprint.linked_readonly")},
 		})
 	}
-	def, err := s.UpdateDefinitionDraft(context.Background(), name, body.Yaml, body.Version)
+	def, err := svc.SaveDraft(context.Background(), name, body.Yaml, body.Version)
 	if err != nil {
 		if errors.Is(err, types.ErrConflict) {
 			return c.Status(409).JSON(fiber.Map{
@@ -214,8 +222,11 @@ func renamePipeline(c fiber.Ctx) error {
 			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.validation")},
 		})
 	}
-	s := getPipelineDefStore()
-	def, err := s.RenameDefinition(context.Background(), name, newName)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	def, err := svc.Rename(context.Background(), name, newName)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{
@@ -233,9 +244,6 @@ func renamePipeline(c fiber.Ctx) error {
 			})
 		}
 		return types.Errorf(types.ErrInternal, "rename pipeline: %v", err)
-	}
-	if reloadErr := pipeline.ReloadDefinitions(context.Background()); reloadErr != nil {
-		flog.Error(fmt.Errorf("reload pipeline engine after rename: %w", reloadErr))
 	}
 	return c.JSON(fiber.Map{
 		"name":    def.Name,
@@ -255,30 +263,17 @@ func publishPipeline(c fiber.Ctx) error {
 	if err := c.Bind().Body(&body); err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
-	s := getPipelineDefStore()
-
-	// Validate YAML structure before publishing
-	def, err := s.GetDefinitionByName(context.Background(), name)
+	svc, err := pipelineSvc()
 	if err != nil {
-		if errors.Is(err, types.ErrNotFound) {
-			return c.Status(404).JSON(fiber.Map{
-				"error": fiber.Map{"code": "NOT_FOUND", "message": "Pipeline not found"},
+		return err
+	}
+	def, err := svc.Publish(context.Background(), name, body.Version, getUID(c))
+	if err != nil {
+		if errors.Is(err, types.ErrInvalidArgument) {
+			return c.Status(400).JSON(fiber.Map{
+				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.pipeline.yaml_validation_failed")},
 			})
 		}
-		return types.Errorf(types.ErrInternal, "publish: get pipeline: %v", err)
-	}
-	if _, err := pipeline.ParseEditorYAML(def.YamlDraft); err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": webMsg(c, "error.pipeline.yaml_validation_failed")},
-		})
-	}
-	// Backfill owner for pipelines created before created_by existed.
-	if err := s.EnsureDefinitionCreatedBy(context.Background(), name, getUID(c)); err != nil {
-		flog.Error(fmt.Errorf("ensure pipeline created_by before publish: %w", err))
-	}
-
-	def, err = s.PublishDefinition(context.Background(), name, body.Version)
-	if err != nil {
 		if errors.Is(err, types.ErrConflict) {
 			return c.Status(409).JSON(fiber.Map{
 				"error": fiber.Map{"code": "CONFLICT", "message": "This draft was modified elsewhere. Please refresh the page."},
@@ -290,9 +285,6 @@ func publishPipeline(c fiber.Ctx) error {
 			})
 		}
 		return types.Errorf(types.ErrInternal, "publish: %v", err)
-	}
-	if reloadErr := pipeline.ReloadDefinitions(context.Background()); reloadErr != nil {
-		flog.Error(fmt.Errorf("reload pipeline engine after publish: %w", reloadErr))
 	}
 	return c.JSON(fiber.Map{"version": def.Version, "status": def.Status})
 }
@@ -308,8 +300,11 @@ func setPipelineEnabled(c fiber.Ctx) error {
 	if err := c.Bind().Body(&body); err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
-	s := getPipelineDefStore()
-	_, err = s.SetDefinitionEnabled(context.Background(), name, body.Enabled)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	err = svc.SetEnabled(context.Background(), name, body.Enabled)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{
@@ -321,18 +316,11 @@ func setPipelineEnabled(c fiber.Ctx) error {
 				"error": fiber.Map{"code": "INVALID_ARGUMENT", "message": "Only published pipelines can be paused or resumed"},
 			})
 		}
-		return types.Errorf(types.ErrInternal, "set pipeline enabled: %v", err)
+		return err
 	}
-	if reloadErr := pipeline.ReloadDefinitions(context.Background()); reloadErr != nil {
-		return types.Errorf(types.ErrInternal, "reload pipeline engine after enabled toggle: %v", reloadErr)
-	}
-	defs, err := s.ListDefinitions(context.Background())
+	entries, err := loadPipelineListEntries(context.Background())
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
-	}
-	entries, err := buildPipelineListEntries(context.Background(), s, defs)
-	if err != nil {
-		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
 	return partials.PipelineListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
@@ -343,26 +331,19 @@ func deletePipeline(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getPipelineDefStore()
-	_, err = s.GetDefinitionByName(context.Background(), name)
+	svc, err := pipelineSvc()
 	if err != nil {
+		return err
+	}
+	if err = svc.Delete(context.Background(), name); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND", "message": "Pipeline not found"}})
 		}
 		return types.Errorf(types.ErrInternal, "delete pipeline: %v", err)
 	}
-	_, err = s.DeleteDefinitionByName(context.Background(), name)
-	if err != nil {
-		return types.Errorf(types.ErrInternal, "delete pipeline: %v", err)
-	}
-	// Return refreshed table HTML (HTMX target is #pipeline-list-container)
-	defs, err := s.ListDefinitions(context.Background())
+	entries, err := loadPipelineListEntries(context.Background())
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
-	}
-	entries, err := buildPipelineListEntries(context.Background(), s, defs)
-	if err != nil {
-		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
 	}
 	c.Type("html")
 	return partials.PipelineListTable(c.Context(), entries).Render(c.Context(), c.Response().BodyWriter())
@@ -373,8 +354,11 @@ func getPipelineYaml(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getPipelineDefStore()
-	def, err := s.GetDefinitionByName(context.Background(), name)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	def, err := svc.GetDefinition(context.Background(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND"}})
@@ -393,17 +377,20 @@ func listPipelineVersions(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getPipelineDefStore()
-	// Verify pipeline exists first, since ListDefinitionVersions does not
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	// Verify pipeline exists first, since listing versions does not
 	// return ErrNotFound for an unknown pipeline name.
-	_, err = s.GetDefinitionByName(context.Background(), name)
+	_, err = svc.GetDefinition(context.Background(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND"}})
 		}
 		return types.Errorf(types.ErrInternal, "list versions: %v", err)
 	}
-	vers, err := s.ListDefinitionVersions(context.Background(), name)
+	vers, err := svc.ListVersions(context.Background(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list versions: %v", err)
 	}
@@ -426,8 +413,11 @@ func getPipelineVersion(c fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid version: %v", err)
 	}
-	s := getPipelineDefStore()
-	ver, err := s.GetDefinitionVersion(context.Background(), name, version)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	ver, err := svc.GetVersion(context.Background(), name, version)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND"}})
@@ -435,7 +425,7 @@ func getPipelineVersion(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get version: %v", err)
 	}
 	return c.JSON(fiber.Map{
-		"yaml":       ver.Yaml,
+		"yaml":       ver.YAML,
 		"version":    ver.Version,
 		"created_at": ver.CreatedAt,
 	})
@@ -497,8 +487,11 @@ func testPipelineStep(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getPipelineDefStore()
-	def, err := s.GetDefinitionByName(context.Background(), name)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	def, err := svc.GetDefinition(context.Background(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND"}})
@@ -553,13 +546,16 @@ func pipelineRunsPage(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getPipelineDefStore()
-	runs, err := s.GetRunsByParentName(context.Background(), name)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	runs, err := svc.ListRuns(context.Background(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return pages.PipelineRunsPage(c.Context(), name, mapPipelineRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
+	return pages.PipelineRunsPage(c.Context(), name, derefSlice(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func pipelineRunsTable(c fiber.Ctx) error {
@@ -567,13 +563,16 @@ func pipelineRunsTable(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s := getPipelineDefStore()
-	runs, err := s.GetRunsByParentName(context.Background(), name)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	runs, err := svc.ListRuns(context.Background(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineRunsTable(c.Context(), name, mapPipelineRuns(runs)).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineRunsTable(c.Context(), name, derefSlice(runs)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func pipelineRunSteps(c fiber.Ctx) error {
@@ -585,8 +584,11 @@ func pipelineRunSteps(c fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid run ID: %v", err)
 	}
-	s := getPipelineDefStore()
-	run, err := s.GetRunByID(context.Background(), runID)
+	svc, err := pipelineSvc()
+	if err != nil {
+		return err
+	}
+	run, err := svc.GetRun(context.Background(), runID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return types.Errorf(types.ErrNotFound, "pipeline run %d", runID)
@@ -596,7 +598,7 @@ func pipelineRunSteps(c fiber.Ctx) error {
 	if run == nil || !pipeline.RunBelongsToParent(run.PipelineName, name) {
 		return types.Errorf(types.ErrNotFound, "pipeline run %d", runID)
 	}
-	steps, err := s.GetStepRunsByRunID(context.Background(), runID)
+	steps, err := svc.ListStepRunsByID(context.Background(), runID)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "get step runs: %v", err)
 	}
@@ -606,7 +608,7 @@ func pipelineRunSteps(c fiber.Ctx) error {
 		Enabled:      run.Status == int(types.PipelineFailed),
 	}
 	c.Type("html")
-	return partials.PipelineStepRunsDetail(c.Context(), mapPipelineStepRuns(steps), retry).Render(c.Context(), c.Response().BodyWriter())
+	return partials.PipelineStepRunsDetail(c.Context(), derefSlice(steps), retry).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func retryPipelineRun(c fiber.Ctx) error {
@@ -618,43 +620,27 @@ func retryPipelineRun(c fiber.Ctx) error {
 	if err != nil {
 		return toastErrorKey(c, "error.pipeline.invalid_run_id")
 	}
-	s := getPipelineDefStore()
-	if s == nil {
+	svc, err := pipelineSvc()
+	if err != nil {
 		return toastErrorKey(c, "toast.pipeline.retry_failed")
 	}
-	run, err := s.GetRunByID(c.Context(), runID)
-	if err != nil {
+	if err := svc.Retry(c.Context(), name, runID); err != nil {
+		if errors.Is(err, pipeline.ErrRetryEventMissing) {
+			return toastErrorKey(c, "toast.pipeline.retry_event_missing")
+		}
+		if errors.Is(err, pipeline.ErrRetryNotFailed) ||
+			errors.Is(err, pipeline.ErrRetryDefMissing) ||
+			errors.Is(err, pipeline.ErrRetryStepMissing) ||
+			errors.Is(err, types.ErrConflict) {
+			return toastRetryPipelineError(c, err)
+		}
 		if errors.Is(err, types.ErrNotFound) {
 			return toastErrorKey(c, "error.pipeline.run_not_found")
 		}
-		flog.Error(fmt.Errorf("retry pipeline run %d: %w", runID, err))
-		return toastErrorKey(c, "toast.pipeline.retry_failed")
-	}
-	if run == nil || !pipeline.RunBelongsToParent(run.PipelineName, name) {
-		return toastErrorKey(c, "error.pipeline.run_not_found")
-	}
-	if run.Status != int(types.PipelineFailed) {
-		return toastErrorKey(c, "toast.pipeline.retry_not_failed")
-	}
-
-	es := getEventStore()
-	if es == nil {
-		return toastErrorKey(c, "toast.pipeline.retry_failed")
-	}
-	row, err := es.GetDataEventByEventID(c.Context(), run.EventID)
-	if err != nil {
-		flog.Error(fmt.Errorf("retry pipeline run %d load event: %w", runID, err))
-		return toastErrorKey(c, "toast.pipeline.retry_failed")
-	}
-	if row == nil {
-		return toastErrorKey(c, "toast.pipeline.retry_event_missing")
-	}
-
-	eng := pipeline.ActiveEngine()
-	if eng == nil {
-		return toastErrorKey(c, "toast.pipeline.retry_failed")
-	}
-	if err := eng.RetryFailedRun(c.Context(), runID, store.DataEventFromRow(row)); err != nil {
+		if errors.Is(err, types.ErrUnavailable) {
+			flog.Error(fmt.Errorf("retry pipeline run %d: %w", runID, err))
+			return toastErrorKey(c, "toast.pipeline.retry_failed")
+		}
 		return toastRetryPipelineError(c, err)
 	}
 	c.Response().Header.Set("HX-Redirect", partials.PipelineRunLivePath(name, runID))
@@ -723,7 +709,6 @@ func getFunctionInvokeOptions(c fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list functions: %v", err)
 	}
-	fnStore := getFunctionStore()
 	names := make([]string, 0, len(items))
 	for _, item := range items {
 		if item.PublishedVersion != nil {
@@ -731,8 +716,8 @@ func getFunctionInvokeOptions(c fiber.Ctx) error {
 		}
 	}
 	versionLists := map[string][]int{}
-	if fnStore != nil && len(names) > 0 {
-		listed, listErr := fnStore.ListPublishedVersionNumbersByNames(reqCtx, names)
+	if len(names) > 0 {
+		listed, listErr := svc.PublishedVersionNumbers(reqCtx, names)
 		if listErr != nil {
 			flog.Error(fmt.Errorf("list function published versions: %w", listErr))
 		} else {
@@ -855,12 +840,12 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString(webMsg(c, "error.pipeline.invalid_run_id"))
 	}
 
-	s := getPipelineDefStore()
-	if s == nil {
+	svc, err := pipelineSvc()
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(webMsg(c, "empty.store_unavailable"))
 	}
 
-	run, err := s.GetRunByID(context.Background(), runID)
+	run, err := svc.GetRun(context.Background(), runID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).SendString(webMsg(c, "error.pipeline.run_not_found"))
@@ -868,22 +853,25 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(webMsg(c, "error.pipeline.load_run_failed"))
 	}
 
-	steps, err := s.ListStepRunsByRunID(context.Background(), runID)
+	steps, err := svc.ListStepRuns(context.Background(), runID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(webMsg(c, "error.pipeline.load_steps_failed"))
 	}
 
 	initSteps := make([]pages.StepState, len(steps))
-	for i, s := range steps {
-		ss := pages.StepState{
-			Name:   s.StepName,
-			Status: stepRunStatusLabel(s.Status),
-			Output: s.Result,
-			Error:  s.Error,
-			Input:  s.Params,
+	for i, step := range steps {
+		if step == nil {
+			continue
 		}
-		if s.CompletedAt != nil && !s.StartedAt.IsZero() {
-			ss.ElapsedMs = s.CompletedAt.Sub(s.StartedAt).Milliseconds()
+		ss := pages.StepState{
+			Name:   step.StepName,
+			Status: stepRunStatusLabel(step.Status),
+			Output: step.Result,
+			Error:  step.Error,
+			Input:  step.Params,
+		}
+		if step.CompletedAt != nil && !step.StartedAt.IsZero() {
+			ss.ElapsedMs = step.CompletedAt.Sub(step.StartedAt).Milliseconds()
 		}
 		initSteps[i] = ss
 	}
@@ -909,12 +897,12 @@ func pipelineStats(c fiber.Ctx) error {
 		return err
 	}
 
-	s := getPipelineDefStore()
-	if s == nil {
-		return types.Errorf(types.ErrInternal, "store not available")
+	svc, err := pipelineSvc()
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "pipeline service not ready")
 	}
 	if name != "" {
-		_, err = s.GetDefinitionByName(context.Background(), name)
+		_, err = svc.GetDefinition(context.Background(), name)
 		if err != nil {
 			if errors.Is(err, types.ErrNotFound) {
 				return types.Errorf(types.ErrNotFound, "pipeline %s not found", name)
@@ -923,7 +911,7 @@ func pipelineStats(c fiber.Ctx) error {
 		}
 	}
 
-	stats, err := s.PipelineStats(context.Background(), name, since, time.Time{}, tabs.GroupBy)
+	stats, err := svc.Stats(context.Background(), name, since, time.Time{}, tabs.GroupBy)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "pipeline stats: %v", err)
 	}

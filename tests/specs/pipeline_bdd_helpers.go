@@ -12,7 +12,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store"
+	webmod "github.com/flowline-io/flowbot/internal/modules/web"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
 
@@ -21,14 +21,14 @@ import (
 
 var pipelineRoutesMounted bool
 
-// mountPipelineRoutes registers pipeline CRUD routes on the given fiber app
-// using the same store methods as the production handlers.
+// mountPipelineRoutes registers pipeline CRUD routes on the given fiber app.
+// Writes go through pkg/pipeline.Service, matching the web handlers.
 func mountPipelineRoutes(app *fiber.App) {
 	if pipelineRoutesMounted {
 		return
 	}
 	pipelineRoutesMounted = true
-	pipeStore := store.NewPipelineStore(EntClient)
+	webmod.InstallPageServices()
 
 	// POST /service/web/pipelines — create pipeline, redirect to editor
 	app.Post("/service/web/pipelines", func(c fiber.Ctx) error {
@@ -42,7 +42,11 @@ func mountPipelineRoutes(app *fiber.App) {
 		if body.Name == "" {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "name is required"})
 		}
-		if err := pipeStore.CreateDefinition(context.Background(), body.Name, body.Description, ""); err != nil {
+		svc := pipeline.ActiveService()
+		if svc == nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "pipeline service not ready"})
+		}
+		if err := svc.Create(context.Background(), body.Name, body.Description, ""); err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 		c.Response().Header.Set("HX-Redirect", "/service/web/pipelines/"+body.Name)
@@ -70,7 +74,11 @@ func mountPipelineRoutes(app *fiber.App) {
 
 	// GET /service/web/pipelines/:name/yaml
 	app.Get("/service/web/pipelines/:name/yaml", func(c fiber.Ctx) error {
-		def, err := pipeStore.GetDefinitionByName(context.Background(), c.Params("name"))
+		svc := pipeline.ActiveService()
+		if svc == nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "pipeline service not ready"})
+		}
+		def, err := svc.GetDefinition(context.Background(), c.Params("name"))
 		if err != nil {
 			if errors.Is(err, types.ErrNotFound) {
 				return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "not found"})
@@ -89,7 +97,11 @@ func mountPipelineRoutes(app *fiber.App) {
 		if err := sonic.Unmarshal(c.Body(), &body); err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 		}
-		def, err := pipeStore.UpdateDefinitionDraft(context.Background(), c.Params("name"), body.Yaml, body.Version)
+		svc := pipeline.ActiveService()
+		if svc == nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "pipeline service not ready"})
+		}
+		def, err := svc.SaveDraft(context.Background(), c.Params("name"), body.Yaml, body.Version)
 		if err != nil {
 			if errors.Is(err, types.ErrConflict) {
 				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "conflict"})
@@ -107,16 +119,18 @@ func mountPipelineRoutes(app *fiber.App) {
 		if err := sonic.Unmarshal(c.Body(), &body); err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 		}
-		// Validate YAML first
-		def, err := pipeStore.GetDefinitionByName(context.Background(), c.Params("name"))
-		if err != nil {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "not found"})
+		svc := pipeline.ActiveService()
+		if svc == nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "pipeline service not ready"})
 		}
-		if _, err := pipeline.ParseEditorYAML(def.YamlDraft); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid yaml"})
-		}
-		def, err = pipeStore.PublishDefinition(context.Background(), c.Params("name"), body.Version)
+		def, err := svc.Publish(context.Background(), c.Params("name"), body.Version, "")
 		if err != nil {
+			if errors.Is(err, types.ErrInvalidArgument) {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid yaml"})
+			}
+			if errors.Is(err, types.ErrNotFound) {
+				return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "not found"})
+			}
 			if errors.Is(err, types.ErrConflict) {
 				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "conflict"})
 			}
@@ -127,16 +141,15 @@ func mountPipelineRoutes(app *fiber.App) {
 
 	// DELETE /service/web/pipelines/:name
 	app.Delete("/service/web/pipelines/:name", func(c fiber.Ctx) error {
+		svc := pipeline.ActiveService()
+		if svc == nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "pipeline service not ready"})
+		}
 		name := c.Params("name")
-		_, err := pipeStore.GetDefinitionByName(context.Background(), name)
-		if err != nil {
+		if err := svc.Delete(context.Background(), name); err != nil {
 			if errors.Is(err, types.ErrNotFound) {
 				return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "not found"})
 			}
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-		}
-		_, err = pipeStore.DeleteDefinitionByName(context.Background(), name)
-		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 		return c.SendStatus(http.StatusOK)

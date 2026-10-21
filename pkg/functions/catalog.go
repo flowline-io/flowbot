@@ -2,8 +2,10 @@ package functions
 
 import (
 	"context"
+	"time"
 
 	pkgexec "github.com/flowline-io/flowbot/pkg/exec"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -22,6 +24,8 @@ type Catalog interface {
 	GetRunByIdempotency(ctx context.Context, name, key string) (*model.FunctionRun, error)
 	CompleteRun(ctx context.Context, id int64, status string, durationMs int64, exitCode *int, errMsg string, resultJSON *string) (*model.FunctionRun, error)
 	ListRuns(ctx context.Context, name string) ([]*model.FunctionRun, error)
+	Stats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.FunctionStats, error)
+	ListPublishedVersionNumbersByNames(ctx context.Context, names []string) (map[string][]int, error)
 }
 
 // ExecProvider supplies an execution Config for ephemeral function runs.

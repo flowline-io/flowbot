@@ -478,6 +478,7 @@ func setupTestApp(t *testing.T) (*fiber.App, *testStore) {
 	testDB := &testStore{dbClient: dbClient}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = testDB
+	InstallPageServices()
 	wireNotifyStoresForTest(t)
 	secure := false
 	handler = moduleHandler{
@@ -509,6 +510,7 @@ func setupTestAppWithRateLimiter(t *testing.T) (*fiber.App, *testStore, *mockRat
 	testDB := &testStore{dbClient: dbClient}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = testDB
+	InstallPageServices()
 	wireNotifyStoresForTest(t)
 	secure := false
 	handler = moduleHandler{
@@ -546,6 +548,7 @@ func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	seedTestAccessToken(t, dbClient, "valid-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
+	InstallPageServices()
 	wireNotifyStoresForTest(t)
 	SetAnalyticsService(analyticsmod.NewService())
 	secure := false

@@ -2,9 +2,11 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -49,6 +51,15 @@ func (a PipelineRunStoreAdapter) UpdateStepRun(ctx context.Context, stepRunID in
 	return a.S.UpdateStepRun(ctx, stepRunID, status, result, errMsg, attempt)
 }
 
+// ListStepRunsByID implements pipeline.RunStore.
+func (a PipelineRunStoreAdapter) ListStepRunsByID(ctx context.Context, runID int64) ([]*model.PipelineStepRun, error) {
+	rows, err := a.S.GetStepRunsByRunID(ctx, runID)
+	if err != nil {
+		return nil, err
+	}
+	return mapPipelineStepRunDTOs(rows), nil
+}
+
 // ListStepRuns implements pipeline.RunStore.
 func (a PipelineRunStoreAdapter) ListStepRuns(ctx context.Context, runID int64) ([]*model.PipelineStepRun, error) {
 	rows, err := a.S.ListStepRunsByRunID(ctx, runID)
@@ -91,6 +102,9 @@ func (a PipelineRunStoreAdapter) GetCheckpoint(ctx context.Context, runID int64,
 func (a PipelineRunStoreAdapter) GetRun(ctx context.Context, runID int64) (*model.PipelineRun, error) {
 	row, err := a.S.GetRun(ctx, runID)
 	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
 		return nil, err
 	}
 	return mapPipelineRunDTO(row), nil
@@ -202,6 +216,92 @@ func (a PipelineCatalogAdapter) ListLinkedPipelineNames(ctx context.Context, sou
 	return a.S.ListLinkedPipelineNames(ctx, source, blueprintID)
 }
 
+// ListDefinitions implements pipeline.DefinitionCatalog.
+func (a PipelineCatalogAdapter) ListDefinitions(ctx context.Context) ([]*model.PipelineDefinition, error) {
+	rows, err := a.S.ListDefinitions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.PipelineDefinition, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		out = append(out, mapPipelineDefinitionDTO(row))
+	}
+	return out, nil
+}
+
+// RenameDefinition implements pipeline.DefinitionCatalog.
+func (a PipelineCatalogAdapter) RenameDefinition(ctx context.Context, oldName, newName string) (*model.PipelineDefinition, error) {
+	row, err := a.S.RenameDefinition(ctx, oldName, newName)
+	if err != nil {
+		return nil, err
+	}
+	return mapPipelineDefinitionDTO(row), nil
+}
+
+// SetDefinitionEnabled implements pipeline.DefinitionCatalog.
+func (a PipelineCatalogAdapter) SetDefinitionEnabled(ctx context.Context, name string, enabled bool) (*model.PipelineDefinition, error) {
+	row, err := a.S.SetDefinitionEnabled(ctx, name, enabled)
+	if err != nil {
+		return nil, err
+	}
+	return mapPipelineDefinitionDTO(row), nil
+}
+
+// ListDefinitionVersions implements pipeline.DefinitionCatalog.
+func (a PipelineCatalogAdapter) ListDefinitionVersions(ctx context.Context, name string) ([]model.PipelineDefinitionVersion, error) {
+	rows, err := a.S.ListDefinitionVersions(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]model.PipelineDefinitionVersion, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		out = append(out, mapPipelineDefinitionVersion(row))
+	}
+	return out, nil
+}
+
+// GetDefinitionVersion implements pipeline.DefinitionCatalog.
+func (a PipelineCatalogAdapter) GetDefinitionVersion(ctx context.Context, name string, version int) (*model.PipelineDefinitionVersion, error) {
+	row, err := a.S.GetDefinitionVersion(ctx, name, version)
+	if err != nil {
+		return nil, err
+	}
+	if row == nil {
+		return nil, types.ErrNotFound
+	}
+	dto := mapPipelineDefinitionVersion(row)
+	return &dto, nil
+}
+
+func mapPipelineDefinitionVersion(row *gen.PipelineDefinitionVersion) model.PipelineDefinitionVersion {
+	return model.PipelineDefinitionVersion{
+		Version:   row.Version,
+		YAML:      row.Yaml,
+		CreatedAt: row.CreatedAt,
+	}
+}
+
+// LatestRunStartedAtByParentNames implements pipeline.DefinitionCatalog.
+func (a PipelineCatalogAdapter) LatestRunStartedAtByParentNames(ctx context.Context, names []string) (map[string]time.Time, error) {
+	return a.S.LatestRunStartedAtByParentNames(ctx, names)
+}
+
+// RunLatencyStatsByParentNames implements pipeline.DefinitionCatalog.
+func (a PipelineCatalogAdapter) RunLatencyStatsByParentNames(ctx context.Context, names []string, since time.Time) (map[string]types.RunLatencyStats, error) {
+	return a.S.RunLatencyStatsByParentNames(ctx, names, since)
+}
+
+// Stats implements pipeline.DefinitionCatalog.
+func (a PipelineCatalogAdapter) Stats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.PipelineStats, error) {
+	return a.S.PipelineStats(ctx, name, since, until, groupBy)
+}
+
 // GetRunsByParentName implements pipeline.DefinitionCatalog.
 func (a PipelineCatalogAdapter) GetRunsByParentName(ctx context.Context, parentName string) ([]*model.PipelineRun, error) {
 	rows, err := a.S.GetRunsByParentName(ctx, parentName)
@@ -209,6 +309,41 @@ func (a PipelineCatalogAdapter) GetRunsByParentName(ctx context.Context, parentN
 		return nil, err
 	}
 	return mapPipelineRunDTOs(rows), nil
+}
+
+// PipelineEventLoader adapts EventStore to pipeline.EventLoader.
+type PipelineEventLoader struct {
+	S *EventStore
+}
+
+// NewPipelineService wires a pipeline service to ps and events.
+// The returned catalog is the adapter the service uses.
+func NewPipelineService(ps *PipelineStore, events *EventStore) (*pipeline.Service, PipelineCatalogAdapter) {
+	catalog := PipelineCatalogAdapter{S: ps}
+	svc := pipeline.NewService(catalog)
+	svc.SetRunStore(NewPipelineRunStoreAdapter(ps))
+	svc.SetEventLoader(NewPipelineEventLoader(events))
+	return svc, catalog
+}
+
+// NewPipelineEventLoader wraps an EventStore as pipeline.EventLoader.
+func NewPipelineEventLoader(s *EventStore) pipeline.EventLoader {
+	if s == nil {
+		return nil
+	}
+	return PipelineEventLoader{S: s}
+}
+
+// LoadDataEvent implements pipeline.EventLoader.
+func (a PipelineEventLoader) LoadDataEvent(ctx context.Context, eventID string) (types.DataEvent, error) {
+	row, err := a.S.GetDataEventByEventID(ctx, eventID)
+	if err != nil {
+		return types.DataEvent{}, err
+	}
+	if row == nil {
+		return types.DataEvent{}, types.ErrNotFound
+	}
+	return DataEventFromRow(row), nil
 }
 
 func mapPipelineDefinitionDTO(row *gen.PipelineDefinition) *model.PipelineDefinition {

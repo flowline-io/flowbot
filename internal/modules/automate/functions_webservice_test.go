@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
@@ -97,6 +98,12 @@ func (*callCatalog) CompleteRun(context.Context, int64, string, int64, *int, str
 }
 func (*callCatalog) ListRuns(context.Context, string) ([]*model.FunctionRun, error) {
 	return nil, nil
+}
+func (*callCatalog) Stats(context.Context, string, time.Time, time.Time, string) (*types.FunctionStats, error) {
+	return &types.FunctionStats{}, nil
+}
+func (*callCatalog) ListPublishedVersionNumbersByNames(context.Context, []string) (map[string][]int, error) {
+	return map[string][]int{}, nil
 }
 
 type failingExec struct{}

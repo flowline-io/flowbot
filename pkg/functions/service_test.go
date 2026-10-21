@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
@@ -647,6 +648,14 @@ func (c *fakeCatalog) CompleteRun(_ context.Context, id int64, status string, du
 	run.ResultJSON = resultJSON
 	cp := *run
 	return &cp, nil
+}
+
+func (*fakeCatalog) Stats(context.Context, string, time.Time, time.Time, string) (*types.FunctionStats, error) {
+	return &types.FunctionStats{}, nil
+}
+
+func (*fakeCatalog) ListPublishedVersionNumbersByNames(context.Context, []string) (map[string][]int, error) {
+	return map[string][]int{}, nil
 }
 
 func (c *fakeCatalog) ListRuns(_ context.Context, name string) ([]*model.FunctionRun, error) {

@@ -28,6 +28,13 @@ type Catalog interface {
 	ListDefinitions(ctx context.Context) ([]*model.Workflow, error)
 	DeleteDefinitionByName(ctx context.Context, name string) error
 	ListRunsByName(ctx context.Context, name string) ([]*model.WorkflowRun, error)
+	ListTriggers(ctx context.Context) ([]*model.WorkflowTrigger, error)
+	TriggersByName(ctx context.Context, name string) ([]*model.WorkflowTrigger, error)
+	SetEnabled(ctx context.Context, name string, enabled bool) (*model.Workflow, error)
+	SetTriggerEnabled(ctx context.Context, workflowName string, triggerID int64, enabled bool) (*model.WorkflowTrigger, error)
+	LatestRunStartedAtByNames(ctx context.Context, names []string) (map[string]time.Time, error)
+	RunLatencyStatsByNames(ctx context.Context, names []string, since time.Time) (map[string]types.RunLatencyStats, error)
+	Stats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.WorkflowStats, error)
 }
 
 // WebhookEndpoint describes a registered workflow webhook trigger.

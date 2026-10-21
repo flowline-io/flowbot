@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/functions"
@@ -175,6 +176,16 @@ func mapFunctionDefinitionDTO(row *gen.FunctionDefinition) *model.FunctionDefini
 		CreatedAt:           row.CreatedAt,
 		UpdatedAt:           row.UpdatedAt,
 	}
+}
+
+// Stats implements functions.Catalog.
+func (a FunctionCatalogAdapter) Stats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.FunctionStats, error) {
+	return a.S.FunctionStats(ctx, name, since, until, groupBy)
+}
+
+// ListPublishedVersionNumbersByNames implements functions.Catalog.
+func (a FunctionCatalogAdapter) ListPublishedVersionNumbersByNames(ctx context.Context, names []string) (map[string][]int, error) {
+	return a.S.ListPublishedVersionNumbersByNames(ctx, names)
 }
 
 func mapFunctionDefinitionVersionDTO(row *gen.FunctionDefinitionVersion) *model.FunctionDefinitionVersion {
