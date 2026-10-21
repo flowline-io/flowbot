@@ -148,7 +148,7 @@ default_template: |
   **URL:** {{ .url | default "N/A" }}
   {{ if .title }}**Title:** {{ .title }}{{ end }}
 overrides:
-  - channel: telegram
+  - channel: slack
     format: html
     template: |
       <b>New Bookmark Saved</b>
@@ -170,7 +170,7 @@ overrides:
 
 | Field      | Type   | Required | Description                                |
 | ---------- | ------ | -------- | ------------------------------------------ |
-| `channel`  | string | yes      | Channel name: `slack`, `telegram`, `email` |
+| `channel`  | string | yes      | Channel name matching a notify provider: `slack`, `ntfy`, `pushover`, `message-pusher`, `inapp` |
 | `format`   | string | yes      | Output format for this channel             |
 | `template` | string | yes      | Channel-specific template body             |
 

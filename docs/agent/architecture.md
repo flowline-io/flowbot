@@ -402,7 +402,7 @@ flowchart TD
 3. **Modules import `pkg/agent/llm` only** — for single-shot LLM tasks; other `pkg/agent` packages stay core-only until wired to server
 4. **Serialization** — sonic for JSON/JSONL and tool argument parsing
 5. **Errors** — domain errors in `msg`: `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`, `ErrEmptyContext`, `ErrInvalidContinue`; hook cancel via `hooks.ErrRunCancelled`
-6. **Naming** — do not confuse with instruct agent protocol or YAML `chat_agent` config
+6. **Naming** — `pkg/agent` is the LLM runtime. The desktop host protocol lives in `pkg/types/agent.go`. YAML `chat_agent` is the chat assistant config.
 
 ## Related Documentation
 

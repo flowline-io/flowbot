@@ -12,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
@@ -23,7 +22,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
-// ModuleDataStore persists module KV data, config, OAuth, forms, pages, behaviors, parameters, instructs, and counters.
+// ModuleDataStore persists module KV data, config, OAuth, forms, pages, behaviors, parameters, and counters.
 type ModuleDataStore struct {
 	client *gen.Client
 }
@@ -756,61 +755,6 @@ func (s *ModuleDataStore) RevokeToken(ctx context.Context, flag string) error {
 	}
 	if n == 0 {
 		return types.ErrNotFound
-	}
-	return nil
-}
-
-// CreateInstruct persists a new instruct.
-func (s *ModuleDataStore) CreateInstruct(ctx context.Context, instructModel *gen.Instruct) (int64, error) {
-	c := s.client.Instruct.Create().
-		SetNo(instructModel.No).
-		SetUID(instructModel.UID).
-		SetObject(string(instructModel.Object)).
-		SetBot(instructModel.Bot).
-		SetFlag(instructModel.Flag).
-		SetPriority(int(instructModel.Priority)).
-		SetState(int(instructModel.State)).
-		SetExpireAt(instructModel.ExpireAt).
-		SetCreatedAt(instructModel.CreatedAt).
-		SetUpdatedAt(instructModel.UpdatedAt)
-	if instructModel.Content != nil {
-		c = c.SetContent(map[string]any(instructModel.Content))
-	}
-	u, err := c.Save(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("postgres: createinstruct: %w", err)
-	}
-	return u.ID, nil
-}
-
-// ListInstruct returns instruct.
-func (s *ModuleDataStore) ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*gen.Instruct, error) {
-	q := s.client.Instruct.Query().Where(instruct.UID(uid.String()))
-	if isExpire {
-		q = q.Where(instruct.ExpireAtLTE(time.Now()))
-	}
-	q = q.Order(gen.Asc(instruct.FieldCreatedAt))
-	if limit > 0 {
-		q = q.Limit(limit)
-	} else {
-		q = q.Limit(queryMaxResults())
-	}
-	items, err := q.All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("postgres: listinstruct: %w", err)
-	}
-	return items, nil
-}
-
-// UpdateInstruct updates the instruct.
-func (s *ModuleDataStore) UpdateInstruct(ctx context.Context, instructModel *gen.Instruct) error {
-	_, err := s.client.Instruct.Update().
-		Where(instruct.NoEQ(instructModel.No)).
-		SetState(int(instructModel.State)).
-		SetUpdatedAt(time.Now()).
-		Save(ctx)
-	if err != nil {
-		return fmt.Errorf("postgres: updateinstruct: %w", err)
 	}
 	return nil
 }

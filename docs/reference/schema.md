@@ -145,23 +145,6 @@
 | updated_at  | datetime        | NULL           | NO          |            |                |                |
 | values      | json            | NULL           | YES         |            |                |                |
 
-## instruct
-
-| COLUMN_NAME | COLUMN_TYPE     | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA          | COLUMN_COMMENT |
-| ----------- | --------------- | -------------- | ----------- | ---------- | -------------- | -------------- |
-| bot         | varchar(50)     | NULL           | NO          |            |                |                |
-| content     | json            | NULL           | NO          |            |                |                |
-| created_at  | datetime        | NULL           | NO          |            |                |                |
-| expire_at   | datetime        | NULL           | NO          |            |                |                |
-| flag        | varchar(50)     | NULL           | NO          |            |                |                |
-| id          | bigint unsigned | NULL           | NO          | PRI        | auto_increment |                |
-| no          | char(25)        | NULL           | NO          | MUL        |                |                |
-| object      | varchar(20)     | NULL           | NO          |            |                |                |
-| priority    | int             | NULL           | NO          |            |                |                |
-| state       | tinyint         | NULL           | NO          |            |                |                |
-| uid         | char(36)        | NULL           | NO          | MUL        |                |                |
-| updated_at  | datetime        | NULL           | NO          |            |                |                |
-
 ## jobs
 
 | COLUMN_NAME    | COLUMN_TYPE     | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA             | COLUMN_COMMENT |

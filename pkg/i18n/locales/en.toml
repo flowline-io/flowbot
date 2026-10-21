@@ -3373,7 +3373,7 @@ other = "Go text/template body with Sprig functions"
 other = "Overrides JSON"
 
 [notify.template.overrides_placeholder]
-other = '[{"channel":"telegram","format":"html","template":"<b>{{ .title }}</b>"}]'
+other = '[{"channel":"slack","format":"html","template":"<b>{{ .title }}</b>"}]'
 
 [notify.rule.name_placeholder]
 other = "Rule name"

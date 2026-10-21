@@ -300,25 +300,6 @@ func TestPlatformConfigs(t *testing.T) {
 		assert.Equal(t, "D123", discord.AppID)
 	})
 
-	t.Run("Telegram", func(t *testing.T) {
-		t.Parallel()
-		tests := []struct {
-			name   string
-			tg     Telegram
-			wantOn bool
-		}{
-			{name: "enabled", tg: Telegram{Enabled: true}, wantOn: true},
-			{name: "disabled", tg: Telegram{Enabled: false}, wantOn: false},
-			{name: "zero value defaults to disabled", tg: Telegram{}, wantOn: false},
-		}
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				t.Parallel()
-				assert.Equal(t, tt.wantOn, tt.tg.Enabled)
-			})
-		}
-	})
-
 	t.Run("Tailchat", func(t *testing.T) {
 		t.Parallel()
 		tailchat := Tailchat{Enabled: true, ApiURL: "https://api.tailchat.com", AppID: "T123", AppSecret: "secret", WebhookToken: "wh-token"}

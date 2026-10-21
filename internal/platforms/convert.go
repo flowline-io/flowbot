@@ -8,7 +8,6 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
@@ -21,7 +20,6 @@ var msgConverters = map[reflect.Type]func(types.MsgPayload) protocol.Message{
 	reflect.TypeFor[types.ChartMsg]():    func(p types.MsgPayload) protocol.Message { return convertChart(p.(types.ChartMsg)) },
 	reflect.TypeFor[types.HtmlMsg]():     func(p types.MsgPayload) protocol.Message { return convertHtml(p.(types.HtmlMsg)) },
 	reflect.TypeFor[types.MarkdownMsg](): func(p types.MsgPayload) protocol.Message { return convertMarkdown(p.(types.MarkdownMsg)) },
-	reflect.TypeFor[types.InstructMsg](): func(p types.MsgPayload) protocol.Message { return convertInstruct(p.(types.InstructMsg)) },
 	reflect.TypeFor[types.KVMsg]():       func(p types.MsgPayload) protocol.Message { return convertKV(p.(types.KVMsg)) },
 	reflect.TypeFor[types.FormMsg]():     func(p types.MsgPayload) protocol.Message { return convertForm(p.(types.FormMsg)) },
 	reflect.TypeFor[types.EmptyMsg]():    func(p types.MsgPayload) protocol.Message { return convertEmpty(p.(types.EmptyMsg)) },
@@ -423,65 +421,6 @@ func convertMarkdown(v types.MarkdownMsg) protocol.Message {
 				"text":  v.Raw,
 			},
 		},
-	}
-}
-
-func convertInstruct(v types.InstructMsg) protocol.Message {
-	fields := map[string]any{
-		"No":       v.No,
-		"State":    instructStateLabel(v.State),
-		"Priority": instructPriorityLabel(v.Priority),
-	}
-	if v.Object != "" {
-		fields["Object"] = string(v.Object)
-	}
-	if v.Bot != "" {
-		fields["Bot"] = v.Bot
-	}
-	if v.Flag != "" {
-		fields["Flag"] = v.Flag
-	}
-	if !v.ExpireAt.IsZero() {
-		fields["ExpireAt"] = v.ExpireAt.Format("2006-01-02 15:04")
-	}
-	for k, val := range v.Content {
-		fields[k] = formatFieldValue(val)
-	}
-	return protocol.Message{
-		{
-			Type: "action_card",
-			Data: map[string]any{
-				"title":       fmt.Sprintf("Instruction: %s", v.No),
-				"description": "",
-				"fields":      fields,
-			},
-		},
-	}
-}
-
-func instructStateLabel(s schema.InstructState) string {
-	switch s {
-	case schema.InstructCreate:
-		return "create"
-	case schema.InstructDone:
-		return "done"
-	case schema.InstructCancel:
-		return "cancel"
-	default:
-		return "unknown"
-	}
-}
-
-func instructPriorityLabel(p schema.InstructPriority) string {
-	switch p {
-	case schema.InstructPriorityHigh:
-		return "high"
-	case schema.InstructPriorityLow:
-		return "low"
-	case schema.InstructPriorityDefault:
-		return "default"
-	default:
-		return fmt.Sprintf("%d", p)
 	}
 }
 

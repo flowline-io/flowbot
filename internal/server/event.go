@@ -36,12 +36,6 @@ func handleEvents(lc fx.Lifecycle, router *message.Router, subscriber message.Su
 		subscriber,
 		onMessageSendEventHandler,
 	)
-	router.AddNoPublisherHandler(
-		"onInstructPushEventHandler",
-		types.InstructPushEvent,
-		subscriber,
-		onInstructPushEventHandler,
-	)
 
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
@@ -94,13 +88,6 @@ func onMessageSendEventHandler(msg *message.Message) error {
 	if resp.Status != protocol.Success {
 		return fmt.Errorf("failed to send message: %s", resp.Message)
 	}
-
-	return nil
-}
-
-// push instruct
-func onInstructPushEventHandler(msg *message.Message) error {
-	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	return nil
 }

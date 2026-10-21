@@ -102,9 +102,6 @@ type FunctionDefinitionVersion func(*sql.Selector)
 // FunctionRun is the predicate function for functionrun builders.
 type FunctionRun func(*sql.Selector)
 
-// Instruct is the predicate function for instruct builders.
-type Instruct func(*sql.Selector)
-
 // LLMUsageRecord is the predicate function for llmusagerecord builders.
 type LLMUsageRecord func(*sql.Selector)
 

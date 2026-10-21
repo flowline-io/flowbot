@@ -51,11 +51,6 @@ func TestTypeOf(t *testing.T) {
 			want: "MarkdownMsg",
 		},
 		{
-			name: "InstructMsg",
-			msg:  InstructMsg{},
-			want: "InstructMsg",
-		},
-		{
 			name: "FormMsg",
 			msg:  FormMsg{},
 			want: "FormMsg",

@@ -171,7 +171,7 @@ func TestEngineChannelOverride(t *testing.T) {
 			DefaultTemplate: "**{{ .title }}**\n{{ .body }}",
 			Overrides: []manifest.Override{
 				{
-					Channel:  "telegram",
+					Channel:  "ntfy",
 					Format:   "html",
 					Template: "<b>{{ .title }}</b>\n{{ .body }}",
 				},
@@ -192,8 +192,8 @@ func TestEngineChannelOverride(t *testing.T) {
 			wantContain: "**Hello**",
 		},
 		{
-			name:        "telegram channel uses override",
-			channel:     "telegram",
+			name:        "ntfy channel uses override",
+			channel:     "ntfy",
 			wantFormat:  "html",
 			wantContain: "<b>Hello</b>",
 		},
@@ -410,7 +410,7 @@ func TestEngineListTemplates(t *testing.T) {
 			templates: []manifest.Template{
 				{
 					ID: "with.override", Name: "O", DefaultFormat: "markdown", DefaultTemplate: "body",
-					Overrides: []manifest.Override{{Channel: "telegram", Format: "html", Template: "<b>x</b>"}},
+					Overrides: []manifest.Override{{Channel: "ntfy", Format: "html", Template: "<b>x</b>"}},
 				},
 			},
 			wantIDs: []string{"with.override"},
@@ -434,7 +434,7 @@ func TestEngineListTemplates(t *testing.T) {
 			}
 			if len(tt.templates) == 1 && len(tt.templates[0].Overrides) > 0 {
 				require.Len(t, got[0].Overrides, 1)
-				assert.Equal(t, "telegram", got[0].Overrides[0].Channel)
+				assert.Equal(t, "ntfy", got[0].Overrides[0].Channel)
 			}
 		})
 	}

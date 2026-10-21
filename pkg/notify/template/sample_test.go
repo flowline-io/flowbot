@@ -57,7 +57,7 @@ func TestSamplePayloadJSON(t *testing.T) {
 				ID:              "bookmark.created",
 				DefaultTemplate: `{{ .url }} {{ .title }}`,
 				Overrides: []manifest.Override{
-					{Channel: "telegram", Template: `{{ .extra }}`},
+					{Channel: "ntfy", Template: `{{ .extra }}`},
 				},
 			},
 			wantSub: []string{`"url"`, `"title"`, `"extra"`, `"summary"`, "bookmark.created"},

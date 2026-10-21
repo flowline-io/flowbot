@@ -335,10 +335,6 @@ platform:
     # Shared secret for inbound /platform/tailchat (header X-Tailchat-Token). Required when enabled.
     webhook_token: ""
 
-  # Telegram platform configuration
-  telegram:
-    enabled: false
-
 # Module configuration list
 modules:
   - name: web
@@ -368,9 +364,6 @@ vendors:
   github:
     id:
     secret:
-  # Pocket configuration
-  pocket:
-    consumer_key: ""
   # Dropbox configuration
   dropbox:
     key: ""
@@ -413,20 +406,12 @@ vendors:
     endpoint: "http://127.0.0.1:8000/api/v1"
     api_key: ""
     webhook_token: "" # Bearer token for webhook verification
-  # Safeline configuration
-  safeline:
-    endpoint: https://127.0.0.1:9443/api
-    token: ""
   # Kanboard configuration
   kanboard:
     endpoint: ""
     username: ""
     password: ""
     webhook_token: ""
-  # Wallos configuration
-  wallos:
-    endpoint: ""
-    api_key: ""
   # Miniflux RSS reader configuration
   miniflux:
     endpoint: ""

@@ -46,7 +46,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
@@ -146,8 +145,6 @@ type Client struct {
 	FunctionDefinitionVersion *FunctionDefinitionVersionClient
 	// FunctionRun is the client for interacting with the FunctionRun builders.
 	FunctionRun *FunctionRunClient
-	// Instruct is the client for interacting with the Instruct builders.
-	Instruct *InstructClient
 	// LLMUsageRecord is the client for interacting with the LLMUsageRecord builders.
 	LLMUsageRecord *LLMUsageRecordClient
 	// Message is the client for interacting with the Message builders.
@@ -247,7 +244,6 @@ func (c *Client) init() {
 	c.FunctionDefinition = NewFunctionDefinitionClient(c.config)
 	c.FunctionDefinitionVersion = NewFunctionDefinitionVersionClient(c.config)
 	c.FunctionRun = NewFunctionRunClient(c.config)
-	c.Instruct = NewInstructClient(c.config)
 	c.LLMUsageRecord = NewLLMUsageRecordClient(c.config)
 	c.Message = NewMessageClient(c.config)
 	c.NotificationRecord = NewNotificationRecordClient(c.config)
@@ -400,7 +396,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FunctionDefinition:        NewFunctionDefinitionClient(cfg),
 		FunctionDefinitionVersion: NewFunctionDefinitionVersionClient(cfg),
 		FunctionRun:               NewFunctionRunClient(cfg),
-		Instruct:                  NewInstructClient(cfg),
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		Message:                   NewMessageClient(cfg),
 		NotificationRecord:        NewNotificationRecordClient(cfg),
@@ -480,7 +475,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FunctionDefinition:        NewFunctionDefinitionClient(cfg),
 		FunctionDefinitionVersion: NewFunctionDefinitionVersionClient(cfg),
 		FunctionRun:               NewFunctionRunClient(cfg),
-		Instruct:                  NewInstructClient(cfg),
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		Message:                   NewMessageClient(cfg),
 		NotificationRecord:        NewNotificationRecordClient(cfg),
@@ -544,7 +538,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun, c.ChatSession,
 		c.ChatSessionEntry, c.Clip, c.ConfigData, c.Counter, c.CounterRecord, c.Data,
 		c.DataEvent, c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form,
-		c.FunctionDefinition, c.FunctionDefinitionVersion, c.FunctionRun, c.Instruct,
+		c.FunctionDefinition, c.FunctionDefinitionVersion, c.FunctionRun,
 		c.LLMUsageRecord, c.Message, c.NotificationRecord, c.NotifyChannel,
 		c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData, c.Parameter,
 		c.PipelineBlueprintTemplate, c.PipelineDefinition, c.PipelineDefinitionVersion,
@@ -567,7 +561,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun, c.ChatSession,
 		c.ChatSessionEntry, c.Clip, c.ConfigData, c.Counter, c.CounterRecord, c.Data,
 		c.DataEvent, c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form,
-		c.FunctionDefinition, c.FunctionDefinitionVersion, c.FunctionRun, c.Instruct,
+		c.FunctionDefinition, c.FunctionDefinitionVersion, c.FunctionRun,
 		c.LLMUsageRecord, c.Message, c.NotificationRecord, c.NotifyChannel,
 		c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData, c.Parameter,
 		c.PipelineBlueprintTemplate, c.PipelineDefinition, c.PipelineDefinitionVersion,
@@ -647,8 +641,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FunctionDefinitionVersion.mutate(ctx, m)
 	case *FunctionRunMutation:
 		return c.FunctionRun.mutate(ctx, m)
-	case *InstructMutation:
-		return c.Instruct.mutate(ctx, m)
 	case *LLMUsageRecordMutation:
 		return c.LLMUsageRecord.mutate(ctx, m)
 	case *MessageMutation:
@@ -4966,139 +4958,6 @@ func (c *FunctionRunClient) mutate(ctx context.Context, m *FunctionRunMutation) 
 	}
 }
 
-// InstructClient is a client for the Instruct schema.
-type InstructClient struct {
-	config
-}
-
-// NewInstructClient returns a client for the Instruct from the given config.
-func NewInstructClient(c config) *InstructClient {
-	return &InstructClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `instruct.Hooks(f(g(h())))`.
-func (c *InstructClient) Use(hooks ...Hook) {
-	c.hooks.Instruct = append(c.hooks.Instruct, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `instruct.Intercept(f(g(h())))`.
-func (c *InstructClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Instruct = append(c.inters.Instruct, interceptors...)
-}
-
-// Create returns a builder for creating a Instruct entity.
-func (c *InstructClient) Create() *InstructCreate {
-	mutation := newInstructMutation(c.config, OpCreate)
-	return &InstructCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Instruct entities.
-func (c *InstructClient) CreateBulk(builders ...*InstructCreate) *InstructCreateBulk {
-	return &InstructCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *InstructClient) MapCreateBulk(slice any, setFunc func(*InstructCreate, int)) *InstructCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &InstructCreateBulk{err: fmt.Errorf("calling to InstructClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*InstructCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &InstructCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Instruct.
-func (c *InstructClient) Update() *InstructUpdate {
-	mutation := newInstructMutation(c.config, OpUpdate)
-	return &InstructUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *InstructClient) UpdateOne(_m *Instruct) *InstructUpdateOne {
-	mutation := newInstructMutation(c.config, OpUpdateOne, withInstruct(_m))
-	return &InstructUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *InstructClient) UpdateOneID(id int64) *InstructUpdateOne {
-	mutation := newInstructMutation(c.config, OpUpdateOne, withInstructID(id))
-	return &InstructUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Instruct.
-func (c *InstructClient) Delete() *InstructDelete {
-	mutation := newInstructMutation(c.config, OpDelete)
-	return &InstructDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *InstructClient) DeleteOne(_m *Instruct) *InstructDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *InstructClient) DeleteOneID(id int64) *InstructDeleteOne {
-	builder := c.Delete().Where(instruct.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &InstructDeleteOne{builder}
-}
-
-// Query returns a query builder for Instruct.
-func (c *InstructClient) Query() *InstructQuery {
-	return &InstructQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeInstruct},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Instruct entity by its id.
-func (c *InstructClient) Get(ctx context.Context, id int64) (*Instruct, error) {
-	return c.Query().Where(instruct.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *InstructClient) GetX(ctx context.Context, id int64) *Instruct {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *InstructClient) Hooks() []Hook {
-	return c.hooks.Instruct
-}
-
-// Interceptors returns the client interceptors.
-func (c *InstructClient) Interceptors() []Interceptor {
-	return c.inters.Instruct
-}
-
-func (c *InstructClient) mutate(ctx context.Context, m *InstructMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&InstructCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&InstructUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&InstructUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&InstructDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Instruct mutation op: %q", m.Op())
-	}
-}
-
 // LLMUsageRecordClient is a client for the LLMUsageRecord schema.
 type LLMUsageRecordClient struct {
 	config
@@ -8831,7 +8690,7 @@ type (
 		AuditLog, Behavior, Bot, Channel, ChatScheduledTask, ChatScheduledTaskRun,
 		ChatSession, ChatSessionEntry, Clip, ConfigData, Counter, CounterRecord, Data,
 		DataEvent, EventConsumption, EventOutbox, Fileupload, Form, FunctionDefinition,
-		FunctionDefinitionVersion, FunctionRun, Instruct, LLMUsageRecord, Message,
+		FunctionDefinitionVersion, FunctionRun, LLMUsageRecord, Message,
 		NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page,
 		PageData, Parameter, PipelineBlueprintTemplate, PipelineDefinition,
 		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform,
@@ -8845,7 +8704,7 @@ type (
 		AuditLog, Behavior, Bot, Channel, ChatScheduledTask, ChatScheduledTaskRun,
 		ChatSession, ChatSessionEntry, Clip, ConfigData, Counter, CounterRecord, Data,
 		DataEvent, EventConsumption, EventOutbox, Fileupload, Form, FunctionDefinition,
-		FunctionDefinitionVersion, FunctionRun, Instruct, LLMUsageRecord, Message,
+		FunctionDefinitionVersion, FunctionRun, LLMUsageRecord, Message,
 		NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page,
 		PageData, Parameter, PipelineBlueprintTemplate, PipelineDefinition,
 		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform,

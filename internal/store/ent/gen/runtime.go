@@ -37,7 +37,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
@@ -1078,46 +1077,6 @@ func init() {
 	functionrunDescCreatedAt := functionrunFields[9].Descriptor()
 	// functionrun.DefaultCreatedAt holds the default value on creation for the created_at field.
 	functionrun.DefaultCreatedAt = functionrunDescCreatedAt.Default.(func() time.Time)
-	instructFields := schema.Instruct{}.Fields()
-	_ = instructFields
-	// instructDescNo is the schema descriptor for no field.
-	instructDescNo := instructFields[1].Descriptor()
-	// instruct.NoValidator is a validator for the "no" field. It is called by the builders before save.
-	instruct.NoValidator = instructDescNo.Validators[0].(func(string) error)
-	// instructDescUID is the schema descriptor for uid field.
-	instructDescUID := instructFields[2].Descriptor()
-	// instruct.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	instruct.UIDValidator = instructDescUID.Validators[0].(func(string) error)
-	// instructDescObject is the schema descriptor for object field.
-	instructDescObject := instructFields[3].Descriptor()
-	// instruct.ObjectValidator is a validator for the "object" field. It is called by the builders before save.
-	instruct.ObjectValidator = instructDescObject.Validators[0].(func(string) error)
-	// instructDescBot is the schema descriptor for bot field.
-	instructDescBot := instructFields[4].Descriptor()
-	// instruct.BotValidator is a validator for the "bot" field. It is called by the builders before save.
-	instruct.BotValidator = instructDescBot.Validators[0].(func(string) error)
-	// instructDescFlag is the schema descriptor for flag field.
-	instructDescFlag := instructFields[5].Descriptor()
-	// instruct.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
-	instruct.FlagValidator = instructDescFlag.Validators[0].(func(string) error)
-	// instructDescPriority is the schema descriptor for priority field.
-	instructDescPriority := instructFields[7].Descriptor()
-	// instruct.DefaultPriority holds the default value on creation for the priority field.
-	instruct.DefaultPriority = instructDescPriority.Default.(int)
-	// instructDescState is the schema descriptor for state field.
-	instructDescState := instructFields[8].Descriptor()
-	// instruct.DefaultState holds the default value on creation for the state field.
-	instruct.DefaultState = instructDescState.Default.(int)
-	// instructDescCreatedAt is the schema descriptor for created_at field.
-	instructDescCreatedAt := instructFields[10].Descriptor()
-	// instruct.DefaultCreatedAt holds the default value on creation for the created_at field.
-	instruct.DefaultCreatedAt = instructDescCreatedAt.Default.(func() time.Time)
-	// instructDescUpdatedAt is the schema descriptor for updated_at field.
-	instructDescUpdatedAt := instructFields[11].Descriptor()
-	// instruct.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	instruct.DefaultUpdatedAt = instructDescUpdatedAt.Default.(func() time.Time)
-	// instruct.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	instruct.UpdateDefaultUpdatedAt = instructDescUpdatedAt.UpdateDefault.(func() time.Time)
 	llmusagerecordFields := schema.LLMUsageRecord{}.Fields()
 	_ = llmusagerecordFields
 	// llmusagerecordDescUID is the schema descriptor for uid field.

@@ -3373,7 +3373,7 @@ other = "Go text/template 正文（支持 Sprig 函数）"
 other = "覆盖 JSON"
 
 [notify.template.overrides_placeholder]
-other = '[{"channel":"telegram","format":"html","template":"<b>{{ .title }}</b>"}]'
+other = '[{"channel":"slack","format":"html","template":"<b>{{ .title }}</b>"}]'
 
 [notify.rule.name_placeholder]
 other = "规则名称"

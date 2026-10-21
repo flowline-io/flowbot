@@ -6,15 +6,13 @@ const ApiVersion = 1
 type Action string
 
 const (
-	PullAction    Action = "pull"
-	AckAction     Action = "ack"
 	OnlineAction  Action = "online"
 	OfflineAction Action = "offline"
 	MessageAction Action = "message"
 )
 
 type AgentData struct {
-	Action  Action `json:"action" validate:"required,oneof=pull ack online offline message"`
+	Action  Action `json:"action" validate:"required,oneof=online offline message"`
 	Version int    `json:"version" validate:"gte=0"`
 	Content KV     `json:"content"`
 }

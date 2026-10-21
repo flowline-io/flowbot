@@ -76,8 +76,6 @@ type Tx struct {
 	FunctionDefinitionVersion *FunctionDefinitionVersionClient
 	// FunctionRun is the client for interacting with the FunctionRun builders.
 	FunctionRun *FunctionRunClient
-	// Instruct is the client for interacting with the Instruct builders.
-	Instruct *InstructClient
 	// LLMUsageRecord is the client for interacting with the LLMUsageRecord builders.
 	LLMUsageRecord *LLMUsageRecordClient
 	// Message is the client for interacting with the Message builders.
@@ -297,7 +295,6 @@ func (tx *Tx) init() {
 	tx.FunctionDefinition = NewFunctionDefinitionClient(tx.config)
 	tx.FunctionDefinitionVersion = NewFunctionDefinitionVersionClient(tx.config)
 	tx.FunctionRun = NewFunctionRunClient(tx.config)
-	tx.Instruct = NewInstructClient(tx.config)
 	tx.LLMUsageRecord = NewLLMUsageRecordClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.NotificationRecord = NewNotificationRecordClient(tx.config)

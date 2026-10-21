@@ -297,8 +297,6 @@ type platform struct {
 	Slack Slack `json:"slack" yaml:"slack" mapstructure:"slack"`
 	// Discord platform configuration
 	Discord Discord `json:"discord" yaml:"discord" mapstructure:"discord"`
-	// Telegram platform configuration
-	Telegram Telegram `json:"telegram" yaml:"telegram" mapstructure:"telegram"`
 	// Tailchat platform configuration
 	Tailchat Tailchat `json:"tailchat" yaml:"tailchat" mapstructure:"tailchat"`
 }
@@ -335,11 +333,6 @@ type Discord struct {
 	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret" sensitive:"true" validate:"required_if=Enabled true"`
 	// Discord bot token
 	BotToken string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token" sensitive:"true" validate:"required_if=Enabled true"`
-}
-
-type Telegram struct {
-	// Telegram platform configuration
-	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 }
 
 type Tailchat struct {

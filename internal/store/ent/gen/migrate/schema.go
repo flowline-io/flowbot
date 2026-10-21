@@ -890,39 +890,6 @@ var (
 			},
 		},
 	}
-	// InstructColumns holds the columns for the "instruct" table.
-	InstructColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "no", Type: field.TypeString},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "object", Type: field.TypeString},
-		{Name: "bot", Type: field.TypeString},
-		{Name: "flag", Type: field.TypeString},
-		{Name: "content", Type: field.TypeJSON},
-		{Name: "priority", Type: field.TypeInt, Default: 2},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "expire_at", Type: field.TypeTime},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// InstructTable holds the schema information for the "instruct" table.
-	InstructTable = &schema.Table{
-		Name:       "instruct",
-		Columns:    InstructColumns,
-		PrimaryKey: []*schema.Column{InstructColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "instruct_uid",
-				Unique:  false,
-				Columns: []*schema.Column{InstructColumns[2]},
-			},
-			{
-				Name:    "instruct_no",
-				Unique:  false,
-				Columns: []*schema.Column{InstructColumns[1]},
-			},
-		},
-	}
 	// LlmUsageRecordsColumns holds the columns for the "llm_usage_records" table.
 	LlmUsageRecordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1768,7 +1735,6 @@ var (
 		FunctionDefinitionsTable,
 		FunctionDefinitionVersionsTable,
 		FunctionRunsTable,
-		InstructTable,
 		LlmUsageRecordsTable,
 		MessagesTable,
 		NotificationRecordsTable,
@@ -1896,9 +1862,6 @@ func init() {
 	}
 	FunctionRunsTable.Annotation = &entsql.Annotation{
 		Table: "function_runs",
-	}
-	InstructTable.Annotation = &entsql.Annotation{
-		Table: "instruct",
 	}
 	LlmUsageRecordsTable.Annotation = &entsql.Annotation{
 		Table: "llm_usage_records",

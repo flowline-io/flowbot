@@ -55,7 +55,7 @@ Covers:
 - Logging, metrics, profiling, tracing
 - Media storage (fs / MinIO) when enabled
 - Executor, models, chat agent, inbound MCP (`mcp`) and outbound MCP (`chat_agent.mcp_servers`), homelab
-- Platform integrations (Slack, Discord, Tailchat; Telegram struct only)
+- Platform integrations (Slack, Discord, Tailchat)
 - Module settings (web auth)
 - Third-party vendor stubs
 - Capability invocation (`pkg/capability`)

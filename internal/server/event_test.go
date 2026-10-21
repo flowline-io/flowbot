@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -16,43 +15,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
-
-func TestOnInstructPushEventHandler(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name    string
-		payload []byte
-		wantErr bool
-	}{
-		{
-			name:    "empty payload returns nil",
-			payload: []byte(`{}`),
-			wantErr: false,
-		},
-		{
-			name:    "valid instruct push event returns nil",
-			payload: []byte(`{"id":"evt-1","type":"instruct"}`),
-			wantErr: false,
-		},
-		{
-			name:    "invalid JSON returns nil (handler ignores errors)",
-			payload: []byte(`not-json`),
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			msg := message.NewMessage("test-uuid", tt.payload)
-			err := onInstructPushEventHandler(msg)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
 
 func TestOnMessageSendEventHandler(t *testing.T) {
 	t.Parallel()
@@ -209,23 +171,6 @@ func TestOnPlatformMessageEventHandler_EmptyPlatform(t *testing.T) {
 			msg := message.NewMessage("id-1", []byte(`{"id":"evt-1","time":123,"type":"message","data":{"self":{"platform":""},"user_id":""}}`))
 			err := onPlatformMessageEventHandler(msg)
 			assert.Error(t, err)
-		})
-	}
-}
-
-func TestOnInstructPushEventHandler_ContextPropagation(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "instruct push handler accepts context"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			msg := message.NewMessage("ctx-id", []byte(`{}`))
-			type ctxKey struct{}
-			msg.SetContext(context.WithValue(msg.Context(), ctxKey{}, "val"))
-			err := onInstructPushEventHandler(msg)
-			assert.NoError(t, err)
 		})
 	}
 }

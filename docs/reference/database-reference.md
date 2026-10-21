@@ -105,7 +105,6 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 - `pages` — Page configurations
 - `page_data` — Page data payloads
 - `parameter` — Temporary parameter storage
-- `instruct` — Instruction records
 - `file_uploads` — File upload records
 
 ### Analytics

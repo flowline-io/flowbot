@@ -3,10 +3,9 @@ package types
 import "time"
 
 const (
-	MessageSendEvent  = "message:send"
-	InstructPushEvent = "instruct:push"
-	BotRunEvent       = "bot:event"
-	ModuleRunEvent    = BotRunEvent
+	MessageSendEvent = "message:send"
+	BotRunEvent      = "bot:event"
+	ModuleRunEvent   = BotRunEvent
 )
 
 const (

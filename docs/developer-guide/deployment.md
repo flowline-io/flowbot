@@ -110,12 +110,13 @@ Ent auto-migration (`Schema.Create()` on startup) creates and alters tables but 
 DROP TABLE IF EXISTS authentications;
 DROP TABLE IF EXISTS connections;
 DROP TABLE IF EXISTS capability_bindings;
+DROP TABLE IF EXISTS instruct;
 DROP TABLE IF EXISTS platform_bots;
 DROP TABLE IF EXISTS topics;
 DROP TABLE IF EXISTS urls;
 ```
 
-Rationale and replacements: [Agent Note: Drop unused Ent tables](../../.agents/notes/implemented/simplification/2026-08-28-drop-unused-ent-tables.md).
+Rationale: [Drop unused Ent tables](../../.agents/notes/implemented/simplification/2026-08-28-drop-unused-ent-tables.md), [Remove instruct and ghost configs](../../.agents/notes/implemented/simplification/2026-10-21-remove-instruct-and-ghost-configs.md).
 
 Verify before drop:
 
@@ -125,5 +126,6 @@ UNION ALL SELECT 'urls', COUNT(*) FROM urls
 UNION ALL SELECT 'connections', COUNT(*) FROM connections
 UNION ALL SELECT 'authentications', COUNT(*) FROM authentications
 UNION ALL SELECT 'platform_bots', COUNT(*) FROM platform_bots
-UNION ALL SELECT 'capability_bindings', COUNT(*) FROM capability_bindings;
+UNION ALL SELECT 'capability_bindings', COUNT(*) FROM capability_bindings
+UNION ALL SELECT 'instruct', COUNT(*) FROM instruct;
 ```

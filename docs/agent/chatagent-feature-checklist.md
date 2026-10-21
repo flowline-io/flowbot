@@ -117,7 +117,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 
 - Rewriting `pkg/agent` loop/harness core
 - Merging `/chatagent` and `/service/web/agents` route prefixes
-- Desktop instruct protocol (`pkg/types/agent.go` / `internal/server/agent.go`)
+- Desktop agent protocol (`pkg/types/agent.go` / `internal/server/agent.go`)
 - Public HTML artifact share URLs, workspace HTML export, `get_html`, right-hand canvas
 
 ---

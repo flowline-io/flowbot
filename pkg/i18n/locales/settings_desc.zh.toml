@@ -579,12 +579,6 @@ other = "Tailchat 平台配置"
 ["settings.desc.platform.tailchat.webhook_token"]
 other = "WebhookToken 是入站 /platform/tailchat 回调经 X-Tailchat-Token 头所需的共享密钥。Tailchat 启用时空 token 拒绝所有请求。"
 
-["settings.desc.platform.telegram"]
-other = "Telegram 平台配置"
-
-["settings.desc.platform.telegram.enabled"]
-other = "Telegram 平台配置"
-
 ["settings.desc.postgres"]
 other = "Postgres 是主数据库配置（YAML 键：postgres）。"
 

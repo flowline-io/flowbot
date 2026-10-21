@@ -8,22 +8,13 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// agentAction handle agent message
-//
-// When action is types.Collect, it will call bot.Collect
-// When action is types.Pull, it will return list of instruct
-// When action is types.Ack, it will update instruct state to done
-// When action is types.Online, it will register agent
-// When action is types.Offline, it will update agent online duration
-//
+// agentAction handles a desktop agent message.
 // eventCtx carries trace context from the HTTP request or event pipeline.
 func agentAction(eventCtx context.Context, uid types.Uid, data types.AgentData) (any, error) {
 	ctx := types.Context{
@@ -31,10 +22,6 @@ func agentAction(eventCtx context.Context, uid types.Uid, data types.AgentData) 
 	}
 	ctx.SetContext(eventCtx)
 	switch data.Action {
-	case types.PullAction:
-		return handlePullAction(ctx, uid)
-	case types.AckAction:
-		return nil, handleAckAction(ctx.Context(), data)
 	case types.OnlineAction:
 		return nil, handleOnlineAction(ctx, uid, data)
 	case types.OfflineAction:
@@ -43,41 +30,6 @@ func agentAction(eventCtx context.Context, uid types.Uid, data types.AgentData) 
 		return nil, handleMessageAction(ctx, uid, data)
 	}
 	return nil, nil
-}
-
-func handlePullAction(ctx types.Context, uid types.Uid) (any, error) {
-	list, err := store.ModuleDataStoreFromDB().ListInstruct(ctx.Context(), uid, false, 10)
-	if err != nil {
-		return nil, err
-	}
-	var instruct []types.KV
-	instruct = []types.KV{}
-	for _, item := range list {
-		instruct = append(instruct, types.KV{
-			"no":        item.No,
-			"bot":       item.Bot,
-			"flag":      item.Flag,
-			"content":   item.Content,
-			"expire_at": item.ExpireAt,
-		})
-	}
-	return instruct, nil
-}
-
-func handleAckAction(ctx context.Context, data types.AgentData) error {
-	no, ok := data.Content.String("no")
-	if !ok {
-		return errors.New("error instruct no")
-	}
-
-	err := store.ModuleDataStoreFromDB().UpdateInstruct(ctx, &gen.Instruct{
-		No:    no,
-		State: int(schema.InstructDone),
-	})
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func handleOnlineAction(ctx types.Context, uid types.Uid, data types.AgentData) error {

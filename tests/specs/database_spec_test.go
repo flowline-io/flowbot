@@ -442,62 +442,6 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		})
 	})
 
-	Describe("Instruct", func() {
-		It("creates a new instruct record", func() {
-			now := time.Now().Add(time.Hour)
-			i, err := EntClient.Instruct.Create().
-				SetNo("instr-" + types.Id()).
-				SetUID("uid-" + types.Id()).
-				SetObject("test").
-				SetBot("test-bot").
-				SetFlag("test-flag").
-				SetContent(map[string]any{"cmd": "test"}).
-				SetExpireAt(now).
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(i.ID).NotTo(BeZero())
-
-			EntClient.Instruct.DeleteOne(i).Exec(ctx)
-		})
-
-		It("retrieves an instruct by ID", func() {
-			now := time.Now().Add(time.Hour)
-			i, err := EntClient.Instruct.Create().
-				SetNo("instr-get-" + types.Id()).
-				SetUID("uid-" + types.Id()).
-				SetObject("test").
-				SetBot("test-bot").
-				SetFlag("get-flag").
-				SetContent(map[string]any{}).
-				SetExpireAt(now).
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			got, err := EntClient.Instruct.Get(ctx, i.ID)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(got.No).To(Equal(i.No))
-
-			EntClient.Instruct.DeleteOne(i).Exec(ctx)
-		})
-
-		It("deletes an instruct", func() {
-			now := time.Now().Add(time.Hour)
-			i, err := EntClient.Instruct.Create().
-				SetNo("instr-del-" + types.Id()).
-				SetUID("uid-" + types.Id()).
-				SetObject("test").
-				SetBot("test-bot").
-				SetFlag("del-flag").
-				SetContent(map[string]any{}).
-				SetExpireAt(now).
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = EntClient.Instruct.DeleteOne(i).Exec(ctx)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-
 	Describe("Agent", func() {
 		It("creates a new agent", func() {
 			a, err := EntClient.Agent.Create().

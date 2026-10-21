@@ -2,7 +2,6 @@ package types
 
 import (
 	"reflect"
-	"time"
 
 	"github.com/bytedance/sonic"
 )
@@ -128,21 +127,6 @@ type MarkdownMsg struct {
 
 func (m MarkdownMsg) Convert() any {
 	return m
-}
-
-type InstructMsg struct {
-	No       string
-	Object   InstructObject
-	Bot      string
-	Flag     string
-	Content  KV
-	Priority InstructPriority
-	State    InstructState
-	ExpireAt time.Time
-}
-
-func (t InstructMsg) Convert() any {
-	return t
 }
 
 type KVMsg map[string]any

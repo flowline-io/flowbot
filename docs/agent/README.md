@@ -8,7 +8,7 @@ This package is distinct from:
 | ---- | -------- | ------- |
 | **Agent engine** | `pkg/agent/` | Multi-turn LLM loop with tools and session tree |
 | **LLM adapter** | `pkg/agent/llm/` | langchaingo models, single-shot helpers, `chat_agent` model lookup |
-| **Instruct protocol** | `pkg/types/agent.go`, `internal/server/agent.go` | Desktop agent online/offline/message protocol |
+| **Desktop agent protocol** | `pkg/types/agent.go`, `internal/server/agent.go` | Host online/offline/message protocol |
 | **Chat agent config** | `chat_agent` in `flowbot.yaml` | DM chat assistant runtime and model routing |
 
 ## Documentation

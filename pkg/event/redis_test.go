@@ -18,7 +18,6 @@ func TestMessageTypeConstants(t *testing.T) {
 	}{
 		{name: "MessageSendEvent", got: types.MessageSendEvent, want: "message:send"},
 		{name: "BotRunEvent", got: types.BotRunEvent, want: "bot:event"},
-		{name: "InstructPushEvent", got: types.InstructPushEvent, want: "instruct:push"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
