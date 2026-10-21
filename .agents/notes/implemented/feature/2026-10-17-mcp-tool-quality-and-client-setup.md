@@ -12,6 +12,16 @@ List tools advertised on `/mcp` take `limit` (MCP fills 20 when omitted and clam
 
 `flowbot mcp config` prints one snippet and does not write client files or token values. `/service/web/settings/mcp` shows the same snippets, previews tools for a scope preset, and mints a token for the signed-in user. It does not change `mcp.enabled`. A tools/call for a known tool the token cannot use returns `permission_denied` without adding that tool to tools/list. The wizard scope lists live in `pkg/auth` because `pkg/config` already imports `pkg/mcp`, and `pkg/mcp` cannot import `pkg/auth`.
 
+The checklist in `docs/user-guide/mcp.md` is unsigned. Its signing record is one row per client, with the version actually run, the date, and the result. That record is this table, not the user guide. Version, date, and result stay empty until a signing change fills them. A Claude Code run below 2.1.302 does not count. The unsigned checklist targets Codex 0.163.0. Cursor and Grok Build record the version from the day of the run. MCP Inspector 2.11 is a reference row and does not count as a client pass. An observed collapse of a tool to zero parameters is written in the same record. Input schema rules: [MCP input schema gate](../testing/2026-10-21-mcp-input-schema-gate.md).
+
+| Client | Counts as | Version | Date | Result |
+| --- | --- | --- | --- | --- |
+| Claude Code | client; a run below 2.1.302 does not count | | | |
+| Codex | client; the unsigned checklist targets 0.163.0 | | | |
+| Cursor | client; version from the day of the run | | | |
+| Grok Build | client; version from the day of the run | | | |
+| MCP Inspector | reference at 2.11; not a client pass | | | |
+
 ## Alternatives considered
 
 - Clamping only in `pkg/mcp` after `Invoke` returned. Rejected because re-signing an offset cursor needs the HMAC secret, which stays on the call context via `PublishCursorSecret`.
@@ -25,4 +35,4 @@ Advertised tool descriptions follow a fixed shape: what it does, a tier sentence
 
 ## Verification
 
-`go test` for `pkg/capability`, `pkg/mcp`, `internal/server/mcp`, `cmd/cli/command`, and `internal/modules/web`. The three-client checklist in `docs/user-guide/mcp.md` is not signed off until someone records client version, date, and result.
+`go test` for `pkg/capability`, `pkg/mcp`, `internal/server/mcp`, `cmd/cli/command`, and `internal/modules/web`. The checklist in `docs/user-guide/mcp.md` is unsigned. The signing record is the table in Decision.

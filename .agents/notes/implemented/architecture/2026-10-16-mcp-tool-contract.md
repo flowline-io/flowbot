@@ -20,7 +20,7 @@ Successful `structuredContent` is the existing result plus a sibling `trace`. JS
 
 `data_events` stores `correlation_id`, `causation_id`, and `trace_id` as empty strings until a caller sets them. `correlation_id` is indexed. `ScopeLineageRead` (`lineage:read`) is listed in `AllScopes`.
 
-Contract tests run from `.github/workflows/mcp-contract.yml` via `go tool task test:mcp-contract`, without the Testing workflow `paths-ignore`.
+Contract tests run from `.github/workflows/mcp-contract.yml` via `go tool task test:mcp-contract`, without the Testing workflow `paths-ignore`. Advertised input schemas are checked by [MCP input schema gate](../testing/2026-10-21-mcp-input-schema-gate.md).
 
 ## Alternatives considered
 
@@ -45,6 +45,6 @@ Contract tests run from `.github/workflows/mcp-contract.yml` via `go tool task t
 
 - `go tool task test:mcp-contract`
 - BDD: `tests/specs/mcp_spec_test.go` (`tools/call` error envelope, `hub.apps` items, `hub.health` object). Those calls send `Mcp-Protocol-Version: 2026-07-28` matching `_meta`, plus `Mcp-Method` and `Mcp-Name`. The streamable handler returns 400 when that protocol is declared and the headers are absent.
-- `go test ./pkg/types/protocol/ ./pkg/mcp/ ./internal/server/mcp/ ./pkg/capability/ -count=1 -run "TestNewFailedResponse|TestToToolError|TestOutputSchemaContract|TestClassify|TestContractAnnotations|TestNamedTool"`
+- `go test ./pkg/types/protocol/ ./pkg/mcp/ ./internal/server/mcp/ ./pkg/capability/ -count=1 -run "TestNewFailedResponse|TestToToolError|TestOutputSchemaContract|TestClassify|TestContractAnnotations|TestNamedTool|TestInputSchemaContract|TestValidateInputSchema"`
 - `go test ./internal/store/ -count=1 -run TestDataEventTraceColumns`
 - User guide: [mcp.md](../../../docs/user-guide/mcp.md)

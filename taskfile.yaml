@@ -141,7 +141,7 @@ tasks:
   test:mcp-contract:
     desc: MCP tool contract tests
     cmds:
-      - go test -count=1 ./pkg/mcp/ ./internal/server/mcp/ ./pkg/capability/ -run "TestToToolError|TestOutputSchemaContract|TestAttachTrace|TestOpenWorldAndTitle|TestServerInstructions|TestClassify|TestToolErrorStructuredContent|TestContractAnnotations|TestToolOKAddsTrace|TestGetRunListIsRunsObject|TestContextForToolCopiesRequestID"
+      - go test -count=1 ./pkg/mcp/ ./internal/server/mcp/ ./pkg/capability/ -run "TestToToolError|TestOutputSchemaContract|TestAttachTrace|TestOpenWorldAndTitle|TestServerInstructions|TestClassify|TestToolErrorStructuredContent|TestContractAnnotations|TestToolOKAddsTrace|TestGetRunListIsRunsObject|TestContextForToolCopiesRequestID|TestInputSchemaContract|TestValidateInputSchema"
       - go test -count=1 ./pkg/auth/ -run TestAllScopesIncludesLineageRead
       - go test -count=1 ./internal/store/ -run TestDataEventTraceColumns
 
