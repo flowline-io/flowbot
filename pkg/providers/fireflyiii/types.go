@@ -61,10 +61,10 @@ func ConvertListResponseData[T any](resp *Response, statusCode int) (*ListResult
 }
 
 type Response struct {
-	Data      any        `json:"data"`
-	Meta      *Meta      `json:"meta,omitempty"`
-	Message   string     `json:"message"`
-	Exception string     `json:"exception"`
+	Data      any    `json:"data"`
+	Meta      *Meta  `json:"meta,omitempty"`
+	Message   string `json:"message"`
+	Exception string `json:"exception"`
 }
 
 // Meta holds Firefly III list response metadata.
@@ -223,18 +223,18 @@ type Transaction struct {
 }
 
 type TransactionRecord struct {
-	TransactionJournalId string   `json:"transaction_journal_id,omitempty"`
-	Type                 string   `json:"type"`
-	Date                 string   `json:"date"`
-	Amount               string   `json:"amount"`
-	Description          string   `json:"description"`
-	SourceId             string   `json:"source_id,omitempty"`
-	SourceName           string   `json:"source_name,omitempty"`
-	DestinationId        string   `json:"destination_id,omitempty"`
-	DestinationName      string   `json:"destination_name,omitempty"`
-	CategoryName         string   `json:"category_name,omitempty"`
-	BudgetId             string   `json:"budget_id,omitempty"`
-	BudgetName           string   `json:"budget_name,omitempty"`
+	TransactionJournalId string    `json:"transaction_journal_id,omitempty"`
+	Type                 string    `json:"type"`
+	Date                 string    `json:"date"`
+	Amount               string    `json:"amount"`
+	Description          string    `json:"description"`
+	SourceId             string    `json:"source_id,omitempty"`
+	SourceName           string    `json:"source_name,omitempty"`
+	DestinationId        string    `json:"destination_id,omitempty"`
+	DestinationName      string    `json:"destination_name,omitempty"`
+	CategoryName         string    `json:"category_name,omitempty"`
+	BudgetId             string    `json:"budget_id,omitempty"`
+	BudgetName           string    `json:"budget_name,omitempty"`
 	BillId               string    `json:"bill_id,omitempty"`
 	BillName             string    `json:"bill_name,omitempty"`
 	Tags                 *[]string `json:"tags,omitempty"`
@@ -251,8 +251,8 @@ type TransactionRecord struct {
 
 // Account is a Firefly III account resource.
 type Account struct {
-	Type       string           `json:"type"`
-	Id         string           `json:"id"`
+	Type       string            `json:"type"`
+	Id         string            `json:"id"`
 	Attributes AccountAttributes `json:"attributes"`
 }
 

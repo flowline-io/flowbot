@@ -124,7 +124,7 @@ func (a *Adapter) ListTransactions(ctx context.Context, q TransactionListQuery) 
 		return nil, err
 	}
 	resp, err := a.client.ListTransactions(provider.TransactionListQuery{
-		ListQuery: provider.ListQuery{Page: page, PerPage: limit},
+		Page: page, PerPage: limit,
 		Type:      q.Type,
 		Start:     q.Start,
 		End:       q.End,
@@ -211,8 +211,8 @@ func (a *Adapter) ListAccounts(ctx context.Context, q AccountListQuery) (*capabi
 		return nil, err
 	}
 	resp, err := a.client.ListAccounts(provider.AccountListQuery{
-		ListQuery: provider.ListQuery{Page: page, PerPage: limit},
-		Type:      q.Type,
+		Page: page, PerPage: limit,
+		Type: q.Type,
 	})
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "fireflyiii list accounts failed", err)

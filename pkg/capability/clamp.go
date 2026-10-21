@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -191,8 +192,8 @@ func stubTail(items *[]any, page *PageInfo, addressable bool, originalNext strin
 }
 
 func lastUnstubbed(items []any) int {
-	for i := len(items) - 1; i >= 0; i-- {
-		if !isStub(items[i]) {
+	for i, item := range slices.Backward(items) {
+		if !isStub(item) {
 			return i
 		}
 	}
@@ -370,10 +371,7 @@ func truncateString(s string) (string, bool) {
 	if len(s) < 2 {
 		return s, false
 	}
-	removed := len(s) / 2
-	if removed < 1 {
-		removed = 1
-	}
+	removed := max(len(s)/2, 1)
 	marker := fmt.Sprintf("…[truncated %d bytes]", removed)
 	for len(s)-removed+len(marker) >= len(s) && removed < len(s) {
 		removed++

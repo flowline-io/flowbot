@@ -121,7 +121,7 @@ func TestServerCard(t *testing.T) {
 	})
 
 	t.Run("does not require a token", func(t *testing.T) {
-		config.App.MCP = mcpConfig(true, boolPtr(true))
+		config.App.MCP = mcpConfig(true, new(true))
 		config.App.Flowbot.URL = ""
 		app := fiber.New()
 		Register(app, nil)
@@ -134,7 +134,7 @@ func TestServerCard(t *testing.T) {
 	})
 
 	t.Run("stays off when mcp is disabled", func(t *testing.T) {
-		config.App.MCP = mcpConfig(false, boolPtr(true))
+		config.App.MCP = mcpConfig(false, new(true))
 		app := fiber.New()
 		Register(app, nil)
 		resp, err := app.Test(httptest.NewRequest(http.MethodGet, "http://flowbot.example/mcp/server-card", http.NoBody))
@@ -144,7 +144,7 @@ func TestServerCard(t *testing.T) {
 	})
 
 	t.Run("can be closed while mcp stays mounted", func(t *testing.T) {
-		config.App.MCP = mcpConfig(true, boolPtr(false))
+		config.App.MCP = mcpConfig(true, new(false))
 		app := fiber.New()
 		Register(app, nil)
 		resp, err := app.Test(httptest.NewRequest(http.MethodGet, "http://flowbot.example/mcp/server-card", http.NoBody))
@@ -161,8 +161,6 @@ func TestServerCard(t *testing.T) {
 func mcpConfig(enabled bool, card *bool) config.MCPConfig {
 	return config.MCPConfig{Enabled: enabled, ServerCard: card}
 }
-
-func boolPtr(v bool) *bool { return &v }
 
 func sortedKeys(doc map[string]any) []string {
 	keys := make([]string, 0, len(doc))

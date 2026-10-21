@@ -18,9 +18,9 @@ type EventStats struct {
 
 // EventStatsSummary holds headline counters for the selected period.
 type EventStatsSummary struct {
-	TotalEvents   int64 `json:"total_events"`
-	DistinctKeys  int64 `json:"distinct_keys"`
-	TopKeyCount   int64 `json:"top_key_count"`
+	TotalEvents  int64 `json:"total_events"`
+	DistinctKeys int64 `json:"distinct_keys"`
+	TopKeyCount  int64 `json:"top_key_count"`
 }
 
 // EventStatsSeries is one chart line grouped by event_type, capability, or source.

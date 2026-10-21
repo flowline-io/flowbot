@@ -32,14 +32,14 @@ type ActivityStatsPoint struct {
 
 // AnalyticsOverview holds headline counters for the analytics landing page.
 type AnalyticsOverview struct {
-	TokenTotal     int64  `json:"token_total"`
-	EventTotal     int64  `json:"event_total"`
-	PipelineRuns   int64  `json:"pipeline_runs"`
-	FunctionRuns   int64  `json:"function_runs"`
-	PeriodStart    string `json:"period_start"`
-	PeriodEnd      string `json:"period_end"`
-	RangeLabel     string `json:"range_label"`
-	ActiveRange    string `json:"active_range"`
+	TokenTotal     int64   `json:"token_total"`
+	EventTotal     int64   `json:"event_total"`
+	PipelineRuns   int64   `json:"pipeline_runs"`
+	FunctionRuns   int64   `json:"function_runs"`
+	PeriodStart    string  `json:"period_start"`
+	PeriodEnd      string  `json:"period_end"`
+	RangeLabel     string  `json:"range_label"`
+	ActiveRange    string  `json:"active_range"`
 	OpsSuccessRate float64 `json:"ops_success_rate"`
 	OpsFailedRuns  int64   `json:"ops_failed_runs"`
 }

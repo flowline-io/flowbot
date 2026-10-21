@@ -325,7 +325,7 @@ func TestFireflyIII_ListTransactions(t *testing.T) {
 
 	client := NewFireflyIII(server.URL, "test-token")
 	result, err := client.ListTransactions(TransactionListQuery{
-		ListQuery: ListQuery{Page: 1, PerPage: 25},
+		Page: 1, PerPage: 25,
 		Type:      "withdrawal",
 		Start:     "2026-01-01",
 		End:       "2026-01-31",

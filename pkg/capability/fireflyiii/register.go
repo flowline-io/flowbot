@@ -106,22 +106,22 @@ func buildSpec(app string, svc Service) capability.Spec {
 			},
 			{
 				Name: OpListCategories, Description: "List categories for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
-				Input: paginationParams(),
+				Input:   paginationParams(),
 				Handler: invokeListCategories(svc),
 			},
 			{
 				Name: OpListBudgets, Description: "List budgets for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
-				Input: paginationParams(),
+				Input:   paginationParams(),
 				Handler: invokeListBudgets(svc),
 			},
 			{
 				Name: OpListBills, Description: "List bills for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
-				Input: paginationParams(),
+				Input:   paginationParams(),
 				Handler: invokeListBills(svc),
 			},
 			{
 				Name: OpListTags, Description: "List tags for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceFireflyiiiRead},
-				Input: paginationParams(),
+				Input:   paginationParams(),
 				Handler: invokeListTags(svc),
 			},
 			{

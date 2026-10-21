@@ -158,11 +158,8 @@ func es6Exponent(f float64) string {
 func compareUTF16(a, b string) int {
 	aa := utf16.Encode([]rune(a))
 	bb := utf16.Encode([]rune(b))
-	n := len(aa)
-	if len(bb) < n {
-		n = len(bb)
-	}
-	for i := 0; i < n; i++ {
+	n := min(len(bb), len(aa))
+	for i := range n {
 		if aa[i] < bb[i] {
 			return -1
 		}
