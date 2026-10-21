@@ -34,7 +34,7 @@ A typical homelab runs dozens of apps under `/home/<user>/homelab/apps/`. Each h
 +-------------------+                  +---------------------+
 | Homelab Registry  |  bind app →      | Capability Registry |
 | archivebox,atuin, |  capability      | karakeep, miniflux, |
-| adguard,karakeep… | ---------------> | kanboard, gitea, …  |
+| gitea,karakeep…   | ---------------> | kanboard, gitea, …  |
 +-------------------+                  | core, functions, …  |
         |                              +---------+-----------+
         | register apps                          |
@@ -87,11 +87,11 @@ Provider-backed capabilities use the provider ID as the capability name. Domain 
 
 IDs match `hub.CapabilityType` in [`pkg/hub/capability.go`](pkg/hub/capability.go). `clip` / `notify` / `agent` are operations on **core**, not separate capabilities. Package layout: [`docs/architecture/README.md`](docs/architecture/README.md).
 
-### Discovery / client only
+### Client only
 
-These packages live under `pkg/providers/` for Homelab discovery or OAuth/client helpers. They are **not** full Capability integrations (no `capability.Invoke` service surface):
+These packages live under `pkg/providers/` as OAuth or HTTP client helpers. They are **not** full Capability integrations (no `capability.Invoke` service surface):
 
-archivebox, adguard, uptimekuma, drone, dropbox, n8n, slash, slack (OAuth), grafana, beszel, dozzle, netalertx, wakapi, traefik, …
+uptimekuma, drone, slack (OAuth), grafana, beszel, dozzle, netalertx, wakapi, traefik, …
 
 All supported capabilities share the same invocation pattern:
 

@@ -205,7 +205,7 @@ note right
   Example:
   karakeep → karakeep capability
   miniflux → miniflux capability
-  archivebox → discovery / provider
+  archivebox → archive fingerprint only
 end note
 
 CapRegistry -> CapRegistry : register Spec / ops

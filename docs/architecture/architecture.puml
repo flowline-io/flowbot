@@ -73,12 +73,12 @@ package "pkg/capability/ — Capability Abstraction" as CapLayer #FFF9C4 {
 ' =============================================================================
 ' Provider Layer
 ' =============================================================================
-package "pkg/providers/ — 29 Integrations" as ProviderLayer #E8F5E9 {
+package "pkg/providers/ — 24 Integrations" as ProviderLayer #E8F5E9 {
   [Forge\ngithub / gitea / drone] as ForgeP
-  [Content\nkarakeep / miniflux / archivebox\ntrilium / memos / confluence] as ContentP
-  [Ops\nbeszel / grafana / traefik\nuptimekuma / dozzle / wakapi\nnetalertx / scanopy / adguard] as OpsP
-  [Work\nkanboard / trello / nocodb\nfireflyiii / n8n] as WorkP
-  [Other\nemail / slack / slash\ntransmission / dropbox / example] as OtherP
+  [Content\nkarakeep / miniflux\ntrilium / memos / confluence] as ContentP
+  [Ops\nbeszel / grafana / traefik\nuptimekuma / dozzle / wakapi\nnetalertx / scanopy] as OpsP
+  [Work\nkanboard / trello / nocodb\nfireflyiii] as WorkP
+  [Other\nemail / slack\ntransmission / example] as OtherP
 }
 
 ' =============================================================================

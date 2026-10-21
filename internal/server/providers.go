@@ -3,7 +3,6 @@ package server
 import (
 	"go.uber.org/fx"
 
-	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/providers/slack"
 )
@@ -14,6 +13,5 @@ var OAuthModules = fx.Options(
 		WireOAuthTokenStore,
 		github.Register,
 		slack.Register,
-		dropbox.Register,
 	),
 )

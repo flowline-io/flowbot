@@ -364,10 +364,6 @@ vendors:
   github:
     id:
     secret:
-  # Dropbox configuration
-  dropbox:
-    key: ""
-    secret: ""
   # Transmission configuration
   transmission:
     endpoint: ""
@@ -386,19 +382,6 @@ vendors:
     mark_seen_after_emit: false
   # Gitea configuration
   gitea:
-    endpoint: ""
-    token: ""
-  # AdGuard Home configuration
-  adguard_home:
-    endpoint: ""
-    username: ""
-    password: ""
-  # ArchiveBox configuration
-  archivebox:
-    endpoint: ""
-    token: ""
-  # Slash configuration
-  slash:
     endpoint: ""
     token: ""
   # Karakeep configuration
@@ -473,10 +456,6 @@ vendors:
   drone:
     endpoint: ""
     token: ""
-  # n8n configuration
-  n8n:
-    endpoint: ""
-    api_key: ""
   # trilium configuration
   trilium:
     endpoint: ""

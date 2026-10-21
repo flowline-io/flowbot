@@ -69,13 +69,13 @@ package "Layer 2 — Capability Abstraction\npkg/capability/" as L2 #FFF9C4 {
 ' =============================================================================
 ' Layer 1: Provider Adapters
 ' =============================================================================
-package "Layer 1 — Provider Adapters\npkg/providers/ (29)" as L1 #E8F5E9 {
+package "Layer 1 — Provider Adapters\npkg/providers/ (24)" as L1 #E8F5E9 {
   [GitHub / Gitea / Drone] as DevGroup
-  [Karakeep / ArchiveBox / Miniflux\nTrilium / Memos / Confluence] as ContentGroup
+  [Karakeep / Miniflux\nTrilium / Memos / Confluence] as ContentGroup
   [Kanboard / Trello / NocoDB] as KanbanGroup
-  [Firefly III / n8n] as FinanceGroup
-  [Beszel / Grafana / Traefik\nUptime Kuma / Dozzle / Wakapi\nNetAlertX / Scanopy / AdGuard] as OpsGroup
-  [Transmission / Email / Slack\nSlash / Dropbox / Example] as OtherGroup
+  [Firefly III] as FinanceGroup
+  [Beszel / Grafana / Traefik\nUptime Kuma / Dozzle / Wakapi\nNetAlertX / Scanopy] as OpsGroup
+  [Transmission / Email / Slack\nExample] as OtherGroup
 }
 
 ' =============================================================================

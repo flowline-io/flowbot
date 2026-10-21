@@ -75,9 +75,9 @@ analytics, automate, example, hub, web
 
 `automate` owns REST under `/service/automate/{functions,pipeline,workflow}` (scopes remain `function:*` / `pipeline:*` / `workflow:*`). See [merge note](../../.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md).
 
-### Providers (29)
+### Providers (24)
 
-adguard, archivebox, beszel, confluence, dozzle, drone, dropbox, email, example, fireflyiii, gitea, github, grafana, kanboard, karakeep, memos, miniflux, n8n, netalertx, nocodb, scanopy, slack, slash, traefik, transmission, trello, trilium, uptimekuma, wakapi
+beszel, confluence, dozzle, drone, email, example, fireflyiii, gitea, github, grafana, kanboard, karakeep, memos, miniflux, netalertx, nocodb, scanopy, slack, traefik, transmission, trello, trilium, uptimekuma, wakapi
 
 ### Capability packages (`pkg/capability/`)
 
