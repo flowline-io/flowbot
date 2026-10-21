@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
+	"github.com/flowline-io/flowbot/pkg/capability/drone"
 	"github.com/flowline-io/flowbot/pkg/capability/email"
 	"github.com/flowline-io/flowbot/pkg/capability/fireflyiii"
 	"github.com/flowline-io/flowbot/pkg/capability/functions"
@@ -55,6 +56,7 @@ func workflowCapabilityCatalog() []capDoc {
 		email.CatalogSpec(),
 		nocodb.CatalogSpec(),
 		devops.CatalogSpec(),
+		drone.CatalogSpec(),
 		gitea.CatalogSpec(),
 		github.CatalogSpec(),
 		trello.CatalogSpec(),

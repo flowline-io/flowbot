@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/capability/drone"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -358,7 +359,9 @@ var commandRules = []command.Rule{
 		Define: "deploy",
 		Help:   `deploy server`,
 		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
-			err := deploy(ctx)
+			_, err := capability.Invoke(ctx.Context(), hub.CapDrone, drone.OpDeploy, map[string]any{
+				"uid": ctx.AsUser.String(),
+			})
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: fmt.Sprintf("deploy failed, error: %v", err)}

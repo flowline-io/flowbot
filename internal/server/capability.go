@@ -6,6 +6,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/capability/confluence"
 	"github.com/flowline-io/flowbot/pkg/capability/devops"
+	"github.com/flowline-io/flowbot/pkg/capability/drone"
 	"github.com/flowline-io/flowbot/pkg/capability/email"
 	"github.com/flowline-io/flowbot/pkg/capability/fireflyiii"
 	"github.com/flowline-io/flowbot/pkg/capability/gitea"
@@ -37,6 +38,7 @@ func initCapabilityHub() error {
 		trello.Register("trello", trello.New()),
 		confluence.Register("confluence", confluence.New()),
 		devops.Register("devops", devops.New()),
+		drone.Register("drone", drone.New()),
 	)
 	if err != nil {
 		return err

@@ -6,7 +6,7 @@ Decouples modules from providers. Provider-backed caps live in `pkg/capability/<
 
 - Framework: `invoke.go`, `register.go`, ops/eventsource/polling helpers
 - Reference: `example/` (`service.go`, `adapter.go`, `register.go`)
-- Provider caps: `karakeep/`, `miniflux/`, …; multi-provider: `devops/`; internal multi-op: `core/`
+- Provider caps: `karakeep/`, `miniflux/`, `drone/`, …; multi-provider: `devops/`; internal multi-op: `core/`
 - Shared exec for sandbox run_*: `pkg/exec` (used by `core` and agent coding tools)
 
 ```go

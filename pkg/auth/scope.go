@@ -51,6 +51,8 @@ const (
 	ScopeServiceConfluenceWrite   = "service:confluence:write"
 	ScopeServiceDevopsRead        = "service:devops:read"
 	ScopeServiceDevopsWrite       = "service:devops:write" // reserved for future mutations
+	ScopeServiceDroneRead         = "service:drone:read"
+	ScopeServiceDroneWrite        = "service:drone:write"
 	ScopeServiceExampleRead       = "service:example:read"
 	ScopeServiceExampleWrite      = "service:example:write"
 
@@ -277,6 +279,8 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeServiceConfluenceWrite, Description: "write confluence"},
 		{Value: ScopeServiceDevopsRead, Description: "read devops"},
 		{Value: ScopeServiceDevopsWrite, Description: "write devops"},
+		{Value: ScopeServiceDroneRead, Description: "read drone"},
+		{Value: ScopeServiceDroneWrite, Description: "write drone"},
 		{Value: ScopeServiceExampleRead, Description: "read example"},
 		{Value: ScopeServiceExampleWrite, Description: "write example"},
 		{Value: ScopePipelineRead, Description: "read pipelines"},

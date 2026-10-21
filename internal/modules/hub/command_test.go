@@ -1,11 +1,15 @@
 package hub
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/capability/drone"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -832,35 +836,45 @@ func TestGithubUserStrHandler(t *testing.T) {
 }
 
 func TestDeployHandler(t *testing.T) {
-	t.Skip("requires external service")
-
+	rule := deployCommandRule(t)
 	tests := []struct {
-		name string
+		name     string
+		uid      types.Uid
+		invoke   error
+		wantText string
 	}{
-		{name: "deploy handler should return non-empty TextMsg"},
+		{name: "returns ok", uid: "user-1", wantText: "ok"},
+		{name: "returns failure text", uid: "user-1", invoke: errors.New("boom"), wantText: "deploy failed, error: boom"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var deployRule *command.Rule
-			for i := range commandRules {
-				if commandRules[i].Define == "deploy" {
-					deployRule = &commandRules[i]
-					break
+			var gotUID any
+			registerTestInvoker(t, hub.CapDrone, drone.OpDeploy, func(_ context.Context, params map[string]any) (*capability.InvokeResult, error) {
+				gotUID = params["uid"]
+				if tt.invoke != nil {
+					return nil, tt.invoke
 				}
-			}
-			require.NotNil(t, deployRule)
+				return &capability.InvokeResult{Text: "ok"}, nil
+			})
 
-			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-			tokens, _ := parser.ParseString("deploy")
-
-			payload := deployRule.Handler(ctx, tokens)
-			require.NotNil(t, payload)
-
+			payload := rule.Handler(types.Context{AsUser: tt.uid}, nil)
 			msg, ok := payload.(types.TextMsg)
 			require.True(t, ok)
-			assert.NotEmpty(t, msg.Text)
+			assert.Equal(t, tt.wantText, msg.Text)
+			assert.Equal(t, tt.uid.String(), gotUID)
 		})
 	}
+}
+
+func deployCommandRule(t *testing.T) *command.Rule {
+	t.Helper()
+	for i := range commandRules {
+		if commandRules[i].Define == "deploy" {
+			return &commandRules[i]
+		}
+	}
+	t.Fatal("deploy command is not registered")
+	return nil
 }
 
 func TestFormRules_Empty(t *testing.T) {

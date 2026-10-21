@@ -8,7 +8,7 @@ The hub `deploy` command notified through template ID `github.deployment`. That 
 
 ## Decision
 
-`deploy` sends through `notify.GatewaySendDefaults` with a `summary` payload (title plus optional Drone base URL). It uses the operator-configured default template and default channel. Missing defaults remain a soft skip via `WarnSkipNoDefault`.
+The drone capability `deploy` operation sends through `notify.GatewaySendDefaults` with a `summary` payload (title plus optional Drone base URL). It uses the operator-configured default template and default channel. Missing defaults remain a soft skip via `WarnSkipNoDefault`. The hub `deploy` command invokes that operation.
 
 ## Alternatives considered
 
@@ -23,4 +23,4 @@ The hub `deploy` command notified through template ID `github.deployment`. That 
 
 ## Verification
 
-`go test ./internal/modules/hub -run TestDeployNotifyPayload -count=1` covers payload fields. `go tool task lint`.
+`go test ./pkg/capability/drone -run TestDeployNotifyPayload -count=1` covers payload fields. `go tool task lint`.

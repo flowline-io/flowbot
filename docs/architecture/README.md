@@ -81,7 +81,7 @@ beszel, confluence, dozzle, drone, email, example, fireflyiii, gitea, github, gr
 
 ### Capability packages (`pkg/capability/`)
 
-confluence, core, devops, email, example, fireflyiii, functions, gitea, github, kanboard, karakeep, memos, miniflux, nocodb, transmission, trello, trilium — plus `conformance/`
+confluence, core, devops, drone, email, example, fireflyiii, functions, gitea, github, kanboard, karakeep, memos, miniflux, nocodb, transmission, trello, trilium — plus `conformance/`
 
 ### Notifications
 

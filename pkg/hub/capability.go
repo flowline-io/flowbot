@@ -19,6 +19,7 @@ const (
 	CapTrello       CapabilityType = "trello"
 	CapConfluence   CapabilityType = "confluence"
 	CapDevops       CapabilityType = "devops"
+	CapDrone        CapabilityType = "drone"
 	CapExample      CapabilityType = "example"
 	// CapCore is the internal multi-op capability (notify, clip, agent, http, run_*, kv_*).
 	CapCore CapabilityType = "core"
