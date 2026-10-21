@@ -6,7 +6,6 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
-	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
 	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	agentmcp "github.com/flowline-io/flowbot/internal/server/chatagent/tools/mcp"
 	agentnotify "github.com/flowline-io/flowbot/internal/server/chatagent/tools/notify"
@@ -40,9 +39,6 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	}
 	uid := registryUID(taskDeps, scheduleDeps)
 	if err := agentnotify.Register(registry, uid); err != nil {
-		return nil, err
-	}
-	if err := agentgw.Register(registry, string(uid)); err != nil {
 		return nil, err
 	}
 	if err := registerKnowledgeAndSkills(registry); err != nil {
@@ -135,7 +131,6 @@ func ActiveToolNames() []string {
 	names = append(names, clip.ActiveToolNames()...)
 	names = append(names, agenthtml.ActiveToolNames()...)
 	names = append(names, agentnotify.ActiveToolNames()...)
-	names = append(names, agentgw.ActiveToolNames()...)
 	names = append(names, agentmcp.ActiveToolNames()...)
 	names = append(names, "read_skill", delegateSubagentToolName)
 	names = append(names, KnowledgeToolNames()...)

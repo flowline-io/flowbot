@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
-	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
 	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	agentnotify "github.com/flowline-io/flowbot/internal/server/chatagent/tools/notify"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
@@ -77,7 +76,7 @@ func ToolGroupOf(name string) string {
 		return ToolGroupShell
 	case "web_search", "web_fetch", "glob_files", "grep_files", searchKnowledgeToolName, getKnowledgeToolName:
 		return ToolGroupSearch
-	case clip.CreateToolName, clip.GetToolName, agenthtml.ToolName, agentnotify.SendToolName, agentgw.RunCursorToolName, "read_skill":
+	case clip.CreateToolName, clip.GetToolName, agenthtml.ToolName, agentnotify.SendToolName, "read_skill":
 		return ToolGroupCore
 	case delegateSubagentToolName:
 		return ToolGroupSubagent

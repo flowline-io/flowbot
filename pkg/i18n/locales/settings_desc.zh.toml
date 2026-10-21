@@ -327,27 +327,6 @@ other = "language"
 ["settings.desc.flowbot.url"]
 other = "Flowbot URL"
 
-["settings.desc.gateway"]
-other = "Gateway 配置 CapGateway（本地 CLI worker 任务）。不是 notification gateway。"
-
-["settings.desc.gateway.enabled"]
-other = "Enabled 为 true 时注册 CapGateway。"
-
-["settings.desc.gateway.lease_ttl"]
-other = "LeaseTTL 是运行中任务的租约时长，由 heartbeat 续期。"
-
-["settings.desc.gateway.max_output_bytes"]
-other = "MaxOutputBytes 在完成时截断任务输出（0 使用 chat_agent.max_tool_output）。"
-
-["settings.desc.gateway.permission"]
-other = "Permission 合并到 DefaultConfig[\"gateway\"]：\"ask\"（默认）或仅 \"allow\"。"
-
-["settings.desc.gateway.run_timeout"]
-other = "RunTimeout 是 capability run 等待终态任务状态的时长。"
-
-["settings.desc.gateway.worker_stale_after"]
-other = "WorkerStaleAfter 在 heartbeat 超过此时间后将 worker 标记为不健康。"
-
 ["settings.desc.homelab"]
 other = "Homelab 应用注册与生命周期配置"
 

@@ -83,7 +83,6 @@ Provider-backed capabilities use the provider ID as the capability name. Domain 
 | **confluence**   | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
 | **devops**       | Aggregator | Multi-provider ops (beszel, uptimekuma, traefik, grafana, …)    |
 | **core**         | Internal   | notify, clip, agent, `http_request`, `run_*`, `kv_*`            |
-| **gateway**      | Internal   | Local CLI gateway workers (`cmd/gateway`)                       |
 | **functions**    | Internal   | Named FaaS invoke / get / health                                |
 
 IDs match `hub.CapabilityType` in [`pkg/hub/capability.go`](pkg/hub/capability.go). `clip` / `notify` / `agent` are operations on **core**, not separate capabilities. Package layout: [`docs/architecture/README.md`](docs/architecture/README.md).

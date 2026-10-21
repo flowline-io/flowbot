@@ -1,8 +1,6 @@
 package permission
 
 import (
-	"sync/atomic"
-
 	pkgmcp "github.com/flowline-io/flowbot/pkg/mcp"
 )
 
@@ -36,41 +34,11 @@ const KeyTodo = "todo"
 // KeyHTML is the permission key for present_html artifacts.
 const KeyHTML = "html"
 
-// KeyGateway is the permission key for local CLI gateway tools (run_cursor).
-const KeyGateway = "gateway"
-
 // KeyMCPPrefix prefixes per-server MCP permission keys (mcp.<name>).
 const KeyMCPPrefix = pkgmcp.PermissionKeyPrefix
 
 // KeyBrowser is the permission key for interactive browser_* tools.
 const KeyBrowser = "browser"
-
-// gatewayDefaultAction stores Action; initialized to ActionAsk.
-var gatewayDefaultAction atomic.Value
-
-func init() {
-	gatewayDefaultAction.Store(ActionAsk)
-}
-
-// SetGatewayDefaultAction overrides the DefaultConfig gateway rule (from flowbot.yaml).
-// User DB permission overlays still win via EffectiveConfig. Only ask/allow are accepted.
-func SetGatewayDefaultAction(action Action) {
-	switch action {
-	case ActionAllow, ActionAsk:
-		gatewayDefaultAction.Store(action)
-	default:
-		gatewayDefaultAction.Store(ActionAsk)
-	}
-}
-
-func loadGatewayDefaultAction() Action {
-	if v := gatewayDefaultAction.Load(); v != nil {
-		if a, ok := v.(Action); ok {
-			return a
-		}
-	}
-	return ActionAsk
-}
 
 // DefaultConfig returns OpenCode-style baseline rules used when the user has no overrides.
 func DefaultConfig() Config {
@@ -111,7 +79,6 @@ func DefaultConfig() Config {
 		},
 		KeyTodo:     {Default: ActionAllow},
 		KeyHTML:     {Default: ActionAllow},
-		KeyGateway:  {Default: loadGatewayDefaultAction()},
 		KeyDoomLoop: {Default: ActionAsk},
 		KeyExternalDirectory: {
 			Patterns: []PatternRule{

@@ -28,7 +28,5 @@ GitHub Actions workflows that run `go mod download` or Go build/test tasks use `
 - `.github/workflows/build.yml`
 - `.github/workflows/testing.yml`
 - `.github/workflows/build_cli.yml`
-- `.github/workflows/build_agent.yml`
-- `.github/workflows/build_gateway.yml`
 - `.github/workflows/agent-eval.yml`
 - `.github/workflows/release.yml`

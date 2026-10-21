@@ -58,7 +58,7 @@ package "Layer 3 — Modules\ninternal/modules/ (5 modules)" as L3 #F3E5F5 {
 package "Layer 2 — Capability Abstraction\npkg/capability/" as L2 #FFF9C4 {
   [capability.Invoke] as CapInvoke
   [Provider-backed\nkarakeep, miniflux, gitea, ...] as ProvCaps
-  [Aggregates\ncore, devops, functions,\ngateway, life] as AggCaps
+  [Aggregates\ncore, devops, functions,\nlife] as AggCaps
   note right
     capability.Invoke(capType, operation, params)
     Returns standard pagination (limit + opaque cursor)

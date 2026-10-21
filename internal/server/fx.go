@@ -56,7 +56,6 @@ var Modules = fx.Options(
 		initFunctions,
 		initAgentAbility,
 		initClipAbility,
-		initGatewayAbility,
 		initChatAgentScheduler,
 		chatagent.StartMCPClients,
 		handleModules,

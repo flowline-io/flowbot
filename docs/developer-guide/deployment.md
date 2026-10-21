@@ -78,8 +78,6 @@ GitHub Actions workflows (`.github/workflows/`):
 | `build.yml`                | Lint + Build                             |
 | `testing.yml`              | Run all tests                            |
 | `build_cli.yml`            | Build CLI tools                          |
-| `build_agent.yml`          | Build headless agent binary              |
-| `build_gateway.yml`        | Build gateway worker binary              |
 | `docker.yml`               | Build Docker image                       |
 | `docker-agent-sandbox.yml` | Build agent sandbox image (`sandbox-v*` tags) |
 | `docker-browser-cdp.yml`   | Build Lightpanda / Playwright CDP images (`cdp-v*` tags) |

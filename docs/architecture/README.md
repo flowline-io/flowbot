@@ -68,8 +68,6 @@ Root [AGENTS.md](../../AGENTS.md). Pagination: [pkg/capability/AGENTS.md](../../
 | Server       | `cmd/main.go`   | HTTP server (Fiber v3 + fx DI)                         |
 | Admin CLI    | `cmd/cli/`      | User/token management, config, pipeline/workflow admin |
 | Composer CLI | `cmd/composer/` | Admin actions, website docs, and SKILL.md generation   |
-| Gateway      | `cmd/gateway/`  | Local CLI gateway worker (pull model)                  |
-| Agent CLI    | `cmd/agent/`    | Headless coding agent (`flowbot-agent`)                |
 
 ### Modules (5)
 
@@ -83,7 +81,7 @@ adguard, archivebox, beszel, confluence, dozzle, drone, dropbox, email, example,
 
 ### Capability packages (`pkg/capability/`)
 
-confluence, core, devops, email, example, fireflyiii, functions, gateway, gitea, github, kanboard, karakeep, memos, miniflux, nocodb, transmission, trello, trilium — plus `conformance/`
+confluence, core, devops, email, example, fireflyiii, functions, gitea, github, kanboard, karakeep, memos, miniflux, nocodb, transmission, trello, trilium — plus `conformance/`
 
 ### Notifications
 
@@ -100,8 +98,6 @@ agent, auth, backoff, bulkhead, cache, capability, client, config, cronutil, eve
 | `build.yml`                | Lint + Build                             |
 | `testing.yml`              | Run all tests                            |
 | `build_cli.yml`            | Build CLI tools                          |
-| `build_agent.yml`          | Build headless agent binary              |
-| `build_gateway.yml`        | Build gateway worker binary              |
 | `docker.yml`               | Build Docker image                       |
 | `docker-agent-sandbox.yml` | Build agent sandbox image                |
 | `docker-browser-cdp.yml`   | Build Lightpanda / Playwright CDP images |

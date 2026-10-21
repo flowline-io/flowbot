@@ -12,7 +12,6 @@ title Flowbot — Agent Engine (pkg/agent)
 
 package "Callers" as Callers #ECEFF1 {
   [HTTP / SSE\nchatagent] as HTTP
-  [CLI / Jobs\ncmd/agent] as CLI
 }
 
 package "Harness\npkg/agent/harness" as Harness #E3F2FD {

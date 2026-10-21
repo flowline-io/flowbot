@@ -75,7 +75,6 @@ var (
 		"/service",
 		"/hub",
 		"/chatagent",
-		"/gateway",
 		"/static",
 		"/platform",
 		"/oauth",

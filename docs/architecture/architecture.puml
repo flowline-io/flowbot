@@ -25,8 +25,6 @@ package "cmd/ — Entry Points" as EntryPoints #FFF3E0 {
   [Server\ncmd/main.go] as ServerEntry
   [Admin CLI\ncmd/cli/] as AdminCLI
   [Composer CLI\ncmd/composer/] as ComposerCLI
-  [Gateway\ncmd/gateway/] as GatewayCLI
-  [Agent CLI\ncmd/agent/] as AgentCLI
 }
 
 ' =============================================================================
@@ -67,7 +65,7 @@ package "internal/modules/ — 5 Modules" as BotModules #F3E5F5 {
 ' =============================================================================
 package "pkg/capability/ — Capability Abstraction" as CapLayer #FFF9C4 {
   [capability.Invoke] as Invoke
-  [core / functions / gateway / life] as InternalCaps
+  [core / functions / life] as InternalCaps
   [Provider-backed caps\nkarakeep, miniflux, ...] as ProviderCaps
   [conformance/] as Conformance
 }
@@ -145,8 +143,6 @@ TailchatAdapter --> Router
 ServerEntry --> Router
 AdminCLI --> CapRoutes
 ComposerCLI --> CapRoutes
-GatewayCLI --> CapRoutes
-AgentCLI --> ChatagentRoutes
 
 ' =============================================================================
 ' Connections — Server → Modules

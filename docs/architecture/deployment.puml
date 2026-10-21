@@ -32,7 +32,7 @@ node "Host Machine (Linux)" as Host {
       [audit_logs]
       [users / tokens / web_account]
       [workflow / pipeline / function state]
-      [agent / gateway / life]
+      [agent / life]
     }
 
     ' --- Redis ---
@@ -97,8 +97,6 @@ cloud "GitHub Actions" as GHA {
   [Build\n(build.yml)] as BuildCI
   [Testing\n(testing.yml)] as TestingCI
   [Build CLI\n(build_cli.yml)] as BuildCLICI
-  [Build Agent\n(build_agent.yml)] as BuildAgentCI
-  [Build Gateway\n(build_gateway.yml)] as BuildGatewayCI
   [Docker\n(docker.yml)] as DockerCI
   [Sandbox\n(docker-agent-sandbox.yml)] as SandboxCI
   [Agent Eval\n(agent-eval.yml)] as EvalCI
@@ -167,7 +165,7 @@ end note
 note bottom of GHA
   <b>CI/CD Pipelines (.github/workflows/):</b>
   - build.yml / testing.yml / release.yml / pages.yml
-  - build_cli.yml / build_agent.yml / build_gateway.yml
+  - build_cli.yml
   - docker.yml / docker-agent-sandbox.yml / agent-eval.yml
 end note
 

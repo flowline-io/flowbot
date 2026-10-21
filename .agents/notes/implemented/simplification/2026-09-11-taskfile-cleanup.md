@@ -26,5 +26,5 @@ Status: implemented
 
 ## Verification
 
-- `go tool task --list-all` has no `cloc`, `air`, or `leak`; CI entrypoints (`lint`, `build`, `build:cli`, `build:gateway`, `build:agent`, `test:specs:ci`, `test:race:ci`, `test:race:nightly`, `agent:eval`) remain.
+- `go tool task --list-all` has no `cloc`, `air`, or `leak`; CI entrypoints (`lint`, `build`, `build:cli`, `test:specs:ci`, `test:race:ci`, `test:race:nightly`, `agent:eval`) remain.
 - README and `docs/developer-guide/README.md` match the surviving task names.

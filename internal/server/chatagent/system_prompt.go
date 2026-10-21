@@ -11,7 +11,6 @@ import (
 
 	"errors"
 	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
-	agentgw "github.com/flowline-io/flowbot/internal/server/chatagent/tools/gateway"
 	agenthtml "github.com/flowline-io/flowbot/internal/server/chatagent/tools/htmlpreview"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
@@ -88,7 +87,6 @@ func DefaultToolSnippets() map[string]string {
 		clip.CreateToolName:            "Create a shareable markdown clip and return its full public URL",
 		clip.GetToolName:               "Read a shareable markdown clip by slug",
 		agenthtml.ToolName:             "Present an interactive HTML document in chat; inline CSS/JS only (no network)",
-		agentgw.RunCursorToolName:      "Delegate a coding task to the local Cursor CLI via flowbot-gateway",
 		searchKnowledgeToolName:        "Search the knowledge base; returns path, title, tags, and summary",
 		getKnowledgeToolName:           "Read a knowledge base markdown document by path",
 	}

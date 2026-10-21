@@ -7,8 +7,6 @@ on:
     paths-ignore:
       - 'cmd/cli/**'
       - 'cmd/composer/**'
-      - 'cmd/gateway/**'
-      - 'cmd/agent/**'
       - 'docs/**'
       - 'tests/**'
       - 'AGENTS.md'
@@ -19,8 +17,6 @@ on:
     paths-ignore:
       - 'cmd/cli/**'
       - 'cmd/composer/**'
-      - 'cmd/gateway/**'
-      - 'cmd/agent/**'
       - 'docs/**'
       - 'tests/**'
       - 'AGENTS.md'

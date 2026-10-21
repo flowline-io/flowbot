@@ -4,6 +4,7 @@
 
 ### Breaking
 
+- Local CLI gateway (`cmd/gateway`, CapGateway, `run_cursor`, `/gateway/v1`) and the headless coding CLI (`cmd/agent`, `/agent/v1/chat/completions`) are removed. Scopes `gateway:worker` and `agent:headless` are gone. A leftover `gateway:` block in `flowbot.yaml` is ignored. See [.agents/notes/implemented/simplification/2026-10-21-remove-local-cli-gateway-and-headless-agent.md](.agents/notes/implemented/simplification/2026-10-21-remove-local-cli-gateway-and-headless-agent.md).
 - MCP `/mcp` tool results are JSON in `structuredContent` and in the text body. `pipeline.list`, `workflow.list`, `function.list`, and `hub.apps` return `{items, trace}` instead of a bare array. `get_run` without `run_id` returns `{runs, trace}`. Failures set `isError` and return `{error, trace}` with `code`, `message`, `retryable`, and `hint`. See [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
 - Agent-sandbox Playwright image variant and `playwright-*` GHCR tags are removed. Interactive browsing is CDP `browser_*` tools (`chat_agent.browser`) against Compose `lightpanda` or optional `playwright-cdp`. Pulls of `ghcr.io/flowline-io/flowbot-agent-sandbox:playwright-*` need those CDP services. See [.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md](.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md).
 

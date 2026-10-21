@@ -7,8 +7,6 @@ var denied = map[string]struct{}{
 	"core.run_code":     {},
 	"core.http_request": {},
 	"core.agent_run":    {},
-	"gateway.run":       {},
-	"gateway.cancel":    {},
 }
 
 // Denied reports whether capability.operation is never exposed on /mcp.

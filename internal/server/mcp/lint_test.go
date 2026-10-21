@@ -13,7 +13,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability/email"
 	"github.com/flowline-io/flowbot/pkg/capability/fireflyiii"
 	"github.com/flowline-io/flowbot/pkg/capability/functions"
-	"github.com/flowline-io/flowbot/pkg/capability/gateway"
 	"github.com/flowline-io/flowbot/pkg/capability/gitea"
 	"github.com/flowline-io/flowbot/pkg/capability/github"
 	"github.com/flowline-io/flowbot/pkg/capability/kanboard"
@@ -37,7 +36,6 @@ func TestAdvertisedToolDescriptions(t *testing.T) {
 		email.CatalogSpec(),
 		fireflyiii.CatalogSpec(),
 		functions.CatalogSpec(),
-		gateway.CatalogSpec(),
 		gitea.CatalogSpec(),
 		github.CatalogSpec(),
 		kanboard.CatalogSpec(),

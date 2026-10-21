@@ -89,11 +89,6 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 - `chat_scheduled_tasks` / `chat_scheduled_task_runs` — Scheduled chat tasks
 - `llm_usage_records` — LLM token usage
 
-### Gateway
-
-- `gateway_jobs` — Local CLI gateway jobs
-- `gateway_workers` — Gateway worker registrations
-
 ### Clips
 
 - `clips` — Clip resources (public/private visibility)

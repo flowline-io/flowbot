@@ -54,7 +54,6 @@ Mutation ops change remote/system state; prefer read ops when exploring.
 | `email` | [capabilities/email.md](capabilities/email.md) — Email capability for SMTP send and IMAP read |
 | `fireflyiii` | [capabilities/fireflyiii.md](capabilities/fireflyiii.md) — Finance capability for Firefly III |
 | `functions` | [capabilities/functions.md](capabilities/functions.md) — Named functions (FaaS): pure transform invoke of published function versions. HTTP token/hmac on POST /service/automate/functions/call only; Pipeline and capability.Invoke do not validate function HTTP secrets. |
-| `gateway` | [capabilities/gateway.md](capabilities/gateway.md) — Local CLI gateway: delegate coarse run_cursor jobs to cmd/gateway workers |
 | `gitea` | [capabilities/gitea.md](capabilities/gitea.md) — Forge capability |
 | `github` | [capabilities/github.md](capabilities/github.md) — GitHub capability |
 | `kanboard` | [capabilities/kanboard.md](capabilities/kanboard.md) — Kanban capability |

@@ -37,8 +37,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functiondefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/functionrun"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayjob"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayworker"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
@@ -1080,82 +1078,6 @@ func init() {
 	functionrunDescCreatedAt := functionrunFields[9].Descriptor()
 	// functionrun.DefaultCreatedAt holds the default value on creation for the created_at field.
 	functionrun.DefaultCreatedAt = functionrunDescCreatedAt.Default.(func() time.Time)
-	gatewayjobFields := schema.GatewayJob{}.Fields()
-	_ = gatewayjobFields
-	// gatewayjobDescJobID is the schema descriptor for job_id field.
-	gatewayjobDescJobID := gatewayjobFields[1].Descriptor()
-	// gatewayjob.JobIDValidator is a validator for the "job_id" field. It is called by the builders before save.
-	gatewayjob.JobIDValidator = gatewayjobDescJobID.Validators[0].(func(string) error)
-	// gatewayjobDescUID is the schema descriptor for uid field.
-	gatewayjobDescUID := gatewayjobFields[2].Descriptor()
-	// gatewayjob.DefaultUID holds the default value on creation for the uid field.
-	gatewayjob.DefaultUID = gatewayjobDescUID.Default.(string)
-	// gatewayjobDescCli is the schema descriptor for cli field.
-	gatewayjobDescCli := gatewayjobFields[3].Descriptor()
-	// gatewayjob.CliValidator is a validator for the "cli" field. It is called by the builders before save.
-	gatewayjob.CliValidator = gatewayjobDescCli.Validators[0].(func(string) error)
-	// gatewayjobDescPrompt is the schema descriptor for prompt field.
-	gatewayjobDescPrompt := gatewayjobFields[4].Descriptor()
-	// gatewayjob.PromptValidator is a validator for the "prompt" field. It is called by the builders before save.
-	gatewayjob.PromptValidator = gatewayjobDescPrompt.Validators[0].(func(string) error)
-	// gatewayjobDescCwd is the schema descriptor for cwd field.
-	gatewayjobDescCwd := gatewayjobFields[5].Descriptor()
-	// gatewayjob.DefaultCwd holds the default value on creation for the cwd field.
-	gatewayjob.DefaultCwd = gatewayjobDescCwd.Default.(string)
-	// gatewayjobDescStatus is the schema descriptor for status field.
-	gatewayjobDescStatus := gatewayjobFields[6].Descriptor()
-	// gatewayjob.DefaultStatus holds the default value on creation for the status field.
-	gatewayjob.DefaultStatus = gatewayjobDescStatus.Default.(string)
-	// gatewayjobDescOutput is the schema descriptor for output field.
-	gatewayjobDescOutput := gatewayjobFields[7].Descriptor()
-	// gatewayjob.DefaultOutput holds the default value on creation for the output field.
-	gatewayjob.DefaultOutput = gatewayjobDescOutput.Default.(string)
-	// gatewayjobDescErrorText is the schema descriptor for error_text field.
-	gatewayjobDescErrorText := gatewayjobFields[9].Descriptor()
-	// gatewayjob.DefaultErrorText holds the default value on creation for the error_text field.
-	gatewayjob.DefaultErrorText = gatewayjobDescErrorText.Default.(string)
-	// gatewayjobDescTruncated is the schema descriptor for truncated field.
-	gatewayjobDescTruncated := gatewayjobFields[10].Descriptor()
-	// gatewayjob.DefaultTruncated holds the default value on creation for the truncated field.
-	gatewayjob.DefaultTruncated = gatewayjobDescTruncated.Default.(bool)
-	// gatewayjobDescDurationMs is the schema descriptor for duration_ms field.
-	gatewayjobDescDurationMs := gatewayjobFields[11].Descriptor()
-	// gatewayjob.DefaultDurationMs holds the default value on creation for the duration_ms field.
-	gatewayjob.DefaultDurationMs = gatewayjobDescDurationMs.Default.(int64)
-	// gatewayjobDescWorkerID is the schema descriptor for worker_id field.
-	gatewayjobDescWorkerID := gatewayjobFields[12].Descriptor()
-	// gatewayjob.DefaultWorkerID holds the default value on creation for the worker_id field.
-	gatewayjob.DefaultWorkerID = gatewayjobDescWorkerID.Default.(string)
-	// gatewayjobDescCreatedAt is the schema descriptor for created_at field.
-	gatewayjobDescCreatedAt := gatewayjobFields[16].Descriptor()
-	// gatewayjob.DefaultCreatedAt holds the default value on creation for the created_at field.
-	gatewayjob.DefaultCreatedAt = gatewayjobDescCreatedAt.Default.(func() time.Time)
-	// gatewayjobDescUpdatedAt is the schema descriptor for updated_at field.
-	gatewayjobDescUpdatedAt := gatewayjobFields[17].Descriptor()
-	// gatewayjob.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	gatewayjob.DefaultUpdatedAt = gatewayjobDescUpdatedAt.Default.(func() time.Time)
-	// gatewayjob.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	gatewayjob.UpdateDefaultUpdatedAt = gatewayjobDescUpdatedAt.UpdateDefault.(func() time.Time)
-	gatewayworkerFields := schema.GatewayWorker{}.Fields()
-	_ = gatewayworkerFields
-	// gatewayworkerDescWorkerID is the schema descriptor for worker_id field.
-	gatewayworkerDescWorkerID := gatewayworkerFields[1].Descriptor()
-	// gatewayworker.WorkerIDValidator is a validator for the "worker_id" field. It is called by the builders before save.
-	gatewayworker.WorkerIDValidator = gatewayworkerDescWorkerID.Validators[0].(func(string) error)
-	// gatewayworkerDescLastSeenAt is the schema descriptor for last_seen_at field.
-	gatewayworkerDescLastSeenAt := gatewayworkerFields[2].Descriptor()
-	// gatewayworker.DefaultLastSeenAt holds the default value on creation for the last_seen_at field.
-	gatewayworker.DefaultLastSeenAt = gatewayworkerDescLastSeenAt.Default.(func() time.Time)
-	// gatewayworkerDescCreatedAt is the schema descriptor for created_at field.
-	gatewayworkerDescCreatedAt := gatewayworkerFields[3].Descriptor()
-	// gatewayworker.DefaultCreatedAt holds the default value on creation for the created_at field.
-	gatewayworker.DefaultCreatedAt = gatewayworkerDescCreatedAt.Default.(func() time.Time)
-	// gatewayworkerDescUpdatedAt is the schema descriptor for updated_at field.
-	gatewayworkerDescUpdatedAt := gatewayworkerFields[4].Descriptor()
-	// gatewayworker.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	gatewayworker.DefaultUpdatedAt = gatewayworkerDescUpdatedAt.Default.(func() time.Time)
-	// gatewayworker.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	gatewayworker.UpdateDefaultUpdatedAt = gatewayworkerDescUpdatedAt.UpdateDefault.(func() time.Time)
 	instructFields := schema.Instruct{}.Fields()
 	_ = instructFields
 	// instructDescNo is the schema descriptor for no field.

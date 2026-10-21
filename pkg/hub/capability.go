@@ -22,8 +22,6 @@ const (
 	CapExample      CapabilityType = "example"
 	// CapCore is the internal multi-op capability (notify, clip, agent, http, run_*, kv_*).
 	CapCore CapabilityType = "core"
-	// CapGateway is the local CLI gateway capability (run_cursor via cmd/gateway workers).
-	CapGateway CapabilityType = "gateway"
 	// CapFunctions is the named-functions capability (pure transform invoke).
 	CapFunctions CapabilityType = "functions"
 )

@@ -79,10 +79,6 @@ const (
 	ScopeWorkflowRead  = "workflow:read"
 	ScopeWorkflowRun   = "workflow:run"
 	ScopeChatAgentChat = "chatagent:chat"
-	// ScopeGatewayWorker authorizes cmd/gateway claim/result/heartbeat APIs.
-	ScopeGatewayWorker = "gateway:worker"
-	// ScopeAgentHeadless authorizes flowbot-agent LLM proxy (OpenAI-compatible completions).
-	ScopeAgentHeadless = "agent:headless"
 	// ScopeLineageRead allows reading event correlation and causation links.
 	ScopeLineageRead = "lineage:read"
 	// ScopeAuditRead allows reading the caller's own audit rows. admin:* reads every row.
@@ -290,8 +286,6 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeWorkflowRead, Description: "read workflows"},
 		{Value: ScopeWorkflowRun, Description: "apply, delete, and run workflows"},
 		{Value: ScopeChatAgentChat, Description: "agent"},
-		{Value: ScopeGatewayWorker, Description: "local CLI gateway worker"},
-		{Value: ScopeAgentHeadless, Description: "headless agent LLM proxy"},
 		{Value: ScopeLineageRead, Description: "read event lineage"},
 		{Value: ScopeAuditRead, Description: "read own audit log"},
 	}

@@ -22,8 +22,6 @@ This package is distinct from:
 | [Agent Sandbox](./agent-sandbox.md) | Cloud Agent ephemeral Docker image (`flowbot-agent-sandbox`) |
 | [Browser tools](./browser.md) | CDP browser_* tools (Lightpanda / Chromium) |
 | [Self-hosting](../self-hosting.md#optional-llm-pii-presidio) | Optional Presidio Analyzer profile for outbound LLM PII |
-| [Local CLI Gateway](./local-cli-gateway.md) | Homelab ↔ `cmd/gateway` worker (pull model; not notification gateway) |
-| [Headless CLI](./headless-cli.md) | `flowbot-agent` local headless coding CLI (LLM via `/agent/v1`) |
 | [Diagram](./agent.puml) | PlantUML component diagram (render with PlantUML) |
 
 ## Quick Start

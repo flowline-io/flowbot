@@ -37,7 +37,6 @@ const (
 	ToolSearchSessionSummaries = "search_session_summaries"
 	ToolTodoWrite              = "todo_write"
 	ToolListTodos              = "list_todos"
-	ToolRunCursor              = "run_cursor"
 	ToolPresentHTML            = "present_html"
 )
 
@@ -64,8 +63,6 @@ func PermissionKeyForTool(tool string) string {
 		return KeyKnowledge
 	case ToolPresentHTML:
 		return KeyHTML
-	case ToolRunCursor:
-		return KeyGateway
 	default:
 		if key := permissionKeyForMCPTool(tool); key != "" {
 			return key
