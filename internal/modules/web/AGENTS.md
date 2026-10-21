@@ -40,16 +40,16 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 - **Templ**: pass request `context.Context` into page/layout components that call `i18n.T`; `Render` must use `ctx.Context()` / `c.Context()` from Fiber — never `context.Background()` for HTML.
 - **Page titles**: `partials.PageHeader(ctx, titleKey, subtitleKey)` for static keys; `PageHeaderLiteral(ctx, title, subtitle)` for dynamic entity names; mix at call site (`PageHeaderLiteral(ctx, name, i18n.T(ctx, "page.workflow.subtitle"))`).
 - **Handler toasts**: `webMsg(c, id)`, `webMsgData`, `toastErrorKey`, `setShowToastKey`, `renderFormErrorKey`, `renderErrorKey` in `utils.go` — not raw English literals.
-- **Document titles**: `pages.DocTitleFlowbot` / `DocTitlePage` / `DocTitleNamed` / `DocTitleLiteral` / `DocTitleLife` in `layout.Base(ctx, title)`.
+- **Document titles**: `pages.DocTitleFlowbot` / `DocTitlePage` / `DocTitleNamed` / `DocTitleLiteral` in `layout.Base(ctx, title)`.
 - **Client IDs**: after adding `client.*` keys to TOML, run `python scripts/update_client_ids.py` (also runs after `go tool task templ`).
 - **Catalogs**: `pkg/i18n/locales/{en,zh}.toml` (filename is the go-i18n language tag). A leaf ID that is also a prefix of another ID in the same file must use a quoted table (`["error.validation"]`).
 - **JS**: user-visible strings via `flowbotI18n(key, enFallback)`; add keys to the catalogs and run `scripts/update_client_ids.py` to refresh `clientMessageIDs`; no parallel translation tables in `public/js/`.
 - **ClientJSON**: marshal via `pkg/i18n.ClientMessages`; embed with `@templ.JSONScript("flowbot-i18n", i18n.ClientMessages(ctx))` in `partials.I18nScript` — inline `<script>` bodies do not interpolate Go expressions.
-- **Message IDs**: dotted keys — `nav.*`, `page.*`, `toast.*`, `confirm.*`, `life.*`, `clip.*`, `client.*`, `auth.*`, `common.*`, `error.*`; ship en/zh pairs.
+- **Message IDs**: dotted keys — `nav.*`, `page.*`, `toast.*`, `confirm.*`, `clip.*`, `client.*`, `auth.*`, `common.*`, `error.*`; ship en/zh pairs.
 
 ## Testing
 
-Which layer: [docs/testing/README.md](../../../docs/testing/README.md). Owning BDD for `/service/web` pages: `tests/specs/*_page_spec_test.go` (`agents`, `agent_sessions`, `agent_scheduled_tasks`, `notifications`, `event`, `home_token_usage`, `blueprint`) and `life_spec_test.go`.
+Which layer: [docs/testing/README.md](../../../docs/testing/README.md). Owning BDD for `/service/web` pages: `tests/specs/*_page_spec_test.go` (`agents`, `agent_sessions`, `agent_scheduled_tasks`, `notifications`, `event`, `home_token_usage`, `blueprint`).
 
 ```bash
 go test ./internal/modules/web/...

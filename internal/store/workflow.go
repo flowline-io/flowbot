@@ -426,34 +426,34 @@ func (s *WorkflowStore) LatestRunStartedAtByNames(ctx context.Context, names []s
 }
 
 // WorkflowStats returns aggregated workflow run statistics for chart rendering.
-// name empty = all workflows. since zero = no time filter. groupBy = "day"|"week"|"month".
-func (s *WorkflowStore) WorkflowStats(ctx context.Context, name string, since time.Time, groupBy string) (*types.WorkflowStats, error) {
+// name empty = all workflows. since/until zero = open bound. groupBy = "day"|"week"|"month".
+func (s *WorkflowStore) WorkflowStats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.WorkflowStats, error) {
 	if s == nil || s.client == nil {
 		return emptyWorkflowStats(), nil
 	}
 	stats := &types.WorkflowStats{}
 
 	var err error
-	stats.Summary, err = s.loadWorkflowStatsSummary(ctx, name, since)
+	stats.Summary, err = s.loadWorkflowStatsSummary(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("summary: %w", err)
 	}
-	stats.SuccessRateTrend, err = s.loadWorkflowSuccessRate(ctx, name, since, groupBy)
+	stats.SuccessRateTrend, err = s.loadWorkflowSuccessRate(ctx, name, since, until, groupBy)
 	if err != nil {
 		return nil, fmt.Errorf("success rate: %w", err)
 	}
-	stats.DurationDistribution.Workflow, err = s.loadWorkflowDurationBuckets(ctx, name, since)
+	stats.DurationDistribution.Workflow, err = s.loadWorkflowDurationBuckets(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("workflow duration: %w", err)
 	}
-	stats.TriggerSourcePie, err = s.loadWorkflowTriggerSources(ctx, name, since)
+	stats.TriggerSourcePie, err = s.loadWorkflowTriggerSources(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("trigger sources: %w", err)
 	}
 	return stats, nil
 }
 
-func (s *WorkflowStore) loadWorkflowStatsSummary(ctx context.Context, name string, since time.Time) (types.WorkflowStatsSummary, error) {
+func (s *WorkflowStore) loadWorkflowStatsSummary(ctx context.Context, name string, since, until time.Time) (types.WorkflowStatsSummary, error) {
 	summary := types.WorkflowStatsSummary{}
 	if name == "" {
 		count, err := s.client.Workflow.Query().Count(ctx)
@@ -463,11 +463,11 @@ func (s *WorkflowStore) loadWorkflowStatsSummary(ctx context.Context, name strin
 		summary.TotalWorkflows = int64(count)
 	}
 
-	successful, err := s.countCompletedWorkflowRunsByStatus(ctx, name, since, int(schema.WorkflowRunDone))
+	successful, err := s.countCompletedWorkflowRunsByStatus(ctx, name, since, until, int(schema.WorkflowRunDone))
 	if err != nil {
 		return summary, err
 	}
-	failed, err := s.countCompletedWorkflowRunsByStatus(ctx, name, since, int(schema.WorkflowRunFailed))
+	failed, err := s.countCompletedWorkflowRunsByStatus(ctx, name, since, until, int(schema.WorkflowRunFailed))
 	if err != nil {
 		return summary, err
 	}
@@ -476,7 +476,7 @@ func (s *WorkflowStore) loadWorkflowStatsSummary(ctx context.Context, name strin
 	return summary, nil
 }
 
-func (s *WorkflowStore) countCompletedWorkflowRunsByStatus(ctx context.Context, name string, since time.Time, status int) (int64, error) {
+func (s *WorkflowStore) countCompletedWorkflowRunsByStatus(ctx context.Context, name string, since, until time.Time, status int) (int64, error) {
 	q := s.client.WorkflowRun.Query().
 		Where(
 			workflowrun.CompletedAtNotNil(),
@@ -485,9 +485,7 @@ func (s *WorkflowStore) countCompletedWorkflowRunsByStatus(ctx context.Context, 
 	if name != "" {
 		q = q.Where(workflowrun.WorkflowNameEQ(name))
 	}
-	if !since.IsZero() {
-		q = q.Where(workflowrun.StartedAtGTE(since))
-	}
+	q = applyWorkflowRunStartedBounds(q, since, until)
 	count, err := q.Count(ctx)
 	if err != nil {
 		return 0, err
@@ -495,23 +493,31 @@ func (s *WorkflowStore) countCompletedWorkflowRunsByStatus(ctx context.Context, 
 	return int64(count), nil
 }
 
-func (s *WorkflowStore) loadWorkflowSuccessRate(ctx context.Context, name string, since time.Time, groupBy string) ([]types.SuccessRatePoint, error) {
-	runs, err := s.fetchCompletedWorkflowRuns(ctx, name, since)
+func (s *WorkflowStore) loadWorkflowSuccessRate(ctx context.Context, name string, since, until time.Time, groupBy string) ([]types.SuccessRatePoint, error) {
+	runs, err := s.fetchCompletedWorkflowRuns(ctx, name, since, until)
 	if err != nil {
 		return nil, err
 	}
 	return computeWorkflowSuccessRate(runs, groupBy), nil
 }
 
-func (s *WorkflowStore) fetchCompletedWorkflowRuns(ctx context.Context, name string, since time.Time) ([]*gen.WorkflowRun, error) {
+func (s *WorkflowStore) fetchCompletedWorkflowRuns(ctx context.Context, name string, since, until time.Time) ([]*gen.WorkflowRun, error) {
 	q := s.client.WorkflowRun.Query().Where(workflowrun.CompletedAtNotNil())
 	if name != "" {
 		q = q.Where(workflowrun.WorkflowNameEQ(name))
 	}
+	q = applyWorkflowRunStartedBounds(q, since, until)
+	return q.All(ctx)
+}
+
+func applyWorkflowRunStartedBounds(q *gen.WorkflowRunQuery, since, until time.Time) *gen.WorkflowRunQuery {
 	if !since.IsZero() {
 		q = q.Where(workflowrun.StartedAtGTE(since))
 	}
-	return q.All(ctx)
+	if !until.IsZero() {
+		q = q.Where(workflowrun.StartedAtLTE(until))
+	}
+	return q
 }
 
 func computeWorkflowSuccessRate(runs []*gen.WorkflowRun, groupBy string) []types.SuccessRatePoint {
@@ -561,8 +567,8 @@ func computeWorkflowSuccessRate(runs []*gen.WorkflowRun, groupBy string) []types
 	return points
 }
 
-func (s *WorkflowStore) loadWorkflowDurationBuckets(ctx context.Context, name string, since time.Time) ([]types.DurationEntry, error) {
-	runs, err := s.fetchCompletedWorkflowRuns(ctx, name, since)
+func (s *WorkflowStore) loadWorkflowDurationBuckets(ctx context.Context, name string, since, until time.Time) ([]types.DurationEntry, error) {
+	runs, err := s.fetchCompletedWorkflowRuns(ctx, name, since, until)
 	if err != nil {
 		return nil, err
 	}
@@ -576,14 +582,12 @@ func (s *WorkflowStore) loadWorkflowDurationBuckets(ctx context.Context, name st
 	return result, nil
 }
 
-func (s *WorkflowStore) loadWorkflowTriggerSources(ctx context.Context, name string, since time.Time) ([]types.TriggerSourceCount, error) {
+func (s *WorkflowStore) loadWorkflowTriggerSources(ctx context.Context, name string, since, until time.Time) ([]types.TriggerSourceCount, error) {
 	q := s.client.WorkflowRun.Query()
 	if name != "" {
 		q = q.Where(workflowrun.WorkflowNameEQ(name))
 	}
-	if !since.IsZero() {
-		q = q.Where(workflowrun.StartedAtGTE(since))
-	}
+	q = applyWorkflowRunStartedBounds(q, since, until)
 
 	type row struct {
 		Source string `sql:"trigger_type"`

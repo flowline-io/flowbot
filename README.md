@@ -83,7 +83,6 @@ Provider-backed capabilities use the provider ID as the capability name. Domain 
 | **confluence**   | Provider   | REST, CLI, Chat, Workflow, Webhook                              |
 | **devops**       | Aggregator | Multi-provider ops (beszel, uptimekuma, traefik, grafana, …)    |
 | **core**         | Internal   | notify, clip, agent, `http_request`, `run_*`, `kv_*`            |
-| **life**         | Internal   | Life gamification AI (quest eval, lore)                         |
 | **gateway**      | Internal   | Local CLI gateway workers (`cmd/gateway`)                       |
 | **functions**    | Internal   | Named FaaS invoke / get / health                                |
 

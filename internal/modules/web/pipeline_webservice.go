@@ -923,7 +923,7 @@ func pipelineStats(c fiber.Ctx) error {
 		}
 	}
 
-	stats, err := s.PipelineStats(context.Background(), name, since, tabs.GroupBy)
+	stats, err := s.PipelineStats(context.Background(), name, since, time.Time{}, tabs.GroupBy)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "pipeline stats: %v", err)
 	}

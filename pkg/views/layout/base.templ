@@ -77,13 +77,11 @@ templ Base(ctx context.Context, title string) {
 						<li><a href="/service/web/account" data-testid="nav-mobile-account">{ i18n.T(ctx, "nav.account") }</a></li>
 						<li><a href="/service/web/about">{ i18n.T(ctx, "nav.about") }</a></li>
 						<li class="menu-title">{ i18n.T(ctx, "nav.group.user") }</li>
-						<li><a href="/service/web/life" data-testid="nav-mobile-life">{ i18n.T(ctx, "nav.life") }</a></li>
-						<li><a href="/service/web/life/stats" data-testid="nav-mobile-life-stats">{ i18n.T(ctx, "nav.stats") }</a></li>
-						<li><a href="/service/web/life/character" data-testid="nav-mobile-life-character">{ i18n.T(ctx, "nav.character") }</a></li>
-						<li><a href="/service/web/life/quests" data-testid="nav-mobile-life-quests">{ i18n.T(ctx, "nav.quests") }</a></li>
-						<li><a href="/service/web/life/inventory" data-testid="nav-mobile-life-inventory">{ i18n.T(ctx, "nav.inventory") }</a></li>
-						<li><a href="/service/web/life/achievements" data-testid="nav-mobile-life-achievements">{ i18n.T(ctx, "nav.achievements") }</a></li>
-						<li><a href="/service/web/life/rewards" data-testid="nav-mobile-life-rewards">{ i18n.T(ctx, "nav.rewards") }</a></li>
+						<li><a href="/service/web/analytics" data-testid="nav-mobile-analytics">{ i18n.T(ctx, "nav.analytics") }</a></li>
+						<li><a href="/service/web/analytics/token-usage?range=7d&groupBy=model" data-testid="nav-mobile-analytics-token">{ i18n.T(ctx, "nav.analytics.token") }</a></li>
+						<li><a href="/service/web/analytics/events" data-testid="nav-mobile-analytics-events">{ i18n.T(ctx, "nav.analytics.events") }</a></li>
+						<li><a href="/service/web/analytics/activity" data-testid="nav-mobile-analytics-activity">{ i18n.T(ctx, "nav.analytics.activity") }</a></li>
+						<li><a href="/service/web/analytics/ops/runs" data-testid="nav-mobile-analytics-ops">{ i18n.T(ctx, "nav.analytics.ops") }</a></li>
 					</ul>
 				</div>
 				<a href="/service/web/home" class="btn btn-ghost text-lg sm:text-xl normal-case px-2 truncate gap-2" aria-label={ i18n.T(ctx, "common.flowbot_home") }>

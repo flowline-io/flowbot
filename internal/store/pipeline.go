@@ -950,31 +950,31 @@ func (s *PipelineStore) ListPublishedDefinitions(ctx context.Context) ([]pipelin
 }
 
 // PipelineStats returns aggregated pipeline run statistics for chart rendering.
-// name empty = all pipelines. since zero = no time filter. groupBy = "day"|"week"|"month".
-func (s *PipelineStore) PipelineStats(ctx context.Context, name string, since time.Time, groupBy string) (*types.PipelineStats, error) {
+// name empty = all pipelines. since/until zero = open bound. groupBy = "day"|"week"|"month".
+func (s *PipelineStore) PipelineStats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.PipelineStats, error) {
 	if s == nil || s.client == nil {
 		return emptyPipelineStats(), nil
 	}
 	stats := &types.PipelineStats{}
 
 	var err error
-	stats.Summary, err = s.loadPipelineStatsSummary(ctx, name, since)
+	stats.Summary, err = s.loadPipelineStatsSummary(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("summary: %w", err)
 	}
-	stats.SuccessRateTrend, err = s.loadSuccessRate(ctx, name, since, groupBy)
+	stats.SuccessRateTrend, err = s.loadSuccessRate(ctx, name, since, until, groupBy)
 	if err != nil {
 		return nil, fmt.Errorf("success rate: %w", err)
 	}
-	stats.DurationDistribution.Pipeline, err = s.loadDurationBuckets(ctx, name, since)
+	stats.DurationDistribution.Pipeline, err = s.loadDurationBuckets(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("pipeline duration: %w", err)
 	}
-	stats.DurationDistribution.Step, err = s.loadStepDurationBuckets(ctx, name, since)
+	stats.DurationDistribution.Step, err = s.loadStepDurationBuckets(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("step duration: %w", err)
 	}
-	stats.TriggerSourcePie, err = s.loadTriggerSources(ctx, name, since)
+	stats.TriggerSourcePie, err = s.loadTriggerSources(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("trigger sources: %w", err)
 	}
@@ -982,7 +982,7 @@ func (s *PipelineStore) PipelineStats(ctx context.Context, name string, since ti
 }
 
 // loadPipelineStatsSummary returns headline counters for the pipelines overview.
-func (s *PipelineStore) loadPipelineStatsSummary(ctx context.Context, name string, since time.Time) (types.PipelineStatsSummary, error) {
+func (s *PipelineStore) loadPipelineStatsSummary(ctx context.Context, name string, since, until time.Time) (types.PipelineStatsSummary, error) {
 	summary := types.PipelineStatsSummary{}
 	if name == "" {
 		count, err := s.client.PipelineDefinition.Query().Count(ctx)
@@ -992,11 +992,11 @@ func (s *PipelineStore) loadPipelineStatsSummary(ctx context.Context, name strin
 		summary.TotalPipelines = int64(count)
 	}
 
-	successful, err := s.countCompletedRunsByStatus(ctx, name, since, int(schema.PipelineDone))
+	successful, err := s.countCompletedRunsByStatus(ctx, name, since, until, int(schema.PipelineDone))
 	if err != nil {
 		return summary, err
 	}
-	failed, err := s.countCompletedRunsByStatus(ctx, name, since, int(schema.PipelineFailed))
+	failed, err := s.countCompletedRunsByStatus(ctx, name, since, until, int(schema.PipelineFailed))
 	if err != nil {
 		return summary, err
 	}
@@ -1006,7 +1006,7 @@ func (s *PipelineStore) loadPipelineStatsSummary(ctx context.Context, name strin
 }
 
 // countCompletedRunsByStatus counts completed runs filtered by pipeline, time range, and status.
-func (s *PipelineStore) countCompletedRunsByStatus(ctx context.Context, name string, since time.Time, status int) (int64, error) {
+func (s *PipelineStore) countCompletedRunsByStatus(ctx context.Context, name string, since, until time.Time, status int) (int64, error) {
 	q := s.client.PipelineRun.Query().
 		Where(
 			pipelinerun.CompletedAtNotNil(),
@@ -1015,9 +1015,7 @@ func (s *PipelineStore) countCompletedRunsByStatus(ctx context.Context, name str
 	if name != "" {
 		q = q.Where(pipelineRunByParentName(name))
 	}
-	if !since.IsZero() {
-		q = q.Where(pipelinerun.StartedAtGTE(since))
-	}
+	q = applyPipelineRunStartedBounds(q, since, until)
 	count, err := q.Count(ctx)
 	if err != nil {
 		return 0, err
@@ -1028,24 +1026,32 @@ func (s *PipelineStore) countCompletedRunsByStatus(ctx context.Context, name str
 // loadSuccessRate fetches completed runs and computes success rate points in Go.
 // Ent v0.14.6 does not expose Modify() on query builders, so custom SQL GROUP BY
 // expressions are handled via in-memory aggregation after fetching raw data.
-func (s *PipelineStore) loadSuccessRate(ctx context.Context, name string, since time.Time, groupBy string) ([]types.SuccessRatePoint, error) {
-	runs, err := s.fetchCompletedRuns(ctx, name, since)
+func (s *PipelineStore) loadSuccessRate(ctx context.Context, name string, since, until time.Time, groupBy string) ([]types.SuccessRatePoint, error) {
+	runs, err := s.fetchCompletedRuns(ctx, name, since, until)
 	if err != nil {
 		return nil, err
 	}
 	return computeSuccessRate(runs, groupBy), nil
 }
 
-// fetchCompletedRuns returns completed pipeline runs filtered by name and since time.
-func (s *PipelineStore) fetchCompletedRuns(ctx context.Context, name string, since time.Time) ([]*gen.PipelineRun, error) {
+// fetchCompletedRuns returns completed pipeline runs filtered by name and time bounds.
+func (s *PipelineStore) fetchCompletedRuns(ctx context.Context, name string, since, until time.Time) ([]*gen.PipelineRun, error) {
 	q := s.client.PipelineRun.Query().Where(pipelinerun.CompletedAtNotNil())
 	if name != "" {
 		q = q.Where(pipelineRunByParentName(name))
 	}
+	q = applyPipelineRunStartedBounds(q, since, until)
+	return q.All(ctx)
+}
+
+func applyPipelineRunStartedBounds(q *gen.PipelineRunQuery, since, until time.Time) *gen.PipelineRunQuery {
 	if !since.IsZero() {
 		q = q.Where(pipelinerun.StartedAtGTE(since))
 	}
-	return q.All(ctx)
+	if !until.IsZero() {
+		q = q.Where(pipelinerun.StartedAtLTE(until))
+	}
+	return q
 }
 
 // computeSuccessRate aggregates completed runs into success rate points grouped by date.
@@ -1110,14 +1116,12 @@ func dateGroupKey(t time.Time, groupBy string) string {
 }
 
 // loadDurationBuckets fetches completed runs and buckets by duration in Go.
-func (s *PipelineStore) loadDurationBuckets(ctx context.Context, name string, since time.Time) ([]types.DurationEntry, error) {
+func (s *PipelineStore) loadDurationBuckets(ctx context.Context, name string, since, until time.Time) ([]types.DurationEntry, error) {
 	q := s.client.PipelineRun.Query().Where(pipelinerun.CompletedAtNotNil())
 	if name != "" {
 		q = q.Where(pipelineRunByParentName(name))
 	}
-	if !since.IsZero() {
-		q = q.Where(pipelinerun.StartedAtGTE(since))
-	}
+	q = applyPipelineRunStartedBounds(q, since, until)
 
 	runs, err := q.All(ctx)
 	if err != nil {
@@ -1135,7 +1139,7 @@ func (s *PipelineStore) loadDurationBuckets(ctx context.Context, name string, si
 }
 
 // loadStepDurationBuckets fetches completed step runs and buckets by duration.
-func (s *PipelineStore) loadStepDurationBuckets(ctx context.Context, name string, since time.Time) ([]types.DurationEntry, error) {
+func (s *PipelineStore) loadStepDurationBuckets(ctx context.Context, name string, since, until time.Time) ([]types.DurationEntry, error) {
 	q := s.client.PipelineStepRun.Query().Where(pipelinesteprun.CompletedAtNotNil())
 	if name != "" {
 		runIDs, err := s.client.PipelineRun.Query().
@@ -1151,6 +1155,9 @@ func (s *PipelineStore) loadStepDurationBuckets(ctx context.Context, name string
 	}
 	if !since.IsZero() {
 		q = q.Where(pipelinesteprun.StartedAtGTE(since))
+	}
+	if !until.IsZero() {
+		q = q.Where(pipelinesteprun.StartedAtLTE(until))
 	}
 
 	steps, err := q.All(ctx)
@@ -1169,14 +1176,12 @@ func (s *PipelineStore) loadStepDurationBuckets(ctx context.Context, name string
 }
 
 // loadTriggerSources counts runs grouped by trigger_source using ent GroupBy.
-func (s *PipelineStore) loadTriggerSources(ctx context.Context, name string, since time.Time) ([]types.TriggerSourceCount, error) {
+func (s *PipelineStore) loadTriggerSources(ctx context.Context, name string, since, until time.Time) ([]types.TriggerSourceCount, error) {
 	q := s.client.PipelineRun.Query()
 	if name != "" {
 		q = q.Where(pipelineRunByParentName(name))
 	}
-	if !since.IsZero() {
-		q = q.Where(pipelinerun.StartedAtGTE(since))
-	}
+	q = applyPipelineRunStartedBounds(q, since, until)
 
 	type row struct {
 		Source string `sql:"trigger_source"`

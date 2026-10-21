@@ -61,7 +61,7 @@ func TestPipelineStats_SuccessRateTrend(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := s.PipelineStats(ctx, tt.pName, tt.since, tt.groupBy)
+			stats, err := s.PipelineStats(ctx, tt.pName, tt.since, time.Time{}, tt.groupBy)
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.GreaterOrEqual(t, len(stats.SuccessRateTrend), tt.minRows)
@@ -112,7 +112,7 @@ func TestPipelineStats_CompoundPipelineName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := s.PipelineStats(ctx, tt.pName, time.Time{}, "day")
+			stats, err := s.PipelineStats(ctx, tt.pName, time.Time{}, time.Time{}, "day")
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			require.Len(t, stats.SuccessRateTrend, 1)
@@ -192,7 +192,7 @@ func TestPipelineStats_Summary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := s.PipelineStats(ctx, tt.pName, tt.since, "day")
+			stats, err := s.PipelineStats(ctx, tt.pName, tt.since, time.Time{}, "day")
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.Equal(t, tt.wantPipelines, stats.Summary.TotalPipelines)
@@ -213,7 +213,7 @@ func TestPipelineStats_NilSafe(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := tt.store.PipelineStats(context.Background(), "", time.Time{}, "day")
+			stats, err := tt.store.PipelineStats(context.Background(), "", time.Time{}, time.Time{}, "day")
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.Len(t, stats.TriggerSourcePie, 4)

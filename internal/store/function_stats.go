@@ -12,20 +12,20 @@ import (
 )
 
 // FunctionStats returns aggregated function run statistics for chart rendering.
-// name empty = all functions. since zero = no time filter. groupBy = "day"|"week"|"month".
-func (s *FunctionStore) FunctionStats(ctx context.Context, name string, since time.Time, groupBy string) (*types.FunctionStats, error) {
+// name empty = all functions. since/until zero = open bound. groupBy = "day"|"week"|"month".
+func (s *FunctionStore) FunctionStats(ctx context.Context, name string, since, until time.Time, groupBy string) (*types.FunctionStats, error) {
 	if s == nil || s.client == nil {
 		return emptyFunctionStats(), nil
 	}
 	stats := &types.FunctionStats{}
 
 	var err error
-	stats.Summary, err = s.loadFunctionStatsSummary(ctx, name, since)
+	stats.Summary, err = s.loadFunctionStatsSummary(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("summary: %w", err)
 	}
 
-	runs, err := s.fetchTerminalFunctionRuns(ctx, name, since)
+	runs, err := s.fetchTerminalFunctionRuns(ctx, name, since, until)
 	if err != nil {
 		return nil, fmt.Errorf("terminal runs: %w", err)
 	}
@@ -35,7 +35,7 @@ func (s *FunctionStore) FunctionStats(ctx context.Context, name string, since ti
 	return stats, nil
 }
 
-func (s *FunctionStore) loadFunctionStatsSummary(ctx context.Context, name string, since time.Time) (types.FunctionStatsSummary, error) {
+func (s *FunctionStore) loadFunctionStatsSummary(ctx context.Context, name string, since, until time.Time) (types.FunctionStatsSummary, error) {
 	summary := types.FunctionStatsSummary{}
 	if name == "" {
 		count, err := s.client.FunctionDefinition.Query().Count(ctx)
@@ -45,11 +45,11 @@ func (s *FunctionStore) loadFunctionStatsSummary(ctx context.Context, name strin
 		summary.TotalFunctions = int64(count)
 	}
 
-	successful, err := s.countFunctionRunsByStatus(ctx, name, since, functionrun.StatusSucceeded)
+	successful, err := s.countFunctionRunsByStatus(ctx, name, since, until, functionrun.StatusSucceeded)
 	if err != nil {
 		return summary, err
 	}
-	failed, err := s.countFunctionRunsByStatus(ctx, name, since, functionrun.StatusFailed)
+	failed, err := s.countFunctionRunsByStatus(ctx, name, since, until, functionrun.StatusFailed)
 	if err != nil {
 		return summary, err
 	}
@@ -58,14 +58,12 @@ func (s *FunctionStore) loadFunctionStatsSummary(ctx context.Context, name strin
 	return summary, nil
 }
 
-func (s *FunctionStore) countFunctionRunsByStatus(ctx context.Context, name string, since time.Time, status functionrun.Status) (int64, error) {
+func (s *FunctionStore) countFunctionRunsByStatus(ctx context.Context, name string, since, until time.Time, status functionrun.Status) (int64, error) {
 	q := s.client.FunctionRun.Query().Where(functionrun.StatusEQ(status))
 	if name != "" {
 		q = q.Where(functionrun.FunctionNameEQ(name))
 	}
-	if !since.IsZero() {
-		q = q.Where(functionrun.CreatedAtGTE(since))
-	}
+	q = applyFunctionRunCreatedBounds(q, since, until)
 	count, err := q.Count(ctx)
 	if err != nil {
 		return 0, err
@@ -73,17 +71,25 @@ func (s *FunctionStore) countFunctionRunsByStatus(ctx context.Context, name stri
 	return int64(count), nil
 }
 
-func (s *FunctionStore) fetchTerminalFunctionRuns(ctx context.Context, name string, since time.Time) ([]*gen.FunctionRun, error) {
+func (s *FunctionStore) fetchTerminalFunctionRuns(ctx context.Context, name string, since, until time.Time) ([]*gen.FunctionRun, error) {
 	q := s.client.FunctionRun.Query().Where(
 		functionrun.StatusIn(functionrun.StatusSucceeded, functionrun.StatusFailed),
 	)
 	if name != "" {
 		q = q.Where(functionrun.FunctionNameEQ(name))
 	}
+	q = applyFunctionRunCreatedBounds(q, since, until)
+	return q.All(ctx)
+}
+
+func applyFunctionRunCreatedBounds(q *gen.FunctionRunQuery, since, until time.Time) *gen.FunctionRunQuery {
 	if !since.IsZero() {
 		q = q.Where(functionrun.CreatedAtGTE(since))
 	}
-	return q.All(ctx)
+	if !until.IsZero() {
+		q = q.Where(functionrun.CreatedAtLTE(until))
+	}
+	return q
 }
 
 func computeFunctionSuccessRate(runs []*gen.FunctionRun, groupBy string) []types.SuccessRatePoint {

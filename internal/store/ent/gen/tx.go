@@ -84,52 +84,6 @@ type Tx struct {
 	Instruct *InstructClient
 	// LLMUsageRecord is the client for interacting with the LLMUsageRecord builders.
 	LLMUsageRecord *LLMUsageRecordClient
-	// LifeAIContext is the client for interacting with the LifeAIContext builders.
-	LifeAIContext *LifeAIContextClient
-	// LifeAchievement is the client for interacting with the LifeAchievement builders.
-	LifeAchievement *LifeAchievementClient
-	// LifeAchievementProgress is the client for interacting with the LifeAchievementProgress builders.
-	LifeAchievementProgress *LifeAchievementProgressClient
-	// LifeAchievementUnlock is the client for interacting with the LifeAchievementUnlock builders.
-	LifeAchievementUnlock *LifeAchievementUnlockClient
-	// LifeActionDependency is the client for interacting with the LifeActionDependency builders.
-	LifeActionDependency *LifeActionDependencyClient
-	// LifeActionLog is the client for interacting with the LifeActionLog builders.
-	LifeActionLog *LifeActionLogClient
-	// LifeActionOccurrence is the client for interacting with the LifeActionOccurrence builders.
-	LifeActionOccurrence *LifeActionOccurrenceClient
-	// LifeActionSpec is the client for interacting with the LifeActionSpec builders.
-	LifeActionSpec *LifeActionSpecClient
-	// LifeAdjudication is the client for interacting with the LifeAdjudication builders.
-	LifeAdjudication *LifeAdjudicationClient
-	// LifeCharacteristic is the client for interacting with the LifeCharacteristic builders.
-	LifeCharacteristic *LifeCharacteristicClient
-	// LifeEquipment is the client for interacting with the LifeEquipment builders.
-	LifeEquipment *LifeEquipmentClient
-	// LifeEquippedSlots is the client for interacting with the LifeEquippedSlots builders.
-	LifeEquippedSlots *LifeEquippedSlotsClient
-	// LifeEvidence is the client for interacting with the LifeEvidence builders.
-	LifeEvidence *LifeEvidenceClient
-	// LifeGoal is the client for interacting with the LifeGoal builders.
-	LifeGoal *LifeGoalClient
-	// LifeHabitCheckin is the client for interacting with the LifeHabitCheckin builders.
-	LifeHabitCheckin *LifeHabitCheckinClient
-	// LifeInventory is the client for interacting with the LifeInventory builders.
-	LifeInventory *LifeInventoryClient
-	// LifeLootTable is the client for interacting with the LifeLootTable builders.
-	LifeLootTable *LifeLootTableClient
-	// LifePlanNode is the client for interacting with the LifePlanNode builders.
-	LifePlanNode *LifePlanNodeClient
-	// LifeProfile is the client for interacting with the LifeProfile builders.
-	LifeProfile *LifeProfileClient
-	// LifeQuest is the client for interacting with the LifeQuest builders.
-	LifeQuest *LifeQuestClient
-	// LifeReward is the client for interacting with the LifeReward builders.
-	LifeReward *LifeRewardClient
-	// LifeRewardRedemption is the client for interacting with the LifeRewardRedemption builders.
-	LifeRewardRedemption *LifeRewardRedemptionClient
-	// LifeSkill is the client for interacting with the LifeSkill builders.
-	LifeSkill *LifeSkillClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
 	// NotificationRecord is the client for interacting with the NotificationRecord builders.
@@ -351,29 +305,6 @@ func (tx *Tx) init() {
 	tx.GatewayWorker = NewGatewayWorkerClient(tx.config)
 	tx.Instruct = NewInstructClient(tx.config)
 	tx.LLMUsageRecord = NewLLMUsageRecordClient(tx.config)
-	tx.LifeAIContext = NewLifeAIContextClient(tx.config)
-	tx.LifeAchievement = NewLifeAchievementClient(tx.config)
-	tx.LifeAchievementProgress = NewLifeAchievementProgressClient(tx.config)
-	tx.LifeAchievementUnlock = NewLifeAchievementUnlockClient(tx.config)
-	tx.LifeActionDependency = NewLifeActionDependencyClient(tx.config)
-	tx.LifeActionLog = NewLifeActionLogClient(tx.config)
-	tx.LifeActionOccurrence = NewLifeActionOccurrenceClient(tx.config)
-	tx.LifeActionSpec = NewLifeActionSpecClient(tx.config)
-	tx.LifeAdjudication = NewLifeAdjudicationClient(tx.config)
-	tx.LifeCharacteristic = NewLifeCharacteristicClient(tx.config)
-	tx.LifeEquipment = NewLifeEquipmentClient(tx.config)
-	tx.LifeEquippedSlots = NewLifeEquippedSlotsClient(tx.config)
-	tx.LifeEvidence = NewLifeEvidenceClient(tx.config)
-	tx.LifeGoal = NewLifeGoalClient(tx.config)
-	tx.LifeHabitCheckin = NewLifeHabitCheckinClient(tx.config)
-	tx.LifeInventory = NewLifeInventoryClient(tx.config)
-	tx.LifeLootTable = NewLifeLootTableClient(tx.config)
-	tx.LifePlanNode = NewLifePlanNodeClient(tx.config)
-	tx.LifeProfile = NewLifeProfileClient(tx.config)
-	tx.LifeQuest = NewLifeQuestClient(tx.config)
-	tx.LifeReward = NewLifeRewardClient(tx.config)
-	tx.LifeRewardRedemption = NewLifeRewardRedemptionClient(tx.config)
-	tx.LifeSkill = NewLifeSkillClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.NotificationRecord = NewNotificationRecordClient(tx.config)
 	tx.NotifyChannel = NewNotifyChannelClient(tx.config)

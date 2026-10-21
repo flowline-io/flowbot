@@ -1,0 +1,253 @@
+package partials
+
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+templ AnalyticsEvents(stats *types.EventStats) {
+	<div id="analytics-events-container" class="flowbot-surface" data-testid="analytics-events-container">
+		<div class="p-4 sm:p-6">
+			<div class="flex flex-wrap items-center gap-3 mb-4">
+				<div class="join" data-testid="analytics-events-range">
+					<button type="button" class={ analyticsRangeBtnClass(stats.ActiveRange, "24h") }
+						hx-get={ analyticsEventsURL("24h", stats.GroupBy) }
+						hx-target="#analytics-events-container" hx-swap="outerHTML">24h</button>
+					<button type="button" class={ analyticsRangeBtnClass(stats.ActiveRange, "7d") }
+						hx-get={ analyticsEventsURL("7d", stats.GroupBy) }
+						hx-target="#analytics-events-container" hx-swap="outerHTML">7d</button>
+					<button type="button" class={ analyticsRangeBtnClass(stats.ActiveRange, "30d") }
+						hx-get={ analyticsEventsURL("30d", stats.GroupBy) }
+						hx-target="#analytics-events-container" hx-swap="outerHTML">30d</button>
+				</div>
+				<details class="dropdown">
+					<summary class="btn btn-sm btn-outline" data-testid="analytics-events-custom">{ i18n.T(ctx, "page.analytics.range.custom") }</summary>
+					<div class="dropdown-content z-10 menu p-4 shadow bg-base-100 rounded-box w-72 mt-1 border border-base-300">
+						<form class="flex flex-col gap-2"
+							hx-get="/service/web/analytics/events/panel"
+							hx-target="#analytics-events-container"
+							hx-swap="outerHTML">
+							<input type="hidden" name="groupBy" value={ stats.GroupBy }/>
+							<label class="form-control">
+								<span class="label-text text-xs">{ i18n.T(ctx, "token_usage.since_utc") }</span>
+								<input type="date" name="since" class="input input-bordered input-sm" value={ stats.PeriodStart } required/>
+							</label>
+							<label class="form-control">
+								<span class="label-text text-xs">{ i18n.T(ctx, "token_usage.until_utc") }</span>
+								<input type="date" name="until" class="input input-bordered input-sm" value={ stats.PeriodEnd } required/>
+							</label>
+							<button type="submit" class="btn btn-sm btn-primary mt-1">{ i18n.T(ctx, "token_usage.apply") }</button>
+						</form>
+					</div>
+				</details>
+				<div class="join" data-testid="analytics-events-groupby">
+					<button type="button" class={ analyticsRangeBtnClass(stats.GroupBy, "event_type") }
+						hx-get={ analyticsEventsURL(stats.ActiveRange, "event_type") }
+						hx-target="#analytics-events-container" hx-swap="outerHTML">
+						{ i18n.T(ctx, "page.analytics.events.groupby.event_type") }
+					</button>
+					<button type="button" class={ analyticsRangeBtnClass(stats.GroupBy, "capability") }
+						hx-get={ analyticsEventsURL(stats.ActiveRange, "capability") }
+						hx-target="#analytics-events-container" hx-swap="outerHTML">
+						{ i18n.T(ctx, "page.analytics.events.groupby.capability") }
+					</button>
+					<button type="button" class={ analyticsRangeBtnClass(stats.GroupBy, "source") }
+						hx-get={ analyticsEventsURL(stats.ActiveRange, "source") }
+						hx-target="#analytics-events-container" hx-swap="outerHTML">
+						{ i18n.T(ctx, "page.analytics.events.groupby.source") }
+					</button>
+				</div>
+				<span class="text-sm text-base-content/55">{ stats.RangeLabel }</span>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+				<div class="border border-base-300 rounded-box px-4 py-3">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.events.total") }</div>
+					<div class="text-2xl font-semibold text-primary mt-1">{ formatAnalyticsInt(stats.Summary.TotalEvents) }</div>
+				</div>
+				<div class="border border-base-300 rounded-box px-4 py-3">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.events.distinct") }</div>
+					<div class="text-2xl font-semibold mt-1">{ formatAnalyticsInt(stats.Summary.DistinctKeys) }</div>
+				</div>
+				<div class="border border-base-300 rounded-box px-4 py-3">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.events.top") }</div>
+					<div class="text-2xl font-semibold mt-1">{ formatAnalyticsInt(stats.Summary.TopKeyCount) }</div>
+				</div>
+			</div>
+			if len(stats.Series) == 0 {
+				<p class="text-sm text-base-content/60" data-testid="analytics-events-empty">{ i18n.T(ctx, "page.analytics.events.empty") }</p>
+			} else {
+				<ul class="space-y-2" data-testid="analytics-events-series">
+					for _, series := range stats.Series {
+						<li class="flex items-center justify-between border border-base-300 rounded-box px-3 py-2 text-sm">
+							<span class="font-medium truncate mr-2">{ series.Label }</span>
+							<span class="text-base-content/60 shrink-0">
+								if len(series.Points) > 0 {
+									{ formatAnalyticsInt(series.Points[len(series.Points)-1].Cumulative) }
+								} else {
+									0
+								}
+							</span>
+						</li>
+					}
+				</ul>
+			}
+		</div>
+	</div>
+}
+
+templ AnalyticsActivity(stats *types.ActivityStats) {
+	<div id="analytics-activity-container" class="flowbot-surface" data-testid="analytics-activity-container">
+		<div class="p-4 sm:p-6">
+			<div class="flex flex-wrap items-center gap-3 mb-4">
+				<div class="join" data-testid="analytics-activity-range">
+					<button type="button" class={ analyticsRangeBtnClass(stats.ActiveRange, "24h") }
+						hx-get={ analyticsActivityURL("24h") }
+						hx-target="#analytics-activity-container" hx-swap="outerHTML">24h</button>
+					<button type="button" class={ analyticsRangeBtnClass(stats.ActiveRange, "7d") }
+						hx-get={ analyticsActivityURL("7d") }
+						hx-target="#analytics-activity-container" hx-swap="outerHTML">7d</button>
+					<button type="button" class={ analyticsRangeBtnClass(stats.ActiveRange, "30d") }
+						hx-get={ analyticsActivityURL("30d") }
+						hx-target="#analytics-activity-container" hx-swap="outerHTML">30d</button>
+				</div>
+				<details class="dropdown">
+					<summary class="btn btn-sm btn-outline" data-testid="analytics-activity-custom">{ i18n.T(ctx, "page.analytics.range.custom") }</summary>
+					<div class="dropdown-content z-10 menu p-4 shadow bg-base-100 rounded-box w-72 mt-1 border border-base-300">
+						<form class="flex flex-col gap-2"
+							hx-get="/service/web/analytics/activity/panel"
+							hx-target="#analytics-activity-container"
+							hx-swap="outerHTML">
+							<label class="form-control">
+								<span class="label-text text-xs">{ i18n.T(ctx, "token_usage.since_utc") }</span>
+								<input type="date" name="since" class="input input-bordered input-sm" value={ stats.PeriodStart } required/>
+							</label>
+							<label class="form-control">
+								<span class="label-text text-xs">{ i18n.T(ctx, "token_usage.until_utc") }</span>
+								<input type="date" name="until" class="input input-bordered input-sm" value={ stats.PeriodEnd } required/>
+							</label>
+							<button type="submit" class="btn btn-sm btn-primary mt-1">{ i18n.T(ctx, "token_usage.apply") }</button>
+						</form>
+					</div>
+				</details>
+				<span class="text-sm text-base-content/55">{ stats.RangeLabel }</span>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+				<div class="border border-base-300 rounded-box px-4 py-3">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.activity.pipelines") }</div>
+					<div class="text-2xl font-semibold text-primary mt-1">{ formatAnalyticsInt(stats.Summary.PipelineRuns) }</div>
+				</div>
+				<div class="border border-base-300 rounded-box px-4 py-3">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.activity.functions") }</div>
+					<div class="text-2xl font-semibold mt-1">{ formatAnalyticsInt(stats.Summary.FunctionRuns) }</div>
+				</div>
+			</div>
+			<p class="text-sm text-base-content/60 mb-2">{ i18n.T(ctx, "page.analytics.activity.note") }</p>
+			if stats.Summary.PipelineRuns == 0 && stats.Summary.FunctionRuns == 0 {
+				<p class="text-sm text-base-content/60" data-testid="analytics-activity-empty">{ i18n.T(ctx, "page.analytics.activity.empty") }</p>
+			} else {
+				<ul class="space-y-2" data-testid="analytics-activity-series">
+					for _, series := range stats.Series {
+						<li class="border border-base-300 rounded-box px-3 py-2 text-sm">
+							<div class="font-medium mb-1">{ series.Label }</div>
+							<div class="flex flex-wrap gap-1 text-xs text-base-content/60">
+								for _, p := range series.Points {
+									if p.Daily > 0 {
+										<span>{ p.Date }: { formatAnalyticsInt(p.Daily) }</span>
+									}
+								}
+							</div>
+						</li>
+					}
+				</ul>
+			}
+		</div>
+	</div>
+}
+
+templ AnalyticsOpsRuns(pipe *types.PipelineStats, wf *types.WorkflowStats, fn *types.FunctionStats, activeRange, rangeLabel, groupBy string) {
+	<div id="analytics-ops-container" class="flowbot-surface" data-testid="analytics-ops-container">
+		<div class="p-4 sm:p-6">
+			<div class="flex flex-wrap items-center gap-3 mb-4">
+				<div class="join" data-testid="analytics-ops-range">
+					<button type="button" class={ analyticsRangeBtnClass(activeRange, "24h") }
+						hx-get={ analyticsOpsURL("24h", groupBy) }
+						hx-target="#analytics-ops-container" hx-swap="outerHTML">24h</button>
+					<button type="button" class={ analyticsRangeBtnClass(activeRange, "7d") }
+						hx-get={ analyticsOpsURL("7d", groupBy) }
+						hx-target="#analytics-ops-container" hx-swap="outerHTML">7d</button>
+					<button type="button" class={ analyticsRangeBtnClass(activeRange, "30d") }
+						hx-get={ analyticsOpsURL("30d", groupBy) }
+						hx-target="#analytics-ops-container" hx-swap="outerHTML">30d</button>
+				</div>
+				<div class="join" data-testid="analytics-ops-groupby">
+					<button type="button" class={ analyticsRangeBtnClass(groupBy, "day") }
+						hx-get={ analyticsOpsURL(activeRange, "day") }
+						hx-target="#analytics-ops-container" hx-swap="outerHTML">{ i18n.T(ctx, "stats.groupby.day") }</button>
+					<button type="button" class={ analyticsRangeBtnClass(groupBy, "week") }
+						hx-get={ analyticsOpsURL(activeRange, "week") }
+						hx-target="#analytics-ops-container" hx-swap="outerHTML">{ i18n.T(ctx, "stats.groupby.week") }</button>
+					<button type="button" class={ analyticsRangeBtnClass(groupBy, "month") }
+						hx-get={ analyticsOpsURL(activeRange, "month") }
+						hx-target="#analytics-ops-container" hx-swap="outerHTML">{ i18n.T(ctx, "stats.groupby.month") }</button>
+				</div>
+				<details class="dropdown">
+					<summary class="btn btn-sm btn-outline" data-testid="analytics-ops-custom">{ i18n.T(ctx, "page.analytics.range.custom") }</summary>
+					<div class="dropdown-content z-10 menu p-4 shadow bg-base-100 rounded-box w-72 mt-1 border border-base-300">
+						<form class="flex flex-col gap-2"
+							hx-get="/service/web/analytics/ops/runs/panel"
+							hx-target="#analytics-ops-container"
+							hx-swap="outerHTML">
+							<input type="hidden" name="groupBy" value={ groupBy }/>
+							<label class="form-control">
+								<span class="label-text text-xs">{ i18n.T(ctx, "token_usage.since_utc") }</span>
+								<input type="date" name="since" class="input input-bordered input-sm" required/>
+							</label>
+							<label class="form-control">
+								<span class="label-text text-xs">{ i18n.T(ctx, "token_usage.until_utc") }</span>
+								<input type="date" name="until" class="input input-bordered input-sm" required/>
+							</label>
+							<button type="submit" class="btn btn-sm btn-primary mt-1">{ i18n.T(ctx, "token_usage.apply") }</button>
+						</form>
+					</div>
+				</details>
+				<span class="text-sm text-base-content/55">{ rangeLabel }</span>
+			</div>
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+				@analyticsOpsKindCard(ctx, "pipeline", i18n.T(ctx, "nav.pipelines"), "/service/web/pipelines", i18n.T(ctx, "page.analytics.ops.open_pipelines"), pipe.Summary.SuccessfulRuns, pipe.Summary.FailedRuns, pipe.SuccessRateTrend, pipe.DurationDistribution.Pipeline)
+				@analyticsOpsKindCard(ctx, "workflow", i18n.T(ctx, "nav.workflows"), "/service/web/workflows", i18n.T(ctx, "page.analytics.ops.open_workflows"), wf.Summary.SuccessfulRuns, wf.Summary.FailedRuns, wf.SuccessRateTrend, wf.DurationDistribution.Workflow)
+				@analyticsOpsKindCard(ctx, "function", i18n.T(ctx, "nav.functions"), "/service/web/functions", i18n.T(ctx, "page.analytics.ops.open_functions"), fn.Summary.SuccessfulRuns, fn.Summary.FailedRuns, fn.SuccessRateTrend, fn.DurationDistribution)
+			</div>
+		</div>
+	</div>
+}
+
+templ analyticsOpsKindCard(ctx context.Context, kind, title, href, openLabel string, success, failed int64, trend []types.SuccessRatePoint, duration []types.DurationEntry) {
+	<div class="border border-base-300 rounded-box p-4" data-testid={ "analytics-ops-" + kind }>
+		<h3 class="font-semibold tracking-tight mb-3">{ title }</h3>
+		<div class="text-sm space-y-1 mb-3">
+			<div>{ i18n.T(ctx, "stats.successful_runs") }: <strong class="text-success">{ formatAnalyticsInt(success) }</strong></div>
+			<div>{ i18n.T(ctx, "stats.failed_runs") }: <strong class="text-error">{ formatAnalyticsInt(failed) }</strong></div>
+		</div>
+		if len(trend) > 0 {
+			<p class="text-xs uppercase tracking-wide text-base-content/50 mb-1">{ i18n.T(ctx, "page.analytics.ops.success_trend") }</p>
+			<ul class="text-xs text-base-content/70 space-y-0.5 mb-3 max-h-28 overflow-y-auto" data-testid={ "analytics-ops-" + kind + "-trend" }>
+				for _, p := range trend {
+					<li>{ p.Date }: { formatAnalyticsRate(p.Rate) } ({ formatAnalyticsInt(p.Success) }/{ formatAnalyticsInt(p.Total) })</li>
+				}
+			</ul>
+		}
+		if len(duration) > 0 {
+			<p class="text-xs uppercase tracking-wide text-base-content/50 mb-1">{ i18n.T(ctx, "page.analytics.ops.duration") }</p>
+			<ul class="text-xs text-base-content/70 space-y-0.5 mb-3" data-testid={ "analytics-ops-" + kind + "-duration" }>
+				for _, d := range duration {
+					if d.Count > 0 {
+						<li>{ formatAnalyticsDurationBucket(d.Bucket, d.Count) }</li>
+					}
+				}
+			</ul>
+		}
+		<a class="link link-primary text-sm inline-block" href={ href }>{ openLabel }</a>
+	</div>
+}

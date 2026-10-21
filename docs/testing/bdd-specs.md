@@ -49,7 +49,6 @@ tests/
 │   ├── homelab_spec_test.go            # Homelab scanner
 │   ├── hub_spec_test.go                # Hub management
 │   ├── kanban_spec_test.go             # Kanban module
-│   ├── life_spec_test.go               # Life web pages (auth + dashboard)
 │   ├── llm_spec_test.go                # LLM integration
 │   ├── mcp_spec_test.go                # Inbound Streamable HTTP /mcp
 │   ├── agent_spec_test.go              # Agent engine (pkg/agent)

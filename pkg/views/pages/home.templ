@@ -10,15 +10,16 @@ import (
 
 templ HomePage(ctx context.Context, d partials.HomeDashboard) {
 	@layout.Base(ctx, i18n.T(ctx, "common.app_name")) {
-		@partials.TokenUsageScripts()
 		@partials.PageHeader(ctx, "nav.home", "page.home.subtitle") {
 		}
 		<div data-testid="home-dashboard-loader">
 			@partials.HomeDashboardBlock(ctx, d)
 		</div>
 		@partials.HomeQuickLinksSection(ctx, partials.HomeQuickLinks(ctx))
-		<div hx-get="/service/web/home/token-usage?range=7d&groupBy=model" hx-trigger="revealed" hx-swap="outerHTML" data-testid="token-usage-loader">
-			@partials.PanelSkeleton(ctx)
+		<div class="flowbot-surface p-4 mb-6" data-testid="token-usage-home-link">
+			<a href="/service/web/analytics/token-usage?range=7d&groupBy=model" class="link link-primary" data-testid="home-open-token-usage">
+				{ i18n.T(ctx, "page.home.open_analytics_tokens") }
+			</a>
 		</div>
 	}
 }

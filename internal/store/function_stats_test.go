@@ -70,7 +70,7 @@ func TestFunctionStats_Summary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := s.FunctionStats(ctx, tt.fnName, tt.since, "day")
+			stats, err := s.FunctionStats(ctx, tt.fnName, tt.since, time.Time{}, "day")
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.Equal(t, tt.wantFunctions, stats.Summary.TotalFunctions)
@@ -91,7 +91,7 @@ func TestFunctionStats_NilSafe(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := tt.store.FunctionStats(context.Background(), "", time.Time{}, "day")
+			stats, err := tt.store.FunctionStats(context.Background(), "", time.Time{}, time.Time{}, "day")
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.Empty(t, stats.SuccessRateTrend)

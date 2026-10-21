@@ -138,7 +138,7 @@ func TestEventStore_ListPendingDataEventOutbox(t *testing.T) {
 	_, err = client.EventOutbox.Create().
 		SetEventID("lore-1").
 		SetPayload(map[string]any{
-			"event_id": "lore-1", "type": LifeLoreRequestedType,
+			"event_id": "lore-1", "type": "custom.outbox.non_data_event",
 		}).
 		SetPublished(false).
 		SetCreatedAt(now.Add(-2 * time.Minute)).
@@ -174,7 +174,7 @@ func TestEventStore_ListPendingDataEventOutboxSkipsLeadingLore(t *testing.T) {
 		_, err := client.EventOutbox.Create().
 			SetEventID(fmt.Sprintf("lore-%02d", i)).
 			SetPayload(map[string]any{
-				"event_id": fmt.Sprintf("lore-%02d", i), "type": LifeLoreRequestedType,
+				"event_id": fmt.Sprintf("lore-%02d", i), "type": "custom.outbox.non_data_event",
 			}).
 			SetPublished(false).
 			SetCreatedAt(now.Add(-time.Duration(30-i) * time.Minute)).

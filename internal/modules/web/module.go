@@ -14,7 +14,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 
 	webassets "github.com/flowline-io/flowbot"
-	lifemod "github.com/flowline-io/flowbot/internal/modules/life"
+	analyticsmod "github.com/flowline-io/flowbot/internal/modules/analytics"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -30,7 +30,7 @@ var config configType
 // Register registers the web module handler.
 func Register() {
 	module.Register(Name, &handler)
-	lifemod.OnService(SetLifeService)
+	analyticsmod.OnService(SetAnalyticsService)
 }
 
 type moduleHandler struct {

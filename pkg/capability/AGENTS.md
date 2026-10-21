@@ -21,7 +21,6 @@ capability.Invoke(ctx, hub.CapCore, core.OpNotifySend, map[string]any{...})
   - `devops` (`hub.CapDevops`) aggregates beszel/uptimekuma/traefik/grafana/wakapi/dozzle/netalertx/scanopy
   - `core` (`hub.CapCore`) aggregates notify/clip/agent plus runtime primitives (`http_request`, `run_code`, `run_terminal`, `kv_*`)
   - `functions` (`hub.CapFunctions`) named FaaS invoke/get/health
-  - `life` (`hub.CapLife`) solo Life gamification AI
   - `gateway` (`hub.CapGateway`) local CLI gateway workers
 - Domain event names are a recorded consumer contract (pipelines, webhooks). They stay stable under the 0.x no-shim stance. Set `DataEvent.Capability` to provider ID.
 - Pagination: limit + opaque cursor; hide provider pagination internals in the adapter

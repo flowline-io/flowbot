@@ -97,27 +97,23 @@ other = "关于"
 [nav.group.user]
 other = "用户"
 
-[nav.life]
-other = "生活"
+["nav.analytics"]
+other = "数据分析"
 
-[nav.stats]
-other = "统计"
+[nav.analytics.overview]
+other = "总览"
 
-[nav.character]
-other = "角色"
+[nav.analytics.token]
+other = "Token 用量"
 
-[nav.quests]
-other = "任务"
+[nav.analytics.events]
+other = "事件"
 
-[nav.inventory]
-other = "背包"
+[nav.analytics.activity]
+other = "活动"
 
-[nav.achievements]
-other = "成就"
-
-[nav.rewards]
-other = "奖励"
-
+[nav.analytics.ops]
+other = "运行健康度"
 [nav.home]
 other = "首页"
 
@@ -327,6 +323,104 @@ other = "请重试。"
 
 [page.home.subtitle]
 other = "本 Flowbot 实例的运行概览。"
+
+[page.home.open_analytics_tokens]
+other = "打开 Token 用量分析"
+
+[page.analytics.overview.subtitle]
+other = "个人用量与运维健康一览。"
+
+[page.analytics.token.subtitle]
+other = "当前账户的 LLM Token 用量。"
+
+[page.analytics.events.subtitle]
+other = "按类型、能力或来源聚合的个人数据事件。"
+
+[page.analytics.activity.subtitle]
+other = "你拥有的流水线与函数运行次数。"
+
+[page.analytics.ops.subtitle]
+other = "全站流水线、工作流与函数健康度。"
+
+[page.analytics.nav.aria]
+other = "数据分析导航"
+
+[page.analytics.nav.personal]
+other = "个人"
+
+[page.analytics.nav.ops]
+other = "运维"
+
+[page.analytics.card.tokens]
+other = "Token 合计"
+
+[page.analytics.card.events]
+other = "事件"
+
+[page.analytics.card.activity]
+other = "自有运行"
+
+[page.analytics.card.ops]
+other = "运维成功率"
+
+[page.analytics.ops.failed]
+other = "{{.Count}} 次失败"
+
+["page.analytics.events.groupby"]
+other = "分组"
+
+[page.analytics.events.groupby.event_type]
+other = "事件类型"
+
+[page.analytics.events.groupby.capability]
+other = "能力"
+
+[page.analytics.events.groupby.source]
+other = "来源"
+[page.analytics.events.total]
+other = "事件总数"
+
+[page.analytics.events.distinct]
+other = "不同键数"
+
+[page.analytics.events.top]
+other = "最高键计数"
+
+[page.analytics.events.empty]
+other = "该时间范围内没有你的事件。"
+
+[page.analytics.activity.pipelines]
+other = "流水线运行"
+
+[page.analytics.activity.functions]
+other = "函数运行"
+
+[page.analytics.activity.note]
+other = "统计你创建的流水线与函数的运行次数。工作流尚无归属字段，暂不计入。"
+
+[page.analytics.activity.empty]
+other = "该时间范围内没有自有流水线或函数运行。"
+
+[page.analytics.ops.open_pipelines]
+other = "打开流水线"
+
+[page.analytics.ops.open_workflows]
+other = "打开工作流"
+
+[page.analytics.ops.open_functions]
+other = "打开函数"
+
+[error.analytics.invalid_request]
+other = "无效的分析请求"
+
+[page.analytics.range.custom]
+other = "自定义"
+
+[page.analytics.ops.success_trend]
+other = "成功率趋势"
+
+[page.analytics.ops.duration]
+other = "耗时分布"
 
 [page.account_security.title]
 other = "账户安全"
@@ -1106,541 +1200,6 @@ other = "未找到函数"
 [toast.inbox.mark_read_failed]
 other = "标记已读失败"
 
-[toast.life.evidence_recorded]
-other = "已为任务记录证据。"
-
-[toast.life.dm_suggested_ruling]
-other = "地下城主已给出建议裁决。"
-
-[toast.life.ruling_applied]
-other = "建议裁决已应用。"
-
-[toast.life.quest_rated]
-other = "任务难度 {{.Difficulty}} — 约 {{.Chance}}% 概率获得 {{.Tier}} 级掉落"
-
-[toast.life.quest_complete]
-other = "+{{.Exp}} 经验，+{{.Gold}} 金币（骰点 {{.Dice}}）"
-
-[toast.life.quest_failed_tarnish]
-other = "任务失败 — 已装备装备 tarnished 24 小时"
-
-[toast.life.quest_dismissed]
-other = "任务已放弃。"
-
-[toast.life.class_saved]
-other = "职业已保存。"
-
-[toast.life.reward_redeemed]
-other = "奖励已兑换。"
-
-[toast.life.generic_error]
-other = "出了点问题"
-
-[toast.life.action_failed]
-other = "无法完成该操作，请重试。"
-
-# --- life.* ---
-
-[life.brand]
-other = "生活"
-
-[life.nav.aria_label]
-other = "生活导航"
-
-[life.nav.dashboard]
-other = "生活"
-
-[life.nav.quests]
-other = "任务"
-
-[life.nav.rewards]
-other = "奖励"
-
-[life.nav.skills]
-other = "技能"
-
-[life.nav.inventory]
-other = "背包"
-
-[life.nav.goals]
-other = "目标"
-
-[life.nav.plan]
-other = "计划"
-
-[life.nav.stats]
-other = "统计"
-
-[life.nav.character]
-other = "角色"
-
-[life.nav.achievements]
-other = "成就"
-
-[life.btn.save]
-other = "保存"
-
-[life.btn.cancel]
-other = "取消"
-
-[life.btn.delete]
-other = "删除"
-
-[life.btn.create]
-other = "创建"
-
-[life.btn.pause]
-other = "暂停"
-
-[life.btn.resume]
-other = "恢复"
-
-[life.btn.equip]
-other = "装备"
-
-[life.btn.unequip]
-other = "卸下"
-
-[life.btn.redeem]
-other = "兑换"
-
-[life.btn.deactivate]
-other = "停用"
-
-[life.btn.confirm_habit]
-other = "确认习惯"
-
-[life.btn.edit]
-other = "编辑"
-
-[life.btn.prev]
-other = "上一页"
-
-[life.btn.next]
-other = "下一页"
-
-[life.btn.dismiss]
-other = "放弃"
-
-[life.btn.complete]
-other = "完成"
-
-[life.btn.skip]
-other = "跳过"
-
-[life.btn.check_in]
-other = "签到"
-
-[life.btn.add]
-other = "添加"
-
-[life.btn.restore]
-other = "恢复"
-
-[life.btn.preview_breakdown]
-other = "预览 AI 分解"
-
-[life.btn.import_suggestion]
-other = "导入建议"
-
-[life.btn.fail]
-other = "失败"
-
-[life.btn.submit]
-other = "提交"
-
-[life.btn.refresh]
-other = "刷新"
-
-[life.category.project]
-other = "项目"
-
-[life.category.area]
-other = "领域"
-
-[life.category.resource]
-other = "资源"
-
-[life.category.no_area]
-other = "无领域"
-
-[life.category.label]
-other = "类别"
-
-[life.category.area_label]
-other = "领域"
-
-[life.class.label]
-other = "职业"
-
-[life.class.architect]
-other = "建筑师"
-
-[life.class.mage]
-other = "法师"
-
-[life.class.warrior]
-other = "战士"
-
-[life.class.rogue]
-other = "游侠"
-
-[life.page.goals.title]
-other = "目标"
-
-[life.page.goals.subtitle]
-other = "PARA · 项目、领域、资源 — 引导任务与加成的目标。"
-
-[life.page.plan.title]
-other = "计划树"
-
-[life.page.plan.subtitle]
-other = "目标 → 里程碑 → 项目 → 行动 · 用 Life DM 分解，然后确认导入。"
-
-[life.page.skills.title]
-other = "技能树"
-
-[life.page.skills.subtitle]
-other = "查看正在训练的分支，并检视各分支近期的练习证据。"
-
-[life.page.quests.title]
-other = "任务"
-
-[life.page.quests.subtitle]
-other = "描述要做的事；Life DM 评估难度与掉落。"
-
-[life.page.inventory.title]
-other = "背包"
-
-[life.page.inventory.subtitle]
-other = "装备物品以获得属性与能力加成。"
-
-[life.page.achievements.title]
-other = "成就"
-
-[life.page.achievements.subtitle]
-other = "任务完成带来的纪念里程碑。"
-
-[life.page.rewards.title]
-other = "奖励"
-
-[life.page.rewards.subtitle]
-other = "用金币兑换你定义的现实奖励。荣誉制 — 领取时再兑换。"
-
-[life.page.stats.title]
-other = "统计"
-
-[life.page.stats.subtitle]
-other = "近 30 天的活动、成长、任务、金币与掉落。"
-
-[life.page.character.title]
-other = "角色"
-
-[life.empty.goals]
-other = "尚无目标 — 在上方添加一个。"
-
-[life.empty.goal_group]
-other = "此领域下尚无项目或资源。"
-
-[life.empty.plan_nodes]
-other = "尚无计划节点 — 预览 AI 分解以开始构建树。"
-
-[life.empty.skills]
-other = "尚无跟踪技能 — 完成任务或制定行动计划以成长技能树。"
-
-[life.empty.skill_evidence]
-other = "选择一个分支以查看其近期练习证据。"
-
-[life.empty.skill_evidence_node]
-other = "此分支尚无近期关联证据。"
-
-[life.empty.today_actions]
-other = "今天没有待处理行动。"
-
-[life.empty.today_habits]
-other = "没有可打卡的习惯。"
-
-[life.empty.quests_pending]
-other = "没有待处理任务。在上方写一条开始。"
-
-[life.empty.quest_evidence]
-other = "尚未提交证据。"
-
-[life.empty.quest_completed]
-other = "尚无已完成项。"
-
-[life.empty.completions_log]
-other = "尚无完成记录。"
-
-[life.empty.inventory_backpack]
-other = "背包为空 — 完成任务以获得掉落。"
-
-[life.empty.inventory_slot]
-other = "空"
-
-[life.empty.achievements]
-other = "尚无预置成就。"
-
-[life.empty.rewards_active]
-other = "尚无奖励 — 在上方添加一个。"
-
-[life.empty.redemptions]
-other = "尚无兑换记录。"
-
-[life.empty.rewards_inactive]
-other = "没有已停用的奖励。"
-
-[life.goal.ungrouped]
-other = "未分组"
-
-[life.goal.title_placeholder]
-other = "今年完成出书"
-
-[life.goal.create]
-other = "创建目标"
-
-[life.goal.title_label]
-other = "目标标题"
-
-[life.plan.breakdown_placeholder]
-other = "请 AI 分解一个具体目标"
-
-[life.plan.outcome_placeholder]
-other = "可选：预期成果 / 约束"
-
-[life.plan.ai_suggestion]
-other = "AI 建议：{{.Title}}"
-
-[life.skills.growth_map]
-other = "成长地图"
-
-[life.skills.growth_map_sub]
-other = "展开分支探索；近期有练习的分支会高亮。"
-
-[life.skills.practice_evidence]
-other = "练习证据"
-
-[life.skills.practice_evidence_sub]
-other = "点击节点查看近期任务、行动与习惯如何维持该分支活跃。"
-
-[life.skills.last_activity]
-other = "最近活动：{{.Label}}"
-
-[life.quest.prompt_placeholder]
-other = "例如：今晚完成 API 架构图"
-
-[life.quest.evidence_placeholder]
-other = "描述你交付、学习或产出的内容。"
-
-[life.quest.add_evidence]
-other = "添加证据"
-
-[life.quest.request_ruling]
-other = "请求裁决"
-
-[life.quest.apply_ruling]
-other = "应用裁决"
-
-[life.quest.what_will_you_do]
-other = "你要做什么？"
-
-[life.quest.link_goal]
-other = "关联目标（可选）"
-
-[life.quest.link_goal_none]
-other = "无"
-
-[life.quest.composer_hint]
-other = "AI 评估难度；服务器设置奖励与掉落概率。"
-
-[life.quest.today_actions]
-other = "今日行动"
-
-[life.quest.today_habits]
-other = "今日习惯"
-
-[life.quest.pending]
-other = "待处理"
-
-[life.quest.completed]
-other = "已完成"
-
-[life.quest.completions_log]
-other = "完成记录"
-
-[life.quest.evidence]
-other = "任务证据"
-
-[life.quest.submit_evidence]
-other = "提交证据"
-
-[life.quest.evidence_type]
-other = "证据类型"
-
-[life.quest.evidence_type_note]
-other = "note"
-
-[life.quest.evidence_type_link]
-other = "link"
-
-[life.quest.evidence_type_artifact]
-other = "artifact"
-
-[life.quest.source_url]
-other = "来源 URL（可选）"
-
-[life.quest.open_source]
-other = "打开来源"
-
-[life.quest.fear]
-other = "恐惧 {{.Value}}"
-
-[life.quest.drop_chance]
-other = "约 {{.Percent}}% 掉落"
-
-[life.quest.suggested_exp]
-other = "建议 +{{.Value}} 经验"
-
-[life.quest.suggested_gold]
-other = "建议 +{{.Value}} 金币"
-
-[life.reward.exp]
-other = "+{{.Value}} 经验"
-
-[life.reward.gold]
-other = "+{{.Value}} 金币"
-
-[life.pager.page_of]
-other = "第 {{.Page}} / {{.Total}} 页"
-
-[life.dashboard.bonus]
-other = "掉落加成 +{{.DropRate}}% · 金币 ×{{.GoldMult}}"
-
-[life.meta.due]
-other = "截止 {{.Label}}"
-
-[life.meta.done_today]
-other = "今日已完成"
-
-[life.meta.dice]
-other = "骰点 {{.Value}}"
-
-[life.meta.drop]
-other = "掉落"
-
-[life.inventory.equipped]
-other = "已装备"
-
-[life.inventory.backpack]
-other = "背包"
-
-[life.inventory.equipped_badge]
-other = "已装备"
-
-[life.inventory.tarnished]
-other = "黯淡"
-
-[life.inventory.perk]
-other = "特权 {{.Text}}"
-
-[life.inventory.lore]
-other = "背景 {{.Status}}"
-
-[life.achievements.unlocked]
-other = "已解锁"
-
-[life.achievements.locked]
-other = "未解锁"
-
-[life.achievements.unlocked_at]
-other = "解锁于 {{.At}}"
-
-[life.achievements.retired]
-other = "已从目录移除"
-
-[life.rewards.balance]
-other = "余额"
-
-[life.rewards.balance_unit]
-other = "金币"
-
-[life.rewards.add_title]
-other = "添加奖励"
-
-[life.rewards.add_sub]
-other = "命名、定价，可选冷却时间。"
-
-[life.rewards.active_title]
-other = "生效中"
-
-[life.rewards.active_sub]
-other = "领取奖励时再兑换。"
-
-[life.rewards.price]
-other = "价格"
-
-[life.rewards.cooldown]
-other = "冷却（小时）"
-
-[life.rewards.name_label]
-other = "名称"
-
-[life.rewards.name_placeholder]
-other = "奶茶"
-
-[life.rewards.notes_placeholder]
-other = "仅周末"
-
-[life.rewards.on_cooldown]
-other = "冷却中"
-
-[life.rewards.cooldown_until]
-other = "冷却 · 至 {{.Until}}"
-
-[life.rewards.cooldown_hours]
-other = "{{.Hours}} 小时冷却"
-
-[life.rewards.notes]
-other = "备注"
-
-[life.rewards.no_cooldown]
-other = "无冷却"
-
-[life.rewards.need_more_gold]
-other = "金币不足"
-
-[life.rewards.redemptions]
-other = "兑换记录"
-
-[life.rewards.inactive]
-other = "已停用"
-
-[life.profile.level]
-other = "等级 {{.Value}}"
-
-[life.profile.master_objective]
-other = "主要目标"
-
-[life.profile.minor_objective]
-other = "次要目标"
-
-[life.profile.strength]
-other = "优势"
-
-[life.profile.weaknesses]
-other = "弱点"
-
-[life.profile.level_up]
-other = "升级："
-
-[life.status.active]
-other = "进行中"
-
-[life.status.paused]
-other = "已暂停"
-
-# --- clip.* ---
-
 [clip.not_found.title]
 other = "未找到 Clip"
 
@@ -2014,9 +1573,6 @@ other = "Flowbot"
 [common.doc_title_flowbot]
 other = " — Flowbot"
 
-[common.doc_title_life]
-other = " — Life"
-
 [common.delete]
 other = "删除"
 
@@ -2070,56 +1626,6 @@ other = "{{.Date}} · {{.Count}} 词"
 other = "slug:"
 
 # --- life meta chips ---
-
-[life.meta.active_count]
-other = "{{.Count}} 活跃"
-
-[life.meta.tracked_count]
-other = "{{.Count}} 跟踪"
-
-[life.meta.records_count]
-other = "{{.Count}} 条记录"
-
-[life.meta.skills_count]
-other = "{{.Count}} 项技能"
-
-[life.meta.items_count]
-other = "{{.Count}} 项"
-
-[life.meta.level_prefix]
-other = "LV{{.Value}}"
-
-[life.node_type.goal]
-other = "目标"
-
-[life.node_type.milestone]
-other = "里程碑"
-
-[life.node_type.project]
-other = "项目"
-
-[life.node_type.action]
-other = "行动"
-
-[life.node_type.node]
-other = "节点"
-
-[life.task_type.todo]
-other = "待办"
-
-[life.task_type.recurring]
-other = "重复"
-
-[life.task_type.habit_candidate]
-other = "习惯（待定）"
-
-[life.task_type.habit]
-other = "习惯"
-
-[life.task_type.checkpoint]
-other = "检查点"
-
-# --- error.load.* / handler form ---
 
 [error.load.agent_skills_list]
 other = "加载 Agent 技能失败"
@@ -2231,18 +1737,6 @@ other = "无效 scope：{{.Scope}}"
 
 [error.validation.scope_elevation]
 other = "不能授予超出当前会话的权限范围"
-
-[toast.life.breakdown_encode_failed]
-other = "无法编码分解预览"
-
-[toast.life.breakdown_payload_required]
-other = "需要分解预览 payload"
-
-[toast.life.breakdown_payload_invalid]
-other = "分解预览 payload 无效"
-
-[toast.life.prompt_required]
-other = "需要填写提示"
 
 [toast.notify_settings.template_summary_required]
 other = "默认模板必须包含 summary 占位符（模板语法：{{ \"{{ .summary }}\" }}）"
@@ -4245,53 +3739,6 @@ other = "{{.Count}} 条未读收件箱消息"
 
 # --- life.stats.* ---
 
-[life.stats.no_activity]
-other = "近 30 天无活动。"
-
-[life.stats.achievements]
-other = "已解锁 {{.Count}} 个成就"
-
-[life.stats.kpi.completions]
-other = "完成数"
-
-[life.stats.kpi.exp]
-other = "经验"
-
-[life.stats.kpi.gold_net]
-other = "金币净值"
-
-[life.stats.chart.activity.title]
-other = "活动"
-
-[life.stats.chart.activity.subtitle]
-other = "每日完成数与经验"
-
-[life.stats.chart.growth.title]
-other = "成长"
-
-[life.stats.chart.growth.subtitle]
-other = "按特性划分的经验（其他 = 未归因）"
-
-[life.stats.chart.quests.title]
-other = "任务类型"
-
-[life.stats.chart.quests.subtitle]
-other = "按类型统计的已完成任务"
-
-[life.stats.chart.economy.title]
-other = "经济"
-
-[life.stats.chart.economy.subtitle]
-other = "获得与兑换的金币"
-
-[life.stats.chart.loot.title]
-other = "掉落"
-
-[life.stats.chart.loot.subtitle]
-other = "每日掉落"
-
-# --- scheduled_task.* ---
-
 [scheduled_task.state]
 other = "状态："
 
@@ -4780,8 +4227,8 @@ other = "复制请求体"
 [webhook.body_truncated]
 other = "请求体已截断至 64KB"
 
-[session.open_life]
-other = "打开 Life"
+[session.open_analytics]
+other = "打开数据分析"
 
 [session.ttl_label]
 other = "24 小时会话"
@@ -5384,212 +4831,6 @@ other = "运行中"
 [events.run_status.started]
 other = "已开始"
 
-[life.profile.coins]
-other = "{{.Count}} 金币"
-
-[life.profile.hp_label]
-other = "生命："
-
-[life.default.master_objective]
-other = "设置一个项目目标"
-
-[life.default.minor_objective]
-other = "设置一个领域目标"
-
-[life.default.operator]
-other = "操作者"
-
-[life.default.action_title]
-other = "行动"
-
-[life.achievements.unlocked_count]
-other = "已解锁 {{.Unlocked}} / {{.Total}}"
-
-[life.status.completed]
-other = "已完成"
-
-[life.occurrence.one_time]
-other = "一次性"
-
-[life.occurrence.recurring]
-other = "重复"
-
-[life.source.quest]
-other = "任务"
-
-[life.source.habit]
-other = "习惯"
-
-[life.source.action]
-other = "行动"
-
-[life.source.checkpoint]
-other = "检查点"
-
-[life.skill_status.active]
-other = "活跃"
-
-[life.skill_status.cooling]
-other = "冷却中"
-
-[life.skill_status.quiet]
-other = "静默"
-
-[life.quest_type.daily]
-other = "日常"
-
-[life.quest_type.one_time]
-other = "一次性"
-
-[life.quest_type.boss]
-other = "Boss"
-
-[life.rarity.common]
-other = "普通"
-
-[life.rarity.uncommon]
-other = "优秀"
-
-[life.rarity.rare]
-other = "稀有"
-
-[life.rarity.epic]
-other = "史诗"
-
-[life.rarity.legendary]
-other = "传说"
-
-[life.rarity.mythic]
-other = "神话"
-
-[life.slot.head]
-other = "头部"
-
-[life.slot.weapon]
-other = "武器"
-
-[life.slot.armor]
-other = "护甲"
-
-[life.slot.shoes]
-other = "鞋子"
-
-[life.slot.accessory]
-other = "饰品"
-
-[life.slot.artifact]
-other = "神器"
-
-[life.verdict.completed]
-other = "已完成"
-
-[life.verdict.partial]
-other = "部分完成"
-
-[life.verdict.failed]
-other = "失败"
-
-[life.verdict.needs_more_evidence]
-other = "需要更多证据"
-
-[life.adjudication.suggested]
-other = "建议"
-
-[life.adjudication.applied]
-other = "已应用"
-
-[life.adjudication.rejected]
-other = "已拒绝"
-
-[life.lore.none]
-other = "无"
-
-[life.lore.pending]
-other = "生成中"
-
-[life.lore.ready]
-other = "就绪"
-
-[life.lore.failed]
-other = "失败"
-
-[life.tracking.consistency]
-other = "持续性"
-
-[life.tracking.completion]
-other = "完成度"
-
-[life.trait.architect_strength]
-other = "创造力"
-
-[life.trait.mage_strength]
-other = "分析力"
-
-[life.trait.warrior_strength]
-other = "韧性"
-
-[life.trait.rogue_strength]
-other = "适应力"
-
-[life.trait.architect_weakness]
-other = "急躁"
-
-[life.trait.mage_weakness]
-other = "想太多"
-
-[life.trait.warrior_weakness]
-other = "固执"
-
-[life.trait.rogue_weakness]
-other = "不安分"
-
-[life.stat.int]
-other = "智力"
-
-[life.stat.phy]
-other = "体魄"
-
-[life.stat.wil]
-other = "意志"
-
-[life.stat.cha]
-other = "魅力"
-
-[life.stat.cre]
-other = "创造力"
-
-[life.stat.fin]
-other = "财务"
-
-[life.stat.wri]
-other = "写作"
-
-[life.stat.foc]
-other = "专注"
-
-[life.stat.lvl]
-other = "等级"
-
-[life.stat.other]
-other = "其他"
-
-[life.buff.drop_rate]
-other = "掉落 +{{.Percent}}%"
-
-[life.buff.gold_mult]
-other = "金币 +{{.Percent}}%"
-
-[life.buff.stat]
-other = "{{.Stat}} +{{.Value}}"
-
-[toast.life.quest_complete_loot]
-other = "掉落！{{.Item}} — +{{.Exp}} 经验，+{{.Gold}} 金币"
-
-[toast.life.quest_complete_achievement]
-other = "{{.Message}} · 成就：{{.Names}}"
-
-# --- i18n helpers / webservices (2026-08-22) ---
-
 [common.disabled]
 other = "已禁用"
 
@@ -5799,45 +5040,6 @@ other = "默认通道必须处于启用状态"
 
 [toast.notify_settings.default_template_failed]
 other = "更新默认模板失败"
-
-[toast.life.goal_not_found]
-other = "未找到目标"
-
-[toast.life.quest_not_found]
-other = "未找到任务"
-
-[toast.life.evidence_required]
-other = "需要证据"
-
-[toast.life.reward_not_found]
-other = "未找到奖励"
-
-[toast.life.occurrence_not_found]
-other = "未找到 occurrence"
-
-[toast.life.action_not_found]
-other = "未找到 action"
-
-[toast.life.parent_not_found]
-other = "未找到父节点"
-
-[toast.life.inventory_not_found]
-other = "未找到背包"
-
-[toast.life.equipment_missing]
-other = "缺少装备"
-
-[toast.life.adjudication_not_found]
-other = "未找到裁决"
-
-[toast.life.goal_title_required]
-other = "需要目标标题"
-
-[toast.life.title_required]
-other = "需要标题"
-
-[toast.life.reward_name_required]
-other = "需要奖励名称"
 
 [page.blueprints.subtitle]
 other = "参数化流水线模板。用你的通知渠道和标识来实例化。"

@@ -47,29 +47,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayjob"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/gatewayworker"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementprogress"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementunlock"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeadjudication"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeevidence"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeloottable"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifereward"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/liferewardredemption"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
@@ -194,29 +171,6 @@ func checkColumn(t, c string) error {
 			gatewayworker.Table:             gatewayworker.ValidColumn,
 			instruct.Table:                  instruct.ValidColumn,
 			llmusagerecord.Table:            llmusagerecord.ValidColumn,
-			lifeaicontext.Table:             lifeaicontext.ValidColumn,
-			lifeachievement.Table:           lifeachievement.ValidColumn,
-			lifeachievementprogress.Table:   lifeachievementprogress.ValidColumn,
-			lifeachievementunlock.Table:     lifeachievementunlock.ValidColumn,
-			lifeactiondependency.Table:      lifeactiondependency.ValidColumn,
-			lifeactionlog.Table:             lifeactionlog.ValidColumn,
-			lifeactionoccurrence.Table:      lifeactionoccurrence.ValidColumn,
-			lifeactionspec.Table:            lifeactionspec.ValidColumn,
-			lifeadjudication.Table:          lifeadjudication.ValidColumn,
-			lifecharacteristic.Table:        lifecharacteristic.ValidColumn,
-			lifeequipment.Table:             lifeequipment.ValidColumn,
-			lifeequippedslots.Table:         lifeequippedslots.ValidColumn,
-			lifeevidence.Table:              lifeevidence.ValidColumn,
-			lifegoal.Table:                  lifegoal.ValidColumn,
-			lifehabitcheckin.Table:          lifehabitcheckin.ValidColumn,
-			lifeinventory.Table:             lifeinventory.ValidColumn,
-			lifeloottable.Table:             lifeloottable.ValidColumn,
-			lifeplannode.Table:              lifeplannode.ValidColumn,
-			lifeprofile.Table:               lifeprofile.ValidColumn,
-			lifequest.Table:                 lifequest.ValidColumn,
-			lifereward.Table:                lifereward.ValidColumn,
-			liferewardredemption.Table:      liferewardredemption.ValidColumn,
-			lifeskill.Table:                 lifeskill.ValidColumn,
 			message.Table:                   message.ValidColumn,
 			notificationrecord.Table:        notificationrecord.ValidColumn,
 			notifychannel.Table:             notifychannel.ValidColumn,

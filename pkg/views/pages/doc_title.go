@@ -18,11 +18,6 @@ func DocTitlePage(ctx context.Context, pageKey string) string {
 	return i18n.T(ctx, pageKey) + i18n.T(ctx, "common.doc_title_flowbot")
 }
 
-// DocTitleLife returns a localized browser title from a life page key plus Life suffix.
-func DocTitleLife(ctx context.Context, pageKey string) string {
-	return i18n.T(ctx, pageKey) + i18n.T(ctx, "common.doc_title_life")
-}
-
 // DocTitleNamed returns a localized title with template data plus Flowbot suffix.
 func DocTitleNamed(ctx context.Context, titleKey string, data map[string]any) string {
 	return i18n.TData(ctx, titleKey, data) + i18n.T(ctx, "common.doc_title_flowbot")

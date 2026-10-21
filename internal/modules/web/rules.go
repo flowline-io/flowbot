@@ -40,5 +40,5 @@ var allWebserviceRules = [][]webservice.Rule{
 	clipsListWebserviceRules,
 	workflowWebserviceRules,
 	commandPaletteWebserviceRules,
-	lifeWebserviceRules,
+	analyticsWebserviceRules,
 }

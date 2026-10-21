@@ -34,6 +34,12 @@ func TestResolveTokenUsageRange(t *testing.T) {
 			wantLabel:   "Jul 12 - Jul 12",
 		},
 		{
+			name:        "rolling twenty four hour preset",
+			rangePreset: "24h",
+			wantActive:  "24h",
+			wantLabel:   "Jul 11 - Jul 12",
+		},
+		{
 			name:        "month to date preset",
 			rangePreset: "mtd",
 			wantActive:  "mtd",

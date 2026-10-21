@@ -185,7 +185,7 @@ func (s *EventStore) ListPendingDataEventOutbox(ctx context.Context, olderThan t
 }
 
 // dataEventFromOutboxPayload reconstructs a DataEvent from an event_outbox payload.
-// Returns ok=false for non-DataEvent rows (e.g. life.inventory.lore_requested).
+// Returns ok=false for non-DataEvent rows (payloads without event_type).
 func dataEventFromOutboxPayload(payload map[string]any, createdAt time.Time) (types.DataEvent, bool) {
 	if payload == nil {
 		return types.DataEvent{}, false

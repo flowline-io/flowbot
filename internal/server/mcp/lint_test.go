@@ -18,7 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability/github"
 	"github.com/flowline-io/flowbot/pkg/capability/kanboard"
 	"github.com/flowline-io/flowbot/pkg/capability/karakeep"
-	"github.com/flowline-io/flowbot/pkg/capability/life"
 	"github.com/flowline-io/flowbot/pkg/capability/memos"
 	"github.com/flowline-io/flowbot/pkg/capability/miniflux"
 	"github.com/flowline-io/flowbot/pkg/capability/nocodb"
@@ -43,7 +42,6 @@ func TestAdvertisedToolDescriptions(t *testing.T) {
 		github.CatalogSpec(),
 		kanboard.CatalogSpec(),
 		karakeep.CatalogSpec(),
-		life.CatalogSpec(),
 		memos.CatalogSpec(),
 		miniflux.CatalogSpec(),
 		nocodb.CatalogSpec(),

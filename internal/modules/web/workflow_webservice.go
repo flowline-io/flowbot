@@ -183,7 +183,7 @@ func workflowStats(c fiber.Ctx) error {
 		}
 	}
 
-	stats, err := s.WorkflowStats(c.Context(), name, since, tabs.GroupBy)
+	stats, err := s.WorkflowStats(c.Context(), name, since, time.Time{}, tabs.GroupBy)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "workflow stats: %v", err)
 	}

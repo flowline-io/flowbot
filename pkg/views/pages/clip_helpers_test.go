@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestClipPageTitle(t *testing.T) {
@@ -62,14 +63,14 @@ func TestDocTitleFlowbotChinese(t *testing.T) {
 	assert.Contains(t, DocTitleFlowbot(ctx, "nav.tokens"), "令牌")
 }
 
-func TestLifeModuleShellChineseNav(t *testing.T) {
+func TestAnalyticsShellChineseNav(t *testing.T) {
 	t.Parallel()
 	ctx := i18n.WithLocalizer(t.Context(), i18n.LocalizerForCookie(i18n.CookieZH))
 	var buf strings.Builder
-	err := LifeQuestsPage(LifeQuestsData{}).Render(ctx, &buf)
+	err := AnalyticsOverviewPage(ctx, &types.AnalyticsOverview{ActiveRange: "7d", RangeLabel: "test"}, "range=7d").Render(ctx, &buf)
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
 	body := buf.String()
-	assert.Contains(t, body, "任务")
+	assert.Contains(t, body, "数据分析")
 }

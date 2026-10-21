@@ -51,7 +51,7 @@ func TestWorkflowStats_SuccessRateTrend(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := s.WorkflowStats(ctx, tt.wfName, tt.since, tt.groupBy)
+			stats, err := s.WorkflowStats(ctx, tt.wfName, tt.since, time.Time{}, tt.groupBy)
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.GreaterOrEqual(t, len(stats.SuccessRateTrend), tt.minRows)
@@ -135,7 +135,7 @@ func TestWorkflowStats_Summary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := s.WorkflowStats(ctx, tt.wfName, tt.since, "day")
+			stats, err := s.WorkflowStats(ctx, tt.wfName, tt.since, time.Time{}, "day")
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.Equal(t, tt.wantWorkflows, stats.Summary.TotalWorkflows)
@@ -156,7 +156,7 @@ func TestWorkflowStats_NilSafe(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats, err := tt.store.WorkflowStats(context.Background(), "", time.Time{}, "day")
+			stats, err := tt.store.WorkflowStats(context.Background(), "", time.Time{}, time.Time{}, "day")
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.Len(t, stats.TriggerSourcePie, 3)

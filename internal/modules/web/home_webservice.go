@@ -12,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/i18n"
 	"github.com/flowline-io/flowbot/pkg/route"
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -57,13 +56,13 @@ func buildHomeDashboard(ctx context.Context) partials.HomeDashboard {
 		if store.Database.GetClient() != nil {
 			since7d := time.Now().Add(-7 * 24 * time.Hour)
 			ps := store.PipelineStoreFromDB()
-			if stats, err := ps.PipelineStats(ctx, "", since7d, "day"); err == nil && stats != nil {
+			if stats, err := ps.PipelineStats(ctx, "", since7d, time.Time{}, "day"); err == nil && stats != nil {
 				d.PipelineTotal = stats.Summary.TotalPipelines
 				d.PipelineOK = stats.Summary.SuccessfulRuns
 				d.PipelineFailed = stats.Summary.FailedRuns
 			}
 			ws := store.WorkflowStoreFromDB()
-			if stats, err := ws.WorkflowStats(ctx, "", since7d, "day"); err == nil && stats != nil {
+			if stats, err := ws.WorkflowStats(ctx, "", since7d, time.Time{}, "day"); err == nil && stats != nil {
 				d.WorkflowTotal = stats.Summary.TotalWorkflows
 				d.WorkflowOK = stats.Summary.SuccessfulRuns
 				d.WorkflowFailed = stats.Summary.FailedRuns
@@ -132,45 +131,12 @@ func homeTokenUsage(c fiber.Ctx) error {
 	if err := authenticateWeb(c); err != nil {
 		return err
 	}
-	uid := getUID(c)
-	if uid == "" {
-		return redirectToLogin(c)
+	q := string(c.Request().URI().QueryString())
+	dest := "/service/web/analytics/token-usage"
+	if q != "" {
+		dest += "?" + q
 	}
-
-	groupBy, err := types.NormalizeTokenUsageGroupBy(c.Query("groupBy", ""))
-	if err != nil {
-		return invalidTokenUsageRequest(c, err)
-	}
-
-	since, until, activeRange, rangeLabel, err := types.ResolveTokenUsageRange(
-		c.Query("range", ""),
-		c.Query("since", ""),
-		c.Query("until", ""),
-		time.Now().UTC(),
-	)
-	if err != nil {
-		return invalidTokenUsageRequest(c, err)
-	}
-
-	usageStore := store.NewLLMUsageStoreFromDatabase()
-	if usageStore == nil {
-		return types.Errorf(types.ErrInternal, "store not available")
-	}
-
-	stats, err := usageStore.TokenUsageStats(c.Context(), uid, since, until, groupBy)
-	if err != nil {
-		return types.Errorf(types.ErrInternal, "token usage stats: %v", err)
-	}
-	stats.RangeLabel = rangeLabel
-	stats.ActiveRange = activeRange
-	stats.GroupBy = groupBy
-
-	accept := c.Get("Accept", "")
-	if strings.Contains(accept, "application/json") {
-		return c.JSON(stats)
-	}
-	c.Type("html")
-	return partials.TokenUsage(stats).Render(c.Context(), c.Response().BodyWriter())
+	return c.Redirect().Status(http.StatusFound).To(dest)
 }
 
 func invalidTokenUsageRequest(c fiber.Ctx, _ error) error {

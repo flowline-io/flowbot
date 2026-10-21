@@ -13,7 +13,7 @@ PlantUML diagrams for Flowbot system architecture. Render with any PlantUML-comp
 
 Agent engine (`pkg/agent/`) has dedicated docs and diagrams under [docs/agent/](../agent/) (`architecture.md`, `agent.puml`).
 
-Life (solo gamified productivity) has dedicated docs under [docs/life/](../life/) (`architecture.md`).
+Analytics (personal usage + ops run health) has dedicated docs under [docs/analytics/](../analytics/).
 
 pkg vs internal dependency boundaries (migration waves): [pkg-boundaries.md](pkg-boundaries.md).
 
@@ -73,7 +73,7 @@ Root [AGENTS.md](../../AGENTS.md). Pagination: [pkg/capability/AGENTS.md](../../
 
 ### Modules (5)
 
-automate, example, hub, life, web
+analytics, automate, example, hub, lineage, web
 
 `automate` owns REST under `/service/automate/{functions,pipeline,workflow}` (scopes remain `function:*` / `pipeline:*` / `workflow:*`). See [merge note](../../.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md).
 
@@ -83,7 +83,7 @@ adguard, archivebox, beszel, confluence, dozzle, drone, dropbox, email, example,
 
 ### Capability packages (`pkg/capability/`)
 
-confluence, core, devops, email, example, fireflyiii, functions, gateway, gitea, github, kanboard, karakeep, life, memos, miniflux, nocodb, transmission, trello, trilium — plus `conformance/`
+confluence, core, devops, email, example, fireflyiii, functions, gateway, gitea, github, kanboard, karakeep, memos, miniflux, nocodb, transmission, trello, trilium — plus `conformance/`
 
 ### Notifications
 
@@ -91,7 +91,7 @@ Outbound: Slack, Pushover, ntfy, Message Pusher (with `rules/` throttling/aggreg
 
 ### Shared Packages (37)
 
-agent, auth, backoff, bulkhead, cache, capability, client, config, cronutil, event, exec, executor, flog, functions, homelab (with probe/), hub, i18n, life, media, metrics, module, notify, parser, pipeline, plugin, profiling, providers, rdb, route, stats, trace, types, utils, validate, views, webauth, workflow
+agent, auth, backoff, bulkhead, cache, capability, client, config, cronutil, event, exec, executor, flog, functions, homelab (with probe/), hub, i18n, media, metrics, module, notify, parser, pipeline, plugin, profiling, providers, rdb, route, stats, trace, types, utils, validate, views, webauth, workflow
 
 ### CI/CD (`.github/workflows/`)
 

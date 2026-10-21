@@ -366,9 +366,8 @@ modules:
       # brute_force:
       #   enabled: false   # set false only to disable login lockout
 
-  - name: life
+  - name: analytics
     enabled: true
-    default_class: Architect
 
   - name: automate
     enabled: true

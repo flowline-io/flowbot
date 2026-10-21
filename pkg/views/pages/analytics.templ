@@ -1,0 +1,147 @@
+package pages
+
+import (
+	"context"
+
+	"github.com/flowline-io/flowbot/pkg/i18n"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AnalyticsOverviewPage(ctx context.Context, overview *types.AnalyticsOverview, rangeQuery string) {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.analytics")) {
+		@analyticsShell(ctx, "overview", rangeQuery) {
+			@partials.PageHeader(ctx, "nav.analytics", "page.analytics.overview.subtitle") {
+			}
+			<div class="flex flex-wrap items-center gap-2 mb-4" data-testid="analytics-range-tabs">
+				<a class={ analyticsRangeBtnClass(overview.ActiveRange, "24h") } href={ analyticsOverviewURL("24h") } data-testid="btn-range-24h">24h</a>
+				<a class={ analyticsRangeBtnClass(overview.ActiveRange, "7d") } href={ analyticsOverviewURL("7d") } data-testid="btn-range-7d">7d</a>
+				<a class={ analyticsRangeBtnClass(overview.ActiveRange, "30d") } href={ analyticsOverviewURL("30d") } data-testid="btn-range-30d">30d</a>
+				<span class="text-sm text-base-content/55 ml-2">{ overview.RangeLabel }</span>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-testid="analytics-overview-summary">
+				<a href={ analyticsURL("/service/web/analytics/token-usage", rangeQuery, "groupBy=model") } class="flowbot-surface p-4 block hover:border-primary/40" data-testid="analytics-card-tokens">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.card.tokens") }</div>
+					<div class="text-2xl font-semibold text-primary mt-1">{ formatAnalyticsCount(overview.TokenTotal) }</div>
+				</a>
+				<a href={ analyticsURL("/service/web/analytics/events", rangeQuery, "") } class="flowbot-surface p-4 block hover:border-primary/40" data-testid="analytics-card-events">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.card.events") }</div>
+					<div class="text-2xl font-semibold text-base-content mt-1">{ formatAnalyticsCount(overview.EventTotal) }</div>
+				</a>
+				<a href={ analyticsURL("/service/web/analytics/activity", rangeQuery, "") } class="flowbot-surface p-4 block hover:border-primary/40" data-testid="analytics-card-activity">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.card.activity") }</div>
+					<div class="text-2xl font-semibold text-base-content mt-1">{ formatAnalyticsCount(overview.PipelineRuns + overview.FunctionRuns) }</div>
+				</a>
+				<a href={ analyticsURL("/service/web/analytics/ops/runs", rangeQuery, "") } class="flowbot-surface p-4 block hover:border-primary/40" data-testid="analytics-card-ops">
+					<div class="text-xs text-base-content/55">{ i18n.T(ctx, "page.analytics.card.ops") }</div>
+					<div class="text-2xl font-semibold text-success mt-1">{ formatAnalyticsRate(overview.OpsSuccessRate) }</div>
+					<div class="text-xs text-error mt-1">{ i18n.TData(ctx, "page.analytics.ops.failed", map[string]any{"Count": overview.OpsFailedRuns}) }</div>
+				</a>
+			</div>
+		}
+	}
+}
+
+templ AnalyticsTokenPage(ctx context.Context, stats *types.TokenUsageStats, rangeQuery string) {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.analytics.token")) {
+		@partials.TokenUsageScripts()
+		@analyticsShell(ctx, "token", rangeQuery) {
+			@partials.PageHeader(ctx, "nav.analytics.token", "page.analytics.token.subtitle") {
+			}
+			@partials.TokenUsage(stats)
+		}
+	}
+}
+
+templ AnalyticsEventsPage(ctx context.Context, rangeQuery string) {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.analytics.events")) {
+		@analyticsShell(ctx, "events", rangeQuery) {
+			@partials.PageHeader(ctx, "nav.analytics.events", "page.analytics.events.subtitle") {
+			}
+			<div
+				hx-get={ analyticsURL("/service/web/analytics/events/panel", rangeQuery, "groupBy=event_type") }
+				hx-trigger="revealed"
+				hx-swap="outerHTML"
+				data-testid="analytics-events-loader"
+			>
+				@partials.PanelSkeleton(ctx)
+			</div>
+		}
+	}
+}
+
+templ AnalyticsActivityPage(ctx context.Context, rangeQuery string) {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.analytics.activity")) {
+		@analyticsShell(ctx, "activity", rangeQuery) {
+			@partials.PageHeader(ctx, "nav.analytics.activity", "page.analytics.activity.subtitle") {
+			}
+			<div
+				hx-get={ analyticsURL("/service/web/analytics/activity/panel", rangeQuery, "") }
+				hx-trigger="revealed"
+				hx-swap="outerHTML"
+				data-testid="analytics-activity-loader"
+			>
+				@partials.PanelSkeleton(ctx)
+			</div>
+		}
+	}
+}
+
+templ AnalyticsOpsRunsPage(ctx context.Context, rangeQuery string) {
+	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.analytics.ops")) {
+		@analyticsShell(ctx, "ops", rangeQuery) {
+			@partials.PageHeader(ctx, "nav.analytics.ops", "page.analytics.ops.subtitle") {
+			}
+			<div
+				hx-get={ analyticsURL("/service/web/analytics/ops/runs/panel", rangeQuery, "groupBy=day") }
+				hx-trigger="revealed"
+				hx-swap="outerHTML"
+				data-testid="analytics-ops-loader"
+			>
+				@partials.PanelSkeleton(ctx)
+			</div>
+		}
+	}
+}
+
+templ analyticsShell(ctx context.Context, active string, rangeQuery string) {
+	<div class="flex flex-col lg:flex-row gap-6" data-testid="analytics-module">
+		<aside class="lg:w-48 shrink-0" aria-label={ i18n.T(ctx, "page.analytics.nav.aria") }>
+			<p class="text-xs uppercase tracking-wide text-base-content/50 mb-2">{ i18n.T(ctx, "page.analytics.nav.personal") }</p>
+			<nav class="menu menu-sm bg-base-100 border border-base-300 rounded-box mb-4">
+				<li>
+					<a href={ analyticsURL("/service/web/analytics", rangeQuery, "") } class={ templ.KV("active", active == "overview") } data-testid="analytics-nav-overview">
+						{ i18n.T(ctx, "nav.analytics.overview") }
+					</a>
+				</li>
+				<li>
+					<a href={ analyticsURL("/service/web/analytics/token-usage", rangeQuery, "groupBy=model") } class={ templ.KV("active", active == "token") } data-testid="analytics-nav-token">
+						{ i18n.T(ctx, "nav.analytics.token") }
+					</a>
+				</li>
+				<li>
+					<a href={ analyticsURL("/service/web/analytics/events", rangeQuery, "") } class={ templ.KV("active", active == "events") } data-testid="analytics-nav-events">
+						{ i18n.T(ctx, "nav.analytics.events") }
+					</a>
+				</li>
+				<li>
+					<a href={ analyticsURL("/service/web/analytics/activity", rangeQuery, "") } class={ templ.KV("active", active == "activity") } data-testid="analytics-nav-activity">
+						{ i18n.T(ctx, "nav.analytics.activity") }
+					</a>
+				</li>
+			</nav>
+			<p class="text-xs uppercase tracking-wide text-base-content/50 mb-2">{ i18n.T(ctx, "page.analytics.nav.ops") }</p>
+			<nav class="menu menu-sm bg-base-100 border border-base-300 rounded-box">
+				<li>
+					<a href={ analyticsURL("/service/web/analytics/ops/runs", rangeQuery, "") } class={ templ.KV("active", active == "ops") } data-testid="analytics-nav-ops">
+						{ i18n.T(ctx, "nav.analytics.ops") }
+					</a>
+				</li>
+			</nav>
+		</aside>
+		<div class="flex-1 min-w-0">
+			{ children... }
+		</div>
+	</div>
+}

@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	analyticsmod "github.com/flowline-io/flowbot/internal/modules/analytics"
 	webmod "github.com/flowline-io/flowbot/internal/modules/web"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
@@ -46,7 +47,7 @@ func (a *homeWebAdapter) ParameterSet(ctx context.Context, flag string, params t
 	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
-var _ = Describe("Home Token Usage /home/token-usage", Label("home", "web"), func() {
+var _ = Describe("Analytics Token Usage /analytics/token-usage", Label("home", "web", "analytics"), func() {
 	var (
 		origDB  store.Adapter
 		adapter *homeWebAdapter
@@ -63,16 +64,18 @@ var _ = Describe("Home Token Usage /home/token-usage", Label("home", "web"), fun
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		webmod.SetAnalyticsService(analyticsmod.NewService())
 		bddSeedAccessToken("bdd-home-token", adapter.uid, bddWebScopesAdmin())
 	})
 
 	AfterEach(func() {
+		webmod.SetAnalyticsService(nil)
 		store.Database = origDB
 	})
 
-	Describe("GET /service/web/home/token-usage", func() {
+	Describe("GET /service/web/analytics/token-usage", func() {
 		It("returns 303 when unauthenticated", func() {
-			req := MakeRequest(http.MethodGet, "/service/web/home/token-usage?range=7d", nil)
+			req := MakeRequest(http.MethodGet, "/service/web/analytics/token-usage?range=7d", nil)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -80,7 +83,7 @@ var _ = Describe("Home Token Usage /home/token-usage", Label("home", "web"), fun
 		})
 
 		It("returns 200 with token usage container when authenticated", func() {
-			req := MakeRequest(http.MethodGet, "/service/web/home/token-usage?range=7d&groupBy=model", nil)
+			req := MakeRequest(http.MethodGet, "/service/web/analytics/token-usage?range=7d&groupBy=model", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-home-token"})
 			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)

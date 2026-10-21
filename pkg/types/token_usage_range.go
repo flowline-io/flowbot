@@ -54,7 +54,10 @@ func resolveCustomTokenUsageRange(sinceStr, untilStr string) (since, until time.
 
 func resolvePresetTokenUsageRange(preset string, now time.Time) (since, until time.Time, err error) {
 	switch preset {
+	case "24h":
+		return now.Add(-24 * time.Hour), now, nil
 	case "1d":
+		// Calendar UTC day; prefer "24h" for rolling windows.
 		return startOfUTCDay(now), now, nil
 	case "7d":
 		return startOfUTCDay(now.AddDate(0, 0, -6)), now, nil

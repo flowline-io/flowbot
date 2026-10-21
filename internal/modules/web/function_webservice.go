@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -113,7 +114,7 @@ func functionStats(c fiber.Ctx) error {
 	if s == nil {
 		return types.Errorf(types.ErrInternal, "function store not available")
 	}
-	stats, err := s.FunctionStats(context.Background(), name, since, tabs.GroupBy)
+	stats, err := s.FunctionStats(context.Background(), name, since, time.Time{}, tabs.GroupBy)
 	if err != nil {
 		return types.WrapError(types.ErrInternal, "function stats", err)
 	}

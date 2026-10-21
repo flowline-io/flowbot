@@ -7,10 +7,10 @@ import (
 	"github.com/rs/zerolog"
 	"go.uber.org/fx"
 
+	"github.com/flowline-io/flowbot/internal/modules/analytics"
 	"github.com/flowline-io/flowbot/internal/modules/automate"
 	"github.com/flowline-io/flowbot/internal/modules/example"
 	"github.com/flowline-io/flowbot/internal/modules/hub"
-	"github.com/flowline-io/flowbot/internal/modules/life"
 	"github.com/flowline-io/flowbot/internal/modules/lineage"
 	"github.com/flowline-io/flowbot/internal/modules/web"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -45,7 +45,7 @@ var Modules = fx.Options(
 	fx.Invoke(
 		example.Register,
 		hub.Register,
-		life.Register,
+		analytics.Register,
 		lineage.Register,
 		web.Register,
 		web.SetLoginRateLimiterCache,

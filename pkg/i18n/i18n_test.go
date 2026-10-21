@@ -78,8 +78,8 @@ func TestTDataTemplate(t *testing.T) {
 func TestTDataChinese(t *testing.T) {
 	t.Parallel()
 	ctx := i18n.WithLocalizer(context.Background(), i18n.LocalizerForCookie(i18n.CookieZH))
-	got := i18n.TData(ctx, "life.pager.page_of", map[string]any{"Page": 2, "Total": 5})
-	assert.Equal(t, "第 2 / 5 页", got)
+	got := i18n.TData(ctx, "page.analytics.ops.failed", map[string]any{"Count": 5})
+	assert.Equal(t, "5 次失败", got)
 }
 
 func TestTagForCookie(t *testing.T) {

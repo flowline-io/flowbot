@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	analyticsmod "github.com/flowline-io/flowbot/internal/modules/analytics"
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
@@ -546,6 +547,7 @@ func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
 	wireNotifyStoresForTest(t)
+	SetAnalyticsService(analyticsmod.NewService())
 	secure := false
 	handler = moduleHandler{
 		initialized: true,
