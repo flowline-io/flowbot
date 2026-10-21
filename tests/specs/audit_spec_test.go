@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/flowline-io/flowbot/internal/modules/lineage"
+	"github.com/flowline-io/flowbot/internal/modules/web"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
@@ -22,7 +22,7 @@ var auditRoutesOnce sync.Once
 
 func mountAuditRoutes(app *fiber.App) {
 	auditRoutesOnce.Do(func() {
-		lineage.MountForE2E(app)
+		web.MountAuditForE2E(app)
 	})
 }
 

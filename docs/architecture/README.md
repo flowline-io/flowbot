@@ -73,7 +73,7 @@ Root [AGENTS.md](../../AGENTS.md). Pagination: [pkg/capability/AGENTS.md](../../
 
 ### Modules (5)
 
-analytics, automate, example, hub, lineage, web
+analytics, automate, example, hub, web
 
 `automate` owns REST under `/service/automate/{functions,pipeline,workflow}` (scopes remain `function:*` / `pipeline:*` / `workflow:*`). See [merge note](../../.agents/notes/implemented/simplification/2026-09-05-merge-automate-modules.md).
 

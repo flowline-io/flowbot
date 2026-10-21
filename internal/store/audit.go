@@ -16,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/predicate"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/toolerr"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 )
 
@@ -134,6 +135,37 @@ type ListAuditOptions struct {
 	Until      time.Time
 	Limit      int
 	Cursor     string
+}
+
+// AuditCaller is the identity used to filter an audit list.
+type AuditCaller struct {
+	// UID is the caller uid.
+	UID string
+	// Admin is true when the caller holds admin:*.
+	Admin bool
+	// SubjectID is the requested uid filter. Empty lists every uid when Admin is true.
+	SubjectID string
+}
+
+func visibleSubject(caller AuditCaller) (string, error) {
+	if !caller.Admin {
+		if caller.SubjectID != "" && caller.SubjectID != caller.UID {
+			return "", types.Errorf(types.ErrForbidden, "subject_id is outside the caller")
+		}
+		return caller.UID, nil
+	}
+	return caller.SubjectID, nil
+}
+
+// ListForCaller returns audit rows visible to caller. A non-admin caller is limited to their own uid.
+// Admin with an empty SubjectID lists every uid.
+func (s *AuditStore) ListForCaller(ctx context.Context, caller AuditCaller, opts ListAuditOptions) ([]AuditRecord, string, error) {
+	subject, err := visibleSubject(caller)
+	if err != nil {
+		return nil, "", err
+	}
+	opts.SubjectID = subject
+	return s.List(ctx, opts)
 }
 
 // List returns audit rows newest first. The cursor is the last row id.

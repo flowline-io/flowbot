@@ -17,7 +17,7 @@ modules/<name>/
 ## Boundaries
 
 - Provider wiring belongs in `pkg/capability/<provider>/adapter.go`
-- Routes: `/service/{module}/*` for module business APIs; hub **management** APIs under `/hub/*` — never put hub management under `/service/hub/*` (hub module business routes may still live under `/service/hub`)
+- Routes: `/service/{module}/*` for module business APIs; hub **management** APIs under `/hub/*` — never put hub management under `/service/hub/*` (hub module business routes may still live under `/service/hub`). Exception: [web `GET /service/audit`](web/AGENTS.md).
 
 ## Testing
 

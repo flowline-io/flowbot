@@ -1,4 +1,4 @@
-package lineage
+package store
 
 import (
 	"testing"
@@ -11,18 +11,18 @@ import (
 
 func TestVisibleSubject(t *testing.T) {
 	t.Parallel()
-	got, err := VisibleSubject("user-a", false, "")
+	got, err := visibleSubject(AuditCaller{UID: "user-a"})
 	require.NoError(t, err)
 	assert.Equal(t, "user-a", got)
 
-	_, err = VisibleSubject("user-a", false, "user-b")
+	_, err = visibleSubject(AuditCaller{UID: "user-a", SubjectID: "user-b"})
 	require.ErrorIs(t, err, types.ErrForbidden)
 
-	got, err = VisibleSubject("user-a", true, "")
+	got, err = visibleSubject(AuditCaller{UID: "user-a", Admin: true})
 	require.NoError(t, err)
 	assert.Empty(t, got)
 
-	got, err = VisibleSubject("user-a", true, "user-b")
+	got, err = visibleSubject(AuditCaller{UID: "user-a", Admin: true, SubjectID: "user-b"})
 	require.NoError(t, err)
 	assert.Equal(t, "user-b", got)
 }

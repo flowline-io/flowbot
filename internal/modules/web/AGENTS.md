@@ -9,7 +9,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 
 ## Entry points
 
-- Routes: `*_webservice.go` rule slices → aggregated in `rules.go` (`allWebserviceRules`) → `module.go` registers each group.
+- Routes: `*_webservice.go` slices in `rules.go` (`allWebserviceRules`) register under `/service/web`. `GET /service/audit` is outside that slice: `audit_webservice.go` mounts group `audit`. Visibility: [merge note](../../../.agents/notes/implemented/simplification/2026-10-21-merge-lineage-module-into-web.md).
 - Auth: default route auth (cookie `accessToken` + scopes). `/service/web` requires `admin:*`. Only login/setup/logout/`csrf-token` use `route.WithNotAuth()`. Handlers still call `authenticateWeb()` (`kind=full` only + login redirect). Cookie full web sessions slide via `slideFullSessionMiddleware` on `/service/web` ([note](../../../.agents/notes/implemented/feature/2026-08-30-web-session-sliding-idle.md)). CSRF is Fiber `csrf` middleware (cookie `csrf_` or `__Host-csrf_`, header `X-Csrf-Token` / form `csrf_token`); helpers in `public/js/app.js`. [TLS proxy Origin](../../../.agents/notes/implemented/bug-fix/2026-08-23-csrf-login-403-tls-proxy.md). Auth hardening: [note](../../../.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md).
 - Chatagent SSE: `chatagent_web_stream.go`. Shared service: `chatagent_service.go` (installed by `server.ChatAgentService`). Write rules: [server AGENTS.md](../../server/AGENTS.md).
 - Scripts order of truth: `pkg/views/partials/chatagent_scripts.templ`
@@ -23,12 +23,12 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 
 ## Non-obvious rules
 
-- New routes: add `*_webservice.go` + append to `allWebserviceRules` in `rules.go`.
+- New `/service/web` routes: add `*_webservice.go` and append the slice to `allWebserviceRules`. Leave `GET /service/audit` out of that slice (Entry points).
 - Dangerous UI actions (delete, revoke, logout, stop, disable, …): confirmation modal required — [web-ui.mdc § Dangerous actions](../../../.cursor/rules/web-ui.mdc).
 - Set `c.Type("html")` before HTML; HTMX endpoints must not return JSON by mistake.
 - Complex JS in `public/js/`; vendored deps only (no CDN).
 - Markdown → `utils.MarkdownToSafeHTML` before `templ.Raw`.
-- E2E helpers: `InitForE2E()` / `MountForE2E()`; CSRF helpers `AttachCSRFForTest` / `addWebAuth`; locale helper `AttachLocaleForTest` (defaults `flowbot-lang=en` via `addWebAuth`).
+- E2E helpers: `InitForE2E()` / `MountForE2E()` / `MountAuditForE2E()`; CSRF helpers `AttachCSRFForTest` / `addWebAuth`; locale helper `AttachLocaleForTest` (defaults `flowbot-lang=en` via `addWebAuth`).
 
 ## i18n
 

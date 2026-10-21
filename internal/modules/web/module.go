@@ -172,6 +172,7 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	for _, rules := range allWebserviceRules {
 		module.Webservice(app, Name, rules)
 	}
+	mountAuditRoutes(app)
 }
 
 // Rules returns the web module rule definitions as one entry per route group in allWebserviceRules.

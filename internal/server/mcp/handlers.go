@@ -8,7 +8,6 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/internal/modules/lineage"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/capability"
@@ -339,7 +338,11 @@ func execAuditList(ctx context.Context, ident Identity, args map[string]any) (an
 		}
 		opts.Until = ts
 	}
-	rows, cursor, err := lineage.ListForCaller(ctx, string(ident.UID), auth.HasScope(ident.Scopes, auth.ScopeAdmin), subject, opts)
+	rows, cursor, err := store.AuditStoreFromDB().ListForCaller(ctx, store.AuditCaller{
+		UID:       string(ident.UID),
+		Admin:     auth.HasScope(ident.Scopes, auth.ScopeAdmin),
+		SubjectID: subject,
+	}, opts)
 	if err != nil {
 		return nil, err
 	}
