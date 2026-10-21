@@ -12,7 +12,7 @@ modules/<name>/
 └── utils.go
 ```
 
-`Register()` wired via `fx.Invoke` in `internal/modules/fx.go` → `modules.Modules`. Reference: `internal/modules/example/`.
+`Register()` wired via `fx.Invoke` in `internal/modules/fx.go` → `modules.Modules`. Wired today: `example`, `hub`, `analytics`, `web`, `automate`. `analytics` has no HTTP rules; its pages live in `web`. Reference: `internal/modules/example/`.
 
 ## Boundaries
 

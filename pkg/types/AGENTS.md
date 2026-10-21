@@ -7,7 +7,7 @@ Shared types: rulesets, message payloads, protocol, KV, models. Repo-wide standi
 - Core: `types.go`, `kv.go`, `msg.go`, `form_state.go`, `run_state.go`, `resource.go`, `errors.go`, `event.go`, …
 - Protocol: `protocol/` (Driver/Adapter/Action, messages, errors)
 - Rulesets: `ruleset/{command,form,webservice}/`
-- DTOs: `model/`; also `audit/`, stats helpers (`pipeline_stats`, `token_usage_*`, `run_latency_stats`)
+- DTOs: `model/`; also `audit/`, stats helpers (`pipeline_stats`, `workflow_stats`, `function_stats`, `activity_stats`, `event_stats`, `token_usage_*`, `run_latency_stats`)
 
 Look at the package directory for the full file list.
 

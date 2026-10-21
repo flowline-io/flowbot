@@ -48,8 +48,8 @@ External callers may keep importing `pkg/agent` for types (`AgentMessage`, `NewA
 
 - **langchaingo**: only `llms.Model` in `pkg/agent/llm` — no agents/chains. Parallel tool-call SSE rewrite: [note](../../.agents/notes/implemented/bug-fix/2026-08-30-llm-parallel-toolcall-stream-index.md).
 - **PII**: `NewModel` always wraps with `piiModel`; outbound anonymization is gated by top-level `pii.enabled` per request. Session tables via `WithPIISession`. [note](../../.agents/notes/implemented/architecture/2026-09-18-llm-presidio-anonymizer.md).
-- **Modules**: prefer `pkg/agent/llm` for single-shot LLM. Web may import already-wired packages (`permission`; tests: `model`/`msg`/`session`); do not import other `pkg/agent` packages from modules until wired.
-- Distinct from `pkg/types/agent.go` (instruct) and YAML `chat_agent` config.
+- **Modules**: prefer `pkg/agent/llm` for single-shot LLM. Web may import already-wired packages (`permission`, `approval`; tests: `model` / `msg` / `session`, plus function-editor fakes via `dcg` / `env` / `result`); do not import other `pkg/agent` packages from modules until wired.
+- Distinct from `pkg/types/agent.go` (platform `AgentData` and chat roles) and YAML `chat_agent` config.
 - JSON/JSONL: `sonic`. Metrics: `metrics.Agent()` — low-cardinality labels (`status`, `model`, `tool`, `level`); never `session_id`.
 - LLM retry only before first stream delta (`ErrStreamStarted`). This retry policy is a settled seam ([deps policy](../../.agents/notes/implemented/process/2026-08-13-dependencies-over-hand-rolling.md)); do not replace it with a generic backoff library unless a new Agent Note beats this rationale. Tool expected failures → `ToolResultMessage{IsError: true}` + `FormatToolError`.
 - Result pattern: `env` / `ctxmgr` / JSONL parse return `result.Result[T,E]`; harness/session public APIs use Go `error`. Hook cancel: `hooks.ErrRunCancelled`.

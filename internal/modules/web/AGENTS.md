@@ -4,13 +4,13 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 
 ## Boundaries
 
-- **Allowed**: store call sites per [store AGENTS.md](../../store/AGENTS.md), except `pipeline_webservice.go`, `workflow_webservice.go`, and `function_webservice.go`, which call `pkg/pipeline`, `pkg/workflow`, and `pkg/functions` active services ([note](../../../.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md)); `capability.Invoke`; shared `*chatagent.Service` via `SetChatAgentService` (`chatagent_service.go`); already-wired `pkg/agent` packages listed in [pkg/agent/AGENTS.md](../../../pkg/agent/AGENTS.md) (`permission`; tests: `model` / `msg` / `session`).
+- **Allowed**: store call sites per [store AGENTS.md](../../store/AGENTS.md). `pipeline_webservice.go`, `workflow_webservice.go`, and `function_webservice.go` call `pkg/pipeline`, `pkg/workflow`, and `pkg/functions` active services ([note](../../../.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md)). `blueprint_webservice.go` calls `pipeline.ActiveBlueprintService` (notify-channel lists still use the store). Also `capability.Invoke`; shared `*chatagent.Service` via `SetChatAgentService` (`chatagent_service.go`); already-wired `pkg/agent` packages listed in [pkg/agent/AGENTS.md](../../../pkg/agent/AGENTS.md) (production: `permission`, `approval`; tests: `model` / `msg` / `session`, plus function-editor fakes via `dcg` / `env` / `result`).
 - **Forbidden**: provider clients; SQL or Ent queries in handlers; ent types in templates (map to `pkg/types/model` in this package first); view templates under `internal/modules/`.
 
 ## Entry points
 
 - Routes: `*_webservice.go` slices in `rules.go` (`allWebserviceRules`) register under `/service/web`. `GET /service/audit` is outside that slice: `audit_webservice.go` mounts group `audit`. Visibility: [merge note](../../../.agents/notes/implemented/simplification/2026-10-21-merge-lineage-module-into-web.md).
-- Auth: default route auth (cookie `accessToken` + scopes). `/service/web` requires `admin:*`. Only login/setup/logout/`csrf-token` use `route.WithNotAuth()`. Handlers still call `authenticateWeb()` (`kind=full` only + login redirect). Cookie full web sessions slide via `slideFullSessionMiddleware` on `/service/web` ([note](../../../.agents/notes/implemented/feature/2026-08-30-web-session-sliding-idle.md)). CSRF is Fiber `csrf` middleware (cookie `csrf_` or `__Host-csrf_`, header `X-Csrf-Token` / form `csrf_token`); helpers in `public/js/app.js`. [TLS proxy Origin](../../../.agents/notes/implemented/bug-fix/2026-08-23-csrf-login-403-tls-proxy.md). Auth hardening: [note](../../../.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md).
+- Auth: default route auth (cookie `accessToken` + scopes). `/service/web` requires `admin:*`. `route.WithNotAuth()` is only the login/setup flow (including `/login/2fa`, `/setup/2fa`, and backup-code pages), plus logout, `POST /locale`, and `GET /csrf-token`. Handlers still call `authenticateWeb()` (`kind=full` only + login redirect). Cookie full web sessions slide via `slideFullSessionMiddleware` on `/service/web` ([note](../../../.agents/notes/implemented/feature/2026-08-30-web-session-sliding-idle.md)). CSRF is Fiber `csrf` middleware (cookie `csrf_` or `__Host-csrf_`, header `X-Csrf-Token` / form `csrf_token`); helpers in `public/js/app.js`. [TLS proxy Origin](../../../.agents/notes/implemented/bug-fix/2026-08-23-csrf-login-403-tls-proxy.md). Auth hardening: [note](../../../.agents/notes/implemented/bug-fix/2026-09-11-security-audit-hardening.md).
 - Chatagent SSE: `chatagent_web_stream.go`. Shared service: `chatagent_service.go` (installed by `server.ChatAgentService`). Write rules: [server AGENTS.md](../../server/AGENTS.md).
 - Scripts order of truth: `pkg/views/partials/chatagent_scripts.templ`
   - Composer: `util → slash → chat`
@@ -41,15 +41,15 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 - **Page titles**: `partials.PageHeader(ctx, titleKey, subtitleKey)` for static keys; `PageHeaderLiteral(ctx, title, subtitle)` for dynamic entity names; mix at call site (`PageHeaderLiteral(ctx, name, i18n.T(ctx, "page.workflow.subtitle"))`).
 - **Handler toasts**: `webMsg(c, id)`, `webMsgData`, `toastErrorKey`, `setShowToastKey`, `renderFormErrorKey`, `renderErrorKey` in `utils.go` — not raw English literals.
 - **Document titles**: `pages.DocTitleFlowbot` / `DocTitlePage` / `DocTitleNamed` / `DocTitleLiteral` in `layout.Base(ctx, title)`.
-- **Client IDs**: after adding `client.*` keys to TOML, run `python scripts/update_client_ids.py` (also runs after `go tool task templ`).
+- **Client IDs**: `clientMessageIDs` in [`pkg/i18n/client.go`](../../../pkg/i18n/client.go) is the allow-list `ClientMessages` embeds. After adding a `client.*` key to the TOML catalogs, append that same ID to the slice. `go tool task templ` does not refresh it.
 - **Catalogs**: `pkg/i18n/locales/{en,zh}.toml` (filename is the go-i18n language tag). A leaf ID that is also a prefix of another ID in the same file must use a quoted table (`["error.validation"]`).
-- **JS**: user-visible strings via `flowbotI18n(key, enFallback)`; add keys to the catalogs and run `scripts/update_client_ids.py` to refresh `clientMessageIDs`; no parallel translation tables in `public/js/`.
+- **JS**: user-visible strings via `flowbotI18n(key, enFallback)`; add keys to the catalogs and to `clientMessageIDs` (Client IDs); no parallel translation tables in `public/js/`.
 - **ClientJSON**: marshal via `pkg/i18n.ClientMessages`; embed with `@templ.JSONScript("flowbot-i18n", i18n.ClientMessages(ctx))` in `partials.I18nScript` — inline `<script>` bodies do not interpolate Go expressions.
 - **Message IDs**: dotted keys — `nav.*`, `page.*`, `toast.*`, `confirm.*`, `clip.*`, `client.*`, `auth.*`, `common.*`, `error.*`; ship en/zh pairs.
 
 ## Testing
 
-Which layer: [docs/testing/README.md](../../../docs/testing/README.md). Owning BDD for `/service/web` pages: `tests/specs/*_page_spec_test.go` (`agents`, `agent_sessions`, `agent_scheduled_tasks`, `notifications`, `event`, `home_token_usage`, `blueprint`).
+Which layer: [docs/testing/README.md](../../../docs/testing/README.md). Owning BDD for `/service/web` pages: `tests/specs/*_page_spec_test.go` (`agents`, `agent_sessions`, `agent_scheduled_tasks`, `notifications`, `event`, `blueprint`, `pipeline`) and `home_token_usage_spec_test.go`.
 
 ```bash
 go test ./internal/modules/web/...
