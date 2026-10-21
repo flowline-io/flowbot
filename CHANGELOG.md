@@ -1,19 +1,73 @@
 # Changelog
 
-## Unreleased
+## [0.99.18]
 
 ### Breaking
 
 - Local CLI gateway (`cmd/gateway`, CapGateway, `run_cursor`, `/gateway/v1`) and the headless coding CLI (`cmd/agent`, `/agent/v1/chat/completions`) are removed. Scopes `gateway:worker` and `agent:headless` are gone. A leftover `gateway:` block in `flowbot.yaml` is ignored. See [.agents/notes/implemented/simplification/2026-10-21-remove-local-cli-gateway-and-headless-agent.md](.agents/notes/implemented/simplification/2026-10-21-remove-local-cli-gateway-and-headless-agent.md).
 - Wasm and gRPC plugins (`pkg/plugin`, `plugins` config) are removed. A leftover `plugins:` block in `flowbot.yaml` is ignored. See [.agents/notes/implemented/simplification/2026-10-21-remove-wasm-grpc-plugin.md](.agents/notes/implemented/simplification/2026-10-21-remove-wasm-grpc-plugin.md).
-- MCP `/mcp` tool results are JSON in `structuredContent` and in the text body. `pipeline.list`, `workflow.list`, `function.list`, and `hub.apps` return `{items, trace}` instead of a bare array. `get_run` without `run_id` returns `{runs, trace}`. Failures set `isError` and return `{error, trace}` with `code`, `message`, `retryable`, and `hint`. See [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
-- Agent-sandbox Playwright image variant and `playwright-*` GHCR tags are removed. Interactive browsing is CDP `browser_*` tools (`chat_agent.browser`) against Compose `lightpanda` or optional `playwright-cdp`. Pulls of `ghcr.io/flowline-io/flowbot-agent-sandbox:playwright-*` need those CDP services. See [.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md](.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md).
+- Life (CapLife, `/service/web/life*`, notify templates `life.quest.*`) is removed. Deployed databases keep `life_*` tables until they are dropped. User-nav Analytics replaces it: Personal (default) and Ops from live store aggregation; token usage is `/service/web/analytics/token-usage`, and `/home/token-usage` redirects there. See [.agents/notes/implemented/feature/2026-10-21-analytics-replaces-life.md](.agents/notes/implemented/feature/2026-10-21-analytics-replaces-life.md).
+- Desktop instruct commands are removed (pull/ack and the `instruct` table). Host agents keep online, offline, and message. `platform.telegram` and vendor blocks `pocket`, `safeline`, and `wallos` leave the reference config; leftover keys are ignored. Drop `instruct` with the statements in [docs/developer-guide/deployment.md](docs/developer-guide/deployment.md#database-schema-upgrades). See [.agents/notes/implemented/simplification/2026-10-21-remove-instruct-and-ghost-configs.md](.agents/notes/implemented/simplification/2026-10-21-remove-instruct-and-ghost-configs.md).
+- AdGuard Home, ArchiveBox, n8n, Slash, and Dropbox provider packages are removed, with `module.Shortcut` and Dropbox OAuth registration. Leftover `vendors` keys are ignored. Homelab discovery still fingerprints ArchiveBox as capability `archive`. See [.agents/notes/implemented/simplification/2026-10-21-remove-uncalled-providers.md](.agents/notes/implemented/simplification/2026-10-21-remove-uncalled-providers.md).
 
 ### Added
 
 - `GET /mcp/server-card` publishes a public MCP Server Card when `mcp.enabled` is true, unless `mcp.server_card` is false. The document has no tool list. `flowbot mcp config` prints the URL on stdout, and `/service/web/settings/mcp` shows it while the card is published. See [.agents/notes/implemented/feature/2026-10-21-mcp-server-card.md](.agents/notes/implemented/feature/2026-10-21-mcp-server-card.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
+
+### Changed
+
+- The hub `deploy` command invokes the `drone` capability (`deploy`: Gitea namespace, Drone build of the `deploy` repository, default notify). Pipelines and MCP use the same operation. The capability registers when `providers.drone.endpoint` is set. See [.agents/notes/implemented/architecture/2026-10-21-hub-deploy-drone-capability.md](.agents/notes/implemented/architecture/2026-10-21-hub-deploy-drone-capability.md).
+- Pipeline, workflow, and function web pages call the domain services for definitions, runs, and stats. Writes reload inside the service. Pipeline delete and enable return a reload error. See [.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md](.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md).
+- The lineage module is removed. `GET /service/audit` is served by the web module; the path and `audit:read` gate are unchanged. See [.agents/notes/implemented/simplification/2026-10-21-merge-lineage-module-into-web.md](.agents/notes/implemented/simplification/2026-10-21-merge-lineage-module-into-web.md).
+- MCP advertised `inputSchema` values are gated in CI (`go tool task test:mcp-contract`): Draft 2020, top-level `object`, a description and a single type on each property, no `$ref` or combinators. See [.agents/notes/implemented/testing/2026-10-21-mcp-input-schema-gate.md](.agents/notes/implemented/testing/2026-10-21-mcp-input-schema-gate.md).
+
+## [0.99.17]
+
+### Breaking
+
+- MCP `/mcp` tool results are JSON in `structuredContent` and in the text body. `pipeline.list`, `workflow.list`, `function.list`, and `hub.apps` return `{items, trace}` instead of a bare array. `get_run` without `run_id` returns `{runs, trace}`. Failures set `isError` and return `{error, trace}` with `code`, `message`, `retryable`, and `hint`. `tools/call` that declares protocol `2026-07-28` requires headers `Mcp-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` (400 when absent). See [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
+- CLI `--output` / `-o` is `table` (default) or `json`. JSON success is an envelope whose payload is `data`. Exit codes separate usage, missing resources, conflict, confirmation required (7), and the retryable outage. A non-terminal stdin implies `--no-input`. `pipeline export` and `workflow export` take the YAML path on `--file`. See [.agents/notes/implemented/feature/2026-10-17-cli-agent-output.md](.agents/notes/implemented/feature/2026-10-17-cli-agent-output.md).
+
+### Added
+
 - MCP `tools/call` is limited per access-token row with a 60-second sliding window (`mcp.rate_limit`, defaults 120/min, 20 writes/min, 30 lineage/min) and rejects `params.arguments` over `mcp.max_argument_bytes` (default 65536). `audit:read` lists the caller's own audit rows at `GET /service/audit` and MCP `audit.list`. Data events mint `cor_<ULID>` when they have no correlation. See [.agents/notes/implemented/feature/2026-10-17-mcp-rate-limit-and-audit-list.md](.agents/notes/implemented/feature/2026-10-17-mcp-rate-limit-and-audit-list.md) and [.agents/notes/implemented/feature/2026-10-17-data-event-correlation.md](.agents/notes/implemented/feature/2026-10-17-data-event-correlation.md).
 - MCP list tools take `limit` (default 20, maximum 100) and `cursor`. Successful results stay within `mcp.max_output_bytes` (default 32768) and set `page.truncated` when shortened. `flowbot mcp config` prints a Codex, Claude Code, Cursor, or generic snippet. `/service/web/settings/mcp` previews tools and mints a token for the signed-in user. See [.agents/notes/implemented/feature/2026-10-17-mcp-tool-quality-and-client-setup.md](.agents/notes/implemented/feature/2026-10-17-mcp-tool-quality-and-client-setup.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
+
+### Fixed
+
+- Memos create and update send the Memo resource as the HTTP body. `updateMask` is a comma-separated query parameter. Notes created with the old wrapper stay blank. See [.agents/notes/implemented/bug-fix/2026-10-20-memos-create-body.md](.agents/notes/implemented/bug-fix/2026-10-20-memos-create-body.md).
+- Chat agent cancel emits SSE `canceled` (`run canceled by user`, `run timed out`, or `run canceled`) when the LLM abort carries the context error. See [.agents/notes/implemented/bug-fix/2026-10-15-chatagent-cancel-sse-aborted.md](.agents/notes/implemented/bug-fix/2026-10-15-chatagent-cancel-sse-aborted.md).
+- MCP `pipeline`, `workflow`, and `function` tools return `invalid_argument` when `name` is missing, and they do not run while that service is inactive. See [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md).
+
+## [0.99.16]
+
+### Breaking
+
+- Kanban description flags no longer take `-d`. That shorthand stays global `--debug`. Use `--description` or `--desc`. See [.agents/notes/implemented/feature/2026-10-14-kanban-projects-and-task-fields.md](.agents/notes/implemented/feature/2026-10-14-kanban-projects-and-task-fields.md).
+
+### Added
+
+- Kanban project, swimlane, and category lists, plus `create_project`. Task create and update accept `date_due`, `category_id`, and `swimlane_id`; CLI `--due` is `YYYY-MM-DD`. An explicit `0` clears due, category, or swimlane. See [.agents/notes/implemented/feature/2026-10-14-kanban-projects-and-task-fields.md](.agents/notes/implemented/feature/2026-10-14-kanban-projects-and-task-fields.md).
+- `flowbot version` prints `Client version` and, when the server URL answers, `Server version`. Public `GET /version` returns `Buildtags` and `Buildstamp` with no auth. An unreachable server still exits 0 with `Server version: unavailable`. See [.agents/notes/implemented/feature/2026-10-14-cli-version-client-and-server.md](.agents/notes/implemented/feature/2026-10-14-cli-version-client-and-server.md).
+
+## [0.99.15]
+
+### Added
+
+- Firefly III transaction list, get, update, and delete, plus read-only lists for accounts, categories, budgets, bills, and tags. The public transaction id is the Firefly group id. Update is partial and re-sends every split. See [.agents/notes/implemented/feature/2026-10-14-fireflyiii-b3-transaction-crud-and-lists.md](.agents/notes/implemented/feature/2026-10-14-fireflyiii-b3-transaction-crud-and-lists.md).
+
+### Fixed
+
+- Firefly III requests send `Accept: application/json`. An invalid token is a provider error, so health no longer stays green on an empty about payload. See [.agents/notes/implemented/bug-fix/2026-10-14-fireflyiii-accept-json-empty-about.md](.agents/notes/implemented/bug-fix/2026-10-14-fireflyiii-accept-json-empty-about.md).
+
+## [0.99.14]
+
+### Breaking
+
+- Agent-sandbox Playwright image variant and `playwright-*` GHCR tags are removed. Interactive browsing is CDP `browser_*` tools (`chat_agent.browser`) against Compose `lightpanda` or optional `playwright-cdp`. Pulls of `ghcr.io/flowline-io/flowbot-agent-sandbox:playwright-*` need those CDP services. See [.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md](.agents/notes/implemented/architecture/2026-09-16-chat-agent-browser-cdp.md).
+
+### Added
+
 - Windows CLI install script `scripts/install.ps1` (peer of `install.sh`): GitHub release asset `flowbot-cli_windows_amd64.exe`, optional `-Version` / `-NoVerify`, SHA256 via `flowbot_checksums.txt`, install under `%LOCALAPPDATA%\Programs\flowbot` and user `Path`. One-liner: `irm https://raw.githubusercontent.com/flowline-io/flowbot/master/scripts/install.ps1 | iex`. See [.agents/notes/implemented/process/2026-10-13-windows-cli-install-script.md](.agents/notes/implemented/process/2026-10-13-windows-cli-install-script.md).
 - MCP: inbound Streamable HTTP `/mcp` (default off, header tokens, capability tools plus pipeline/workflow/function list/get/run/get_run and hub read) and chat-agent outbound MCP client (`chat_agent.mcp_servers`). See [.agents/notes/implemented/feature/2026-10-10-mcp-server-and-client.md](.agents/notes/implemented/feature/2026-10-10-mcp-server-and-client.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
 - Homelab image digest checks: periodic RepoDigest vs registry manifest comparison emits `homelab.image.update_available`; official blueprint `homelab_image_update_notify`. See [.agents/notes/implemented/feature/2026-10-10-homelab-image-update-check.md](.agents/notes/implemented/feature/2026-10-10-homelab-image-update-check.md).
@@ -23,8 +77,6 @@
 
 ### Changed
 
-- The hub `deploy` command invokes the `drone` capability (`deploy`: Gitea namespace, Drone build of the `deploy` repository, default notify). Pipelines and MCP use the same operation. The capability registers when `providers.drone.endpoint` is set. See [.agents/notes/implemented/architecture/2026-10-21-hub-deploy-drone-capability.md](.agents/notes/implemented/architecture/2026-10-21-hub-deploy-drone-capability.md).
-- Deleting a pipeline from the web page reloads the pipeline engine. See [.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md](.agents/notes/implemented/architecture/2026-10-21-web-pages-use-domain-services.md).
 - Agent Skills identity rules (`pkg/validate`: name, description, compatibility, name↔directory) apply on zip import, Web create/update, and composer generation. `go tool task skills` runs `skills-ref@0.1.5`; CI workflow `.github/workflows/skills.yml` fails when `docs/skills` is dirty or validation fails. See [.agents/notes/implemented/process/2026-09-16-agent-skills-name-validation-skills-ref.md](.agents/notes/implemented/process/2026-09-16-agent-skills-name-validation-skills-ref.md).
 - `github.com/a-h/templ` upgraded to v0.3.1070. Boolean HTML attributes use `attr?={ cond }`. See [.agents/notes/implemented/process/2026-10-09-templ-0.3.1070-upgrade.md](.agents/notes/implemented/process/2026-10-09-templ-0.3.1070-upgrade.md).
 - Server image CI smokes the published GHCR tag for baked artifacts (`/opt/app/flowbot`, `flowbot-cli_linux_amd64`, `composer`, `dcg`, `wget`) without starting the HTTP server. See [.agents/notes/implemented/testing/2026-09-18-server-image-ci-smoke.md](.agents/notes/implemented/testing/2026-09-18-server-image-ci-smoke.md).
@@ -294,6 +346,11 @@ Notable changes through this tag that were previously listed under Unreleased:
 - Notify capability no longer advertises unimplemented `digest` op (use aggregate rules).
 - Karakeep `delete` archives; Miniflux star/unstar via API.
 
+[0.99.18]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.18
+[0.99.17]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.17
+[0.99.16]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.16
+[0.99.15]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.15
+[0.99.14]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.14
 [0.99.13]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.13
 [0.99.12]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.12
 [0.99.11]: https://github.com/flowline-io/flowbot/releases/tag/v0.99.11
