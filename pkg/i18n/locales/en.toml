@@ -4693,9 +4693,6 @@ other = "Modules"
 [settings.group.platform]
 other = "Platform"
 
-[settings.group.plugins]
-other = "Plugins"
-
 [settings.group.postgres]
 other = "Postgres"
 

@@ -585,9 +585,6 @@ other = "Telegram 平台配置"
 ["settings.desc.platform.telegram.enabled"]
 other = "Telegram 平台配置"
 
-["settings.desc.plugins"]
-other = "插件系统配置"
-
 ["settings.desc.postgres"]
 other = "Postgres 是主数据库配置（YAML 键：postgres）。"
 

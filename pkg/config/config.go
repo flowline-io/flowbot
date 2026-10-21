@@ -15,7 +15,6 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
 
-	plugintypes "github.com/flowline-io/flowbot/pkg/plugin/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 )
@@ -100,9 +99,6 @@ type Type struct {
 
 	// Core configures CapCore runtime primitives (HTTP SSRF policy, workspace).
 	Core CoreConfig `json:"core" yaml:"core" mapstructure:"core"`
-
-	// Plugin system configuration
-	Plugins *plugintypes.PluginConfig `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
 
 	// Retention controls optional automatic cleanup of durable history tables.
 	Retention RetentionConfig `json:"retention" yaml:"retention" mapstructure:"retention"`

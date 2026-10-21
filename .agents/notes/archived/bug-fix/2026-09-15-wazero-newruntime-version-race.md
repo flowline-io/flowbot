@@ -1,6 +1,7 @@
 # Agent Note: Serialize wazero NewRuntime (version cache race)
 
 Status: implemented
+Archived: 2026-10-21
 
 ## Problem
 

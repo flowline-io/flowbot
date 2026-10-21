@@ -199,7 +199,6 @@ var FieldDocs = map[string]string{
 	"platform.tailchat.webhook_token":                     "WebhookToken is the shared secret required on inbound /platform/tailchat callbacks via the X-Tailchat-Token header. When Tailchat is enabled, an empty token rejects all requests.",
 	"platform.telegram":                                   "Telegram platform configuration",
 	"platform.telegram.enabled":                           "Telegram platform configuration",
-	"plugins":                                             "Plugin system configuration",
 	"postgres":                                            "Postgres is the primary database configuration (YAML key: postgres).",
 	"postgres.conn_max_idle_time":                         "ConnMaxIdleTime is idle connection max lifetime in seconds (0 = pool default).",
 	"postgres.conn_max_lifetime":                          "ConnMaxLifetime is connection max lifetime in seconds (0 = pool default).",

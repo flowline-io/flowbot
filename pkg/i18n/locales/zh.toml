@@ -4696,9 +4696,6 @@ other = "模块"
 [settings.group.platform]
 other = "平台"
 
-[settings.group.plugins]
-other = "插件"
-
 [settings.group.postgres]
 other = "Postgres"
 

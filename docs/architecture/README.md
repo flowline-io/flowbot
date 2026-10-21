@@ -87,9 +87,9 @@ confluence, core, devops, email, example, fireflyiii, functions, gitea, github, 
 
 Outbound: Slack, Pushover, ntfy, Message Pusher (with `rules/` throttling/aggregation and `template/`). In-app: `pkg/notify/inapp`. CapCore `notify_send` is the pipeline/capability entry; see [notification-gateway.md](../user-guide/notification-gateway.md).
 
-### Shared Packages (37)
+### Shared Packages (35)
 
-agent, auth, backoff, bulkhead, cache, capability, client, config, cronutil, event, exec, executor, flog, functions, homelab (with probe/), hub, i18n, media, metrics, module, notify, parser, pipeline, plugin, profiling, providers, rdb, route, stats, trace, types, utils, validate, views, webauth, workflow
+agent, auth, backoff, bulkhead, cache, capability, client, config, cronutil, event, exec, executor, flog, functions, homelab (with probe/), hub, i18n, media, metrics, module, notify, parser, pipeline, profiling, providers, rdb, route, stats, trace, types, utils, validate, views, webauth, workflow
 
 ### CI/CD (`.github/workflows/`)
 

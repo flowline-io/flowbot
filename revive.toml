@@ -20,7 +20,7 @@ warningCode = 0
 [rule.var-declaration]
 [rule.package-comments]
 [rule.package-naming]
-  # Grandfather pkg/types, pkg/utils, and pkg/plugin (stdlib name). Still ban other default-bad names.
+  # Grandfather pkg/types and pkg/utils. Still ban other default-bad names.
   arguments = [{ skip-default-bad-name-check = true, skip-collision-with-common-std = true, user-defined-bad-names = ["common", "util", "misc", "interfaces", "helpers", "shared", "utilities"] }]
 [rule.range]
 [rule.receiver-naming]
