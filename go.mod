@@ -15,7 +15,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.40.0
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/bytedance/sonic v1.15.4
-	github.com/chromedp/cdproto v0.158.2
+	github.com/chromedp/cdproto v0.158.3
 	github.com/chromedp/chromedp v0.20.1
 	github.com/chromedp/chromedp/remote v0.2.0
 	github.com/containerd/errdefs v1.0.0
