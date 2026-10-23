@@ -19,7 +19,7 @@ require (
 	github.com/chromedp/chromedp v0.20.1
 	github.com/chromedp/chromedp/remote v0.2.0
 	github.com/containerd/errdefs v1.0.0
-	github.com/creachadair/jrpc2 v1.3.5
+	github.com/creachadair/jrpc2 v1.3.6
 	github.com/dgraph-io/ristretto/v2 v2.4.2
 	github.com/docker/go-units v0.5.0
 	github.com/emersion/go-imap v1.2.1
@@ -225,7 +225,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.20.0 // indirect
 	github.com/cpuguy83/dockercfg v0.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
-	github.com/creachadair/mds v0.26.1 // indirect
+	github.com/creachadair/mds v0.31.0 // indirect
 	github.com/cyberphone/json-canonicalization v0.0.0-20241213102144-19d51d7fe467 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
