@@ -50,12 +50,16 @@ func (a *blueprintPageAdapter) ParameterSet(ctx context.Context, flag string, pa
 
 var _ = Describe("Blueprint library pages", Label("module", "web", "blueprint"), func() {
 	var (
-		origDB  store.Adapter
-		adapter *blueprintPageAdapter
+		origDB        store.Adapter
+		adapter       *blueprintPageAdapter
+		prevPipeline  *pipeline.Service
+		prevBlueprint *pipeline.BlueprintService
 	)
 
 	BeforeEach(func() {
 		origDB = store.Database
+		prevPipeline = pipeline.ActiveService()
+		prevBlueprint = pipeline.ActiveBlueprintService()
 		adapter = &blueprintPageAdapter{
 			ent:    EntClient,
 			uid:    "bdd-blueprint-uid-" + types.Id(),
@@ -74,8 +78,10 @@ var _ = Describe("Blueprint library pages", Label("module", "web", "blueprint"),
 	})
 
 	AfterEach(func() {
-		pipeline.SetActiveBlueprintService(nil)
-		pipeline.SetActiveService(nil)
+		// Same-process specs call pipeline.ActiveService() at request time.
+		// Leaving it nil makes pipeline CRUD return 500 for every status.
+		pipeline.SetActiveBlueprintService(prevBlueprint)
+		pipeline.SetActiveService(prevPipeline)
 		store.Database = origDB
 	})
 

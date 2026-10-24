@@ -18,6 +18,9 @@ import (
 )
 
 var _ = Describe("Pipeline CRUD API", Label("pipeline", "web", "api"), func() {
+	BeforeEach(func() {
+		ensurePipelineService()
+	})
 
 	Describe("POST /service/web/pipelines", func() {
 		It("creates a new pipeline and returns HX-Redirect header", func() {

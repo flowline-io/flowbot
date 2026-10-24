@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	webmod "github.com/flowline-io/flowbot/internal/modules/web"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
 
@@ -20,6 +21,19 @@ import (
 )
 
 var pipelineRoutesMounted bool
+
+// ensurePipelineService puts the suite pipeline service back when another spec
+// cleared the process-wide ActiveService. It does not touch the workflow service.
+func ensurePipelineService() {
+	if pipeline.ActiveService() != nil {
+		return
+	}
+	if store.Database == nil || store.Database.GetClient() == nil {
+		return
+	}
+	svc, _ := store.NewPipelineService(store.PipelineStoreFromDB(), store.EventStoreFromDB())
+	pipeline.SetActiveService(svc)
+}
 
 // mountPipelineRoutes registers pipeline CRUD routes on the given fiber app.
 // Writes go through pkg/pipeline.Service, matching the web handlers.
