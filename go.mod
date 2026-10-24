@@ -33,7 +33,7 @@ require (
 	github.com/gofiber/fiber/v3 v3.6.1
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.4.3
-	github.com/hekmon/transmissionrpc/v3 v3.0.0
+	github.com/hekmon/transmissionrpc/v3 v3.1.0
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/mattn/go-shellwords v1.0.16
 	github.com/microcosm-cc/bluemonday v1.0.27
@@ -344,7 +344,7 @@ require (
 	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl/v2 v2.24.0 // indirect
-	github.com/hekmon/cunits/v2 v2.1.0 // indirect
+	github.com/hekmon/cunits/v2 v2.1.1 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/in-toto/attestation v1.2.0 // indirect
 	github.com/in-toto/in-toto-golang v0.11.0 // indirect
