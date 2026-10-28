@@ -1,0 +1,2619 @@
+[
+  {
+    "name": "audit.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "confluence.create_page",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "title"
+      ]
+    }
+  },
+  {
+    "name": "confluence.delete_page",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "page_id"
+      ]
+    }
+  },
+  {
+    "name": "confluence.get_page",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "page_id"
+      ]
+    }
+  },
+  {
+    "name": "confluence.get_page_content",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "page_id"
+      ]
+    }
+  },
+  {
+    "name": "confluence.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "confluence.list_pages",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "confluence.list_spaces",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "confluence.search_pages",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "cql"
+      ]
+    }
+  },
+  {
+    "name": "confluence.update_page",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "page_id"
+      ]
+    }
+  },
+  {
+    "name": "core.agent_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "core.clip_create",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "content"
+      ]
+    }
+  },
+  {
+    "name": "core.clip_get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "slug"
+      ]
+    }
+  },
+  {
+    "name": "core.clip_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "core.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "core.kv_delete",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "namespace",
+        "key"
+      ]
+    }
+  },
+  {
+    "name": "core.kv_get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "namespace",
+        "key"
+      ]
+    }
+  },
+  {
+    "name": "core.kv_set",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "namespace",
+        "key",
+        "value"
+      ]
+    }
+  },
+  {
+    "name": "core.notify_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "core.notify_send",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "template_id",
+        "channels"
+      ]
+    }
+  },
+  {
+    "name": "devops.beszel_get_system",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "devops.beszel_list_systems",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.dozzle_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.grafana_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.grafana_list_datasources",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.grafana_query",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "backend",
+        "expr"
+      ]
+    }
+  },
+  {
+    "name": "devops.grafana_search_dashboards",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.netalertx_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.netalertx_list_devices",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.netalertx_search_devices",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "query"
+      ]
+    }
+  },
+  {
+    "name": "devops.netalertx_totals",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.scanopy_get_host",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "devops.scanopy_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.scanopy_list_daemons",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.scanopy_list_hosts",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.scanopy_list_networks",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.scanopy_list_services",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.scanopy_version",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.status",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.traefik_list_routers",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.traefik_list_services",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.traefik_overview",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.uptimekuma_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.uptimekuma_metrics",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.wakapi_all_time",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.wakapi_health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.wakapi_list_projects",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "devops.wakapi_summary",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "drone.deploy",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "drone.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "email.get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "email.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "email.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "email.mark_read",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "email.mark_unread",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "email.search",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "email.send",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "to",
+        "subject"
+      ]
+    }
+  },
+  {
+    "name": "fireflyiii.about",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.create_transaction",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "type",
+        "date",
+        "amount",
+        "description"
+      ]
+    }
+  },
+  {
+    "name": "fireflyiii.current_user",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.delete_transaction",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "fireflyiii.get_transaction",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "fireflyiii.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.list_accounts",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.list_bills",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.list_budgets",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.list_categories",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.list_tags",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.list_transactions",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "fireflyiii.update_transaction",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "function.get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "function.get_run",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "function.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "function.run",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "functions.get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "functions.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "functions.invoke",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name",
+        "version"
+      ]
+    }
+  },
+  {
+    "name": "gitea.get_commit_diff",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo",
+        "commit_id"
+      ]
+    }
+  },
+  {
+    "name": "gitea.get_file_content",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo",
+        "commit_id",
+        "file_path"
+      ]
+    }
+  },
+  {
+    "name": "gitea.get_issue",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo",
+        "index"
+      ]
+    }
+  },
+  {
+    "name": "gitea.get_repo",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo"
+      ]
+    }
+  },
+  {
+    "name": "gitea.get_user",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "gitea.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "gitea.list_issues",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner"
+      ]
+    }
+  },
+  {
+    "name": "github.get_commit_diff",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo",
+        "commit_id"
+      ]
+    }
+  },
+  {
+    "name": "github.get_file_content",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo",
+        "commit_id",
+        "file_path"
+      ]
+    }
+  },
+  {
+    "name": "github.get_issue",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo",
+        "number"
+      ]
+    }
+  },
+  {
+    "name": "github.get_repo",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo"
+      ]
+    }
+  },
+  {
+    "name": "github.get_user",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "github.get_user_by_login",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "login"
+      ]
+    }
+  },
+  {
+    "name": "github.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "github.list_issues",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner"
+      ]
+    }
+  },
+  {
+    "name": "github.list_notifications",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "github.list_releases",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "owner",
+        "repo"
+      ]
+    }
+  },
+  {
+    "name": "hub.apps",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "hub.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.complete_task",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "kanboard.create_project",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "kanboard.create_task",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.delete_task",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "kanboard.get_columns",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.get_task",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "kanboard.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.list_categories",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.list_projects",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.list_swimlanes",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.list_tasks",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.move_task",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "kanboard.search_tasks",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "kanboard.update_task",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "karakeep.archive",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "karakeep.attach_tags",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id",
+        "tags"
+      ]
+    }
+  },
+  {
+    "name": "karakeep.check_url",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "url"
+      ]
+    }
+  },
+  {
+    "name": "karakeep.create",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "url"
+      ]
+    }
+  },
+  {
+    "name": "karakeep.delete",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "karakeep.detach_tags",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id",
+        "tags"
+      ]
+    }
+  },
+  {
+    "name": "karakeep.get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "karakeep.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "karakeep.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "karakeep.search",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "memos.create",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "content"
+      ]
+    }
+  },
+  {
+    "name": "memos.delete",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "memos.get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "memos.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "memos.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "memos.update",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "miniflux.create_feed",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "feed_url"
+      ]
+    }
+  },
+  {
+    "name": "miniflux.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "miniflux.list_entries",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "miniflux.list_feeds",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "miniflux.mark_entry_read",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "miniflux.mark_entry_unread",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "miniflux.star_entry",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "miniflux.unstar_entry",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "nocodb.create_record",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "table_id",
+        "fields"
+      ]
+    }
+  },
+  {
+    "name": "nocodb.delete_record",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "table_id",
+        "record_id"
+      ]
+    }
+  },
+  {
+    "name": "nocodb.get_record",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "table_id",
+        "record_id"
+      ]
+    }
+  },
+  {
+    "name": "nocodb.get_table",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "table_id"
+      ]
+    }
+  },
+  {
+    "name": "nocodb.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "nocodb.list_bases",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "nocodb.list_records",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "table_id"
+      ]
+    }
+  },
+  {
+    "name": "nocodb.list_tables",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "base_id"
+      ]
+    }
+  },
+  {
+    "name": "nocodb.update_record",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "table_id",
+        "record_id",
+        "fields"
+      ]
+    }
+  },
+  {
+    "name": "pipeline.get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "pipeline.get_run",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "pipeline.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "pipeline.run",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "transmission.add",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "url"
+      ]
+    }
+  },
+  {
+    "name": "transmission.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "transmission.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "transmission.remove",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "ids"
+      ]
+    }
+  },
+  {
+    "name": "transmission.stop",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "ids"
+      ]
+    }
+  },
+  {
+    "name": "trello.create_card",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "list_id",
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "trello.delete_card",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "card_id"
+      ]
+    }
+  },
+  {
+    "name": "trello.delete_webhook",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "webhook_id"
+      ]
+    }
+  },
+  {
+    "name": "trello.get_board",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trello.get_card",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "card_id"
+      ]
+    }
+  },
+  {
+    "name": "trello.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trello.list_boards",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trello.list_cards",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trello.list_lists",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trello.move_card",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "card_id",
+        "list_id"
+      ]
+    }
+  },
+  {
+    "name": "trello.register_webhook",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trello.search_cards",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "query"
+      ]
+    }
+  },
+  {
+    "name": "trello.update_card",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "card_id"
+      ]
+    }
+  },
+  {
+    "name": "trilium.create",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "title"
+      ]
+    }
+  },
+  {
+    "name": "trilium.delete",
+    "tier": "destructive",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "trilium.get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "trilium.get_app_info",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trilium.get_content",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "trilium.health",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trilium.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "trilium.search",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "query"
+      ]
+    }
+  },
+  {
+    "name": "trilium.set_content",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id",
+        "content"
+      ]
+    }
+  },
+  {
+    "name": "trilium.update",
+    "tier": "write",
+    "idempotentHint": true,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "id"
+      ]
+    }
+  },
+  {
+    "name": "workflow.get",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "workflow.get_run",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  },
+  {
+    "name": "workflow.list",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": []
+    }
+  },
+  {
+    "name": "workflow.run",
+    "tier": "write",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "inputSchema": {
+      "required": [
+        "name"
+      ]
+    }
+  }
+]

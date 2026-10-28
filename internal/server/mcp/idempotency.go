@@ -18,7 +18,7 @@ import (
 
 func toolInputSchema(spec ToolSpec) map[string]any {
 	schema := schemaFromParams(spec.Input)
-	tier, _ := capability.Classify(spec.Group, spec.Operation)
+	tier, _ := toolTier(spec)
 	if tier == capability.TierRead {
 		return schema
 	}
@@ -30,7 +30,7 @@ func runTool(ctx context.Context, ident Identity, spec ToolSpec, args map[string
 	if err != nil {
 		return toolError(ctx, err), nil
 	}
-	tier, _ := capability.Classify(spec.Group, spec.Operation)
+	tier, _ := toolTier(spec)
 	if key != "" && tier != capability.TierRead {
 		return runClaimedTool(ctx, ident, spec, args, auditor, key)
 	}
@@ -119,7 +119,7 @@ func executePrepared(ctx context.Context, ident Identity, spec ToolSpec, args ma
 }
 
 func preflightIdempotency(ctx context.Context, ident Identity, spec ToolSpec, msg toolsCallEnvelope, auditor audit.Auditor) ([]byte, bool) {
-	tier, _ := capability.Classify(spec.Group, spec.Operation)
+	tier, _ := toolTier(spec)
 	if tier == capability.TierRead {
 		return nil, false
 	}

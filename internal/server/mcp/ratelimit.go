@@ -112,7 +112,7 @@ func bucketsForTool(tokenID int64, spec ToolSpec, known bool) []rateBucket {
 		}
 		out = append(out, rateBucket{name: fmt.Sprintf("mcp:rl:%d:lineage", tokenID), limit: limit})
 	}
-	tier, _ := capability.Classify(spec.Group, spec.Operation)
+	tier, _ := toolTier(spec)
 	if tier != capability.TierRead {
 		limit := cfg.WritePerTokenRPM
 		if limit <= 0 {

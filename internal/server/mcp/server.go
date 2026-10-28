@@ -261,8 +261,18 @@ func newSDKServer(ident Identity, auditor audit.Auditor) *mcpsdk.Server {
 	return srv
 }
 
-func toolAnnotations(spec ToolSpec) *mcpsdk.ToolAnnotations {
+// toolTier resolves the annotation tier. A declared mutation is a write even
+// when the operation-name table does not know the name.
+func toolTier(spec ToolSpec) (capability.Tier, bool) {
 	tier, idempotent := capability.Classify(spec.Group, spec.Operation)
+	if tier == capability.TierRead && spec.Mutation {
+		return capability.TierWrite, false
+	}
+	return tier, idempotent
+}
+
+func toolAnnotations(spec ToolSpec) *mcpsdk.ToolAnnotations {
+	tier, idempotent := toolTier(spec)
 	open := pkgmcp.OpenWorld(spec.Group)
 	ann := &mcpsdk.ToolAnnotations{
 		Title:         pkgmcp.Title(spec.Group, spec.Description),
