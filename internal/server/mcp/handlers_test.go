@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/capability/drone"
 	"github.com/flowline-io/flowbot/pkg/functions"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
@@ -85,6 +87,48 @@ func TestNamedToolRejectsMissingNameBeforeService(t *testing.T) {
 			assert.Equal(t, "name", te.Field)
 		})
 	}
+}
+
+func TestDroneDeployUsesTokenSubject(t *testing.T) {
+	var got types.Uid
+	require.NoError(t, capability.RegisterInvoker(hub.CapDrone, drone.OpDeploy,
+		func(_ context.Context, params map[string]any) (*capability.InvokeResult, error) {
+			uid, _ := capability.StringParam(params, "uid")
+			got = types.Uid(uid)
+			return &capability.InvokeResult{Data: map[string]any{}}, nil
+		}))
+	t.Cleanup(func() { capability.UnregisterInvoker(hub.CapDrone, drone.OpDeploy) })
+
+	_, _, err := executeTool(context.Background(), Identity{UID: "token-user"},
+		droneToolSpec(t, drone.OpDeploy), map[string]any{"uid": "attacker"}, nil, "")
+	require.NoError(t, err)
+	assert.Equal(t, types.Uid("token-user"), got)
+}
+
+func TestDroneDeploySchemaHidesUID(t *testing.T) {
+	schema := toolInputSchema(droneToolSpec(t, drone.OpDeploy))
+	props, ok := schema["properties"].(map[string]any)
+	require.True(t, ok)
+	assert.NotContains(t, props, "uid")
+	assert.Contains(t, props, "idempotency_key")
+}
+
+func droneToolSpec(t *testing.T, operation string) ToolSpec {
+	t.Helper()
+	for _, op := range drone.CatalogSpec().Ops {
+		if op.Name == operation {
+			return ToolSpec{
+				Name:      "drone." + op.Name,
+				Group:     "drone",
+				Operation: op.Name,
+				Kind:      kindCapability,
+				Mutation:  op.Mutation,
+				Input:     op.Input,
+			}
+		}
+	}
+	t.Fatalf("drone operation %q not found", operation)
+	return ToolSpec{}
 }
 
 func TestNamedToolUnavailableWhenServiceMissing(t *testing.T) {

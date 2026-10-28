@@ -17,7 +17,7 @@ import (
 )
 
 func toolInputSchema(spec ToolSpec) map[string]any {
-	schema := schemaFromParams(spec.Input)
+	schema := schemaFromParams(advertisedParams(spec.Input))
 	tier, _ := toolTier(spec)
 	if tier == capability.TierRead {
 		return schema

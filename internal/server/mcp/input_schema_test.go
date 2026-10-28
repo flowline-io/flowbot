@@ -47,7 +47,7 @@ func TestInputSchemaContract(t *testing.T) {
 	tools := BuildCatalog(descs, nil, nil)
 	require.NotEmpty(t, tools)
 	for _, tool := range tools {
-		err := pkgmcp.ValidateInputSchema(schemaFromParams(tool.Input))
+		err := pkgmcp.ValidateInputSchema(toolInputSchema(tool))
 		assert.NoError(t, err, tool.Name)
 	}
 }

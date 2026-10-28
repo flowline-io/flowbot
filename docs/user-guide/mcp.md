@@ -31,7 +31,7 @@ Use a narrow token (`service:karakeep:read`, `pipeline:run`, …) rather than `a
 
 | Preset | Scopes |
 | --- | --- |
-| Read | Hub reads, every `service:*:read`, and `pipeline:read` / `function:read` / `workflow:read` |
+| Read | Hub reads, every `service:*:read` (including `service:drone:read`), and `pipeline:read` / `function:read` / `workflow:read` |
 | Run | Read plus `pipeline:run`, `function:run`, and `workflow:run` |
 | Run and delete | Run plus `pipeline:delete`, `function:delete`, and `workflow:delete` |
 | Custom | Any subset of the wizard scopes |
@@ -45,6 +45,21 @@ The automate HTTP API splits automation scopes by verb:
 | `pipeline:delete` / `function:delete` / `workflow:delete` | Delete the definition |
 
 A run scope does not authorize delete. `admin:*` still authorizes every route. MCP exposes no delete tool; deleting an automation definition is a CLI or REST call with the matching `:delete` scope.
+
+### Tools and scopes
+
+A registered capability contributes one tool per operation, named `<capability>.<operation>`. The complete advertised list is the `tools/list` output and the checked-in snapshot `internal/server/mcp/testdata/tools.snapshot.json`. The Drone group advertises:
+
+| Tool | Tier | Scope | Arguments |
+| --- | --- | --- | --- |
+| `drone.deploy` | write, non-idempotent, open-world | `service:drone:write` | none; the server fills `uid` |
+| `drone.health` | read, open-world | `service:drone:read` | none |
+
+`drone` registers only when `providers.drone.endpoint` is set. An empty endpoint skips registration, so neither tool is advertised and a call fails with `capability drone not found`. Other provider-backed capabilities follow the same rule: an unconfigured provider has no tools.
+
+The Run preset does not add `service:*:write`. Call a write tool such as `drone.deploy` with a Custom token that includes `service:drone:write`.
+
+MCP does not advertise a `uid` argument. When a capability declares one, the server fills it with the token subject before the handler runs, so a caller cannot deploy or notify as another user. Pipeline and hub callers set `uid` themselves; those call paths are not MCP.
 
 Successful calls return the payload in `structuredContent` and repeat that JSON as text. `pipeline.list`, `workflow.list`, `function.list`, and `hub.apps` use `items`. `get_run` without `run_id` returns `runs`. Other objects keep their fields. Every result includes `trace.request_id`, the same value as the HTTP `X-Request-ID` header. `trace.trace_id` is present when the call has a W3C trace.
 

@@ -386,6 +386,23 @@ func measureToolJSON(spec ToolSpec, trace map[string]any) func(items []any, page
 	}
 }
 
+// serverParam reports whether MCP fills the argument from the authenticated
+// caller instead of accepting it from the client.
+func serverParam(name string) bool {
+	return name == "uid"
+}
+
+func advertisedParams(params []hub.ParamDef) []hub.ParamDef {
+	out := make([]hub.ParamDef, 0, len(params))
+	for _, p := range params {
+		if serverParam(p.Name) {
+			continue
+		}
+		out = append(out, p)
+	}
+	return out
+}
+
 func schemaFromParams(params []hub.ParamDef) map[string]any {
 	fields := make([]pkgmcp.Field, 0, len(params))
 	for _, p := range params {

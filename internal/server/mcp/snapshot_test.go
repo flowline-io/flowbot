@@ -86,7 +86,19 @@ func TestToolSnapshot(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "write", deploy.Tier)
 	assert.False(t, deploy.IdempotentHint)
-	assert.Equal(t, "read", byName["drone.health"].Tier)
+	assert.False(t, deploy.Annotations.ReadOnlyHint)
+	require.NotNil(t, deploy.Annotations.DestructiveHint)
+	assert.False(t, *deploy.Annotations.DestructiveHint)
+	assert.False(t, deploy.Annotations.IdempotentHint)
+	assert.True(t, deploy.Annotations.OpenWorldHint)
+
+	health, ok := byName["drone.health"]
+	require.True(t, ok)
+	assert.Equal(t, "read", health.Tier)
+	assert.True(t, health.Annotations.ReadOnlyHint)
+	assert.Nil(t, health.Annotations.DestructiveHint)
+	assert.True(t, health.Annotations.OpenWorldHint)
+
 	assert.NotContains(t, string(raw), "server-card")
 	assert.NotContains(t, string(raw), "serverCard")
 }

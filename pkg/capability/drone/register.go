@@ -44,6 +44,9 @@ func buildSpec(app string, svc Service) capability.Spec {
 	}
 }
 
+// invokeDeploy reads the notification target from params. The MCP server hides
+// uid from the tool schema and replaces it with the token subject; pipeline and
+// hub callers set it.
 func invokeDeploy(svc Service, app string) capability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 		uid, _ := capability.StringParam(params, "uid")
