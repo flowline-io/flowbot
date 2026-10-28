@@ -292,6 +292,10 @@ func setupTestApp() *fiber.App {
 					return c.Status(fiber.StatusUnauthorized).
 						JSON(protocol.NewFailedResponse(oopsErr))
 				}
+				if oopsErr.Code() == protocol.ErrorCode(protocol.ErrAccessDenied) {
+					return c.Status(fiber.StatusForbidden).
+						JSON(protocol.NewFailedResponse(oopsErr))
+				}
 				return c.Status(fiber.StatusBadRequest).
 					JSON(protocol.NewFailedResponse(oopsErr))
 			}

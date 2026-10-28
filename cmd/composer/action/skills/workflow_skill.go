@@ -140,7 +140,7 @@ Full list: [references/steps.md](references/steps.md#templates).
 |-------|-----|
 | not logged in | ` + "`" + `flowbot login` + "`" + ` |
 | server URL is required | set ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` or pass ` + "`" + `--server-url` + "`" + ` |
-| insufficient scope | token needs ` + "`" + `workflow:read` + "`" + ` and/or ` + "`" + `workflow:run` + "`" + ` |
+| insufficient scope | token needs ` + "`" + `workflow:read` + "`" + `, ` + "`" + `workflow:run` + "`" + `, and/or ` + "`" + `workflow:delete` + "`" + ` |
 | workflow name is required / not found | apply first; check ` + "`" + `list` + "`" + ` |
 | input validation failed | supply all required ` + "`" + `inputs` + "`" + ` with correct types |
 | ` + "`" + `function "…" not defined` + "`" + ` | replace with a helper from [references/steps.md](references/steps.md#templates); do not invent helpers |
@@ -492,7 +492,7 @@ func platformWorkflowSpec() platformSpec {
 		CommandFn:   command.WorkflowCommand,
 		Description: "Manage Flowbot workflows via flowbot workflow: apply YAML definitions to the database, list/get/export/delete, run asynchronously, and inspect runs.",
 		Keywords:    "workflows, workflow YAML, workflow runs, cron/webhook workflow triggers",
-		ScopesNote:  "Token scopes: `workflow:read` for list/get/export/runs; `workflow:run` for apply/delete/run (run also satisfies read)",
+		ScopesNote:  "Token scopes: `workflow:read` for list/get/export/runs; `workflow:run` for apply/run; `workflow:delete` for delete (run also satisfies read)",
 		ExampleFS:   workflowExampleFS,
 		ExampleDir:  "testdata/workflow",
 		Workflows: []workflowSpec{

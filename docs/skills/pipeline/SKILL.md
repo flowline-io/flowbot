@@ -25,7 +25,7 @@ Teaching examples (load via read_skill with path):
 
 1. Ensure CLI auth: `flowbot login`
 2. Set server via `FLOWBOT_SERVER_URL` or `--server-url`; optional `--profile`, `--debug` / `-d`
-3. Token scopes: `pipeline:read` for list/get/export/runs; `pipeline:run` for apply/delete/run (run also satisfies read)
+3. Token scopes: `pipeline:read` for list/get/export/runs; `pipeline:run` for apply/run; `pipeline:delete` for delete (run also satisfies read)
 4. Prefer `-o json` when parsing results programmatically
 
 ## Step shape
@@ -107,7 +107,7 @@ When the user wants to remove a definition (run history is deleted, including co
 |-------|-----|
 | not logged in | `flowbot login` |
 | server URL is required | set `FLOWBOT_SERVER_URL` or pass `--server-url` |
-| insufficient scope | token needs `pipeline:read` and/or `pipeline:run` |
+| insufficient scope | token needs `pipeline:read`, `pipeline:run`, and/or `pipeline:delete` |
 | pipeline name is required / not found | apply first; check `list`; draft-only pipelines are invisible to CLI |
 | conflict / 409 | someone else changed the draft; re-`export`/edit and `apply` again |
 | pipeline is disabled | set `enabled: true` in YAML and re-apply |

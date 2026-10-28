@@ -156,6 +156,11 @@ func TestNewHTTPServer_ErrorHandler_ProtocolErrors(t *testing.T) {
 			err:        protocol.ErrBadRequest.New("bad request"),
 			wantStatus: http.StatusBadRequest,
 		},
+		{
+			name:       "ErrAccessDenied returns 403",
+			err:        protocol.ErrAccessDenied.New("insufficient scope: pipeline:delete"),
+			wantStatus: http.StatusForbidden,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

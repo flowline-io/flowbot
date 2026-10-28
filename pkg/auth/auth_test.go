@@ -2,6 +2,7 @@
 package auth
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +16,30 @@ func TestAllScopesIncludesLineageRead(t *testing.T) {
 	}
 	assert.True(t, found[ScopeLineageRead])
 	assert.True(t, found[ScopeAuditRead])
+}
+
+func TestAllScopesIncludesDeleteScopes(t *testing.T) {
+	t.Parallel()
+	found := map[string]bool{}
+	for _, info := range AllScopes() {
+		found[info.Value] = true
+	}
+	assert.True(t, found[ScopePipelineDelete])
+	assert.True(t, found[ScopeFunctionDelete])
+	assert.True(t, found[ScopeWorkflowDelete])
+}
+
+func TestMCPRunScopesExcludesDelete(t *testing.T) {
+	t.Parallel()
+	scopes := MCPRunScopes()
+	assert.False(t, slices.Contains(scopes, ScopePipelineDelete))
+	assert.False(t, slices.Contains(scopes, ScopeFunctionDelete))
+	assert.False(t, slices.Contains(scopes, ScopeWorkflowDelete))
+
+	deleteScopes := MCPRunDeleteScopes()
+	assert.True(t, slices.Contains(deleteScopes, ScopePipelineDelete))
+	assert.True(t, slices.Contains(deleteScopes, ScopeFunctionDelete))
+	assert.True(t, slices.Contains(deleteScopes, ScopeWorkflowDelete))
 }
 
 func TestHasScope(t *testing.T) {
@@ -93,6 +118,13 @@ func TestHasMinimumServiceScope(t *testing.T) {
 		{name: "workflow read for workflow GET", scopes: []string{ScopeWorkflowRead}, group: "automate/workflow", method: "GET", want: true},
 		{name: "workflow run satisfies workflow GET", scopes: []string{ScopeWorkflowRun}, group: "automate/workflow", method: "GET", want: true},
 		{name: "workflow read denies workflow POST", scopes: []string{ScopeWorkflowRead}, group: "automate/workflow", method: "POST", want: false},
+		{name: "pipeline run denies pipeline DELETE", scopes: []string{ScopePipelineRun}, group: "automate/pipeline", method: "DELETE", want: false},
+		{name: "pipeline delete allows pipeline DELETE", scopes: []string{ScopePipelineDelete}, group: "automate/pipeline", method: "DELETE", want: true},
+		{name: "pipeline delete denies pipeline GET", scopes: []string{ScopePipelineDelete}, group: "automate/pipeline", method: "GET", want: false},
+		{name: "function run denies functions DELETE", scopes: []string{ScopeFunctionRun}, group: "automate/functions", method: "DELETE", want: false},
+		{name: "function delete allows functions DELETE", scopes: []string{ScopeFunctionDelete}, group: "automate/functions", method: "DELETE", want: true},
+		{name: "workflow run denies workflow DELETE", scopes: []string{ScopeWorkflowRun}, group: "automate/workflow", method: "DELETE", want: false},
+		{name: "workflow delete allows workflow DELETE", scopes: []string{ScopeWorkflowDelete}, group: "automate/workflow", method: "DELETE", want: true},
 		{name: "hub capabilities for hub GET", scopes: []string{ScopeHubCapabilitiesRead}, group: "hub", method: "GET", want: true},
 		{name: "empty scopes denied", scopes: []string{}, group: "example", method: "GET", want: false},
 	}
@@ -118,10 +150,13 @@ func TestMinimumServiceScope(t *testing.T) {
 		{name: "web DELETE", group: "web", method: "DELETE", want: ScopeAdmin},
 		{name: "pipeline GET", group: "automate/pipeline", method: "GET", want: ScopePipelineRead},
 		{name: "pipeline POST", group: "automate/pipeline", method: "POST", want: ScopePipelineRun},
+		{name: "pipeline DELETE", group: "automate/pipeline", method: "DELETE", want: ScopePipelineDelete},
 		{name: "functions GET", group: "automate/functions", method: "GET", want: ScopeFunctionRead},
 		{name: "functions POST", group: "automate/functions", method: "POST", want: ScopeFunctionRun},
+		{name: "functions DELETE", group: "automate/functions", method: "DELETE", want: ScopeFunctionDelete},
 		{name: "workflow GET", group: "automate/workflow", method: "GET", want: ScopeWorkflowRead},
 		{name: "workflow POST", group: "automate/workflow", method: "POST", want: ScopeWorkflowRun},
+		{name: "workflow DELETE", group: "automate/workflow", method: "DELETE", want: ScopeWorkflowDelete},
 		{name: "hub GET", group: "hub", method: "GET", want: ScopeHubCapabilitiesRead},
 		{name: "lineage GET", group: "lineage", method: "GET", want: ScopeLineageRead},
 		{name: "flows GET", group: "flows", method: "GET", want: ScopeLineageRead},

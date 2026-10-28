@@ -26,7 +26,7 @@ Teaching examples (load via read_skill with path):
 
 1. Ensure CLI auth: `flowbot login`
 2. Set server via `FLOWBOT_SERVER_URL` or `--server-url`; optional `--profile`, `--debug` / `-d`
-3. Token scopes: `workflow:read` for list/get/export/runs; `workflow:run` for apply/delete/run (run also satisfies read)
+3. Token scopes: `workflow:read` for list/get/export/runs; `workflow:run` for apply/run; `workflow:delete` for delete (run also satisfies read)
 4. Prefer `-o json` when parsing results programmatically
 
 ## Step types
@@ -108,7 +108,7 @@ When the user wants to remove a definition (run history is kept):
 |-------|-----|
 | not logged in | `flowbot login` |
 | server URL is required | set `FLOWBOT_SERVER_URL` or pass `--server-url` |
-| insufficient scope | token needs `workflow:read` and/or `workflow:run` |
+| insufficient scope | token needs `workflow:read`, `workflow:run`, and/or `workflow:delete` |
 | workflow name is required / not found | apply first; check `list` |
 | input validation failed | supply all required `inputs` with correct types |
 | `function "…" not defined` | replace with a helper from [references/steps.md](references/steps.md#templates); do not invent helpers |

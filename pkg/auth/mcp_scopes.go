@@ -24,9 +24,14 @@ func MCPReadScopes() []string {
 }
 
 // MCPRunScopes is the read preset plus pipeline, function, and workflow run.
-// Those three run scopes also authorize apply and delete on the automate HTTP API.
+// Those run scopes authorize apply and run on the automate HTTP API.
 func MCPRunScopes() []string {
 	return append(MCPReadScopes(), ScopePipelineRun, ScopeFunctionRun, ScopeWorkflowRun)
+}
+
+// MCPRunDeleteScopes is the run preset plus the pipeline, function, and workflow delete scopes.
+func MCPRunDeleteScopes() []string {
+	return append(MCPRunScopes(), ScopePipelineDelete, ScopeFunctionDelete, ScopeWorkflowDelete)
 }
 
 // MCPWizardScopes returns scopes the MCP wizard may grant. admin:* is omitted.

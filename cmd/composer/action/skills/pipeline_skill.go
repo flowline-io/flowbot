@@ -82,7 +82,7 @@ Full list: [references/steps.md](references/steps.md#templates).
 |-------|-----|
 | not logged in | ` + "`" + `flowbot login` + "`" + ` |
 | server URL is required | set ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` or pass ` + "`" + `--server-url` + "`" + ` |
-| insufficient scope | token needs ` + "`" + `pipeline:read` + "`" + ` and/or ` + "`" + `pipeline:run` + "`" + ` |
+| insufficient scope | token needs ` + "`" + `pipeline:read` + "`" + `, ` + "`" + `pipeline:run` + "`" + `, and/or ` + "`" + `pipeline:delete` + "`" + ` |
 | pipeline name is required / not found | apply first; check ` + "`" + `list` + "`" + `; draft-only pipelines are invisible to CLI |
 | conflict / 409 | someone else changed the draft; re-` + "`" + `export` + "`" + `/edit and ` + "`" + `apply` + "`" + ` again |
 | pipeline is disabled | set ` + "`" + `enabled: true` + "`" + ` in YAML and re-apply |
@@ -280,7 +280,7 @@ func platformPipelineSpec() platformSpec {
 		CommandFn:                command.PipelineCommand,
 		Description:              "Manage Flowbot pipelines via flowbot pipeline: apply YAML definitions to the database (draft+publish), list/get/export/delete, run asynchronously with optional event payload, and inspect runs.",
 		Keywords:                 "pipelines, pipeline YAML, pipeline runs, DataEvent, cron/webhook pipeline triggers",
-		ScopesNote:               "Token scopes: `pipeline:read` for list/get/export/runs; `pipeline:run` for apply/delete/run (run also satisfies read)",
+		ScopesNote:               "Token scopes: `pipeline:read` for list/get/export/runs; `pipeline:run` for apply/run; `pipeline:delete` for delete (run also satisfies read)",
 		ExampleFS:                pipelineExampleFS,
 		ExampleDir:               "testdata/pipeline",
 		IncludeCapabilityCatalog: true,

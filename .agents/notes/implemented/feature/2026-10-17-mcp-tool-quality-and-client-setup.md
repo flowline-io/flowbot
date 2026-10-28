@@ -31,7 +31,7 @@ The checklist in `docs/user-guide/mcp.md` is unsigned. Its signing record is one
 
 ## Consequences
 
-Advertised tool descriptions follow a fixed shape: what it does, a tier sentence, then `Example:`. `pipeline:run`, `function:run`, and `workflow:run` in the run preset also authorize automate HTTP apply and delete. `service:core:read` and `service:life:read` are not in the wizard because they are not in `AllScopes`.
+Advertised tool descriptions follow a fixed shape: what it does, a tier sentence, then `Example:`. `pipeline:run`, `function:run`, and `workflow:run` in the run preset authorize apply and run on the automate HTTP API. Delete uses separate `:delete` scopes ([note](../architecture/2026-10-29-automate-delete-scope.md)). `service:core:read` and `service:life:read` are not in the wizard because they are not in `AllScopes`.
 
 ## Verification
 

@@ -6,9 +6,9 @@ JSON APIs for named functions, pipelines, and workflows. Web UI for the same dom
 
 - Module config key: `modules.automate` (`enabled` defaults true when omitted).
 - Routes (mounted from one `Webservice()`):
-  - `/service/automate/functions/*` — `function:read` on GET, `function:run` on writes
-  - `/service/automate/pipeline/*` — `pipeline:read` on GET, `pipeline:run` on writes
-  - `/service/automate/workflow/*` — `workflow:read` on GET, `workflow:run` on writes
+  - `/service/automate/functions/*` — `function:read` on GET, `function:run` on POST/PUT/PATCH, `function:delete` on DELETE
+  - `/service/automate/pipeline/*` — `pipeline:read` on GET, `pipeline:run` on POST/PUT/PATCH, `pipeline:delete` on DELETE
+  - `/service/automate/workflow/*` — `workflow:read` on GET, `workflow:run` on POST/PUT/PATCH, `workflow:delete` on DELETE
 - E2E: `InitForE2E` / `MountForE2E`.
 
 ## Boundaries

@@ -146,6 +146,10 @@ func newHTTPServer() *fiber.App {
 					return ctx.Status(fiber.StatusUnauthorized).
 						JSON(protocol.NewFailedResponse(e))
 				}
+				if e.Code() == protocol.ErrorCode(protocol.ErrAccessDenied) {
+					return ctx.Status(fiber.StatusForbidden).
+						JSON(protocol.NewFailedResponse(e))
+				}
 				flog.Error(err)
 				return ctx.Status(fiber.StatusBadRequest).
 					JSON(protocol.NewFailedResponse(e))

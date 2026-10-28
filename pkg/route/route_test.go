@@ -530,6 +530,8 @@ func TestRequireServiceScope(t *testing.T) {
 		{name: "karakeep read allows GET", scopes: []string{auth.ScopeServiceKarakeepRead}, group: "karakeep", method: "GET", want: 200},
 		{name: "karakeep read denies POST", scopes: []string{auth.ScopeServiceKarakeepRead}, group: "karakeep", method: "POST", want: 403},
 		{name: "admin allows POST", scopes: []string{auth.ScopeAdmin}, group: "karakeep", method: "POST", want: 200},
+		{name: "pipeline run denies DELETE", scopes: []string{auth.ScopePipelineRun}, group: "automate/pipeline", method: "DELETE", want: 403},
+		{name: "pipeline delete allows DELETE", scopes: []string{auth.ScopePipelineDelete}, group: "automate/pipeline", method: "DELETE", want: 200},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -544,9 +546,12 @@ func TestRequireServiceScope(t *testing.T) {
 			handler := Authorize(RequireServiceScope(tt.group, tt.method, func(c fiber.Ctx) error {
 				return c.SendString("ok")
 			}))
-			if tt.method == "POST" {
+			switch tt.method {
+			case http.MethodPost:
 				app.Post("/test", handler)
-			} else {
+			case http.MethodDelete:
+				app.Delete("/test", handler)
+			default:
 				app.Get("/test", handler)
 			}
 			hreq := httptest.NewRequest(tt.method, "/test", http.NoBody)

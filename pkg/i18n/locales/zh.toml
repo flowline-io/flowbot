@@ -491,6 +491,9 @@ other = "只读"
 [page.mcp.preset_run]
 other = "读并运行自动化"
 
+[page.mcp.preset_run_delete]
+other = "读、运行并删除自动化"
+
 [page.mcp.preset_custom]
 other = "自定义"
 
@@ -498,7 +501,7 @@ other = "自定义"
 other = "刷新预览"
 
 [page.mcp.run_warning]
-other = "pipeline:run、function:run 和 workflow:run 同时放行 automate HTTP 的 apply 和 delete。"
+other = "pipeline:run、function:run 和 workflow:run 只放行 apply 和 run。删除需要 pipeline:delete、function:delete 或 workflow:delete；请选择「读、运行并删除」预设（或自定义）来授予。"
 
 [page.mcp.expires]
 other = "有效期"

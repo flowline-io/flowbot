@@ -74,13 +74,16 @@ const (
 	ScopeServiceInfraRead     = "service:infra:read"
 	ScopeServiceShellRead     = "service:shell-history:read"
 
-	ScopePipelineRead  = "pipeline:read"
-	ScopePipelineRun   = "pipeline:run"
-	ScopeFunctionRead  = "function:read"
-	ScopeFunctionRun   = "function:run"
-	ScopeWorkflowRead  = "workflow:read"
-	ScopeWorkflowRun   = "workflow:run"
-	ScopeChatAgentChat = "chatagent:chat"
+	ScopePipelineRead   = "pipeline:read"
+	ScopePipelineRun    = "pipeline:run"
+	ScopePipelineDelete = "pipeline:delete"
+	ScopeFunctionRead   = "function:read"
+	ScopeFunctionRun    = "function:run"
+	ScopeFunctionDelete = "function:delete"
+	ScopeWorkflowRead   = "workflow:read"
+	ScopeWorkflowRun    = "workflow:run"
+	ScopeWorkflowDelete = "workflow:delete"
+	ScopeChatAgentChat  = "chatagent:chat"
 	// ScopeLineageRead allows reading event correlation and causation links.
 	ScopeLineageRead = "lineage:read"
 	// ScopeAuditRead allows reading the caller's own audit rows. admin:* reads every row.
@@ -156,29 +159,37 @@ func isWriteHTTPMethod(method string) bool {
 	}
 }
 
+type automateScopeSet struct {
+	read   string
+	run    string
+	delete string
+}
+
+var automateScopeSets = map[string]automateScopeSet{
+	"automate/pipeline":  {read: ScopePipelineRead, run: ScopePipelineRun, delete: ScopePipelineDelete},
+	"automate/functions": {read: ScopeFunctionRead, run: ScopeFunctionRun, delete: ScopeFunctionDelete},
+	"automate/workflow":  {read: ScopeWorkflowRead, run: ScopeWorkflowRun, delete: ScopeWorkflowDelete},
+}
+
 // MinimumServiceScope returns the default minimum scope for /service/{group} routes.
 // Web UI routes require admin:* (full browser sessions). Automate REST groups map to
-// function:*/pipeline:*/workflow:*; hub module routes map to hub:capabilities:read;
-// provider modules use service:{group}:read|write.
+// function:*/pipeline:*/workflow:*; DELETE needs the matching :delete scope, while
+// other writes need :run. Hub module routes map to hub:capabilities:read; provider
+// modules use service:{group}:read|write.
 func MinimumServiceScope(group, method string) string {
+	if set, ok := automateScopeSets[group]; ok {
+		switch {
+		case strings.EqualFold(method, "DELETE"):
+			return set.delete
+		case isWriteHTTPMethod(method):
+			return set.run
+		default:
+			return set.read
+		}
+	}
 	switch group {
 	case "web":
 		return ScopeAdmin
-	case "automate/pipeline":
-		if isWriteHTTPMethod(method) {
-			return ScopePipelineRun
-		}
-		return ScopePipelineRead
-	case "automate/functions":
-		if isWriteHTTPMethod(method) {
-			return ScopeFunctionRun
-		}
-		return ScopeFunctionRead
-	case "automate/workflow":
-		if isWriteHTTPMethod(method) {
-			return ScopeWorkflowRun
-		}
-		return ScopeWorkflowRead
 	case "hub":
 		return ScopeHubCapabilitiesRead
 	case "lineage", "flows", "events":
@@ -195,27 +206,24 @@ func MinimumServiceScope(group, method string) string {
 
 // HasMinimumServiceScope reports whether scopes satisfy the default /service/{group} gate.
 // Write scopes satisfy read for the same provider group; pipeline:run satisfies pipeline:read;
-// function:run satisfies function:read; workflow:run satisfies workflow:read.
+// function:run satisfies function:read; workflow:run satisfies workflow:read. The :run scopes
+// do not satisfy :delete.
 func HasMinimumServiceScope(scopes []string, group, method string) bool {
-	required := MinimumServiceScope(group, method)
-	if HasScope(scopes, required) {
+	if HasScope(scopes, MinimumServiceScope(group, method)) {
 		return true
 	}
-	if !isWriteHTTPMethod(method) {
-		switch group {
-		case "web", "hub", "lineage", "flows", "events", "audit":
-			return false
-		case "automate/pipeline":
-			return HasScope(scopes, ScopePipelineRun)
-		case "automate/functions":
-			return HasScope(scopes, ScopeFunctionRun)
-		case "automate/workflow":
-			return HasScope(scopes, ScopeWorkflowRun)
-		default:
-			return HasScope(scopes, ServiceScope(group, "write"))
-		}
+	if isWriteHTTPMethod(method) {
+		return false
 	}
-	return false
+	if set, ok := automateScopeSets[group]; ok {
+		return HasScope(scopes, set.run)
+	}
+	switch group {
+	case "web", "hub", "lineage", "flows", "events", "audit":
+		return false
+	default:
+		return HasScope(scopes, ServiceScope(group, "write"))
+	}
 }
 
 // CanGrantScopes reports whether callerScopes may mint every scope in requested.
@@ -284,11 +292,14 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeServiceExampleRead, Description: "read example"},
 		{Value: ScopeServiceExampleWrite, Description: "write example"},
 		{Value: ScopePipelineRead, Description: "read pipelines"},
-		{Value: ScopePipelineRun, Description: "apply, delete, and run pipelines"},
+		{Value: ScopePipelineRun, Description: "apply and run pipelines"},
+		{Value: ScopePipelineDelete, Description: "delete pipelines"},
 		{Value: ScopeFunctionRead, Description: "read named functions"},
-		{Value: ScopeFunctionRun, Description: "apply, delete, and manage named functions"},
+		{Value: ScopeFunctionRun, Description: "apply, call, and manage named functions"},
+		{Value: ScopeFunctionDelete, Description: "delete named functions"},
 		{Value: ScopeWorkflowRead, Description: "read workflows"},
-		{Value: ScopeWorkflowRun, Description: "apply, delete, and run workflows"},
+		{Value: ScopeWorkflowRun, Description: "apply and run workflows"},
+		{Value: ScopeWorkflowDelete, Description: "delete workflows"},
 		{Value: ScopeChatAgentChat, Description: "agent"},
 		{Value: ScopeLineageRead, Description: "read event lineage"},
 		{Value: ScopeAuditRead, Description: "read own audit log"},

@@ -25,6 +25,27 @@ Cursor example (`mcp.json`):
 
 Use a narrow token (`service:karakeep:read`, `pipeline:run`, …) rather than `admin:*` when possible. `mcp.include` / `mcp.exclude` further crop the tool list (capability name or full `capability.operation`). A deny-list never exposes `core.run_terminal`, `core.run_code`, `core.http_request`, or `core.agent_run`. Write tools run when the token has write/run scope; they are not sent through chat-agent approval. Pipeline/workflow/function **apply** (YAML upsert) is not an MCP tool — use CLI or Web to change definitions; MCP can list, get, run, and inspect runs.
 
+### Scope presets
+
+`/service/web/settings/mcp` mints from these presets:
+
+| Preset | Scopes |
+| --- | --- |
+| Read | Hub reads, every `service:*:read`, and `pipeline:read` / `function:read` / `workflow:read` |
+| Run | Read plus `pipeline:run`, `function:run`, and `workflow:run` |
+| Run and delete | Run plus `pipeline:delete`, `function:delete`, and `workflow:delete` |
+| Custom | Any subset of the wizard scopes |
+
+The automate HTTP API splits automation scopes by verb:
+
+| Scope | Allows |
+| --- | --- |
+| `pipeline:read` / `function:read` / `workflow:read` | List, get, export, and read runs |
+| `pipeline:run` / `function:run` / `workflow:run` | Apply (YAML upsert), run a pipeline or workflow, and call a function |
+| `pipeline:delete` / `function:delete` / `workflow:delete` | Delete the definition |
+
+A run scope does not authorize delete. `admin:*` still authorizes every route. MCP exposes no delete tool; deleting an automation definition is a CLI or REST call with the matching `:delete` scope.
+
 Successful calls return the payload in `structuredContent` and repeat that JSON as text. `pipeline.list`, `workflow.list`, `function.list`, and `hub.apps` use `items`. `get_run` without `run_id` returns `runs`. Other objects keep their fields. Every result includes `trace.request_id`, the same value as the HTTP `X-Request-ID` header. `trace.trace_id` is present when the call has a W3C trace.
 
 Failed calls set `isError` and return `structuredContent.error` with `code`, `message`, `retryable`, and `hint`. The text body is the same JSON. Retry only when `retryable` is true, and wait `retry_after_ms` when that field is present.
@@ -50,7 +71,7 @@ The decision, hash canonicalization, and rejected alternatives (including a 12 t
 
 Codes, hints, and schema scope: [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](../../.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md).
 
-List tools take `limit` (default 20, maximum 100) and an opaque `cursor`. The next page is `page.next_cursor`. When a result is shortened to `mcp.max_output_bytes` (default 32768), `page.truncated` is true. `flowbot mcp config --client codex|claude|cursor|generic` prints a snippet and does not write client files. The Web page `/service/web/settings/mcp` shows the same snippets and can mint a read or run token for the signed-in user. `mcp.enabled` and `mcp.server_card` are read from the process config; changing them requires a restart.
+List tools take `limit` (default 20, maximum 100) and an opaque `cursor`. The next page is `page.next_cursor`. When a result is shortened to `mcp.max_output_bytes` (default 32768), `page.truncated` is true. `flowbot mcp config --client codex|claude|cursor|generic` prints a snippet and does not write client files. The Web page `/service/web/settings/mcp` shows the same snippets and can mint a read, run, or run-and-delete token for the signed-in user. `mcp.enabled` and `mcp.server_card` are read from the process config; changing them requires a restart.
 
 ## Client check
 

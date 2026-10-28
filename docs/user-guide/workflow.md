@@ -168,7 +168,7 @@ flowbot workflow run save_and_track --input '{"url":"https://example.com","title
 flowbot workflow runs save_and_track
 ```
 
-Scopes: `workflow:read` (list/get/export/runs), `workflow:run` (apply/delete/run).
+Scopes: `workflow:read` (list/get/export/runs), `workflow:run` (apply/run), `workflow:delete` (delete). A run scope also satisfies read and does not authorize delete.
 
 ### From HTTP
 

@@ -491,6 +491,9 @@ other = "Read only"
 [page.mcp.preset_run]
 other = "Read and run automation"
 
+[page.mcp.preset_run_delete]
+other = "Read, run, and delete automation"
+
 [page.mcp.preset_custom]
 other = "Custom"
 
@@ -498,7 +501,7 @@ other = "Custom"
 other = "Refresh preview"
 
 [page.mcp.run_warning]
-other = "pipeline:run, function:run, and workflow:run also allow apply and delete on the automate HTTP API."
+other = "pipeline:run, function:run, and workflow:run allow apply and run. Delete needs pipeline:delete, function:delete, or workflow:delete; pick Read, run, and delete automation (or Custom) to grant it."
 
 [page.mcp.expires]
 other = "Expires"
