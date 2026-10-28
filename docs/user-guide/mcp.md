@@ -29,6 +29,25 @@ Successful calls return the payload in `structuredContent` and repeat that JSON 
 
 Failed calls set `isError` and return `structuredContent.error` with `code`, `message`, `retryable`, and `hint`. The text body is the same JSON. Retry only when `retryable` is true, and wait `retry_after_ms` when that field is present.
 
+### Idempotency keys
+
+Non-read tools take an optional `idempotency_key` argument (`params.arguments.idempotency_key`, not `_meta`). Read tools do not advertise it and never create a claim. A key is 1 to 255 bytes of ASCII letters, digits, `.`, `_`, `~`, or `-`; the server removes it from the arguments before the handler runs.
+
+A claim is a PostgreSQL row scoped to the access-token id, the tool name, and the key. Tool names are exact: the same key on `drone.deploy` and `kanboard.create_task` is two claims, and another token with the same key is a claim of its own. Claims do not expire: there is no 24-hour TTL, no Redis lock, and the unique constraint is the claim.
+
+For an existing claim on the same token, tool, and key:
+
+- Same arguments and a stored success: the handler does not run, the stored result is returned, and `trace.replayed` is true. `trace.correlation_id` is the first call's correlation id, so the replay does not emit a second data event.
+- Same key with different arguments: `invalid_argument` with `field` set to `idempotency_key`, and the write does not run. Use a new key for a different payload.
+- First call still running (`in_progress`): `unavailable` with `retry_after_ms` 1000. Retry the same call with the same key.
+- Outcome `unknown`: `idempotency_unknown` with `retryable: false`. This covers a process that stopped mid-call, a handler failure after the claim, and a success body larger than `mcp.max_output_bytes`. An argument error releases the claim instead, so the same key runs again. Read with `*.list` or `*.get` before using a new key.
+
+Mint one key before the first attempt and send that same key on every retry of that write. A different key is a new write, even with identical arguments, and a write without a key is not deduplicated. At startup, leftover `in_progress` claims become `unknown` and never execute again.
+
+Key these first, because a duplicate side effect is hard to reverse: `drone.deploy` (rebuilds a deploy), `fireflyiii.create_transaction` (posts a second ledger entry), and `kanboard.create_task` (creates a second Kanban card). Every non-read tool accepts the key, including `pipeline.run`, `workflow.run`, and `function.run`.
+
+The decision, hash canonicalization, and rejected alternatives (including a 12 to 24 hour TTL): [.agents/notes/implemented/feature/2026-10-21-write-idempotency-key.md](../../.agents/notes/implemented/feature/2026-10-21-write-idempotency-key.md).
+
 Codes, hints, and schema scope: [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](../../.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md).
 
 List tools take `limit` (default 20, maximum 100) and an opaque `cursor`. The next page is `page.next_cursor`. When a result is shortened to `mcp.max_output_bytes` (default 32768), `page.truncated` is true. `flowbot mcp config --client codex|claude|cursor|generic` prints a snippet and does not write client files. The Web page `/service/web/settings/mcp` shows the same snippets and can mint a read or run token for the signed-in user. `mcp.enabled` and `mcp.server_card` are read from the process config; changing them requires a restart.

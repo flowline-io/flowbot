@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Write calls accept an optional idempotency key: MCP `arguments.idempotency_key`, REST write routes `Idempotency-Key`, CLI `--idempotency-key`. Reusing a key with the same payload returns the stored result instead of running the write again (MCP `trace.replayed`, REST `Idempotency-Replayed: true`, CLI `replayed: true`). The same key with different arguments is `invalid_argument`; a call still in progress is `unavailable`; an unknown outcome is `idempotency_unknown`. See [.agents/notes/implemented/feature/2026-10-21-write-idempotency-key.md](.agents/notes/implemented/feature/2026-10-21-write-idempotency-key.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
+
 ## [0.99.18]
 
 ### Breaking
