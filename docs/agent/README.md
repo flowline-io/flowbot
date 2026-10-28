@@ -86,7 +86,7 @@ go tool task test:specs   # includes tests/specs/agent_spec_test.go
 
 | Suite | Purpose | How to run |
 | ----- | ------- | ---------- |
-| **regression** | Near-100% FakeModel / deterministic gates | `go test ./pkg/agent/eval/...` or `go tool task agent:eval` (CI: [Agent Eval](../../.github/workflows/agent-eval.yml)) |
+| **regression** | Near-100% FakeModel / deterministic gates | `go test ./pkg/agent/eval/...` or `go tool task agent:eval` (CI: [Agent Eval](../../.github/workflows/agent-eval.yml) on PRs touching eval paths, weekly on the default branch, and manual dispatch) |
 | **capability** | Layered L1/L2/L3 climb; multi-trial Pass@1 + appendix `pass@k` / `pass^k` | `go tool task agent:eval:live` (local/nightly; not a PR hard gate) |
 
 ### Fake vs true outcome

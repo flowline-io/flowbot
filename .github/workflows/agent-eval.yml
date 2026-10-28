@@ -1,19 +1,6 @@
 name: Agent Eval
 
 on:
-  push:
-    branches:
-      - '*'
-    paths:
-      - 'pkg/agent/**'
-      - 'internal/server/chatagent/eval/**'
-      - 'cmd/composer/action/agenteval/**'
-      - 'cmd/composer/main.go'
-      - 'cmd/composer/main_test.go'
-      - 'taskfile.yaml'
-      - 'go.mod'
-      - 'go.sum'
-      - '.github/workflows/agent-eval.yml'
   pull_request:
     paths:
       - 'pkg/agent/**'
@@ -25,6 +12,10 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/agent-eval.yml'
+  # UTC 03:00 Monday (HKT 11:00) — weekly regression on the default branch
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: read
