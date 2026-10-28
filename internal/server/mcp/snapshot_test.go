@@ -36,7 +36,8 @@ type toolsSnapshotAnnotations struct {
 }
 
 type toolsSnapshotInput struct {
-	Required []string `json:"required"`
+	Required   []string `json:"required"`
+	Properties []string `json:"properties"`
 }
 
 // idempotentWriteTools is the explicit allowlist for write and destructive
@@ -99,6 +100,10 @@ func TestToolSnapshot(t *testing.T) {
 	assert.Nil(t, health.Annotations.DestructiveHint)
 	assert.True(t, health.Annotations.OpenWorldHint)
 
+	for _, tool := range got {
+		assert.NotContains(t, tool.InputSchema.Properties, "uid", "%s must not advertise uid", tool.Name)
+	}
+
 	assert.NotContains(t, string(raw), "server-card")
 	assert.NotContains(t, string(raw), "serverCard")
 }
@@ -146,6 +151,7 @@ func advertisedToolSnapshots() []toolsSnapshotEntry {
 		}
 		tier, _ := toolTier(tool)
 		ann := toolAnnotations(tool)
+		schema := toolInputSchema(tool)
 		out = append(out, toolsSnapshotEntry{
 			Name:           tool.Name,
 			Tier:           tierName(tier),
@@ -156,7 +162,10 @@ func advertisedToolSnapshots() []toolsSnapshotEntry {
 				IdempotentHint:  ann.IdempotentHint,
 				OpenWorldHint:   ann.OpenWorldHint != nil && *ann.OpenWorldHint,
 			},
-			InputSchema: toolsSnapshotInput{Required: requiredParams(toolInputSchema(tool))},
+			InputSchema: toolsSnapshotInput{
+				Required:   requiredParams(schema),
+				Properties: schemaPropertyNames(schema),
+			},
 		})
 	}
 	slices.SortFunc(out, func(a, b toolsSnapshotEntry) int {
@@ -188,6 +197,19 @@ func requiredParams(schema map[string]any) []string {
 			}
 		}
 	}
+	return out
+}
+
+func schemaPropertyNames(schema map[string]any) []string {
+	props, ok := schema["properties"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	out := make([]string, 0, len(props))
+	for name := range props {
+		out = append(out, name)
+	}
+	slices.Sort(out)
 	return out
 }
 

@@ -491,7 +491,7 @@ other = "只读"
 [page.mcp.preset_run]
 other = "读并运行自动化"
 
-[page.mcp.preset_run_delete]
+[page.mcp.preset_run_and_delete]
 other = "读、运行并删除自动化"
 
 [page.mcp.preset_custom]

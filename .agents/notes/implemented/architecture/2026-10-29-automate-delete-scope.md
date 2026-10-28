@@ -35,7 +35,7 @@ Only the delete authorization is split. Apply (YAML upsert) still uses the run s
 
 ## Verification
 
-- `go test ./pkg/auth/` covers DELETE mapping, run-does-not-delete, delete-scope acceptance, and the preset split.
+- `go test ./pkg/auth/` covers DELETE mapping, run-does-not-delete, delete-does-not-satisfy GET or POST/apply, delete-scope acceptance, and the preset split.
 - `go test ./internal/server/` covers `ErrAccessDenied` to 403.
 - BDD `tests/specs/automate_delete_scope_spec_test.go` seeds a token from `auth.MCPRunScopes()` and expects 403 on all three delete paths.
 - `docs/user-guide/mcp.md` carries the scope table; the token wizard labels and warning match it.

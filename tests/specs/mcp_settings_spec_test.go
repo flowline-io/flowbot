@@ -143,7 +143,7 @@ var _ = Describe("MCP settings /service/web/settings/mcp", Label("mcp", "web"), 
 	})
 
 	It("grants delete scopes in the run-and-delete preset", func() {
-		req := MakeRequest(http.MethodGet, "/service/web/settings/mcp?preset=run_delete", nil)
+		req := MakeRequest(http.MethodGet, "/service/web/settings/mcp?preset=run_and_delete", nil)
 		req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-mcp-settings-token"})
 		webmod.AttachCSRFForTest(req)
 		resp, err := App.Test(req)

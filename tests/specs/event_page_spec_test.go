@@ -158,7 +158,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 				defer resp.Body.Close()
 
 				// /service/web requires admin:*; pipeline-scoped tokens never reach requireAdmin.
-				Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+				Expect(resp.StatusCode).To(Equal(http.StatusForbidden))
 				Expect(string(ReadBody(resp))).To(ContainSubstring(`"retcode":"60007"`))
 			})
 		})

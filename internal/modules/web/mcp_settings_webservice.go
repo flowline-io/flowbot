@@ -92,7 +92,7 @@ func mcpSettingsFromValues(ctx fiber.Ctx, preset, endpoint string, scopes []stri
 }
 
 func buildMCPSettings(ctx fiber.Ctx, preset string, scopes []string, endpoint, token string) pages.MCPSettingsData {
-	if preset != "read" && preset != "run" && preset != "run_delete" && preset != "custom" {
+	if preset != "read" && preset != "run" && preset != "run_and_delete" && preset != "custom" {
 		preset = "read"
 	}
 	tools := serversmcp.FilterByScopes(serversmcp.BuildCatalog(hub.Default.List(), pkgconfig.App.MCP.Include, pkgconfig.App.MCP.Exclude), scopes)
@@ -131,7 +131,7 @@ func wizardScopes(preset string, custom []string) []string {
 	switch preset {
 	case "run":
 		return auth.MCPRunScopes()
-	case "run_delete":
+	case "run_and_delete":
 		return auth.MCPRunDeleteScopes()
 	case "custom":
 		allowed := map[string]bool{}

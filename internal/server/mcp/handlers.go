@@ -71,10 +71,10 @@ func injectUID(spec ToolSpec, args map[string]any, ident Identity) {
 		return
 	}
 	for _, p := range spec.Input {
-		if p.Name == "uid" {
-			args["uid"] = string(ident.UID)
-			return
+		if !serverParam(p.Name) {
+			continue
 		}
+		args[p.Name] = string(ident.UID)
 	}
 }
 

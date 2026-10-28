@@ -491,7 +491,7 @@ other = "Read only"
 [page.mcp.preset_run]
 other = "Read and run automation"
 
-[page.mcp.preset_run_delete]
+[page.mcp.preset_run_and_delete]
 other = "Read, run, and delete automation"
 
 [page.mcp.preset_custom]

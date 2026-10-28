@@ -9,7 +9,17 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "action",
+        "cursor",
+        "limit",
+        "result",
+        "since",
+        "subject_id",
+        "target_type",
+        "until"
+      ]
     }
   },
   {
@@ -24,6 +34,12 @@
     },
     "inputSchema": {
       "required": [
+        "title"
+      ],
+      "properties": [
+        "content",
+        "idempotency_key",
+        "space_key",
         "title"
       ]
     }
@@ -41,6 +57,10 @@
     "inputSchema": {
       "required": [
         "page_id"
+      ],
+      "properties": [
+        "idempotency_key",
+        "page_id"
       ]
     }
   },
@@ -55,6 +75,9 @@
     },
     "inputSchema": {
       "required": [
+        "page_id"
+      ],
+      "properties": [
         "page_id"
       ]
     }
@@ -71,6 +94,9 @@
     "inputSchema": {
       "required": [
         "page_id"
+      ],
+      "properties": [
+        "page_id"
       ]
     }
   },
@@ -84,7 +110,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -97,7 +124,12 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "space_key"
+      ]
     }
   },
   {
@@ -110,7 +142,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -125,6 +161,11 @@
     "inputSchema": {
       "required": [
         "cql"
+      ],
+      "properties": [
+        "cql",
+        "cursor",
+        "limit"
       ]
     }
   },
@@ -141,6 +182,12 @@
     "inputSchema": {
       "required": [
         "page_id"
+      ],
+      "properties": [
+        "content",
+        "idempotency_key",
+        "page_id",
+        "title"
       ]
     }
   },
@@ -154,7 +201,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -170,6 +218,11 @@
     "inputSchema": {
       "required": [
         "content"
+      ],
+      "properties": [
+        "content",
+        "created_by",
+        "idempotency_key"
       ]
     }
   },
@@ -185,6 +238,9 @@
     "inputSchema": {
       "required": [
         "slug"
+      ],
+      "properties": [
+        "slug"
       ]
     }
   },
@@ -198,7 +254,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -211,7 +268,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -228,6 +286,11 @@
       "required": [
         "namespace",
         "key"
+      ],
+      "properties": [
+        "idempotency_key",
+        "key",
+        "namespace"
       ]
     }
   },
@@ -244,6 +307,10 @@
       "required": [
         "namespace",
         "key"
+      ],
+      "properties": [
+        "key",
+        "namespace"
       ]
     }
   },
@@ -262,6 +329,13 @@
         "namespace",
         "key",
         "value"
+      ],
+      "properties": [
+        "idempotency_key",
+        "key",
+        "namespace",
+        "ttl_seconds",
+        "value"
       ]
     }
   },
@@ -275,7 +349,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -292,6 +367,12 @@
       "required": [
         "template_id",
         "channels"
+      ],
+      "properties": [
+        "channels",
+        "idempotency_key",
+        "payload",
+        "template_id"
       ]
     }
   },
@@ -307,6 +388,9 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id"
       ]
     }
   },
@@ -320,7 +404,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -333,7 +421,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -346,7 +435,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -359,7 +449,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -375,6 +469,14 @@
       "required": [
         "backend",
         "expr"
+      ],
+      "properties": [
+        "backend",
+        "datasource_uid",
+        "expr",
+        "from",
+        "max_lines",
+        "to"
       ]
     }
   },
@@ -388,7 +490,10 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "query"
+      ]
     }
   },
   {
@@ -401,7 +506,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -414,7 +520,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -427,7 +534,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -442,6 +553,9 @@
     "inputSchema": {
       "required": [
         "query"
+      ],
+      "properties": [
+        "query"
       ]
     }
   },
@@ -455,7 +569,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -470,6 +585,9 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id"
       ]
     }
   },
@@ -483,7 +601,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -496,7 +615,12 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "network_id"
+      ]
     }
   },
   {
@@ -509,7 +633,13 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "network_id",
+        "search"
+      ]
     }
   },
   {
@@ -522,7 +652,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -535,7 +669,14 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "host_id",
+        "limit",
+        "network_id",
+        "search"
+      ]
     }
   },
   {
@@ -548,7 +689,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -561,7 +703,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -574,7 +717,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -587,7 +734,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -600,7 +751,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -613,7 +765,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -626,7 +779,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -639,7 +793,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -652,7 +807,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -665,7 +821,12 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "query"
+      ]
     }
   },
   {
@@ -678,7 +839,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "interval",
+        "project"
+      ]
     }
   },
   {
@@ -692,7 +857,10 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "idempotency_key"
+      ]
     }
   },
   {
@@ -705,7 +873,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -720,6 +889,9 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id"
       ]
     }
   },
@@ -733,7 +905,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -746,7 +919,13 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "mailbox",
+        "unseen_only"
+      ]
     }
   },
   {
@@ -762,6 +941,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -778,6 +961,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -791,7 +978,18 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "before",
+        "cursor",
+        "from",
+        "limit",
+        "mailbox",
+        "since",
+        "subject",
+        "to",
+        "unseen"
+      ]
     }
   },
   {
@@ -808,6 +1006,16 @@
       "required": [
         "to",
         "subject"
+      ],
+      "properties": [
+        "bcc",
+        "cc",
+        "from_name",
+        "html",
+        "idempotency_key",
+        "subject",
+        "text",
+        "to"
       ]
     }
   },
@@ -821,7 +1029,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -840,6 +1049,24 @@
         "date",
         "amount",
         "description"
+      ],
+      "properties": [
+        "amount",
+        "bill_id",
+        "bill_name",
+        "budget_id",
+        "budget_name",
+        "category_name",
+        "date",
+        "description",
+        "destination_id",
+        "destination_name",
+        "idempotency_key",
+        "notes",
+        "source_id",
+        "source_name",
+        "tags",
+        "type"
       ]
     }
   },
@@ -853,7 +1080,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -869,6 +1097,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -884,6 +1116,9 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id"
       ]
     }
   },
@@ -897,7 +1132,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -910,7 +1146,12 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "type"
+      ]
     }
   },
   {
@@ -923,7 +1164,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -936,7 +1181,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -949,7 +1198,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -962,7 +1215,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -975,7 +1232,15 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "account_id",
+        "cursor",
+        "end",
+        "limit",
+        "start",
+        "type"
+      ]
     }
   },
   {
@@ -991,6 +1256,25 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "amount",
+        "bill_id",
+        "bill_name",
+        "budget_id",
+        "budget_name",
+        "category_name",
+        "date",
+        "description",
+        "destination_id",
+        "destination_name",
+        "id",
+        "idempotency_key",
+        "notes",
+        "source_id",
+        "source_name",
+        "tags",
+        "type"
       ]
     }
   },
@@ -1005,6 +1289,9 @@
     },
     "inputSchema": {
       "required": [
+        "name"
+      ],
+      "properties": [
         "name"
       ]
     }
@@ -1021,6 +1308,10 @@
     "inputSchema": {
       "required": [
         "name"
+      ],
+      "properties": [
+        "name",
+        "run_id"
       ]
     }
   },
@@ -1034,7 +1325,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -1050,6 +1345,12 @@
     "inputSchema": {
       "required": [
         "name"
+      ],
+      "properties": [
+        "event",
+        "idempotency_key",
+        "name",
+        "version"
       ]
     }
   },
@@ -1065,6 +1366,10 @@
     "inputSchema": {
       "required": [
         "name"
+      ],
+      "properties": [
+        "name",
+        "version"
       ]
     }
   },
@@ -1078,7 +1383,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1093,6 +1399,12 @@
     },
     "inputSchema": {
       "required": [
+        "name",
+        "version"
+      ],
+      "properties": [
+        "event",
+        "idempotency_key",
         "name",
         "version"
       ]
@@ -1112,6 +1424,11 @@
         "owner",
         "repo",
         "commit_id"
+      ],
+      "properties": [
+        "commit_id",
+        "owner",
+        "repo"
       ]
     }
   },
@@ -1130,6 +1447,14 @@
         "repo",
         "commit_id",
         "file_path"
+      ],
+      "properties": [
+        "commit_id",
+        "file_path",
+        "line_count",
+        "line_start",
+        "owner",
+        "repo"
       ]
     }
   },
@@ -1147,6 +1472,11 @@
         "owner",
         "repo",
         "index"
+      ],
+      "properties": [
+        "index",
+        "owner",
+        "repo"
       ]
     }
   },
@@ -1163,6 +1493,10 @@
       "required": [
         "owner",
         "repo"
+      ],
+      "properties": [
+        "owner",
+        "repo"
       ]
     }
   },
@@ -1176,7 +1510,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1189,7 +1524,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1204,6 +1540,14 @@
     "inputSchema": {
       "required": [
         "owner"
+      ],
+      "properties": [
+        "cursor",
+        "limit",
+        "owner",
+        "sort_by",
+        "sort_order",
+        "state"
       ]
     }
   },
@@ -1221,6 +1565,11 @@
         "owner",
         "repo",
         "commit_id"
+      ],
+      "properties": [
+        "commit_id",
+        "owner",
+        "repo"
       ]
     }
   },
@@ -1239,6 +1588,14 @@
         "repo",
         "commit_id",
         "file_path"
+      ],
+      "properties": [
+        "commit_id",
+        "file_path",
+        "line_count",
+        "line_start",
+        "owner",
+        "repo"
       ]
     }
   },
@@ -1256,6 +1613,11 @@
         "owner",
         "repo",
         "number"
+      ],
+      "properties": [
+        "number",
+        "owner",
+        "repo"
       ]
     }
   },
@@ -1272,6 +1634,10 @@
       "required": [
         "owner",
         "repo"
+      ],
+      "properties": [
+        "owner",
+        "repo"
       ]
     }
   },
@@ -1285,7 +1651,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1300,6 +1667,9 @@
     "inputSchema": {
       "required": [
         "login"
+      ],
+      "properties": [
+        "login"
       ]
     }
   },
@@ -1313,7 +1683,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1328,6 +1699,14 @@
     "inputSchema": {
       "required": [
         "owner"
+      ],
+      "properties": [
+        "cursor",
+        "limit",
+        "owner",
+        "sort_by",
+        "sort_order",
+        "state"
       ]
     }
   },
@@ -1341,7 +1720,13 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "sort_by",
+        "sort_order"
+      ]
     }
   },
   {
@@ -1357,6 +1742,14 @@
       "required": [
         "owner",
         "repo"
+      ],
+      "properties": [
+        "cursor",
+        "limit",
+        "owner",
+        "repo",
+        "sort_by",
+        "sort_order"
       ]
     }
   },
@@ -1370,7 +1763,11 @@
       "openWorldHint": false
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -1383,7 +1780,8 @@
       "openWorldHint": false
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1399,6 +1797,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -1415,6 +1817,11 @@
     "inputSchema": {
       "required": [
         "name"
+      ],
+      "properties": [
+        "description",
+        "idempotency_key",
+        "name"
       ]
     }
   },
@@ -1429,7 +1836,19 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "category_id",
+        "column_id",
+        "date_due",
+        "description",
+        "idempotency_key",
+        "project_id",
+        "reference",
+        "swimlane_id",
+        "tags",
+        "title"
+      ]
     }
   },
   {
@@ -1445,6 +1864,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -1458,7 +1881,10 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "project_id"
+      ]
     }
   },
   {
@@ -1473,6 +1899,9 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id"
       ]
     }
   },
@@ -1486,7 +1915,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1499,7 +1929,12 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "project_id"
+      ]
     }
   },
   {
@@ -1512,7 +1947,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -1525,7 +1964,12 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "project_id"
+      ]
     }
   },
   {
@@ -1538,7 +1982,15 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "project_id",
+        "sort_by",
+        "sort_order",
+        "status"
+      ]
     }
   },
   {
@@ -1554,6 +2006,14 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "column_id",
+        "id",
+        "idempotency_key",
+        "position",
+        "project_id",
+        "swimlane_id"
       ]
     }
   },
@@ -1567,7 +2027,15 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "project_id",
+        "q",
+        "sort_by",
+        "sort_order"
+      ]
     }
   },
   {
@@ -1583,6 +2051,15 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "category_id",
+        "date_due",
+        "description",
+        "id",
+        "idempotency_key",
+        "swimlane_id",
+        "title"
       ]
     }
   },
@@ -1599,6 +2076,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -1616,6 +2097,11 @@
       "required": [
         "id",
         "tags"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key",
+        "tags"
       ]
     }
   },
@@ -1630,6 +2116,9 @@
     },
     "inputSchema": {
       "required": [
+        "url"
+      ],
+      "properties": [
         "url"
       ]
     }
@@ -1647,6 +2136,10 @@
     "inputSchema": {
       "required": [
         "url"
+      ],
+      "properties": [
+        "idempotency_key",
+        "url"
       ]
     }
   },
@@ -1663,6 +2156,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -1680,6 +2177,11 @@
       "required": [
         "id",
         "tags"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key",
+        "tags"
       ]
     }
   },
@@ -1695,6 +2197,9 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id"
       ]
     }
   },
@@ -1708,7 +2213,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1721,7 +2227,15 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "archived",
+        "cursor",
+        "favourited",
+        "limit",
+        "sort_by",
+        "sort_order"
+      ]
     }
   },
   {
@@ -1734,7 +2248,14 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "q",
+        "sort_by",
+        "sort_order"
+      ]
     }
   },
   {
@@ -1750,6 +2271,11 @@
     "inputSchema": {
       "required": [
         "content"
+      ],
+      "properties": [
+        "content",
+        "idempotency_key",
+        "visibility"
       ]
     }
   },
@@ -1766,6 +2292,10 @@
     "inputSchema": {
       "required": [
         "name"
+      ],
+      "properties": [
+        "idempotency_key",
+        "name"
       ]
     }
   },
@@ -1781,6 +2311,9 @@
     "inputSchema": {
       "required": [
         "name"
+      ],
+      "properties": [
+        "name"
       ]
     }
   },
@@ -1794,7 +2327,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1807,7 +2341,13 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "sort_by",
+        "sort_order"
+      ]
     }
   },
   {
@@ -1822,6 +2362,10 @@
     },
     "inputSchema": {
       "required": [
+        "name"
+      ],
+      "properties": [
+        "idempotency_key",
         "name"
       ]
     }
@@ -1839,6 +2383,10 @@
     "inputSchema": {
       "required": [
         "feed_url"
+      ],
+      "properties": [
+        "feed_url",
+        "idempotency_key"
       ]
     }
   },
@@ -1852,7 +2400,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -1865,7 +2414,15 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "feed_id",
+        "limit",
+        "sort_by",
+        "sort_order",
+        "status"
+      ]
     }
   },
   {
@@ -1878,7 +2435,13 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "sort_by",
+        "sort_order"
+      ]
     }
   },
   {
@@ -1894,6 +2457,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -1910,6 +2477,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -1926,6 +2497,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -1942,6 +2517,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -1959,6 +2538,11 @@
       "required": [
         "table_id",
         "fields"
+      ],
+      "properties": [
+        "fields",
+        "idempotency_key",
+        "table_id"
       ]
     }
   },
@@ -1976,6 +2560,11 @@
       "required": [
         "table_id",
         "record_id"
+      ],
+      "properties": [
+        "idempotency_key",
+        "record_id",
+        "table_id"
       ]
     }
   },
@@ -1992,6 +2581,10 @@
       "required": [
         "table_id",
         "record_id"
+      ],
+      "properties": [
+        "record_id",
+        "table_id"
       ]
     }
   },
@@ -2007,6 +2600,9 @@
     "inputSchema": {
       "required": [
         "table_id"
+      ],
+      "properties": [
+        "table_id"
       ]
     }
   },
@@ -2020,7 +2616,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -2033,7 +2630,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -2048,6 +2649,15 @@
     "inputSchema": {
       "required": [
         "table_id"
+      ],
+      "properties": [
+        "cursor",
+        "fields",
+        "limit",
+        "offset",
+        "sort",
+        "table_id",
+        "where"
       ]
     }
   },
@@ -2063,6 +2673,11 @@
     "inputSchema": {
       "required": [
         "base_id"
+      ],
+      "properties": [
+        "base_id",
+        "cursor",
+        "limit"
       ]
     }
   },
@@ -2081,6 +2696,12 @@
         "table_id",
         "record_id",
         "fields"
+      ],
+      "properties": [
+        "fields",
+        "idempotency_key",
+        "record_id",
+        "table_id"
       ]
     }
   },
@@ -2095,6 +2716,9 @@
     },
     "inputSchema": {
       "required": [
+        "name"
+      ],
+      "properties": [
         "name"
       ]
     }
@@ -2111,6 +2735,10 @@
     "inputSchema": {
       "required": [
         "name"
+      ],
+      "properties": [
+        "name",
+        "run_id"
       ]
     }
   },
@@ -2124,7 +2752,11 @@
       "openWorldHint": false
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -2139,6 +2771,11 @@
     },
     "inputSchema": {
       "required": [
+        "name"
+      ],
+      "properties": [
+        "event",
+        "idempotency_key",
         "name"
       ]
     }
@@ -2156,6 +2793,10 @@
     "inputSchema": {
       "required": [
         "url"
+      ],
+      "properties": [
+        "idempotency_key",
+        "url"
       ]
     }
   },
@@ -2169,7 +2810,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -2182,7 +2824,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -2197,6 +2843,10 @@
     },
     "inputSchema": {
       "required": [
+        "ids"
+      ],
+      "properties": [
+        "idempotency_key",
         "ids"
       ]
     }
@@ -2213,6 +2863,10 @@
     },
     "inputSchema": {
       "required": [
+        "ids"
+      ],
+      "properties": [
+        "idempotency_key",
         "ids"
       ]
     }
@@ -2231,6 +2885,12 @@
       "required": [
         "list_id",
         "name"
+      ],
+      "properties": [
+        "desc",
+        "idempotency_key",
+        "list_id",
+        "name"
       ]
     }
   },
@@ -2247,6 +2907,10 @@
     "inputSchema": {
       "required": [
         "card_id"
+      ],
+      "properties": [
+        "card_id",
+        "idempotency_key"
       ]
     }
   },
@@ -2263,6 +2927,10 @@
     "inputSchema": {
       "required": [
         "webhook_id"
+      ],
+      "properties": [
+        "idempotency_key",
+        "webhook_id"
       ]
     }
   },
@@ -2276,7 +2944,10 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "board_id"
+      ]
     }
   },
   {
@@ -2291,6 +2962,9 @@
     "inputSchema": {
       "required": [
         "card_id"
+      ],
+      "properties": [
+        "card_id"
       ]
     }
   },
@@ -2304,7 +2978,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -2317,7 +2992,11 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -2330,7 +3009,12 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "board_id",
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -2343,7 +3027,12 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "board_id",
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -2360,6 +3049,11 @@
       "required": [
         "card_id",
         "list_id"
+      ],
+      "properties": [
+        "card_id",
+        "idempotency_key",
+        "list_id"
       ]
     }
   },
@@ -2374,7 +3068,13 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "board_id",
+        "callback_url",
+        "description",
+        "idempotency_key"
+      ]
     }
   },
   {
@@ -2388,6 +3088,10 @@
     },
     "inputSchema": {
       "required": [
+        "query"
+      ],
+      "properties": [
+        "limit",
         "query"
       ]
     }
@@ -2405,6 +3109,12 @@
     "inputSchema": {
       "required": [
         "card_id"
+      ],
+      "properties": [
+        "card_id",
+        "desc",
+        "idempotency_key",
+        "name"
       ]
     }
   },
@@ -2421,6 +3131,13 @@
     "inputSchema": {
       "required": [
         "title"
+      ],
+      "properties": [
+        "content",
+        "idempotency_key",
+        "parent_note_id",
+        "title",
+        "type"
       ]
     }
   },
@@ -2437,6 +3154,10 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -2452,6 +3173,9 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id"
       ]
     }
   },
@@ -2465,7 +3189,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -2480,6 +3205,9 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "id"
       ]
     }
   },
@@ -2493,7 +3221,8 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": []
     }
   },
   {
@@ -2506,7 +3235,14 @@
       "openWorldHint": true
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit",
+        "query",
+        "sort_by",
+        "sort_order"
+      ]
     }
   },
   {
@@ -2520,6 +3256,9 @@
     },
     "inputSchema": {
       "required": [
+        "query"
+      ],
+      "properties": [
         "query"
       ]
     }
@@ -2538,6 +3277,11 @@
       "required": [
         "id",
         "content"
+      ],
+      "properties": [
+        "content",
+        "id",
+        "idempotency_key"
       ]
     }
   },
@@ -2554,6 +3298,12 @@
     "inputSchema": {
       "required": [
         "id"
+      ],
+      "properties": [
+        "content",
+        "id",
+        "idempotency_key",
+        "title"
       ]
     }
   },
@@ -2568,6 +3318,9 @@
     },
     "inputSchema": {
       "required": [
+        "name"
+      ],
+      "properties": [
         "name"
       ]
     }
@@ -2584,6 +3337,10 @@
     "inputSchema": {
       "required": [
         "name"
+      ],
+      "properties": [
+        "name",
+        "run_id"
       ]
     }
   },
@@ -2597,7 +3354,11 @@
       "openWorldHint": false
     },
     "inputSchema": {
-      "required": []
+      "required": [],
+      "properties": [
+        "cursor",
+        "limit"
+      ]
     }
   },
   {
@@ -2612,6 +3373,11 @@
     },
     "inputSchema": {
       "required": [
+        "name"
+      ],
+      "properties": [
+        "idempotency_key",
+        "input",
         "name"
       ]
     }

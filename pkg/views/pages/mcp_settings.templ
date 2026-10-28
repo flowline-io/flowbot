@@ -57,8 +57,8 @@ templ MCPSettingsPage(ctx context.Context, data MCPSettingsData) {
 							{ i18n.T(ctx, "page.mcp.preset_run") }
 						</label>
 						<label>
-							<input type="radio" class="radio" name="preset" value="run_delete" checked?={ data.Preset == "run_delete" }/>
-							{ i18n.T(ctx, "page.mcp.preset_run_delete") }
+							<input type="radio" class="radio" name="preset" value="run_and_delete" checked?={ data.Preset == "run_and_delete" }/>
+							{ i18n.T(ctx, "page.mcp.preset_run_and_delete") }
 						</label>
 						<label>
 							<input type="radio" class="radio" name="preset" value="custom" checked?={ data.Preset == "custom" }/>
