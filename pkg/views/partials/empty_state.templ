@@ -29,13 +29,14 @@ templ EmptyStateHXCTA(message string, detail string, hxGet string, hxTarget stri
 }
 
 // EmptyStateOnClickCTA renders an empty placeholder with a scripted primary action.
+// onClick must be trusted server-owned JS (templ rejects plain string event handlers).
 templ EmptyStateOnClickCTA(message string, detail string, onClick string, cta string) {
 	@emptyStateShell(message, detail) {
 		if onClick != "" && cta != "" {
 			<button type="button"
 				class="btn btn-primary btn-sm mt-4"
 				data-testid="empty-state-cta"
-				{ templ.Attributes{"onclick": onClick}... }
+				onclick={ templ.JSUnsafeFuncCall(onClick) }
 			>{ cta }</button>
 		}
 	}
