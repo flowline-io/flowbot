@@ -84,7 +84,7 @@ require (
 	golang.org/x/tools v0.52.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	miniflux.app/v2 v2.3.4
-	modernc.org/sqlite v1.61.0
+	modernc.org/sqlite v1.61.1
 	resty.dev/v3 v3.0.0-rc.4
 )
 
