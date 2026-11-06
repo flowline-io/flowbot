@@ -4,6 +4,7 @@ package specs
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -14,7 +15,10 @@ import (
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
+	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/tmc/langchaingo/llms"
 
@@ -275,5 +279,31 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		Expect(err).To(HaveOccurred())
 
 		Expect(svc.CloseSession(ctx, sessionID)).To(Succeed())
+	})
+
+	It("returns unavailable for agent_run when chat_agent.enabled is false", func() {
+		prev := config.App.ChatAgent
+		enabledFalse := false
+		wsDir, err := os.MkdirTemp("", "chat-agent-disabled-*")
+		Expect(err).NotTo(HaveOccurred())
+		config.App.ChatAgent = config.ChatAgentConfig{
+			Enabled:   &enabledFalse,
+			ChatModel: "fake-model",
+			Workspace: wsDir,
+		}
+		DeferCleanup(func() { config.App.ChatAgent = prev })
+
+		Expect(core.Register()).To(Succeed())
+		DeferCleanup(func() {
+			capability.UnregisterInvoker(hub.CapCore, capability.OpAgentRun)
+			hub.Default.Unregister(hub.CapCore)
+		})
+
+		_, err = capability.Invoke(context.Background(), hub.CapCore, core.OpAgentRun, map[string]any{
+			"prompt": "should not run",
+		})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("chat agent is disabled"))
+		Expect(errors.Is(err, types.ErrUnavailable)).To(BeTrue())
 	})
 })

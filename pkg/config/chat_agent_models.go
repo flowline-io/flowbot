@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"slices"
 	"strings"
 )
@@ -11,9 +12,29 @@ func ChatAgentChatModel() string {
 	return App.ChatAgent.ChatModel
 }
 
-// ChatAgentEnabled reports whether the chat agent is enabled with a configured chat model.
+// ChatAgentEnabled reports whether the chat agent is on.
+// Explicit enabled:false wins. Otherwise a non-empty chat_model is required.
+// When enabled is unset, non-empty chat_model keeps the legacy on semantics.
 func ChatAgentEnabled() bool {
-	return App.ChatAgent.ChatModel != ""
+	cfg := App.ChatAgent
+	if cfg.Enabled != nil && !*cfg.Enabled {
+		return false
+	}
+	return strings.TrimSpace(cfg.ChatModel) != ""
+}
+
+// ChatAgentUsesLegacyEnable reports whether enablement comes only from a non-empty chat_model.
+func ChatAgentUsesLegacyEnable() bool {
+	cfg := App.ChatAgent
+	return cfg.Enabled == nil && strings.TrimSpace(cfg.ChatModel) != ""
+}
+
+// LogChatAgentEnabledCompatWarn prints a one-shot startup warning for legacy chat_model enablement.
+func LogChatAgentEnabledCompatWarn() {
+	if !ChatAgentUsesLegacyEnable() {
+		return
+	}
+	log.Print("[config] deprecated: chat_agent.enabled is unset; non-empty chat_model enables the agent. Set chat_agent.enabled: true|false explicitly.")
 }
 
 // ModelRegistered reports whether modelName appears in the configured models list.

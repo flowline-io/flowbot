@@ -33,7 +33,8 @@ Configure in `flowbot.yaml`:
 
 ```yaml
 chat_agent:
-  chat_model: "gpt-4o-mini"   # non-empty enables the chat agent
+  enabled: true
+  chat_model: "gpt-4o-mini"   # required when enabled is true
   tool_model: "gpt-4o"        # enables dual-model routing when set
 ```
 

@@ -96,6 +96,7 @@ See [examples/workflows/](../examples/workflows/) for workflow configuration exa
 | `metrics.enabled` | false (prefer false without a metrics backend) |
 | `mcp.enabled` | false |
 | `mcp.server_card` | omitted (published when `mcp.enabled` is true; `false` hides `/mcp/server-card`) |
+| `chat_agent.enabled` | omitted (legacy: non-empty `chat_model` enables; set explicitly) |
 | `chat_agent.mcp_servers` | empty |
 
 ## Related

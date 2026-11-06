@@ -55,7 +55,7 @@ other = "Endpoint is the CDP WebSocket URL (e.g. ws://lightpanda:9222)."
 other = "Timeout limits one browser operation; zero defaults to 30s."
 
 ["settings.desc.chat_agent.chat_model"]
-other = "ChatModel 选择智能体模型；非空时启用智能体。"
+other = "ChatModel 选择智能体模型。enabled 为 true 时必填；未设置 enabled 时，非空仍按旧语义启用（兼容）。"
 
 ["settings.desc.chat_agent.compaction"]
 other = "Compaction 配置长会话的自动历史压缩。"
@@ -80,6 +80,9 @@ other = "Reserved 是在模型上下文窗口下方预留的 headroom。"
 
 ["settings.desc.chat_agent.context_files"]
 other = "ContextFiles 列出相对 workspace 的项目说明文件；默认为 AGENTS.md 和 README.md。"
+
+["settings.desc.chat_agent.enabled"]
+other = "Enabled 是总开关。省略时保留旧语义：非空 chat_model 即启用（启动告警）。false 即使有 chat_model 也关闭。true 要求配置 chat_model。"
 
 ["settings.desc.chat_agent.llm_retry"]
 other = "LLMRetry 配置智能体的 transient LLM 调用重试。"

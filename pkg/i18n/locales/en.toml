@@ -3253,7 +3253,7 @@ other = "Preview"
 other = "Raw"
 
 [chatagent.disabled]
-other = "Agent is not enabled. Configure chat_agent.chat_model in flowbot.yaml."
+other = "Agent is not enabled. Set chat_agent.enabled: true and chat_agent.chat_model in flowbot.yaml."
 
 [chatagent.state.needs_approval]
 other = "Needs approval"

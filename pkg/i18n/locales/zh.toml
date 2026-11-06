@@ -3253,7 +3253,7 @@ other = "预览"
 other = "原始"
 
 [chatagent.disabled]
-other = "智能体未启用。请在 flowbot.yaml 中配置 chat_agent.chat_model。"
+other = "智能体未启用。请在 flowbot.yaml 中设置 chat_agent.enabled: true 并配置 chat_agent.chat_model。"
 
 [chatagent.state.needs_approval]
 other = "待审批"

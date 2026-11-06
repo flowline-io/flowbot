@@ -21,6 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	abilityagent "github.com/flowline-io/flowbot/pkg/capability/core"
+	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 )
@@ -54,9 +55,12 @@ func (s *webStubAgentRunner) Run(_ context.Context, params abilityagent.RunParam
 
 func registerWebAgentRunner(t *testing.T, runner abilityagent.Runner) {
 	t.Helper()
+	prevChatAgent := pkgconfig.App.ChatAgent
+	pkgconfig.App.ChatAgent.ChatModel = "gpt-test"
 	abilityagent.SetRunner(runner)
 	require.NoError(t, abilityagent.Register())
 	t.Cleanup(func() {
+		pkgconfig.App.ChatAgent = prevChatAgent
 		abilityagent.SetRunner(nil)
 		capability.UnregisterInvoker(hub.CapCore, capability.OpAgentRun)
 		hub.Default.Unregister(hub.CapCore)

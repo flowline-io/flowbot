@@ -201,7 +201,12 @@ func (t *Type) validateModels(errs ValidationErrors, modelNames map[string]bool)
 
 // validateChatAgent validates chat agent model configuration when chat_model is set.
 func (t *Type) validateChatAgent(errs ValidationErrors, modelNames map[string]bool) ValidationErrors {
-	chat := t.ChatAgent.ChatModel
+	chat := strings.TrimSpace(t.ChatAgent.ChatModel)
+	if t.ChatAgent.Enabled != nil && *t.ChatAgent.Enabled && chat == "" {
+		errs = append(errs, errors.New(
+			"chat_agent.chat_model: must not be empty when chat_agent.enabled is true. Fix: set chat_agent.chat_model or set chat_agent.enabled: false in flowbot.yaml",
+		))
+	}
 	if chat == "" {
 		return errs
 	}

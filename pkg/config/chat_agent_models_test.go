@@ -173,17 +173,21 @@ func TestResolveApprovalModel(t *testing.T) {
 }
 
 func TestChatAgentChatModelAndEnabled(t *testing.T) {
+	enabledTrue := true
+	enabledFalse := false
 	tests := []struct {
-		name      string
-		chatAgent config.ChatAgentConfig
-		wantModel string
-		wantEn    bool
+		name       string
+		chatAgent  config.ChatAgentConfig
+		wantModel  string
+		wantEn     bool
+		wantLegacy bool
 	}{
 		{
-			name:      "chat_model set enables agent",
-			chatAgent: config.ChatAgentConfig{ChatModel: "gpt-4o-mini"},
-			wantModel: "gpt-4o-mini",
-			wantEn:    true,
+			name:       "legacy chat_model set enables agent",
+			chatAgent:  config.ChatAgentConfig{ChatModel: "gpt-4o-mini"},
+			wantModel:  "gpt-4o-mini",
+			wantEn:     true,
+			wantLegacy: true,
 		},
 		{
 			name:      "empty chat_model disables agent",
@@ -197,6 +201,32 @@ func TestChatAgentChatModelAndEnabled(t *testing.T) {
 			wantModel: "",
 			wantEn:    false,
 		},
+		{
+			name: "explicit enabled false wins over chat_model",
+			chatAgent: config.ChatAgentConfig{
+				Enabled:   &enabledFalse,
+				ChatModel: "gpt-4o-mini",
+			},
+			wantModel: "gpt-4o-mini",
+			wantEn:    false,
+		},
+		{
+			name: "explicit enabled true with chat_model",
+			chatAgent: config.ChatAgentConfig{
+				Enabled:   &enabledTrue,
+				ChatModel: "gpt-4o-mini",
+			},
+			wantModel: "gpt-4o-mini",
+			wantEn:    true,
+		},
+		{
+			name: "explicit enabled true without chat_model stays off at runtime",
+			chatAgent: config.ChatAgentConfig{
+				Enabled: &enabledTrue,
+			},
+			wantModel: "",
+			wantEn:    false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -204,6 +234,7 @@ func TestChatAgentChatModelAndEnabled(t *testing.T) {
 			config.App.ChatAgent = tt.chatAgent
 			assert.Equal(t, tt.wantModel, config.ChatAgentChatModel())
 			assert.Equal(t, tt.wantEn, config.ChatAgentEnabled())
+			assert.Equal(t, tt.wantLegacy, config.ChatAgentUsesLegacyEnable())
 		})
 	}
 }

@@ -22,7 +22,7 @@ Event **shape** (`StreamEvent`) is shared. Both `/events` subscribers use the sa
 
 | ID | Behavior | Entry | Edge cases | Tests |
 | -- | -------- | ----- | ---------- | ----- |
-| P-01 | Bind/create chat session for platform DM and run agent turn | `internal/server/chatagent_handler.go` → `Service.Run` | Closed session rejected; disabled agent | `chatagent` service/handler unit tests |
+| P-01 | Bind/create chat session for platform DM and run agent turn | `internal/server/chatagent_handler.go` → `Service.Run` | Closed session rejected; disabled agent (`chat_agent.enabled` / empty `chat_model`) | `chatagent` service/handler unit tests; `agent_run` unavailable BDD |
 | P-02 | Slack: stream placeholder + `SlackStreamSink` updates | Slack platform only | Placeholder send failure → non-streaming fallback | `slack_sink_test.go`, handler stream tests |
 | P-03 | Non-Slack: single reply after run completes | Other platforms | Persist assistant message failure surfaces user-visible error | handler tests |
 | P-04 | Persist assistant message to store | After successful `Run` | DB error | handler tests |

@@ -9,10 +9,15 @@
 ### Added
 
 - Write calls accept an optional idempotency key: MCP `arguments.idempotency_key`, REST write routes `Idempotency-Key`, CLI `--idempotency-key`. Reusing a key with the same payload returns the stored result instead of running the write again (MCP `trace.replayed`, REST `Idempotency-Replayed: true`, CLI `replayed: true`). The same key with different arguments is `invalid_argument`; a call still in progress is `unavailable`; an unknown outcome is `idempotency_unknown`. See [.agents/notes/implemented/feature/2026-10-21-write-idempotency-key.md](.agents/notes/implemented/feature/2026-10-21-write-idempotency-key.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
+- `chat_agent.enabled` is the master switch for the chat agent and `core.agent_run`. Set `enabled: true` with `chat_model`, or `enabled: false` to keep a model while the agent stays off. See [.agents/notes/implemented/feature/2026-11-06-chat-agent-enabled-switch.md](.agents/notes/implemented/feature/2026-11-06-chat-agent-enabled-switch.md).
 
 ### Changed
 
 - MCP omits `uid` from every advertised tool `inputSchema` and fills it from the access-token subject before invocation (a client value is overwritten). `drone.deploy` is a non-idempotent open-world write; `drone.health` is a read. See [.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md](.agents/notes/implemented/architecture/2026-10-16-mcp-tool-contract.md), [.agents/notes/implemented/architecture/2026-10-21-hub-deploy-drone-capability.md](.agents/notes/implemented/architecture/2026-10-21-hub-deploy-drone-capability.md), and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
+
+### Deprecated
+
+- Omitting `chat_agent.enabled` while relying on a non-empty `chat_model` to turn the agent on. Startup logs a compat warning; set `chat_agent.enabled: true|false` explicitly. `core.agent_run` returns `unavailable` when the agent is off. See [.agents/notes/implemented/feature/2026-11-06-chat-agent-enabled-switch.md](.agents/notes/implemented/feature/2026-11-06-chat-agent-enabled-switch.md).
 
 ## [0.99.18]
 

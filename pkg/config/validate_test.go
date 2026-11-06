@@ -286,6 +286,22 @@ func TestValidate_Conditional(t *testing.T) {
 			wantErr: "chat_agent.chat_model",
 		},
 		{
+			name: "chat agent enabled true requires chat_model",
+			mutate: func(c *Type) {
+				enabled := true
+				c.ChatAgent = ChatAgentConfig{Enabled: &enabled}
+			},
+			wantErr: "chat_agent.chat_model: must not be empty when chat_agent.enabled is true",
+		},
+		{
+			name: "chat agent enabled false allows empty chat_model",
+			mutate: func(c *Type) {
+				enabled := false
+				c.ChatAgent = ChatAgentConfig{Enabled: &enabled}
+			},
+			noErr: true,
+		},
+		{
 			name: "model missing provider",
 			mutate: func(c *Type) {
 				c.Models = []Model{

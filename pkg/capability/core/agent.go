@@ -49,6 +49,10 @@ func getRunner() Runner {
 }
 
 func agentRunInvoker(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+	if !config.ChatAgentEnabled() {
+		return nil, types.Errorf(types.ErrUnavailable, "chat agent is disabled (chat_agent.enabled=false or chat_model unset)")
+	}
+
 	prompt, err := capability.RequiredString(params, "prompt")
 	if err != nil {
 		return nil, err
@@ -105,8 +109,11 @@ func agentRunInvoker(ctx context.Context, params map[string]any) (*capability.In
 }
 
 func agentHealthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
-	if config.ChatAgentEnabled() || getRunner() != nil {
-		return &capability.InvokeResult{Data: true}, nil
+	if !config.ChatAgentEnabled() {
+		return nil, types.Errorf(types.ErrUnavailable, "chat agent is disabled (chat_agent.enabled=false or chat_model unset)")
 	}
-	return nil, types.Errorf(types.ErrUnavailable, "agent is not configured")
+	if getRunner() == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "agent pipeline runner is not configured")
+	}
+	return &capability.InvokeResult{Data: true}, nil
 }

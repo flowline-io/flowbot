@@ -606,6 +606,8 @@ type WebhookTrigger struct {
 
 // ChatAgentConfig configures the direct-message agent runtime.
 type ChatAgentConfig struct {
+	// Enabled is the master switch. Nil keeps legacy behavior: non-empty chat_model enables the agent (startup warning). False disables even when chat_model is set. True requires chat_model.
+	Enabled *bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Workspace root for file and shell tools; required when the agent is enabled.
 	Workspace string `json:"workspace" yaml:"workspace" mapstructure:"workspace"`
 	// ShellTimeout limits terminal and code execution duration.
@@ -628,7 +630,7 @@ type ChatAgentConfig struct {
 	ContextFiles []string `json:"context_files" yaml:"context_files" mapstructure:"context_files"`
 	// Compaction configures automatic history compaction for long chat sessions.
 	Compaction CompactionConfig `json:"compaction" yaml:"compaction" mapstructure:"compaction"`
-	// ChatModel selects the agent model; non-empty enables the agent.
+	// ChatModel selects the agent model. Required when enabled is true; with enabled unset, non-empty still enables (legacy).
 	ChatModel string `json:"chat_model" yaml:"chat_model" mapstructure:"chat_model"`
 	// ToolModel enables dual-model routing when set; used after tool execution.
 	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
@@ -911,6 +913,7 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 		log.Println(err)
 		return nil, err
 	}
+	LogChatAgentEnabledCompatWarn()
 	if err := App.ReachabilityCheck(context.Background()); err != nil {
 		err = fmt.Errorf("dependency check failed:\n%w", err)
 		log.Println(err)
@@ -942,7 +945,9 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 				// Validate reloaded config, warn if invalid but don't crash
 				if err := App.Validate(); err != nil {
 					log.Printf("[config] Reloaded config is invalid, keeping previous: %v", err)
+					return
 				}
+				LogChatAgentEnabledCompatWarn()
 			})
 			viper.WatchConfig()
 
