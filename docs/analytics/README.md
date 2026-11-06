@@ -25,7 +25,7 @@ Third Analytics partition (Personal / Ops / Flows). Web: `/service/web/analytics
 
 ## Time range
 
-Default **7d**. Presets: **24h** (rolling), **7d**, **30d**, or custom `since`/`until`. The same range query applies across Personal, Ops, and Flows pages. `flow.graph` also defaults to 7d and caps the window by `retention.data_events_days` (when set) and at most 90 days.
+Default **7d**. Presets: **24h** (rolling), **7d**, **30d**, or custom `since`/`until`. The same range query applies across Personal, Ops, and Flows pages. `flow.graph` also defaults to 7d and caps the window by `retention.data_events_days` (when set) and at most 90 days. Operator limits (rejected MCP correlation; detail-edge retention): [Lineage and flows](../user-guide/lineage-and-flows.md).
 
 ## Configuration
 
