@@ -27,3 +27,15 @@ jobs:
 
       - name: MCP contract tests
         run: go tool task test:mcp-contract
+
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Changelog Unreleased gate
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: bash scripts/check-changelog-unreleased.sh

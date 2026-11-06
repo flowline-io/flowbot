@@ -52,7 +52,7 @@ More detail: [docs/getting-started/README.md](docs/getting-started/README.md), [
 2. Do **not** edit generated code (ent, templ `*_templ.go`, Swagger artifacts, `docs/skills/`). Change generators or sources, then run the matching `go tool task` target (`ent`, `templ`, `swagger`, `skills`).
 3. Modules never import `pkg/providers/*` — call `capability.Invoke`. Database queries stay in `internal/store`. Use `github.com/bytedance/sonic` instead of `encoding/json` Marshal/Unmarshal.
 4. Non-trivial changes include an [Agent Note](.agents/notes/README.md) in the same PR (`feature`, `bug-fix`, `simplification`, `architecture`, `process`, or `testing`).
-5. Update [CHANGELOG.md](CHANGELOG.md) under `## Unreleased` when user-facing behavior changes.
+5. Update [CHANGELOG.md](CHANGELOG.md) under `## Unreleased` when user-facing behavior changes. CI warns (blocks from 2026-11-16 UTC) when watched package removals or scope / reference-config top-level / MCP snapshot contract edits lack a new Unreleased line — [changelog Unreleased CI gate](.agents/notes/implemented/process/2026-11-07-changelog-unreleased-ci-gate.md).
 6. Tests describe intended behavior. When behavior changes, update tests in the same PR and say why ([testing policy](docs/testing/README.md)).
 7. Before requesting review:
 

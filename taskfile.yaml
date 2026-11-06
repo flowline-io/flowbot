@@ -150,6 +150,11 @@ tasks:
     cmds:
       - go test -count=1 ./internal/server/mcp -run TestToolSnapshot -update
 
+  check:changelog:
+    desc: Warn (block from 2026-11-16 UTC) when contract-sensitive diffs lack a new CHANGELOG Unreleased line
+    cmds:
+      - bash scripts/check-changelog-unreleased.sh
+
   test:coverage:
     desc: Run tests with coverage report
     cmds:
