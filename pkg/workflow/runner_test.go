@@ -23,6 +23,7 @@ type mockWorkflowStore struct {
 	runs        map[int64]*model.WorkflowRun
 	stepRuns    map[int64]*model.WorkflowStepRun
 	checkpoints map[int64]*CheckpointData
+	links       []model.ResourceLink
 	nextRunID   int64
 	nextStepID  int64
 	heartbeats  int
@@ -180,6 +181,13 @@ func (m *mockWorkflowStore) UpdateRunHeartbeat(context.Context, int64) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.heartbeats++
+	return nil
+}
+
+func (m *mockWorkflowStore) RecordResourceLink(_ context.Context, link model.ResourceLink) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.links = append(m.links, link)
 	return nil
 }
 
@@ -656,6 +664,11 @@ func TestRunner_ExecuteCapabilityStep(t *testing.T) {
 				for _, sr := range store.stepRuns {
 					assert.Equal(t, int(types.WorkflowRunFailed), sr.Status)
 				}
+				require.Len(t, store.links, 1)
+				assert.Equal(t, string(types.ResourceLinkStatusFailed), store.links[0].Status)
+				assert.Equal(t, string(types.ResourceLinkRunKindWorkflow), store.links[0].RunKind)
+				assert.Contains(t, store.links[0].TargetEventID, "fail:")
+				assert.Contains(t, store.links[0].TargetEventID, "cap1")
 			},
 		},
 	}

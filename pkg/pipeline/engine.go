@@ -578,6 +578,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 	recordedAttempt := recordedStepAttempt(priorAttempt, attempt)
 	if retryErr != nil {
 		stepErr := formatStepError(step.Name, retryErr, recordedAttempt)
+		e.saveFailedResourceLink(ctx, rc, step, runID, pipelineName)
 		e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), retryErr, recordedAttempt, stepStart)
 		if e.callback != nil {
 			e.callback.OnStepError(ctx, runID, pipelineName, stepIndex, step.Name, stepErr, time.Since(stepStart).Milliseconds())
@@ -731,7 +732,7 @@ func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step S
 	if stepResource == nil || stepResource.EntityID == "" || stepResource.EventID == "" {
 		return
 	}
-	if e.store == nil {
+	if e.store == nil || rc == nil || strings.TrimSpace(rc.Event.EventID) == "" {
 		return
 	}
 	link := model.ResourceLink{
@@ -755,6 +756,33 @@ func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step S
 	}
 	flog.Info("pipeline %s recorded resource link %s/%s -> %s/%s",
 		pipelineName, link.SourceCapability, link.SourceEntityID, link.TargetCapability, link.TargetEntityID)
+}
+
+// saveFailedResourceLink records a failed step edge with synthetic target_event_id fail:{run_id}:{step}.
+func (e *Engine) saveFailedResourceLink(ctx context.Context, rc *RenderContext, step Step, runID int64, pipelineName string) {
+	if e.store == nil || rc == nil || runID == 0 || strings.TrimSpace(rc.Event.EventID) == "" {
+		return
+	}
+	link := model.ResourceLink{
+		SourceEventID:    rc.Event.EventID,
+		TargetEventID:    types.ResourceLinkFailTargetEventID(runID, step.Name),
+		SourceApp:        resolveResourceApp(rc.Event.App, rc.Event.Capability),
+		TargetApp:        resolveResourceApp("", string(step.Capability)),
+		SourceCapability: rc.Event.Capability,
+		TargetCapability: string(step.Capability),
+		SourceEntityID:   rc.Event.EntityID,
+		PipelineRunID:    runID,
+		PipelineName:     pipelineName,
+		RunKind:          string(types.ResourceLinkRunKindPipeline),
+		Status:           string(types.ResourceLinkStatusFailed),
+		CorrelationID:    rc.Event.CorrelationID,
+	}
+	if err := e.store.RecordResourceLink(ctx, link); err != nil {
+		flog.Error(fmt.Errorf("record failed resource link pipeline %s: %w", pipelineName, err))
+		return
+	}
+	flog.Info("pipeline %s recorded failed resource link %s -> %s",
+		pipelineName, link.SourceEventID, link.TargetEventID)
 }
 
 // resolveResourceApp returns app when set; otherwise hub app for capability, else capability itself.

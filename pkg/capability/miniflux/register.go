@@ -3,6 +3,7 @@ package miniflux
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/capability"
@@ -28,6 +29,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 		Description: "Reader capability",
 		Instance:    svc,
 		Events: []hub.EventDef{
+			{Name: types.EventReaderFeedCreated, Description: "Fires when a feed is created"},
 			{Name: types.EventReaderEntryNew, Description: "Fires when a new feed entry is received"},
 			{Name: types.EventReaderEntrySaved, Description: "Fires when a feed entry is saved"},
 			{Name: types.EventReaderEntryStarred, Description: "Fires when a feed entry is starred"},
@@ -47,7 +49,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 			{
 				Name: OpCreateFeed, Description: "Create a feed for the signed-in caller. Creates or updates data.\nExample: {\"feed_url\":\"example\"}", Scopes: []string{auth.ScopeServiceReaderWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "feed_url", Type: "string", Required: true, Description: "Feed URL to subscribe to"}},
-				Handler: invokeCreateFeed(svc),
+				Handler: invokeCreateFeed(svc, app),
 			},
 			{
 				Name: OpListEntries, Description: "List entries for the signed-in caller. Read-only.\nExample: {\"limit\":20}", Scopes: []string{auth.ScopeServiceReaderRead},
@@ -102,7 +104,7 @@ func invokeListFeeds(svc Service) capability.Invoker {
 	}
 }
 
-func invokeCreateFeed(svc Service) capability.Invoker {
+func invokeCreateFeed(svc Service, app string) capability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 		feedURL, err := capability.RequiredString(params, "feed_url")
 		if err != nil {
@@ -112,7 +114,22 @@ func invokeCreateFeed(svc Service) capability.Invoker {
 		if err != nil {
 			return nil, err
 		}
-		return &capability.InvokeResult{Data: feed, Text: feed.Title}, nil
+		entityID := strconv.FormatInt(feed.ID, 10)
+		eventID := types.Id()
+		return &capability.InvokeResult{
+			Data: feed,
+			Text: feed.Title,
+			Resource: &capability.ResourceMeta{
+				EventID:  eventID,
+				EntityID: entityID,
+				App:      app,
+			},
+			Events: []capability.EventRef{{
+				EventID:   eventID,
+				EventType: types.EventReaderFeedCreated,
+				EntityID:  entityID,
+			}},
+		}, nil
 	}
 }
 

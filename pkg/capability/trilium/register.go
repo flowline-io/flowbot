@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // Register registers the trilium capability with hub and invoker registry.
@@ -140,9 +141,11 @@ func invokeCreate(svc Service, app string) capability.Invoker {
 		if err != nil {
 			return nil, err
 		}
+		eventID := types.Id()
 		return &capability.InvokeResult{
 			Data: item,
 			Resource: &capability.ResourceMeta{
+				EventID:  eventID,
 				EntityID: item.ID,
 				App:      app,
 			},

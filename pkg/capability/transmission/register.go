@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // Register registers the transmission capability with hub and invoker registry.
@@ -70,10 +71,13 @@ func invokeAdd(svc Service, app string) capability.Invoker {
 		if err != nil {
 			return nil, err
 		}
+		entityID := strconv.FormatInt(item.ID, 10)
+		eventID := types.Id()
 		return &capability.InvokeResult{
 			Data: item,
 			Resource: &capability.ResourceMeta{
-				EntityID: strconv.FormatInt(item.ID, 10),
+				EventID:  eventID,
+				EntityID: entityID,
 				App:      app,
 			},
 		}, nil

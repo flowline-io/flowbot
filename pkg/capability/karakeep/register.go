@@ -55,7 +55,7 @@ func buildSpec(app string, svc Service) capability.Spec {
 			{
 				Name: OpCreate, Description: "Create a bookmark for the signed-in caller. Creates or updates data.\nExample: {\"url\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
 				Input:   []hub.ParamDef{{Name: "url", Type: "string", Required: true, Description: "URL to bookmark"}},
-				Handler: invokeCreate(svc),
+				Handler: invokeCreate(svc, app),
 			},
 			{
 				Name: OpDelete, Description: "Delete a bookmark for the signed-in caller. Deletes or removes data.\nExample: {\"id\":\"example\"}", Scopes: []string{auth.ScopeServiceBookmarkWrite}, Mutation: true,
@@ -138,7 +138,7 @@ func invokeGet(svc Service) capability.Invoker {
 	}
 }
 
-func invokeCreate(svc Service) capability.Invoker {
+func invokeCreate(svc Service, app string) capability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 		url, err := capability.RequiredString(params, "url")
 		if err != nil {
@@ -148,10 +148,17 @@ func invokeCreate(svc Service) capability.Invoker {
 		if err != nil {
 			return nil, err
 		}
+		eventID := types.Id()
 		return &capability.InvokeResult{
 			Data: item,
 			Text: fmt.Sprintf("bookmark created: %s", item.URL),
+			Resource: &capability.ResourceMeta{
+				EventID:  eventID,
+				EntityID: item.ID,
+				App:      app,
+			},
 			Events: []capability.EventRef{{
+				EventID:   eventID,
 				EventType: types.EventBookmarkCreated,
 				EntityID:  item.ID,
 			}},

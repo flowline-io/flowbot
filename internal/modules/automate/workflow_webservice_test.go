@@ -125,6 +125,7 @@ func (*handlerRunStore) GetRun(context.Context, int64) (*model.WorkflowRun, erro
 	return nil, types.Errorf(types.ErrNotFound, "run")
 }
 func (*handlerRunStore) UpdateRunHeartbeat(context.Context, int64) error { return nil }
+func (*handlerRunStore) RecordResourceLink(context.Context, model.ResourceLink) error { return nil }
 func (*handlerRunStore) ListStepRuns(context.Context, int64) ([]*model.WorkflowStepRun, error) {
 	return nil, nil
 }

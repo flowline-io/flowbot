@@ -54,13 +54,21 @@ func invokeDeploy(svc Service, app string) capability.Invoker {
 		if build == nil {
 			return nil, types.Errorf(types.ErrProvider, "drone deploy returned no build")
 		}
+		entityID := strconv.Itoa(build.Number)
+		eventID := types.Id()
 		return &capability.InvokeResult{
 			Data: build,
 			Text: fmt.Sprintf("%s/%s #%d", build.Namespace, build.Repo, build.Number),
 			Resource: &capability.ResourceMeta{
-				EntityID: strconv.Itoa(build.Number),
+				EventID:  eventID,
+				EntityID: entityID,
 				App:      app,
 			},
+			Events: []capability.EventRef{{
+				EventID:   eventID,
+				EventType: types.EventDroneBuildCreated,
+				EntityID:  entityID,
+			}},
 		}, nil
 	}
 }

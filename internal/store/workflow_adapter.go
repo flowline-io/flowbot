@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/workflow"
@@ -270,6 +271,28 @@ func (a WorkflowRunStoreAdapter) ListStepRuns(ctx context.Context, runID int64) 
 // UpdateRunHeartbeat implements workflow.WorkflowRunStore.
 func (a WorkflowRunStoreAdapter) UpdateRunHeartbeat(ctx context.Context, runID int64) error {
 	return a.S.UpdateRunHeartbeat(ctx, runID)
+}
+
+// RecordResourceLink implements workflow.WorkflowRunStore.
+func (a WorkflowRunStoreAdapter) RecordResourceLink(ctx context.Context, link model.ResourceLink) error {
+	if a.S == nil || a.S.client == nil {
+		return nil
+	}
+	return NewPipelineStore(a.S.client).RecordResourceLink(ctx, &gen.ResourceLink{
+		SourceEventID:    link.SourceEventID,
+		TargetEventID:    link.TargetEventID,
+		SourceApp:        link.SourceApp,
+		TargetApp:        link.TargetApp,
+		SourceCapability: link.SourceCapability,
+		TargetCapability: link.TargetCapability,
+		SourceEntityID:   link.SourceEntityID,
+		TargetEntityID:   link.TargetEntityID,
+		PipelineRunID:    link.PipelineRunID,
+		PipelineName:     link.PipelineName,
+		RunKind:          resourcelink.RunKind(link.RunKind),
+		Status:           resourcelink.Status(link.Status),
+		CorrelationID:    link.CorrelationID,
+	})
 }
 
 func mapWorkflowTriggerDTO(row *gen.WorkflowTrigger) *model.WorkflowTrigger {

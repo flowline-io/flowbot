@@ -372,7 +372,7 @@ func (r *Runner) executeSequentialStep(
 	if info.Type == "mapper" {
 		return r.executeSequentialMapperStep(ctx, stepID, params, info, wf.Name, results, stepRun)
 	}
-	return r.executeSequentialExecutorStep(ctx, stepID, wt, params, info, wf.Name, results, stepRun)
+	return r.executeSequentialExecutorStep(ctx, stepID, wt, params, info, wf.Name, results, stepRun, run)
 }
 
 // executeSequentialMapperStep marshals params into the results map for a sequential mapper step.
@@ -421,6 +421,7 @@ func (r *Runner) executeSequentialExecutorStep(
 	wfName string,
 	results map[string]string,
 	stepRun *model.WorkflowStepRun,
+	run *model.WorkflowRun,
 ) error {
 	wtWithParams := wt
 	wtWithParams.Params = params
@@ -428,6 +429,7 @@ func (r *Runner) executeSequentialExecutorStep(
 	task, err := WorkflowTaskToTask(wtWithParams)
 	if err != nil {
 		err = fmt.Errorf("convert task %s: %w", stepID, err)
+		r.saveWorkflowFailedResourceLink(ctx, run, wfName, stepID, info)
 		r.failStep(ctx, stepRun, err, 1)
 		return err
 	}
@@ -447,6 +449,7 @@ func (r *Runner) executeSequentialExecutorStep(
 				r.metrics.IncStepRetry(wfName, stepID)
 			}
 		}
+		r.saveWorkflowFailedResourceLink(ctx, run, wfName, stepID, info)
 		r.failStep(ctx, stepRun, rerr, attempt)
 		return fmt.Errorf("step %s failed: %w", stepID, rerr)
 	}
@@ -469,6 +472,9 @@ func (r *Runner) executeSequentialExecutorStep(
 			result["result"] = task.Result
 		}
 		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunDone), result, "", attempt)
+	}
+	if info.IsCapability {
+		r.saveWorkflowResourceLink(ctx, run, wfName, stepID, info, task.Result)
 	}
 
 	flog.Info("[workflow] step %s completed", stepID)

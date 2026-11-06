@@ -24,7 +24,7 @@ This change does not add `flow_edge_daily`, `duration_ms`, `uid`, `run_id`, or `
 
 - New and upgraded databases expose the three columns and both indexes.
 - Empty `run_kind` / `status` on insert normalize to pipeline / ok in `RecordResourceLink`.
-- Workflow, MCP, function, manual, and failed-edge writers remain follow-on work.
+- Workflow, MCP, and failed-edge writers ship in [resource-links-writers](2026-11-07-resource-links-writers.md); function/manual writers remain follow-on work.
 
 ## Verification
 

@@ -1,6 +1,11 @@
 package types
 
-import "time"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+)
 
 // ResourceLinkRunKind names the execution surface that produced a resource_links row.
 type ResourceLinkRunKind string
@@ -27,6 +32,28 @@ const (
 	// ResourceLinkStatusFailed is a failed step edge (no target entity).
 	ResourceLinkStatusFailed ResourceLinkStatus = "failed"
 )
+
+// ResourceLinkFailTargetEventID builds the synthetic target_event_id for a failed step edge.
+// It is not a data_events row; fail: targets are lineage leaves.
+func ResourceLinkFailTargetEventID(runID int64, stepName string) string {
+	return fmt.Sprintf("fail:%d:%s", runID, strings.TrimSpace(stepName))
+}
+
+// ResourceLinkMCPAgentApp is the flow-graph source.app for an MCP external-input edge (D11).
+// Tokens have no display name; the access-token row id is the stable node id.
+func ResourceLinkMCPAgentApp(tokenID int64) string {
+	return "agent:" + strconv.FormatInt(tokenID, 10)
+}
+
+// ResourceLinkMCPSourceEventID is the synthetic source_event_id for an MCP external-input edge.
+func ResourceLinkMCPSourceEventID(requestID string) string {
+	return "mcp:" + strings.TrimSpace(requestID)
+}
+
+// ResourceLinkWorkflowSourceEventID is the synthetic source_event_id for a workflow run edge.
+func ResourceLinkWorkflowSourceEventID(runID int64) string {
+	return fmt.Sprintf("wf:%d", runID)
+}
 
 // ResourceRef identifies a resource by app, entity_id, and optional metadata.
 type ResourceRef struct {

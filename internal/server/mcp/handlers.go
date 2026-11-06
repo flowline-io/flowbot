@@ -40,30 +40,33 @@ func executeTool(ctx context.Context, ident Identity, spec ToolSpec, args map[st
 	if err := normalizeListArgs(spec, args); err != nil {
 		return nil, "", err
 	}
-	var (
-		result any
-		err    error
-	)
-	switch spec.Kind {
-	case kindCapability:
-		result, err = capability.Invoke(ctx, hub.CapabilityType(spec.Group), spec.Operation, args)
-	case kindPipeline:
-		result, err = execPipeline(ctx, ident, spec.Operation, args)
-	case kindWorkflow:
-		result, err = execWorkflow(ctx, spec.Operation, args)
-	case kindFunction:
-		result, err = execFunction(ctx, spec.Operation, args)
-	case kindHub:
-		result, err = execHub(ctx, spec.Operation, args)
-	case kindAudit:
-		result, err = execAuditList(ctx, ident, args)
-	default:
-		err = fmt.Errorf("unknown mcp tool kind %s", spec.Kind)
+	result, err := dispatchTool(ctx, ident, spec, args)
+	if err == nil && spec.Mutation && spec.Kind == kindCapability {
+		recordMCPExternalInputLink(ctx, ident, spec, result)
 	}
 	if spec.Mutation {
 		recordMutation(ctx, ident, spec, args, auditor, idempotencyKey, err)
 	}
 	return result, correlation, err
+}
+
+func dispatchTool(ctx context.Context, ident Identity, spec ToolSpec, args map[string]any) (any, error) {
+	switch spec.Kind {
+	case kindCapability:
+		return capability.Invoke(ctx, hub.CapabilityType(spec.Group), spec.Operation, args)
+	case kindPipeline:
+		return execPipeline(ctx, ident, spec.Operation, args)
+	case kindWorkflow:
+		return execWorkflow(ctx, spec.Operation, args)
+	case kindFunction:
+		return execFunction(ctx, spec.Operation, args)
+	case kindHub:
+		return execHub(ctx, spec.Operation, args)
+	case kindAudit:
+		return execAuditList(ctx, ident, args)
+	default:
+		return nil, fmt.Errorf("unknown mcp tool kind %s", spec.Kind)
+	}
 }
 
 func injectUID(spec ToolSpec, args map[string]any, ident Identity) {

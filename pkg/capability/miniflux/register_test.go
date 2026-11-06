@@ -59,7 +59,7 @@ func TestRegister_Operations(t *testing.T) {
 	assert.Equal(t, "miniflux", desc.App)
 	assert.True(t, desc.Healthy)
 	assert.Len(t, desc.Operations, 8)
-	assert.Len(t, desc.Events, 4)
+	assert.Len(t, desc.Events, 5)
 
 	tests := []struct {
 		name string

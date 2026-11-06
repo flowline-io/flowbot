@@ -310,7 +310,7 @@ func (r *Runner) executeParallelTask(
 		}
 	}
 
-	if rerr := r.executeStepResult(ctx, taskID, wt, params, info, results, mu, stepRun, wf.Name); rerr != nil {
+	if rerr := r.executeStepResult(ctx, taskID, wt, params, info, results, mu, stepRun, wf.Name, run); rerr != nil {
 		return rerr
 	}
 
@@ -329,11 +329,12 @@ func (r *Runner) executeStepResult(
 	mu *sync.RWMutex,
 	stepRun *model.WorkflowStepRun,
 	wfName string,
+	run *model.WorkflowRun,
 ) error {
 	if info.Type == "mapper" {
 		return r.executeMapperStep(ctx, taskID, params, results, mu, stepRun)
 	}
-	return r.executeExecutorStep(ctx, taskID, wt, params, results, mu, stepRun, wfName)
+	return r.executeExecutorStep(ctx, taskID, wt, params, info, results, mu, stepRun, wfName, run)
 }
 
 // executeMapperStep marshals params into the results map for a mapper-type step.
@@ -367,16 +368,19 @@ func (r *Runner) executeExecutorStep(
 	taskID string,
 	wt types.WorkflowTask,
 	params types.KV,
+	info ActionInfo,
 	results *map[string]string,
 	mu *sync.RWMutex,
 	stepRun *model.WorkflowStepRun,
 	wfName string,
+	run *model.WorkflowRun,
 ) error {
 	wtWithParams := wt
 	wtWithParams.Params = params
 	task, err := WorkflowTaskToTask(wtWithParams)
 	if err != nil {
 		err = fmt.Errorf("convert task %s: %w", taskID, err)
+		r.saveWorkflowFailedResourceLink(ctx, run, wfName, taskID, info)
 		r.failStep(ctx, stepRun, err, 1)
 		return err
 	}
@@ -401,6 +405,7 @@ func (r *Runner) executeExecutorStep(
 		r.metrics.IncStepRetry(wfName, taskID)
 	}
 	if rerr != nil {
+		r.saveWorkflowFailedResourceLink(ctx, run, wfName, taskID, info)
 		r.failStep(ctx, stepRun, rerr, attempt)
 		return fmt.Errorf("step %s failed: %w", taskID, rerr)
 	}
@@ -417,6 +422,9 @@ func (r *Runner) executeExecutorStep(
 			result["result"] = task.Result
 		}
 		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(types.WorkflowRunDone), result, "", attempt)
+	}
+	if info.IsCapability {
+		r.saveWorkflowResourceLink(ctx, run, wfName, taskID, info, task.Result)
 	}
 
 	flog.Info("[workflow] step %s completed (parallel)", taskID)

@@ -70,9 +70,11 @@ func invokeCreate(svc Service, app string) capability.Invoker {
 		if err != nil {
 			return nil, err
 		}
+		eventID := types.Id()
 		return &capability.InvokeResult{
 			Data: item,
 			Resource: &capability.ResourceMeta{
+				EventID:  eventID,
 				EntityID: item.ID,
 				App:      app,
 			},

@@ -114,6 +114,7 @@ func (*mockRunStore) GetRun(context.Context, int64) (*model.WorkflowRun, error) 
 	return nil, errors.New("not found")
 }
 func (*mockRunStore) UpdateRunHeartbeat(context.Context, int64) error { return nil }
+func (*mockRunStore) RecordResourceLink(context.Context, model.ResourceLink) error { return nil }
 func (*mockRunStore) ListStepRuns(context.Context, int64) ([]*model.WorkflowStepRun, error) {
 	return nil, nil
 }

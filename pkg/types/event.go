@@ -78,6 +78,10 @@ const (
 	EventForgePush          = "forge.push"
 
 	EventHomelabImageUpdateAvailable = "homelab.image.update_available"
+
+	EventDroneBuildCreated = "drone.build.created"
+
+	EventReaderFeedCreated = "reader.feed.created"
 )
 
 // DataEvent is the durable business event contract emitted by ability write operations.

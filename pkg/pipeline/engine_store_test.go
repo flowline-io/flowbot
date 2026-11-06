@@ -479,6 +479,38 @@ func TestEngine_SaveResourceLink(t *testing.T) {
 	}
 }
 
+func TestEngine_SaveFailedResourceLink(t *testing.T) {
+	t.Parallel()
+	registerExampleInvoker(t, "always-fail", func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		return nil, assert.AnError
+	})
+	store := newMockPipelineStore()
+	def := Definition{
+		Name:    "fail-pl",
+		Enabled: true,
+		Trigger: Trigger{Event: "item.created"},
+		Steps: []Step{
+			{Name: "boom", Capability: hub.CapExample, Operation: "always-fail"},
+		},
+	}
+	e := NewEngine([]Definition{def}, store, nil, noopPC, noopEC)
+	defer e.Stop()
+
+	event := types.DataEvent{
+		EventID: "src-fail", EventType: "item.created", EntityID: "src-ent", App: "src-app",
+		Capability: "source-cap", CorrelationID: "cor_fail",
+	}
+	err := e.executePipeline(context.Background(), def, event, "event")
+	require.Error(t, err)
+	require.Len(t, store.links, 1)
+	assert.Equal(t, string(types.ResourceLinkStatusFailed), store.links[0].Status)
+	assert.Equal(t, "src-fail", store.links[0].SourceEventID)
+	assert.Equal(t, "cor_fail", store.links[0].CorrelationID)
+	assert.Contains(t, store.links[0].TargetEventID, "fail:")
+	assert.Contains(t, store.links[0].TargetEventID, "boom")
+	assert.Empty(t, store.links[0].TargetEntityID)
+}
+
 func TestResolveResourceApp(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
