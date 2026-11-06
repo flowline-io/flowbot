@@ -71,3 +71,7 @@ release:
   github:
     owner: flowline-io
     name: flowbot
+  footer: |
+
+    ---
+    Upgrading: https://github.com/flowline-io/flowbot/blob/master/docs/upgrading.md

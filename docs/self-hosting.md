@@ -144,7 +144,7 @@ After restore, restart Flowbot. Rebuild Redis Streams from PostgreSQL outbox if 
 
 ## Upgrade
 
-1. Read [CHANGELOG.md](../CHANGELOG.md) for Breaking notes.
+1. Read [upgrading.md](upgrading.md) and the target version's Breaking notes in [CHANGELOG.md](../CHANGELOG.md).
 2. Back up PostgreSQL.
 3. Pull the new image/binary and restart.
 4. Schema changes are applied via Ent `Schema.Create` on startup (additive). Destructive config keys are rejected with a migration hint at load time.

@@ -5,7 +5,8 @@ Flowbot is a Homelab Data Hub & Capability Orchestration Center — it discovers
 ## Directory Structure
 
 - [Getting Started](./getting-started/) — Installation, configuration, and first run
-- [User Guide](./user-guide/) — Core concepts: pipelines, workflows, templates, notifications
+- [User Guide](./user-guide/) — Core concepts: pipelines, workflows, templates, notifications, MCP
+- [Upgrading](./upgrading.md) — Breaking-change checklist between pre-1.0 builds
 - [Reference](./reference/) — API specs, configuration schema, database tables
 - [API](./api/) — OpenAPI 3.0 specification and HTTP request examples
 - [Documentation standard](./AGENTS.md) — One home per fact; where standing orders, maps, and rationale live

@@ -102,6 +102,7 @@ See [examples/workflows/](../examples/workflows/) for workflow configuration exa
 ## Related
 
 - [MCP](../user-guide/mcp.md)
+- [Upgrading](../upgrading.md)
 - [Homelab App Discovery](../user-guide/homelab-discovery.md)
 - [Homelab image update checks](../user-guide/homelab-image-updates.md)
 - [Notification gateway](../user-guide/notification-gateway.md)

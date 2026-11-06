@@ -4,7 +4,7 @@
 
 **Homelab data hub — discover apps, invoke capabilities, automate across them**
 
-Flowbot scans your self-hosted stack, wraps each integrated service behind one `capability.Invoke` API, and runs cross-app automation with Pipelines, Workflows, and Agents — from the Web UI, REST, CLI, or chat.
+Flowbot scans your self-hosted stack, wraps each integrated service behind one `capability.Invoke` API, and runs cross-app automation with Pipelines, Workflows, and Agents — from the Web UI, REST, CLI, or chat. MCP clients reach the same capabilities over Streamable HTTP `/mcp` (`mcp.enabled`); run `flowbot mcp config` for client snippets and the public Server Card URL, or see [MCP](docs/user-guide/mcp.md).
 
 ## What Flowbot Solves
 
@@ -275,7 +275,8 @@ Full template: [`docs/reference/config.yaml`](docs/reference/config.yaml). Field
 ## Documentation
 
 - [Getting Started](docs/getting-started/README.md)
-- [User Guide](docs/user-guide/README.md) — pipelines, blueprints, workflows, notifications, homelab discovery
+- [User Guide](docs/user-guide/README.md) — pipelines, blueprints, workflows, notifications, homelab discovery, [MCP](docs/user-guide/mcp.md)
+- [Upgrading](docs/upgrading.md) — breaking-change checklist between pre-1.0 builds
 - [Architecture](docs/architecture/README.md)
 - [API Reference](docs/api/README.md)
 - [Configuration](docs/reference/config-reference.md)
