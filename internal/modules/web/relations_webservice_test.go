@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestRelationsPage(t *testing.T) {
@@ -34,6 +36,11 @@ func TestRelationsPage(t *testing.T) {
 			name:       "contains empty state for detail panel",
 			wantStatus: http.StatusOK,
 			wantText:   "Select a node or edge to see details",
+		},
+		{
+			name:       "contains graph tab",
+			wantStatus: http.StatusOK,
+			wantText:   `data-testid="relations-tab-graph"`,
 		},
 	}
 
@@ -257,4 +264,33 @@ func TestRelationsDetail(t *testing.T) {
 			assert.Contains(t, string(body), tt.wantText)
 		})
 	}
+}
+
+func TestRelationsGraph(t *testing.T) {
+	app, _, _ := setupTestAppForRelations(t, func(ctx context.Context, client *store.Client) error {
+		_, err := client.ResourceLink.Create().
+			SetSourceEventID("rg-src").
+			SetTargetEventID("rg-tgt").
+			SetSourceApp("github").
+			SetSourceCapability("issue").
+			SetSourceEntityID("42").
+			SetTargetApp("forge").
+			SetTargetCapability("pr").
+			SetTargetEntityID("99").
+			SetPipelineName("sync").
+			Save(ctx)
+		return err
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/relations/graph?node=github|issue|42", http.NoBody)
+	addWebAuth(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	var graph types.FlowGraph
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&graph))
+	require.NotEmpty(t, graph.Edges)
+	assert.Equal(t, "github", graph.Edges[0].Source)
+	assert.Equal(t, "forge", graph.Edges[0].Target)
 }

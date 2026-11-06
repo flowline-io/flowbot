@@ -37,6 +37,19 @@ func analyticsOpsURL(activeRange, groupBy string) string {
 	return "/service/web/analytics/ops/runs/panel?" + q.Encode()
 }
 
+func analyticsURL(path, rangeQuery, extra string) string {
+	u := path
+	sep := "?"
+	if rangeQuery != "" {
+		u += sep + rangeQuery
+		sep = "&"
+	}
+	if extra != "" {
+		u += sep + extra
+	}
+	return u
+}
+
 func analyticsRangeBtnClass(activeRange, preset string) string {
 	if activeRange == preset {
 		return "join-item btn btn-sm btn-active"

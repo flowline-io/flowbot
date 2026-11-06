@@ -39,4 +39,4 @@ T45.2 (`resource_links` generalization and backfill) and later lineage tasks pro
 - The Decision section states all four locks in plain sentences: live `flow.graph` (no `flow_edge_daily`); Flows as Analytics Personal/Ops/Flows; delete `retention.flow_daily_days`; store query / analytics service / MCP→service / analytics-mounted REST.
 - T45.2 worktrees and checklists treat this note as the gate: no `flow_edge_daily` schema or retention field in that change.
 - Live aggregation and D17 config deletion shipped in [2026-11-07-flow-graph-live-aggregation.md](../feature/2026-11-07-flow-graph-live-aggregation.md): `AggregateFlowGraph` / `Trace` on the store, analytics service orchestration, no `retention.flow_daily_days` field.
-- Owning product docs stay at [docs/analytics/README.md](../../../docs/analytics/README.md) once Flows ships; this note owns the trade-off.
+- Owning product docs stay at [docs/analytics/README.md](../../../docs/analytics/README.md); Flows UI: [2026-11-07-analytics-flows-ui.md](../feature/2026-11-07-analytics-flows-ui.md). This note owns the trade-off.

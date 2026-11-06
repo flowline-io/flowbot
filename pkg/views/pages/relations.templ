@@ -17,9 +17,11 @@ type RelationsPageParams struct {
 
 templ RelationsPage(ctx context.Context, p RelationsPageParams) {
 	@layout.Base(ctx, DocTitleFlowbot(ctx, "nav.relations")) {
+		@partials.FlowGraphScripts()
+		@partials.RelationsViewScripts()
 		@partials.PageHeader(ctx, "nav.relations", "") {
 		}
-		<div class="flex flex-wrap items-center gap-3 mb-6">
+		<div class="flex flex-wrap items-center gap-3 mb-4">
 			<input
 				type="search"
 				name="q"
@@ -58,12 +60,27 @@ templ RelationsPage(ctx context.Context, p RelationsPageParams) {
 				<option value="2160h">{ i18n.T(ctx, "relations.filter.last_90_days") }</option>
 			</select>
 		</div>
-		<div id="relations-search-results" class="mb-6"></div>
+		<div id="relations-search-results" class="mb-4"></div>
+		<div role="tablist" class="tabs tabs-bordered mb-4" data-testid="relations-view-tabs">
+			<button type="button" role="tab" class="tab tab-active" data-relations-tab="tree" data-testid="relations-tab-tree">
+				{ i18n.T(ctx, "relations.tab.tree") }
+			</button>
+			<button type="button" role="tab" class="tab" data-relations-tab="graph" data-testid="relations-tab-graph">
+				{ i18n.T(ctx, "relations.tab.graph") }
+			</button>
+		</div>
 		<div class="flex gap-6">
-			<div class="w-2/3" id="relations-tree-container">
+			<div class="w-2/3" id="relations-tree-container" data-relations-pane="tree">
 				<div id="relations-tree">
 					@partials.EmptyState(i18n.T(ctx, "relations.empty.search_hint"))
 				</div>
+			</div>
+			<div class="w-2/3 hidden" id="relations-graph-container" data-relations-pane="graph" data-flow-graph data-flow-kind="topology" data-testid="relations-graph-pane">
+				<div id="relations-graph-empty" data-testid="relations-graph-empty">
+					@partials.EmptyState(i18n.T(ctx, "relations.empty.graph_hint"))
+				</div>
+				<script type="application/json" id="flow-graph-data">{"nodes":[],"edges":[]}</script>
+				<div class="w-full h-[28rem] border border-base-300 rounded-box bg-base-100 hidden" data-flow-chart data-testid="relations-graph-chart"></div>
 			</div>
 			<div class="w-1/3" id="relations-detail" data-testid="relations-detail">
 				@partials.EmptyState(i18n.T(ctx, "relations.empty.select_hint"))

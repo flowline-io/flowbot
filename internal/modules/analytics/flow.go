@@ -57,6 +57,16 @@ func (*Service) FlowGraph(ctx context.Context, q types.FlowGraphQuery) (*types.F
 	}, nil
 }
 
+// FlowGraphUI returns a FlowGraph capped for the Analytics Flows web chart
+// (prefer failed edges, then highest traffic) so 20 nodes / 50 edges stay interactive.
+func (s *Service) FlowGraphUI(ctx context.Context, q types.FlowGraphQuery) (*types.FlowGraph, error) {
+	graph, err := s.FlowGraph(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	return types.CapFlowGraph(graph, 20, 50), nil
+}
+
 // Trace returns a bounded multi-hop lineage walk from the given seed.
 func (*Service) Trace(ctx context.Context, q types.LineageTraceQuery) (*types.LineageTrace, error) {
 	if err := validateTraceQuery(q); err != nil {

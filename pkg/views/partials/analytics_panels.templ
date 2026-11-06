@@ -223,6 +223,36 @@ templ AnalyticsOpsRuns(pipe *types.PipelineStats, wf *types.WorkflowStats, fn *t
 	</div>
 }
 
+templ AnalyticsFlows(ctx context.Context, graph *types.FlowGraph, activeRange, rangeLabel string) {
+	<div id="analytics-flows-container" class="flowbot-surface" data-testid="analytics-flows-container" data-flow-graph data-flow-kind="topology">
+		<div class="p-4 sm:p-6">
+			<div class="flex flex-wrap items-center gap-3 mb-4">
+				<div class="join" data-testid="analytics-flows-range">
+					<a class={ analyticsRangeBtnClass(activeRange, "24h") } href={ analyticsURL("/service/web/analytics/flows", "range=24h", "") } data-testid="btn-flows-range-24h">24h</a>
+					<a class={ analyticsRangeBtnClass(activeRange, "7d") } href={ analyticsURL("/service/web/analytics/flows", "range=7d", "") } data-testid="btn-flows-range-7d">7d</a>
+					<a class={ analyticsRangeBtnClass(activeRange, "30d") } href={ analyticsURL("/service/web/analytics/flows", "range=30d", "") } data-testid="btn-flows-range-30d">30d</a>
+				</div>
+				<div class="join" data-testid="analytics-flows-mode">
+					<button type="button" class="join-item btn btn-sm btn-active" data-flow-mode="topology" data-testid="btn-flows-mode-topology">
+						{ i18n.T(ctx, "page.analytics.flows.mode.topology") }
+					</button>
+					<button type="button" class="join-item btn btn-sm" data-flow-mode="sankey" data-testid="btn-flows-mode-sankey">
+						{ i18n.T(ctx, "page.analytics.flows.mode.sankey") }
+					</button>
+				</div>
+				<span class="text-sm text-base-content/55">{ rangeLabel }</span>
+			</div>
+			if graph == nil || (len(graph.Nodes) == 0 && len(graph.Edges) == 0) {
+				<p class="text-sm text-base-content/60" data-testid="analytics-flows-empty">{ i18n.T(ctx, "page.analytics.flows.empty") }</p>
+			} else {
+				@templ.JSONScript("flow-graph-data", graph)
+				<div class="w-full h-[28rem] border border-base-300 rounded-box bg-base-100" data-flow-chart data-testid="analytics-flows-chart"></div>
+				<p class="text-xs text-base-content/50 mt-2">{ i18n.T(ctx, "page.analytics.flows.hint") }</p>
+			}
+		</div>
+	</div>
+}
+
 templ analyticsOpsKindCard(ctx context.Context, kind, title, href, openLabel string, success, failed int64, trend []types.SuccessRatePoint, duration []types.DurationEntry) {
 	<div class="border border-base-300 rounded-box p-4" data-testid={ "analytics-ops-" + kind }>
 		<h3 class="font-semibold tracking-tight mb-3">{ title }</h3>

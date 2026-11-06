@@ -18,6 +18,7 @@ import (
 var relationsWebserviceRules = []webservice.Rule{
 	webservice.Get("/relations", relationsPage),
 	webservice.Get("/relations/tree", relationsTree),
+	webservice.Get("/relations/graph", relationsGraph),
 	webservice.Get("/relations/search", relationsSearch),
 	webservice.Get("/relations/detail", relationsDetail),
 }
@@ -90,6 +91,74 @@ func relationsTree(ctx fiber.Ctx) error {
 		Upstream:   upstream,
 		Downstream: downstream,
 	}).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func relationsGraph(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	nodeParam := ctx.Query("node")
+	if nodeParam == "" {
+		return ctx.JSON(types.FlowGraph{Nodes: []types.FlowGraphNode{}, Edges: []types.FlowGraphEdge{}})
+	}
+	parts := strings.SplitN(nodeParam, "|", 3)
+	if len(parts) != 3 {
+		return types.Errorf(types.ErrInvalidArgument, "invalid node format")
+	}
+	app := parts[0]
+	capability := parts[1]
+	entityID := parts[2]
+	pipeline := ctx.Query("pipeline")
+	sinceRaw := ctx.Query("since")
+	var since time.Duration
+	if sinceRaw != "" {
+		if d, err := time.ParseDuration(sinceRaw); err == nil {
+			since = d
+		}
+	}
+	rcs := getResourceChainStore()
+	if rcs == nil {
+		return types.Errorf(types.ErrUnavailable, "store unavailable")
+	}
+	upstream, downstream, err := rcs.FindNodeRelations(ctx.Context(), app, capability, entityID, pipeline, since)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "relations graph: %v", err)
+	}
+	return ctx.JSON(buildRelationsFlowGraph(app, capability, entityID, upstream, downstream))
+}
+
+func buildRelationsFlowGraph(app, _, _ string, upstream, downstream []types.ResourceEdge) types.FlowGraph {
+	rootID := app
+	seen := map[string]bool{rootID: true}
+	nodes := []types.FlowGraphNode{{ID: rootID}}
+	addNode := func(id string) {
+		if id == "" || seen[id] {
+			return
+		}
+		seen[id] = true
+		nodes = append(nodes, types.FlowGraphNode{ID: id})
+	}
+	var edges []types.FlowGraphEdge
+	appendEdge := func(source, target, viaName string) {
+		if source == "" || target == "" {
+			return
+		}
+		addNode(source)
+		addNode(target)
+		edges = append(edges, types.FlowGraphEdge{
+			Source:  source,
+			Target:  target,
+			Via:     types.FlowGraphVia{Kind: "pipeline", Name: viaName},
+			CountOK: 1,
+		})
+	}
+	for _, e := range upstream {
+		appendEdge(e.SourceApp, rootID, e.PipelineName)
+	}
+	for _, e := range downstream {
+		appendEdge(rootID, e.TargetApp, e.PipelineName)
+	}
+	return types.FlowGraph{Nodes: nodes, Edges: edges}
 }
 
 func relationsSearch(ctx fiber.Ctx) error {

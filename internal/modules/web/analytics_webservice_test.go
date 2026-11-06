@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -111,4 +112,56 @@ func TestAnalyticsOverviewPage(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	body, _ := io.ReadAll(resp.Body)
 	assert.Contains(t, string(body), `data-testid="analytics-module"`)
+}
+
+func TestAnalyticsFlowsPage(t *testing.T) {
+	app, _, _ := setupTestAppWithDB(t)
+	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/analytics/flows?range=7d", http.NoBody)
+	addWebAuth(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	body, _ := io.ReadAll(resp.Body)
+	assert.Contains(t, string(body), `data-testid="analytics-flows-loader"`)
+	assert.Contains(t, string(body), "echarts.custom.min.js")
+	assert.Contains(t, string(body), "flow-graph.js")
+}
+
+func TestAnalyticsFlowsPanelAndJSON(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
+	now := time.Now().UTC().Truncate(time.Second)
+	_, err := client.ResourceLink.Create().
+		SetSourceEventID("af-src").
+		SetTargetEventID("af-tgt").
+		SetSourceApp("miniflux").
+		SetTargetApp("karakeep").
+		SetPipelineName("reader_star").
+		SetCreatedAt(now.Add(-2 * time.Hour)).
+		Save(t.Context())
+	require.NoError(t, err)
+
+	panelReq := httptest.NewRequest(http.MethodGet, "/service/web/analytics/flows/panel?range=7d", http.NoBody)
+	addWebAuth(panelReq)
+	panelResp, err := app.Test(panelReq)
+	require.NoError(t, err)
+	defer panelResp.Body.Close()
+	assert.Equal(t, http.StatusOK, panelResp.StatusCode)
+	panelBody, _ := io.ReadAll(panelResp.Body)
+	assert.Contains(t, string(panelBody), `data-testid="analytics-flows-container"`)
+	assert.Contains(t, string(panelBody), "miniflux")
+
+	jsonReq := httptest.NewRequest(http.MethodGet, "/service/web/analytics/flows/graph?range=7d", http.NoBody)
+	addWebAuth(jsonReq)
+	jsonResp, err := app.Test(jsonReq)
+	require.NoError(t, err)
+	defer jsonResp.Body.Close()
+	assert.Equal(t, http.StatusOK, jsonResp.StatusCode)
+	var graph types.FlowGraph
+	require.NoError(t, json.NewDecoder(jsonResp.Body).Decode(&graph))
+	require.NotEmpty(t, graph.Edges)
 }

@@ -63,6 +63,11 @@ func TestService_FlowGraph_WindowCap(t *testing.T) {
 	span := graph.Window.Until.Sub(graph.Window.Since)
 	assert.LessOrEqual(t, span, 30*24*time.Hour)
 	assert.GreaterOrEqual(t, span, 7*24*time.Hour-time.Second)
+
+	ui, err := svc.FlowGraphUI(ctx, types.FlowGraphQuery{DataEventsRetentionDays: 30})
+	require.NoError(t, err)
+	require.Len(t, ui.Edges, 1)
+	assert.LessOrEqual(t, len(ui.Nodes), 20)
 }
 
 func TestService_Trace_RequiresOneSeed(t *testing.T) {

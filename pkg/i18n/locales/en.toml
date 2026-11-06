@@ -114,6 +114,9 @@ other = "Activity"
 
 [nav.analytics.ops]
 other = "Runs health"
+
+[nav.analytics.flows]
+other = "Flows"
 [nav.home]
 other = "Home"
 
@@ -342,6 +345,21 @@ other = "Runs of pipelines and functions you own."
 [page.analytics.ops.subtitle]
 other = "Site-wide pipeline, workflow, and function health."
 
+[page.analytics.flows.subtitle]
+other = "Live resource link topology for the selected window."
+
+[page.analytics.flows.mode.topology]
+other = "Topology"
+
+[page.analytics.flows.mode.sankey]
+other = "Sankey"
+
+[page.analytics.flows.empty]
+other = "No resource links in this range."
+
+[page.analytics.flows.hint]
+other = "Failed edges are red. Click an edge to open its run list when available."
+
 [page.analytics.nav.aria]
 other = "Analytics navigation"
 
@@ -350,6 +368,9 @@ other = "Personal"
 
 [page.analytics.nav.ops]
 other = "Ops"
+
+[page.analytics.nav.flows]
+other = "Flows"
 
 [page.analytics.card.tokens]
 other = "Token total"
@@ -2406,6 +2427,15 @@ other = "Search for a resource entity ID to explore relations"
 
 [relations.empty.select_hint]
 other = "Select a node or edge to see details"
+
+[relations.empty.graph_hint]
+other = "Select a resource to render its neighborhood graph"
+
+[relations.tab.tree]
+other = "Tree"
+
+[relations.tab.graph]
+other = "Graph"
 
 [relations.empty.no_resources]
 other = "No resources found"

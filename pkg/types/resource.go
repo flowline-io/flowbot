@@ -1,7 +1,9 @@
 package types
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -294,4 +296,85 @@ func NormalizeLineageTraceDepth(depth int) int {
 		return LineageTraceMaxDepth
 	}
 	return depth
+}
+
+// CapFlowGraph keeps at most maxEdges (failed first, then highest traffic) and
+// at most maxNodes by incident degree. Nil graph yields an empty graph.
+func CapFlowGraph(graph *FlowGraph, maxNodes, maxEdges int) *FlowGraph {
+	if graph == nil {
+		return &FlowGraph{Nodes: []FlowGraphNode{}, Edges: []FlowGraphEdge{}}
+	}
+	edges := capFlowEdges(graph.Edges, maxEdges)
+	keep := capFlowNodeIDs(edges, maxNodes)
+	filtered := make([]FlowGraphEdge, 0, len(edges))
+	for _, e := range edges {
+		if keep[e.Source] && keep[e.Target] {
+			filtered = append(filtered, e)
+		}
+	}
+	nodes := make([]FlowGraphNode, 0, len(keep))
+	for id := range keep {
+		nodes = append(nodes, FlowGraphNode{ID: id})
+	}
+	slices.SortFunc(nodes, func(a, b FlowGraphNode) int {
+		return strings.Compare(a.ID, b.ID)
+	})
+	return &FlowGraph{Nodes: nodes, Edges: filtered, Window: graph.Window}
+}
+
+func capFlowEdges(edges []FlowGraphEdge, maxEdges int) []FlowGraphEdge {
+	out := append([]FlowGraphEdge(nil), edges...)
+	if maxEdges <= 0 || len(out) <= maxEdges {
+		return out
+	}
+	slices.SortFunc(out, cmpFlowEdgePriority)
+	return out[:maxEdges]
+}
+
+func cmpFlowEdgePriority(a, b FlowGraphEdge) int {
+	aFail := a.CountFailed > 0
+	bFail := b.CountFailed > 0
+	if aFail != bFail {
+		if aFail {
+			return -1
+		}
+		return 1
+	}
+	if c := cmp.Compare(b.CountOK+b.CountFailed, a.CountOK+a.CountFailed); c != 0 {
+		return c
+	}
+	if c := strings.Compare(a.Source, b.Source); c != 0 {
+		return c
+	}
+	return strings.Compare(a.Target, b.Target)
+}
+
+func capFlowNodeIDs(edges []FlowGraphEdge, maxNodes int) map[string]bool {
+	degree := map[string]int64{}
+	for _, e := range edges {
+		w := e.CountOK + e.CountFailed
+		if e.CountFailed > 0 {
+			w += 1_000_000
+		}
+		degree[e.Source] += w
+		degree[e.Target] += w
+	}
+	ids := make([]string, 0, len(degree))
+	for id := range degree {
+		ids = append(ids, id)
+	}
+	slices.SortFunc(ids, func(a, b string) int {
+		if c := cmp.Compare(degree[b], degree[a]); c != 0 {
+			return c
+		}
+		return strings.Compare(a, b)
+	})
+	if maxNodes > 0 && len(ids) > maxNodes {
+		ids = ids[:maxNodes]
+	}
+	keep := map[string]bool{}
+	for _, id := range ids {
+		keep[id] = true
+	}
+	return keep
 }

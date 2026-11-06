@@ -114,6 +114,9 @@ other = "活动"
 
 [nav.analytics.ops]
 other = "运行健康度"
+
+[nav.analytics.flows]
+other = "流向"
 [nav.home]
 other = "首页"
 
@@ -342,6 +345,21 @@ other = "你拥有的流水线与函数运行次数。"
 [page.analytics.ops.subtitle]
 other = "全站流水线、工作流与函数健康度。"
 
+[page.analytics.flows.subtitle]
+other = "选定时间窗内的资源链接实时拓扑。"
+
+[page.analytics.flows.mode.topology]
+other = "拓扑"
+
+[page.analytics.flows.mode.sankey]
+other = "Sankey"
+
+[page.analytics.flows.empty]
+other = "该时间范围内没有资源链接。"
+
+[page.analytics.flows.hint]
+other = "失败边为红色。点击边可打开对应运行列表（若有）。"
+
 [page.analytics.nav.aria]
 other = "数据分析导航"
 
@@ -350,6 +368,9 @@ other = "个人"
 
 [page.analytics.nav.ops]
 other = "运维"
+
+[page.analytics.nav.flows]
+other = "流向"
 
 [page.analytics.card.tokens]
 other = "Token 合计"
@@ -2406,6 +2427,15 @@ other = "搜索资源实体 ID 以探索关系"
 
 [relations.empty.select_hint]
 other = "选择节点或边以查看详情"
+
+[relations.empty.graph_hint]
+other = "选择资源以渲染邻域图"
+
+[relations.tab.tree]
+other = "树"
+
+[relations.tab.graph]
+other = "图形"
 
 [relations.empty.no_resources]
 other = "未找到资源"

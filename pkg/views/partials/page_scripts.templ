@@ -31,6 +31,17 @@ templ FunctionStatsScripts() {
 	<script src="/static/js/function-stats.js" defer></script>
 }
 
+// FlowGraphScripts loads the ECharts custom build and flow-graph helpers.
+templ FlowGraphScripts() {
+	<script src={ "/static/vendor/echarts.custom.min.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/flow-graph.js?v=" + version.Buildtags } defer></script>
+}
+
+// RelationsViewScripts loads Relations tree/graph tab switching.
+templ RelationsViewScripts() {
+	<script src={ "/static/js/relations-view.js?v=" + version.Buildtags } defer></script>
+}
+
 // ClipCopyScripts loads clipboard helpers for data-clip-copy buttons.
 templ ClipCopyScripts() {
 	<script src={ "/static/js/clip-copy.js?v=" + version.Buildtags } defer></script>

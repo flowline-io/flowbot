@@ -20,6 +20,9 @@ var analyticsWebserviceRules = []webservice.Rule{
 	webservice.Get("/analytics/activity/panel", analyticsActivityPanel),
 	webservice.Get("/analytics/ops/runs", analyticsOpsRunsPage),
 	webservice.Get("/analytics/ops/runs/panel", analyticsOpsRunsPanel),
+	webservice.Get("/analytics/flows", analyticsFlowsPage),
+	webservice.Get("/analytics/flows/panel", analyticsFlowsPanel),
+	webservice.Get("/analytics/flows/graph", analyticsFlowsGraphJSON),
 }
 
 func analyticsOverviewPage(c fiber.Ctx) error {
@@ -209,4 +212,63 @@ func analyticsOpsRunsPanel(c fiber.Ctx) error {
 	}
 	c.Type("html")
 	return partials.AnalyticsOpsRuns(pipe, wf, fn, ar.ActiveRange, ar.RangeLabel, groupBy).Render(c.Context(), c.Response().BodyWriter())
+}
+
+func analyticsFlowsPage(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
+	ar, err := resolveAnalyticsRange(c)
+	if err != nil {
+		return invalidAnalyticsRange(c)
+	}
+	c.Type("html")
+	return pages.AnalyticsFlowsPage(c.Context(), ar.Query).Render(c.Context(), c.Response().BodyWriter())
+}
+
+func analyticsFlowsPanel(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
+	ar, err := resolveAnalyticsRange(c)
+	if err != nil {
+		return invalidAnalyticsRange(c)
+	}
+	svc := analyticsService()
+	if svc == nil {
+		return types.Errorf(types.ErrUnavailable, "analytics unavailable")
+	}
+	graph, err := svc.FlowGraphUI(c.Context(), types.FlowGraphQuery{
+		Since: ar.Since,
+		Until: ar.Until,
+		App:   c.Query("app", ""),
+	})
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "analytics flows: %v", err)
+	}
+	c.Type("html")
+	return partials.AnalyticsFlows(c.Context(), graph, ar.ActiveRange, ar.RangeLabel).Render(c.Context(), c.Response().BodyWriter())
+}
+
+func analyticsFlowsGraphJSON(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
+	ar, err := resolveAnalyticsRange(c)
+	if err != nil {
+		return invalidAnalyticsRange(c)
+	}
+	svc := analyticsService()
+	if svc == nil {
+		return types.Errorf(types.ErrUnavailable, "analytics unavailable")
+	}
+	graph, err := svc.FlowGraphUI(c.Context(), types.FlowGraphQuery{
+		Since: ar.Since,
+		Until: ar.Until,
+		App:   c.Query("app", ""),
+	})
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "analytics flows: %v", err)
+	}
+	return c.JSON(graph)
 }

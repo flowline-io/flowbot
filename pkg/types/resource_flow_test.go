@@ -38,3 +38,27 @@ func TestNormalizeLineageTraceDepthAndDirection(t *testing.T) {
 	assert.Equal(t, LineageTraceMaxDepth, NormalizeLineageTraceDepth(99))
 	assert.Equal(t, 3, NormalizeLineageTraceDepth(3))
 }
+
+func TestCapFlowGraph(t *testing.T) {
+	t.Parallel()
+	g := &FlowGraph{
+		Nodes: []FlowGraphNode{{ID: "a"}, {ID: "b"}, {ID: "c"}, {ID: "d"}},
+		Edges: []FlowGraphEdge{
+			{Source: "a", Target: "b", CountOK: 1},
+			{Source: "b", Target: "c", CountOK: 10},
+			{Source: "c", Target: "d", CountFailed: 2},
+			{Source: "a", Target: "d", CountOK: 5},
+		},
+	}
+	out := CapFlowGraph(g, 3, 2)
+	requireLen := func(n int) {
+		t.Helper()
+		if len(out.Edges) != n {
+			t.Fatalf("edges=%d want %d", len(out.Edges), n)
+		}
+	}
+	requireLen(2)
+	assert.Equal(t, int64(2), out.Edges[0].CountFailed)
+	assert.LessOrEqual(t, len(out.Nodes), 3)
+	assert.NotNil(t, CapFlowGraph(nil, 20, 50))
+}
