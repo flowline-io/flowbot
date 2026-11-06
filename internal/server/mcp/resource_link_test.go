@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 type mcpTestDB struct {
@@ -34,21 +35,28 @@ func (d *mcpTestDB) GetClient() *gen.Client { return d.client }
 
 func TestMCPExternalInputLink_Fields(t *testing.T) {
 	t.Parallel()
-	link := mcpExternalInputLink(
+	link, ok := mcpExternalInputLink(
 		Identity{TokenID: 42},
 		"req-abc",
 		"cor_01TEST",
 		ToolSpec{Name: "kanboard.create_task", Group: "kanboard"},
 		&capability.ResourceMeta{EventID: "evt-tgt", EntityID: "99", App: "kanboard-app"},
 	)
-	require.NotNil(t, link)
-	assert.Equal(t, "mcp:req-abc", link.SourceEventID)
-	assert.Equal(t, "agent:42", link.SourceApp)
-	assert.Equal(t, "req-abc", link.SourceEntityID)
-	assert.Equal(t, "kanboard.create_task", link.TargetCapability)
-	assert.Equal(t, resourcelink.RunKindMcp, link.RunKind)
-	assert.Equal(t, resourcelink.StatusOk, link.Status)
-	assert.Equal(t, "cor_01TEST", link.CorrelationID)
+	require.True(t, ok)
+	assert.Equal(t, model.ResourceLink{
+		SourceEventID:    "mcp:req-abc",
+		TargetEventID:    "evt-tgt",
+		SourceApp:        "agent:42",
+		TargetApp:        "kanboard-app",
+		SourceCapability: "mcp",
+		TargetCapability: "kanboard.create_task",
+		SourceEntityID:   "req-abc",
+		TargetEntityID:   "99",
+		PipelineName:     "kanboard.create_task",
+		RunKind:          string(types.ResourceLinkRunKindMCP),
+		Status:           string(types.ResourceLinkStatusOK),
+		CorrelationID:    "cor_01TEST",
+	}, link)
 }
 
 func TestRecordMCPExternalInputLink_Queryable(t *testing.T) {

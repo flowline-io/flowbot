@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -91,3 +92,17 @@ func (moduleHandler) Bootstrap() error {
 }
 
 func (moduleHandler) Rules() []any { return nil }
+
+// InitForE2E initializes the analytics module handler for e2e testing.
+// Subsequent calls are no-ops so Ginkgo BeforeEach can run once per spec.
+func InitForE2E(configData json.RawMessage) error {
+	if handler.initialized {
+		return nil
+	}
+	return handler.Init(configData)
+}
+
+// MountForE2E mounts analytics lineage/flows/events routes onto the given Fiber app.
+func MountForE2E(app *fiber.App) {
+	handler.Webservice(app)
+}

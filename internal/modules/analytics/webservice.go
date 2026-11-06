@@ -95,9 +95,6 @@ func lineageTrace(ctx fiber.Ctx) error {
 	}
 	out, err := svc.Trace(ctx.Context(), q)
 	if err != nil {
-		if strings.Contains(err.Error(), "exactly one of") {
-			return &types.Error{Kind: types.ErrInvalidArgument, Message: err.Error()}
-		}
 		return err
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(out))

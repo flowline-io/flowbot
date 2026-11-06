@@ -10,7 +10,7 @@ Live `flow.graph` and lineage Trace already ship on the analytics domain service
 
 Analytics gains a Flows nav section and `/service/web/analytics/flows` (panel + JSON). The page loads a vendored ECharts custom build (`public/vendor/echarts.custom.min.js`: graph, sankey, tree, tooltip, legend, dataZoom) and `public/js/flow-graph.js`. Topology is the default; Sankey is a toggle. Failed edges (`count_failed > 0`) render red; static edges would be dashed when present. Edge clicks navigate to pipeline/workflow/function run lists when `via` resolves. `analytics.Service.FlowGraphUI` caps the chart at 20 nodes / 50 edges (failed and high-traffic first) so the hand-check size stays interactive within about 1s.
 
-`/service/web/relations` adds a Graph tab beside the existing HTMX tree (no-JS fallback). `GET /relations/graph` returns a neighborhood `FlowGraph` for the selected node; `relations-view.js` switches panes and fetches JSON.
+`/service/web/relations` adds a Graph tab beside the existing HTMX tree (no-JS fallback). `GET /relations/graph` returns a neighborhood `FlowGraph` for the selected node (preserving `run_kind` / ok|failed counts so the shared chart can mark failed edges and resolve `via`); `relations-view.js` switches panes and fetches JSON.
 
 Sankey ships in this change. Cuttable A″ (drop Sankey, keep topology only) remains available if a later checkpoint forces a cut; T2.6 client signing was still unsigned at implement time and did not trigger that cut.
 

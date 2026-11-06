@@ -95,32 +95,6 @@
     return { nodes: nodes, links: links };
   }
 
-  function toTreeSeries(graph, rootId) {
-    var childrenOf = {};
-    (graph.edges || []).forEach(function (e) {
-      if (!childrenOf[e.source]) childrenOf[e.source] = [];
-      childrenOf[e.source].push({
-        name: e.target,
-        value: edgeWeight(e),
-        itemStyle: { color: edgeFailed(e) ? FAIL : TEAL },
-        edge: e,
-      });
-    });
-    function build(id, depth) {
-      if (depth > 6) return { name: id };
-      var kids = (childrenOf[id] || []).map(function (c) {
-        var node = build(c.name, depth + 1);
-        node.value = c.value;
-        node.itemStyle = c.itemStyle;
-        node.edge = c.edge;
-        return node;
-      });
-      return { name: id, children: kids };
-    }
-    var root = rootId || ((graph.nodes || [])[0] && graph.nodes[0].id) || 'root';
-    return build(root, 0);
-  }
-
   function mountChart(host) {
     if (!host || !window.echarts) return null;
     if (host.flowbotChart) {
@@ -142,15 +116,33 @@
           if (p.dataType === 'edge' || (p.data && p.data.edge)) {
             var e = (p.data && p.data.edge) || {};
             var via = e.via || {};
+            var okLabel =
+              typeof flowbotI18n === 'function'
+                ? flowbotI18n('client.flow.ok', 'ok')
+                : 'ok';
+            var failedLabel =
+              typeof flowbotI18n === 'function'
+                ? flowbotI18n('client.flow.failed', 'failed')
+                : 'failed';
+            var viaLabel =
+              typeof flowbotI18n === 'function'
+                ? flowbotI18n('client.flow.via', 'via')
+                : 'via';
             return (
               (e.source || '') +
               ' → ' +
               (e.target || '') +
-              '<br/>ok: ' +
+              '<br/>' +
+              okLabel +
+              ': ' +
               (e.count_ok || 0) +
-              ' / failed: ' +
+              ' / ' +
+              failedLabel +
+              ': ' +
               (e.count_failed || 0) +
-              '<br/>via: ' +
+              '<br/>' +
+              viaLabel +
+              ': ' +
               (via.kind || '') +
               ' ' +
               (via.name || '')
@@ -212,25 +204,6 @@
     });
   }
 
-  function renderTree(host, graph, rootId) {
-    var chart = mountChart(host);
-    if (!chart) return;
-    chart.setOption({
-      tooltip: { trigger: 'item' },
-      series: [
-        {
-          type: 'tree',
-          orient: 'LR',
-          expandAndCollapse: true,
-          initialTreeDepth: 3,
-          label: { position: 'left', verticalAlign: 'middle' },
-          leaves: { label: { position: 'right' } },
-          data: [toTreeSeries(graph, rootId)],
-        },
-      ],
-    });
-  }
-
   function activeMode(root) {
     var btn = root.querySelector('[data-flow-mode].btn-active');
     return (btn && btn.getAttribute('data-flow-mode')) || 'topology';
@@ -251,8 +224,6 @@
     var mode = root.getAttribute('data-flow-kind') || activeMode(root);
     if (mode === 'sankey') {
       renderSankey(host, graph);
-    } else if (mode === 'tree') {
-      renderTree(host, graph, root.getAttribute('data-flow-root') || '');
     } else {
       renderTopology(host, graph);
     }

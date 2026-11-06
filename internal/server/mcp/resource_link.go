@@ -6,11 +6,10 @@ import (
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func recordMCPExternalInputLink(ctx context.Context, ident Identity, spec ToolSpec, result any) {
@@ -26,11 +25,15 @@ func recordMCPExternalInputLink(ctx context.Context, ident Identity, spec ToolSp
 	if lin, ok := types.LineageFrom(ctx); ok {
 		correlation = lin.CorrelationID
 	}
-	link := mcpExternalInputLink(ident, requestID, correlation, spec, res.Resource)
-	if link == nil {
+	link, ok := mcpExternalInputLink(ident, requestID, correlation, spec, res.Resource)
+	if !ok {
 		return
 	}
-	if err := store.PipelineStoreFromDB().RecordResourceLink(ctx, link); err != nil {
+	ps := store.PipelineStoreFromDB()
+	if ps == nil {
+		return
+	}
+	if err := store.NewPipelineRunStoreAdapter(ps).RecordResourceLink(ctx, link); err != nil {
 		flog.Error(fmt.Errorf("mcp record resource link %s: %w", spec.Name, err))
 		return
 	}
@@ -38,30 +41,30 @@ func recordMCPExternalInputLink(ctx context.Context, ident Identity, spec ToolSp
 		link.SourceApp, link.TargetCapability, link.TargetEntityID, link.CorrelationID)
 }
 
-func mcpExternalInputLink(ident Identity, requestID, correlation string, spec ToolSpec, meta *capability.ResourceMeta) *gen.ResourceLink {
+func mcpExternalInputLink(ident Identity, requestID, correlation string, spec ToolSpec, meta *capability.ResourceMeta) (model.ResourceLink, bool) {
 	if meta == nil || strings.TrimSpace(meta.EntityID) == "" || strings.TrimSpace(meta.EventID) == "" {
-		return nil
+		return model.ResourceLink{}, false
 	}
 	requestID = strings.TrimSpace(requestID)
 	if requestID == "" {
-		return nil
+		return model.ResourceLink{}, false
 	}
-	link := &gen.ResourceLink{
+	targetApp := strings.TrimSpace(meta.App)
+	if targetApp == "" {
+		targetApp = spec.Group
+	}
+	return model.ResourceLink{
 		SourceEventID:    types.ResourceLinkMCPSourceEventID(requestID),
 		TargetEventID:    meta.EventID,
 		SourceApp:        types.ResourceLinkMCPAgentApp(ident.TokenID),
-		TargetApp:        strings.TrimSpace(meta.App),
+		TargetApp:        targetApp,
 		SourceCapability: "mcp",
 		TargetCapability: spec.Name,
 		SourceEntityID:   requestID,
 		TargetEntityID:   meta.EntityID,
 		PipelineName:     spec.Name,
-		RunKind:          resourcelink.RunKind(types.ResourceLinkRunKindMCP),
-		Status:           resourcelink.Status(types.ResourceLinkStatusOK),
+		RunKind:          string(types.ResourceLinkRunKindMCP),
+		Status:           string(types.ResourceLinkStatusOK),
 		CorrelationID:    correlation,
-	}
-	if link.TargetApp == "" {
-		link.TargetApp = spec.Group
-	}
-	return link
+	}, true
 }

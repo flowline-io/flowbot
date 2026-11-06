@@ -75,6 +75,8 @@ type ResourceEdge struct {
 	TargetCapability string    `json:"target_capability"`
 	TargetEntityID   string    `json:"target_entity_id"`
 	PipelineName     string    `json:"pipeline_name"`
+	RunKind          string    `json:"run_kind,omitempty"`
+	Status           string    `json:"status,omitempty"`
 	CreatedAt        time.Time `json:"created_at"`
 }
 

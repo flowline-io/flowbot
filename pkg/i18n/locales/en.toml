@@ -1541,6 +1541,15 @@ other = "Workflow Runs"
 [client.stats.function_runs]
 other = "Function Runs"
 
+[client.flow.ok]
+other = "ok"
+
+[client.flow.failed]
+other = "failed"
+
+[client.flow.via]
+other = "via"
+
 [client.pipeline_run.connected]
 other = "Live stream connected"
 

@@ -1541,6 +1541,15 @@ other = "工作流运行"
 [client.stats.function_runs]
 other = "函数运行"
 
+[client.flow.ok]
+other = "成功"
+
+[client.flow.failed]
+other = "失败"
+
+[client.flow.via]
+other = "经由"
+
 [client.pipeline_run.connected]
 other = "实时流已连接"
 

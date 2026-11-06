@@ -275,6 +275,8 @@ func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, cap
 				TargetCapability: l.TargetCapability,
 				TargetEntityID:   l.TargetEntityID,
 				PipelineName:     l.PipelineName,
+				RunKind:          string(l.RunKind),
+				Status:           string(l.Status),
 				CreatedAt:        l.CreatedAt,
 			}
 		}

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -278,6 +279,24 @@ func TestRelationsGraph(t *testing.T) {
 			SetTargetCapability("pr").
 			SetTargetEntityID("99").
 			SetPipelineName("sync").
+			SetRunKind(resourcelink.RunKindWorkflow).
+			SetStatus(resourcelink.StatusOk).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+		_, err = client.ResourceLink.Create().
+			SetSourceEventID("rg-src-fail").
+			SetTargetEventID("fail:run:step").
+			SetSourceApp("github").
+			SetSourceCapability("issue").
+			SetSourceEntityID("42").
+			SetTargetApp("forge").
+			SetTargetCapability("pr").
+			SetTargetEntityID("").
+			SetPipelineName("sync").
+			SetRunKind(resourcelink.RunKindWorkflow).
+			SetStatus(resourcelink.StatusFailed).
 			Save(ctx)
 		return err
 	})
@@ -290,7 +309,29 @@ func TestRelationsGraph(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	var graph types.FlowGraph
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&graph))
-	require.NotEmpty(t, graph.Edges)
+	require.Len(t, graph.Edges, 1)
 	assert.Equal(t, "github", graph.Edges[0].Source)
 	assert.Equal(t, "forge", graph.Edges[0].Target)
+	assert.Equal(t, "workflow", graph.Edges[0].Via.Kind)
+	assert.Equal(t, "sync", graph.Edges[0].Via.Name)
+	assert.Equal(t, int64(1), graph.Edges[0].CountOK)
+	assert.Equal(t, int64(1), graph.Edges[0].CountFailed)
+}
+
+func TestBuildRelationsFlowGraph_PreservesRunKindAndStatus(t *testing.T) {
+	t.Parallel()
+	graph := buildRelationsFlowGraph("github", "issue", "42", nil, []types.ResourceEdge{
+		{
+			SourceApp: "github", TargetApp: "forge", PipelineName: "mcp-write",
+			RunKind: string(types.ResourceLinkRunKindMCP), Status: string(types.ResourceLinkStatusOK),
+		},
+		{
+			SourceApp: "github", TargetApp: "forge", PipelineName: "mcp-write",
+			RunKind: string(types.ResourceLinkRunKindMCP), Status: string(types.ResourceLinkStatusFailed),
+		},
+	})
+	require.Len(t, graph.Edges, 1)
+	assert.Equal(t, string(types.ResourceLinkRunKindMCP), graph.Edges[0].Via.Kind)
+	assert.Equal(t, int64(1), graph.Edges[0].CountOK)
+	assert.Equal(t, int64(1), graph.Edges[0].CountFailed)
 }

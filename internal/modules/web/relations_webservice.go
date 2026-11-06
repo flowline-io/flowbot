@@ -138,25 +138,53 @@ func buildRelationsFlowGraph(app, _, _ string, upstream, downstream []types.Reso
 		seen[id] = true
 		nodes = append(nodes, types.FlowGraphNode{ID: id})
 	}
-	var edges []types.FlowGraphEdge
-	appendEdge := func(source, target, viaName string) {
+	type edgeKey struct {
+		source, target, kind, name string
+	}
+	agg := map[edgeKey]*types.FlowGraphEdge{}
+	order := make([]edgeKey, 0)
+	appendEdge := func(source, target string, e types.ResourceEdge) {
 		if source == "" || target == "" {
 			return
 		}
 		addNode(source)
 		addNode(target)
-		edges = append(edges, types.FlowGraphEdge{
-			Source:  source,
-			Target:  target,
-			Via:     types.FlowGraphVia{Kind: "pipeline", Name: viaName},
-			CountOK: 1,
-		})
+		kind := strings.TrimSpace(e.RunKind)
+		if kind == "" {
+			kind = string(types.ResourceLinkRunKindPipeline)
+		}
+		name := e.PipelineName
+		k := edgeKey{source: source, target: target, kind: kind, name: name}
+		if existing, ok := agg[k]; ok {
+			if e.Status == string(types.ResourceLinkStatusFailed) {
+				existing.CountFailed++
+			} else {
+				existing.CountOK++
+			}
+			return
+		}
+		edge := &types.FlowGraphEdge{
+			Source: source,
+			Target: target,
+			Via:    types.FlowGraphVia{Kind: kind, Name: name},
+		}
+		if e.Status == string(types.ResourceLinkStatusFailed) {
+			edge.CountFailed = 1
+		} else {
+			edge.CountOK = 1
+		}
+		agg[k] = edge
+		order = append(order, k)
 	}
 	for _, e := range upstream {
-		appendEdge(e.SourceApp, rootID, e.PipelineName)
+		appendEdge(e.SourceApp, rootID, e)
 	}
 	for _, e := range downstream {
-		appendEdge(rootID, e.TargetApp, e.PipelineName)
+		appendEdge(rootID, e.TargetApp, e)
+	}
+	edges := make([]types.FlowGraphEdge, 0, len(order))
+	for _, k := range order {
+		edges = append(edges, *agg[k])
 	}
 	return types.FlowGraph{Nodes: nodes, Edges: edges}
 }

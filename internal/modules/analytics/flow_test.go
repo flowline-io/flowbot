@@ -128,6 +128,15 @@ func TestService_Timeline_PayloadRules(t *testing.T) {
 	assert.True(t, out.Items[0].PayloadOmitted)
 	assert.Nil(t, out.Items[0].Data)
 
+	defaultOmit, err := svc.Timeline(ctx, types.EventsTimelineQuery{
+		CallerUID: "user-a",
+		Scopes:    []string{"lineage:read", "service:karakeep:read"},
+	})
+	require.NoError(t, err)
+	require.Len(t, defaultOmit.Items, 1)
+	assert.True(t, defaultOmit.Items[0].PayloadOmitted)
+	assert.Nil(t, defaultOmit.Items[0].Data)
+
 	withRead, err := svc.Timeline(ctx, types.EventsTimelineQuery{
 		IncludePayload: true,
 		CallerUID:      "user-a",
@@ -137,4 +146,15 @@ func TestService_Timeline_PayloadRules(t *testing.T) {
 	require.Len(t, withRead.Items, 1)
 	assert.False(t, withRead.Items[0].PayloadOmitted)
 	assert.Equal(t, "x", withRead.Items[0].Data["secret"])
+}
+
+func TestService_Trace_RequiresOneSeed_Typed(t *testing.T) {
+	t.Parallel()
+	svc := NewService()
+	_, err := svc.Trace(context.Background(), types.LineageTraceQuery{})
+	require.Error(t, err)
+	var te *types.Error
+	require.ErrorAs(t, err, &te)
+	require.ErrorIs(t, te, types.ErrInvalidArgument)
+	assert.Equal(t, "seed", te.Field)
 }

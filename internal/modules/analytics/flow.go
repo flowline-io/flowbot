@@ -2,7 +2,6 @@ package analytics
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -98,7 +97,11 @@ func validateTraceQuery(q types.LineageTraceQuery) error {
 		n++
 	}
 	if n != 1 {
-		return errors.New("analytics: trace requires exactly one of app+entity_id, event_id, or correlation_id")
+		return &types.Error{
+			Kind:    types.ErrInvalidArgument,
+			Message: "trace requires exactly one of app+entity_id, event_id, or correlation_id",
+			Field:   "seed",
+		}
 	}
 	return nil
 }
@@ -122,10 +125,10 @@ func (*Service) Search(ctx context.Context, q types.LineageSearchQuery) (*types.
 
 // Timeline returns a paged data_events window (events.timeline).
 // Rows appear under lineage:read (+ uid for non-admins). Payload bodies follow D10:
-// omitted by default; include_payload attaches data only when the caller holds
-// service:{capability|app}:read (or admin:*); otherwise payload_omitted is set.
-// When include_payload is true and app is set but the caller cannot read that app,
-// the whole call is permission_denied.
+// omitted by default with payload_omitted set; include_payload attaches data only
+// when the caller holds service:{capability|app}:read (or admin:*), otherwise
+// payload_omitted stays set. When include_payload is true and app is set but the
+// caller cannot read that app, the whole call is permission_denied.
 func (*Service) Timeline(ctx context.Context, q types.EventsTimelineQuery) (*types.EventsTimelineResult, error) {
 	if q.IncludePayload && strings.TrimSpace(q.App) != "" {
 		if !auth.HasMinimumServiceScope(q.Scopes, strings.TrimSpace(q.App), "GET") {
@@ -174,6 +177,8 @@ func (*Service) Timeline(ctx context.Context, q types.EventsTimelineQuery) (*typ
 			} else {
 				item.PayloadOmitted = true
 			}
+		} else {
+			item.PayloadOmitted = true
 		}
 		items = append(items, item)
 	}

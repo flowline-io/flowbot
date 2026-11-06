@@ -12,7 +12,7 @@ modules/<name>/
 └── utils.go
 ```
 
-`Register()` wired via `fx.Invoke` in `internal/modules/fx.go` → `modules.Modules`. Wired today: `example`, `hub`, `analytics`, `web`, `automate`. `analytics` has no HTTP rules; its pages live in `web`. Reference: `internal/modules/example/`.
+`Register()` wired via `fx.Invoke` in `internal/modules/fx.go` → `modules.Modules`. Wired today: `example`, `hub`, `analytics`, `web`, `automate`. `analytics` mounts lineage/flows/events JSON under `/service/lineage|flows|events` and owns `FlowGraph` / `Trace` / `Timeline`; Analytics HTML pages (Personal / Ops / Flows) live in `web`. Reference: `internal/modules/example/`.
 
 ## Boundaries
 
