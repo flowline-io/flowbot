@@ -31,6 +31,9 @@ func TestAllLeafCommandsHaveRunE(t *testing.T) {
 		{name: "nocodb", fn: NocodbCommand},
 		{name: "devops", fn: DevopsCommand},
 		{name: "config", fn: ConfigCommand},
+		{name: "lineage", fn: LineageCommand},
+		{name: "flow", fn: FlowCommand},
+		{name: "events", fn: EventsCommand},
 		{name: "version", fn: func() *cobra.Command { return VersionCommand("test") }},
 	}
 

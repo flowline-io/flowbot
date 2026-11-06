@@ -241,16 +241,19 @@ func stringField(m map[string]any, key string) string {
 
 // ListDataEventsOptions holds filters and pagination for listing data events.
 type ListDataEventsOptions struct {
-	Limit        int        // max 100, default 20
-	Offset       int        // page offset for offset-based pagination
-	Cursor       string     // opaque CreatedAt cursor (backward compatible)
-	Source       string     // filter by source, empty = all
-	EventType    string     // filter by event type, empty = all
-	Webhook      bool       // if true, only events where data->>'_webhook_method' IS NOT NULL
-	Search       string     // ILIKE match against source and data::text
-	PipelineName string     // filter events that triggered a specific pipeline
-	TimeStart    *time.Time // created_at >= TimeStart
-	TimeEnd      *time.Time // created_at <= TimeEnd
+	Limit         int        // max 100, default 20
+	Offset        int        // page offset for offset-based pagination
+	Cursor        string     // opaque CreatedAt cursor (backward compatible)
+	Source        string     // filter by source, empty = all
+	App           string     // filter by app, empty = all
+	EventType     string     // filter by event type, empty = all
+	CorrelationID string     // filter by correlation_id, empty = all
+	UID           string     // filter by uid, empty = all
+	Webhook       bool       // if true, only events where data->>'_webhook_method' IS NOT NULL
+	Search        string     // ILIKE match against source and data::text
+	PipelineName  string     // filter events that triggered a specific pipeline
+	TimeStart     *time.Time // created_at >= TimeStart
+	TimeEnd       *time.Time // created_at <= TimeEnd
 }
 
 // ListDataEvents returns paginated data_events ordered by created_at DESC.
@@ -306,8 +309,17 @@ func applyDataEventFilters(client *gen.Client, opts ListDataEventsOptions) *gen.
 	if opts.Source != "" {
 		q = q.Where(dataevent.Source(opts.Source))
 	}
+	if opts.App != "" {
+		q = q.Where(dataevent.App(opts.App))
+	}
 	if opts.EventType != "" {
 		q = q.Where(dataevent.EventType(opts.EventType))
+	}
+	if opts.CorrelationID != "" {
+		q = q.Where(dataevent.CorrelationID(opts.CorrelationID))
+	}
+	if opts.UID != "" {
+		q = q.Where(dataevent.UID(opts.UID))
 	}
 	if opts.Webhook {
 		q = q.Where(func(selector *sql.Selector) {

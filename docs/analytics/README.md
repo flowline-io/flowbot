@@ -21,7 +21,7 @@ Flowbot's personal usage and ops run-health surface under User nav.
 
 ## Flows
 
-Live `flow.graph` aggregation and multi-hop `Trace` are available on the analytics domain service (`internal/modules/analytics`) over `resource_links` (no daily rollup table). MCP/REST/UI mount in later tasks. Decision: [.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md](../../.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md).
+Live `flow.graph` aggregation and multi-hop `Trace` are available on the analytics domain service (`internal/modules/analytics`) over `resource_links` (no daily rollup table). MCP tools, REST (`/service/lineage|flows|events`), and CLI are mounted; the Flows UI partition is a later task. Decision: [.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md](../../.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md); surface: [.agents/notes/implemented/feature/2026-11-07-lineage-mcp-rest-cli.md](../../.agents/notes/implemented/feature/2026-11-07-lineage-mcp-rest-cli.md).
 
 ## Time range
 

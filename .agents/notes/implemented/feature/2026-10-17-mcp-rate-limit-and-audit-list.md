@@ -24,7 +24,7 @@ Keying the limiter by uid would let one agent exhaust every token of that user. 
 
 ## Consequences
 
-CLI callers of `/service/lineage`, `/service/flows`, and `/service/events` are not rate limited yet, because those handlers are not mounted. Web `kind=full` sessions stay on the global HTTP limiter only. Resource-link columns, trace, the flow aggregate, gosec exclude narrowing, and the flow page are not in this change. Correlation minting is recorded in [2026-10-17-data-event-correlation.md](2026-10-17-data-event-correlation.md). Existing audit rows keep an empty `result` column; new writes fill it.
+API-token callers of `/service/lineage`, `/service/flows`, and `/service/events` share the MCP `lineage_per_token_rpm` (and total) buckets; see [lineage MCP/REST/CLI](2026-11-07-lineage-mcp-rest-cli.md). Web `kind=full` sessions stay on the global HTTP limiter only. Correlation minting is recorded in [2026-10-17-data-event-correlation.md](2026-10-17-data-event-correlation.md). Existing audit rows keep an empty `result` column; new writes fill it.
 
 ## Verification
 

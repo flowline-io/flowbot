@@ -55,6 +55,9 @@ func NewRoot(buildtags string) *cobra.Command {
 		DevopsCommand(),
 		ConfigCommand(),
 		MCPCommand(),
+		LineageCommand(),
+		FlowCommand(),
+		EventsCommand(),
 		VersionCommand(buildtags),
 	)
 	return rootCmd

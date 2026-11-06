@@ -17,6 +17,9 @@ const (
 	kindFunction   = "function"
 	kindHub        = "hub"
 	kindAudit      = "audit"
+	kindLineage    = "lineage"
+	kindFlow       = "flow"
+	kindEvents     = "events"
 )
 
 // ToolSpec is one MCP tool advertised on /mcp.
@@ -179,14 +182,62 @@ func extraTools(include, exclude []string) []ToolSpec {
 				{Name: "cursor", Type: "string", Description: "Opaque cursor from the previous page"},
 			},
 		},
+		{
+			Name: "lineage.trace", Group: kindLineage, Operation: "trace", Kind: kindLineage,
+			Description: "Multi-hop resource lineage from one seed (app+entity_id, event_id, or correlation_id). Read-only.\nExample: {\"app\":\"karakeep\",\"entity_id\":\"bm:991\",\"direction\":\"up\"}",
+			Scopes:      []string{auth.ScopeLineageRead},
+			Input: []hub.ParamDef{
+				{Name: "app", Type: "string", Description: "Seed app when tracing by entity"},
+				{Name: "entity_id", Type: "string", Description: "Seed entity_id when tracing by entity"},
+				{Name: "event_id", Type: "string", Description: "Seed data_events event_id"},
+				{Name: "correlation_id", Type: "string", Description: "Seed correlation_id across a run"},
+				{Name: "direction", Type: "string", Description: "Walk direction", Enum: []string{"up", "down", "both"}},
+				{Name: "depth", Type: "int", Description: "Max hop depth, default 10, maximum 10"},
+			},
+		},
+		{
+			Name: "lineage.search", Group: kindLineage, Operation: "search", Kind: kindLineage,
+			Description: "Search distinct resource nodes by app, capability, or entity_id substring. Read-only.\nExample: {\"query\":\"bm:991\",\"limit\":20}",
+			Scopes:      []string{auth.ScopeLineageRead},
+			Input: []hub.ParamDef{
+				{Name: "query", Type: "string", Required: true, Description: "Substring matched against app, capability, and entity_id"},
+			},
+		},
+		{
+			Name: "flow.graph", Group: kindFlow, Operation: "graph", Kind: kindFlow,
+			Description: "Live-aggregated app topology from resource_links in a time window. Read-only.\nExample: {\"since\":\"2027-01-05T00:00:00Z\",\"app\":\"miniflux\"}",
+			Scopes:      []string{auth.ScopeLineageRead},
+			Input: []hub.ParamDef{
+				{Name: "since", Type: "string", Description: "Inclusive RFC3339 lower bound; default 7d lookback"},
+				{Name: "until", Type: "string", Description: "Inclusive RFC3339 upper bound; default now"},
+				{Name: "app", Type: "string", Description: "Optional app filter on source or target"},
+				{Name: "include_static", Type: "boolean", Description: "Accepted for compatibility; static edges are ignored until published"},
+			},
+		},
+		{
+			Name: "events.timeline", Group: kindEvents, Operation: "timeline", Kind: kindEvents,
+			Description: "Paged data_events timeline. Payload data is omitted unless include_payload is true and the caller holds the matching service read scope.\nExample: {\"since\":\"2027-01-05T00:00:00Z\",\"limit\":20}",
+			Scopes:      []string{auth.ScopeLineageRead},
+			Input: []hub.ParamDef{
+				{Name: "since", Type: "string", Description: "Inclusive RFC3339 lower bound; default 7d lookback"},
+				{Name: "until", Type: "string", Description: "Inclusive RFC3339 upper bound; default now"},
+				{Name: "app", Type: "string", Description: "Optional app filter"},
+				{Name: "event_type", Type: "string", Description: "Optional event_type filter"},
+				{Name: "correlation_id", Type: "string", Description: "Optional correlation_id filter"},
+				{Name: "include_payload", Type: "boolean", Description: "Include event data when the caller has service read scope; default false"},
+			},
+		},
 	}
 	var out []ToolSpec
 	for _, spec := range specs {
 		if pkgmcp.Match(include, exclude, spec.Group, spec.Name) {
 			spec.Input = withPageParams(spec.Group, spec.Operation, spec.Input)
 			spec.Output = pkgmcp.OutputSchema(spec.Group, spec.Operation)
-			if spec.Name == "audit.list" {
+			switch spec.Name {
+			case "audit.list", "lineage.search", "events.timeline":
 				spec.Output = auditListOutputSchema()
+			case "lineage.trace", "flow.graph":
+				spec.Output = pkgmcp.OutputSchema("pipeline", "get")
 			}
 			out = append(out, spec)
 		}

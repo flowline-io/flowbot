@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	appcfg "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -90,4 +91,88 @@ func validateTraceQuery(q types.LineageTraceQuery) error {
 		return errors.New("analytics: trace requires exactly one of app+entity_id, event_id, or correlation_id")
 	}
 	return nil
+}
+
+// Search returns distinct resource nodes matching query (lineage.search).
+func (*Service) Search(ctx context.Context, q types.LineageSearchQuery) (*types.LineageSearchResult, error) {
+	query := strings.TrimSpace(q.Query)
+	if query == "" {
+		return nil, &types.Error{Kind: types.ErrInvalidArgument, Message: "query is required", Field: "query"}
+	}
+	rc := store.NewResourceChainStore(store.ClientFromDB())
+	items, next, err := rc.SearchNodes(ctx, query, q.Limit, q.Cursor)
+	if err != nil {
+		return nil, fmt.Errorf("analytics: lineage search: %w", err)
+	}
+	if items == nil {
+		items = []types.ResourceRef{}
+	}
+	return &types.LineageSearchResult{Items: items, NextCursor: next}, nil
+}
+
+// Timeline returns a paged data_events window (events.timeline).
+// Rows appear under lineage:read (+ uid for non-admins). Payload bodies follow D10:
+// omitted by default; include_payload attaches data only when the caller holds
+// service:{capability|app}:read (or admin:*); otherwise payload_omitted is set.
+// When include_payload is true and app is set but the caller cannot read that app,
+// the whole call is permission_denied.
+func (*Service) Timeline(ctx context.Context, q types.EventsTimelineQuery) (*types.EventsTimelineResult, error) {
+	if q.IncludePayload && strings.TrimSpace(q.App) != "" {
+		if !auth.HasMinimumServiceScope(q.Scopes, strings.TrimSpace(q.App), "GET") {
+			return nil, types.Errorf(types.ErrForbidden, "include_payload requires read scope for app %s", q.App)
+		}
+	}
+	since, until := types.NormalizeFlowGraphWindow(q.Since, q.Until, 0, time.Now().UTC())
+	opts := store.ListDataEventsOptions{
+		App:           strings.TrimSpace(q.App),
+		EventType:     strings.TrimSpace(q.EventType),
+		CorrelationID: strings.TrimSpace(q.CorrelationID),
+		UID:           strings.TrimSpace(q.CallerUID),
+		Limit:         q.Limit,
+		Cursor:        q.Cursor,
+		TimeStart:     &since,
+		TimeEnd:       &until,
+	}
+	es := store.EventStoreFromDB()
+	if es == nil {
+		return &types.EventsTimelineResult{Items: []types.EventsTimelineItem{}}, nil
+	}
+	rows, next, err := es.ListDataEvents(ctx, opts)
+	if err != nil {
+		return nil, fmt.Errorf("analytics: events timeline: %w", err)
+	}
+	items := make([]types.EventsTimelineItem, 0, len(rows))
+	for _, row := range rows {
+		item := types.EventsTimelineItem{
+			EventID:       row.EventID,
+			EventType:     row.EventType,
+			Source:        row.Source,
+			App:           row.App,
+			Capability:    row.Capability,
+			Operation:     row.Operation,
+			EntityID:      row.EntityID,
+			UID:           row.UID,
+			CorrelationID: row.CorrelationID,
+			CausationID:   row.CausationID,
+			TraceID:       row.TraceID,
+			CreatedAt:     row.CreatedAt,
+		}
+		if q.IncludePayload {
+			group := timelinePayloadGroup(row.Capability, row.App)
+			if group != "" && auth.HasMinimumServiceScope(q.Scopes, group, "GET") {
+				item.Data = row.Data
+			} else {
+				item.PayloadOmitted = true
+			}
+		}
+		items = append(items, item)
+	}
+	return &types.EventsTimelineResult{Items: items, NextCursor: next}, nil
+}
+
+func timelinePayloadGroup(capability, app string) string {
+	if g := strings.TrimSpace(capability); g != "" {
+		return g
+	}
+	return strings.TrimSpace(app)
 }

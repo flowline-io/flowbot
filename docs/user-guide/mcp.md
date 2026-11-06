@@ -57,6 +57,17 @@ A registered capability contributes one tool per operation, named `<capability>.
 
 `drone` registers only when `providers.drone.endpoint` is set. An empty endpoint skips registration, so neither tool is advertised and a call fails with `capability drone not found`. Other provider-backed capabilities follow the same rule: an unconfigured provider has no tools.
 
+Lineage and flow tools (scope `lineage:read`; also on the `lineage_per_token_rpm` budget) are:
+
+| Tool | Tier | Arguments |
+| --- | --- | --- |
+| `lineage.trace` | read | exactly one of `app`+`entity_id`, `event_id`, or `correlation_id`; optional `direction` (`up`/`down`/`both`), `depth` |
+| `lineage.search` | read | `query` (required), `limit`, `cursor` |
+| `flow.graph` | read | optional `since`/`until` (default 7d), `app`, `include_static` (accepted, ignored until static edges ship) |
+| `events.timeline` | read | optional `since`/`until`, `app`, `event_type`, `correlation_id`, `limit`, `cursor`; `include_payload` (default false) |
+
+`events.timeline` omits event `data` by default. With `include_payload=true`, a row includes `data` only when the token has `service:{capability|app}:read` (or `admin:*`); otherwise the row stays and sets `payload_omitted: true`. Asking for payload with a specific `app` the token cannot read returns `permission_denied`. The same four reads are also REST (`GET /service/lineage/trace`, `/service/lineage/search`, `/service/flows/graph`, `/service/events/timeline`, mounted by analytics) and CLI (`flowbot lineage|flow|events …`). API tokens share the lineage rate bucket across MCP and those REST routes; `kind=full` web sessions do not.
+
 The Run preset does not add `service:*:write`. Call a write tool such as `drone.deploy` with a Custom token that includes `service:drone:write`.
 
 MCP does not advertise a `uid` argument. When a capability declares one, the server fills it with the token subject before the handler runs, so a caller cannot deploy or notify as another user. Pipeline and hub callers set `uid` themselves; those call paths are not MCP.

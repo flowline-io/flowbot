@@ -60,6 +60,9 @@ type Client struct {
 	Trello       *TrelloClient
 	Confluence   *ConfluenceClient
 	Devops       *DevopsClient
+	Lineage      *LineageClient
+	Flow         *FlowClient
+	Events       *EventsClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -103,6 +106,9 @@ func NewClient(serverURL, token string) *Client {
 	c.Trello = &TrelloClient{c: c}
 	c.Confluence = &ConfluenceClient{c: c}
 	c.Devops = &DevopsClient{c: c}
+	c.Lineage = &LineageClient{c: c}
+	c.Flow = &FlowClient{c: c}
+	c.Events = &EventsClient{c: c}
 
 	return c
 }

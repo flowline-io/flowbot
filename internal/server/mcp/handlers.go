@@ -9,6 +9,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/internal/modules/analytics"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/capability"
@@ -64,6 +65,12 @@ func dispatchTool(ctx context.Context, ident Identity, spec ToolSpec, args map[s
 		return execHub(ctx, spec.Operation, args)
 	case kindAudit:
 		return execAuditList(ctx, ident, args)
+	case kindLineage:
+		return execLineage(ctx, ident, spec.Operation, args)
+	case kindFlow:
+		return execFlow(ctx, spec.Operation, args)
+	case kindEvents:
+		return execEvents(ctx, ident, spec.Operation, args)
 	default:
 		return nil, fmt.Errorf("unknown mcp tool kind %s", spec.Kind)
 	}
@@ -325,6 +332,163 @@ func recordMutation(ctx context.Context, ident Identity, spec ToolSpec, args map
 	if err := auditor.RecordSuccess(ctx, entry); err != nil {
 		flog.Error(fmt.Errorf("mcp audit success: %w", err))
 	}
+}
+
+func requireAnalytics() (*analytics.Service, error) {
+	svc := analytics.ActiveService()
+	if svc == nil {
+		return nil, types.Errorf(types.ErrUnavailable, "analytics service not ready")
+	}
+	return svc, nil
+}
+
+func execLineage(ctx context.Context, _ Identity, op string, args map[string]any) (any, error) {
+	svc, err := requireAnalytics()
+	if err != nil {
+		return nil, err
+	}
+	switch op {
+	case "trace":
+		q := types.LineageTraceQuery{
+			App:           stringArg(args, "app"),
+			EntityID:      stringArg(args, "entity_id"),
+			EventID:       stringArg(args, "event_id"),
+			CorrelationID: stringArg(args, "correlation_id"),
+			Direction:     types.NormalizeLineageTraceDirection(types.LineageTraceDirection(stringArg(args, "direction"))),
+		}
+		if n, ok := intArg(args["depth"]); ok {
+			q.Depth = n
+		}
+		out, err := svc.Trace(ctx, q)
+		if err != nil {
+			if strings.Contains(err.Error(), "exactly one of") {
+				return nil, &types.Error{Kind: types.ErrInvalidArgument, Message: err.Error()}
+			}
+			return nil, err
+		}
+		return out, nil
+	case "search":
+		q := types.LineageSearchQuery{
+			Query:  stringArg(args, "query"),
+			Cursor: stringArg(args, "cursor"),
+		}
+		if n, ok := intArg(args["limit"]); ok {
+			q.Limit = n
+		}
+		out, err := svc.Search(ctx, q)
+		if err != nil {
+			return nil, err
+		}
+		page := map[string]any{}
+		if out.NextCursor != "" {
+			page["next_cursor"] = out.NextCursor
+		}
+		return map[string]any{"items": out.Items, "page": page}, nil
+	default:
+		return nil, fmt.Errorf("unknown lineage operation %s", op)
+	}
+}
+
+func execFlow(ctx context.Context, op string, args map[string]any) (any, error) {
+	svc, err := requireAnalytics()
+	if err != nil {
+		return nil, err
+	}
+	switch op {
+	case "graph":
+		q := types.FlowGraphQuery{
+			App:           stringArg(args, "app"),
+			IncludeStatic: includeStaticArg(args),
+		}
+		if raw := stringArg(args, "since"); raw != "" {
+			ts, err := time.Parse(time.RFC3339, raw)
+			if err != nil {
+				return nil, &types.Error{Kind: types.ErrInvalidArgument, Message: "since must be RFC3339", Field: "since"}
+			}
+			q.Since = ts
+		}
+		if raw := stringArg(args, "until"); raw != "" {
+			ts, err := time.Parse(time.RFC3339, raw)
+			if err != nil {
+				return nil, &types.Error{Kind: types.ErrInvalidArgument, Message: "until must be RFC3339", Field: "until"}
+			}
+			q.Until = ts
+		}
+		return svc.FlowGraph(ctx, q)
+	default:
+		return nil, fmt.Errorf("unknown flow operation %s", op)
+	}
+}
+
+func execEvents(ctx context.Context, ident Identity, op string, args map[string]any) (any, error) {
+	svc, err := requireAnalytics()
+	if err != nil {
+		return nil, err
+	}
+	switch op {
+	case "timeline":
+		q := types.EventsTimelineQuery{
+			App:            stringArg(args, "app"),
+			EventType:      stringArg(args, "event_type"),
+			CorrelationID:  stringArg(args, "correlation_id"),
+			Cursor:         stringArg(args, "cursor"),
+			IncludePayload: boolArg(args, "include_payload"),
+			Scopes:         ident.Scopes,
+		}
+		if !auth.HasScope(ident.Scopes, auth.ScopeAdmin) {
+			q.CallerUID = string(ident.UID)
+		}
+		if n, ok := intArg(args["limit"]); ok {
+			q.Limit = n
+		}
+		if raw := stringArg(args, "since"); raw != "" {
+			ts, err := time.Parse(time.RFC3339, raw)
+			if err != nil {
+				return nil, &types.Error{Kind: types.ErrInvalidArgument, Message: "since must be RFC3339", Field: "since"}
+			}
+			q.Since = ts
+		}
+		if raw := stringArg(args, "until"); raw != "" {
+			ts, err := time.Parse(time.RFC3339, raw)
+			if err != nil {
+				return nil, &types.Error{Kind: types.ErrInvalidArgument, Message: "until must be RFC3339", Field: "until"}
+			}
+			q.Until = ts
+		}
+		out, err := svc.Timeline(ctx, q)
+		if err != nil {
+			return nil, err
+		}
+		page := map[string]any{}
+		if out.NextCursor != "" {
+			page["next_cursor"] = out.NextCursor
+		}
+		return map[string]any{"items": out.Items, "page": page}, nil
+	default:
+		return nil, fmt.Errorf("unknown events operation %s", op)
+	}
+}
+
+func boolArg(args map[string]any, key string) bool {
+	raw, ok := args[key]
+	if !ok || raw == nil {
+		return false
+	}
+	switch v := raw.(type) {
+	case bool:
+		return v
+	case string:
+		return strings.EqualFold(v, "true") || v == "1"
+	default:
+		return false
+	}
+}
+
+func includeStaticArg(args map[string]any) bool {
+	if _, ok := args["include_static"]; !ok {
+		return true
+	}
+	return boolArg(args, "include_static")
 }
 
 func execAuditList(ctx context.Context, ident Identity, args map[string]any) (any, error) {

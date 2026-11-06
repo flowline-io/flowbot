@@ -111,10 +111,13 @@ func ErrorResponse(ctx fiber.Ctx, text string) error {
 // RequestContext is a typed struct stored in fiber.Locals after authorization.
 // It carries the authenticated user identity, request metadata, and scopes.
 type RequestContext struct {
-	UID    types.Uid
-	Topic  string
-	Param  types.KV
-	Scopes []string
+	UID types.Uid
+	// TokenID is the access-token row id. Lineage REST rate limits use it.
+	TokenID int64
+	Kind    string
+	Topic   string
+	Param   types.KV
+	Scopes  []string
 }
 
 const requestContextKey = "route:ctx"
@@ -169,6 +172,7 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 
 		paramKV := types.KV(p.Params)
 		topic, _ := paramKV.String("topic")
+		kind, _ := paramKV.String("kind")
 		uidStr, _ := paramKV.String("uid")
 		uid := types.Uid(uidStr)
 
@@ -185,10 +189,12 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 		throttledUpdateLastUsed(paramKV, p.Flag)
 
 		ctx.Locals(requestContextKey, &RequestContext{
-			UID:    uid,
-			Topic:  topic,
-			Param:  paramKV,
-			Scopes: scopes,
+			UID:     uid,
+			TokenID: p.ID,
+			Kind:    kind,
+			Topic:   topic,
+			Param:   paramKV,
+			Scopes:  scopes,
 		})
 
 		return handler(ctx)

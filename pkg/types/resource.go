@@ -190,6 +190,59 @@ type LineageTrace struct {
 	Truncated bool               `json:"truncated"`
 }
 
+// LineageSearchQuery is the input for lineage.search (SearchNodes).
+type LineageSearchQuery struct {
+	Query  string
+	Limit  int
+	Cursor string
+}
+
+// LineageSearchResult is the paged node list for lineage.search.
+type LineageSearchResult struct {
+	Items      []ResourceRef `json:"items"`
+	NextCursor string        `json:"next_cursor,omitempty"`
+}
+
+// EventsTimelineQuery is the input for events.timeline.
+type EventsTimelineQuery struct {
+	Since          time.Time
+	Until          time.Time
+	App            string
+	EventType      string
+	CorrelationID  string
+	Limit          int
+	Cursor         string
+	IncludePayload bool
+	// CallerUID restricts rows to this uid when non-empty (non-admin callers).
+	CallerUID string
+	// Scopes is the caller's token scopes; used only when IncludePayload is true.
+	Scopes []string
+}
+
+// EventsTimelineItem is one data_events row in an events.timeline response.
+type EventsTimelineItem struct {
+	EventID         string         `json:"event_id"`
+	EventType       string         `json:"event_type"`
+	Source          string         `json:"source,omitempty"`
+	App             string         `json:"app,omitempty"`
+	Capability      string         `json:"capability,omitempty"`
+	Operation       string         `json:"operation,omitempty"`
+	EntityID        string         `json:"entity_id,omitempty"`
+	UID             string         `json:"uid,omitempty"`
+	CorrelationID   string         `json:"correlation_id,omitempty"`
+	CausationID     string         `json:"causation_id,omitempty"`
+	TraceID         string         `json:"trace_id,omitempty"`
+	CreatedAt       time.Time      `json:"created_at"`
+	Data            map[string]any `json:"data,omitempty"`
+	PayloadOmitted  bool           `json:"payload_omitted,omitempty"`
+}
+
+// EventsTimelineResult is the paged list for events.timeline.
+type EventsTimelineResult struct {
+	Items      []EventsTimelineItem `json:"items"`
+	NextCursor string               `json:"next_cursor,omitempty"`
+}
+
 // NormalizeFlowGraphWindow resolves since/until with default 7d lookback and
 // caps the span by min(data_events_days if >0, FlowGraphMaxWindowDays).
 func NormalizeFlowGraphWindow(since, until time.Time, dataEventsRetentionDays int, now time.Time) (normalizedSince, normalizedUntil time.Time) {

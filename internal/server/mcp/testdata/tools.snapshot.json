@@ -1020,6 +1020,29 @@
     }
   },
   {
+    "name": "events.timeline",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [],
+      "properties": [
+        "app",
+        "correlation_id",
+        "cursor",
+        "event_type",
+        "include_payload",
+        "limit",
+        "since",
+        "until"
+      ]
+    }
+  },
+  {
     "name": "fireflyiii.about",
     "tier": "read",
     "idempotentHint": false,
@@ -1275,6 +1298,25 @@
         "source_name",
         "tags",
         "type"
+      ]
+    }
+  },
+  {
+    "name": "flow.graph",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [],
+      "properties": [
+        "app",
+        "include_static",
+        "since",
+        "until"
       ]
     }
   },
@@ -2255,6 +2297,47 @@
         "q",
         "sort_by",
         "sort_order"
+      ]
+    }
+  },
+  {
+    "name": "lineage.search",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [
+        "query"
+      ],
+      "properties": [
+        "cursor",
+        "limit",
+        "query"
+      ]
+    }
+  },
+  {
+    "name": "lineage.trace",
+    "tier": "read",
+    "idempotentHint": false,
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "inputSchema": {
+      "required": [],
+      "properties": [
+        "app",
+        "correlation_id",
+        "depth",
+        "direction",
+        "entity_id",
+        "event_id"
       ]
     }
   },

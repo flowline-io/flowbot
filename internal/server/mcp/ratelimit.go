@@ -9,11 +9,20 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
+	"github.com/flowline-io/flowbot/internal/modules/analytics"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
+
+func init() {
+	analytics.SetLineageCharge(func(ctx context.Context, tokenID int64, kind string) error {
+		_, err := AllowLineageHTTP(ctx, tokenID, kind)
+		return err
+	})
+}
 
 const (
 	defaultPerTokenRPM        = 120
@@ -130,6 +139,28 @@ func isLineageTool(name string) bool {
 	default:
 		return false
 	}
+}
+
+// AllowLineageHTTP charges the shared MCP all+lineage rate-limit buckets for an
+// API-token REST call to /service/lineage|flows|events. kind=full web sessions
+// skip these buckets (global HTTP limiter only). Redis errors fail closed.
+func AllowLineageHTTP(ctx context.Context, tokenID int64, kind string) (retryAfterMS int64, err error) {
+	if tokenID <= 0 || kind == webauth.KindFull {
+		return 0, nil
+	}
+	buckets := bucketsForTool(tokenID, ToolSpec{Name: "lineage.trace"}, true)
+	allowed, retryAfter, err := allowToolCall(ctx, buckets, time.Now())
+	if err != nil {
+		return 0, err
+	}
+	if allowed {
+		return 0, nil
+	}
+	ms := retryAfter.Milliseconds()
+	if ms < 1 {
+		ms = 1
+	}
+	return ms, types.Errorf(types.ErrRateLimited, "lineage rate limited")
 }
 
 // allowToolCall records one tools/call against every applicable bucket.

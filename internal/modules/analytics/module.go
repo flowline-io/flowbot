@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/bytedance/sonic"
-	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -90,7 +89,5 @@ func (moduleHandler) Bootstrap() error {
 	flog.Info("analytics: bootstrap complete")
 	return nil
 }
-
-func (moduleHandler) Webservice(_ *fiber.App) {}
 
 func (moduleHandler) Rules() []any { return nil }
