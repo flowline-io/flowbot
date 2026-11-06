@@ -75,3 +75,170 @@ type ResourceEdge struct {
 	PipelineName     string    `json:"pipeline_name"`
 	CreatedAt        time.Time `json:"created_at"`
 }
+
+// Flow graph and lineage trace window / hop limits.
+const (
+	// FlowGraphDefaultWindow is the default lookback when since is omitted.
+	FlowGraphDefaultWindow = 7 * 24 * time.Hour
+	// FlowGraphMaxWindowDays caps any flow.graph window (also when retention is unlimited).
+	FlowGraphMaxWindowDays = 90
+	// LineageTraceDefaultDepth is the default hop depth for lineage.trace.
+	LineageTraceDefaultDepth = 10
+	// LineageTraceMaxDepth is the hard hop depth ceiling.
+	LineageTraceMaxDepth = 10
+	// LineageTraceMaxNodes is the hard node count ceiling for lineage.trace.
+	LineageTraceMaxNodes = 500
+)
+
+// LineageTraceDirection names which way a multi-hop trace walks edges.
+type LineageTraceDirection string
+
+const (
+	// LineageTraceDirectionUp walks toward sources (default: "where did this come from").
+	LineageTraceDirectionUp LineageTraceDirection = "up"
+	// LineageTraceDirectionDown walks toward targets.
+	LineageTraceDirectionDown LineageTraceDirection = "down"
+	// LineageTraceDirectionBoth walks both directions.
+	LineageTraceDirectionBoth LineageTraceDirection = "both"
+)
+
+// FlowGraphVia identifies the execution surface that produced an aggregated edge.
+type FlowGraphVia struct {
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+}
+
+// FlowGraphEdge is one aggregated directed edge in a flow.graph response.
+type FlowGraphEdge struct {
+	Source       string       `json:"source"`
+	Target       string       `json:"target"`
+	Via          FlowGraphVia `json:"via"`
+	CountOK      int64        `json:"count_ok"`
+	CountFailed  int64        `json:"count_failed"`
+	LastAt       *time.Time   `json:"last_at,omitempty"`
+	Static       bool         `json:"static"`
+}
+
+// FlowGraphNode is an app (or agent:*) vertex in a flow.graph response.
+type FlowGraphNode struct {
+	ID string `json:"id"`
+}
+
+// FlowGraphWindow is the resolved time range for a flow.graph query.
+type FlowGraphWindow struct {
+	Since time.Time `json:"since"`
+	Until time.Time `json:"until"`
+}
+
+// FlowGraph is the aggregated topology returned by flow.graph.
+type FlowGraph struct {
+	Nodes  []FlowGraphNode `json:"nodes"`
+	Edges  []FlowGraphEdge `json:"edges"`
+	Window FlowGraphWindow `json:"window"`
+}
+
+// FlowGraphQuery is the input for live resource_links aggregation.
+type FlowGraphQuery struct {
+	Since                    time.Time
+	Until                    time.Time
+	App                      string
+	IncludeStatic            bool // accepted for MCP compatibility; ignored until static edges land
+	DataEventsRetentionDays  int
+}
+
+// LineageTraceQuery seeds a multi-hop lineage walk.
+// Exactly one of (App+EntityID), EventID, or CorrelationID must be set.
+type LineageTraceQuery struct {
+	App           string
+	EntityID      string
+	EventID       string
+	CorrelationID string
+	Direction     LineageTraceDirection
+	Depth         int
+}
+
+// LineageTraceNode is one resource or synthetic leaf in a lineage.trace response.
+type LineageTraceNode struct {
+	App        string `json:"app,omitempty"`
+	EntityID   string `json:"entity_id,omitempty"`
+	EventID    string `json:"event_id,omitempty"`
+	Capability string `json:"capability,omitempty"`
+}
+
+// LineageTraceEdge is one hop in a lineage.trace response.
+type LineageTraceEdge struct {
+	SourceEventID    string    `json:"source_event_id"`
+	TargetEventID    string    `json:"target_event_id"`
+	SourceApp        string    `json:"source_app"`
+	TargetApp        string    `json:"target_app"`
+	SourceEntityID   string    `json:"source_entity_id"`
+	TargetEntityID   string    `json:"target_entity_id"`
+	SourceCapability string    `json:"source_capability,omitempty"`
+	TargetCapability string    `json:"target_capability,omitempty"`
+	RunKind          string    `json:"run_kind"`
+	Status           string    `json:"status"`
+	ViaName          string    `json:"via_name,omitempty"`
+	CorrelationID    string    `json:"correlation_id,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+	Depth            int       `json:"depth"`
+}
+
+// LineageTrace is the multi-hop result for lineage.trace.
+type LineageTrace struct {
+	Nodes     []LineageTraceNode `json:"nodes"`
+	Edges     []LineageTraceEdge `json:"edges"`
+	Truncated bool               `json:"truncated"`
+}
+
+// NormalizeFlowGraphWindow resolves since/until with default 7d lookback and
+// caps the span by min(data_events_days if >0, FlowGraphMaxWindowDays).
+func NormalizeFlowGraphWindow(since, until time.Time, dataEventsRetentionDays int, now time.Time) (normalizedSince, normalizedUntil time.Time) {
+	if now.IsZero() {
+		now = time.Now().UTC()
+	} else {
+		now = now.UTC()
+	}
+	if until.IsZero() {
+		normalizedUntil = now
+	} else {
+		normalizedUntil = until.UTC()
+	}
+	if since.IsZero() {
+		normalizedSince = normalizedUntil.Add(-FlowGraphDefaultWindow)
+	} else {
+		normalizedSince = since.UTC()
+	}
+	if !normalizedSince.Before(normalizedUntil) {
+		normalizedSince = normalizedUntil.Add(-FlowGraphDefaultWindow)
+	}
+	maxDays := FlowGraphMaxWindowDays
+	if dataEventsRetentionDays > 0 && dataEventsRetentionDays < maxDays {
+		maxDays = dataEventsRetentionDays
+	}
+	maxSpan := time.Duration(maxDays) * 24 * time.Hour
+	if normalizedUntil.Sub(normalizedSince) > maxSpan {
+		normalizedSince = normalizedUntil.Add(-maxSpan)
+	}
+	return normalizedSince, normalizedUntil
+}
+
+// NormalizeLineageTraceDirection returns a valid direction; empty defaults to up.
+func NormalizeLineageTraceDirection(d LineageTraceDirection) LineageTraceDirection {
+	switch d {
+	case LineageTraceDirectionDown, LineageTraceDirectionBoth:
+		return d
+	default:
+		return LineageTraceDirectionUp
+	}
+}
+
+// NormalizeLineageTraceDepth clamps depth to [1, LineageTraceMaxDepth]; zero uses the default.
+func NormalizeLineageTraceDepth(depth int) int {
+	if depth <= 0 {
+		return LineageTraceDefaultDepth
+	}
+	if depth > LineageTraceMaxDepth {
+		return LineageTraceMaxDepth
+	}
+	return depth
+}

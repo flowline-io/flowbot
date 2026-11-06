@@ -231,7 +231,6 @@ var FieldDocs = map[string]string{
 	"redis.write_timeout":                                 "Timeout for socket writes (0 = fallback to 60s for backward compatibility)",
 	"retention":                                           "Retention controls optional automatic cleanup of durable history tables.",
 	"retention.data_events_days":                          "DataEventsDays deletes data_events older than this many days when > 0. Zero disables.",
-	"retention.flow_daily_days":                           "FlowDailyDays deletes flow_edge_daily rows older than this many days. Zero uses 365.",
 	"search":                                              "Search",
 	"search.url_base_map":                                 "Search URL base map",
 	"store":                                               "Store is the normalized internal store view populated by Normalize from Postgres. It is not read from YAML.",

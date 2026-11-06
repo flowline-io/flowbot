@@ -681,9 +681,6 @@ other = "Retention 控制 durable 历史表的可选自动清理。"
 ["settings.desc.retention.data_events_days"]
 other = "DataEventsDays 在 > 0 时删除早于此天数的 data_events。零值禁用。"
 
-["settings.desc.retention.flow_daily_days"]
-other = "FlowDailyDays deletes flow_edge_daily rows older than this many days. Zero uses 365."
-
 ["settings.desc.search"]
 other = "Search"
 

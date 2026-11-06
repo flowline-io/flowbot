@@ -111,16 +111,6 @@ type Type struct {
 type RetentionConfig struct {
 	// DataEventsDays deletes data_events older than this many days when > 0. Zero disables.
 	DataEventsDays int `json:"data_events_days" yaml:"data_events_days" mapstructure:"data_events_days"`
-	// FlowDailyDays deletes flow_edge_daily rows older than this many days. Zero uses 365.
-	FlowDailyDays int `json:"flow_daily_days" yaml:"flow_daily_days" mapstructure:"flow_daily_days"`
-}
-
-// FlowDailyRetentionDays returns the flow_edge_daily lifetime. Zero and negative values use 365.
-func (r RetentionConfig) FlowDailyRetentionDays() int {
-	if r.FlowDailyDays <= 0 {
-		return 365
-	}
-	return r.FlowDailyDays
 }
 
 // PIIConfig configures session-scoped reversible PII anonymization for LLM traffic.

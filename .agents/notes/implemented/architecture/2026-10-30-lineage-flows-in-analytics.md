@@ -31,11 +31,12 @@ T45.2 (`resource_links` generalization and backfill) and later lineage tasks pro
 - [2026-10-17-mcp-rate-limit-and-audit-list.md](../feature/2026-10-17-mcp-rate-limit-and-audit-list.md) no longer treats `retention.flow_daily_days` as forthcoming product surface.
 - [2026-10-21-analytics-replaces-life.md](../feature/2026-10-21-analytics-replaces-life.md) Personal+Ops shell gains Flows as the third partition when that UI lands.
 - After event retention deletes old `data_events` / `resource_links`, `flow.graph` cannot show counts beyond what remains; there is no daily rollup to extend the window.
-- Config, reference YAML, and i18n entries for `retention.flow_daily_days` are removed in the same change that implements Flows / deletes the dead field.
+- Config, reference YAML, and i18n entries for `retention.flow_daily_days` are removed; see [flow-graph live aggregation](../feature/2026-11-07-flow-graph-live-aggregation.md).
 
 ## Verification
 
 - This file is present on `master` at `.agents/notes/implemented/architecture/2026-10-30-lineage-flows-in-analytics.md` (raw/GitHub HTTP 200).
 - The Decision section states all four locks in plain sentences: live `flow.graph` (no `flow_edge_daily`); Flows as Analytics Personal/Ops/Flows; delete `retention.flow_daily_days`; store query / analytics service / MCP→service / analytics-mounted REST.
 - T45.2 worktrees and checklists treat this note as the gate: no `flow_edge_daily` schema or retention field in that change.
+- Live aggregation and D17 config deletion shipped in [2026-11-07-flow-graph-live-aggregation.md](../feature/2026-11-07-flow-graph-live-aggregation.md): `AggregateFlowGraph` / `Trace` on the store, analytics service orchestration, no `retention.flow_daily_days` field.
 - Owning product docs stay at [docs/analytics/README.md](../../../docs/analytics/README.md) once Flows ships; this note owns the trade-off.

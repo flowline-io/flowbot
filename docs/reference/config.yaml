@@ -23,7 +23,6 @@ listen: "127.0.0.1:6060"
 #
 # retention:
 #   data_events_days: 90  # 0 / omit = keep forever; also purges related pipeline/outbox history
-#   flow_daily_days: 365  # 0 uses 365; independent of data_events_days
 
 # Media uploads — omit to disable. Zero max_size/gc_* use code defaults (100MiB/60s/100).
 # media:

@@ -8,6 +8,7 @@
 
 ### Added
 
+- Analytics domain service exposes live `flow.graph` aggregation and multi-hop lineage `Trace` over `resource_links` (windowed store aggregation; default 7d, capped by `retention.data_events_days` and 90 days). No `flow_edge_daily` table. MCP tools hang off this service in a later task. See [.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md](.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md).
 - Pipeline, workflow, and MCP capability paths write `resource_links` for successful creates (`ResourceMeta`), failed steps (`fail:{run_id}:{step}`), and MCP external-input edges (`run_kind=mcp`, `source.app=agent:{tokenID}`, correlation minted before invoke). See [.agents/notes/implemented/feature/2026-11-07-resource-links-writers.md](.agents/notes/implemented/feature/2026-11-07-resource-links-writers.md).
 - `resource_links` stores `run_kind`, `status`, and `correlation_id`, with indexes `(source_app, target_app, created_at)` and `correlation_id`. Startup Ent migrate applies column defaults; existing rows copy `correlation_id` from the source `data_events` row when empty. See [.agents/notes/implemented/feature/2026-11-07-resource-links-generalization.md](.agents/notes/implemented/feature/2026-11-07-resource-links-generalization.md).
 - Write calls accept an optional idempotency key: MCP `arguments.idempotency_key`, REST write routes `Idempotency-Key`, CLI `--idempotency-key`. Reusing a key with the same payload returns the stored result instead of running the write again (MCP `trace.replayed`, REST `Idempotency-Replayed: true`, CLI `replayed: true`). The same key with different arguments is `invalid_argument`; a call still in progress is `unavailable`; an unknown outcome is `idempotency_unknown`. See [.agents/notes/implemented/feature/2026-10-21-write-idempotency-key.md](.agents/notes/implemented/feature/2026-10-21-write-idempotency-key.md) and [docs/user-guide/mcp.md](docs/user-guide/mcp.md).
@@ -22,6 +23,10 @@
 ### Deprecated
 
 - Omitting `chat_agent.enabled` while relying on a non-empty `chat_model` to turn the agent on. Startup logs a compat warning; set `chat_agent.enabled: true|false` explicitly. `core.agent_run` returns `unavailable` when the agent is off. See [.agents/notes/implemented/feature/2026-11-06-chat-agent-enabled-switch.md](.agents/notes/implemented/feature/2026-11-06-chat-agent-enabled-switch.md).
+
+### Removed
+
+- `retention.flow_daily_days` (there is no `flow_edge_daily` table). Leftover YAML keys are ignored. Edge lifetime follows `retention.data_events_days` and the existing `resource_links` cascade. See [.agents/notes/implemented/architecture/2026-10-30-lineage-flows-in-analytics.md](.agents/notes/implemented/architecture/2026-10-30-lineage-flows-in-analytics.md) and [.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md](.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md).
 
 ## [0.99.18]
 

@@ -19,9 +19,13 @@ Flowbot's personal usage and ops run-health surface under User nav.
 
 - Runs health — site-wide pipeline / workflow / function success rate trends, failure counts, and duration distributions
 
+## Flows
+
+Live `flow.graph` aggregation and multi-hop `Trace` are available on the analytics domain service (`internal/modules/analytics`) over `resource_links` (no daily rollup table). MCP/REST/UI mount in later tasks. Decision: [.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md](../../.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md).
+
 ## Time range
 
-Default **7d**. Presets: **24h** (rolling), **7d**, **30d**, or custom `since`/`until`. The same range query applies across Personal and Ops pages.
+Default **7d**. Presets: **24h** (rolling), **7d**, **30d**, or custom `since`/`until`. The same range query applies across Personal and Ops pages. `flow.graph` also defaults to 7d and caps the window by `retention.data_events_days` (when set) and at most 90 days.
 
 ## Configuration
 

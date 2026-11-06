@@ -23,6 +23,12 @@ Set `chat_agent.enabled: true` with a non-empty `chat_model`, or `enabled: false
 
 Rationale: [.agents/notes/implemented/feature/2026-11-06-chat-agent-enabled-switch.md](../.agents/notes/implemented/feature/2026-11-06-chat-agent-enabled-switch.md).
 
+### `retention.flow_daily_days`
+
+Remove `retention.flow_daily_days` from `flowbot.yaml` if present. There is no flow daily rollup table; leftover keys are ignored. Edge lifetime follows `retention.data_events_days`.
+
+Rationale: [.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md](../.agents/notes/implemented/feature/2026-11-07-flow-graph-live-aggregation.md).
+
 ## 0.99.18
 
 ### Local CLI gateway and headless agent
