@@ -8,7 +8,7 @@ Life was a full solo RPG productivity vertical (goals, quests, loot, CapLife) th
 
 ## Decision
 
-Hard-delete Life (code, `life_*` schemas, CapLife, web UI, docs, BDD) and ship `internal/modules/analytics` as the User-nav successor: one shell with Personal (default) and Ops sections. v1 uses live store aggregation only (no capability, no `analytics_*` rollup tables). Token usage lives at `/service/web/analytics/token-usage`; `/home/token-usage` redirects. Personal scopes by uid (events, tokens, owned pipeline/function runs); Ops is site-wide. Workflow definitions lack `created_by`, so Personal Activity covers pipeline and function runs only.
+Hard-delete Life (code, `life_*` schemas, CapLife, web UI, docs, BDD) and ship `internal/modules/analytics` as the User-nav successor: one shell with Personal (default) and Ops sections. v1 uses live store aggregation only (no capability, no `analytics_*` rollup tables). Token usage lives at `/service/web/analytics/token-usage`; `/home/token-usage` redirects. Personal scopes by uid (events, tokens, owned pipeline/function runs); Ops is site-wide. Workflow definitions lack `created_by`, so Personal Activity covers pipeline and function runs only. Flows as a third partition (`flow.graph` live aggregation, no `flow_edge_daily`) is locked in [2026-10-30-lineage-flows-in-analytics.md](../architecture/2026-10-30-lineage-flows-in-analytics.md).
 
 ## Alternatives considered
 

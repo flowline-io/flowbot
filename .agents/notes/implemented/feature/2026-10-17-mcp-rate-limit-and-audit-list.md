@@ -16,7 +16,7 @@ Mutation tools record `success`, `failure`, or `rejected`. Scope denial on a mut
 
 `Mcp-Method` and `Mcp-Name` stay on the go-sdk check for protocol `2026-07-28`. This change does not duplicate that check.
 
-`retention.flow_daily_days` zero means 365. The flow aggregate table itself is not built in this change.
+Flow daily rollup and `retention.flow_daily_days` are not part of the product surface; see [2026-10-30-lineage-flows-in-analytics.md](../architecture/2026-10-30-lineage-flows-in-analytics.md).
 
 ## Alternatives considered
 
