@@ -82,4 +82,7 @@ type ResourceLink struct {
 	TargetEntityID   string `json:"target_entity_id,omitempty"`
 	PipelineRunID    int64  `json:"pipeline_run_id,omitempty"`
 	PipelineName     string `json:"pipeline_name,omitempty"`
+	RunKind          string `json:"run_kind,omitempty"`
+	Status           string `json:"status,omitempty"`
+	CorrelationID    string `json:"correlation_id,omitempty"`
 }

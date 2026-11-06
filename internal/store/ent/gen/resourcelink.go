@@ -37,6 +37,12 @@ type ResourceLink struct {
 	PipelineRunID int64 `json:"pipeline_run_id,omitempty"`
 	// PipelineName holds the value of the "pipeline_name" field.
 	PipelineName string `json:"pipeline_name,omitempty"`
+	// RunKind holds the value of the "run_kind" field.
+	RunKind resourcelink.RunKind `json:"run_kind,omitempty"`
+	// Status holds the value of the "status" field.
+	Status resourcelink.Status `json:"status,omitempty"`
+	// CorrelationID holds the value of the "correlation_id" field.
+	CorrelationID string `json:"correlation_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt    time.Time `json:"created_at,omitempty"`
 	selectValues sql.SelectValues
@@ -49,7 +55,7 @@ func (*ResourceLink) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case resourcelink.FieldID, resourcelink.FieldPipelineRunID:
 			values[i] = new(sql.NullInt64)
-		case resourcelink.FieldSourceEventID, resourcelink.FieldTargetEventID, resourcelink.FieldSourceApp, resourcelink.FieldTargetApp, resourcelink.FieldSourceCapability, resourcelink.FieldTargetCapability, resourcelink.FieldSourceEntityID, resourcelink.FieldTargetEntityID, resourcelink.FieldPipelineName:
+		case resourcelink.FieldSourceEventID, resourcelink.FieldTargetEventID, resourcelink.FieldSourceApp, resourcelink.FieldTargetApp, resourcelink.FieldSourceCapability, resourcelink.FieldTargetCapability, resourcelink.FieldSourceEntityID, resourcelink.FieldTargetEntityID, resourcelink.FieldPipelineName, resourcelink.FieldRunKind, resourcelink.FieldStatus, resourcelink.FieldCorrelationID:
 			values[i] = new(sql.NullString)
 		case resourcelink.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -134,6 +140,24 @@ func (_m *ResourceLink) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PipelineName = value.String
 			}
+		case resourcelink.FieldRunKind:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field run_kind", values[i])
+			} else if value.Valid {
+				_m.RunKind = resourcelink.RunKind(value.String)
+			}
+		case resourcelink.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				_m.Status = resourcelink.Status(value.String)
+			}
+		case resourcelink.FieldCorrelationID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field correlation_id", values[i])
+			} else if value.Valid {
+				_m.CorrelationID = value.String
+			}
 		case resourcelink.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -205,6 +229,15 @@ func (_m *ResourceLink) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("pipeline_name=")
 	builder.WriteString(_m.PipelineName)
+	builder.WriteString(", ")
+	builder.WriteString("run_kind=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RunKind))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("correlation_id=")
+	builder.WriteString(_m.CorrelationID)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

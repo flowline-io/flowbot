@@ -1784,8 +1784,12 @@ func init() {
 	resourcelinkDescPipelineName := resourcelinkFields[10].Descriptor()
 	// resourcelink.DefaultPipelineName holds the default value on creation for the pipeline_name field.
 	resourcelink.DefaultPipelineName = resourcelinkDescPipelineName.Default.(string)
+	// resourcelinkDescCorrelationID is the schema descriptor for correlation_id field.
+	resourcelinkDescCorrelationID := resourcelinkFields[13].Descriptor()
+	// resourcelink.DefaultCorrelationID holds the default value on creation for the correlation_id field.
+	resourcelink.DefaultCorrelationID = resourcelinkDescCorrelationID.Default.(string)
 	// resourcelinkDescCreatedAt is the schema descriptor for created_at field.
-	resourcelinkDescCreatedAt := resourcelinkFields[11].Descriptor()
+	resourcelinkDescCreatedAt := resourcelinkFields[14].Descriptor()
 	// resourcelink.DefaultCreatedAt holds the default value on creation for the created_at field.
 	resourcelink.DefaultCreatedAt = resourcelinkDescCreatedAt.Default.(func() time.Time)
 	userFields := schema.User{}.Fields()

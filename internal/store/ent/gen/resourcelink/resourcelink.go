@@ -3,6 +3,7 @@
 package resourcelink
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -33,6 +34,12 @@ const (
 	FieldPipelineRunID = "pipeline_run_id"
 	// FieldPipelineName holds the string denoting the pipeline_name field in the database.
 	FieldPipelineName = "pipeline_name"
+	// FieldRunKind holds the string denoting the run_kind field in the database.
+	FieldRunKind = "run_kind"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldCorrelationID holds the string denoting the correlation_id field in the database.
+	FieldCorrelationID = "correlation_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// Table holds the table name of the resourcelink in the database.
@@ -52,6 +59,9 @@ var Columns = []string{
 	FieldTargetEntityID,
 	FieldPipelineRunID,
 	FieldPipelineName,
+	FieldRunKind,
+	FieldStatus,
+	FieldCorrelationID,
 	FieldCreatedAt,
 }
 
@@ -84,9 +94,66 @@ var (
 	DefaultTargetEntityID string
 	// DefaultPipelineName holds the default value on creation for the "pipeline_name" field.
 	DefaultPipelineName string
+	// DefaultCorrelationID holds the default value on creation for the "correlation_id" field.
+	DefaultCorrelationID string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
+
+// RunKind defines the type for the "run_kind" enum field.
+type RunKind string
+
+// RunKindPipeline is the default value of the RunKind enum.
+const DefaultRunKind = RunKindPipeline
+
+// RunKind values.
+const (
+	RunKindPipeline RunKind = "pipeline"
+	RunKindWorkflow RunKind = "workflow"
+	RunKindFunction RunKind = "function"
+	RunKindMcp      RunKind = "mcp"
+	RunKindManual   RunKind = "manual"
+)
+
+func (rk RunKind) String() string {
+	return string(rk)
+}
+
+// RunKindValidator is a validator for the "run_kind" field enum values. It is called by the builders before save.
+func RunKindValidator(rk RunKind) error {
+	switch rk {
+	case RunKindPipeline, RunKindWorkflow, RunKindFunction, RunKindMcp, RunKindManual:
+		return nil
+	default:
+		return fmt.Errorf("resourcelink: invalid enum value for run_kind field: %q", rk)
+	}
+}
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusOk is the default value of the Status enum.
+const DefaultStatus = StatusOk
+
+// Status values.
+const (
+	StatusOk     Status = "ok"
+	StatusFailed Status = "failed"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusOk, StatusFailed:
+		return nil
+	default:
+		return fmt.Errorf("resourcelink: invalid enum value for status field: %q", s)
+	}
+}
 
 // OrderOption defines the ordering options for the ResourceLink queries.
 type OrderOption func(*sql.Selector)
@@ -144,6 +211,21 @@ func ByPipelineRunID(opts ...sql.OrderTermOption) OrderOption {
 // ByPipelineName orders the results by the pipeline_name field.
 func ByPipelineName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPipelineName, opts...).ToFunc()
+}
+
+// ByRunKind orders the results by the run_kind field.
+func ByRunKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRunKind, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByCorrelationID orders the results by the correlation_id field.
+func ByCorrelationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrelationID, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

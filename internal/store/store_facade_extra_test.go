@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -417,6 +418,7 @@ func TestPipelineStore_RecordResourceLink(t *testing.T) {
 		TargetEntityID:   "99",
 		PipelineRunID:    run.ID,
 		PipelineName:     "link-pipe",
+		CorrelationID:    "cor_01TESTRECORD",
 	}
 	require.NoError(t, store.RecordResourceLink(ctx, link))
 
@@ -425,6 +427,47 @@ func TestPipelineStore_RecordResourceLink(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, links, 1)
 	assert.Equal(t, "forge", links[0].TargetApp)
+	assert.Equal(t, resourcelink.RunKindPipeline, links[0].RunKind)
+	assert.Equal(t, resourcelink.StatusOk, links[0].Status)
+	assert.Equal(t, "cor_01TESTRECORD", links[0].CorrelationID)
+}
+
+func TestResourceChainStore_BackfillResourceLinkDefaults(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	ctx := context.Background()
+
+	_, err := client.DataEvent.Create().
+		SetEventID("evt-src-backfill").
+		SetEventType("test.event").
+		SetSource("test").
+		SetCorrelationID("cor_01BACKFILL").
+		Save(ctx)
+	require.NoError(t, err)
+
+	_, err = client.ResourceLink.Create().
+		SetSourceEventID("evt-src-backfill").
+		SetTargetEventID("evt-tgt-backfill").
+		SetSourceApp("github").
+		SetTargetApp("forge").
+		SetSourceCapability("issue").
+		SetTargetCapability("issue").
+		SetSourceEntityID("42").
+		SetTargetEntityID("99").
+		SetPipelineName("legacy-pipe").
+		SetCorrelationID("").
+		Save(ctx)
+	require.NoError(t, err)
+
+	rc := NewResourceChainStore(client)
+	require.NoError(t, rc.BackfillResourceLinkDefaults(ctx))
+
+	links, err := rc.FindResourceLinks(ctx, []string{"evt-src-backfill"})
+	require.NoError(t, err)
+	require.Len(t, links, 1)
+	assert.Equal(t, resourcelink.RunKindPipeline, links[0].RunKind)
+	assert.Equal(t, resourcelink.StatusOk, links[0].Status)
+	assert.Equal(t, "cor_01BACKFILL", links[0].CorrelationID)
 }
 
 func TestResourceChainStore_FindRelations(t *testing.T) {

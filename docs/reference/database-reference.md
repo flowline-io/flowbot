@@ -95,7 +95,7 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 
 ### Resources
 
-- `resource_links` — Tag/chain links between resources
+- `resource_links` — Tag/chain links between resources (`run_kind`, `status`, `correlation_id`; aggregation index on `source_app`, `target_app`, `created_at`)
 
 ### Data Storage
 

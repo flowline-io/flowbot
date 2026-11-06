@@ -58,9 +58,13 @@ func Migrate() error {
 	if !ok {
 		return errors.New("store: failed to get Ent client from adapter")
 	}
-	err := client.Schema.Create(context.Background())
+	ctx := context.Background()
+	err := client.Schema.Create(ctx)
 	if err != nil {
 		return fmt.Errorf("store: schema migration: %w", err)
+	}
+	if err := NewResourceChainStore(client).BackfillResourceLinkDefaults(ctx); err != nil {
+		return fmt.Errorf("store: resource_links backfill: %w", err)
 	}
 	return nil
 }

@@ -745,6 +745,9 @@ func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step S
 		TargetEntityID:   stepResource.EntityID,
 		PipelineRunID:    runID,
 		PipelineName:     pipelineName,
+		RunKind:          string(types.ResourceLinkRunKindPipeline),
+		Status:           string(types.ResourceLinkStatusOK),
+		CorrelationID:    rc.Event.CorrelationID,
 	}
 	if err := e.store.RecordResourceLink(ctx, link); err != nil {
 		flog.Error(fmt.Errorf("record resource link pipeline %s: %w", pipelineName, err))

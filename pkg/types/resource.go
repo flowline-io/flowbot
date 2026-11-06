@@ -2,6 +2,32 @@ package types
 
 import "time"
 
+// ResourceLinkRunKind names the execution surface that produced a resource_links row.
+type ResourceLinkRunKind string
+
+const (
+	// ResourceLinkRunKindPipeline is a pipeline step edge.
+	ResourceLinkRunKindPipeline ResourceLinkRunKind = "pipeline"
+	// ResourceLinkRunKindWorkflow is a workflow step edge.
+	ResourceLinkRunKindWorkflow ResourceLinkRunKind = "workflow"
+	// ResourceLinkRunKindFunction is a named-function invoke edge.
+	ResourceLinkRunKindFunction ResourceLinkRunKind = "function"
+	// ResourceLinkRunKindMCP is an MCP mutation external-input edge.
+	ResourceLinkRunKindMCP ResourceLinkRunKind = "mcp"
+	// ResourceLinkRunKindManual is a manually recorded edge.
+	ResourceLinkRunKindManual ResourceLinkRunKind = "manual"
+)
+
+// ResourceLinkStatus is the outcome recorded on a resource_links row.
+type ResourceLinkStatus string
+
+const (
+	// ResourceLinkStatusOK is a successful edge.
+	ResourceLinkStatusOK ResourceLinkStatus = "ok"
+	// ResourceLinkStatusFailed is a failed step edge (no target entity).
+	ResourceLinkStatusFailed ResourceLinkStatus = "failed"
+)
+
 // ResourceRef identifies a resource by app, entity_id, and optional metadata.
 type ResourceRef struct {
 	App          string `json:"app"`

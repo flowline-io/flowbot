@@ -8,6 +8,8 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type ResourceLink struct {
@@ -27,6 +29,22 @@ func (ResourceLink) Fields() []ent.Field {
 		field.String("target_entity_id").Default(""),
 		field.Int64("pipeline_run_id").Optional(),
 		field.String("pipeline_name").Default(""),
+		field.Enum("run_kind").
+			Values(
+				string(types.ResourceLinkRunKindPipeline),
+				string(types.ResourceLinkRunKindWorkflow),
+				string(types.ResourceLinkRunKindFunction),
+				string(types.ResourceLinkRunKindMCP),
+				string(types.ResourceLinkRunKindManual),
+			).
+			Default(string(types.ResourceLinkRunKindPipeline)),
+		field.Enum("status").
+			Values(
+				string(types.ResourceLinkStatusOK),
+				string(types.ResourceLinkStatusFailed),
+			).
+			Default(string(types.ResourceLinkStatusOK)),
+		field.String("correlation_id").Default(""),
 		field.Time("created_at").Immutable().Default(time.Now),
 	}
 }
@@ -38,6 +56,8 @@ func (ResourceLink) Indexes() []ent.Index {
 		index.Fields("target_app", "target_entity_id"),
 		index.Fields("source_event_id"),
 		index.Fields("target_event_id"),
+		index.Fields("source_app", "target_app", "created_at"),
+		index.Fields("correlation_id"),
 	}
 }
 

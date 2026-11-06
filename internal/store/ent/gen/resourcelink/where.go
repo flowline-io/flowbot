@@ -104,6 +104,11 @@ func PipelineName(v string) predicate.ResourceLink {
 	return predicate.ResourceLink(sql.FieldEQ(FieldPipelineName, v))
 }
 
+// CorrelationID applies equality check predicate on the "correlation_id" field. It's identical to CorrelationIDEQ.
+func CorrelationID(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldEQ(FieldCorrelationID, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.ResourceLink {
 	return predicate.ResourceLink(sql.FieldEQ(FieldCreatedAt, v))
@@ -742,6 +747,111 @@ func PipelineNameEqualFold(v string) predicate.ResourceLink {
 // PipelineNameContainsFold applies the ContainsFold predicate on the "pipeline_name" field.
 func PipelineNameContainsFold(v string) predicate.ResourceLink {
 	return predicate.ResourceLink(sql.FieldContainsFold(FieldPipelineName, v))
+}
+
+// RunKindEQ applies the EQ predicate on the "run_kind" field.
+func RunKindEQ(v RunKind) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldEQ(FieldRunKind, v))
+}
+
+// RunKindNEQ applies the NEQ predicate on the "run_kind" field.
+func RunKindNEQ(v RunKind) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldNEQ(FieldRunKind, v))
+}
+
+// RunKindIn applies the In predicate on the "run_kind" field.
+func RunKindIn(vs ...RunKind) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldIn(FieldRunKind, vs...))
+}
+
+// RunKindNotIn applies the NotIn predicate on the "run_kind" field.
+func RunKindNotIn(vs ...RunKind) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldNotIn(FieldRunKind, vs...))
+}
+
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldNEQ(FieldStatus, v))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldIn(FieldStatus, vs...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// CorrelationIDEQ applies the EQ predicate on the "correlation_id" field.
+func CorrelationIDEQ(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldEQ(FieldCorrelationID, v))
+}
+
+// CorrelationIDNEQ applies the NEQ predicate on the "correlation_id" field.
+func CorrelationIDNEQ(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldNEQ(FieldCorrelationID, v))
+}
+
+// CorrelationIDIn applies the In predicate on the "correlation_id" field.
+func CorrelationIDIn(vs ...string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldIn(FieldCorrelationID, vs...))
+}
+
+// CorrelationIDNotIn applies the NotIn predicate on the "correlation_id" field.
+func CorrelationIDNotIn(vs ...string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldNotIn(FieldCorrelationID, vs...))
+}
+
+// CorrelationIDGT applies the GT predicate on the "correlation_id" field.
+func CorrelationIDGT(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldGT(FieldCorrelationID, v))
+}
+
+// CorrelationIDGTE applies the GTE predicate on the "correlation_id" field.
+func CorrelationIDGTE(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldGTE(FieldCorrelationID, v))
+}
+
+// CorrelationIDLT applies the LT predicate on the "correlation_id" field.
+func CorrelationIDLT(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldLT(FieldCorrelationID, v))
+}
+
+// CorrelationIDLTE applies the LTE predicate on the "correlation_id" field.
+func CorrelationIDLTE(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldLTE(FieldCorrelationID, v))
+}
+
+// CorrelationIDContains applies the Contains predicate on the "correlation_id" field.
+func CorrelationIDContains(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldContains(FieldCorrelationID, v))
+}
+
+// CorrelationIDHasPrefix applies the HasPrefix predicate on the "correlation_id" field.
+func CorrelationIDHasPrefix(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldHasPrefix(FieldCorrelationID, v))
+}
+
+// CorrelationIDHasSuffix applies the HasSuffix predicate on the "correlation_id" field.
+func CorrelationIDHasSuffix(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldHasSuffix(FieldCorrelationID, v))
+}
+
+// CorrelationIDEqualFold applies the EqualFold predicate on the "correlation_id" field.
+func CorrelationIDEqualFold(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldEqualFold(FieldCorrelationID, v))
+}
+
+// CorrelationIDContainsFold applies the ContainsFold predicate on the "correlation_id" field.
+func CorrelationIDContainsFold(v string) predicate.ResourceLink {
+	return predicate.ResourceLink(sql.FieldContainsFold(FieldCorrelationID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

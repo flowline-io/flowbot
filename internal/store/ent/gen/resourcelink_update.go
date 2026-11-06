@@ -180,6 +180,48 @@ func (_u *ResourceLinkUpdate) SetNillablePipelineName(v *string) *ResourceLinkUp
 	return _u
 }
 
+// SetRunKind sets the "run_kind" field.
+func (_u *ResourceLinkUpdate) SetRunKind(v resourcelink.RunKind) *ResourceLinkUpdate {
+	_u.mutation.SetRunKind(v)
+	return _u
+}
+
+// SetNillableRunKind sets the "run_kind" field if the given value is not nil.
+func (_u *ResourceLinkUpdate) SetNillableRunKind(v *resourcelink.RunKind) *ResourceLinkUpdate {
+	if v != nil {
+		_u.SetRunKind(*v)
+	}
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *ResourceLinkUpdate) SetStatus(v resourcelink.Status) *ResourceLinkUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *ResourceLinkUpdate) SetNillableStatus(v *resourcelink.Status) *ResourceLinkUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (_u *ResourceLinkUpdate) SetCorrelationID(v string) *ResourceLinkUpdate {
+	_u.mutation.SetCorrelationID(v)
+	return _u
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_u *ResourceLinkUpdate) SetNillableCorrelationID(v *string) *ResourceLinkUpdate {
+	if v != nil {
+		_u.SetCorrelationID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ResourceLinkMutation object of the builder.
 func (_u *ResourceLinkUpdate) Mutation() *ResourceLinkMutation {
 	return _u.mutation
@@ -222,6 +264,16 @@ func (_u *ResourceLinkUpdate) check() error {
 	if v, ok := _u.mutation.TargetEventID(); ok {
 		if err := resourcelink.TargetEventIDValidator(v); err != nil {
 			return &ValidationError{Name: "target_event_id", err: fmt.Errorf(`gen: validator failed for field "ResourceLink.target_event_id": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RunKind(); ok {
+		if err := resourcelink.RunKindValidator(v); err != nil {
+			return &ValidationError{Name: "run_kind", err: fmt.Errorf(`gen: validator failed for field "ResourceLink.run_kind": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := resourcelink.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "ResourceLink.status": %w`, err)}
 		}
 	}
 	return nil
@@ -274,6 +326,15 @@ func (_u *ResourceLinkUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.PipelineName(); ok {
 		_spec.SetField(resourcelink.FieldPipelineName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RunKind(); ok {
+		_spec.SetField(resourcelink.FieldRunKind, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(resourcelink.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.CorrelationID(); ok {
+		_spec.SetField(resourcelink.FieldCorrelationID, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -448,6 +509,48 @@ func (_u *ResourceLinkUpdateOne) SetNillablePipelineName(v *string) *ResourceLin
 	return _u
 }
 
+// SetRunKind sets the "run_kind" field.
+func (_u *ResourceLinkUpdateOne) SetRunKind(v resourcelink.RunKind) *ResourceLinkUpdateOne {
+	_u.mutation.SetRunKind(v)
+	return _u
+}
+
+// SetNillableRunKind sets the "run_kind" field if the given value is not nil.
+func (_u *ResourceLinkUpdateOne) SetNillableRunKind(v *resourcelink.RunKind) *ResourceLinkUpdateOne {
+	if v != nil {
+		_u.SetRunKind(*v)
+	}
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *ResourceLinkUpdateOne) SetStatus(v resourcelink.Status) *ResourceLinkUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *ResourceLinkUpdateOne) SetNillableStatus(v *resourcelink.Status) *ResourceLinkUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (_u *ResourceLinkUpdateOne) SetCorrelationID(v string) *ResourceLinkUpdateOne {
+	_u.mutation.SetCorrelationID(v)
+	return _u
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_u *ResourceLinkUpdateOne) SetNillableCorrelationID(v *string) *ResourceLinkUpdateOne {
+	if v != nil {
+		_u.SetCorrelationID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ResourceLinkMutation object of the builder.
 func (_u *ResourceLinkUpdateOne) Mutation() *ResourceLinkMutation {
 	return _u.mutation
@@ -503,6 +606,16 @@ func (_u *ResourceLinkUpdateOne) check() error {
 	if v, ok := _u.mutation.TargetEventID(); ok {
 		if err := resourcelink.TargetEventIDValidator(v); err != nil {
 			return &ValidationError{Name: "target_event_id", err: fmt.Errorf(`gen: validator failed for field "ResourceLink.target_event_id": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RunKind(); ok {
+		if err := resourcelink.RunKindValidator(v); err != nil {
+			return &ValidationError{Name: "run_kind", err: fmt.Errorf(`gen: validator failed for field "ResourceLink.run_kind": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := resourcelink.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "ResourceLink.status": %w`, err)}
 		}
 	}
 	return nil
@@ -572,6 +685,15 @@ func (_u *ResourceLinkUpdateOne) sqlSave(ctx context.Context) (_node *ResourceLi
 	}
 	if value, ok := _u.mutation.PipelineName(); ok {
 		_spec.SetField(resourcelink.FieldPipelineName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RunKind(); ok {
+		_spec.SetField(resourcelink.FieldRunKind, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(resourcelink.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.CorrelationID(); ok {
+		_spec.SetField(resourcelink.FieldCorrelationID, field.TypeString, value)
 	}
 	_node = &ResourceLink{config: _u.config}
 	_spec.Assign = _node.assignValues

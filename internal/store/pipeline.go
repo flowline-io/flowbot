@@ -282,6 +282,14 @@ func (s *PipelineStore) RecordResourceLink(ctx context.Context, link *gen.Resour
 	if s == nil || s.client == nil {
 		return nil
 	}
+	runKind := link.RunKind
+	if runKind == "" {
+		runKind = resourcelink.RunKindPipeline
+	}
+	status := link.Status
+	if status == "" {
+		status = resourcelink.StatusOk
+	}
 	err := s.client.ResourceLink.Create().
 		SetSourceEventID(link.SourceEventID).
 		SetTargetEventID(link.TargetEventID).
@@ -293,6 +301,9 @@ func (s *PipelineStore) RecordResourceLink(ctx context.Context, link *gen.Resour
 		SetTargetEntityID(link.TargetEntityID).
 		SetPipelineRunID(link.PipelineRunID).
 		SetPipelineName(link.PipelineName).
+		SetRunKind(runKind).
+		SetStatus(status).
+		SetCorrelationID(link.CorrelationID).
 		SetCreatedAt(time.Now()).
 		OnConflictColumns(
 			resourcelink.FieldSourceEventID,

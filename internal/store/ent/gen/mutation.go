@@ -40587,6 +40587,9 @@ type ResourceLinkMutation struct {
 	pipeline_run_id    *int64
 	addpipeline_run_id *int64
 	pipeline_name      *string
+	run_kind           *resourcelink.RunKind
+	status             *resourcelink.Status
+	correlation_id     *string
 	created_at         *time.Time
 	clearedFields      map[string]struct{}
 	done               bool
@@ -41092,6 +41095,114 @@ func (m *ResourceLinkMutation) ResetPipelineName() {
 	m.pipeline_name = nil
 }
 
+// SetRunKind sets the "run_kind" field.
+func (m *ResourceLinkMutation) SetRunKind(rk resourcelink.RunKind) {
+	m.run_kind = &rk
+}
+
+// RunKind returns the value of the "run_kind" field in the mutation.
+func (m *ResourceLinkMutation) RunKind() (r resourcelink.RunKind, exists bool) {
+	v := m.run_kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRunKind returns the old "run_kind" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldRunKind(ctx context.Context) (v resourcelink.RunKind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRunKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRunKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRunKind: %w", err)
+	}
+	return oldValue.RunKind, nil
+}
+
+// ResetRunKind resets all changes to the "run_kind" field.
+func (m *ResourceLinkMutation) ResetRunKind() {
+	m.run_kind = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *ResourceLinkMutation) SetStatus(r resourcelink.Status) {
+	m.status = &r
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ResourceLinkMutation) Status() (r resourcelink.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldStatus(ctx context.Context) (v resourcelink.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ResourceLinkMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (m *ResourceLinkMutation) SetCorrelationID(s string) {
+	m.correlation_id = &s
+}
+
+// CorrelationID returns the value of the "correlation_id" field in the mutation.
+func (m *ResourceLinkMutation) CorrelationID() (r string, exists bool) {
+	v := m.correlation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCorrelationID returns the old "correlation_id" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldCorrelationID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCorrelationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCorrelationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCorrelationID: %w", err)
+	}
+	return oldValue.CorrelationID, nil
+}
+
+// ResetCorrelationID resets all changes to the "correlation_id" field.
+func (m *ResourceLinkMutation) ResetCorrelationID() {
+	m.correlation_id = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *ResourceLinkMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -41162,7 +41273,7 @@ func (m *ResourceLinkMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ResourceLinkMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 14)
 	if m.source_event_id != nil {
 		fields = append(fields, resourcelink.FieldSourceEventID)
 	}
@@ -41192,6 +41303,15 @@ func (m *ResourceLinkMutation) Fields() []string {
 	}
 	if m.pipeline_name != nil {
 		fields = append(fields, resourcelink.FieldPipelineName)
+	}
+	if m.run_kind != nil {
+		fields = append(fields, resourcelink.FieldRunKind)
+	}
+	if m.status != nil {
+		fields = append(fields, resourcelink.FieldStatus)
+	}
+	if m.correlation_id != nil {
+		fields = append(fields, resourcelink.FieldCorrelationID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, resourcelink.FieldCreatedAt)
@@ -41224,6 +41344,12 @@ func (m *ResourceLinkMutation) Field(name string) (ent.Value, bool) {
 		return m.PipelineRunID()
 	case resourcelink.FieldPipelineName:
 		return m.PipelineName()
+	case resourcelink.FieldRunKind:
+		return m.RunKind()
+	case resourcelink.FieldStatus:
+		return m.Status()
+	case resourcelink.FieldCorrelationID:
+		return m.CorrelationID()
 	case resourcelink.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -41255,6 +41381,12 @@ func (m *ResourceLinkMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldPipelineRunID(ctx)
 	case resourcelink.FieldPipelineName:
 		return m.OldPipelineName(ctx)
+	case resourcelink.FieldRunKind:
+		return m.OldRunKind(ctx)
+	case resourcelink.FieldStatus:
+		return m.OldStatus(ctx)
+	case resourcelink.FieldCorrelationID:
+		return m.OldCorrelationID(ctx)
 	case resourcelink.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
@@ -41335,6 +41467,27 @@ func (m *ResourceLinkMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPipelineName(v)
+		return nil
+	case resourcelink.FieldRunKind:
+		v, ok := value.(resourcelink.RunKind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRunKind(v)
+		return nil
+	case resourcelink.FieldStatus:
+		v, ok := value.(resourcelink.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case resourcelink.FieldCorrelationID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCorrelationID(v)
 		return nil
 	case resourcelink.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -41445,6 +41598,15 @@ func (m *ResourceLinkMutation) ResetField(name string) error {
 		return nil
 	case resourcelink.FieldPipelineName:
 		m.ResetPipelineName()
+		return nil
+	case resourcelink.FieldRunKind:
+		m.ResetRunKind()
+		return nil
+	case resourcelink.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case resourcelink.FieldCorrelationID:
+		m.ResetCorrelationID()
 		return nil
 	case resourcelink.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -120,11 +120,49 @@ func (s *ResourceChainStore) FindResourceLinks(ctx context.Context, eventIDs []s
 			TargetEntityID:   l.TargetEntityID,
 			PipelineRunID:    l.PipelineRunID,
 			PipelineName:     l.PipelineName,
+			RunKind:          l.RunKind,
+			Status:           l.Status,
+			CorrelationID:    l.CorrelationID,
 			CreatedAt:        l.CreatedAt,
 		}
 	}
 
 	return result, nil
+}
+
+// BackfillResourceLinkDefaults copies correlation_id from the source data_event
+// onto pre-generalization rows that still have an empty correlation_id.
+// run_kind and status rely on Ent column defaults applied by Schema.Create.
+func (s *ResourceChainStore) BackfillResourceLinkDefaults(ctx context.Context) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
+	links, err := s.client.ResourceLink.Query().
+		Where(resourcelink.CorrelationIDEQ("")).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("backfill resource_links correlation_id: query: %w", err)
+	}
+	for _, link := range links {
+		evt, err := s.client.DataEvent.Query().
+			Where(dataevent.EventIDEQ(link.SourceEventID)).
+			Only(ctx)
+		if err != nil {
+			if gen.IsNotFound(err) {
+				continue
+			}
+			return fmt.Errorf("backfill resource_links correlation_id: lookup %s: %w", link.SourceEventID, err)
+		}
+		if evt.CorrelationID == "" {
+			continue
+		}
+		if _, err := s.client.ResourceLink.UpdateOneID(link.ID).
+			SetCorrelationID(evt.CorrelationID).
+			Save(ctx); err != nil {
+			return fmt.Errorf("backfill resource_links correlation_id: update %d: %w", link.ID, err)
+		}
+	}
+	return nil
 }
 
 // FindRelations returns upstream and downstream resource references

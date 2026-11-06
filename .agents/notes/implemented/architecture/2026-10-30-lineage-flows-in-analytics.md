@@ -16,7 +16,7 @@ D17: `retention.flow_daily_days` is deleted. Edge lifetime follows `data_events`
 
 D15 layering: `internal/store` owns the SQL and query shapes; the analytics domain service owns `flow.graph` (and related read orchestration); MCP tools call that service; REST for flows/lineage graph reads is mounted by the analytics module (not a revived `modules/lineage`, and not hub).
 
-T45.2 (`resource_links` generalization and backfill) and later lineage tasks proceed only under this note. They must not introduce `flow_edge_daily` or restore `retention.flow_daily_days`.
+T45.2 (`resource_links` generalization and backfill) and later lineage tasks proceed only under this note. They must not introduce `flow_edge_daily` or restore `retention.flow_daily_days`. The schema slice that shipped is [2026-11-07-resource-links-generalization.md](../feature/2026-11-07-resource-links-generalization.md).
 
 ## Alternatives considered
 

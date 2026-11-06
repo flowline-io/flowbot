@@ -1508,6 +1508,9 @@ var (
 		{Name: "target_entity_id", Type: field.TypeString, Default: ""},
 		{Name: "pipeline_run_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "pipeline_name", Type: field.TypeString, Default: ""},
+		{Name: "run_kind", Type: field.TypeEnum, Enums: []string{"pipeline", "workflow", "function", "mcp", "manual"}, Default: "pipeline"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ok", "failed"}, Default: "ok"},
+		{Name: "correlation_id", Type: field.TypeString, Default: ""},
 		{Name: "created_at", Type: field.TypeTime},
 	}
 	// ResourceLinksTable holds the schema information for the "resource_links" table.
@@ -1540,6 +1543,16 @@ var (
 				Name:    "resourcelink_target_event_id",
 				Unique:  false,
 				Columns: []*schema.Column{ResourceLinksColumns[2]},
+			},
+			{
+				Name:    "resourcelink_source_app_target_app_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ResourceLinksColumns[3], ResourceLinksColumns[4], ResourceLinksColumns[14]},
+			},
+			{
+				Name:    "resourcelink_correlation_id",
+				Unique:  false,
+				Columns: []*schema.Column{ResourceLinksColumns[13]},
 			},
 		},
 	}

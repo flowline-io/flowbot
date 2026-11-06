@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -138,6 +139,9 @@ func (a PipelineRunStoreAdapter) RecordResourceLink(ctx context.Context, link mo
 		TargetEntityID:   link.TargetEntityID,
 		PipelineRunID:    link.PipelineRunID,
 		PipelineName:     link.PipelineName,
+		RunKind:          resourcelink.RunKind(link.RunKind),
+		Status:           resourcelink.Status(link.Status),
+		CorrelationID:    link.CorrelationID,
 	})
 }
 

@@ -146,6 +146,48 @@ func (_c *ResourceLinkCreate) SetNillablePipelineName(v *string) *ResourceLinkCr
 	return _c
 }
 
+// SetRunKind sets the "run_kind" field.
+func (_c *ResourceLinkCreate) SetRunKind(v resourcelink.RunKind) *ResourceLinkCreate {
+	_c.mutation.SetRunKind(v)
+	return _c
+}
+
+// SetNillableRunKind sets the "run_kind" field if the given value is not nil.
+func (_c *ResourceLinkCreate) SetNillableRunKind(v *resourcelink.RunKind) *ResourceLinkCreate {
+	if v != nil {
+		_c.SetRunKind(*v)
+	}
+	return _c
+}
+
+// SetStatus sets the "status" field.
+func (_c *ResourceLinkCreate) SetStatus(v resourcelink.Status) *ResourceLinkCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *ResourceLinkCreate) SetNillableStatus(v *resourcelink.Status) *ResourceLinkCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
+	return _c
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (_c *ResourceLinkCreate) SetCorrelationID(v string) *ResourceLinkCreate {
+	_c.mutation.SetCorrelationID(v)
+	return _c
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_c *ResourceLinkCreate) SetNillableCorrelationID(v *string) *ResourceLinkCreate {
+	if v != nil {
+		_c.SetCorrelationID(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *ResourceLinkCreate) SetCreatedAt(v time.Time) *ResourceLinkCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -229,6 +271,18 @@ func (_c *ResourceLinkCreate) defaults() {
 		v := resourcelink.DefaultPipelineName
 		_c.mutation.SetPipelineName(v)
 	}
+	if _, ok := _c.mutation.RunKind(); !ok {
+		v := resourcelink.DefaultRunKind
+		_c.mutation.SetRunKind(v)
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := resourcelink.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
+	if _, ok := _c.mutation.CorrelationID(); !ok {
+		v := resourcelink.DefaultCorrelationID
+		_c.mutation.SetCorrelationID(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := resourcelink.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -273,6 +327,25 @@ func (_c *ResourceLinkCreate) check() error {
 	}
 	if _, ok := _c.mutation.PipelineName(); !ok {
 		return &ValidationError{Name: "pipeline_name", err: errors.New(`gen: missing required field "ResourceLink.pipeline_name"`)}
+	}
+	if _, ok := _c.mutation.RunKind(); !ok {
+		return &ValidationError{Name: "run_kind", err: errors.New(`gen: missing required field "ResourceLink.run_kind"`)}
+	}
+	if v, ok := _c.mutation.RunKind(); ok {
+		if err := resourcelink.RunKindValidator(v); err != nil {
+			return &ValidationError{Name: "run_kind", err: fmt.Errorf(`gen: validator failed for field "ResourceLink.run_kind": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`gen: missing required field "ResourceLink.status"`)}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := resourcelink.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "ResourceLink.status": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.CorrelationID(); !ok {
+		return &ValidationError{Name: "correlation_id", err: errors.New(`gen: missing required field "ResourceLink.correlation_id"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "ResourceLink.created_at"`)}
@@ -349,6 +422,18 @@ func (_c *ResourceLinkCreate) createSpec() (*ResourceLink, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.PipelineName(); ok {
 		_spec.SetField(resourcelink.FieldPipelineName, field.TypeString, value)
 		_node.PipelineName = value
+	}
+	if value, ok := _c.mutation.RunKind(); ok {
+		_spec.SetField(resourcelink.FieldRunKind, field.TypeEnum, value)
+		_node.RunKind = value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(resourcelink.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
+	}
+	if value, ok := _c.mutation.CorrelationID(); ok {
+		_spec.SetField(resourcelink.FieldCorrelationID, field.TypeString, value)
+		_node.CorrelationID = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(resourcelink.FieldCreatedAt, field.TypeTime, value)
@@ -535,6 +620,42 @@ func (u *ResourceLinkUpsert) SetPipelineName(v string) *ResourceLinkUpsert {
 // UpdatePipelineName sets the "pipeline_name" field to the value that was provided on create.
 func (u *ResourceLinkUpsert) UpdatePipelineName() *ResourceLinkUpsert {
 	u.SetExcluded(resourcelink.FieldPipelineName)
+	return u
+}
+
+// SetRunKind sets the "run_kind" field.
+func (u *ResourceLinkUpsert) SetRunKind(v resourcelink.RunKind) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldRunKind, v)
+	return u
+}
+
+// UpdateRunKind sets the "run_kind" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateRunKind() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldRunKind)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *ResourceLinkUpsert) SetStatus(v resourcelink.Status) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateStatus() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldStatus)
+	return u
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *ResourceLinkUpsert) SetCorrelationID(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldCorrelationID, v)
+	return u
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateCorrelationID() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldCorrelationID)
 	return u
 }
 
@@ -740,6 +861,48 @@ func (u *ResourceLinkUpsertOne) SetPipelineName(v string) *ResourceLinkUpsertOne
 func (u *ResourceLinkUpsertOne) UpdatePipelineName() *ResourceLinkUpsertOne {
 	return u.Update(func(s *ResourceLinkUpsert) {
 		s.UpdatePipelineName()
+	})
+}
+
+// SetRunKind sets the "run_kind" field.
+func (u *ResourceLinkUpsertOne) SetRunKind(v resourcelink.RunKind) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetRunKind(v)
+	})
+}
+
+// UpdateRunKind sets the "run_kind" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateRunKind() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateRunKind()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *ResourceLinkUpsertOne) SetStatus(v resourcelink.Status) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateStatus() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *ResourceLinkUpsertOne) SetCorrelationID(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetCorrelationID(v)
+	})
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateCorrelationID() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateCorrelationID()
 	})
 }
 
@@ -1111,6 +1274,48 @@ func (u *ResourceLinkUpsertBulk) SetPipelineName(v string) *ResourceLinkUpsertBu
 func (u *ResourceLinkUpsertBulk) UpdatePipelineName() *ResourceLinkUpsertBulk {
 	return u.Update(func(s *ResourceLinkUpsert) {
 		s.UpdatePipelineName()
+	})
+}
+
+// SetRunKind sets the "run_kind" field.
+func (u *ResourceLinkUpsertBulk) SetRunKind(v resourcelink.RunKind) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetRunKind(v)
+	})
+}
+
+// UpdateRunKind sets the "run_kind" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateRunKind() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateRunKind()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *ResourceLinkUpsertBulk) SetStatus(v resourcelink.Status) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateStatus() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *ResourceLinkUpsertBulk) SetCorrelationID(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetCorrelationID(v)
+	})
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateCorrelationID() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateCorrelationID()
 	})
 }
 
