@@ -26,6 +26,8 @@ const (
 	csrfFormField       = "csrf_token"
 	csrfIdleTimeout     = 30 * time.Minute
 	testCSRFToken       = "flowbot-test-csrf-token-32bytes!"
+	// Fiber CSRF storage_manager prefixes Storage keys (unexported storagePrefix).
+	csrfStoragePrefix = "csrf:"
 )
 
 var (
@@ -243,7 +245,8 @@ func AttachCSRFForTest(req *http.Request) {
 }
 
 func seedCSRFToken(token string) {
-	csrfStore().put(token, csrfDummyValue, csrfIdleTimeout)
+	// Mirror Fiber middleware/csrf storagePrefix so GetWithContext finds the key.
+	csrfStore().put(csrfStoragePrefix+token, csrfDummyValue, csrfIdleTimeout)
 }
 
 // addWebAuth attaches the standard test accessToken cookie and CSRF double-submit pair.
