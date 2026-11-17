@@ -76,7 +76,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/fx v1.24.0
-	golang.org/x/crypto v0.58.0
+	golang.org/x/crypto v0.59.0
 	golang.org/x/net v0.62.0
 	golang.org/x/sys v0.50.0
 	golang.org/x/term v0.48.0
@@ -543,6 +543,7 @@ require (
 	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
 	gocloud.dev v0.45.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
+	golang.org/x/crypto/openpgp v0.1.0-deprecated // indirect
 	golang.org/x/mod v0.43.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
