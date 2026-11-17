@@ -65,7 +65,7 @@ require (
 	github.com/swaggo/swag v1.16.6
 	github.com/testcontainers/testcontainers-go v0.45.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.45.0
-	github.com/tidwall/gjson v1.20.2
+	github.com/tidwall/gjson v1.20.3
 	github.com/tmc/langchaingo v0.1.15
 	github.com/valyala/fasthttp v1.78.0
 	github.com/yuin/goldmark v1.8.7
