@@ -81,7 +81,7 @@ require (
 	golang.org/x/sys v0.50.0
 	golang.org/x/term v0.48.0
 	golang.org/x/text v0.44.0
-	golang.org/x/tools v0.52.0
+	golang.org/x/tools v0.53.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	miniflux.app/v2 v2.3.5
 	modernc.org/sqlite v1.63.0
@@ -547,7 +547,7 @@ require (
 	golang.org/x/mod v0.43.0 // indirect
 	golang.org/x/oauth2 v0.38.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
-	golang.org/x/telemetry v0.0.0-20261009151841-97e8ea77aa2a // indirect
+	golang.org/x/telemetry v0.0.0-20261116191925-e77a43154acb // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect
 	golang.org/x/vuln v1.1.4 // indirect
